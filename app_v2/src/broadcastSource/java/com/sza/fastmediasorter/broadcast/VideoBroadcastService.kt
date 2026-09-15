@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.broadcast
 
 import android.Manifest
 import android.app.Service
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,6 +10,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.pedro.common.ConnectChecker
 import com.pedro.encoder.input.video.CameraOpenException
@@ -124,9 +126,16 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             textRes = R.string.broadcast_notification_video_text,
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            var type = ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && currentMode != BroadcastMode.VIDEO_ONLY) {
-                type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            val type = resolveForegroundType(declaredForegroundServiceTypes(this))
+            if (type == null) {
+                Timber.w("VideoBroadcastService: no foreground type available for a video-only session")
+                isStreaming.set(false)
+                _state.value = BroadcastState.Failed(
+                    BroadcastFailure.MICROPHONE_PERMISSION,
+                    "Microphone permission missing for a video-only session"
+                )
+                stopSelf()
+                return
             }
             startForeground(NotificationIds.PHONE_BROADCAST, notification, type)
         } else {
@@ -403,6 +412,24 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         Timber.d("VideoBroadcastService: auth success")
     }
 
+    /**
+     * Picks the foreground types this session may claim from what the flavor manifest declares. A build
+     * without the camera type still needs a declared type for a video-only session, and the microphone is
+     * the only one it has - Android 14 refuses that type until the permission is granted, hence null.
+     */
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun resolveForegroundType(declared: Int): Int? {
+        var type = declared and ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+        val needsMicrophoneType = currentMode != BroadcastMode.VIDEO_ONLY || type == 0
+        if (needsMicrophoneType && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val micGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED
+            if (!micGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return null
+            type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+        }
+        return type
+    }
+
     companion object {
         const val ACTION_STOP = "com.sza.fastmediasorter.broadcast.action.VIDEO_STOP"
         const val ACTION_TOGGLE_MIC = "com.sza.fastmediasorter.broadcast.action.TOGGLE_MIC"
@@ -461,6 +488,19 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             if (_state.value is BroadcastState.Failed) {
                 _state.value = BroadcastState.Idle
             }
+        }
+
+        /** The service's `foregroundServiceType` as the merged manifest of this flavor declares it (S3154). */
+        @RequiresApi(Build.VERSION_CODES.Q)
+        fun declaredForegroundServiceTypes(context: Context): Int {
+            val component = ComponentName(context, VideoBroadcastService::class.java)
+            val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getServiceInfo(component, PackageManager.ComponentInfoFlags.of(0L))
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getServiceInfo(component, 0)
+            }
+            return info.foregroundServiceType
         }
     }
 }

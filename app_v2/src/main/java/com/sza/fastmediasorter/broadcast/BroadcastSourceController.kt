@@ -39,6 +39,13 @@ sealed interface BroadcastState {
  */
 interface BroadcastSourceController {
     val isAvailable: Boolean
+
+    /**
+     * Whether a video broadcast keeps its camera after the app leaves the screen. Only a build that
+     * declares the camera foreground-service type can; elsewhere the session lives while the app is visible.
+     */
+    val cameraSurvivesBackground: Boolean get() = false
+
     val state: StateFlow<BroadcastState>
 
     // S3038: live count of connected listeners, published by the server.

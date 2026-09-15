@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
 
+    <!-- S3154: VideoBroadcastService is declared per flavor in src/broadcastVideoForeground (store
+         builds, no camera foreground-service type) and src/broadcastVideoBackground (noLegal). Two
+         injected manifests share one merger priority, so the service cannot live here and be
+         overridden there. -->
     <application>
         <service
             android:name="com.sza.fastmediasorter.broadcast.BroadcastCaptureService"
             android:exported="false"
             android:foregroundServiceType="microphone" />
-        <service
-            android:name="com.sza.fastmediasorter.broadcast.VideoBroadcastService"
-            android:exported="false"
-            android:foregroundServiceType="camera|microphone" />
 
         <!-- S2818: broadcast entry surfaces - Quick Settings tile + home-screen widget. Declared in
              this static manifest (injected by app_v2/build.gradle.kts for standard/noLegal/legacy

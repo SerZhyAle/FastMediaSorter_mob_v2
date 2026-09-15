@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S3154: store-flavor declaration of the camera broadcast service. No camera foreground-service type
+  and no FOREGROUND_SERVICE_CAMERA: Google Play requires a declared background-camera use case for
+  that permission, and the store builds keep the camera only while the app is on screen.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <service
+            android:name="com.sza.fastmediasorter.broadcast.VideoBroadcastService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+    </application>
+</manifest>

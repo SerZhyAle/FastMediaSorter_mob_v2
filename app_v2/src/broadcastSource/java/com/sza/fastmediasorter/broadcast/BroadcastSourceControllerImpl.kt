@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.broadcast
 
 import android.content.Context
+import android.content.pm.ServiceInfo
+import android.os.Build
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +22,11 @@ class BroadcastSourceControllerImpl @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     override val isAvailable: Boolean = true
+
+    override val cameraSurvivesBackground: Boolean by lazy {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+            (VideoBroadcastService.declaredForegroundServiceTypes(context) and ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA) != 0
+    }
 
     override val state: StateFlow<BroadcastState> = combine(
         BroadcastCaptureService.state,
