@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.data.tourist
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.hardware.Sensor
@@ -199,6 +200,11 @@ class AndroidWearTouristRepository @Inject constructor(
         }
     }
 
+    // S3155: every call in this function sits behind the hasLocationPermission() early return on its
+    // first line and inside the SecurityException catch below. Lint follows neither a custom
+    // permission helper nor a catch around the call, so all five findings here are the same blind
+    // spot; the guard they claim is missing is the line that opens the body.
+    @SuppressLint("MissingPermission")
     @Suppress("LongParameterList")
     private fun registerLocationAndGnss(
         locationManager: LocationManager?,

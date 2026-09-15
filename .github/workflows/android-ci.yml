@@ -356,6 +356,12 @@ jobs:
   # only when all issues are in the baseline. When the baseline drifts (new code, new
   # lint checks, or a broken regeneration), this job brings it back in sync from the
   # CI environment where lint runs to completion. S2883.
+  #
+  # S3155: BOTH modules, not just app_v2. The wear module gained a lint configuration and a
+  # baseline of its own, and a recovery path that knew nothing of it would leave a wear drift
+  # with nowhere to go. Regeneration is deliberately manual and deliberately last: it records
+  # whatever is currently failing as accepted, so running it before the real defects are fixed
+  # is how a genuine bug becomes an invisible baseline row.
   # ─────────────────────────────────────────────
   regenerate-lint-baseline:
     name: Regenerate Lint Baseline
@@ -386,23 +392,28 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Delete old baseline
-        run: rm -f app_v2/lint-baseline.xml
+      - name: Delete old baselines
+        run: rm -f app_v2/lint-baseline.xml wear/lint-baseline.xml
 
-      - name: Run lint to regenerate baseline
-        run: ./gradlew :app_v2:lintStandardDebug --continue --stacktrace
+      # -Pandroid.experimental.lint.missingBaselineIsEmptyBaseline=false overrides the repository
+      # default set in gradle.properties. That default makes a missing baseline mean an EMPTY one,
+      # so an ordinary run reports everything and writes nothing - which is what stops a baseline
+      # being created by accident. This job is the one place that WANTS the file written, so it
+      # turns the flag off for its own invocation only.
+      - name: Run lint to regenerate baselines
+        run: ./gradlew :app_v2:lintStandardDebug :wear:lintStandardDebug --continue --stacktrace -Pandroid.experimental.lint.missingBaselineIsEmptyBaseline=false
         env:
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
 
-      - name: Verify baseline was created
-        run: test -f app_v2/lint-baseline.xml
+      - name: Verify baselines were created
+        run: test -f app_v2/lint-baseline.xml && test -f wear/lint-baseline.xml
 
-      - name: Commit and push new baseline
+      - name: Commit and push new baselines
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app_v2/lint-baseline.xml
-          git commit -m "chore: regenerate lint baseline (S2883)" || echo "Nothing to commit"
+          git add app_v2/lint-baseline.xml wear/lint-baseline.xml
+          git commit -m "chore: regenerate lint baselines for both modules (S3155)" || echo "Nothing to commit"
           git push
 
   # ─────────────────────────────────────────────

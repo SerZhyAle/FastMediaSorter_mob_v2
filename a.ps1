@@ -44,6 +44,8 @@
            in it. A change to a flavor manifest needs fwrn, and its merged output is the only
            place the permission's presence or absence can actually be read.
     flr  - Fast lint-rules detector test suite (:lint-rules:test)
+    fl   - Android lint, app_v2 (:app_v2:lintStandardDebug) - runs long, background it
+    flw  - Android lint, wear (:wear:lintStandardDebug) - runs long, background it
     fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in)
     fs   - Script regression suites (bare = full sweep, background it; -ChangedFiles "<paths>", -ListOnly)
     mb   - Run standard macrobenchmark suite
@@ -62,6 +64,8 @@
     nd   - Build noLegal Debug
     wd   - Build Wear OS Debug and distribute APK
     iw   - Build and install noLegal Wear OS Debug APK on a selected watch
+    r0   - MONO queue: one agent alone on the project, children run `/spec-all -m <id>` with no
+           lease, lock or chat wait; starts by dropping every leftover lease, lock and queue (S3158)
     r1   - Run the release queue unattended, instance A (one fresh claude process per ticket)
     r2   - Same, instance B - the second parallel stream, staggered so it does not race A
     r3   - Same, instance C - the third parallel stream, staggered further so it does not race A or B
@@ -262,6 +266,10 @@ $scripts = @{
     # The flavor is named rather than defaulted: S2090 gave the watch a standard/noLegal dimension.
     'fwm'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'ConnectedAndroidTest'; Module = 'wear'; Flavor = 'Standard'; Tests = 'com.sza.fastmediasorter.wear.data.db' } }
     'flr'       = @{ Path = 'scripts\builders\check-lint-rules.ps1'; Args = @{} }  # S1195: custom lint detectors' own test suite
+    # S3155: lint itself, per module. Until this ticket no target ran it at all, so CI was the only
+    # place it executed and hundreds of errors accumulated unseen. Both run long - background them.
+    'fl'        = @{ Path = 'scripts\builders\check-lint.ps1'; Args = @{ Module = 'app_v2' } }
+    'flw'       = @{ Path = 'scripts\builders\check-lint.ps1'; Args = @{ Module = 'wear' } }
     'fg'        = @{ Path = 'scripts\quality\assert-fast-gates.ps1'; Args = @{} }  # S0826: batch fast static gates in one process
     # S2122: the repository's *.tests/Run-Tests.ps1 suites, by hand. Bare = the full sweep (measured
     # over 120 s, so background it); `-ChangedFiles "<paths>"` runs only the suites guarding those
@@ -288,6 +296,9 @@ $scripts = @{
     # r2 and r3 stagger their first ranking, each by a wider window than the last, so no pair
     # ranks on the same instant and races for the same ticket. Long-running by design: start them
     # in their own windows.
+    # S3158: the MONO chain - one agent alone on the project, so its children take no lease or lock
+    # and the wrapper runs the MONO start instead of the lease cleanup below.
+    'r0'        = @{ Path = 'scripts\utils\run-mono-queue.ps1'; Args = @{} }
     'r1'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'a' } }
     'r2'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'b'; StartDelaySeconds = 20 } }
     'r3'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'c'; StartDelaySeconds = 40 } }
@@ -382,6 +393,8 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "         fk/fkn/fr/fc/fu all check app_v2 - a wear/ change needs fw/fwr/fwu." -ForegroundColor DarkCyan
     Write-Host "         a wear/src/<flavor> change needs fwn too - fw only sees standard (S2486)." -ForegroundColor DarkCyan
     Write-Host "  flr  - Fast lint-rules detector test suite (:lint-rules:test)" -ForegroundColor Cyan
+    Write-Host "  fl   - Android lint, app_v2 - runs long, background it" -ForegroundColor Cyan
+    Write-Host "  flw  - Android lint, wear - runs long, background it" -ForegroundColor Cyan
     Write-Host "  fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log)" -ForegroundColor Cyan
     Write-Host "  fs   - Script regression suites (-ChangedFiles / -ListOnly; bare = full sweep)" -ForegroundColor Cyan
     Write-Host "  mb   - Run standard macrobenchmark suite" -ForegroundColor Cyan
@@ -399,6 +412,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
     Write-Host "  wd   - Build Wear OS Debug and distribute APK" -ForegroundColor Cyan
     Write-Host "  iw   - Build + install noLegal Wear OS Debug (-DeviceId <watch> when multiple devices)" -ForegroundColor Cyan
+    Write-Host "  r0   - MONO queue: one agent alone, children run /spec-all -m <id> (no lease, lock or wait)" -ForegroundColor Cyan
     Write-Host "  r1   - Run the release queue unattended, instance A (fresh process per ticket)" -ForegroundColor Cyan
     Write-Host "  r2   - Same, instance B - the second parallel stream" -ForegroundColor Cyan
     Write-Host "  r3   - Same, instance C - the third parallel stream" -ForegroundColor Cyan

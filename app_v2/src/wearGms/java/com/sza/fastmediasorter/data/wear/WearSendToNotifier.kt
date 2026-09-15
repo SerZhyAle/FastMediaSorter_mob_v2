@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.wear
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -41,6 +42,9 @@ class WearSendToNotifier @Inject constructor(
      * phone with notifications switched off takes the file and shows nothing, and telling the owner
      * to bring the phone closer would send them after the wrong fix (strategic 11 criterion 9).
      */
+    // S3155: same double guard as OpenOnPhoneNotifier - a POST_NOTIFICATIONS check above and the
+    // runCatching that absorbs a revocation between the check and the post. Lint accepts neither.
+    @SuppressLint("MissingPermission")
     fun notifyPendingSend(fileName: String, savedPath: String, receiverId: String): Boolean {
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) {

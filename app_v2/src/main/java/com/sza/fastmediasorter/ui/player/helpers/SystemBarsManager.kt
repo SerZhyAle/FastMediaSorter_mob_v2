@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.app.Activity
 import android.os.Build
 import android.view.View
+import android.view.WindowInsets
 import android.view.WindowInsetsController
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -53,10 +54,15 @@ class SystemBarsManager(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // API 30+ (Android 11+): Use WindowInsetsController
             window.insetsController?.let { controller ->
-                // Hide both status bar and navigation bar
+                // Hide both status bar and navigation bar.
+                // S3155: platform constants, because `controller` here is the platform
+                // WindowInsetsController - not the compat one the else-branch below builds. The two
+                // Type families are separate @IntDef sets with no contractual equality, so passing a
+                // compat value to a platform receiver is what WrongConstant reports, and it can act
+                // on a different bar than the call names.
                 controller.hide(
-                    WindowInsetsCompat.Type.statusBars() or 
-                    WindowInsetsCompat.Type.navigationBars()
+                    WindowInsets.Type.statusBars() or
+                        WindowInsets.Type.navigationBars()
                 )
                 
                 // Immersive sticky mode: bars stay hidden, no swipe to reveal
@@ -99,10 +105,11 @@ class SystemBarsManager(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // API 30+ (Android 11+): Use WindowInsetsController
             window.insetsController?.let { controller ->
-                // Show both status bar and navigation bar
+                // Show both status bar and navigation bar.
+                // S3155: platform constants - same reason as the hide() above.
                 controller.show(
-                    WindowInsetsCompat.Type.statusBars() or 
-                    WindowInsetsCompat.Type.navigationBars()
+                    WindowInsets.Type.statusBars() or
+                        WindowInsets.Type.navigationBars()
                 )
                 
                 // Restore default behavior

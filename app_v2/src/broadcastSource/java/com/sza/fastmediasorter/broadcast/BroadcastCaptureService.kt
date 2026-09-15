@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.broadcast
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -178,6 +179,12 @@ class BroadcastCaptureService : Service() {
     }
 
     @Suppress("TooGenericExceptionCaught")
+    // S3155: the service refuses to start at all without RECORD_AUDIO - onStartCommand checks it and
+    // calls stopSelf() - so this loop is unreachable without the grant, and the AudioRecord below is
+    // additionally inside a try/catch(Exception) that takes the SecurityException a mid-session
+    // revocation would throw. Lint follows neither a guard in another method nor a catch around the
+    // call rather than on it.
+    @SuppressLint("MissingPermission")
     private fun captureAudioLoop(server: BroadcastHttpServer, config: BroadcastSessionConfig) {
         val channelConfig = if (config.channelCount >= 2) AudioFormat.CHANNEL_IN_STEREO else AudioFormat.CHANNEL_IN_MONO
         val audioFormat = AudioFormat.ENCODING_PCM_16BIT

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
@@ -387,6 +388,10 @@ class GatherSystemInfoUseCase @Inject constructor(
 
     private fun yesNo(value: Boolean): String = if (value) "yes" else "no"
 
+    // S3155: getUserName throws SecurityException on API 31+ for an app holding none of the
+    // privileged user permissions. The only call site wraps it in safe { }, which classifies that
+    // denial and reports the field as unknown - the report loses one line, nothing crashes.
+    @SuppressLint("MissingPermission")
     private fun userName(): String {
         val um = context.getSystemService(Context.USER_SERVICE) as UserManager
         return sanitize(um.userName)

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.worker
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -77,6 +78,11 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         )
     }
 
+    // S3155: RestrictedApi fires on the `stepResult is Result.Failure` test below. WorkManager marks
+    // the Failure subclass @RestrictTo(LIBRARY_GROUP) but exposes no public predicate for "is this
+    // result a failure", so the type test is the only way to ask - Result.failure() constructs one
+    // and nothing reads one back. Reported rather than fixed because the fix belongs upstream.
+    @SuppressLint("RestrictedApi")
     override suspend fun doWork(): Result {
         ensureChannel()
         var overallResult = Result.success()

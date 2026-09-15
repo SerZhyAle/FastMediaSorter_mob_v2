@@ -2,6 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- S3155: declaring CAMERA without this makes the platform imply a REQUIRED camera feature, and
+         Play then hides the build from every device without one - a Chromebook, a tablet with no
+         back camera, an emulator image. required="false" keeps the permission and the reach: the
+         broadcast surfaces check for a camera at runtime and offer audio-only when there is none. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <!-- S3154: VideoBroadcastService is declared per flavor in src/broadcastVideoForeground (store
          builds, no camera foreground-service type) and src/broadcastVideoBackground (noLegal). Two
          injected manifests share one merger priority, so the service cannot live here and be

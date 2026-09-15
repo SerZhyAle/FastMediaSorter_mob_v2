@@ -65,6 +65,8 @@
 | `.\a.ps1 faw`  | Fast instrumented-test compile check, **`wear` module** (S2355) |
 | `.\a.ps1 fwm`  | Connected Room migration test run on watch, **`wear` module** (S2355) |
 | `.\a.ps1 flr`  | Fast lint-rules detector test suite (`:lint-rules:test`); `-Tests <filter>` narrows it |
+| `.\a.ps1 fl`   | Android lint, **`app_v2`** (`:app_v2:lintStandardDebug`); runs long, background it (S3155) |
+| `.\a.ps1 flw`  | Android lint, **`wear`** (`:wear:lintStandardDebug`); runs long, background it (S3155) |
 | `.\a.ps1 dc`   | Clean + debug build |
 | `.\a.ps1 cls`  | Clean Gradle caches |
 | `.\a.ps1 ss`   | Show unresolved specs (`sca-specs`) |
@@ -863,6 +865,20 @@ Contract suites: `scripts/utils/release-freeze.tests/Run-Tests.ps1`,
 `scripts/quality/release-scope-fingerprint.tests/Run-Tests.ps1`,
 `.claude/hooks/tests/Run-GuardReleaseFreeze-Tests.ps1`.
 
+### Mono mode - one agent alone on the project (S3158)
+
+Every coordination mechanism above - the domains, the ticket lease, device leases, the agent chat - orders an agent against its siblings. When the owner runs exactly one agent, each of them is a model turn spent ordering against nobody: a lease claim and release per ticket, an enter and exit per edit step, a chat line per stage or phase, a chat read at every refusal. MONO removes those turns by declaration.
+
+**Entry points.** `/spec-all -m <Sxxxx>` and `/spec-code -m <Sxxxx>` for one ticket; `.\a.ps1 r0` for a chain, which is `scripts/utils/run-mono-queue.ps1` handing over to `run-spec-queue.ps1` as instance `mono` (`runner.instances.mono` in `.sza-profile.json`, silent like a/b/c) with the prompt `/spec-all -m {id}`. The skip list and the delegation context `mono=1` live in `.claude/reference/mono-mode.md` and nowhere else.
+
+**What the run skips.** The ticket lease (the preamble runs `-NoLease`), `enter-code-lock.ps1` / `exit-code-lock.ps1` / `wait-for-lock-turn.ps1`, device leases and `device-ready.ps1 -ClaimFree`, and every model-posted or model-read chat line after the start. Nothing is checked or waited for: `r0` does not look for another runner, and a red build, a changed file or a busy domain is the run's own, never a sibling's.
+
+**The one start call, and why it drops state unconditionally.** `scripts/utils/mono-mode.ps1 -Verb Start` prints the chat history once, drops every ticket lease (`ticket-lease.ps1 -Verb Clean -Force`) and every lock and queue (`clear-agent-lock.ps1 -Name Build|Code -Force`), and posts one journal note. The harness is consumed here (section "The process harness comes from the canon"), so a gradle wrapper still takes its build domain through `Enter-BuildLockOrExit` and a closure still releases through its backstop. Uncontended that costs milliseconds and no model turn; behind a lock left by a dead session it would be a wait, which the mode rules out. Judging the leftovers' liveness first is the check MONO removes, so `-Force` is not a shortcut but the definition. `-DryRun` lists and drops nothing; `-Stores Leases` is how the contract suite stays off the real lock files, which have no fixture root.
+
+**No marker.** Nothing is written for other sessions to respect and no hook refuses them: the declaration is that there are none. Running a MONO run beside a leased one is a misuse the mode does not defend against.
+
+Suite: `scripts/utils/mono-mode.tests/Run-Tests.ps1` (fixture roots `FMS_TICKET_LEASE_ROOT`, `FMS_AGENT_CHAT_ROOT`).
+
 ### Shared-state mutation audit (S0703)
 
 On-demand quality tool, not a build gate. Finds places where one shared object is mutated from several layers (the "last-write-wins" / redundant / unsafe class).
@@ -1637,6 +1653,23 @@ Three facts a reader cannot derive from the commands:
 - **`optional: true` is judged by what it is attached to, not by where it appears.** On a navigation `tapOn` whose target genuinely varies - a system permission dialog, a skippable onboarding page - it is correct and stays. On `assertVisible` / `assertNotVisible` it turns the proof into a no-op that passes either way, so the gate tracks the enclosing command opener rather than matching the line on its own.
 - **A regex selector does not fail loudly, it fails silently.** Maestro does not reliably match `id: ".*settings.*"`, so the step never fires and the flow proceeds green. This is why the rule is mechanical: a reviewer reading the YAML sees an intention that the runtime never carries out.
 - **Every exemption names its reason and its exit condition.** `$exemptRelativePaths` in the gate holds `_shared/permissions.yaml` permanently (a fragment of nothing but optional permission taps, which the convention sanctions) and the two `device_only/3d-video-*.yaml` flows temporarily, pending S1618 - they drive a "Playback Settings" dialog that is unreachable from the player UI, so their regex selectors cannot be replaced with real ids because those ids do not exist.
+
+## THE LINT BASELINES (S3155)
+
+Two files, one per Android module: `app_v2/lint-baseline.xml` and `wear/lint-baseline.xml`. Each records findings the project has **accepted**, so lint can keep failing the build on anything new. Both modules run `abortOnError = true`.
+
+**Lint runs locally through `.\a.ps1 fl` (app_v2) and `.\a.ps1 flw` (wear)**, both wrapping `scripts/builders/check-lint.ps1`. Before S3155 no target invoked lint at all - `fk`, `fkn`, `fc`, `fr`, `fg` and `fu` every one exit 0 without a single lint task - so CI was the only place the check ran and 479 app_v2 errors plus 116 wear errors accumulated unseen. Both targets run long; background them.
+
+**What is in a baseline and why:**
+
+- `NetworkDataSourceDispatcher` - 419 rows in app_v2, 30 in wear. Recorded, not fixed: the detector resolves callers only inside one file and only through a private method, so it cannot see a dispatcher switch made by a caller elsewhere, and the count measures that blind spot. **Carrier: S3156.**
+- `UiContextLeak` - six rows in app_v2, on three `@Singleton` classes holding `View` fields. A real architectural finding, not an artifact; the fields are cleared on teardown, and deciding between rescoping, `WeakReference` or the status quo is a DI and lifecycle change. **Carrier: S3157.**
+
+Nothing else is in either baseline by choice. Every other error class S3155 met was fixed in code or carries an in-source `@SuppressLint` with a written reason, which is the rule: a suppression states what makes the call safe, at the call, where the next reader will find it. A baseline row says only "accepted", so it needs a carrier ticket to mean anything.
+
+**Regenerating.** `check-lint.ps1 -Module <app_v2|wear> -Regenerate` locally, or the `regenerate-lint-baseline` dispatch of `.github/workflows/android-ci.yml` for both modules at once - that job is the only environment running the same lint version and dependency mode CI judges with. **Regeneration is always the last step, never the first:** it records whatever is currently failing as accepted, so running it before the real defects are fixed is exactly how a genuine bug becomes an invisible baseline row.
+
+**A declared baseline that does not exist gets created.** Lint writes it and then fails the build with `Aborting build since new baseline file was created` - a blanket regeneration arrived at by configuration rather than by choice, and indistinguishable from a deliberate one afterwards. It happened once here, on the first wear run, writing all 199 findings. `android.experimental.lint.missingBaselineIsEmptyBaseline=true` in `gradle.properties` closes that door: a missing baseline now means an empty one, lint reports everything and writes nothing. The two regeneration paths above each override the flag for their own invocation, because they are the callers that do want the file.
 
 ## DEBUG PROBE INVARIANT (both directions)
 

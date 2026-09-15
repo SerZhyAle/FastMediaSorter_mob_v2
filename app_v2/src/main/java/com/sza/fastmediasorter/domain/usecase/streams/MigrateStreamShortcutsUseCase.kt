@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.streams
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -46,6 +47,10 @@ class MigrateStreamShortcutsUseCase @Inject constructor(
      * Anything that replaces rather than updates - `addDynamicShortcuts`, `pushDynamicShortcut` - would
      * therefore blank it.
      */
+    // S3155: the Builder copy constructor is RestrictTo(LIBRARY_GROUP_PREFIX) yet the only way to
+    // carry every field of the pinned shortcut into the update; the public Builder(context, id) would
+    // force the labels to be re-derived and could not reproduce the rest.
+    @SuppressLint("RestrictedApi")
     private fun rebuild(shortcut: ShortcutInfoCompat): ShortcutInfoCompat? =
         shortcut.takeIf { it.id.startsWith(StreamShortcutPinManager.SHORTCUT_ID_PREFIX) }
             ?.intent

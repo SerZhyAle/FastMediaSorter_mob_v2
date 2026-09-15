@@ -34,6 +34,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.ConnectionResult
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -1029,7 +1030,10 @@ class AudioPlaybackService : MediaSessionService() {
             args: android.os.Bundle
         ): ListenableFuture<SessionResult> {
             Timber.d("AudioPlaybackService: onCustomCommand action=${customCommand.customAction}")
-            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
+            // S3155: SessionError.ERROR_NOT_SUPPORTED, not SessionResult.RESULT_ERROR_NOT_SUPPORTED.
+            // Media3 moved the error codes onto SessionError, and the @SessionResult.Code IntDef this
+            // constructor declares no longer admits the old constant - lint named the sixteen it does.
+            return Futures.immediateFuture(SessionResult(SessionError.ERROR_NOT_SUPPORTED))
         }
     }
 

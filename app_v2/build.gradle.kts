@@ -16,6 +16,7 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
@@ -27,10 +28,15 @@ import org.gradle.api.tasks.TaskAction
 // settings screen - the screen only renders whatever this task emitted.
 @CacheableTask
 abstract class GenerateReleasedTicketsTask : DefaultTask() {
+    // S3155: Optional, because .gitignore excludes PLAN/ from Git entirely. A CI checkout - or any
+    // clean clone - carries neither file, and a non-optional @InputFile makes Gradle refuse the task
+    // before its action runs, which kept every CI run of every branch red independently of lint.
+    @get:Optional
     @get:InputFile
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val releaseQueueFile: RegularFileProperty
 
+    @get:Optional
     @get:InputFile
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val releaseReadyFile: RegularFileProperty
@@ -40,7 +46,27 @@ abstract class GenerateReleasedTicketsTask : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        val queueFile = releaseQueueFile.asFile.get()
+        val target = outputDir.get().asFile
+        target.mkdirs()
+        val listing = File(target, "released_tickets.tsv")
+
+        // A build made outside the specification workspace has no tickets to advertise, so the
+        // correct answer is an empty listing - the settings screen renders whatever this task
+        // emitted. Failing the whole variant over their absence is what kept CI red.
+        val queueFile = releaseQueueFile.orNull?.asFile?.takeIf(File::isFile)
+        val readyFile = releaseReadyFile.orNull?.asFile?.takeIf(File::isFile)
+        if (queueFile == null || readyFile == null) {
+            listing.writeText("")
+            val missing = listOfNotNull(
+                "RELEASE_QUEUE.md".takeIf { queueFile == null },
+                "RELEASE_READY.md".takeIf { readyFile == null }
+            ).joinToString(separator = ", ")
+            logger.lifecycle(
+                "released tickets: no listing - PLAN/ is gitignored and this checkout has no $missing"
+            )
+            return
+        }
+
         val markerRx = Regex("""^\s*current-next-release:\s*(\d+)\s*$""")
         // The marker is the only authority on which package this build carries. The highest package
         // present in RELEASE_READY.md is NOT it: that file legitimately holds rows for the next
@@ -53,7 +79,7 @@ abstract class GenerateReleasedTicketsTask : DefaultTask() {
             )
 
         val rowRx = Regex("""^\s*(\d+)\s+(S\d{4})_(\S+)\s+\d{4}-\d{2}-\d{2}\s+(\S+)\s*$""")
-        val rows = releaseReadyFile.asFile.get().readLines()
+        val rows = readyFile.readLines()
             .mapNotNull { rowRx.find(it)?.groupValues }
             .filter { it[1] == currentRelease }
 
@@ -61,9 +87,7 @@ abstract class GenerateReleasedTicketsTask : DefaultTask() {
         // stable, so the owner's order inside each group survives.
         val ordered = rows.sortedBy { if (it[4] == "BlockNeedUserTest") 0 else 1 }
 
-        val target = outputDir.get().asFile
-        target.mkdirs()
-        File(target, "released_tickets.tsv").writeText(
+        listing.writeText(
             ordered.joinToString(separator = "\n") { "${it[2]}\t${it[3]}\t${it[4]}" }
         )
         logger.lifecycle(
@@ -1624,8 +1648,13 @@ android {
         abortOnError = true
         checkReleaseBuilds = false
         disable += "InvalidPackage"
-        // MissingTranslation is on: debug-only strings carry translatable="false", and post-change.ps1's
-        // strings audit sweeps locale parity on every key.
+        // S3155: MissingTranslation is reported but not fatal. All 36 findings named the same ten
+        // unauthored locales against keys authored in en/ru/uk - which CLAUDE.md Rule 30 declares
+        // legal until the release boundary, where scripts/quality/assert-new-lexemes-translated.ps1
+        // refuses them at /spec-prerelease step 0.8. A per-commit gate failing on them contradicts
+        // that loop. Debug-only strings still carry translatable="false", and post-change.ps1's
+        // strings audit still sweeps locale parity on every key.
+        warning += "MissingTranslation"
         disable += "NewApi"
         disable += "UnsafeOptInUsageError"
         // ExperimentalDetector also handles UnsafeExperimentalUsageWarning; with both disabled the
@@ -1634,6 +1663,12 @@ android {
         disable += "UnsafeExperimentalUsageWarning"
         // False positive: 0dp with layout_weight in LinearLayout or as ConstraintLayout child
         disable += "Suspicious0dp"
+        // S3155: UseAppTint asks for app:tint over android:tint, which matters only below API 21 -
+        // the floor here is 23 (legacy) and 26 everywhere else, so android:tint is honoured on every
+        // device this ships to. Six of the seven findings are also RemoteViews widget layouts, which
+        // the framework inflater renders: an AppCompat app: attribute is inert there, so taking the
+        // advice would break the tint rather than fix it.
+        disable += "UseAppTint"
         baseline = file("lint-baseline.xml")
         // HTML report for CI artifact upload
         htmlReport = true
@@ -1711,8 +1746,14 @@ androidComponents {
             val generateReleasedTickets = tasks.register<GenerateReleasedTicketsTask>(
                 "generateReleasedTickets${variant.name.replaceFirstChar { it.uppercase() }}"
             ) {
-                releaseQueueFile.set(rootProject.layout.projectDirectory.file("PLAN/RELEASE_QUEUE.md"))
-                releaseReadyFile.set(rootProject.layout.projectDirectory.file("PLAN/RELEASE_READY.md"))
+                // S3155: set only what exists. @Optional excuses an UNSET property; it does not
+                // excuse one set to an absent path, which Gradle still validates and refuses. PLAN/
+                // is gitignored, so on CI and on any clean clone both of these are absent and the
+                // task emits an empty listing instead of failing the variant.
+                val queue = rootProject.layout.projectDirectory.file("PLAN/RELEASE_QUEUE.md")
+                val ready = rootProject.layout.projectDirectory.file("PLAN/RELEASE_READY.md")
+                if (queue.asFile.isFile) releaseQueueFile.set(queue)
+                if (ready.asFile.isFile) releaseReadyFile.set(ready)
             }
             variant.sources.assets?.addGeneratedSourceDirectory(
                 generateReleasedTickets,

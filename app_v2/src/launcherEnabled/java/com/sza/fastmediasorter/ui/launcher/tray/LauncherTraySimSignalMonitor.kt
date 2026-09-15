@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.tray
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -80,6 +81,9 @@ class LauncherTraySimSignalMonitor(private val context: Context) {
         }
     }.distinctUntilChanged()
 
+    // S3155: same runCatching guard as registerModernCallback below - a revoked READ_PHONE_STATE
+    // yields an empty slot list and hidden indicators.
+    @SuppressLint("MissingPermission")
     private fun activeSlots(manager: SubscriptionManager): List<Pair<Int, Int>> = runCatching {
         manager.activeSubscriptionInfoList.orEmpty()
             .filter { it.simSlotIndex >= 0 }
@@ -102,7 +106,15 @@ class LauncherTraySimSignalMonitor(private val context: Context) {
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    private fun registerModernCallback(manager: TelephonyManager, onState: (LauncherTraySimState) -> Unit): Registration {
+    // S3155: the READ_PHONE_STATE reads below are each wrapped in runCatching, which absorbs the
+    // SecurityException a revoked grant throws and falls back to a null or a default - the tray
+    // simply shows less. Lint does not recognise runCatching as the handling it asks for, so it
+    // reports MissingPermission on a call that already degrades safely.
+    @SuppressLint("MissingPermission")
+    private fun registerModernCallback(
+        manager: TelephonyManager,
+        onState: (LauncherTraySimState) -> Unit
+    ): Registration {
         var lastLevel = 0
         var lastDisplayInfo: TelephonyDisplayInfo? = null
 
@@ -128,7 +140,8 @@ class LauncherTraySimSignalMonitor(private val context: Context) {
             )
         }
 
-        val callback = object : TelephonyCallback(),
+        val callback = object :
+            TelephonyCallback(),
             TelephonyCallback.SignalStrengthsListener,
             TelephonyCallback.DisplayInfoListener,
             TelephonyCallback.ServiceStateListener {
@@ -152,11 +165,17 @@ class LauncherTraySimSignalMonitor(private val context: Context) {
     }
 
     @Suppress("DEPRECATION")
-    private fun registerLegacyListener(manager: TelephonyManager, onState: (LauncherTraySimState) -> Unit): Registration {
+    // S3155: same runCatching guard as registerModernCallback above.
+    @SuppressLint("MissingPermission")
+    private fun registerLegacyListener(
+        manager: TelephonyManager,
+        onState: (LauncherTraySimState) -> Unit
+    ): Registration {
         var lastLevel = 0
 
         fun publish() {
             val roaming = runCatching { manager.isNetworkRoaming }.getOrDefault(false)
+
             @Suppress("DEPRECATION")
             val networkType = runCatching { manager.networkType }.getOrNull()
             onState(

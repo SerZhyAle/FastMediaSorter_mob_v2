@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.radio
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.pm.PackageManager
@@ -44,6 +45,10 @@ class RadioControlContractImpl(
         } != null
     }
 
+    // S3155: toggle() returns before this call unless hasPermissionFor(kind) confirmed
+    // BLUETOOTH_CONNECT, and the runCatching below absorbs the SecurityException a firmware may still
+    // throw. Lint follows neither the helper nor runCatching.
+    @SuppressLint("MissingPermission")
     @Suppress("DEPRECATION")
     private fun attempt(kind: RadioKind, enable: Boolean) {
         runCatching {

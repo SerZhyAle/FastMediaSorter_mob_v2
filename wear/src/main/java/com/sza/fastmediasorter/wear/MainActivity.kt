@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentResolver
 import android.content.Intent
@@ -214,6 +215,15 @@ private val SETTINGS_ROUTES = setOf(
     SettingsRoutes.ABOUT
 )
 
+// S3155: ActivityLogicViolation fires on all eight @Inject use-case fields below. The detector
+// enforces CLAUDE.md Rule 3 against a View-based Activity, where the cure is a Manager the Activity
+// delegates to. This module is Compose (Rule 32) and this class is its composition root: there is no
+// view hierarchy to own logic, and each field is handed down to the screen that needs it for a
+// reason recorded on the field itself by the ticket that put it there - S1781, S1944, S1884, S2161,
+// S1955, S2000. Rule 8 makes those comments requirements, so the suppression records the existing
+// decision instead of silently overturning eight of them. Narrow by construction: MainActivity is
+// the only Activity in the module, so this does not disarm the rule for any future one.
+@SuppressLint("ActivityLogicViolation")
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
