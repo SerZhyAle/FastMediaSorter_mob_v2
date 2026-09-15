@@ -150,7 +150,6 @@ class BluetoothRssiSampler @Inject constructor(
     // only from SDK 37 - no device this app targets can call it yet.
     @Suppress("DEPRECATION")
     private fun openGatt(device: BluetoothDevice, callback: BluetoothGattCallback): BluetoothGatt? = try {
-        Timber.d("S3122: GATT client opened for RSSI sampling")
         device.connectGatt(context, false, callback)
     } catch (security: SecurityException) {
         Timber.w(security, "GATT connection refused despite a granted permission")

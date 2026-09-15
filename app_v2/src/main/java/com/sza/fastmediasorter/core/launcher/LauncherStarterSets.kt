@@ -270,7 +270,6 @@ object LauncherStarterSets {
         resolvableOsShortcuts: Set<String> = allOsShortcutKeys,
         screenClass: LauncherScreenClass,
     ): List<StarterItem> {
-        Timber.d("S3136: Compose launcher starter set for $profile")
         val rule = LauncherStarterLayoutRules.ruleFor(screenClass)
         val groups = contentGroups(
             profile = profile,
@@ -565,7 +564,6 @@ object LauncherStarterSets {
         } else {
             emptySet()
         }
-        Timber.d("S3145: Google launcher packages=$packages")
         return packages
     }
 

@@ -322,7 +322,6 @@ class CastMediaManagerImpl(
 
         proxyServer.serveFile(castFile)
         val castUrl = proxyServer.castUrl()
-        Timber.d("S3059: castUrl resolved %s", castUrl)
         if (castUrl == null) {
             Timber.w("CastMediaManager: LAN IP address unavailable; cannot cast via proxy")
             withContext(Dispatchers.Main) {

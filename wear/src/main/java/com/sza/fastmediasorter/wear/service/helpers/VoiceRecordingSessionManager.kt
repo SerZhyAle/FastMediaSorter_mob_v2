@@ -351,7 +351,6 @@ class VoiceRecordingSessionManager @Inject constructor(
             target.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
             configureEncoder(target)
             target.setOutputFile(sink.fileDescriptor)
-            Timber.d("S3049: wear live stream configured with VOICE_RECOGNITION audio source")
         }
 
         /**

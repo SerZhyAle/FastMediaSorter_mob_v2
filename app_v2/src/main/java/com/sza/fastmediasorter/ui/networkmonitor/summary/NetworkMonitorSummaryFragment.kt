@@ -67,7 +67,6 @@ class NetworkMonitorSummaryFragment : Fragment() {
     }
 
     private fun openSection(section: NetworkMonitorSection) {
-        Timber.d("S3095: opened ${section.key}")
         (activity as? NetworkMonitorSectionHost)?.openSection(section)
     }
 

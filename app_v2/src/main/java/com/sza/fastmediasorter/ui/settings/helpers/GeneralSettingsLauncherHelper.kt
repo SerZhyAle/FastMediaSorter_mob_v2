@@ -64,7 +64,6 @@ class GeneralSettingsLauncherHelper(
         val showSystemLauncher = !XrDeviceProbe.isXrDevice(fragment.requireContext())
         binding.rowLauncherModeEnabled.isVisible = showSystemLauncher
         binding.rowLauncherSettings.isVisible = showSystemLauncher
-        Timber.d("S3123: system launcher visible=%s", showSystemLauncher)
         binding.rowLauncherModeEnabled.setOnCheckedChangeListener { isChecked ->
             val host = fragment.activity ?: return@setOnCheckedChangeListener
             coroutineScope.launch {

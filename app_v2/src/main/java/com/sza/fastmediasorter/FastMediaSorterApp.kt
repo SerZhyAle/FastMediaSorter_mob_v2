@@ -538,7 +538,6 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         }
 
         StrictMode.setThreadPolicy(threadPolicy.build())
-        Timber.d("S3129: StrictMode policy set, violations log call site and repeat count")
 
             StrictMode.setVmPolicy(
                 StrictMode.VmPolicy.Builder()

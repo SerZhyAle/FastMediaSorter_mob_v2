@@ -447,7 +447,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             gadgetRegistry = gadgetRegistry,
             viewModel = viewModel,
         )
-        Timber.d("S3087: resize manager ready before first desktop render")
         geometryManager.applyGridGeometry()
         geometryManager.seedDesktopIfNeeded()
 
@@ -590,7 +589,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     val isUnassigned = action is LauncherDesktopSwipeAction.EdgeGestureAction &&
                         action.action == ScreenshotGestureAction.DO_NOT_USE
                     val routedAction = if (startedOnRightHalf && isNotificationShadeDownSwipe(direction, action)) {
-                        Timber.d("S3148: right-half down swipe opens Quick Settings")
                         LauncherDesktopSwipeAction.EdgeGestureAction(
                             ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
                         )

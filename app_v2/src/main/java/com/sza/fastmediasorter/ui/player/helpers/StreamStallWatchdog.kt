@@ -114,7 +114,6 @@ internal fun VideoPlayerManager.checkStreamBufferingTimeout() {
  */
 internal fun VideoPlayerManager.recoverFromStreamStall(reason: String) {
     val stalledPlayer = exoPlayer ?: return
-    Timber.d("S3138: stream stall recovery reason=%s", reason)
     val attempt = streamWatchdogRecoveryWindow.tryAcquire(SystemClock.elapsedRealtime())
     if (attempt == null) {
         Timber.w(

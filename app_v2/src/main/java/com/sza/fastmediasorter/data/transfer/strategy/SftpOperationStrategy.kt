@@ -496,7 +496,6 @@ class SftpOperationStrategy @Inject constructor(
             }
 
             val connectionInfo = getConnectionInfo(destInfo)
-            Timber.d("S3140: opening local source for SFTP upload")
             val sourceInput = localSourceReader.open(source).getOrElse { error ->
                 return Result.failure(error)
             }

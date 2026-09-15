@@ -383,7 +383,6 @@ class VoiceRecordingService : Service() {
             isLive = true,
             targetLatencyMs = 200L
         )
-        Timber.d("S3051: watch descriptor published with endpoints=%s isLive=%s", descriptor.endpoints, descriptor.isLive)
         return WearBroadcastSessionState.Live(
             endpoint = endpoint,
             descriptorJson = descriptorSerializer.serialize(descriptor),

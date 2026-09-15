@@ -100,7 +100,6 @@ class WearStreamPinsRepository @Inject constructor(
             }
 
             if (shouldQueueDelta) {
-                Timber.d("S3048: pin set id=$identity isPinned=$isPinned chg=$watchChanged phone=$isPinnedOnPhone")
                 val deltas = readPendingDeltasFromFile()
                 val item = WearStreamPinDeltaItem(
                     urlOrIdentity = identity,

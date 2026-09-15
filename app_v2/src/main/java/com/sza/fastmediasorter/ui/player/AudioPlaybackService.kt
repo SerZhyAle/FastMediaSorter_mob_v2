@@ -620,7 +620,6 @@ class AudioPlaybackService : MediaSessionService() {
             .build()
         setMediaNotificationProvider(MediaNotificationManager.createNotificationProvider(this))
 
-        Timber.d("S3137: MediaSession created before notification provider")
         Timber.d("AudioPlaybackService: MediaSession created")
     }
 

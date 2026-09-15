@@ -52,7 +52,6 @@ class TranslatorGadget @Inject constructor(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View {
-        Timber.d("S3135: Translator gadget view created")
         return TranslatorGadgetView(container.context, facadeFactory, settingsRepository)
     }
 }

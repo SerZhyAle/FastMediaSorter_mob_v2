@@ -973,7 +973,6 @@ class PlayerActivity :
     // S0184: open a duplicate Player in a new window slot while keeping the source player alive.
     internal fun tearOffPlayer() {
         val filePath = currentFilePath ?: return
-        Timber.d("S3125: tearing off player document window")
         val state = viewModel.state.value
         val newWindowId = java.util.UUID.randomUUID().toString()
         val intent = Intent(this, PlayerActivity::class.java).apply {
