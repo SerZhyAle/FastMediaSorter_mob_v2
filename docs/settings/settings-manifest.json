@@ -1761,6 +1761,16 @@
       "titleUk": "Налаштування системного лаунчера"
     },
     {
+      "key": "rowLauncherStartWindow",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Open the desktop when the app starts",
+      "titleRu": "Открывать рабочий стол при запуске",
+      "titleUk": "Відкривати робочий стіл під час запуску"
+    },
+    {
       "key": "rowOpenStatistics",
       "sectionId": "general",
       "destination": "GENERAL",

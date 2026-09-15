@@ -244,6 +244,9 @@ class BrowseResourceLoadManager(
                 lastBrowseDate = resource.lastBrowseDate
             )) {
                 is BrowseCacheManager.CacheCheckResult.UseCache -> {
+                    if (cacheResult.files.isEmpty()) {
+                        Timber.d("S3126: empty cache rescan for resource=${resource.id}")
+                    } else {
                     var filteredFiles = if (resource.scanSubdirectories) {
                         cacheResult.files
                     } else {
@@ -275,6 +278,7 @@ class BrowseResourceLoadManager(
                     onFilesLoadedSaveAndEnrich(resource, reconciledFiles)
                     Timber.d("BrowseResourceLoadManager.loadResource: cache hit - ${reconciledFiles.size} files")
                     return@launch
+                    }
                 }
                 is BrowseCacheManager.CacheCheckResult.Rescan ->
                     Timber.d("BrowseResourceLoadManager.loadResource: cache rejected - ${cacheResult.reason}")

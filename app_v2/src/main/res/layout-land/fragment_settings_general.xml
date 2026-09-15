@@ -98,6 +98,15 @@
                         app:str_helpTitle="@string/launcher_settings_enable_help_title"
                         app:str_helpMessage="@string/launcher_settings_enable_help_message" />
 
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowLauncherStartWindow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:str_icon="@drawable/ic_launcher_mode"
+                        app:str_title="@string/launcher_start_window_title"
+                        app:str_subtitle="@string/launcher_start_window_desc" />
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/rowLauncherSettings"
                         style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
@@ -148,8 +157,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
-                        app:sdr_inline="true"
-                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_valueAsText="true"
                         app:sdr_title="@string/launcher_settings_unit_system_title"
                         app:sdr_entries="@array/unit_system_options" />
 

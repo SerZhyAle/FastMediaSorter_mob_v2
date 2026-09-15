@@ -3359,7 +3359,6 @@
     <string name="broadcast_share_url_label">نشریات کا URL</string>
     <string name="broadcast_share_export_file">فائل برآمد کریں</string>
     <string name="broadcast_share_saved">فائل محفوظ ہو گئی</string>
-    <string name="broadcast_share_save_failed">فائل محفوظ کرنے میں ناکامی</string>
     <string name="broadcast_share_close">بند کریں</string>
     <string name="broadcast_share_description">سننے والے کو جوڑنے کے لیے QR کوڈ سکین کریں یا ڈسکرپٹر فائل محفوظ کریں</string>
     <string name="broadcast_share_qr_cd">نشریات کے ڈسکرپٹر کا QR کوڈ</string>
@@ -3491,7 +3490,6 @@
     <string name="broadcast_entry_description">اس ڈیوائس کے مائیکروفون کی آڈیو اپنے لوکل نیٹ ورک پر شیئر کرنا شروع کریں۔ لنک رکھنے والا کوئی بھی شخص اسے اس وقت تک سن سکتا ہے جب تک آپ اسے روک نہیں دیتے۔</string>
     <string name="broadcast_entry_start">براڈکاسٹ شروع کریں</string>
     <string name="broadcast_entry_live">براڈکاسٹ لائیو ہے</string>
-    <string name="broadcast_entry_unavailable">لائیو براڈکاسٹ اس بلڈ کا حصہ نہیں ہے</string>
     <string name="shortcut_broadcast_short">براڈکاسٹ</string>
     <string name="shortcut_broadcast_long">لائیو براڈکاسٹ</string>
     <string name="tile_broadcast_label">لائیو براڈکاسٹ</string>

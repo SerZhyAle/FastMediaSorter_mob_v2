@@ -12,10 +12,13 @@ import com.sza.fastmediasorter.testing.createMediaResource
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -195,5 +198,30 @@ class ResourceEditorUseCaseTest {
         val form = useCase.emptyForm(ResourceType.LOCAL)
         assertEquals(ResourceEditorMode.CREATE, form.mode)
         assertEquals(ResourceType.LOCAL, form.type)
+    }
+
+    @Test
+    fun `cancelled post-save verification preserves pending status`() = runTest {
+        val resourceId = 42L
+        val verificationScope = CoroutineScope(UnconfinedTestDispatcher(testScheduler))
+        coEvery { addResourceUseCase(any()) } returns Result.success(resourceId)
+        coEvery { persistResourceCredentialsUseCase(any()) } answers { firstArg() }
+        coEvery { resourceRepository.getResourceById(resourceId) } returns createMediaResource(id = resourceId)
+        coEvery { resourceRepository.testConnection(any()) } coAnswers {
+            kotlinx.coroutines.awaitCancellation()
+        }
+
+        val result = useCase.save(
+            ResourceFormData(type = ResourceType.LOCAL, name = "Pictures", path = "/storage/Pictures"),
+            verificationScope
+        )
+        verificationScope.cancel()
+        yield()
+
+        assertTrue(result.isSuccess)
+        assertEquals(
+            com.sza.fastmediasorter.domain.model.ResourceVerificationStatus.PENDING_VERIFICATION,
+            useCase.verificationStatuses.value[resourceId]
+        )
     }
 }

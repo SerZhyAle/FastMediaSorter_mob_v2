@@ -7,6 +7,8 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
+import com.sza.fastmediasorter.core.util.XrDeviceProbe
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
@@ -33,6 +35,7 @@ class GeneralSettingsLauncherHelper(
     private val fragment: Fragment,
     private val launcherModeContract: LauncherModeContract,
     private val launcherRoleManager: LauncherRoleManager,
+    private val launcherStartWindowManager: LauncherStartWindowManager,
     private val launcherRoleLauncher: ActivityResultLauncher<Intent>,
     private val scopeProvider: () -> CoroutineScope = { fragment.viewLifecycleOwner.lifecycleScope },
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -48,10 +51,20 @@ class GeneralSettingsLauncherHelper(
     fun setup() {
         if (!launcherModeContract.isAvailableInBuild) {
             binding.rowLauncherModeEnabled.isVisible = false
+            binding.rowLauncherStartWindow.isVisible = false
             binding.rowLauncherSettings.isVisible = false
             return
         }
-        Timber.d("S3090: launcher settings rows bound - no start-window row")
+        binding.rowLauncherStartWindow.setCheckedSilently(launcherStartWindowManager.isEnabled())
+        binding.rowLauncherStartWindow.setOnCheckedChangeListener { isChecked ->
+            coroutineScope.launch {
+                withContext(ioDispatcher) { launcherStartWindowManager.setEnabled(isChecked) }
+            }
+        }
+        val showSystemLauncher = !XrDeviceProbe.isXrDevice(fragment.requireContext())
+        binding.rowLauncherModeEnabled.isVisible = showSystemLauncher
+        binding.rowLauncherSettings.isVisible = showSystemLauncher
+        Timber.d("S3123: system launcher visible=%s", showSystemLauncher)
         binding.rowLauncherModeEnabled.setOnCheckedChangeListener { isChecked ->
             val host = fragment.activity ?: return@setOnCheckedChangeListener
             coroutineScope.launch {

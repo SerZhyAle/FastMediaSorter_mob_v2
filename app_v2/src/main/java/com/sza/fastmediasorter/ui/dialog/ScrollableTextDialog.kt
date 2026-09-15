@@ -319,7 +319,6 @@ object ScrollableTextDialog {
                         resolver.update(uri, values, null, null)
                     }
                 } else {
-                    @Suppress("DEPRECATION")
                     val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                     downloadsDir.mkdirs()
                     File(downloadsDir, fileName).writeText(text, Charsets.UTF_8)

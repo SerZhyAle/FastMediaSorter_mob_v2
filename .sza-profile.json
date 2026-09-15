@@ -82,6 +82,10 @@
       "busyExclude": "-Xmx64m"
     }
   },
+  "codexContext": {
+    "maxInlineChars": 8000,
+    "evidenceDirTemplate": "temp/{Id}/evidence"
+  },
   "probes": {
     "enabled": true,
     "scanRoots": ["app_v2", "wear"],
@@ -117,14 +121,27 @@
     "alwaysStrongStatuses": ["BlockQuestions"],
     "strongTierMin": 4,
     "shapeCheapTierMax": 2,
-    "instancesComment": "S2698. One record per -Instance name, each field optional and falling back to the shared value beside it: 'command' is what the child is launched as, 'argsTemplate' is its whole argument vector with the {prompt}, {permissionMode} and {model} substitutions, 'modelPolicy' is the S2696 rule the watchdog starts it with. Declared with no overrides on purpose: the map states which instances exist, and every one of them launches exactly what it launched before. Instance c runs the shape rule since 2026-09-13 (S2702): a one-week measurement against a and b, which stay on tiered as the control group; both the watchdog and a.ps1 r1-r3 read this field. Putting an instance on a second agent is \"command\" plus \"argsTemplate\" here, and nowhere else.",
+    "instancesComment": "S2698. One record per -Instance name, each field optional and falling back to the shared value beside it: 'command' is what the child is launched as, 'argsTemplate' is its whole argument vector with the {prompt}, {permissionMode} and {model} substitutions, 'modelPolicy' is the S2696 rule the watchdog starts it with. Declared with no overrides on purpose: the map states which instances exist, and every one of them launches exactly what it launched before. Instance c runs the shape rule since 2026-09-13 (S2702): a one-week measurement against a and b, which stay on tiered as the control group; both the watchdog and a.ps1 r1-r3 read this field. Putting an instance on a second agent is \"command\" plus \"argsTemplate\" here, and nowhere else. S3151: all three instances append .claude/runner/silent-mode.md as a system prompt, so an unattended child writes no human-facing narration.",
     "instances": {
-      "a": {},
-      "b": {},
-      "c": { "modelPolicy": "shape" }
+      "a": { "argsTemplate": ["-p", "{prompt}", "--permission-mode", "{permissionMode}", "--model", "{model}", "--append-system-prompt-file", ".claude/runner/silent-mode.md"] },
+      "b": { "argsTemplate": ["-p", "{prompt}", "--permission-mode", "{permissionMode}", "--model", "{model}", "--append-system-prompt-file", ".claude/runner/silent-mode.md"] },
+      "c": { "modelPolicy": "shape", "argsTemplate": ["-p", "{prompt}", "--permission-mode", "{permissionMode}", "--model", "{model}", "--append-system-prompt-file", ".claude/runner/silent-mode.md"] }
     },
     "idleRunThreshold": 2,
     "idleOutcomes": ["ok", "timeout"]
+  },
+  "trivial": {
+    "comment": "S3151. The Trivial path's checklist as limits, judged at closure by scripts/quality/assert-trivial-scope.ps1 on the changed set outside PLAN/ and temp/: at most maxFiles paths, no path absent from HEAD, and no added line in a forbiddenPatternExtensions file matching forbiddenPatterns (a new Kotlin or Java type, a Room entity or database, a Hilt module or provider).",
+    "maxFiles": 3,
+    "forbidNewFiles": true,
+    "forbiddenPatternExtensions": [".kt", ".java"],
+    "forbiddenPatterns": [
+      "^\\s*(?:(?:public|private|internal|protected|abstract|open|sealed|data|enum|inner|value|annotation|fun)\\s+)*(?:class|interface|object)\\s+\\w",
+      "@Entity\\b",
+      "@Database\\s*\\(",
+      "@Module\\b",
+      "@Provides\\b"
+    ]
   },
   "commands": {
     "statusCommands": {
@@ -139,19 +156,12 @@
     },
     "aliases": [
       { "canonical": "spec-draft", "latin": "sd", "translit": "сд", "shadow": "ыв" },
-      { "canonical": "spec-all", "latin": "sa", "translit": "са", "shadow": "ыф" },
-      { "canonical": "spec-next", "latin": "sn", "translit": "сн", "shadow": "ыт" },
-      { "canonical": "spec-quiz", "latin": "sq", "translit": "сй", "shadow": "ый" },
-      { "canonical": "spec-do", "latin": "so", "translit": "со", "shadow": "ыщ" },
-      { "canonical": "spec-code", "latin": "sc", "translit": "сц", "shadow": "ыс" },
-      { "canonical": "spec-prerelease", "latin": "sp", "translit": "сп", "shadow": "ыз" },
-      { "canonical": "spec", "latin": "sx", "translit": "сх", "shadow": "ыч" },
-      { "canonical": "skill-fix", "latin": "sk", "translit": "ск", "shadow": "ыл" },
-      { "canonical": "spec-fix", "latin": "sf", "translit": "сф", "shadow": "ыа" },
-      { "canonical": "spec-check", "latin": "sv", "translit": "св", "shadow": "ым" },
-      { "canonical": "spec-dev", "latin": "sw", "translit": "сш", "shadow": "ыц" },
-      { "canonical": "spec-tech", "latin": "st", "translit": "ст", "shadow": "ые" },
-      { "canonical": "spec-arc", "latin": "arc", "translit": "арк", "shadow": "фкс" }
+      { "canonical": "spec-all", "latin": "sa" },
+      { "canonical": "spec-next", "latin": "sn", "shadow": "ыт" },
+      { "canonical": "spec-quiz", "latin": "sq", "shadow": "ый" },
+      { "canonical": "spec-code", "latin": "sc" },
+      { "canonical": "spec", "latin": "sx" },
+      { "canonical": "spec-arc", "latin": "arc" }
     ]
   },
   "inventory": {

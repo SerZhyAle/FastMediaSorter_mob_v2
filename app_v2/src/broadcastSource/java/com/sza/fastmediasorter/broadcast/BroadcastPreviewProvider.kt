@@ -97,6 +97,7 @@ class BroadcastPreviewProvider @Inject constructor(
         try {
             liveCamera.replaceView(view)
             boundView = view
+            Timber.d("S3038: preview bound to live camera")
         } catch (e: Throwable) {
             Timber.w(e, "Broadcast preview: renderer not ready, the stream stays headless")
             try {

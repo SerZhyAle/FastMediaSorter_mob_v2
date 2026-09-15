@@ -2711,6 +2711,8 @@
     <string name="launcher_edit_pin_add">Pin an app</string>
     <string name="launcher_edit_unpin_named">Unpin %1$s</string>
     <string name="launcher_settings_enable_title">Make this app the home screen</string>
+    <string name="launcher_start_window_title">Open the desktop when the app starts</string>
+    <string name="launcher_start_window_desc">Open your desktop instead of the file browser. This does not change the device home screen.</string>
     <string name="launcher_settings_enable_desc">The Home button opens your own desktop with shortcuts and gadgets. Turn this off any time to bring back your previous home screen.</string>
     <string name="launcher_settings_enable_help_title">Home screen mode</string>
     <string name="launcher_settings_enable_help_message">When you turn this on, Android asks which home screen to use - pick this app and tap Always (or Just once to try it). To go back, turn this off and Android restores your previous home screen.</string>
@@ -3848,7 +3850,6 @@
     <string name="broadcast_share_url_label">Broadcast URL</string>
     <string name="broadcast_share_export_file">Export File</string>
     <string name="broadcast_share_saved">File saved</string>
-    <string name="broadcast_share_save_failed">Failed to save file</string>
     <string name="broadcast_share_close">Close</string>
     <string name="broadcast_share_description">Scan QR code or save descriptor file to connect listener</string>
     <string name="broadcast_share_qr_cd">Broadcast Descriptor QR Code</string>
@@ -3990,7 +3991,6 @@
     <string name="broadcast_entry_description">Start sharing the microphone audio of this device on your local network. Anyone with the link can listen until you stop it.</string>
     <string name="broadcast_entry_start">Start broadcast</string>
     <string name="broadcast_entry_live">Broadcast is live</string>
-    <string name="broadcast_entry_unavailable">Live Broadcast is not part of this build</string>
     <string name="shortcut_broadcast_short">Broadcast</string>
     <string name="shortcut_broadcast_long">Live Broadcast</string>
     <string name="tile_broadcast_label">Live Broadcast</string>
@@ -4093,4 +4093,6 @@
     <string name="broadcast_share_copy">Copy Link</string>
     <string name="streams_filter_media_own">Own</string>
     <string name="streams_media_filter_own">Show manually added streams only</string>
+    <string name="broadcast_notification_video_title">Broadcasting Video</string>
+    <string name="broadcast_notification_video_text">Live camera stream is active</string>
 </resources>

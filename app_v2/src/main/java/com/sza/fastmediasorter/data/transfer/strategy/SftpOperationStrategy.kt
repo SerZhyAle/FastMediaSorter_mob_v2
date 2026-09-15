@@ -18,7 +18,6 @@ import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileInputStream
 import javax.inject.Inject
 
 /**
@@ -35,7 +34,9 @@ class SftpOperationStrategy @Inject constructor(
     private val destinationClassifier: LocalDestinationClassifier,
     private val destinationWriter: LocalDestinationWriter
 ) : FileOperationStrategy {
-    
+
+    private val localSourceReader = SftpLocalSourceReader(context)
+
     override suspend fun copyFile(
         source: String,
         destination: String,
@@ -45,7 +46,7 @@ class SftpOperationStrategy @Inject constructor(
         try {
             val isSourceSftp = source.startsWith("sftp:", ignoreCase = true)
             val isDestSftp = destination.startsWith("sftp:", ignoreCase = true)
-            
+
             when {
                 isSourceSftp && isDestSftp -> {
                     // SFTP to SFTP: buffer transfer
@@ -69,18 +70,18 @@ class SftpOperationStrategy @Inject constructor(
             Result.failure(e)
         }
     }
-    
+
     override suspend fun moveFile(source: String, destination: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val isSourceSftp = source.startsWith("sftp:", ignoreCase = true)
             val isDestSftp = destination.startsWith("sftp:", ignoreCase = true)
-            
+
             when {
                 isSourceSftp && isDestSftp -> {
                     // Try server-side move if on same server
                     val sourceInfo = parseSftpPath(source)
                     val destInfo = parseSftpPath(destination)
-                    
+
                     if (sourceInfo != null && destInfo != null &&
                         sourceInfo.host == destInfo.host &&
                         sourceInfo.port == destInfo.port &&
@@ -90,7 +91,7 @@ class SftpOperationStrategy @Inject constructor(
                         val connectionInfo = getConnectionInfo(sourceInfo)
                         val fromPath = sourceInfo.remotePath
                         val toPath = destInfo.remotePath
-                        
+
                         sftpClient.rename(connectionInfo, fromPath, toPath)
                     } else {
                         // Different servers: copy + delete
@@ -116,21 +117,21 @@ class SftpOperationStrategy @Inject constructor(
             Result.failure(e)
         }
     }
-    
+
     override suspend fun deleteFile(path: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             if (!path.startsWith("sftp:", ignoreCase = true)) {
                 return@withContext Result.failure(IllegalArgumentException("Path must be SFTP"))
             }
-            
+
             val pathInfo = parseSftpPath(path)
                 ?: return@withContext Result.failure(IllegalArgumentException("Invalid SFTP path"))
-            
+
             val connectionInfo = getConnectionInfo(pathInfo)
-            
+
             // Try to figure out if it's a directory or file
             val statResult = sftpClient.getFileAttributes(connectionInfo, pathInfo.remotePath)
-            
+
             // Pass SftpException (with its status code) directly so callers can classify the failure
             if (statResult.isSuccess && statResult.getOrNull()?.isDirectory == true) {
                 sftpClient.deleteDirectory(connectionInfo, pathInfo.remotePath)
@@ -143,14 +144,14 @@ class SftpOperationStrategy @Inject constructor(
             Result.failure(e)
         }
     }
-    
+
     override suspend fun exists(path: String): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             if (!path.startsWith("sftp:", ignoreCase = true)) return@withContext Result.success(false)
-            
+
             val pathInfo = parseSftpPath(path) ?: return@withContext Result.success(false)
             val connectionInfo = getConnectionInfo(pathInfo)
-            
+
             sftpClient.exists(connectionInfo, pathInfo.remotePath)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
@@ -181,7 +182,7 @@ class SftpOperationStrategy @Inject constructor(
         try {
             // S0189: defer file creation - see SmbOperationStrategy.createTextFile.
             val dir = stagingDir.directoryFor(com.sza.fastmediasorter.data.local.staging.StagedKind.TEXT_NOTE)
-            val localFile = File(dir, "${resourceId}_${fileName}")
+            val localFile = File(dir, "${resourceId}_$fileName")
             stagingRegistry.register(
                 file = localFile,
                 targetResourceId = resourceId,
@@ -202,7 +203,7 @@ class SftpOperationStrategy @Inject constructor(
             val pathInfo = parseSftpPath(path) ?: return@withContext Result.failure(IllegalArgumentException("Invalid SFTP path"))
             val connectionInfo = getConnectionInfo(pathInfo)
             val inputStream = ByteArrayInputStream(content.toByteArray())
-            
+
             val uploadResult = sftpClient.uploadFile(
                 connectionInfo,
                 pathInfo.remotePath,
@@ -210,7 +211,7 @@ class SftpOperationStrategy @Inject constructor(
                 content.length.toLong(),
                 progressCallback = null
             )
-            
+
             // Return the uploadResult directly to preserve any SftpException and its status code
             uploadResult
         } catch (e: Exception) {
@@ -225,7 +226,7 @@ class SftpOperationStrategy @Inject constructor(
             val pathInfo = parseSftpPath(path) ?: return@withContext Result.failure(IllegalArgumentException("Invalid SFTP path"))
             val connectionInfo = getConnectionInfo(pathInfo)
             val buffer = ByteArrayOutputStream()
-            
+
             val downloadResult = sftpClient.downloadFile(
                 connectionInfo,
                 pathInfo.remotePath,
@@ -233,11 +234,11 @@ class SftpOperationStrategy @Inject constructor(
                 fileSize = 0L,
                 progressCallback = null
             )
-            
+
             if (downloadResult.isSuccess) {
-                 Result.success(buffer.toString("UTF-8"))
+                Result.success(buffer.toString("UTF-8"))
             } else {
-                 Result.failure(Exception("Download failed: ${downloadResult.exceptionOrNull()?.message}"))
+                Result.failure(Exception("Download failed: ${downloadResult.exceptionOrNull()?.message}"))
             }
         } catch (e: Exception) {
             e.rethrowIfCancellation()
@@ -250,9 +251,9 @@ class SftpOperationStrategy @Inject constructor(
         try {
             val pathInfo = parseSftpPath(path) ?: return@withContext Result.failure(IllegalArgumentException("Invalid SFTP path"))
             val connectionInfo = getConnectionInfo(pathInfo)
-            
+
             val listResult = sftpClient.listFiles(connectionInfo, pathInfo.remotePath, recursive = false)
-            
+
             if (listResult.isSuccess) {
                 // Determine base URI structure to prepend
                 // We want to reconstruct sftp://username@host:port/remotePath
@@ -260,17 +261,17 @@ class SftpOperationStrategy @Inject constructor(
                 val userInfo = if (pathInfo.username.isNotEmpty()) "${pathInfo.username}@" else ""
                 val portInfo = if (pathInfo.port != 22) ":${pathInfo.port}" else ""
                 val basePrefix = "sftp://$userInfo${pathInfo.host}$portInfo"
-                
+
                 // sftpClient returns absolute paths on server e.g. /home/user/file.txt
                 // We construct full URI. Note: remote path includes leading slash usually.
                 val paths = listResult.getOrNull()?.map { listing ->
-                     // listing.path is absolute on server e.g. /home/user/file.txt
-                     // Construct full URI: sftp://host/path/to/file
-                     "$basePrefix${listing.path}"
+                    // listing.path is absolute on server e.g. /home/user/file.txt
+                    // Construct full URI: sftp://host/path/to/file
+                    "$basePrefix${listing.path}"
                 } ?: emptyList()
                 Result.success(paths)
             } else {
-                 Result.failure(Exception("List files failed: ${listResult.exceptionOrNull()?.message}"))
+                Result.failure(Exception("List files failed: ${listResult.exceptionOrNull()?.message}"))
             }
         } catch (e: CancellationException) {
             // Navigation away from the screen cancels the listing scope - expected, not a failure.
@@ -280,12 +281,12 @@ class SftpOperationStrategy @Inject constructor(
             Result.failure(e)
         }
     }
-    
+
     override fun supportsProtocol(path: String): Boolean {
         // Accept sftp: prefix (File() normalizes sftp:// to sftp:/)
         return path.startsWith("sftp:", ignoreCase = true)
     }
-    
+
     override fun getProtocolName(): String = "SFTP"
 
     private data class SftpPathInfo(
@@ -294,11 +295,11 @@ class SftpOperationStrategy @Inject constructor(
         val username: String,
         val remotePath: String
     )
-    
+
     private fun parseSftpPath(path: String): SftpPathInfo? {
         try {
             if (!path.startsWith("sftp:", ignoreCase = true)) return null
-            
+
             val withoutProtocol = path.substringAfter("sftp:", "").trimStart('/')
             val userHostPart = withoutProtocol.substringBefore("/")
             val remotePath = "/" + withoutProtocol.substringAfter("/", "")
@@ -315,7 +316,7 @@ class SftpOperationStrategy @Inject constructor(
             } else {
                 userHostPart
             }
-            
+
             val host: String
             val port: Int
             if (hostPortPart.contains(":")) {
@@ -336,7 +337,7 @@ class SftpOperationStrategy @Inject constructor(
             return null
         }
     }
-    
+
     private suspend fun getConnectionInfo(pathInfo: SftpPathInfo): SftpClient.SftpConnectionInfo {
         // S1006: reach the resource on whichever address is live now (LAN at home, WAN in transit).
         val resolved = endpointResolver.resolve(pathInfo.host, pathInfo.port)
@@ -359,7 +360,7 @@ class SftpOperationStrategy @Inject constructor(
             passphrase = credentials.password.ifEmpty { null }
         )
     }
-    
+
     private suspend fun copySftpToSftp(
         source: String,
         destination: String,
@@ -371,7 +372,7 @@ class SftpOperationStrategy @Inject constructor(
                 ?: return Result.failure(IllegalArgumentException("Invalid source path"))
             val destInfo = parseSftpPath(destination)
                 ?: return Result.failure(IllegalArgumentException("Invalid destination path"))
-            
+
             // Check if destination exists
             if (!overwrite) {
                 val destConnectionInfo = getConnectionInfo(destInfo)
@@ -381,14 +382,14 @@ class SftpOperationStrategy @Inject constructor(
                     return Result.failure(FileExistsException(fileName, destination, isMove = false))
                 }
             }
-            
+
             val sourceConnectionInfo = getConnectionInfo(sourceInfo)
             val statResult = sftpClient.stat(sourceConnectionInfo, sourceInfo.remotePath)
             if (statResult.isFailure) {
                 return Result.failure(statResult.exceptionOrNull() ?: Exception("Failed to get source file size"))
             }
             val fileSize = statResult.getOrNull()?.size ?: 0L
-            
+
             // Download to buffer
             val buffer = ByteArrayOutputStream()
             val downloadResult = sftpClient.downloadFile(
@@ -398,11 +399,11 @@ class SftpOperationStrategy @Inject constructor(
                 fileSize,
                 progressCallback
             )
-            
+
             if (downloadResult.isFailure) {
                 return Result.failure(downloadResult.exceptionOrNull() ?: Exception("Download failed"))
             }
-            
+
             // Upload from buffer
             val destConnectionInfo = getConnectionInfo(destInfo)
             val uploadResult = sftpClient.uploadFile(
@@ -410,11 +411,11 @@ class SftpOperationStrategy @Inject constructor(
                 destInfo.remotePath,
                 buffer.toByteArray()
             )
-            
+
             if (uploadResult.isFailure) {
                 return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Upload failed"))
             }
-            
+
             return Result.success(destination)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
@@ -422,7 +423,7 @@ class SftpOperationStrategy @Inject constructor(
             return Result.failure(e)
         }
     }
-    
+
     private suspend fun downloadFromSftp(
         source: String,
         destination: String,
@@ -473,7 +474,7 @@ class SftpOperationStrategy @Inject constructor(
             return Result.failure(e)
         }
     }
-    
+
     private suspend fun uploadToSftp(
         source: String,
         destination: String,
@@ -483,7 +484,7 @@ class SftpOperationStrategy @Inject constructor(
         try {
             val destInfo = parseSftpPath(destination)
                 ?: return Result.failure(IllegalArgumentException("Invalid destination path"))
-            
+
             // Check if destination exists
             if (!overwrite) {
                 val connectionInfo = getConnectionInfo(destInfo)
@@ -493,27 +494,28 @@ class SftpOperationStrategy @Inject constructor(
                     return Result.failure(FileExistsException(fileName, destination, isMove = false))
                 }
             }
-            
-            val sourceFile = File(source)
-            if (!sourceFile.exists()) {
-                return Result.failure(Exception("Source file not found"))
-            }
-            
+
             val connectionInfo = getConnectionInfo(destInfo)
-            FileInputStream(sourceFile).use { inputStream ->
+            Timber.d("S3140: opening local source for SFTP upload")
+            val sourceInput = localSourceReader.open(source).getOrElse { error ->
+                return Result.failure(error)
+            }
+            val (inputStream, fileSize) = sourceInput
+
+            inputStream.use { stream ->
                 val uploadResult = sftpClient.uploadFile(
                     connectionInfo,
                     destInfo.remotePath,
-                    inputStream,
-                    sourceFile.length(),
+                    stream,
+                    fileSize,
                     progressCallback
                 )
-                
+
                 if (uploadResult.isFailure) {
                     return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Upload failed"))
                 }
             }
-            
+
             return Result.success(destination)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
@@ -530,23 +532,23 @@ class SftpOperationStrategy @Inject constructor(
             if (!path.startsWith("sftp:", ignoreCase = true)) {
                 return@withContext Result.failure(IllegalArgumentException("Not an SFTP path: $path"))
             }
-            
+
             val pathInfo = parseSftpPath(path)
                 ?: return@withContext Result.failure(Exception("Failed to parse SFTP path: $path"))
-            
+
             val connectionInfo = getConnectionInfo(pathInfo)
-            
+
             // Collect all files recursively
             val allFiles = mutableListOf<String>()
             collectSftpFiles(connectionInfo, pathInfo.remotePath, allFiles)
             val totalCount = allFiles.size
-            
+
             var deletedCount = 0
-            
+
             // Delete files from deepest to shallowest
             for (filePath in allFiles.sortedByDescending { it.length }) {
                 progressCallback?.invoke(deletedCount, totalCount, filePath.substringAfterLast('/'))
-                
+
                 // Get attributes to determine if it's a file or directory
                 val attrsResult = sftpClient.stat(connectionInfo, filePath)
                 if (attrsResult.isSuccess) {
@@ -558,10 +560,10 @@ class SftpOperationStrategy @Inject constructor(
                     }
                 }
             }
-            
+
             // Delete the directory itself
             sftpClient.deleteDirectory(connectionInfo, pathInfo.remotePath).onSuccess { deletedCount++ }
-            
+
             Timber.d("SftpOperationStrategy: Deleted directory $path ($deletedCount items)")
             Result.success(deletedCount)
         } catch (e: Exception) {
@@ -570,7 +572,7 @@ class SftpOperationStrategy @Inject constructor(
             Result.failure(e)
         }
     }
-    
+
     private suspend fun collectSftpFiles(
         connectionInfo: SftpClient.SftpConnectionInfo,
         remotePath: String,
@@ -586,7 +588,7 @@ class SftpOperationStrategy @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun renameDirectory(
         oldPath: String,
         newPath: String
@@ -595,19 +597,19 @@ class SftpOperationStrategy @Inject constructor(
             if (!oldPath.startsWith("sftp:", ignoreCase = true) || !newPath.startsWith("sftp:", ignoreCase = true)) {
                 return@withContext Result.failure(IllegalArgumentException("Both paths must be SFTP"))
             }
-            
+
             val oldInfo = parseSftpPath(oldPath)
                 ?: return@withContext Result.failure(Exception("Failed to parse source path: $oldPath"))
             val newInfo = parseSftpPath(newPath)
                 ?: return@withContext Result.failure(Exception("Failed to parse destination path: $newPath"))
-            
+
             // Must be on same server
             if (oldInfo.host != newInfo.host || oldInfo.port != newInfo.port) {
                 return@withContext Result.failure(IllegalArgumentException("Cannot rename across servers"))
             }
-            
+
             val connectionInfo = getConnectionInfo(oldInfo)
-            
+
             val renameResult = sftpClient.rename(connectionInfo, oldInfo.remotePath, newInfo.remotePath)
             if (renameResult.isSuccess) {
                 Timber.d("SftpOperationStrategy: Renamed directory $oldPath -> $newPath")
@@ -621,7 +623,7 @@ class SftpOperationStrategy @Inject constructor(
             Result.failure(e)
         }
     }
-    
+
     override suspend fun copyDirectory(
         source: String,
         destination: String,
@@ -631,21 +633,21 @@ class SftpOperationStrategy @Inject constructor(
             if (!source.startsWith("sftp:", ignoreCase = true)) {
                 return@withContext Result.failure(IllegalArgumentException("Source must be SFTP path"))
             }
-            
+
             val sourceInfo = parseSftpPath(source)
                 ?: return@withContext Result.failure(Exception("Failed to parse source path: $source"))
-            
+
             val sourceConnectionInfo = getConnectionInfo(sourceInfo)
-            
+
             // Collect all files to copy (files only)
             val allFiles = mutableListOf<String>()
             collectSftpFilesOnly(sourceConnectionInfo, sourceInfo.remotePath, allFiles)
             val totalCount = allFiles.size
-            
+
             createDirectory(destination).onFailure { return@withContext Result.failure(it) }
-            
+
             var copiedCount = 0
-            
+
             for (filePath in allFiles) {
                 val relativePath = filePath.removePrefix(sourceInfo.remotePath).trimStart('/')
                 val destFilePath = if (destination.endsWith('/')) {
@@ -653,22 +655,22 @@ class SftpOperationStrategy @Inject constructor(
                 } else {
                     "$destination/$relativePath"
                 }
-                
+
                 progressCallback?.invoke(copiedCount, totalCount, filePath.substringAfterLast('/'))
-                
+
                 // Create parent directory if needed
                 val parentDir = destFilePath.substringBeforeLast('/')
                 if (parentDir != destination) {
                     createDirectory(parentDir)
                 }
-                
+
                 // Copy file
                 val fullSourcePath = "sftp://${sourceInfo.host}:${sourceInfo.port}$filePath"
                 copyFile(fullSourcePath, destFilePath, overwrite = true, progressCallback = null).onSuccess {
                     copiedCount++
                 }
             }
-            
+
             Timber.d("SftpOperationStrategy: Copied directory $source -> $destination ($copiedCount files)")
             Result.success(copiedCount)
         } catch (e: Exception) {
@@ -677,7 +679,7 @@ class SftpOperationStrategy @Inject constructor(
             Result.failure(e)
         }
     }
-    
+
     private suspend fun collectSftpFilesOnly(
         connectionInfo: SftpClient.SftpConnectionInfo,
         remotePath: String,
@@ -694,18 +696,18 @@ class SftpOperationStrategy @Inject constructor(
             }
         }
     }
-    
+
     override suspend fun isDirectory(path: String): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             if (!path.startsWith("sftp:", ignoreCase = true)) {
                 return@withContext Result.failure(IllegalArgumentException("Not an SFTP path: $path"))
             }
-            
+
             val pathInfo = parseSftpPath(path)
                 ?: return@withContext Result.failure(Exception("Failed to parse SFTP path: $path"))
-            
+
             val connectionInfo = getConnectionInfo(pathInfo)
-            
+
             val attrsResult = sftpClient.stat(connectionInfo, pathInfo.remotePath)
             if (attrsResult.isSuccess) {
                 Result.success(attrsResult.getOrNull()?.isDirectory == true)
@@ -718,32 +720,36 @@ class SftpOperationStrategy @Inject constructor(
             Result.failure(e)
         }
     }
-    
-    override suspend fun getDirectoryInfo(path: String): Result<com.sza.fastmediasorter.data.transfer.DirectoryInfo> = withContext(Dispatchers.IO) {
+
+    override suspend fun getDirectoryInfo(path: String): Result<com.sza.fastmediasorter.data.transfer.DirectoryInfo> = withContext(
+        Dispatchers.IO
+    ) {
         try {
             if (!path.startsWith("sftp:", ignoreCase = true)) {
                 return@withContext Result.failure(IllegalArgumentException("Not an SFTP path: $path"))
             }
-            
+
             val pathInfo = parseSftpPath(path)
                 ?: return@withContext Result.failure(Exception("Failed to parse SFTP path: $path"))
-            
+
             val connectionInfo = getConnectionInfo(pathInfo)
-            
+
             val attrsResult = sftpClient.stat(connectionInfo, pathInfo.remotePath)
             if (attrsResult.isFailure) {
-                return@withContext Result.failure(attrsResult.exceptionOrNull() ?: Exception("Failed to get attributes"))
+                return@withContext Result.failure(
+                    attrsResult.exceptionOrNull() ?: Exception("Failed to get attributes")
+                )
             }
-            
+
             val attrs = attrsResult.getOrNull()
             if (attrs?.isDirectory != true) {
                 return@withContext Result.failure(IllegalArgumentException("Path is not a directory: $path"))
             }
-            
+
             // Get child count (immediate children only)
             val listResult = sftpClient.listFiles(connectionInfo, pathInfo.remotePath, recursive = false)
             val childCount = listResult.getOrNull()?.size ?: 0
-            
+
             Result.success(
                 com.sza.fastmediasorter.data.transfer.DirectoryInfo(
                     path = path,

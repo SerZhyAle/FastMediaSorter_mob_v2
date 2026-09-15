@@ -141,7 +141,7 @@ class LauncherAllAppsGestureManagerTest {
             viewport = viewport,
             isEnabled = { isEnabled },
             isTouchOnInteractiveCell = { startsOnInteractiveCell },
-            onSwipe = swipes::add,
+            onSwipe = { direction, _ -> swipes.add(direction) },
             onDoubleTap = { doubleTaps++ },
             isGestureStartAllowed = { isGestureStartAllowed ?: !startsOnInteractiveCell },
         )

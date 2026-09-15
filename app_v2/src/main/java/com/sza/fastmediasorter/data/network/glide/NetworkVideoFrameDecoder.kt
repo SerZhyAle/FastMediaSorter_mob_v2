@@ -402,7 +402,6 @@ class NetworkVideoFrameDecoder(
     /**
      * Custom Resource wrapper for BitmapDrawable that properly recycles the bitmap
      */
-    @Suppress("OVERRIDE_DEPRECATION")
     private class BitmapDrawableResource(
         drawable: BitmapDrawable,
         private val bitmapPool: BitmapPool

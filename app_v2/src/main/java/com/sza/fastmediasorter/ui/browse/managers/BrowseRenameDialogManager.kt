@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
+import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
 import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.launch
@@ -198,7 +199,7 @@ internal class BrowseRenameDialogManager(
             if (firstViewHolder is BrowseRenameFilesAdapter.ViewHolder) {
                 firstViewHolder.binding.etFileName.requestFocus()
                 val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-                imm?.showSoftInput(firstViewHolder.binding.etFileName, InputMethodManager.SHOW_IMPLICIT)
+                imm?.showSoftInputImplicitly(firstViewHolder.binding.etFileName)
             }
         }, FILE_OBSERVER_RESUME_DELAY_MS)
     }

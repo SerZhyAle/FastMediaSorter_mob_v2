@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
@@ -21,6 +22,8 @@ object BroadcastNotificationFactory {
         stopIntent: Intent = Intent(context, BroadcastCaptureService::class.java).apply {
             action = BroadcastCaptureService.ACTION_STOP
         },
+        @StringRes titleRes: Int = R.string.broadcast_notification_title,
+        @StringRes textRes: Int = R.string.broadcast_notification_text,
     ): Notification {
         ensureChannelCreated(context)
 
@@ -33,8 +36,8 @@ object BroadcastNotificationFactory {
 
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)
-            .setContentTitle(context.getString(R.string.broadcast_notification_title))
-            .setContentText(context.getString(R.string.broadcast_notification_text))
+            .setContentTitle(context.getString(titleRes))
+            .setContentText(context.getString(textRes))
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)

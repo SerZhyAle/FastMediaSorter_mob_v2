@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
+import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import com.sza.fastmediasorter.utils.UserActionLogger
 import timber.log.Timber
 
@@ -226,7 +227,7 @@ class BrowseButtonSetupHelper(
         binding.layoutSearch.visibility = View.VISIBLE
         binding.etSearchQuery.requestFocus()
         val imm = binding.root.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-        imm?.showSoftInput(binding.etSearchQuery, InputMethodManager.SHOW_IMPLICIT)
+        imm?.showSoftInputImplicitly(binding.etSearchQuery)
     }
 
     private fun hideSearchContainer() {

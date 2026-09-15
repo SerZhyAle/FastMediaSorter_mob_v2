@@ -112,6 +112,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Fully open-source edition** `[FOSS]`: A build with no proprietary components, for the F-Droid catalogue.
 ## 9. Replace your home-screen launcher
 - **Use the app as your home screen** `[Standard / noLegal]`: Launcher mode turns FastMediaSorter into the device home screen, with resizable gadgets, a working clock, and a labeled scrollable app grid.
+- **Split notification swipe** `[Standard / noLegal]`: When the desktop down-swipe opens the notification shade, start on the left for notifications or the right for Quick Settings.
 - **Make the desktop yours** `[Standard / noLegal]`: Choose the branded waves-and-particles animation, a flat empty surface, or a picture of your own including an animated GIF, cropped to fill the screen.
 - **Weather without a location permission** `[Standard / noLegal]`: A desktop gadget shows current conditions for a place you name, using keyless Open-Meteo data instead of your device location.
 - **App quick actions on the desktop** `[Standard / noLegal]`: Long-press an installed app to list the shortcuts it publishes and start the one you want directly.

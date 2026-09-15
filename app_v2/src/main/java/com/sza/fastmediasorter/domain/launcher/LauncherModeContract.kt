@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.launcher
 
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 
 /**
  * S0404: capability seam for launcher mode (the app acting as the device home screen).
@@ -22,4 +23,7 @@ interface LauncherModeContract {
      * instead of reaching for a surface that is not compiled in.
      */
     fun openAllApps(context: Context): Boolean
+
+    /** Opens the desktop as an app window, never as an Android HOME candidate. */
+    fun startWindowIntent(context: Context): Intent?
 }

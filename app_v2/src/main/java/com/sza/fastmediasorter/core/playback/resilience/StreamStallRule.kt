@@ -194,7 +194,7 @@ internal class StreamStallRule(
         /** Poll cadence the caller schedules with; the rule counts polls, not milliseconds. */
         const val POLL_INTERVAL_MS = 3_000L
 
-        const val MAX_EMPTY_POLLS = 3
+        const val MAX_EMPTY_POLLS = 2
 
         /** Audio-only progress floor: less than this in one poll counts as no movement. */
         const val MIN_POSITION_PROGRESS_MS = 500L

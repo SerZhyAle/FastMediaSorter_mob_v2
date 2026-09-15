@@ -3358,7 +3358,6 @@
     <string name="broadcast_share_url_label">Übertragungs-URL</string>
     <string name="broadcast_share_export_file">Datei exportieren</string>
     <string name="broadcast_share_saved">Datei gespeichert</string>
-    <string name="broadcast_share_save_failed">Datei konnte nicht gespeichert werden</string>
     <string name="broadcast_share_close">Schließen</string>
     <string name="broadcast_share_description">QR-Code scannen oder Deskriptordatei speichern, um einen Zuhörer zu verbinden</string>
     <string name="broadcast_share_qr_cd">QR-Code des Übertragungsdeskriptors</string>
@@ -3490,7 +3489,6 @@
     <string name="broadcast_entry_description">Beginne, das Mikrofon-Audio dieses Geräts in deinem lokalen Netzwerk zu teilen. Jeder mit dem Link kann zuhören, bis du es stoppst.</string>
     <string name="broadcast_entry_start">Übertragung starten</string>
     <string name="broadcast_entry_live">Übertragung ist live</string>
-    <string name="broadcast_entry_unavailable">Live-Übertragung ist in diesem Build nicht enthalten</string>
     <string name="shortcut_broadcast_short">Übertragung</string>
     <string name="shortcut_broadcast_long">Live-Übertragung</string>
     <string name="tile_broadcast_label">Live-Übertragung</string>

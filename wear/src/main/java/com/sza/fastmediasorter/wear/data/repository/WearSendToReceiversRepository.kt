@@ -71,7 +71,6 @@ class WearSendToReceiversRepository @Inject constructor(
      * from here, while drawing the menu row - past the catch that was meant to keep the previous list.
      * Dropping the entry costs one receiver; letting it through costs the screen.
      */
-    @Suppress("USELESS_ELVIS")
     private fun usable(entries: List<WearSendToReceiverEntry>): List<WearSendToReceiverEntry> =
         // The elvis operators are what the compiler calls useless and the runtime does not: these
         // fields are declared non-null, and Gson is exactly the way a null gets into one. Reading

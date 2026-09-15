@@ -610,7 +610,7 @@ class DropboxClientImpl @Inject constructor(
         fileName: String,
         mimeType: String,
         parentFolderId: String?,
-        @Suppress("UNUSED_PARAMETER") fileSize: Long,
+        fileSize: Long,
         progressCallback: ((TransferProgress) -> Unit)?
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {

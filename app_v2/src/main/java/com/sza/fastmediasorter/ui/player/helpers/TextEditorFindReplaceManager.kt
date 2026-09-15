@@ -5,6 +5,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 
 /**
  * Manages Find & Replace panel and editor toolbar actions for the inline text editor.
@@ -97,7 +98,7 @@ class TextEditorFindReplaceManager(
         safeViews.replaceRow.isVisible = withReplace
         safeViews.etFindQuery.requestFocus()
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(safeViews.etFindQuery, InputMethodManager.SHOW_IMPLICIT)
+        imm.showSoftInputImplicitly(safeViews.etFindQuery)
     }
 
     /**

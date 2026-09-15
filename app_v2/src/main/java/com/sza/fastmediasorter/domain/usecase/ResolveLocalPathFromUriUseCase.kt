@@ -54,7 +54,6 @@ class ResolveLocalPathFromUriUseCase @Inject constructor(
         return resolveViaDocumentId(uri)
     }
 
-    @Suppress("DEPRECATION")
     private fun resolveViaDataColumn(uri: Uri): String? = runCatching {
         context.contentResolver
             .query(uri, arrayOf(MediaStore.MediaColumns.DATA), null, null, null)

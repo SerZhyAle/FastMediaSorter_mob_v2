@@ -3359,7 +3359,6 @@
     <string name="broadcast_share_url_label">URL della trasmissione</string>
     <string name="broadcast_share_export_file">Esporta file</string>
     <string name="broadcast_share_saved">File salvato</string>
-    <string name="broadcast_share_save_failed">Impossibile salvare il file</string>
     <string name="broadcast_share_close">Chiudi</string>
     <string name="broadcast_share_description">Scansiona il codice QR o salva il file descrittore per collegare un ascoltatore</string>
     <string name="broadcast_share_qr_cd">Codice QR del descrittore della trasmissione</string>
@@ -3491,7 +3490,6 @@
     <string name="broadcast_entry_description">Avvia la condivisione dell\'audio del microfono di questo dispositivo sulla tua rete locale. Chiunque abbia il link può ascoltare finché non la fermi.</string>
     <string name="broadcast_entry_start">Avvia trasmissione</string>
     <string name="broadcast_entry_live">La trasmissione è in diretta</string>
-    <string name="broadcast_entry_unavailable">La trasmissione dal vivo non fa parte di questa build</string>
     <string name="shortcut_broadcast_short">Trasmissione</string>
     <string name="shortcut_broadcast_long">Trasmissione dal vivo</string>
     <string name="tile_broadcast_label">Trasmissione dal vivo</string>

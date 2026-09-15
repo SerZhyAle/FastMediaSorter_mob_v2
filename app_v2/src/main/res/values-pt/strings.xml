@@ -3358,7 +3358,6 @@
     <string name="broadcast_share_url_label">URL da transmissão</string>
     <string name="broadcast_share_export_file">Exportar ficheiro</string>
     <string name="broadcast_share_saved">Ficheiro guardado</string>
-    <string name="broadcast_share_save_failed">Falha ao guardar o ficheiro</string>
     <string name="broadcast_share_close">Fechar</string>
     <string name="broadcast_share_description">Leia o código QR ou guarde o ficheiro descritor para ligar um ouvinte</string>
     <string name="broadcast_share_qr_cd">Código QR do descritor da transmissão</string>
@@ -3490,7 +3489,6 @@
     <string name="broadcast_entry_description">Comece a partilhar o áudio do microfone deste dispositivo na sua rede local. Qualquer pessoa com a ligação pode ouvir até parar a transmissão.</string>
     <string name="broadcast_entry_start">Iniciar transmissão</string>
     <string name="broadcast_entry_live">A transmissão está no ar</string>
-    <string name="broadcast_entry_unavailable">A Transmissão em Direto não faz parte desta versão</string>
     <string name="shortcut_broadcast_short">Transmissão</string>
     <string name="shortcut_broadcast_long">Transmissão em Direto</string>
     <string name="tile_broadcast_label">Transmissão em Direto</string>

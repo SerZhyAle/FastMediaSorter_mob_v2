@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Pre-flight readiness check for on-device testing skills (/spec-test-device, /verify).
+  Pre-flight readiness check for on-device testing skills (/spec-test-device).
 
 .DESCRIPTION
   Single point of truth that answers: can the agent actually run a UI scenario right now?

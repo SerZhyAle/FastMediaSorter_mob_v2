@@ -86,6 +86,7 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
             screenRecordingAvailable = screenVideoRecordingControllers.isNotEmpty(),
             systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
             launcherRouteAvailable = launcherModeContract.isAvailableInBuild,
+            currentSettings = { viewModel.settings.value },
         )
     }
 

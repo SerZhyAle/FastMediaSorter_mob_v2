@@ -132,6 +132,7 @@ class ResourceNavigationCoordinator(
                     createNavigationResult(resource.id, slideshowMode)
                 },
                 onFailure = { error ->
+                    Timber.d("S3133: connection failure maps current diagnostics")
                     HandledNetworkOutcomeLogger.logConnectionTestFailure(
                         scope = "resource-navigation",
                         resourceLabel = resource.name,
@@ -153,12 +154,12 @@ class ResourceNavigationCoordinator(
                         resource.type,
                         resource.path,
                         networkContextAnalyzer,
-                        resource.accessNote // S1014
                     )
                     NavigationResult.Error(userMessage, null)
                 }
             )
         } catch (e: Exception) {
+            Timber.d("S3133: connection exception maps current diagnostics")
             HandledNetworkOutcomeLogger.logConnectionTestFailure(
                 scope = "resource-navigation",
                 resourceLabel = resource.name,
@@ -180,7 +181,6 @@ class ResourceNavigationCoordinator(
                 resource.type,
                 resource.path,
                 networkContextAnalyzer,
-                resource.accessNote // S1014
             )
             NavigationResult.Error(userMessage, null)
         }

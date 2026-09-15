@@ -85,7 +85,6 @@ class SftpDataSource @Inject constructor(
                 session = openSession(source)
                 channel = openChannel(session)
 
-                @Suppress("UNCHECKED_CAST")
                 val entries = channel.ls(path) as? Vector<*>
                     ?: error("SFTP ls returned null for path=$path")
 

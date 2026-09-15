@@ -13,7 +13,11 @@ import androidx.core.content.ContextCompat
 import com.pedro.common.ConnectChecker
 import com.pedro.encoder.input.video.CameraOpenException
 import com.pedro.rtspserver.RtspServerCamera2
+import com.pedro.rtspserver.server.ClientListener
+import com.pedro.rtspserver.server.IpType
+import com.pedro.rtspserver.server.ServerClient
 import com.pedro.rtspserver.util.RtspServerStreamClient
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
@@ -35,7 +39,7 @@ import javax.inject.Inject
 
 @Suppress("MagicNumber", "TooManyFunctions")
 @AndroidEntryPoint
-class VideoBroadcastService : Service(), ConnectChecker {
+class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
@@ -60,6 +64,7 @@ class VideoBroadcastService : Service(), ConnectChecker {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
+                Timber.d("S3038: video stop action received")
                 stopBroadcast()
                 stopSelf()
                 return START_NOT_STICKY
@@ -113,7 +118,12 @@ class VideoBroadcastService : Service(), ConnectChecker {
 
         // The stop action must reach this service: the shared factory defaults to the audio service,
         // which left a video session with no way to stop outside the control screen (S3058 run 1).
-        val notification = BroadcastNotificationFactory.createNotification(this, stopIntent(this))
+        val notification = BroadcastNotificationFactory.createNotification(
+            context = this,
+            stopIntent = stopIntent(this),
+            titleRes = R.string.broadcast_notification_video_title,
+            textRes = R.string.broadcast_notification_video_text,
+        )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             var type = ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && currentMode != BroadcastMode.VIDEO_ONLY) {
@@ -166,9 +176,10 @@ class VideoBroadcastService : Service(), ConnectChecker {
                 return
             }
 
+            val streamClient = configureStreamClient(camera)
             val lensId = startStreamOnLens(camera)
 
-            val endpoint = (camera.streamClient as RtspServerStreamClient).getEndPointConnection()
+            val endpoint = streamClient.getEndPointConnection()
             val endpointDto = BroadcastEndpointDto(
                 url = endpoint,
                 transport = "RTSP",
@@ -201,6 +212,7 @@ class VideoBroadcastService : Service(), ConnectChecker {
                 activeLensId = lensId ?: camera.currentCameraId,
             )
             Timber.d("VideoBroadcastService: RTSP streaming started at %s", endpoint)
+            Timber.d("S3038: video session live, audio track announced only with microphone")
         } catch (e: Exception) {
             Timber.e(e, "VideoBroadcastService: failed to start RTSP server")
             _state.value = BroadcastState.Failed(
@@ -210,6 +222,19 @@ class VideoBroadcastService : Service(), ConnectChecker {
             isStreaming.set(false)
             stopSelf()
         }
+    }
+
+    private fun configureStreamClient(camera: RtspServerCamera2): RtspServerStreamClient {
+        val streamClient = camera.streamClient
+        // The server announces an audio track in the SDP unless told otherwise, and Camera only prepares none.
+        streamClient.setOnlyVideo(currentMode == BroadcastMode.VIDEO_ONLY)
+        // Left on All, the library publishes the first address it meets - an IPv6 one on the test device -
+        // while the audio link of the same phone is IPv4, so one phone handed out two address families.
+        streamClient.forceIpType(IpType.IPv4)
+        // ConnectChecker's success and disconnect callbacks do not fire per RTSP client; the counter stayed at
+        // zero with a listener receiving bytes (device run 2026-09-13).
+        streamClient.setClientListener(this)
+        return streamClient
     }
 
     /** Starts the stream on the lens the user picked and returns that lens id, or null for the default camera. */
@@ -250,6 +275,7 @@ class VideoBroadcastService : Service(), ConnectChecker {
 
     private fun toggleMicInternal() {
         val camera = cameraServer ?: return
+        Timber.d("S3038: microphone toggle")
         if (camera.isAudioMuted) {
             camera.enableAudio()
             currentMicEnabled = true
@@ -282,6 +308,7 @@ class VideoBroadcastService : Service(), ConnectChecker {
             }
             BroadcastLensOption.physicalIdOf(lensId)?.let { openPhysicalLens(camera, it) }
             _state.value = liveState.copy(activeLensId = lensId)
+            Timber.d("S3038: lens switched on air")
         } catch (e: CameraOpenException) {
             Timber.w(
                 e,
@@ -312,6 +339,7 @@ class VideoBroadcastService : Service(), ConnectChecker {
     private fun toggleCameraInternal() {
         val liveState = _state.value as? BroadcastState.Live ?: return
         val cameraOn = !liveState.cameraEnabled
+        Timber.d("S3038: camera toggle via video mute")
         previewProvider.setVideoMuted(!cameraOn)
         _state.value = liveState.copy(cameraEnabled = cameraOn)
     }
@@ -346,8 +374,7 @@ class VideoBroadcastService : Service(), ConnectChecker {
     }
 
     override fun onConnectionSuccess() {
-        _listenerCount.value++
-        Timber.d("VideoBroadcastService: client connected, total=%d", _listenerCount.value)
+        Timber.d("VideoBroadcastService: connection success")
     }
 
     override fun onConnectionFailed(reason: String) {
@@ -355,8 +382,24 @@ class VideoBroadcastService : Service(), ConnectChecker {
     }
 
     override fun onDisconnect() {
-        _listenerCount.value = maxOf(0, _listenerCount.value - 1)
-        Timber.d("VideoBroadcastService: client disconnected, total=%d", _listenerCount.value)
+        Timber.d("VideoBroadcastService: disconnect")
+    }
+
+    // The server removes a client from its list before it reports the disconnect, so its own count is the
+    // truth on both edges and a missed or doubled callback cannot drift the number.
+    override fun onClientConnected(client: ServerClient) {
+        publishListenerCount()
+    }
+
+    override fun onClientDisconnected(client: ServerClient) {
+        publishListenerCount()
+    }
+
+    override fun onClientNewBitrate(bitrate: Long, client: ServerClient) = Unit
+
+    private fun publishListenerCount() {
+        _listenerCount.value = cameraServer?.streamClient?.getNumClients() ?: 0
+        Timber.d("S3038: RTSP listener count published")
     }
 
     override fun onAuthError() {

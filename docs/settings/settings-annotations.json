@@ -1204,6 +1204,11 @@
     "ru": "Включает лаунчер: приложение становится домашним экраном устройства, и кнопка «Домой» открывает его рабочий стол.",
     "uk": "Вмикає лаунчер: застосунок стає домашнім екраном пристрою, і кнопка «Додому» відкриває його робочий стіл."
   },
+  "rowLauncherStartWindow": {
+    "en": "Opens your desktop when you start the app normally, without making it the device home screen. Turn it off to open the app's main window instead.",
+    "ru": "Открывает ваш рабочий стол при обычном запуске приложения, не назначая его домашним экраном устройства. Выключите, чтобы вместо этого открывалось главное окно приложения.",
+    "uk": "Відкриває ваш робочий стіл під час звичайного запуску застосунку, не призначаючи його домашнім екраном пристрою. Вимкніть, щоб натомість відкривалося головне вікно застосунку."
+  },
   "rowLauncherOpenHomeSettings": {
     "en": "Opens Android's default-launcher chooser to switch the system home screen.",
     "ru": "Открывает системный выбор лаунчера по умолчанию для смены домашнего экрана.",
@@ -1215,9 +1220,9 @@
     "uk": "Замінює системний рядок стану власною областю годинника/статусу лаунчера; вимкнено - лишається системний рядок стану."
   },
   "rowLauncherScreenTimeout": {
-    "en": "Turns the screen off after a chosen period of inactivity on the launcher desktop - locking the device where a system lock is reachable, or showing a black screen where it is not. On by default after 30 seconds; presets of 5 to 300 seconds, a custom number of seconds, or never (off).",
-    "ru": "Гасит экран при простое на рабочем столе лаунчера: блокирует устройство там, где системная блокировка доступна, иначе показывает чёрный экран. По умолчанию включено с задержкой 30 секунд; предустановки от 5 до 300 секунд, заданное вручную число секунд или без отключения.",
-    "uk": "Гасить екран під час простою на робочому столі лаунчера: блокує пристрій там, де системне блокування доступне, інакше показує чорний екран. Типово увімкнено із затримкою 30 секунд; попередні налаштування від 5 до 300 секунд, довільна кількість секунд або без вимкнення."
+    "en": "Turns the screen off after a chosen period of inactivity on the launcher desktop - locking the device where a system lock is reachable, or showing a black screen where it is not. On by default after 30 seconds; presets of 5 to 300 seconds, a custom number of seconds, or never (off). Car head unit and photo-frame profiles start with never.",
+    "ru": "Гасит экран при простое на рабочем столе лаунчера: блокирует устройство там, где системная блокировка доступна, иначе показывает чёрный экран. По умолчанию включено с задержкой 30 секунд; предустановки от 5 до 300 секунд, заданное вручную число секунд или без отключения. Для профилей автомагнитолы и фоторамки по умолчанию выбрано «без отключения».",
+    "uk": "Гасить екран під час простою на робочому столі лаунчера: блокує пристрій там, де системне блокування доступне, інакше показує чорний екран. Типово увімкнено із затримкою 30 секунд; попередні налаштування від 5 до 300 секунд, довільна кількість секунд або без вимкнення. Для профілів автомагнітоли й фоторамки типово вибрано «без вимкнення»."
   },
   "rowLauncherSettings": {
     "en": "Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density.",

@@ -58,7 +58,6 @@ class LanguageBadgeDrawable(
 
     override fun draw(canvas: Canvas) {
         val bounds = bounds
-        @Suppress("UNUSED_VARIABLE")
         val width = bounds.width()
         val height = bounds.height()
         

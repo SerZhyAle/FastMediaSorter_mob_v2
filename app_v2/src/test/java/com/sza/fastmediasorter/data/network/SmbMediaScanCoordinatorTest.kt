@@ -42,7 +42,6 @@ class SmbMediaScanCoordinatorTest {
         coEvery {
             scanner.scanDirectoryRecursive(any(), any(), any(), any(), any(), any(), any())
         } coAnswers {
-            @Suppress("UNCHECKED_CAST")
             val out = arg<MutableList<SmbDirectoryScanner.SmbFileInfo>>(3)
             out.add(SmbDirectoryScanner.SmbFileInfo("a.mp4", "dir/a.mp4", false, 100L, 5L))
         }

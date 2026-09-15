@@ -76,6 +76,14 @@
         </activity>
 
         <activity
+            android:name="com.sza.fastmediasorter.ui.launcher.LauncherStartWindowActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:enabled="true"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:stateNotNeeded="true" />
+
+        <activity
             android:name="com.sza.fastmediasorter.ui.launcher.pin.LauncherPinRequestActivity"
             android:excludeFromRecents="true"
             android:exported="true"

@@ -336,6 +336,35 @@ $r | ConvertTo-Json -Compress
 exit 0
 '@
 
+function Stop-ProbeTree {
+    param([Parameter(Mandatory)][int]$Id)
+    Get-CimInstance Win32_Process -Filter "ParentProcessId=$Id" -ErrorAction SilentlyContinue |
+        ForEach-Object { Stop-ProbeTree -Id ([int]$_.ProcessId) }
+    Stop-Process -Id $Id -Force -ErrorAction SilentlyContinue
+}
+
+# S3079: every child probe runs under a deadline. A probe that never returns used to hold the suite
+# with no output at all; past the deadline its whole tree is stopped and the cases reading its
+# verdict fail with exit 124, so a hang is a red line in bounded time instead of silence.
+function Invoke-BoundedProbe {
+    param(
+        [Parameter(Mandatory)][string[]]$ArgumentList,
+        [Parameter(Mandatory)][string]$StdOut,
+        [Parameter(Mandatory)][string]$StdErr,
+        [int]$TimeoutSeconds = 180
+    )
+    $p = Start-Process -FilePath 'pwsh' -ArgumentList $ArgumentList -NoNewWindow -PassThru `
+        -RedirectStandardOutput $StdOut -RedirectStandardError $StdErr
+    # Touching Handle before exit is what keeps ExitCode readable after WaitForExit.
+    $null = $p.Handle
+    if (-not $p.WaitForExit($TimeoutSeconds * 1000)) {
+        Stop-ProbeTree -Id $p.Id
+        Write-Output "  TIMEOUT probe stopped after ${TimeoutSeconds}s: $($ArgumentList -join ' ')"
+        return [pscustomobject]@{ ExitCode = 124 }
+    }
+    return [pscustomobject]@{ ExitCode = $p.ExitCode }
+}
+
 function Assert-Case {
     param([Parameter(Mandatory)][string]$Name, [Parameter(Mandatory)][bool]$Ok, [string]$Detail)
     if ($Ok) { Write-Output "  PASS $Name" }
@@ -346,9 +375,16 @@ try {
     # 0. S2109 domain taxonomy. These cases touch no lock file at all - they read the table and
     #    the two path builders - so they run first and unconditionally, before any case that has
     #    to skip itself around a live BUILD.LOCK.
+    # S3079: the expected code set is read from the profile, not written as a literal. The profile
+    # declared Code.Fixture after these cases were written, and seven of them went red over a
+    # domain the harness had resolved correctly.
+    $profileLocks = (Get-Content -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Raw | ConvertFrom-Json).locks
+    $declaredCodeDomains = @($profileLocks.domains | Where-Object { $_.type -eq 'Code' } |
+        Sort-Object { [int]$_.rank } | ForEach-Object { [string]$_.name })
+    $fullCodeCount = $declaredCodeDomains.Count
     $codeDomains = @(Resolve-AgentLockDomains -Name 'Code')
-    Assert-Case -Name 'a bare Code resolves to the three code domains in canonical order' `
-        -Ok (($codeDomains -join ',') -eq 'Code.Phone,Code.Wear,Code.Scripts') `
+    Assert-Case -Name 'a bare Code resolves to every declared code domain in canonical order' `
+        -Ok (($codeDomains -join ',') -eq ($declaredCodeDomains -join ',')) `
         -Detail "got '$($codeDomains -join ',')'"
 
     $buildDomains = @(Resolve-AgentLockDomains -Name 'Build')
@@ -402,11 +438,11 @@ try {
     # A module's OWN build file is deliberately NOT that module's domain - the configuration phase
     # processes every subproject, so a broken one fails a check requested for the other module.
     Assert-Case -Name 'a build file resolves to the full code set, not to its own module' `
-        -Ok ((@(Resolve-CodeDomainsForPaths -Path @('wear/build.gradle.kts')).Count -eq 3) -and
-             (@(Resolve-CodeDomainsForPaths -Path @('settings.gradle.kts')).Count -eq 3)) `
+        -Ok ((@(Resolve-CodeDomainsForPaths -Path @('wear/build.gradle.kts')).Count -eq $fullCodeCount) -and
+             (@(Resolve-CodeDomainsForPaths -Path @('settings.gradle.kts')).Count -eq $fullCodeCount)) `
         -Detail "wear build file=$(@(Resolve-CodeDomainsForPaths -Path @('wear/build.gradle.kts')) -join ',')"
     Assert-Case -Name 'an unrecognised path fails closed to the full code set' `
-        -Ok (@(Resolve-CodeDomainsForPaths -Path @('brand_new_module/src/A.kt')).Count -eq 3) `
+        -Ok (@(Resolve-CodeDomainsForPaths -Path @('brand_new_module/src/A.kt')).Count -eq $fullCodeCount) `
         -Detail 'an unknown path narrowed the set instead of widening it'
 
     # A leading './' has to be stripped as a PREFIX. TrimStart('./') takes a character SET, so it
@@ -431,8 +467,8 @@ try {
              (@(Resolve-CodeDomainsForPaths -Path @('config/detekt/baseline-wear.ids')) -join ',') -eq 'Code.Wear') `
         -Detail "phone edit + its baseline=$($baselineSet -join ',')"
     Assert-Case -Name 'the shared detekt config still resolves to the full code set' `
-        -Ok ((@(Resolve-CodeDomainsForPaths -Path @('config/detekt/detekt.yml')).Count -eq 3) -and
-             (@(Resolve-CodeDomainsForPaths -Path @('config/detekt/rule-categories.txt')).Count -eq 3)) `
+        -Ok ((@(Resolve-CodeDomainsForPaths -Path @('config/detekt/detekt.yml')).Count -eq $fullCodeCount) -and
+             (@(Resolve-CodeDomainsForPaths -Path @('config/detekt/rule-categories.txt')).Count -eq $fullCodeCount)) `
         -Detail "detekt.yml=$(@(Resolve-CodeDomainsForPaths -Path @('config/detekt/detekt.yml')) -join ',')"
 
     # `pwsh -File` collapses a comma list into ONE string element, so an unsplit list matched only
@@ -500,7 +536,7 @@ try {
     $stillClosed = @(
         'corex/androidx/core/content/ContextCompat.java', 'benchmark/src/A.kt', 'watchface/src/A.kt'
     )
-    $narrowed = @($stillClosed | Where-Object { @(Resolve-CodeDomainsForPaths -Path @($_)).Count -ne 3 })
+    $narrowed = @($stillClosed | Where-Object { @(Resolve-CodeDomainsForPaths -Path @($_)).Count -ne $fullCodeCount })
     Assert-Case -Name 'unrecognised source and the domain-less modules still fail closed' `
         -Ok ($narrowed.Count -eq 0) -Detail "narrowed instead of failing closed: $($narrowed -join ', ')"
 
@@ -508,9 +544,9 @@ try {
     # answers. Collapsing them would send every PLAN-only closure back to the full set, silently
     # undoing the exemption while every test above still passed.
     Assert-Case -Name 'an empty input still fails closed to the full code set' `
-        -Ok ((@(Resolve-CodeDomainsForPaths -Path @()).Count -eq 3) -and
-             (@(Resolve-CodeDomainsForPaths -Path @('')).Count -eq 3)) `
-        -Detail "empty array=$(@(Resolve-CodeDomainsForPaths -Path @()).Count), empty string=$(@(Resolve-CodeDomainsForPaths -Path @('')).Count) - both must be 3"
+        -Ok ((@(Resolve-CodeDomainsForPaths -Path @()).Count -eq $fullCodeCount) -and
+             (@(Resolve-CodeDomainsForPaths -Path @('')).Count -eq $fullCodeCount)) `
+        -Detail "empty array=$(@(Resolve-CodeDomainsForPaths -Path @()).Count), empty string=$(@(Resolve-CodeDomainsForPaths -Path @('')).Count) - both must be $fullCodeCount"
 
     # Deliberately table-only. Proving disjointness by actually TAKING the two sets belongs in
     # test-agent-lock-queue.ps1 (case 11), which runs in a throwaway sandbox: this file resolves
@@ -590,8 +626,11 @@ $guardSource = Get-Content -LiteralPath $agentLockSourcePath -Raw
     # Both S2058 cases below fabricate or hold a real temp/BUILD.LOCK, so both are skipped rather
     # than forced when a real lock is already live: stealing it here would corrupt whatever build
     # or gate holds it (CLAUDE.md Rule 23 - never contend for BUILD.LOCK outside its own protocol).
-    $preExisting = Get-AgentLockStatus -Name Build
-    if ($preExisting.Exists -and -not $preExisting.Stale) {
+    # S3079: every build domain is asked, not the bare name alone. Nothing writes the pre-split
+    # BUILD.LOCK any more, so asking only for it never saw a sibling's BUILD.PHONE.LOCK.
+    $preExisting = (@('Build') +@(Resolve-AgentLockDomains -Name 'Build') | ForEach-Object {
+            Get-AgentLockStatus -Name $_ } | Where-Object { $_.Exists -and -not $_.Stale } | Select-Object -First 1)
+    if ($null -ne $preExisting) {
         Write-Output "  SKIP fail-fast refusal exits 1 - BUILD.LOCK is already live (pid $($preExisting.Pid))"
         Write-Output "  SKIP genuine nested reuse still succeeds - BUILD.LOCK is already live (pid $($preExisting.Pid))"
     }
@@ -618,10 +657,9 @@ $guardSource = Get-Content -LiteralPath $agentLockSourcePath -Raw
             $env:FMS_BUILD_LOCK_HELD_BY = "$PID`:1"
             $childCommand = ". `"$repoRoot\scripts\utils\agent-lock.ps1`"; " +
                 "Enter-BuildLockOrExit -Reason 'S2058-regression-mismatched-ticks' -NoWait"
-            $proc = Start-Process -FilePath 'pwsh' `
-                -ArgumentList @('-NoProfile', '-Command', $childCommand) `
-                -NoNewWindow -Wait -PassThru -RedirectStandardOutput (Join-Path $repoRoot 'temp/S2058-refusal-stdout.log') `
-                -RedirectStandardError (Join-Path $repoRoot 'temp/S2058-refusal-stderr.log')
+            $proc = Invoke-BoundedProbe -ArgumentList @('-NoProfile', '-Command', $childCommand) `
+                -StdOut (Join-Path $repoRoot 'temp/S2058-refusal-stdout.log') `
+                -StdErr (Join-Path $repoRoot 'temp/S2058-refusal-stderr.log')
             Assert-Case -Name 'a PID-reused inherited holder is refused, not treated as self-held' `
                 -Ok ($proc.ExitCode -eq 1) `
                 -Detail "child process exited $($proc.ExitCode), expected 1 (fail-fast refusal)"
@@ -644,10 +682,9 @@ $guardSource = Get-Content -LiteralPath $agentLockSourcePath -Raw
             try {
                 $childCommand = ". `"$repoRoot\scripts\utils\agent-lock.ps1`"; " +
                     "Enter-BuildLockOrExit -Reason 'S2058-regression-genuine-reuse' -NoWait"
-                $proc = Start-Process -FilePath 'pwsh' `
-                    -ArgumentList @('-NoProfile', '-Command', $childCommand) `
-                    -NoNewWindow -Wait -PassThru -RedirectStandardOutput (Join-Path $repoRoot 'temp/S2058-reuse-stdout.log') `
-                    -RedirectStandardError (Join-Path $repoRoot 'temp/S2058-reuse-stderr.log')
+                $proc = Invoke-BoundedProbe -ArgumentList @('-NoProfile', '-Command', $childCommand) `
+                    -StdOut (Join-Path $repoRoot 'temp/S2058-reuse-stdout.log') `
+                    -StdErr (Join-Path $repoRoot 'temp/S2058-reuse-stderr.log')
                 Assert-Case -Name 'genuine nested reuse (matching pid and start ticks) still succeeds' `
                     -Ok ($proc.ExitCode -eq 0) `
                     -Detail "child process exited $($proc.ExitCode), expected 0 (fast reuse path)"
@@ -882,9 +919,8 @@ $guardSource = Get-Content -LiteralPath $agentLockSourcePath -Raw
             Copy-Item -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Destination $s2577Sandbox -Force
             Set-Content -LiteralPath $s2577Probe -Value $s2577ProbeBody -Encoding utf8NoBOM
 
-            $proc = Start-Process -FilePath 'pwsh' `
-                -ArgumentList @('-NoProfile', '-File', $s2577Probe, '-HarnessPath', $agentLockSourcePath, '-Sandbox', $s2577Sandbox) `
-                -NoNewWindow -Wait -PassThru -RedirectStandardOutput $s2577Out -RedirectStandardError $s2577Err
+            $proc = Invoke-BoundedProbe -StdOut $s2577Out -StdErr $s2577Err `
+                -ArgumentList @('-NoProfile', '-File', $s2577Probe, '-HarnessPath', $agentLockSourcePath, '-Sandbox', $s2577Sandbox)
             $verdict = $null
             if ($proc.ExitCode -eq 0) {
                 try { $verdict = (Get-Content -LiteralPath $s2577Out -Raw).Trim() | ConvertFrom-Json }
@@ -943,9 +979,8 @@ $guardSource = Get-Content -LiteralPath $agentLockSourcePath -Raw
             Copy-Item -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Destination $s2582Sandbox -Force
             Set-Content -LiteralPath $s2582Probe -Value $s2582ProbeBody -Encoding utf8NoBOM
 
-            $proc = Start-Process -FilePath 'pwsh' `
-                -ArgumentList @('-NoProfile', '-File', $s2582Probe, '-HarnessPath', $agentLockSourcePath, '-Sandbox', $s2582Sandbox) `
-                -NoNewWindow -Wait -PassThru -RedirectStandardOutput $s2582Out -RedirectStandardError $s2582Err
+            $proc = Invoke-BoundedProbe -StdOut $s2582Out -StdErr $s2582Err `
+                -ArgumentList @('-NoProfile', '-File', $s2582Probe, '-HarnessPath', $agentLockSourcePath, '-Sandbox', $s2582Sandbox)
             $v = $null
             if ($proc.ExitCode -eq 0) {
                 try { $v = (Get-Content -LiteralPath $s2582Out -Raw).Trim() | ConvertFrom-Json }
@@ -1001,14 +1036,20 @@ $guardSource = Get-Content -LiteralPath $agentLockSourcePath -Raw
             Remove-Item -LiteralPath $s2697Sandbox -Recurse -Force -ErrorAction SilentlyContinue
             New-Item -ItemType Directory -Path $s2697Sandbox -Force | Out-Null
             $fixtureProfile = Get-Content -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Raw | ConvertFrom-Json
-            $fixtureProfile.locks.domains = @($fixtureProfile.locks.domains) + [pscustomobject]@{ name = 'Code.Fixture'; type = 'Code'; rank = 6 }
-            $fixtureProfile.locks.pathRules = @([pscustomobject]@{ pattern = '^temp/lock-fixture/'; domain = 'Code.Fixture' }) + @($fixtureProfile.locks.pathRules)
+            # S3079: added only when absent. The live profile now declares Code.Fixture itself, and a
+            # second copy resolved every fixture path to "Code.Fixture, Code.Fixture": the acquire
+            # collided with itself and lock-status never returned, hanging the whole suite.
+            if (-not @($fixtureProfile.locks.domains | Where-Object { $_.name -eq 'Code.Fixture' })) {
+                $fixtureProfile.locks.domains = @($fixtureProfile.locks.domains) + [pscustomobject]@{ name = 'Code.Fixture'; type = 'Code'; rank = 6 }
+            }
+            if (-not @($fixtureProfile.locks.pathRules | Where-Object { $_.domain -eq 'Code.Fixture' })) {
+                $fixtureProfile.locks.pathRules = @([pscustomobject]@{ pattern = '^temp/lock-fixture/'; domain = 'Code.Fixture' }) + @($fixtureProfile.locks.pathRules)
+            }
             $fixtureProfile | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $s2697Sandbox '.sza-profile.json') -Encoding utf8NoBOM
             Set-Content -LiteralPath $s2697Probe -Value $s2697ProbeBody -Encoding utf8NoBOM
 
-            $proc = Start-Process -FilePath 'pwsh' `
-                -ArgumentList @('-NoProfile', '-File', $s2697Probe, '-LocksDir', (Split-Path -Parent $agentLockSourcePath), '-Sandbox', $s2697Sandbox) `
-                -NoNewWindow -Wait -PassThru -RedirectStandardOutput $s2697Out -RedirectStandardError $s2697Err
+            $proc = Invoke-BoundedProbe -StdOut $s2697Out -StdErr $s2697Err `
+                -ArgumentList @('-NoProfile', '-File', $s2697Probe, '-LocksDir', (Split-Path -Parent $agentLockSourcePath), '-Sandbox', $s2697Sandbox)
             $v = $null
             if ($proc.ExitCode -eq 0) {
                 try { $v = (Get-Content -LiteralPath $s2697Out -Raw).Trim() | ConvertFrom-Json }

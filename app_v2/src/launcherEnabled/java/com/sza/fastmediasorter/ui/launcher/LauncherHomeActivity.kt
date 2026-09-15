@@ -102,6 +102,8 @@ import javax.inject.Inject
 @AndroidEntryPoint
 open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
+    protected open val isHomeSurface: Boolean get() = true
+
     private val viewModel: LauncherHomeViewModel by viewModels()
 
     private val modalSurfaces by lazy { LauncherModalSurfaceManager(supportFragmentManager) }
@@ -570,7 +572,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 val onStrip = taskbarStripLocator.isTouchOnScrollingStrip(event.rawX, event.rawY)
                 !onStrip
             },
-            onSwipe = { direction ->
+            onSwipe = { direction, startedOnRightHalf ->
                 val settings = viewModel.launcherDesktopSettings.value
                 lifecycleScope.launch {
                     val (action, payload) = when (direction) {
@@ -587,6 +589,14 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                         direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT
                     val isUnassigned = action is LauncherDesktopSwipeAction.EdgeGestureAction &&
                         action.action == ScreenshotGestureAction.DO_NOT_USE
+                    val routedAction = if (startedOnRightHalf && isNotificationShadeDownSwipe(direction, action)) {
+                        Timber.d("S3148: right-half down swipe opens Quick Settings")
+                        LauncherDesktopSwipeAction.EdgeGestureAction(
+                            ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
+                        )
+                    } else {
+                        action
+                    }
                     val isLeft = direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT
                     val screenCount = settings.launcherScreenCount
                     // The pre-S2301 default: an unassigned horizontal swipe still pages, so a desktop
@@ -595,7 +605,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     if (isLeftRight && isUnassigned && screenCount > SINGLE_SCREEN) {
                         if (isLeft) pagingManager.next() else pagingManager.previous()
                     } else {
-                        swipeActionHandler.handle(action, payload)
+                        swipeActionHandler.handle(routedAction, payload)
                     }
                 }
             },
@@ -609,6 +619,13 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             },
         )
     }
+
+    private fun isNotificationShadeDownSwipe(
+        direction: LauncherAllAppsGestureManager.DesktopSwipeDirection,
+        action: LauncherDesktopSwipeAction,
+    ): Boolean = direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.DOWN &&
+        action is LauncherDesktopSwipeAction.EdgeGestureAction &&
+        action.action == ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE
 
     /**
      * The desktop's gestures and the four entry points they can reach. Kept out of `setupViews` for the
@@ -850,14 +867,22 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
      * a home screen has nowhere to go back to, so it must not finish and expose whatever sits behind it.
      */
     private fun handleBackPressed() {
-        Timber.d("S3090: launcher desktop Back - home surface only, never finishes")
         if (blackScreenOverlayManager.isVisible) {
             blackScreenOverlayManager.hide()
+        } else if (!isHomeSurface) {
+            leaveDesktop()
         }
     }
 
+    protected open fun leaveDesktop() {
+        finish()
+    }
+
     private fun confirmExitLauncherMode() {
-        Timber.d("S3090: launcher exit requested - role handback dialog always shown")
+        if (!isHomeSurface) {
+            leaveDesktop()
+            return
+        }
         // Buttons are theme-styled (S0538 confirm/cancel pair via materialAlertDialogTheme), matching
         // the Start menu's own exit dialog rather than restyling per call.
         MaterialAlertDialogBuilder(this)

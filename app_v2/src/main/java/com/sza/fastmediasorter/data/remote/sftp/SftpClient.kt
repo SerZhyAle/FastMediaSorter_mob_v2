@@ -219,7 +219,6 @@ class SftpClient @Inject constructor(
         results: MutableList<SftpFileListing>,
         includeDirectories: Boolean = false
     ) {
-        @Suppress("UNCHECKED_CAST")
         val entries = channel.ls(remotePath) as Vector<ChannelSftp.LsEntry>
         
         entries.forEach { entry ->
@@ -255,7 +254,6 @@ class SftpClient @Inject constructor(
         skipped: MutableList<String>,
         isRoot: Boolean = true
     ) {
-        @Suppress("UNCHECKED_CAST")
         val entries = try {
             channel.ls(remotePath) as Vector<ChannelSftp.LsEntry>
         } catch (e: SftpException) {
@@ -655,7 +653,6 @@ class SftpClient @Inject constructor(
         // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
         // Helper function for recursion within the same channel
         fun deleteRecursive(path: String) {
-            @Suppress("UNCHECKED_CAST")
             val files = channel.ls(path) as Vector<ChannelSftp.LsEntry>
 
             files.forEach { entry ->

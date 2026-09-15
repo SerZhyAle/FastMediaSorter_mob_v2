@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
@@ -40,6 +41,7 @@ import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -79,6 +81,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingManager
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainSftpShareManager
+import com.sza.fastmediasorter.ui.main.helpers.MainStartWindowRedirectManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainStorageVolumeWatchManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
@@ -262,6 +265,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     @Inject
     lateinit var networkMonitorContract: NetworkMonitorContract
 
+    @Inject
+    lateinit var launcherModeContract: LauncherModeContract
+
+    @Inject
+    lateinit var launcherStartWindowManager: LauncherStartWindowManager
+
     // S0963 (Pillar 2): XR-gated launcher for the resource "Open in VR Cinema" entry (No-Op on non-VR).
     @Inject
     lateinit var resourceVrCinemaLaunchManager: ResourceVrCinemaLaunchManager
@@ -402,11 +411,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             finish()
         }
 
-        // S3035: the start-window redirect (S2811) is removed - it opened a second launcher over the
-        // system launcher when the app was not the home role holder, which is the opposite of what the
-        // app icon should do. S2858 suppressed it when the app held HOME; S3035 suppresses the other
-        // half. Together the redirect never fires, so the app icon always opens the resource manager.
-        if (returningToSettings) return
+        val redirected = returningToSettings || MainStartWindowRedirectManager(
+            contract = launcherModeContract,
+            startWindowManager = launcherStartWindowManager,
+            isResumingAudio = {
+                AudioPlaybackService.isRunning && AudioPlaybackService.currentResourceId > 0L
+            },
+        ).redirectIfRequested(this, intent, savedInstanceState, returnToSettingsRequested)
+        if (redirected) return
 
         // S2556: the startup brand frame, placed here for the same reason as the notices below -
         // after every early-return redirect, so the welcome path and the settings return never carry

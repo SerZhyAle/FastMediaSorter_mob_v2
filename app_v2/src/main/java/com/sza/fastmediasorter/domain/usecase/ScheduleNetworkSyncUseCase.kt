@@ -48,7 +48,6 @@ class ScheduleNetworkSyncUseCase @Inject constructor(
             .build()
         
         // Replace existing work (REPLACE policy ensures only one instance runs)
-        @Suppress("DEPRECATION")
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             NetworkFilesSyncWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.REPLACE,

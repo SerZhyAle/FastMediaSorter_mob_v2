@@ -3359,7 +3359,6 @@
     <string name="broadcast_share_url_label">URL de la diffusion</string>
     <string name="broadcast_share_export_file">Exporter le fichier</string>
     <string name="broadcast_share_saved">Fichier enregistré</string>
-    <string name="broadcast_share_save_failed">Échec de l\'enregistrement du fichier</string>
     <string name="broadcast_share_close">Fermer</string>
     <string name="broadcast_share_description">Scannez le code QR ou enregistrez le fichier descripteur pour connecter un auditeur</string>
     <string name="broadcast_share_qr_cd">Code QR du descripteur de diffusion</string>
@@ -3491,7 +3490,6 @@
     <string name="broadcast_entry_description">Commencez à partager l\'audio du microphone de cet appareil sur votre réseau local. Toute personne disposant du lien peut écouter jusqu\'à ce que vous l\'arrêtiez.</string>
     <string name="broadcast_entry_start">Démarrer la diffusion</string>
     <string name="broadcast_entry_live">La diffusion est en direct</string>
-    <string name="broadcast_entry_unavailable">La diffusion en direct ne fait pas partie de cette version</string>
     <string name="shortcut_broadcast_short">Diffusion</string>
     <string name="shortcut_broadcast_long">Diffusion en direct</string>
     <string name="tile_broadcast_label">Diffusion en direct</string>

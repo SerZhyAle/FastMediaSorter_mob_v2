@@ -105,7 +105,6 @@ private fun BeamDialogContent(
             val vibrator = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
                 context.getSystemService<VibratorManager>()?.defaultVibrator
             } else {
-                @Suppress("DEPRECATION")
                 context.getSystemService<Vibrator>()
             }
             // VibrationEffect.createOneShot is API 26+; fall back to deprecated overload on older devices (legacy@23).

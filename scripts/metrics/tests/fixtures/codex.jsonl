@@ -1,0 +1,14 @@
+{"timestamp":"2026-09-15T10:00:00Z","type":"session_meta","payload":{"id":"abc"}}
+{"timestamp":"2026-09-15T10:00:01Z","type":"turn_context","payload":{"model":"gpt-5"}}
+{"timestamp":"2026-09-15T10:00:02Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":400,"cached_input_tokens":300,"cache_write_input_tokens":0,"output_tokens":10},"last_token_usage":{"input_tokens":400}}}}
+{"timestamp":"2026-09-15T10:00:03Z","type":"event_msg","payload":{"type":"user_message","message":"/spec-all S3147"}}
+{"timestamp":"2026-09-15T10:00:04Z","type":"response_item","payload":{"type":"function_call","name":"shell_command","arguments":"{\"command\":\"Get-Content -Path docs/x.md\"}","call_id":"c1"}}
+{"timestamp":"2026-09-15T10:00:05Z","type":"response_item","payload":{"type":"function_call_output","call_id":"c1","output":"{\"output\":\"hello world\",\"metadata\":{\"exit_code\":0}}"}}
+{"timestamp":"2026-09-15T10:00:06Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1400,"cached_input_tokens":1100,"cache_write_input_tokens":0,"output_tokens":40},"last_token_usage":{"input_tokens":1000}}}}
+{"timestamp":"2026-09-15T10:00:07Z","type":"response_item","payload":{"type":"custom_tool_call","name":"apply_patch","input":"*** Begin Patch\n*** Update File: scripts/a.ps1\n@@\n-x\n+y\n*** End Patch","call_id":"c2"}}
+{"timestamp":"2026-09-15T10:00:08Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"c2","output":"Exit code: 0\nSuccess. Updated the following files:\nM scripts/a.ps1"}}
+{"timestamp":"2026-09-15T10:00:10Z","type":"response_item","payload":{"type":"function_call","name":"shell_command","arguments":"{\"command\":\"pwsh -NoProfile -File scripts/post-change.ps1\"}","call_id":"c3"}}
+{"timestamp":"2026-09-15T10:00:11Z","type":"response_item","payload":{"type":"function_call_output","call_id":"c3","output":"{\"output\":\"post-change: FAIL\",\"metadata\":{\"exit_code\":1}}"}}
+{"timestamp":"2026-09-15T10:00:12Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":2900,"cached_input_tokens":2300,"cache_write_input_tokens":0,"output_tokens":90},"last_token_usage":{"input_tokens":1500}}}}
+{"timestamp":"2026-09-15T10:00:13Z","type":"response_item","payload":{"type":"custom_tool_call","name":"exec","input":"const patch = \"*** Begin Patch\\n*** Update File: P:/repo/docs/w.md\\n@@\\n-a\\n+b\\n*** End Patch\";","call_id":"c4"}}
+{"timestamp":"2026-09-15T10:00:14Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"c4","output":"Exit code: 0\nok"}}

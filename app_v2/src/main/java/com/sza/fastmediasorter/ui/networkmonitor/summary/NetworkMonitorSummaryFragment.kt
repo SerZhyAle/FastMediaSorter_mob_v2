@@ -67,6 +67,7 @@ class NetworkMonitorSummaryFragment : Fragment() {
     }
 
     private fun openSection(section: NetworkMonitorSection) {
+        Timber.d("S3095: opened ${section.key}")
         (activity as? NetworkMonitorSectionHost)?.openSection(section)
     }
 
@@ -177,6 +178,8 @@ class NetworkMonitorSummaryFragment : Fragment() {
         NetworkMonitorSection.Gnss to binding.tileGnss,
         NetworkMonitorSection.Internet to binding.tileInternet,
         NetworkMonitorSection.History to binding.tileHistory,
+        NetworkMonitorSection.Tools to binding.tileTools,
+        NetworkMonitorSection.Speed to binding.tileSpeed,
     )
 
     private fun tileFactViews(): Map<NetworkMonitorSection, TextView> = mapOf(
@@ -186,6 +189,8 @@ class NetworkMonitorSummaryFragment : Fragment() {
         NetworkMonitorSection.Gnss to binding.tileGnssFact,
         NetworkMonitorSection.Internet to binding.tileInternetFact,
         NetworkMonitorSection.History to binding.tileHistoryFact,
+        NetworkMonitorSection.Tools to binding.tileToolsFact,
+        NetworkMonitorSection.Speed to binding.tileSpeedFact,
     )
 
     private fun tileStatusViews(): Map<NetworkMonitorSection, TextView> = mapOf(
@@ -195,6 +200,8 @@ class NetworkMonitorSummaryFragment : Fragment() {
         NetworkMonitorSection.Gnss to binding.tileGnssStatus,
         NetworkMonitorSection.Internet to binding.tileInternetStatus,
         NetworkMonitorSection.History to binding.tileHistoryStatus,
+        NetworkMonitorSection.Tools to binding.tileToolsStatus,
+        NetworkMonitorSection.Speed to binding.tileSpeedStatus,
     )
 }
 

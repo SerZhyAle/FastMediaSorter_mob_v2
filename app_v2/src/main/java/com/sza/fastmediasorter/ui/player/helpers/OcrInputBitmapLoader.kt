@@ -5,8 +5,9 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
 import com.sza.fastmediasorter.domain.model.MediaFile
-import java.io.File
 import timber.log.Timber
+import java.io.File
+import java.io.IOException
 
 /**
  * Decodes an image source for OCR without inheriting the player's display-size limit.
@@ -19,13 +20,18 @@ internal object OcrInputBitmapLoader {
     fun load(context: Context, mediaFile: MediaFile?, displayBitmap: Bitmap): Bitmap {
         val sourceUri = mediaFile?.let(::sourceUri) ?: return displayBitmap.also(::logInput)
         return try {
-            ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, sourceUri)) { decoder, info, _ ->
+            ImageDecoder.decodeBitmap(
+                ImageDecoder.createSource(context.contentResolver, sourceUri),
+            ) { decoder, info, _ ->
                 decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
                 boundedSize(info.size.width, info.size.height)?.let { (width, height) ->
                     decoder.setTargetSize(width, height)
                 }
             }.also(::logInput)
-        } catch (error: Exception) {
+        } catch (error: IOException) {
+            Timber.w(error, "OCR source decode failed; using display bitmap")
+            displayBitmap.also(::logInput)
+        } catch (error: SecurityException) {
             Timber.w(error, "OCR source decode failed; using display bitmap")
             displayBitmap.also(::logInput)
         }
@@ -41,11 +47,11 @@ internal object OcrInputBitmapLoader {
 
     private fun sourceUri(mediaFile: MediaFile): Uri? {
         val contentUri = mediaFile.contentUri?.takeIf { it.isNotBlank() }
-        if (contentUri != null) return Uri.parse(contentUri)
-        if (mediaFile.path.startsWith("content://")) return Uri.parse(mediaFile.path)
-
-        val file = File(mediaFile.path)
-        return file.takeIf(File::isFile)?.let(Uri::fromFile)
+        return when {
+            contentUri != null -> Uri.parse(contentUri)
+            mediaFile.path.startsWith("content://") -> Uri.parse(mediaFile.path)
+            else -> File(mediaFile.path).takeIf(File::isFile)?.let(Uri::fromFile)
+        }
     }
 
     private fun logInput(bitmap: Bitmap) {

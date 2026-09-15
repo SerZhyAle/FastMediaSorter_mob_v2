@@ -48,6 +48,8 @@ Long sessions are more expensive even when cached. Keep context lean:
 - `/clear` when switching to an unrelated task - do not carry a finished task's context into a new one.
 - Offload raw artifacts - build output, logcat dumps, large file contents - to `temp/` and reference the path, instead of holding the raw text in chat. The working tree and `temp/` are the durable store; the chat is not.
 - Close stale session branches rather than letting them accumulate.
+- An unattended batch runs through `scripts/utils/run-spec-queue.ps1`, never a long `/spec-do`: the model cannot run `/compact`, so only a process boundary resets an unattended loop (S3147).
+- Per-ticket cost is journalled at every closure and summarised by `scripts/metrics/ticket-cost.ps1 -Verb Summary`; the same script prints a ticket's context map on resume. How the owner words a task to cut cost: `dev/OWNER_TASKING_GUIDE.md` (Russian, owner-only).
 
 ### Reading a large file
 
@@ -69,13 +71,14 @@ Counter-metric: partial reads raise the risk of an `old_string` that is unique i
 
 ## Always-loaded context budget
 
-`CLAUDE.md`, `AGENTS.md` and the active agent definition are injected into **every** request. Their
-bytes are not billed to the session that needed them - they are billed to the whole corpus, forever.
+Each runtime injects only its actual entry contract and active agent definition. Codex and ZCode use
+`AGENTS.md`; Claude Code uses `CLAUDE.md`. The coexistence of both files is not evidence that both
+enter one request, and routine Codex work must not load `CLAUDE.md` as a second contract.
 Enforcement is `scripts/quality/assert-always-loaded-budget.ps1`, in the fast-gate batch and in
 `post-change.ps1`, with one ceiling per file in `always-loaded-budget-baseline.txt` beside it. The
 ceiling drops on a run that passed (`-UpdateBaseline`) and the gate refuses to raise one.
 
-Measured 2026-09-04 (S2513, 78850 deduplicated requests over 770 sessions): the fixed preamble is
+Historical Claude Code measurement, 2026-09-04 (S2513, 78850 deduplicated requests over 770 sessions): the fixed preamble was
 **75702 tokens per request and 37.8% of all billed `cache_read`**, against 23.3% five weeks earlier.
 The share grew from both ends - the preamble gained 18% while the average request shrank 27%, because
 the earlier accumulation tickets worked and what they left behind is the floor. Inside the floor the
@@ -97,13 +100,11 @@ enforcement is not mechanical keeps its rationale where it is - there the ration
 Deleting a rule to fit a ceiling is forbidden outright (S2517 ADR-4): it silently returns the exact
 cost the gates exist to avoid.
 
-The upper bound on what any repo-side change can recover is **14.0% of the bill** - 28.1k of the
-75.7k-token floor is repo- or owner-authored, the rest is the harness's own system prompt and tool
-schemas. A proposal promising more than that has an arithmetic error. And this is a bill lever only:
-context correlates with turn latency at +0.065 against +0.681 for output volume (2026-08-28), so
-nothing here is a speed improvement and it must not be sold as one. Speed has its own document and
-its own evidence shape: `docs/AGENT_LATENCY_PLAYBOOK.md` (S2760), which measures the four stages
-separately and refuses a cost figure in a latency field.
+The upper bound on what a repo-side change recovered in that Claude measurement was **14.0% of the
+bill** - 28.1k of the 75.7k-token floor was repo- or owner-authored, the rest was harness context and
+tool schemas. It does not predict Codex cost or speed. Context reduction is a cost lever; the owner
+may simplify a workflow from directly observed session effectiveness without a latency experiment.
+`docs/AGENT_LATENCY_PLAYBOOK.md` remains an optional tool for a separately published comparison.
 
 ---
 
@@ -111,7 +112,7 @@ separately and refuses a cost figure in a latency field.
 
 Claude Code loads `.claude/rules/*.md` lazily when the file carries `paths:` frontmatter: the rule enters context the first time Claude reads a file matching one of its globs, and not before (`code.claude.com/docs/en/memory`, "Path-specific rules"). `@path` imports do NOT do this - an imported file is expanded at launch and costs exactly what inline text costs - and a rules file without `paths:` is loaded at launch too. Block-level HTML comments in `CLAUDE.md` are stripped before injection, so a maintainer note in a comment costs nothing; the budget gate measures the injected bytes, not the file.
 
-Measured 2026-09-04 on the first split: `CLAUDE.md` went from 65 383 B to the size the baseline now records, with every numbered statement and every rule number kept in place. Four detail files exist - `spec-catalog.md` (`PLAN/**`), `android-source.md` (`app_v2/**`, `wear/**`), `agent-chat.md` (the chat and identity scripts), `command-authoring.md` (`.claude/commands/**` and its neighbours). The rule for a new one: the statement stays in `CLAUDE.md` with its number, the mechanism and the incident go to the detail file, and `paths` names the files a session must have read before the detail can matter. A runtime without lazy loading reads all of them at start (`AGENTS.md` section 1), which is why the detail files carry no statement of their own - a runtime that misses them misses only the reasons.
+Measured 2026-09-04 on the first split: `CLAUDE.md` went from 65 383 B to the size the baseline now records, with every numbered statement and every rule number kept in place. Four detail files exist - `spec-catalog.md` (`PLAN/**`), `android-source.md` (`app_v2/**`, `wear/**`), `agent-chat.md` (the chat and identity scripts), `command-authoring.md` (`.claude/commands/**` and its neighbours). The rule for a new one: the statement stays in `CLAUDE.md` with its number, the mechanism and the incident go to the detail file, and `paths` names the files a session must have read before the detail can matter. These detail files are Claude-specific; Codex and ZCode do not load them as routine context.
 
 ## Agent-memory hygiene
 
@@ -190,6 +191,15 @@ Do not promise exact token savings before a reproducible before/after exists (st
 - Tool calls, their arguments and their failures are all in the transcripts, deduplicated by `requestId`. That is what the 2026-08-12 process audit measured, and what produced S1594-S1599.
 - An execution that goes through a script leaves its arguments in the transcript, which is why `scripts/spec_catalog/plan-tick.ps1` takes an explicit step list: the invocation is itself the record of which steps ran.
 - The external weekly usage summary is the outer before/after check that validates whether the rules above actually moved the axes.
+
+The bucket classifier behind that audit is now durable: `scripts/metrics/measure-pipeline-load.ps1 -Since <yyyy-MM-dd> -Json` sorts every tool call of recent pipeline sessions into nine buckets and reports calls, share, tool-result characters and failures, with a separate line for tickets that edited 1-3 code files. Run it before and after a process change.
+
+### Levers shipped by S3151
+
+- **Quiet closure output.** `post-change.ps1` and `assert-fast-gates.ps1` print one verdict line on success and the full log on failure, keeping a protocol file in both cases. Add `-ShowPasses` or `FMS_POSTCHANGE_VERBOSE=1` only when the passing gates' own output is the thing under investigation.
+- **The Trivial path.** A ticket that changes at most three existing files and adds no type, schema, module or screen gets one page, one closure, one build and one audit (`/spec-all` "Trivial Path"). `assert-trivial-scope.ps1` escalates it back to Simple if it outgrows that.
+- **Silent runner instruction.** `run-spec-queue.ps1` children load `.claude/runner/silent-mode.md` through `argsTemplate`, so an unattended run pays for no narration. Keep it on every unattended instance.
+- **Pipeline load measurement.** Use `measure-pipeline-load.ps1` for any claim that the process became cheaper or dearer; a claim without it is a guess.
 
 The S0268 request log and its digest used to be named here as the measurement base. They were invoked zero times in the audited week and were removed by S1596; a measurement base nobody writes to measures nothing.
 

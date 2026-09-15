@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 
 package com.sza.fastmediasorter.data.remote.ftp
 

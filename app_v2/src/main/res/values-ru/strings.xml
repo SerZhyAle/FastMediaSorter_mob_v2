@@ -2652,6 +2652,8 @@
     <string name="launcher_edit_pin_add">Закрепить приложение</string>
     <string name="launcher_edit_unpin_named">Открепить %1$s</string>
     <string name="launcher_settings_enable_title">Лаунчер: сделать приложение домашним экраном</string>
+    <string name="launcher_start_window_title">Открывать рабочий стол при запуске</string>
+    <string name="launcher_start_window_desc">Открывает рабочий стол вместо файлового браузера. Домашний экран устройства не меняется.</string>
     <string name="launcher_settings_enable_desc">Кнопка «Домой» открывает лаунчер - ваш рабочий стол с ярлыками и гаджетами. Выключите в любой момент, чтобы вернуть прежний домашний экран.</string>
     <string name="launcher_settings_enable_help_title">Режим лаунчера</string>
     <string name="launcher_settings_enable_help_message">После включения лаунчера Android спросит, какой домашний экран использовать - выберите это приложение и нажмите «Всегда» (или «Только сейчас», чтобы попробовать). Чтобы вернуться, выключите режим, и Android восстановит прежний домашний экран.</string>
@@ -3790,7 +3792,6 @@
     <string name="broadcast_share_url_label">Адрес трансляции</string>
     <string name="broadcast_share_export_file">Экспорт в файл</string>
     <string name="broadcast_share_saved">Файл сохранён</string>
-    <string name="broadcast_share_save_failed">Ошибка сохранения файла</string>
     <string name="broadcast_share_close">Закрыть</string>
     <string name="broadcast_share_description">Отсканируйте QR-код или сохраните файл для подключения</string>
     <string name="broadcast_share_qr_cd">QR-код описания трансляции</string>
@@ -3932,7 +3933,6 @@
     <string name="broadcast_entry_description">Устройство начнёт передавать звук микрофона в локальную сеть. Любой, у кого есть ссылка, сможет слушать, пока вы не остановите трансляцию.</string>
     <string name="broadcast_entry_start">Начать трансляцию</string>
     <string name="broadcast_entry_live">Трансляция идёт</string>
-    <string name="broadcast_entry_unavailable">Вещание недоступно в этой сборке</string>
     <string name="shortcut_broadcast_short">Вещание</string>
     <string name="shortcut_broadcast_long">Вещание</string>
     <string name="tile_broadcast_label">Вещание</string>
@@ -4035,4 +4035,6 @@
     <string name="broadcast_share_copy">Копировать ссылку</string>
     <string name="streams_filter_media_own">Свои</string>
     <string name="streams_media_filter_own">Показывать только добавленные вручную трансляции</string>
+    <string name="broadcast_notification_video_title">Видеотрансляция</string>
+    <string name="broadcast_notification_video_text">Прямая трансляция с камеры активна</string>
 </resources>

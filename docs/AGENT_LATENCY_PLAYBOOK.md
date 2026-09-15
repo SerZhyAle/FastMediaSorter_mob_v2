@@ -1,8 +1,8 @@
 # Agent latency playbook
 
-How a claim about agent speed is measured in this repository, and what disqualifies one. Ticket: S2760.
+Optional method for publishing a comparative claim about agent speed. Ticket: S2760.
 
-The companion document `docs/AGENT_COST_PLAYBOOK.md` governs what a session **costs**. This one governs how long it **takes**. They are deliberately separate: the cost playbook's own measurement found the correlation between always-loaded context size and latency weak next to output volume, so a context or token reduction is not evidence of a speed improvement and may not be presented as one.
+The companion document `docs/AGENT_COST_PLAYBOOK.md` governs what a session **costs**. This document records a comparable latency experiment only when the owner wants to publish or compare a measured route. It is not a gate for changing the workflow: the owner may act on directly observed session effectiveness without a latency record.
 
 ## The four stages
 
@@ -22,14 +22,14 @@ The split decides who may write a number.
 
 A stage that could not be measured is recorded as unavailable **with its reason**, never omitted. An omitted stage reads as zero in every later average, which turns a missing measurement into a favourable one.
 
-## What is not evidence
+## Limits of a formal comparison
 
 - A lower token cost or a smaller context. That is the cost playbook's subject and its own measurement declines to call it speed.
 - A shorter answer. Brevity is a formatting choice; the same route may produce a short wrong answer faster.
 - A run with a mandatory check removed. Two routes are comparable only when they were judged against the same acceptance criteria and ran the same required validation.
-- A perceived improvement with no record. The record is the claim.
+- A perceived improvement without a record is not a publishable comparison. It is still sufficient for the owner to choose a simpler working process; no latency record is required for that operational decision.
 
-## Recording a run
+## Recording a run when a comparison is wanted
 
 1. Write a record against `scripts/agent_latency/latency-record.schema.json`, filling the client-observed stages from the client.
 2. Validate and store it: `pwsh -NoProfile -File scripts/agent_latency/record-run.ps1 -Record <path>`. Artifacts land under `temp/S2760/`.

@@ -76,7 +76,6 @@ class ExportSettingsUseCase @Inject constructor(
             Timber.i("Settings exported successfully to URI: %s", uri)
             uri.toString()
         } else {
-            @Suppress("DEPRECATION")
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             val exportFile = File(downloadsDir, fileName)
             exportFile.writeText(content)

@@ -87,7 +87,6 @@ class WearSettingsMirrorStoreTest {
             .putString("watch_settings_field_timestamps", """{"audioEnabled":1700000000123}""")
             .apply()
 
-        @Suppress("UNCHECKED_CAST")
         val erased = store.readFieldTimestamps() as Map<String, Any?>
 
         assertEquals(java.lang.Long::class.java, erased["audioEnabled"]?.javaClass)

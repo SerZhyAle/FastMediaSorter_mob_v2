@@ -53,13 +53,18 @@
 #   are different answers, and treating 2 as success is how a green verdict
 #   comes to certify nothing at all.
 #
-#   Output shape (S1937): steps that did not apply are NOT printed one per line.
-#   They are collapsed into a single "skipped (n, not applicable ..): a, b, c"
-#   line above the verdict, on both the passing and the failing path. Pass
-#   -ShowSkips for the old per-step lines with their reasons. Every step's
-#   outcome - PASS, FAIL and SKIP alike - is appended to the machine journal
-#   temp/metrics/gate-executions.jsonl regardless of what the console shows,
-#   and scripts/quality/measure-gate-frequency.ps1 reports from that journal.
+#   Output shape (S3151): a clean run prints no per-gate line; its tail is one
+#   verdict "post-change: PASS (<ChangeType>, <ms> ms, <n> passed, <m> skipped)".
+#   Every PASS/SKIP/FAIL line with its details, and each gate child's own report,
+#   goes to the run's protocol file temp/metrics/post-change-runs/<yyyyMMdd-HHmmss>-<pid>.log.
+#   A FAIL line always prints after the child's report with its details and recovery
+#   hint, an advisory prints the same way, and a
+#   failing or advisory run ends with "protocol: <path>". -ShowPasses, -ShowSkips
+#   or FMS_POSTCHANGE_VERBOSE=1 restore the per-gate lines. S1937 collapsed the
+#   skipped steps into one summary line, kept on the failing and advisory paths.
+#   S1338 is why failure detail is never hidden: a hidden File:Line list forced a
+#   blind rerun. Every outcome is also appended to temp/metrics/gate-executions.jsonl,
+#   which scripts/quality/measure-gate-frequency.ps1 reports from.
 
 param(
     [string]$File,
@@ -99,7 +104,11 @@ param(
     # steps than it runs (measured 17,973 SKIP lines against 16,253 PASS lines over one month),
     # and every one of them rides in the session context for the rest of the session. The names
     # still appear in the collapsed summary; this switch adds each step's reason back.
-    [switch]$ShowSkips
+    [switch]$ShowSkips,
+    # S3151: restore the per-gate PASS lines. Off by default because a passing closure returned
+    # about 650 tokens per call that nobody acted on; every line still goes to the run's protocol
+    # file. FMS_POSTCHANGE_VERBOSE=1 turns on both this and -ShowSkips.
+    [switch]$ShowPasses
 )
 
 $ErrorActionPreference = "Stop"
@@ -252,6 +261,56 @@ $script:FatalFindings = @()
 # answerable; -ShowSkips restores the per-step reason.
 $script:SkippedSteps = @()
 
+# S3151: per-gate lines go to a protocol file; the console gets them only on request.
+$script:ConsoleVerbose = $env:FMS_POSTCHANGE_VERBOSE -eq '1'
+$script:ConsolePasses = $ShowPasses -or $script:ConsoleVerbose
+$script:ConsoleSkips = $ShowSkips -or $script:ConsoleVerbose
+$script:PassedCount = 0
+$script:ProtocolPath = Join-Path $root ("temp/metrics/post-change-runs/{0}-{1}.log" -f (Get-Date -Format 'yyyyMMdd-HHmmss'), $PID)
+
+function Write-ProtocolLine([string]$Line) {
+    try {
+        $dir = Split-Path -Parent $script:ProtocolPath
+        if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+        Add-Content -LiteralPath $script:ProtocolPath -Value $Line -Encoding utf8
+    }
+    catch {
+        # The protocol is a convenience copy; the verdict and the telemetry journal do not depend on it.
+        Write-Host "  [protocol] WARN - not written: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
+function Write-ProtocolPointer {
+    if (Test-Path -LiteralPath $script:ProtocolPath) {
+        Write-Host "protocol: $($script:ProtocolPath)" -ForegroundColor DarkGray
+    }
+}
+
+# S3151: a gate child prints its own report, which used to reach the console on every clean run.
+# It is buffered per step; the wrapper prints the buffer when the step fails or turns advisory,
+# verbose mode streams it live, and the protocol file always receives it.
+$script:CaptureLines = [System.Collections.Generic.List[string]]::new()
+function Invoke-CapturedAction([scriptblock]$Action) {
+    $script:CaptureLines = [System.Collections.Generic.List[string]]::new()
+    try {
+        & $Action *>&1 | ForEach-Object {
+            $captureText = "$_"
+            $script:CaptureLines.Add($captureText)
+            if ($script:ConsolePasses) { Write-Host $captureText }
+        }
+    }
+    finally {
+        if ($script:CaptureLines.Count -gt 0) {
+            Write-ProtocolLine (($script:CaptureLines | ForEach-Object { "    $_" }) -join [Environment]::NewLine)
+        }
+    }
+}
+
+function Write-CapturedOutput {
+    if ($script:ConsolePasses) { return }
+    foreach ($captureText in $script:CaptureLines) { Write-Host $captureText }
+}
+
 # S1598: label -> @{ Repro = '<command that runs this gate alone>'; Fix = '<what to do>' }.
 # Data, not prose in the facade, so registering a new gate never edits the output
 # logic (owner input). A label with no entry prints without a hint - not an error;
@@ -287,10 +346,13 @@ function Write-StepResult(
     [ValidateSet('PASS', 'FAIL', 'SKIP')][string]$Status,
     [int]$ElapsedMs,
     [string]$Details = '',
-    [int]$ExitCode = 0
+    [int]$ExitCode = 0,
+    # Advisory SKIP lines carry what the gate found, so they print even on a quiet run.
+    [switch]$AlwaysShow
 ) {
     Write-GateTelemetryRecord -Runner 'post-change' -Gate $Label -Status $Status `
         -ExitCode $ExitCode -ElapsedMs ([Math]::Max($ElapsedMs, 0))
+    if ($Status -eq 'PASS') { $script:PassedCount++ }
 
     $color = switch ($Status) {
         'PASS' { 'Green' }
@@ -306,7 +368,13 @@ function Write-StepResult(
         $message += " - $Details"
     }
 
-    Write-Host $message -ForegroundColor $color
+    Write-ProtocolLine $message
+    $show = switch ($Status) {
+        'FAIL' { $true }
+        'PASS' { $script:ConsolePasses }
+        default { $script:ConsoleSkips -or $AlwaysShow }
+    }
+    if ($show) { Write-Host $message -ForegroundColor $color }
 }
 
 # A pooled gate ran before its call site was reached, so the wrapper's stopwatch measured the wait.
@@ -323,7 +391,7 @@ function Invoke-Step([string]$Label, [scriptblock]$Action) {
 
     try {
         $global:LASTEXITCODE = 0
-        & $Action
+        Invoke-CapturedAction $Action
         $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
         if ($exitCode -ne 0) {
             throw "exit $exitCode"
@@ -334,6 +402,7 @@ function Invoke-Step([string]$Label, [scriptblock]$Action) {
     }
     catch {
         $sw.Stop()
+        Write-CapturedOutput
         $exitCode = if ($LASTEXITCODE -and [int]$LASTEXITCODE -ne 0) { [int]$LASTEXITCODE } else { 1 }
         $reason = $_.Exception.Message
         if ($reason -eq "exit $exitCode") {
@@ -342,6 +411,7 @@ function Invoke-Step([string]$Label, [scriptblock]$Action) {
 
         Write-StepResult -Label $Label -Status FAIL -ElapsedMs (Get-StepElapsedMs $sw) `
             -Details $reason -ExitCode $exitCode
+        Write-ProtocolPointer
         exit $exitCode
     }
 }
@@ -363,10 +433,13 @@ function Invoke-Step([string]$Label, [scriptblock]$Action) {
 # once the domain frees up.
 function Stop-ClosureOnQueuedBuild([int]$ExitCode, [string]$Label) {
     if ($ExitCode -ne 4) { return }
-    Write-Host ""
-    Write-Host "post-change: could not verify - '$Label' was QUEUED behind another session's build, not run." -ForegroundColor Yellow
-    Write-Host "  Nothing was inspected and nothing was written. Your place in the build queue is taken." -ForegroundColor Yellow
-    Write-Host "  Wait for the turn in the background with the command the check printed above, then re-run this closure." -ForegroundColor Yellow
+    # Called inside a captured gate action: Write-Host would land in the step buffer and die with
+    # the process, and the queue handoff the child printed must reach the caller.
+    if (-not $script:ConsolePasses) { foreach ($captureText in $script:CaptureLines) { [Console]::Out.WriteLine($captureText) } }
+    [Console]::Out.WriteLine('')
+    [Console]::Out.WriteLine("post-change: could not verify - '$Label' was QUEUED behind another session's build, not run.")
+    [Console]::Out.WriteLine("  Nothing was inspected and nothing was written. Your place in the build queue is taken.")
+    [Console]::Out.WriteLine("  Wait for the turn in the background with the command the check printed above, then re-run this closure.")
     exit 2
 }
 
@@ -376,7 +449,7 @@ function Invoke-Gate([string]$Label, [scriptblock]$Action) {
 
     try {
         $global:LASTEXITCODE = 0
-        & $Action
+        Invoke-CapturedAction $Action
         $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
         if ($exitCode -ne 0) {
             throw "exit $exitCode"
@@ -387,6 +460,7 @@ function Invoke-Gate([string]$Label, [scriptblock]$Action) {
     }
     catch {
         $sw.Stop()
+        Write-CapturedOutput
         $exitCode = if ($LASTEXITCODE -and [int]$LASTEXITCODE -ne 0) { [int]$LASTEXITCODE } else { 1 }
         $reason = $_.Exception.Message
         if ($reason -eq "exit $exitCode") {
@@ -426,24 +500,20 @@ function Test-FatalFindings {
         if ($hint -and $hint.Repro) { Write-Host "      repro: $($hint.Repro)" -ForegroundColor Yellow }
     }
     Write-Host "  Nothing was written: no changelog row, no catalog sync. Fix the above and re-run." -ForegroundColor Red
+    Write-ProtocolPointer
     exit 1
 }
 
 function Skip-Step([string]$Label, [string]$Reason) {
     $script:SkippedSteps += [pscustomobject]@{ Label = $Label; Reason = $Reason }
-    if ($ShowSkips) {
-        Write-StepResult -Label $Label -Status SKIP -ElapsedMs 0 -Details $Reason
-        return
-    }
-    # The journal still records every skip even when the console does not print it - the
-    # question "which gate never runs" is answered from the journal, not from scrollback.
-    Write-GateTelemetryRecord -Runner 'post-change' -Gate $Label -Status 'SKIP' -ExitCode 0 -ElapsedMs 0
+    # Write-StepResult records the journal row and the protocol line, and prints only on request.
+    Write-StepResult -Label $Label -Status SKIP -ElapsedMs 0 -Details $Reason
 }
 
-# S1937: one line for the whole not-applicable set, printed before the verdict on both the
-# passing and the failing path so a failed closure still shows what never ran.
+# S1937: one line for the whole not-applicable set, printed before the verdict on the failing
+# and advisory paths so a failed closure still shows what never ran.
 function Write-SkippedSummary {
-    if ($ShowSkips -or $script:SkippedSteps.Count -eq 0) { return }
+    if ($script:ConsoleSkips -or $script:SkippedSteps.Count -eq 0) { return }
     $names = ($script:SkippedSteps | ForEach-Object { $_.Label }) -join ', '
     Write-Host "  skipped ($($script:SkippedSteps.Count), not applicable to this change): $names" -ForegroundColor DarkGray
     Write-Host '  reasons: re-run with -ShowSkips' -ForegroundColor DarkGray
@@ -457,7 +527,7 @@ function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action, [string]$Advi
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     try {
         $global:LASTEXITCODE = 0
-        & $Action
+        Invoke-CapturedAction $Action
         $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
         $sw.Stop()
         if ($exitCode -ne 0) {
@@ -465,7 +535,8 @@ function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action, [string]$Advi
             # ticket's WIP. A caller that knows better (the preflight judges YOUR files only)
             # passes its own wording, so the verdict line never misdescribes what was found.
             $details = if ($AdvisoryDetails) { $AdvisoryDetails } else { "advisory (project-wide ratchet; not attributed to your change - verify your files manually)" }
-            Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details $details
+            Write-CapturedOutput
+            Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details $details -AlwaysShow
             $script:AdvisoryFindings += "$Label (exit $exitCode)"
         }
         else {
@@ -474,7 +545,8 @@ function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action, [string]$Advi
     }
     catch {
         $sw.Stop()
-        Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details "advisory (gate error: $($_.Exception.Message))"
+        Write-CapturedOutput
+        Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details "advisory (gate error: $($_.Exception.Message))" -AlwaysShow
         $script:AdvisoryFindings += "$Label (gate error)"
     }
 }
@@ -491,12 +563,14 @@ function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action, [string]$Advi
 # across by hand, because Invoke-Gate's Reset-PooledElapsedMs would otherwise leave the wrapper's
 # own near-zero stopwatch in the telemetry that measure-gate-frequency.ps1 ranks gates by.
 function Invoke-FixedInputGate([string]$Label, [string[]]$Argv, [string]$GateScript) {
-    Invoke-GateChild @Argv
+    Invoke-CapturedAction { Invoke-GateChild @Argv }
     $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
     $elapsedMs = Get-PooledElapsedMs
+    # Replayed inside the verdict wrapper below, which captures it again and prints it only on red.
+    $childLines = @($script:CaptureLines)
 
     if ($exitCode -eq 3) {
-        Invoke-AdvisoryStep $Label { $global:LASTEXITCODE = 3 } `
+        Invoke-AdvisoryStep $Label { $childLines | ForEach-Object { Write-Host $_ }; $global:LASTEXITCODE = 3 } `
             -AdvisoryDetails ("a divergence stands in the tree between files this change never opened, so this " +
                 "closure is not charged for it - its author owns it. Run $GateScript with no -ChangedFiles for " +
                 "the project-wide verdict.")
@@ -506,6 +580,7 @@ function Invoke-FixedInputGate([string]$Label, [string[]]$Argv, [string]$GateScr
     # Restored INSIDE the action: Invoke-Gate opens with Reset-PooledElapsedMs, so a value set
     # before the call is wiped before the step result reads it.
     Invoke-Gate $Label {
+        $childLines | ForEach-Object { Write-Host $_ }
         if ($null -ne $elapsedMs) { Set-PooledElapsedMs $elapsedMs }
         $global:LASTEXITCODE = $exitCode
     }
@@ -1750,9 +1825,16 @@ if (Test-Path -LiteralPath $registryPath) {
         $ackAll = ($ackSet -contains 'all')
         $unacked = @($matchedRecords | Where-Object { -not $ackAll -and $_.Id -notin $ackSet })
         foreach ($rec in $matchedRecords) {
-            Write-Host ("  registry: {0} ({1}) <- {2}" -f $rec.Id, $rec.Title, ($rec.Files -join ', '))
+            $recordLines = @(("  registry: {0} ({1}) <- {2}" -f $rec.Id, $rec.Title, ($rec.Files -join ', ')))
             if ($rec.Others.Count -gt 0) {
-                Write-Host ("    siblings that may need the same edit: {0}" -f ($rec.Others -join ', '))
+                $recordLines += ("    siblings that may need the same edit: {0}" -f ($rec.Others -join ', '))
+            }
+            # S3151: an acknowledged record is a decision the caller already made, so on a clean run its
+            # sibling list goes to the protocol only; an unacknowledged one still reaches the console.
+            $acknowledged = $ackAll -or $rec.Id -in $ackSet
+            foreach ($recordLine in $recordLines) {
+                if ($acknowledged -and -not $script:ConsolePasses) { Write-ProtocolLine $recordLine }
+                else { Write-Host $recordLine }
             }
         }
         if ($unacked.Count -eq 0) {
@@ -1773,6 +1855,24 @@ if (Test-Path -LiteralPath $registryPath) {
 }
 else {
     Skip-Step "document-registry" "cannot verify - docs/DOCUMENT_REGISTRY.jsonl not found"
+}
+
+# S3141: always advisory (Invoke-AdvisoryStep directly, not through $ratchetRunner), never fatal
+# even on a full non-ScopeToFile run - this is the gate's first landing, and research/05 records
+# why it starts advisory rather than blocking a closure on an unproven mechanism. It judges a
+# Codex session's OWN rollout transcript, which is not a repo file at all, so there is no
+# -ChangedFiles form to scope it by; the gate itself is a no-op (exit 0, "not applicable") for
+# any runtime that is not Codex and for a ticket with no matching rollout, so this call cannot
+# turn an ordinary Claude Code, Gemini or ZCode closure into a failure.
+$codexHygieneTicketId = if ($Description -match '(S\d{4})') { $Matches[1] } else { $null }
+if ($codexHygieneTicketId) {
+    Invoke-AdvisoryStep "codex-transcript-hygiene-gate" {
+        & pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-codex-transcript-hygiene.ps1") -Id $codexHygieneTicketId
+    } -AdvisoryDetails ("$codexHygieneTicketId`'s Codex session transcript carries a bounded-read finding - " +
+        "pwsh -NoProfile -File scripts/quality/assert-codex-transcript-hygiene.ps1 -Id $codexHygieneTicketId for detail.")
+}
+else {
+    Skip-Step "codex-transcript-hygiene-gate" "not applicable - no Sxxxx ticket id found in -Description"
 }
 
 # S1939: the S1216 device-profile matrix gate moved to the release-scope runner. It ran on 1040
@@ -2175,6 +2275,15 @@ Invoke-Step "dev-log" {
     & $pwsh -NoProfile -File (Join-Path $root "scripts/add_to_dev_log.ps1") $File $Target $logDescription
 }
 
+if ($Target -match '^S\d{4}$') {
+    # Silent by contract: the ledger is read later through the recorder's Summary verb, and printing
+    # it here would add to the agent context it measures. A recorder failure never changes the verdict.
+    & $pwsh -NoProfile -File (Join-Path $root "scripts/metrics/ticket-cost.ps1") -Verb Record -Id $Target *> $null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "post-change: ticket-cost record exited $LASTEXITCODE for $Target (verdict unaffected)" -ForegroundColor Yellow
+    }
+}
+
 Skip-Step "feature-docs" "skill-owned; evaluate only for new public capability"
 Skip-Step "functionality-log" "skill-owned; evaluate only for user-visible behaviour change"
 
@@ -2186,8 +2295,8 @@ $totalSw.Stop()
 # invisible in the verdict, so the facade printed PASS on 19% of runs that
 # contained a gate failure - and 66% of callers read only the tail.
 $elapsedMs = [int]$totalSw.Elapsed.TotalMilliseconds
-Write-SkippedSummary
 if ($script:AdvisoryFindings.Count -gt 0) {
+    Write-SkippedSummary
     Write-Host ("post-change: PASS WITH ADVISORIES ($($script:AdvisoryFindings.Count)) " +
         "($resolvedChangeType, $elapsedMs ms)") -ForegroundColor Yellow
     foreach ($advisory in $script:AdvisoryFindings) {
@@ -2195,9 +2304,11 @@ if ($script:AdvisoryFindings.Count -gt 0) {
     }
     Write-Host "  These gates found something but could not attribute it to this change. Verify your files." -ForegroundColor Yellow
     Send-PostChangeChatVerdict -Verdict "PASS WITH ADVISORIES ($($script:AdvisoryFindings.Count)), $elapsedMs ms"
+    Write-ProtocolPointer
 }
 else {
-    Write-Host "post-change: PASS ($resolvedChangeType, $elapsedMs ms)" -ForegroundColor Green
+    Write-Host ("post-change: PASS ($resolvedChangeType, $elapsedMs ms, $($script:PassedCount) passed, " +
+        "$($script:SkippedSteps.Count) skipped)") -ForegroundColor Green
     Send-PostChangeChatVerdict -Verdict "PASS, $elapsedMs ms"
 }
 exit 0

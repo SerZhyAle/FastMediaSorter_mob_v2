@@ -3357,7 +3357,6 @@
     <string name="broadcast_share_url_label">সম্প্রচারের URL</string>
     <string name="broadcast_share_export_file">ফাইল রপ্তানি করুন</string>
     <string name="broadcast_share_saved">ফাইল সংরক্ষিত হয়েছে</string>
-    <string name="broadcast_share_save_failed">ফাইল সংরক্ষণ ব্যর্থ</string>
     <string name="broadcast_share_close">বন্ধ করুন</string>
     <string name="broadcast_share_description">শ্রোতা যুক্ত করতে QR কোড স্ক্যান করুন বা ডেসক্রিপ্টর ফাইল সংরক্ষণ করুন</string>
     <string name="broadcast_share_qr_cd">সম্প্রচার ডেসক্রিপ্টরের QR কোড</string>
@@ -3489,7 +3488,6 @@
     <string name="broadcast_entry_description">এই ডিভাইসের মাইক্রোফোন অডিও আপনার লোকাল নেটওয়ার্কে শেয়ার করা শুরু করুন। লিংক থাকা যে কেউ আপনি বন্ধ না করা পর্যন্ত শুনতে পারবে।</string>
     <string name="broadcast_entry_start">ব্রডকাস্ট শুরু করুন</string>
     <string name="broadcast_entry_live">ব্রডকাস্ট লাইভ চলছে</string>
-    <string name="broadcast_entry_unavailable">লাইভ ব্রডকাস্ট এই বিল্ডের অংশ নয়</string>
     <string name="shortcut_broadcast_short">ব্রডকাস্ট</string>
     <string name="shortcut_broadcast_long">লাইভ ব্রডকাস্ট</string>
     <string name="tile_broadcast_label">লাইভ ব্রডকাস্ট</string>

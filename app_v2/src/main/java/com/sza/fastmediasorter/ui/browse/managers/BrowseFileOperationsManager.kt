@@ -599,10 +599,8 @@ class BrowseFileOperationsManager(
         destination: MediaResource,
         overwriteFiles: Boolean,
     ): BrowseFileTransferRequest {
-        val currentBrowsePath = selectedPaths.firstOrNull()?.let { firstPath ->
-            val lastSlashIndex = firstPath.lastIndexOf('/')
-            if (lastSlashIndex > 0) firstPath.substring(0, lastSlashIndex + 1) else null
-        }
+        val currentBrowsePath = callbacks.getCurrentBrowsePath()
+        Timber.d("S3126: transfer context path=${currentBrowsePath ?: "<virtual>"}")
         return BrowseFileTransferRequest(
             operationType = operationType,
             sourceResourceId = resource.id,

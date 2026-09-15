@@ -74,6 +74,7 @@ class LauncherAllAppsFragment : DialogFragment() {
     private val systemDialogsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.getStringExtra(SYSTEM_DIALOG_REASON) == SYSTEM_DIALOG_REASON_HOME_KEY) {
+                Timber.d("S3122: all-apps drawer closed by the HOME system-dialogs broadcast")
                 // The system can issue HOME after FragmentManager saves state; there is no UI state to retain.
                 dismissAllowingStateLoss()
             }
@@ -146,10 +147,13 @@ class LauncherAllAppsFragment : DialogFragment() {
         attachPreviewRowMeasurement()
         attachSwipeGestures()
         binding.allAppsHome.setOnClickListener { dismiss() }
+        // The Android 12 deprecation restricts SENDING this broadcast; receiving it is how HOME closes the drawer.
+        @Suppress("DEPRECATION")
+        val closeSystemDialogsFilter = IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
         ContextCompat.registerReceiver(
             requireContext(),
             systemDialogsReceiver,
-            IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS),
+            closeSystemDialogsFilter,
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
         binding.allAppsSearch.doAfterTextChanged { viewModel.setQuery(it?.toString().orEmpty()) }
@@ -210,7 +214,7 @@ class LauncherAllAppsFragment : DialogFragment() {
             // The whole grid is swipeable: on a full-screen list of cells there is almost no free space
             // to start from, and the recognizer already separates a fling from a tap by slop and velocity.
             isTouchOnInteractiveCell = { false },
-            onSwipe = ::dispatchSwipe,
+            onSwipe = { direction, _ -> dispatchSwipe(direction) },
         )
         val listener = object : RecyclerView.SimpleOnItemTouchListener() {
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {

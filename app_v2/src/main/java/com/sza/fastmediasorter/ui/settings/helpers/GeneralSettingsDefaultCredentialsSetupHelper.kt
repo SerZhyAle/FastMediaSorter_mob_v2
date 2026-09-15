@@ -7,7 +7,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
-import timber.log.Timber
+import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 
 /**
  * S2601: the default user and password fields - their tap-to-focus bridge and the commit-on-leave
@@ -100,7 +100,7 @@ class GeneralSettingsDefaultCredentialsSetupHelper(
         editor.post {
             if (!editor.isAttachedToWindow) return@post
             val imm = fragment.requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(editor, InputMethodManager.SHOW_IMPLICIT)
+            imm.showSoftInputImplicitly(editor)
         }
     }
 

@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.core.systeminfo.SystemInfoReport
 import com.sza.fastmediasorter.databinding.ActivitySystemInfoBinding
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -109,7 +108,6 @@ class SystemInfoWindowManager @Inject constructor(
                     appContext.contentResolver.openOutputStream(uri)?.use { it.write(report.fullText.toByteArray()) }
                 }
             } else {
-                @Suppress("DEPRECATION")
                 File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), name)
                     .writeText(report.fullText)
             }

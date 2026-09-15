@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeActivity
+import com.sza.fastmediasorter.ui.launcher.LauncherStartWindowActivity
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherOpenAllAppsRequest
 import timber.log.Timber
 
@@ -15,6 +16,9 @@ class LauncherModeContractImpl : LauncherModeContract {
 
     override fun homeComponent(context: Context): ComponentName =
         ComponentName(context, LauncherHomeActivity::class.java)
+
+    override fun startWindowIntent(context: Context): Intent =
+        Intent(context, LauncherStartWindowActivity::class.java)
 
     override fun openAllApps(context: Context): Boolean {
         // Callers include the gesture dispatcher, which runs in a Service with no task of its own.

@@ -10908,6 +10908,14 @@
         {
           "url": "https://radio.social.net.ua/live.mp3",
           "order": 119
+        },
+        {
+          "url": "http://79.111.14.76:9035/;",
+          "order": 120
+        },
+        {
+          "url": "https://hls-01-gpm.hostingradio.ru/detifm495/128/playlist.m3u8",
+          "order": 121
         }
       ]
     },
@@ -11803,6 +11811,10 @@
         {
           "url": "https://stream.rcast.net/66702",
           "order": 221
+        },
+        {
+          "url": "http://23543.live.streamtheworld.com/CAPE_TALK_SC",
+          "order": 222
         }
       ]
     },
@@ -27345,6 +27357,26 @@
         {
           "url": "http://s8-webradio.antenne.de/hits-fuer-kids",
           "order": 2316
+        },
+        {
+          "url": "https://stream.bigfm.de/justmusic/aac-128/radiobrowser",
+          "order": 2317
+        },
+        {
+          "url": "https://wdr-radio.ard-mcdn.de/wdr/radio/1live/hls/master.m3u8",
+          "order": 2318
+        },
+        {
+          "url": "https://wdr-radio.ard-mcdn.de/wdr/radio/wdr2rhld/hls/master.m3u8",
+          "order": 2319
+        },
+        {
+          "url": "https://stream.punkrockers-radio.de:8443/mobile.opus",
+          "order": 2320
+        },
+        {
+          "url": "https://radio-hls.mdr.de/hls/live/2112913/mdr-991101-0-hls/index.m3u8",
+          "order": 2321
         }
       ]
     },
@@ -28816,6 +28848,34 @@
         {
           "url": "http://global.citrus3.com:8132/stream",
           "order": 365
+        },
+        {
+          "url": "https://bonneville.cdnstream1.com/2616_48.aac",
+          "order": 366
+        },
+        {
+          "url": "https://kmno.streamguys1.com/live",
+          "order": 367
+        },
+        {
+          "url": "https://cbfc.streamguys1.com/cbdaily.mp3",
+          "order": 368
+        },
+        {
+          "url": "https://streaming.live365.com/a45877",
+          "order": 369
+        },
+        {
+          "url": "https://s32.myradiostream.com/9204/listen.mp3",
+          "order": 370
+        },
+        {
+          "url": "http://209.133.221.250:8288/stream",
+          "order": 371
+        },
+        {
+          "url": "https://a7.asurahosting.com:7510/radio.mp3",
+          "order": 372
         }
       ]
     },

@@ -27,8 +27,11 @@ $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $gradlew = "$projectRoot\gradlew.bat"
 $logDir = "$projectRoot\temp"
 
-# Start the Gradle build process
-& $gradlew :app_v2:assembleStandardDebug "-Pfms.versionCode=$versionCodeInt" "-Pfms.versionName=$versionName" "-Pchaquopy.enabled=false" --configuration-cache
+# S3094: this APK is installed immediately, so it must not reuse outputs that can leave the
+# Hilt-generated component out of step with its consumers.
+. "$PSScriptRoot\gradle-run-verdict.ps1"
+$freshArtifactArgs = @(Get-FreshGeneratedArtifactBuildArgs)
+& $gradlew :app_v2:assembleStandardDebug "-Pfms.versionCode=$versionCodeInt" "-Pfms.versionName=$versionName" "-Pchaquopy.enabled=false" --configuration-cache @freshArtifactArgs
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

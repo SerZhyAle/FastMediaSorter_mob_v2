@@ -155,12 +155,9 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             launchScreenRecording(context)
             true
         }
-        ScreenshotGestureAction.START_BROADCAST -> {
-            launchBroadcast(context)
-            true
-        }
+        ScreenshotGestureAction.START_BROADCAST,
         ScreenshotGestureAction.OPEN_TOURIST_INFO -> {
-            launchTouristInfo(context)
+            handleSubProgramGesture(context, action)
             true
         }
         // S1038: device-control + media actions run before (and instead of) any capture. Each handler
@@ -346,6 +343,30 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }
             .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch broadcast") }
+    }
+
+    private suspend fun handleBroadcastGesture(context: Context) {
+        if (settingsRepository.get().getSettings().first().enableBroadcasting) {
+            launchBroadcast(context)
+        } else {
+            Timber.d("S3096: ignored disabled Broadcast gesture")
+        }
+    }
+
+    private suspend fun handleSubProgramGesture(context: Context, action: ScreenshotGestureAction) {
+        when (action) {
+            ScreenshotGestureAction.START_BROADCAST -> handleBroadcastGesture(context)
+            ScreenshotGestureAction.OPEN_TOURIST_INFO -> handleTouristGesture(context)
+            else -> Unit
+        }
+    }
+
+    private suspend fun handleTouristGesture(context: Context) {
+        if (settingsRepository.get().getSettings().first().enableTourist) {
+            launchTouristInfo(context)
+        } else {
+            Timber.d("S3096: ignored disabled Tourist gesture")
+        }
     }
 
     private fun launchTouristInfo(context: Context) {

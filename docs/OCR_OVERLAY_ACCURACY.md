@@ -741,3 +741,16 @@ widening the real line's plate. Each piece is boxed to its own words with the me
   far above; the tight part of the bracket is PSM 3 in both projects.
 - **Resolution widens the band.** Below roughly ten pixels of type size a single misread space costs a whole unit
   of ratio. A bracket taken only at native resolution overstates the separable range.
+
+## 17. Round 7 - source-resolution player OCR, 2026-09-14
+
+The 2048 px guard in `GoogleLensTranslationHelper` was not sufficient when the player had already decoded an
+image at display size. With full-size image loading disabled, both direct image OCR and translated image OCR took
+their bitmap from the player drawable; the owner's 2048x2048 `1.png` therefore reached the recogniser as
+810x810. That erased the speech-bubble text before the line-gap measurement or splitter could act.
+
+S3088 adds `OcrInputBitmapLoader` before both image OCR entry points. For local files and content URIs it decodes
+the source with orientation applied, requests a software bitmap for native OCR, and constrains only images whose
+longest side exceeds 2048 px. Remote sources that cannot be resolved locally retain the displayed bitmap as an
+explicit fallback. The device handoff must confirm the `S3088: OCR input 2048x2048` probe before re-running
+S3039's ten-bubble acceptance scene.

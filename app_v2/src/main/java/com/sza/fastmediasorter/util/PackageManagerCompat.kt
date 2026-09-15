@@ -17,7 +17,6 @@ import android.os.Build
  * file is the only allow-listed exception).
  */
 
-@Suppress("DEPRECATION")
 fun PackageManager.getPackageInfoCompat(packageName: String, flags: Int = 0): PackageInfo =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(flags.toLong()))
@@ -25,7 +24,6 @@ fun PackageManager.getPackageInfoCompat(packageName: String, flags: Int = 0): Pa
         getPackageInfo(packageName, flags)
     }
 
-@Suppress("DEPRECATION")
 fun PackageManager.getApplicationInfoCompat(packageName: String, flags: Int = 0): ApplicationInfo =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         getApplicationInfo(packageName, PackageManager.ApplicationInfoFlags.of(flags.toLong()))
@@ -33,7 +31,6 @@ fun PackageManager.getApplicationInfoCompat(packageName: String, flags: Int = 0)
         getApplicationInfo(packageName, flags)
     }
 
-@Suppress("DEPRECATION")
 fun PackageManager.queryIntentActivitiesCompat(intent: Intent, flags: Int = 0): List<ResolveInfo> =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         queryIntentActivities(intent, PackageManager.ResolveInfoFlags.of(flags.toLong()))
@@ -41,7 +38,6 @@ fun PackageManager.queryIntentActivitiesCompat(intent: Intent, flags: Int = 0): 
         queryIntentActivities(intent, flags)
     }
 
-@Suppress("DEPRECATION")
 fun PackageManager.resolveActivityCompat(intent: Intent, flags: Int = 0): ResolveInfo? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         resolveActivity(intent, PackageManager.ResolveInfoFlags.of(flags.toLong()))

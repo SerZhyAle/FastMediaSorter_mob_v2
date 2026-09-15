@@ -480,4 +480,79 @@ if (Test-RefusedRowPresent) {
     throw "A refused post-change run wrote its row to dev/CHANGELOG.md (target '$refusedTarget')."
 }
 
+# S3151 - the quiet output shape. A clean closure prints no per-gate line and names its protocol
+# file only when something is worth reading; a FAIL line and its details always reach the console
+# (S1338). Driven through the facade's own function text in a child process, so no real closure
+# writes a changelog row.
+if ($facade -notmatch '\[switch\]\$ShowPasses') { throw 'post-change does not declare -ShowPasses.' }
+if ($facade -notmatch 'FMS_POSTCHANGE_VERBOSE') { throw 'post-change does not honour FMS_POSTCHANGE_VERBOSE.' }
+if ($facade -notmatch 'post-change: PASS \(\$resolvedChangeType, \$elapsedMs ms, \$\(\$script:PassedCount\) passed, ') {
+    throw 'The clean PASS verdict does not carry the passed and skipped counts.'
+}
+if ($facade -notmatch '(?s)function Test-FatalFindings \{.*?Write-ProtocolPointer.*?exit 1') {
+    throw 'A failed closure does not name its protocol file.'
+}
+$consoleInit = @([regex]::Matches($facade, '(?m)^\$script:Console\w+ = .*$') | ForEach-Object { $_.Value })
+if ($consoleInit.Count -ne 3) { throw "Expected three console-routing assignments, got $($consoleInit.Count)." }
+
+$quietDir = Join-Path $repoRoot 'temp/S3151/post-change-quiet-tests'
+New-Item -ItemType Directory -Force -Path $quietDir | Out-Null
+$quietHarnessPath = Join-Path $quietDir 'harness.ps1'
+@"
+param([string] `$ProtocolPath, [switch] `$ShowPasses, [switch] `$Fail)
+Set-StrictMode -Version Latest
+`$ShowSkips = `$false
+function Write-GateTelemetryRecord { param(`$Runner, `$Gate, `$Status, `$ExitCode, `$ElapsedMs) }
+$($consoleInit -join "`n")
+`$script:PassedCount = 0
+`$script:ProtocolPath = `$ProtocolPath
+$(Get-FacadeFunctionText 'Write-ProtocolLine')
+$(Get-FacadeFunctionText 'Write-ProtocolPointer')
+$(Get-FacadeFunctionText 'Write-StepResult')
+`$script:CaptureLines = [System.Collections.Generic.List[string]]::new()
+$(Get-FacadeFunctionText 'Invoke-CapturedAction')
+$(Get-FacadeFunctionText 'Write-CapturedOutput')
+Invoke-CapturedAction { Write-Host 'child report line' }
+Write-StepResult -Label 'gate-a' -Status PASS -ElapsedMs 5
+Write-StepResult -Label 'gate-b' -Status PASS -ElapsedMs 6
+Write-StepResult -Label 'step-c' -Status SKIP -ElapsedMs 0 -Details 'not applicable'
+if (`$Fail) {
+    Write-CapturedOutput
+    Write-StepResult -Label 'gate-d' -Status FAIL -ElapsedMs 7 -Details 'File.kt:12 finding' -ExitCode 1
+    Write-ProtocolPointer
+}
+"@ | Set-Content -LiteralPath $quietHarnessPath -Encoding utf8
+
+function Invoke-QuietHarness {
+    param([string] $Case, [string[]] $Extra)
+    $protocol = Join-Path $quietDir "$Case.log"
+    Remove-Item -LiteralPath $protocol -ErrorAction SilentlyContinue
+    $env:FMS_POSTCHANGE_VERBOSE = $null
+    $out = & pwsh -NoProfile -File $quietHarnessPath -ProtocolPath $protocol @Extra *>&1 | Out-String
+    $lines = if (Test-Path -LiteralPath $protocol) { @(Get-Content -LiteralPath $protocol) } else { @() }
+    return [pscustomobject]@{ Console = $out; Protocol = $lines }
+}
+
+$quiet = Invoke-QuietHarness -Case 'clean' -Extra @()
+if ($quiet.Console.Trim()) { throw "A clean run printed per-gate lines: '$($quiet.Console.Trim())'." }
+if ($quiet.Protocol.Count -ne 4) { throw "A clean run's protocol holds $($quiet.Protocol.Count) line(s), expected the child report plus one per step (4)." }
+if ($facade -notmatch '(?s)function Invoke-Gate\(.*?Invoke-CapturedAction \$Action') { throw 'Invoke-Gate does not capture its child output.' }
+if ($facade -notmatch '(?s)function Stop-ClosureOnQueuedBuild.*?\[Console\]::Out\.WriteLine') {
+    throw 'The queued-build exit writes through Write-Host, which a captured action swallows.'
+}
+
+$failed = Invoke-QuietHarness -Case 'fail' -Extra @('-Fail')
+if ($failed.Console -notmatch '\[gate-d\] FAIL' -or $failed.Console -notmatch 'File\.kt:12 finding') {
+    throw 'A FAIL line or its details did not reach the console.'
+}
+if ($failed.Console -match '\[gate-a\] PASS') { throw 'A failing run printed a PASS line without -ShowPasses.' }
+if ($failed.Console -notmatch 'child report line') { throw "A failing step did not print its child's report." }
+if ($failed.Console -notmatch 'protocol: ') { throw 'A failing run did not name its protocol file.' }
+
+$loud = Invoke-QuietHarness -Case 'showpasses' -Extra @('-ShowPasses')
+if ($loud.Console -notmatch '\[gate-a\] PASS' -or $loud.Console -notmatch '\[gate-b\] PASS') {
+    throw '-ShowPasses did not restore the per-gate PASS lines.'
+}
+Remove-Item -LiteralPath $quietDir -Recurse -Force -ErrorAction SilentlyContinue
+
 Write-Output "post-change tests: PASS ($($labels.Count) routed labels with hints)"

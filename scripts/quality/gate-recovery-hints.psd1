@@ -236,6 +236,11 @@
         Fix   = 'Your changed set touches registered documents - read the named records and pass their ids back as -RegistryAck on the same run.'
     }
 
+    'codex-transcript-hygiene-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-codex-transcript-hygiene.ps1 -Id <Sxxxx>'
+        Fix   = 'A Codex session authored this closure and its own rollout transcript carries a bounded-read violation - read the finding list (oversized/truncated/cross-ticket/sleep-poll), fix the flagged calls in that Codex session, or accept the advisory if the flagged reads were already necessary and reviewed.'
+    }
+
     'resource-link-gate' = @{
         Repro = 'pwsh -NoProfile -File ./a.ps1 fr'
         Fix   = 'A changed resource or manifest does not link. The aapt line above names the file and the reference it could not resolve - fix that, because nothing else in the facade runs aapt and fk stays green on a broken layout. Exit 2 is a DIFFERENT answer: the target never started (most often JAVA_HOME pointing at a JDK that no longer exists), so nothing was checked and the resource is still unproven. A THIRD shape (S2121): the gate names resource paths belonging to no registered Gradle module and refuses without linking anything - add the module row in scripts/utils/gradle-modules.ps1 rather than passing -Module, which this gate deliberately ignores.'

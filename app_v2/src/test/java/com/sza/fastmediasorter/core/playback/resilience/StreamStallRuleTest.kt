@@ -19,15 +19,14 @@ class StreamStallRuleTest {
     }
 
     @Test
-    fun `three consecutive polls without a new frame declare a video stall`() {
+    fun `two consecutive polls without a new frame declare a video stall`() {
         val rule = StreamStallRule()
         rule.start(videoObservation())
 
         assertEquals(StreamStallOutcome.Progressing, rule.onPoll(videoObservation(), FIRST_POLL_MS))
-        assertEquals(StreamStallOutcome.Progressing, rule.onPoll(videoObservation(), SECOND_POLL_MS))
-        val third = rule.onPoll(videoObservation(), THIRD_POLL_MS)
+        val second = rule.onPoll(videoObservation(), SECOND_POLL_MS)
 
-        assertEquals(StreamStallOutcome.Stalled(StreamStallReason.RENDERED_FRAMES_FROZEN), third)
+        assertEquals(StreamStallOutcome.Stalled(StreamStallReason.RENDERED_FRAMES_FROZEN), second)
     }
 
     @Test
@@ -58,10 +57,9 @@ class StreamStallRuleTest {
             rule.onPoll(videoObservation(isVideoOutputExpected = false), SECOND_POLL_MS),
         )
         assertEquals(StreamStallOutcome.Progressing, rule.onPoll(videoObservation(), THIRD_POLL_MS))
-        assertEquals(StreamStallOutcome.Progressing, rule.onPoll(videoObservation(), FOURTH_POLL_MS))
         assertEquals(
             StreamStallOutcome.Stalled(StreamStallReason.RENDERED_FRAMES_FROZEN),
-            rule.onPoll(videoObservation(), FIFTH_POLL_MS),
+            rule.onPoll(videoObservation(), FOURTH_POLL_MS),
         )
     }
 
@@ -73,15 +71,14 @@ class StreamStallRuleTest {
         val firstBlind = rule.onPoll(videoObservation(renderedFrames = null), FIRST_POLL_MS)
         val secondBlind = rule.onPoll(videoObservation(renderedFrames = null), SECOND_POLL_MS)
         // The counter returns, but the first poll holding it still has nothing to compare against;
-        // only the three frozen polls after that spend the budget the blind ones never touched.
+        // only the two frozen polls after that spend the budget the blind ones never touched.
         val counterBack = rule.onPoll(videoObservation(), THIRD_POLL_MS)
 
         assertEquals(StreamStallOutcome.NoEvidence(0L, isLive = false), firstBlind)
         assertEquals(StreamStallOutcome.NoEvidence(POLL_INTERVAL_MS, isLive = false), secondBlind)
         assertEquals(StreamStallOutcome.NoEvidence(2 * POLL_INTERVAL_MS, isLive = false), counterBack)
         assertEquals(StreamStallOutcome.Progressing, rule.onPoll(videoObservation(), FOURTH_POLL_MS))
-        assertEquals(StreamStallOutcome.Progressing, rule.onPoll(videoObservation(), FIFTH_POLL_MS))
-        val stalled = rule.onPoll(videoObservation(), SIXTH_POLL_MS)
+        val stalled = rule.onPoll(videoObservation(), FIFTH_POLL_MS)
 
         assertEquals(StreamStallOutcome.Stalled(StreamStallReason.RENDERED_FRAMES_FROZEN), stalled)
     }
@@ -128,7 +125,7 @@ class StreamStallRuleTest {
     }
 
     @Test
-    fun `three polls below the position floor declare an audio stall`() {
+    fun `two polls below the position floor declare an audio stall`() {
         val rule = StreamStallRule()
         rule.start(audioObservation(START_POSITION_MS))
 
@@ -261,7 +258,7 @@ class StreamStallRuleTest {
         // STALL_MIN_PROGRESS_MS, BUFFERING_STALL_TIMEOUT_MS - without digit separators, so a grep
         // for the plain threshold finds this file.
         const val POLL_INTERVAL_MS = 3000L
-        const val MAX_EMPTY_POLLS = 3
+        const val MAX_EMPTY_POLLS = 2
         const val MIN_POSITION_PROGRESS_MS = 500L
         const val BUFFERING_TIMEOUT_MS = 15000L
         const val ONE_MILLISECOND = 1L

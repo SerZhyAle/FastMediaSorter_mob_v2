@@ -383,10 +383,6 @@ class AudioPlaybackService : MediaSessionService() {
             startForeground(MediaNotificationManager.NOTIFICATION_ID, placeholderNotification)
         }
 
-        setMediaNotificationProvider(
-            MediaNotificationManager.createNotificationProvider(this)
-        )
-
         val audioAttributes = AudioAttributes.Builder()
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)
@@ -622,7 +618,9 @@ class AudioPlaybackService : MediaSessionService() {
             .setCallback(AudioSessionCallback())
             .setSessionActivity(resumePendingIntent)
             .build()
+        setMediaNotificationProvider(MediaNotificationManager.createNotificationProvider(this))
 
+        Timber.d("S3137: MediaSession created before notification provider")
         Timber.d("AudioPlaybackService: MediaSession created")
     }
 
@@ -1011,8 +1009,6 @@ class AudioPlaybackService : MediaSessionService() {
             val isLive = RadioStreamBufferConfig.isLiveSession(this@AudioPlaybackService)
             val shouldSuppress = suppressWearMediaTakeover || isLive
             if (isWearBridge && shouldSuppress) {
-                if (isLive) {
-                }
                 return ConnectionResult.reject()
             }
             // Explicitly include SEEK_TO_NEXT/PREVIOUS so notification always shows skip buttons

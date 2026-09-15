@@ -172,7 +172,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="@dimen/margin_normal">
 
         <com.google.android.material.button.MaterialButton
@@ -180,7 +180,8 @@
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/margin_small"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/margin_small"
             app:icon="@drawable/ic_map"
             android:text="@string/tourist_action_open_map" />
 
@@ -189,8 +190,9 @@
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/margin_small"
-            android:layout_marginEnd="@dimen/margin_small"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small"
             app:icon="@drawable/ic_share"
             android:text="@string/tourist_action_share_location" />
 
@@ -199,7 +201,8 @@
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/margin_small"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/margin_small"
             app:icon="@drawable/ic_refresh"
             android:text="@string/tourist_action_reset_trip" />
     </LinearLayout>

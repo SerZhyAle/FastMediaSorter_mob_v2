@@ -127,6 +127,23 @@ try {
     # normal state. Case 5 proving a clean exit 0 is what keeps that class of check out.
     Assert-Case 'a clean run emits no advisory either' `
         ($null -ne $o2 -and [int]$o2.advisories -eq 0) "advisories: $(if ($o2) { $o2.advisories } else { 'unknown' })"
+
+    # --- 7. a persisted identity variable fails, and only FMS_AGENT_* counts ------
+    # Through the seam, never the registry: a crashed suite must not leave the very leak it tests.
+    $env:FMS_PREFLIGHT_PERSISTED_ENV = 'User:FMS_AGENT_ID=leaked;User:PATH=unrelated'
+    try {
+        $r3 = Invoke-Preflight
+        $o3 = $null
+        try { $o3 = $r3.Out | ConvertFrom-Json } catch { }
+        $pCheck = if ($o3) { @($o3.checks | Where-Object { $_.name -eq 'persisted identity' }) } else { @() }
+        Assert-Case 'a persisted FMS_AGENT_ID fails the persisted-identity check' `
+            ($pCheck.Count -eq 1 -and $pCheck[0].result -eq 'FAIL') "checks: $($r3.Out)"
+        Assert-Case 'the finding names the scope and variable, and nothing unrelated' `
+            ($pCheck.Count -eq 1 -and [string]$pCheck[0].actual -eq 'User:FMS_AGENT_ID') "actual: $(if ($pCheck.Count) { $pCheck[0].actual } else { 'no check' })"
+        Assert-Case 'the persisted-identity failure carries a remedy and exits 1' `
+            ($pCheck.Count -eq 1 -and -not [string]::IsNullOrWhiteSpace([string]$pCheck[0].remedy) -and $r3.Code -eq 1) "exit was $($r3.Code)"
+    }
+    finally { $env:FMS_PREFLIGHT_PERSISTED_ENV = $null }
 }
 finally {
     & pwsh -NoProfile -File $chat -Verb Post -Kind session -Note 'session ended (preflight contract suite finished)' *> $null

@@ -3354,7 +3354,6 @@
     <string name="broadcast_share_url_label">广播 URL</string>
     <string name="broadcast_share_export_file">导出文件</string>
     <string name="broadcast_share_saved">文件已保存</string>
-    <string name="broadcast_share_save_failed">保存文件失败</string>
     <string name="broadcast_share_close">关闭</string>
     <string name="broadcast_share_description">扫描二维码或保存描述符文件以连接收听者</string>
     <string name="broadcast_share_qr_cd">广播描述符二维码</string>
@@ -3486,7 +3485,6 @@
     <string name="broadcast_entry_description">开始在本地网络上分享此设备的麦克风音频。任何拥有链接的人都可以收听，直到你停止分享为止。</string>
     <string name="broadcast_entry_start">开始直播</string>
     <string name="broadcast_entry_live">直播进行中</string>
-    <string name="broadcast_entry_unavailable">此构建版本不包含直播功能</string>
     <string name="shortcut_broadcast_short">直播</string>
     <string name="shortcut_broadcast_long">直播</string>
     <string name="tile_broadcast_label">直播</string>

@@ -165,7 +165,6 @@ class GnssStatusDataSource @Inject constructor(
      * Every member is overridden rather than relying on the interface defaults, which only exist from API 30:
      * a listener that leaves them out is called into on an older platform and dies with `AbstractMethodError`.
      */
-    @Suppress("DEPRECATION")
     private fun positionListener(onLocation: (Location) -> Unit): LocationListener =
         object : LocationListener {
             override fun onLocationChanged(location: Location) = onLocation(location)

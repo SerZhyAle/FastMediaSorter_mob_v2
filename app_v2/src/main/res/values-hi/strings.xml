@@ -3355,7 +3355,6 @@
     <string name="broadcast_share_url_label">प्रसारण URL</string>
     <string name="broadcast_share_export_file">फ़ाइल निर्यात करें</string>
     <string name="broadcast_share_saved">फ़ाइल सहेजी गई</string>
-    <string name="broadcast_share_save_failed">फ़ाइल सहेजने में विफल</string>
     <string name="broadcast_share_close">बंद करें</string>
     <string name="broadcast_share_description">श्रोता को जोड़ने के लिए QR कोड स्कैन करें या डिस्क्रिप्टर फ़ाइल सहेजें</string>
     <string name="broadcast_share_qr_cd">प्रसारण डिस्क्रिप्टर का QR कोड</string>
@@ -3487,7 +3486,6 @@
     <string name="broadcast_entry_description">इस डिवाइस के माइक्रोफ़ोन ऑडियो को अपने लोकल नेटवर्क पर शेयर करना शुरू करें. लिंक रखने वाला कोई भी व्यक्ति तब तक सुन सकता है जब तक आप इसे बंद नहीं करते.</string>
     <string name="broadcast_entry_start">ब्रॉडकास्ट शुरू करें</string>
     <string name="broadcast_entry_live">ब्रॉडकास्ट लाइव है</string>
-    <string name="broadcast_entry_unavailable">लाइव ब्रॉडकास्ट इस बिल्ड का हिस्सा नहीं है</string>
     <string name="shortcut_broadcast_short">ब्रॉडकास्ट</string>
     <string name="shortcut_broadcast_long">लाइव ब्रॉडकास्ट</string>
     <string name="tile_broadcast_label">लाइव ब्रॉडकास्ट</string>

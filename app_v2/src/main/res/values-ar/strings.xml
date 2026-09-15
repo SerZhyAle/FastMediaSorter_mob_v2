@@ -3356,7 +3356,6 @@
     <string name="broadcast_share_url_label">رابط البث</string>
     <string name="broadcast_share_export_file">تصدير الملف</string>
     <string name="broadcast_share_saved">تم حفظ الملف</string>
-    <string name="broadcast_share_save_failed">فشل حفظ الملف</string>
     <string name="broadcast_share_close">إغلاق</string>
     <string name="broadcast_share_description">امسح رمز QR أو احفظ ملف الواصف لتوصيل مستمع</string>
     <string name="broadcast_share_qr_cd">رمز QR لواصف البث</string>
@@ -3488,7 +3487,6 @@
     <string name="broadcast_entry_description">ابدأ مشاركة صوت ميكروفون هذا الجهاز على شبكتك المحلية. يمكن لأي شخص لديه الرابط الاستماع حتى تُوقفه.</string>
     <string name="broadcast_entry_start">بدء البث</string>
     <string name="broadcast_entry_live">البث مباشر الآن</string>
-    <string name="broadcast_entry_unavailable">البث المباشر غير متوفر في هذا الإصدار</string>
     <string name="shortcut_broadcast_short">البث</string>
     <string name="shortcut_broadcast_long">البث المباشر</string>
     <string name="tile_broadcast_label">البث المباشر</string>

@@ -212,7 +212,7 @@
 "enableWearCompanion","","","","","","","","","","",""
 "launcherTopStatusStripMode","","","","","","","","","","",""
 "launcherForeignNotificationsEnabled","","","","","","","","","","",""
-"launcherScreenBlackoutTimeoutSeconds","30","30","300","60","300","0","300","60","300","60",""
+"launcherScreenBlackoutTimeoutSeconds","30","30","300","0","300","0","300","60","300","60",""
 "frontFlashlightEnabled","FALSE","FALSE","FALSE","TRUE","FALSE","TRUE","FALSE","FALSE","FALSE","FALSE",""
 "waterFlashlightEnabled","","","","","","","","","","",""
 "mirrorEnabled","TRUE","TRUE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE",""

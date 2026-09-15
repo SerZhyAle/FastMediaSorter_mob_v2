@@ -56,7 +56,6 @@ class VrApkClassifier @Inject constructor(
         )
     }
 
-    @Suppress("DEPRECATION")
     private fun readPackageArchive(apkPath: String) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         context.packageManager.getPackageArchiveInfo(
             apkPath,

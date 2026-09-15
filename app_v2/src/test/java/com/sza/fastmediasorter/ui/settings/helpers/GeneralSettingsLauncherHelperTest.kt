@@ -1,16 +1,20 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.content.Intent
+import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
+import com.sza.fastmediasorter.core.util.XrDeviceProbe
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.testing.MainDispatcherRule
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,10 +35,12 @@ class GeneralSettingsLauncherHelperTest {
 
     private val binding = mockk<FragmentSettingsGeneralBinding>(relaxed = true)
     private val rowLauncherModeEnabled = mockk<SettingsToggleRow>(relaxed = true)
+    private val rowLauncherStartWindow = mockk<SettingsToggleRow>(relaxed = true)
     private val rowLauncherSettings = mockk<MaterialButton>(relaxed = true)
     private val fragment = mockk<Fragment>(relaxed = true)
     private val launcherModeContract = mockk<LauncherModeContract>()
     private val launcherRoleManager = mockk<LauncherRoleManager>(relaxed = true)
+    private val launcherStartWindowManager = mockk<LauncherStartWindowManager>(relaxed = true)
     private val launcherRoleLauncher = mockk<ActivityResultLauncher<Intent>>(relaxed = true)
 
     private lateinit var helper: GeneralSettingsLauncherHelper
@@ -42,14 +48,20 @@ class GeneralSettingsLauncherHelperTest {
     @Before
     fun setUp() {
         setBindingField("rowLauncherModeEnabled", rowLauncherModeEnabled)
+        setBindingField("rowLauncherStartWindow", rowLauncherStartWindow)
         setBindingField("rowLauncherSettings", rowLauncherSettings)
         every { launcherModeContract.isAvailableInBuild } returns true
+        every { launcherStartWindowManager.isEnabled() } returns true
+        mockkObject(XrDeviceProbe)
+        every { fragment.requireContext() } returns mockk(relaxed = true)
+        every { XrDeviceProbe.isXrDevice(any()) } returns false
 
         helper = GeneralSettingsLauncherHelper(
             binding = binding,
             fragment = fragment,
             launcherModeContract = launcherModeContract,
             launcherRoleManager = launcherRoleManager,
+            launcherStartWindowManager = launcherStartWindowManager,
             launcherRoleLauncher = launcherRoleLauncher,
             scopeProvider = { CoroutineScope(dispatcherRule.testDispatcher) },
             ioDispatcher = dispatcherRule.testDispatcher,
@@ -79,6 +91,21 @@ class GeneralSettingsLauncherHelperTest {
         verify(exactly = 0) { launcherRoleManager.isRoleRequestPending() }
         verify(exactly = 0) { launcherRoleManager.isHomeRoleHeld() }
         verify(exactly = 0) { rowLauncherModeEnabled.setCheckedSilently(any()) }
+    }
+
+    @Test
+    fun `setup keeps the start window row but hides system launcher controls on an XR device`() = runTest(
+        dispatcherRule.testDispatcher
+    ) {
+        every { XrDeviceProbe.isXrDevice(any()) } returns true
+        every { launcherRoleManager.readState() } returns LauncherRoleManager.LauncherModeState(false, false, false)
+
+        helper.setup()
+        advanceUntilIdle()
+
+        verify { rowLauncherStartWindow.setCheckedSilently(true) }
+        verify { rowLauncherModeEnabled.visibility = View.GONE }
+        verify { rowLauncherSettings.visibility = View.GONE }
     }
 
     @Test

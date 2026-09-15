@@ -299,17 +299,19 @@ class BrowseEventHandler(
 
     // S0028: open BrowseActivity for a given resource in a new multi-window slot
     fun openBrowseInNewWindow(resourceId: Long) {
+        Timber.d("S3125: opening browse document window")
         val windowId = java.util.UUID.randomUUID().toString()
         val intent = Intent(activity, BrowseActivity::class.java).apply {
             putExtra(BrowseActivity.EXTRA_RESOURCE_ID, resourceId)
             putExtra(BrowseActivity.EXTRA_WINDOW_ID, windowId)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         }
         activity.startActivity(intent)
     }
 
     // S0184: open the selected file's player in a new multi-window slot from Browse.
     fun openPlayerInNewWindow(file: MediaFile) {
+        Timber.d("S3125: opening player document window")
         viewModel.inlineStop()
         val currentState = viewModel.state.value
         val resourceId = currentState.resource?.id ?: file.resourceId ?: 0L
@@ -325,20 +327,21 @@ class BrowseEventHandler(
             detectedStereoMode = detectedStereoMode,
         ).apply {
             putExtra(PlayerActivity.EXTRA_WINDOW_ID, windowId)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         }
         activity.startActivity(intent)
     }
 
     // S0028: tear off current Browse to a new window; current activity finishes (returns to home)
     fun tearOffBrowse(resourceId: Long, currentFilePath: String?, scrollPosition: Int) {
+        Timber.d("S3125: tearing off browse document window")
         val windowId = java.util.UUID.randomUUID().toString()
         val intent = Intent(activity, BrowseActivity::class.java).apply {
             putExtra(BrowseActivity.EXTRA_WINDOW_ID, windowId)
             putExtra(BrowseActivity.EXTRA_RESOURCE_ID, resourceId)
             currentFilePath?.let { putExtra(BrowseActivity.EXTRA_INITIAL_FILE_PATH, it) }
             putExtra(BrowseActivity.EXTRA_SCROLL_POSITION, scrollPosition)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         }
         activity.startActivity(intent)
         activity.finish()

@@ -496,7 +496,6 @@ class WatchWearListenerService : WearableListenerService() {
         val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             getSystemService<VibratorManager>()?.defaultVibrator
         } else {
-            @Suppress("DEPRECATION")
             getSystemService<Vibrator>()
         }
         vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 80, 60, 120), -1))
