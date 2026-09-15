@@ -200,7 +200,8 @@ class LauncherTraySimSignalMonitor(private val context: Context) {
         }
         manager.listen(
             listener,
-            android.telephony.PhoneStateListener.LISTEN_SIGNAL_STRENGTHS or android.telephony.PhoneStateListener.LISTEN_SERVICE_STATE
+            android.telephony.PhoneStateListener.LISTEN_SIGNAL_STRENGTHS or
+                android.telephony.PhoneStateListener.LISTEN_SERVICE_STATE,
         )
         return Registration {
             runCatching { manager.listen(listener, android.telephony.PhoneStateListener.LISTEN_NONE) }

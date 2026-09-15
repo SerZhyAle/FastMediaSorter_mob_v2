@@ -64,10 +64,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       # setup-gradle adds the Gradle build cache on top of dependency caching.
@@ -154,10 +154,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Set up Gradle (deps + build cache)
@@ -203,9 +203,9 @@ jobs:
         uses: dorny/test-reporter@v3
         with:
           name: Wear + Detector Test Results
-          path: |
-            wear/build/test-results/**/*.xml
-            lint-rules/build/test-results/**/*.xml
+          # S3155: test-reporter splits `path` on commas only; a YAML block list reached it as one glob
+          # with an embedded newline, matched nothing, and failed a job whose tests had all passed.
+          path: wear/build/test-results/**/*.xml,lint-rules/build/test-results/**/*.xml
           reporter: java-junit
           fail-on-error: true
 
@@ -270,10 +270,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Set up Gradle (deps + build cache)
@@ -318,10 +318,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Set up Gradle (deps + build cache)
@@ -375,10 +375,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Set up Gradle (deps + build cache)
