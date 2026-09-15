@@ -171,7 +171,7 @@ class MainBroadcastManager(
         pendingMode = mode
         pendingLensId = lensId
 
-        if (mode != BroadcastMode.VIDEO_ONLY &&
+        if ((mode != BroadcastMode.VIDEO_ONLY || videoOnlyNeedsMicrophone()) &&
             ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -200,4 +200,9 @@ class MainBroadcastManager(
     fun stopBroadcast() {
         controller.stop()
     }
+
+    // A build without the camera foreground-service type keeps a video-only session foreground through
+    // the microphone type, which Android 14 refuses until the permission is granted (S3154).
+    private fun videoOnlyNeedsMicrophone(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !controller.cameraSurvivesBackground
 }

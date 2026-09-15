@@ -1856,6 +1856,10 @@ androidComponents {
         val broadcastFlavors = setOf("standard", "noLegal", "legacy")
         if (flavorName in broadcastFlavors) {
             variant.sources.manifests.addStaticManifestFile("src/broadcastSource/AndroidManifest.xml")
+            // S3154: FOREGROUND_SERVICE_CAMERA blocks the Play commit until a background-camera use
+            // case is declared, so only the sideload flavor keeps the camera type on the service.
+            val videoServiceDir = if (flavorName == "noLegal") "broadcastVideoBackground" else "broadcastVideoForeground"
+            variant.sources.manifests.addStaticManifestFile("src/$videoServiceDir/AndroidManifest.xml")
         }
 
         // S2726: the vr-only permission overlay. It cannot go in src/vr/AndroidManifest.xml - noLegal

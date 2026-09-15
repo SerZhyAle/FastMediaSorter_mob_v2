@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S3154: sideload declaration of the camera broadcast service. Only noLegal keeps the camera on air
+  after the app leaves the screen, so only it carries the camera foreground-service type and its
+  permission.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+
+    <application>
+        <service
+            android:name="com.sza.fastmediasorter.broadcast.VideoBroadcastService"
+            android:exported="false"
+            android:foregroundServiceType="camera|microphone" />
+    </application>
+</manifest>
