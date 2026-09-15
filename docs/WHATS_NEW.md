@@ -6,7 +6,43 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.9121.346** (September 2026)
+**Current release: 2.60.9151.928** (September 2026)
+
+> Changes since version 2.60.9121.346
+
+---
+
+## What's New
+
+- **Live broadcast to the watch** - send a live stream from the phone to the paired watch.
+- **Watch stream categories** - Video, Audio and your own streams sorted apart on the watch.
+- **Camera broadcast lens choice** - pick the lens and mute the camera during a broadcast.
+- **Theme-aware launcher icons** - desktop icons follow the light or dark theme.
+- **Google app shortcuts on the desktop** - the default desktop seeds Google app shortcuts.
+- **App icon opens the resource manager** - the launcher icon lands on your resources.
+- **Resource speed dashboard** - a Tools entry measures how fast each resource answers.
+
+## What's Fixed
+
+- Large image folders scroll smoothly.
+- Background audio notifications no longer flicker or disappear.
+- A screen no longer closes when the device rotates.
+- Keyboard navigation works in an empty browser list.
+- A network folder with a space in its name can be left again.
+- WAV files are recognised as audio.
+- The separate player window opens as a real task.
+- Launcher edit mode survives a theme change.
+- Stitched OCR lines are split before the overlay draws them.
+- The translator gadget keeps a usable minimum height.
+- Icon assignment works on locales with native digits.
+- Companion connection failures explain what went wrong.
+- Watch settings mirror works in the store build.
+- Watch sync from the phone times out and goes back cleanly.
+- Synthetic resources browse without errors.
+
+---
+
+## Previous Release: 2.60.9121.346 (September 2026)
 
 > Changes since version 2.60.9021.951
 

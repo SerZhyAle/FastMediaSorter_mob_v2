@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-09-12*
+*Last updated: 2026-09-15*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -44,6 +44,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Camera flashlight from the notification shade** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: One tile turns the camera light on and off without opening anything.
 - **Live broadcast over Wi-Fi** `[Standard / Legacy / noLegal]`: Unified live broadcast screen combining camera preview, mode selection (Audio / Camera+Audio / Camera Only), physical camera lens selection (Wide, Telephoto, Ultra-Wide), microphone/camera toggles, screen-off mode, live listener count, and integrated QR code / stream link sharing.
 - **Listen to the paired watch** `[Standard / noLegal]`: Live audio from the watch arrives on the phone, and can be recorded there.
+- **Send a live broadcast to the watch** `[Standard / noLegal]`: The broadcast screen hands its running stream to the paired watch, which starts playing it or shows a notification.
 ## 4. Replace a basic file viewer with a sorting workstation
 - **Instant sorting panel** `[Standard / VR]`: Keep up to 30 favorite destination folders in the player and sort the current file in one tap, with optional auto-advance to the next item.
 - **Open a file from another app and keep browsing nearby files** `[Standard / VR]`: When another app hands off one file, continue with next, previous, random, or slideshow inside the same folder instead of getting stuck on a single item.
@@ -94,6 +95,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Stream widget on the home screen** `[Standard / Legacy / VR / noLegal]`: Start a channel straight from the home screen without opening the app first.
 - **Curated stream collections** `[Standard / Legacy / VR / noLegal]`: Ready-made sets of channels open as a collection instead of one long catalog to scroll.
 - **A picture for radio** `[Standard / Legacy / VR / noLegal]`: An audio stream plays behind a music visualizer rather than a blank screen.
+- **Video, audio and your own channels on the watch** `[Wear OS]`: The watch streams filter splits channels into Video, Audio and Own, where Own holds what the phone sent.
 ## 8. Replace setup migration and utility clutter
 - **Unified settings backup and restore** `[Standard / VR]`: Back up sources, favorites, schedules, passwords, and sign-ins to a local file or Google Drive, then restore the whole setup after reinstalling or moving devices.
 - **App panel for apps, tools, and internal actions** `[Standard]`: Build a quick-launch panel that mixes Android apps, system shortcuts, captures, OCR tools, streams, and chosen resources in one place.
@@ -131,3 +133,4 @@ This document is the curated showcase of standout user-facing features. The comp
 - **The desktop locks itself** `[Standard / noLegal]`: Lock from the desktop itself, or let an idle screen-off do it.
 - **Automatic package shortcuts** `[Standard / noLegal]`: Newly installed apps seed their own desktop cells instead of being placed by hand.
 - **The desktop can start the app** `[Standard / noLegal]`: Open on the desktop instead of the main window, with its own list of screens and its own settings section.
+- **Icons that follow the theme** `[Standard / noLegal]`: Desktop icons, the gadget picker and the feature chooser stay readable on both dark and light themes.
