@@ -801,4 +801,5 @@
     <string name="wear_tourist_unlock_screen">আনলক</string>
     <string name="wear_tourist_hold_to_unlock">আনলক করতে চাপুন</string>
     <string name="wear_tourist_screen_locked">স্ক্রিন লক</string>
+    <string name="wear_streams_filter_kind_own">নিজের</string>
 </resources>

@@ -801,4 +801,5 @@
     <string name="wear_tourist_unlock_screen">Desbloquear</string>
     <string name="wear_tourist_hold_to_unlock">Manter para desbloquear</string>
     <string name="wear_tourist_screen_locked">Ecrã bloqueado</string>
+    <string name="wear_streams_filter_kind_own">Próprios</string>
 </resources>

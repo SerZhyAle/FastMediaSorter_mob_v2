@@ -280,7 +280,7 @@ $mediaPresent = ($LASTEXITCODE -eq 0 -and "$probeOut" -match 'FastMediaSorter_Te
 if ($mediaPresent) {
     Add-Stage 'seed-media' 'SKIP' "present - $mediaRoot exists"
 } else {
-    & pwsh -NoProfile -File "$RepoRoot/scripts/utils/setup_test_media.ps1" *> $null
+    & pwsh -NoProfile -File "$RepoRoot/scripts/utils/setup_test_media.ps1" -DeviceId $TargetDevice *> $null
     $seedCode = $LASTEXITCODE
     if ($seedCode -ne 0) {
         Add-Stage 'seed-media' 'FAIL' "setup test media exit $seedCode"
@@ -327,7 +327,7 @@ if (Wait-MediaIndexed) {
     Add-Stage 'media-index' 'OK' 'MediaStore indexed (photo_001.jpg queryable)'
 } else {
     # Last resort: full re-seed (wipe + re-push + scan), then re-verify with the same poll.
-    & pwsh -NoProfile -File "$RepoRoot/scripts/utils/setup_test_media.ps1" *> $null
+    & pwsh -NoProfile -File "$RepoRoot/scripts/utils/setup_test_media.ps1" -DeviceId $TargetDevice *> $null
     if (Wait-MediaIndexed) {
         Add-Stage 'media-index' 'OK' 're-seeded + MediaStore indexed (photo_001.jpg queryable)'
     } else {

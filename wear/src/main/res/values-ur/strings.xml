@@ -801,4 +801,5 @@
     <string name="wear_tourist_unlock_screen">ان لاک</string>
     <string name="wear_tourist_hold_to_unlock">ان لاک کرنے کے لیے دبائے رکھیں</string>
     <string name="wear_tourist_screen_locked">اسکرین لاک ہے</string>
+    <string name="wear_streams_filter_kind_own">اپنے</string>
 </resources>

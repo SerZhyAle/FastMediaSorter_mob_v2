@@ -138,6 +138,8 @@ function Get-TempRootInventory {
         'TEST-REPORTS'                     # builders/filtered-test-report.ps1.
         'monitor'                          # utils/dev-monitor-writer.ps1 (-OutDir default).
         'metrics'                          # metrics/agent-cost-report.ps1, and the gate journal the profile names.
+        'agent-cost'                       # metrics/ticket-cost.ps1 - the per-ticket cost journal ticket-cost.jsonl.
+        'sza-forwarders-backup'            # utils/install-sza-forwarders.ps1 - pre-install copy of the replaced local scripts.
         'detekt-scoped'                    # quality/detekt-scoped.ps1.
         'flavor-guard'                     # guard/flavor-isolation-guard.ps1.
         'isolated-stdout'                  # utils/invoke-isolated-stdout.ps1 (-LogDirectory default).

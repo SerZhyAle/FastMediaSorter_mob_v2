@@ -801,4 +801,5 @@
     <string name="wear_tourist_unlock_screen">Déverrouiller</string>
     <string name="wear_tourist_hold_to_unlock">Maintenir pour déverrouiller</string>
     <string name="wear_tourist_screen_locked">Écran verrouillé</string>
+    <string name="wear_streams_filter_kind_own">Perso</string>
 </resources>

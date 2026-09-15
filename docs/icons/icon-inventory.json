@@ -593,6 +593,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "broadcast",
+    "feature": "broadcast_menu_label",
+    "drawable": "ic_cast",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "calculator",
     "feature": "app_launch_panel_route_calculator",
     "drawable": "ic_calculator",
@@ -1419,6 +1427,14 @@
     "surface": "settings-row",
     "key": "rowLauncherModeEnabled",
     "feature": "launcher_settings_enable_title",
+    "drawable": "ic_launcher_mode",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowLauncherStartWindow",
+    "feature": "launcher_start_window_title",
     "drawable": "ic_launcher_mode",
     "assetFormat": "vector",
     "public": true

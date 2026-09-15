@@ -162,10 +162,18 @@ class WearVoiceNoteDatabaseMigrationChainTest {
 '@
     }
 
-    Set-Content -Path (Join-Path $wearDiDir 'WearAppModule.kt') -Encoding utf8NoBOM -Value @"
+    # S3078 split the watch registry rows: the voice-note builder lives in WearVoiceNoteModule.kt and the
+    # two health databases register in WearHealthHistoryModule.kt. The gate refuses a row whose
+    # RegistrationFile is absent, so the sandbox has to carry both or every case exits 2.
+    Set-Content -Path (Join-Path $wearDiDir 'WearHealthHistoryModule.kt') -Encoding utf8NoBOM -Value @'
 package com.sza.fastmediasorter.wear.di
 
-object WearAppModule {
+object WearHealthHistoryModule
+'@
+    Set-Content -Path (Join-Path $wearDiDir 'WearVoiceNoteModule.kt') -Encoding utf8NoBOM -Value @"
+package com.sza.fastmediasorter.wear.di
+
+object WearVoiceNoteModule {
     fun provideWearVoiceNoteDatabase(context: Context): WearVoiceNoteDatabase =
         Room.databaseBuilder(context, WearVoiceNoteDatabase::class.java, DB_NAME)
             $wearRegistration

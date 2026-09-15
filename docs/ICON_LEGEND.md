@@ -29,6 +29,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Battery saver |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Black screen |
 | <img src="icons/svg/ic_bluetooth.svg" alt="ic_bluetooth" width="24" height="24"> | Bluetooth |
+| <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Live Broadcast |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Calculator |
 | <img src="icons/svg/ic_widget_camera_launch_accent.svg" alt="ic_widget_camera_launch_accent" width="24" height="24"> | Camera |
 | <img src="icons/svg/ic_widget_camera_photos.svg" alt="ic_widget_camera_photos" width="24" height="24"> | Camera Photos |
@@ -128,6 +129,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Front flashlight |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Gesture overlay |
 | <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | Make this app the home screen |
+| <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | Open the desktop when the app starts |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Enable microphone recording |
 | <img src="icons/svg/ic_mirror.svg" alt="ic_mirror" width="24" height="24"> | Mirror |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Statistics |

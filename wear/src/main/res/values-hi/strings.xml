@@ -801,4 +801,5 @@
     <string name="wear_tourist_unlock_screen">अनलॉक</string>
     <string name="wear_tourist_hold_to_unlock">अनलॉक के लिए दबाएं</string>
     <string name="wear_tourist_screen_locked">स्क्रीन लॉक</string>
+    <string name="wear_streams_filter_kind_own">अपने</string>
 </resources>
