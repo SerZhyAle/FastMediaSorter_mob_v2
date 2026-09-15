@@ -91,7 +91,10 @@ jobs:
       # Gradle daemon and a 4 GB Kotlin daemon. Both modules read the property through
       # providers.gradleProperty, so -P overrides the runner without touching the workstation.
       - name: Lint + unit tests + standard debug build (single invocation)
-        run: ./gradlew :app_v2:lintStandardDebug :app_v2:testStandardDebugUnitTest :app_v2:assembleStandardDebug --continue --stacktrace -Pfms.unitTestMaxParallelForks=4
+        # S3155: 2, not 4. On JDK 21 the Robolectric SDK 36 workers carry more native memory than the
+        # classMethod-failing JDK 17 run ever reached; 4 x 2 GB forks beside the 6 GB and 4 GB daemons
+        # got the runner killed with a shutdown signal mid-suite, twice at the same point.
+        run: ./gradlew :app_v2:lintStandardDebug :app_v2:testStandardDebugUnitTest :app_v2:assembleStandardDebug --continue --stacktrace -Pfms.unitTestMaxParallelForks=2
         env:
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
 
