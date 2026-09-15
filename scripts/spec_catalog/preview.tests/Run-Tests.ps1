@@ -178,7 +178,7 @@ try {
     # --- A: no live BlockByOtherTask spec is offered while its blocker is still open, whatever names
     # that blocker. A spec whose every named blocker is released (Implemented, Verified, BlockNeedUserTest,
     # Archived - S1864) IS offered on purpose - that is the documented conditional eligibility
-    # (.claude/reference/spec-next.md), and it is how a ticket returns to the queue once the thing it
+    # (.claude/reference/spec-do.md), and it is how a ticket returns to the queue once the thing it
     # waited for lands. Asserting the blanket "never offered" made the suite red exactly when the
     # mechanism worked (S1433 / S1463).
     #

@@ -802,6 +802,19 @@ scripts/builders/check-lint-rules.ps1
   Exit: 0 - the suite ran and passed.; 2 - the run reported success but produced no test-result XML, so nothing was actually
 ```
 
+### check-lint.ps1
+Runs Android lint for one module: :app_v2:lintStandardDebug or :wear:lintStandardDebug.
+
+```
+scripts/builders/check-lint.ps1
+  Runs Android lint for one module: :app_v2:lintStandardDebug or :wear:lintStandardDebug.
+  Params:
+    -Module      (req)  [String]  {app_v2|wear}
+    -Regenerate         [SwitchParameter]
+    -Quiet              [SwitchParameter]
+  Exit: 0 - lint ran and found no error above the baseline; or, under -Regenerate, the baseline was
+```
+
 ### check-standard-fast.ps1
 Fast per-module, per-flavor Gradle check - compile, resources, unit tests, instrumented tests on a connected device (-Mode ConnectedAndroidTest, the only mode needing one) or assemble. Defaults to app_v2. Every module in scripts/utils/gradle-modules.ps1 is accepted, including one with no flavor dimension, whose task names carry no variant segment (:watchface:processDebugResources).
 
@@ -7050,6 +7063,22 @@ scripts/utils/monitor-spec-queue.ps1
   Exit: 2 - the repository layout could not be read (temp/ missing, journals unreadable).
 ```
 
+### mono-mode.ps1
+The one start step of a MONO run (S3158): read the agent chat once, drop every leftover lease, lock and queue, post one journal note.
+
+```
+scripts/utils/mono-mode.ps1
+  The one start step of a MONO run (S3158): read the agent chat once, drop every leftover lease, lock and queue, post one journal note.
+  Params:
+    -Verb    (req)  [String]  {Start}
+    -Ticket         [String] = ''
+    -Note           [String] = 'MONO start'
+    -Stores         [String[]] = @('Leases', 'Locks')  {Leases|Locks}
+    -DryRun         [SwitchParameter]
+    -Last           [Int32] = 20  {range 1..400}
+  Exit: 0 started - leftovers dropped (or listed under -DryRun).; 2 a store could not be read or cleared - the forwarder named on the line before failed.
+```
+
 ### normalize-all-features-areas.ps1
 One-shot migration: fold the free-string ALL_FEATURES 'area' values onto the closed vocabulary declared in docs/ALL_FEATURES.schema.json (S2842).
 
@@ -7251,6 +7280,16 @@ scripts/utils/run-maestro-stress.ps1
     -SkipBuild         [SwitchParameter]
 ```
 
+### run-mono-queue.ps1
+`.\a.ps1 r0` - the release queue for the one MONO agent (S3158): a fresh process per ticket, each running `/spec-all -m <id>`.
+
+```
+scripts/utils/run-mono-queue.ps1
+  `.\a.ps1 r0` - the release queue for the one MONO agent (S3158): a fresh process per ticket, each running `/spec-all -m <id>`.
+  (no param block)
+  Exit: 2 the MONO start could not clear a store (mono-mode.ps1's own code), or the runner forwarder
+```
+
 ### run-spec-queue.ps1
 Drive the release queue one ticket at a time, each in its own fresh Claude Code process.
 
@@ -7407,7 +7446,8 @@ Prepares the Android device with a structured test media layout for pre-release 
 ```
 scripts/utils/setup_test_media.ps1
   Prepares the Android device with a structured test media layout for pre-release manual testing.
-  (no param block)
+  Params:
+    -DeviceId         [String]
 ```
 
 ### setup_test_vr.ps1
@@ -7698,6 +7738,18 @@ scripts/utils/invoke-isolated-stdout.tests/Run-Tests.ps1
   S2412 - contract suite for the stdout-isolation runner and the a.ps1 routing that reaches it.
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - could not verify - the runner script is missing.
+```
+
+## scripts\utils\mono-mode.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/utils/mono-mode.ps1 - the MONO start step (S3158).
+
+```
+scripts/utils/mono-mode.tests/Run-Tests.ps1
+  Contract tests for scripts/utils/mono-mode.ps1 - the MONO start step (S3158).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\utils\preflight-checks.tests

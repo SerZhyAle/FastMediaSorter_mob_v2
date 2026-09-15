@@ -4095,4 +4095,7 @@
     <string name="streams_media_filter_own">Show manually added streams only</string>
     <string name="broadcast_notification_video_title">Broadcasting Video</string>
     <string name="broadcast_notification_video_text">Live camera stream is active</string>
+    <string name="broadcast_control_blank_screen">Blank screen</string>
+    <string name="broadcast_control_blank_screen_cd">Cover the app with a black screen while the broadcast keeps running</string>
+    <string name="broadcast_share_save_failed">Could not save file</string>
 </resources>

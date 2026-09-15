@@ -4022,4 +4022,7 @@
     <string name="streams_media_filter_own">Показувати лише трансляції, додані вручну</string>
     <string name="broadcast_notification_video_title">Відеотрансляція</string>
     <string name="broadcast_notification_video_text">Пряма трансляція з камери активна</string>
+    <string name="broadcast_control_blank_screen">Затемнити екран</string>
+    <string name="broadcast_control_blank_screen_cd">Закрити застосунок чорним екраном, не зупиняючи мовлення</string>
+    <string name="broadcast_share_save_failed">Не вдалося зберегти файл</string>
 </resources>

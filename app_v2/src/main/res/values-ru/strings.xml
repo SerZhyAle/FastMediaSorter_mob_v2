@@ -4037,4 +4037,7 @@
     <string name="streams_media_filter_own">Показывать только добавленные вручную трансляции</string>
     <string name="broadcast_notification_video_title">Видеотрансляция</string>
     <string name="broadcast_notification_video_text">Прямая трансляция с камеры активна</string>
+    <string name="broadcast_control_blank_screen">Затемнить экран</string>
+    <string name="broadcast_control_blank_screen_cd">Закрыть приложение чёрным экраном, не останавливая вещание</string>
+    <string name="broadcast_share_save_failed">Не удалось сохранить файл</string>
 </resources>

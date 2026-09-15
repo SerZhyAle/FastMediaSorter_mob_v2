@@ -4,9 +4,11 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.view.View
-import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
@@ -30,7 +32,9 @@ import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.Lazy
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -42,6 +46,7 @@ class BroadcastControlManager @Inject constructor(
     private val previewBinder: BroadcastPreviewBinder,
     private val listLenses: ListBroadcastCameraLensesUseCase,
     private val shareManager: BroadcastShareManager,
+    private val blankScreenManager: BroadcastBlankScreenManager,
     private val settingsRepository: SettingsRepository,
     private val mediaCapabilities: MediaCapabilities,
     private val sendStreamToWatch: Lazy<SendStreamToWatchUseCase>,
@@ -50,11 +55,13 @@ class BroadcastControlManager @Inject constructor(
     private var selectedLensId: String? = null
     private var wearSendAvailable = false
     private var wearSendInProgress = false
+    private lateinit var exportFileLauncher: ActivityResultLauncher<String>
 
     fun setup(
         activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding
     ) {
+        blankScreenManager.attach(activity, binding.root)
         setupPreStreamControls(activity, binding)
         setupLiveControls(activity, binding)
         setupSharePanel(activity, binding)
@@ -156,7 +163,7 @@ class BroadcastControlManager @Inject constructor(
         }
 
         binding.btnScreenOff.setOnClickListener {
-            activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            blankScreenManager.onScreenOffRequested(activity)
         }
 
         binding.btnSendToWatch.setOnClickListener {
@@ -212,6 +219,12 @@ class BroadcastControlManager @Inject constructor(
         activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding
     ) {
+        exportFileLauncher = activity.registerForActivityResult(
+            ActivityResultContracts.CreateDocument(BROADCAST_DESCRIPTOR_MIME_TYPE)
+        ) { uri ->
+            if (uri != null) writeBroadcastDescriptor(activity, uri)
+        }
+
         binding.btnShareLink.setOnClickListener {
             val isVisible = binding.layoutSharePanel.visibility == View.VISIBLE
             binding.layoutSharePanel.visibility = if (isVisible) View.GONE else View.VISIBLE
@@ -249,6 +262,10 @@ class BroadcastControlManager @Inject constructor(
             )
         }
 
+        binding.btnExportFile.setOnClickListener {
+            exportFileLauncher.launch("broadcast_${url.hashCode()}$BROADCAST_DESCRIPTOR_EXTENSION")
+        }
+
         val payload = shareManager.generateQrPayload(url, title, mode)
         val metrics = activity.resources.displayMetrics
         val size = (min(metrics.widthPixels, metrics.heightPixels) * QR_SIZE_FRACTION)
@@ -260,6 +277,33 @@ class BroadcastControlManager @Inject constructor(
             Timber.w(e, "Failed to encode QR in BroadcastControlManager")
         } catch (e: IllegalArgumentException) {
             Timber.w(e, "Illegal argument when encoding QR in BroadcastControlManager")
+        }
+    }
+
+    private fun writeBroadcastDescriptor(activity: AppCompatActivity, uri: Uri) {
+        val liveState = controller.state.value as? BroadcastState.Live ?: return
+        val descriptor = liveState.descriptor
+        val json = shareManager.generateJsonPayload(
+            descriptor.url,
+            descriptor.title,
+            descriptor.mode,
+        )
+        activity.lifecycleScope.launch {
+            val saved = withContext(Dispatchers.IO) {
+                runCatching {
+                    activity.contentResolver.openOutputStream(uri, "wt")?.bufferedWriter()?.use { writer ->
+                        writer.write(json)
+                    } ?: return@runCatching false
+                    true
+                }.onFailure { error ->
+                    Timber.e(error, "Writing broadcast descriptor failed")
+                }.getOrDefault(false)
+            }
+            Toast.makeText(
+                activity,
+                if (saved) R.string.broadcast_share_saved else R.string.broadcast_share_save_failed,
+                Toast.LENGTH_SHORT,
+            ).show()
         }
     }
 
@@ -328,6 +372,18 @@ class BroadcastControlManager @Inject constructor(
         binding.btnSwitchCamera.visibility = cameraVisibility
         binding.btnToggleMic.visibility =
             if (modeName == BroadcastMode.VIDEO_AUDIO.name) View.VISIBLE else View.GONE
+        renderScreenOffLabel(binding)
+    }
+
+    /** The action blanks the app in store builds and truly sleeps the display where the camera survives it. */
+    private fun renderScreenOffLabel(binding: ActivityBroadcastControlBinding) {
+        val blanks = blankScreenManager.blanksInsteadOfSleeping()
+        binding.btnScreenOff.setText(
+            if (blanks) R.string.broadcast_control_blank_screen else R.string.broadcast_control_screen_off
+        )
+        binding.btnScreenOff.contentDescription = binding.root.context.getString(
+            if (blanks) R.string.broadcast_control_blank_screen_cd else R.string.broadcast_control_screen_off_cd
+        )
     }
 
     private fun renderToggles(binding: ActivityBroadcastControlBinding, state: BroadcastState.Live) {
@@ -355,11 +411,14 @@ class BroadcastControlManager @Inject constructor(
 
     fun onDetach() {
         previewBinder.detach()
+        blankScreenManager.detach()
     }
 
     companion object {
         private const val QR_SIZE_FRACTION = 0.45
         private const val QR_SIZE_MIN_PX = 200
         private const val QR_SIZE_MAX_PX = 500
+        private const val BROADCAST_DESCRIPTOR_MIME_TYPE = "application/vnd.fms.bcast+json"
+        private const val BROADCAST_DESCRIPTOR_EXTENSION = ".fmsbcast"
     }
 }
