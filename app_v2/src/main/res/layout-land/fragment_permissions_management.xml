@@ -47,7 +47,7 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_grant_all"
         style="@style/Widget.FastMediaSorter.Button.Filled"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="4dp"
@@ -60,7 +60,7 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_open_system_settings"
         style="@style/Widget.FastMediaSorter.Button.Text"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:layout_marginEnd="8dp"

@@ -20,7 +20,6 @@ class GetDestinationsUseCase @Inject constructor(
             settingsRepository.getSettings()
         ) { resources, settings ->
             val limit = settings.maxRecipients
-            Timber.d("S2646: destinations filtered from %d resources", resources.size)
             resources
                 .filter {
                     it.isDestination && (it.destinationOrder ?: -1) >= 0 &&

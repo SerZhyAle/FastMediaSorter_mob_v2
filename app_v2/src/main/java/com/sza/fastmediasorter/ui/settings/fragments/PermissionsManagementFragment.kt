@@ -103,7 +103,6 @@ class PermissionsManagementFragment : Fragment() {
         // stays as a non-fragment sibling and remains focusable, so D-pad focus escapes the overlay.
         // Hide the siblings so directional focus search stays inside this fragment.
         hiddenSiblings = OverlayFocusTrap.hideSiblings(view)
-        Timber.d("S2899: PermissionsManagement focus trap active (${hiddenSiblings.size} sibling(s) hidden)")
 
         // Survive config change / process death while a system permission screen is open, so the
         // "Grant all" run resumes from where it left off when specialSettingsLauncher fires.
@@ -205,7 +204,6 @@ class PermissionsManagementFragment : Fragment() {
             else -> toolbar
         }
         target?.requestFocus()
-        Timber.d("S2899: PermissionsManagement initial focus requested on ${target?.javaClass?.simpleName}")
     }
 
     private fun refreshAdapter() = adapter.refresh(buildRows(registry.getEntries(), requireContext()))

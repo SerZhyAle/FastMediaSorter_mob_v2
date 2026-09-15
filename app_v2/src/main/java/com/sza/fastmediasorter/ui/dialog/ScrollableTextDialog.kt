@@ -179,7 +179,6 @@ object ScrollableTextDialog {
                     putExtra(Intent.EXTRA_TEXT, fullText)
                 }
                 if (context.packageManager.queryIntentActivitiesCompat(shareIntent, 0).isEmpty()) {
-                    Timber.d("S2902: ScrollableTextDialog: no share targets available, copying to clipboard")
                     copyToClipboard(context, fullText)
                     Toast.makeText(context, R.string.export_logs_no_share_target, Toast.LENGTH_LONG).show()
                 } else {
@@ -320,7 +319,6 @@ object ScrollableTextDialog {
                         resolver.update(uri, values, null, null)
                     }
                 } else {
-                    @Suppress("DEPRECATION")
                     val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                     downloadsDir.mkdirs()
                     File(downloadsDir, fileName).writeText(text, Charsets.UTF_8)

@@ -34,7 +34,6 @@ class SyncWithWatchUseCase @Inject constructor(
      * caller always receives an outcome it can show.
      */
     suspend operator fun invoke(settings: WearSettingsPayload): WearSyncOutcome {
-        Timber.d("S2484: starting unified sync with watch")
         val nodes = runCatching { wearableRepository.getConnectedNodes() }.getOrDefault(emptyList())
         if (nodes.isEmpty()) {
             Timber.w("Unified sync refused - no watch connected")
@@ -50,7 +49,6 @@ class SyncWithWatchUseCase @Inject constructor(
 
     private suspend fun sendResourcesLeg(): WearSyncLegResult = sendResourcesToWatch().fold(
         onSuccess = { result ->
-            Timber.d("S2926: unified resources leg dispatched=${result.dispatched}")
             // S2882: a batch that withdrew resources and sent none did something, and reporting it as
             // an empty selection was the same silence the unticked box itself used to produce.
             // S2926: a batch of pure deletions has both counters at zero and still travels, so the

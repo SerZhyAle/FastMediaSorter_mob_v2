@@ -313,11 +313,9 @@ class VideoPlayerViewModel @Inject constructor(
                 when (command) {
                     WearPlaybackCommand.PLAY_PAUSE -> togglePlayPause()
                     WearPlaybackCommand.NEXT -> {
-                        Timber.d("S2523: VideoPlayer received WearPlaybackCommand.NEXT, invoking skipToNext()")
                         skipToNext()
                     }
                     WearPlaybackCommand.PREVIOUS -> {
-                        Timber.d("S2523: VideoPlayer received WearPlaybackCommand.PREVIOUS, invoking skipToPrevious()")
                         skipToPrevious()
                     }
                     WearPlaybackCommand.STOP -> {
@@ -521,9 +519,7 @@ class VideoPlayerViewModel @Inject constructor(
      * so the touch that leaves the mode puts the screen back exactly as it was found.
      */
     fun toggleDimmed() {
-        Timber.d("S2815: video player screen-off toggled, dimmed=${!_uiState.value.isDimmed}")
         _uiState.update { it.copy(isDimmed = !it.isDimmed) }
-        Timber.d("S2849: video display hold=%b", _uiState.value.holdsDisplay)
     }
 
     private fun showControls() {
@@ -537,7 +533,6 @@ class VideoPlayerViewModel @Inject constructor(
             val autoHideSec = preferencesRepository.panelAutoHideSeconds.first()
                 .coerceIn(1, MAX_AUTO_HIDE_SECONDS)
             val hideDelayMs = autoHideSec * MILLIS_PER_SECOND
-            Timber.d("S2505: VideoPlayerViewModel scheduleHideControls delayMillis=$hideDelayMs")
             if (awaitPanelHide(isActive = exoPlayer.isPlaying, delayMillis = hideDelayMs)) {
                 _uiState.update { it.copy(showControls = false) }
             }
@@ -707,7 +702,6 @@ class VideoPlayerViewModel @Inject constructor(
      * one thing the wearer now needs to see.
      */
     private fun onPlaybackStalled() {
-        Timber.d("S2849: video stall guard stops the session")
         Timber.w(
             "VideoPlayerViewModel: no picture for %d ms, stopping the stalled stream",
             WEAR_PLAYBACK_STALL_TIMEOUT_MS

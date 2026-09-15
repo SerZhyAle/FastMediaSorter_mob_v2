@@ -79,7 +79,6 @@ class LauncherYouTubeChannelDialogFragment : DialogFragment() {
 
     private fun runSearch() {
         val query = binding.editYouTubeChannelQuery.text?.toString().orEmpty()
-        Timber.d("S2032: channel resolve requested, query length=${query.length}")
         showStatus(R.string.launcher_youtube_channel_searching)
         binding.btnYouTubeChannelSearch.isEnabled = false
         viewLifecycleOwner.lifecycleScope.launch {

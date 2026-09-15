@@ -30,7 +30,6 @@ fun createPlaybackRenderersFactory(context: Context): DefaultRenderersFactory {
     // S1267: every playback path passes through here, so a freshly started process starts on the
     // user's last balance choice instead of silent 50/50.
     ChannelBalanceController.restore(context)
-    Timber.d("S1126: renderers factory built - VP9 software backstop expected in the extension slot")
     // S1137: EXTENSION_RENDERER_MODE_ON (not _PREFER). The FFmpeg extension exists only for DTS/exotic
     // codecs the platform lacks (Set D above). _PREFER put FfmpegAudioRenderer ahead of MediaCodec for
     // every format it claims, so it intercepted AAC/HE-AAC radio streams and failed fatally mid-stream -

@@ -106,10 +106,20 @@ Exit codes: whatever {HARNESS} returns, plus 2 when the harness cannot be locate
 # instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
 # all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
 # scripts/utils/install-sza-forwarders.tests/.
+#
+# S3075: the home directory is read through both names and the path segments carry forward slashes.
+# $env:USERPROFILE exists only on Windows, so on a Linux runner Join-Path was handed $null and threw
+# under ErrorActionPreference = 'Stop' - the forwarder died on line 3 instead of reaching its own
+# refusal, and nine gates of the Static Gates job reported "Cannot bind argument to parameter 'Path'"
+# rather than "the harness is not installed". A backslash inside a path literal is the same defect
+# one level down: on Unix it is an ordinary filename character, so the probe could never match.
+# Windows accepts a forward slash everywhere, Unix does not accept a backslash anywhere - so the
+# portable separator is the only one written here.
 $szaFwdCandidates = @()
 if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
-$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
-if (Test-Path -LiteralPath $szaFwdCache) {
+$szaFwdHome = if ($env:USERPROFILE) { $env:USERPROFILE } elseif ($env:HOME) { $env:HOME } else { $null }
+$szaFwdCache = if ($szaFwdHome) { Join-Path $szaFwdHome '.claude/plugins/cache/sza-unified-rules/sza' } else { $null }
+if ($szaFwdCache -and (Test-Path -LiteralPath $szaFwdCache)) {
     # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
     # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
     # keep calling the older copy after an update. A directory that does not parse sorts last
@@ -122,7 +132,7 @@ if (Test-Path -LiteralPath $szaFwdCache) {
         } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
                         @{ Expression = { $_.Version }; Descending = $true },
                         @{ Expression = { $_.Path }; Descending = $true })
-    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools/harness' })
 }
 $szaFwdTarget = $null
 foreach ($szaFwdDir in $szaFwdCandidates) {
@@ -143,7 +153,7 @@ foreach ($szaFwdDir in $szaFwdCandidates) {
 if (-not $szaFwdTarget) {
     $szaFwdCheckout = $env:SZA_CANON_ROOT
     if (-not $szaFwdCheckout) {
-        $szaFwdResolver = Join-Path $PSScriptRoot '{UP}\scripts\utils\project-paths.ps1'
+        $szaFwdResolver = Join-Path $PSScriptRoot '{UP}/scripts/utils/project-paths.ps1'
         if (Test-Path -LiteralPath $szaFwdResolver) {
             # A resolver that is absent or throws must not stop the forwarder from printing its own
             # refusal, which is the only message that names all three candidates and the fix.
@@ -154,7 +164,7 @@ if (-not $szaFwdTarget) {
         }
     }
     if ($szaFwdCheckout) {
-        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools/harness')
         $szaFwdProbe = Join-Path $szaFwdCandidates[-1] '{HARNESS}'
         if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
     }
@@ -163,7 +173,7 @@ if (-not $szaFwdTarget) {
     Write-Host "{LEAF}: the SZA harness is not installed - looked in:" -ForegroundColor Red
     foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
     Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
-    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>/tools/harness'" -ForegroundColor Yellow
     exit 2
 }
 
@@ -230,13 +240,15 @@ try {
             -Reason 'install-sza-forwarders.ps1 (harness forwarders)'
     }
     foreach ($e in $entries) {
-        $localPath = Join-Path $root ($e.Local -replace '/', '\')
+        $localPath = Join-Path $root $e.Local
         if (-not (Test-Path -LiteralPath $localPath)) { $missing += $e.Local; continue }
 
+        # S3075: every substituted path is written with forward slashes, for the reason the template
+        # states above - the generated file has to resolve on the runner as well as on the workstation.
         $depth = ($e.Local -split '/').Count - 1
-        $up = if ($depth -le 0) { '.' } else { (@('..') * $depth) -join '\' }
+        $up = if ($depth -le 0) { '.' } else { (@('..') * $depth) -join '/' }
         $body = $template.
-            Replace('{HARNESS}', ($e.Harness -replace '/', '\')).
+            Replace('{HARNESS}', ($e.Harness -replace '\\', '/')).
             Replace('{LEAF}', (Split-Path $e.Local -Leaf)).
             Replace('{UP}', $up)
 

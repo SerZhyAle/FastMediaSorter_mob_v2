@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.core.systeminfo.SystemInfoReport
 import com.sza.fastmediasorter.databinding.ActivitySystemInfoBinding
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -85,7 +84,6 @@ class SystemInfoWindowManager @Inject constructor(
             putExtra(Intent.EXTRA_TEXT, text)
         }
         if (activity.packageManager.queryIntentActivitiesCompat(shareIntent, 0).isEmpty()) {
-            Timber.d("S2902: SystemInfoWindowManager: no share targets available, copying to clipboard")
             currentReport?.let(::copyReport)
             Toast.makeText(activity, R.string.export_logs_no_share_target, Toast.LENGTH_LONG).show()
         } else {
@@ -110,7 +108,6 @@ class SystemInfoWindowManager @Inject constructor(
                     appContext.contentResolver.openOutputStream(uri)?.use { it.write(report.fullText.toByteArray()) }
                 }
             } else {
-                @Suppress("DEPRECATION")
                 File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), name)
                     .writeText(report.fullText)
             }

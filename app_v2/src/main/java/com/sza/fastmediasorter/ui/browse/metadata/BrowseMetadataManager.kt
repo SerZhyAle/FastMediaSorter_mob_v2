@@ -33,7 +33,6 @@ class BrowseMetadataManager(
      * full-entity write built from that state (scroll/lastViewed/sort) clobbers this update.
      */
     suspend fun updateMetadata(resource: MediaResource, actualFileCount: Int, subfolderCount: Int = -1): MediaResource? {
-        Timber.d("S3005: BrowseMetadataManager.updateMetadata entered")
         return withContext(ioDispatcher) {
             try {
                 // S1001: isNetworkResource includes CLOUD - the statistics renderer shows

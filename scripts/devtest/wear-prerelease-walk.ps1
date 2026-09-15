@@ -256,9 +256,21 @@ if ($MinBatteryPct -gt 0) {
 $sizeProbe = Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'wm size')
 $screenW = 480
 $screenH = 480
-if ($sizeProbe.Exit -eq 0 -and $sizeProbe.Output -match '(\d+)x(\d+)') {
-    $screenW = [int]$Matches[1]
-    $screenH = [int]$Matches[2]
+# `wm size` prints 'Physical size' first and an 'Override size' line after it when one is set, and the
+# override is what the app is laid out against. Taking the first match sized every swipe for the
+# physical panel: measured on the Galaxy Watch 7 (480x480 physical) put into the 384x384 small-round
+# geometry 2026-09-12, the swipe started at y=360 - below the 271 px scroll viewport WearStateBlock
+# centres on that glass - so no gesture ever reached it, nine consecutive trees were identical, and the
+# Resources empty state scored failed for a Sync from Phone chip one scroll away. At 454 the same
+# y=360 still fell inside the viewport, which is why only the smaller reviewed shape broke.
+if ($sizeProbe.Exit -eq 0) {
+    $sizeText = [string]($sizeProbe.Output -join ' ')
+    $sizeMatch = [regex]::Match($sizeText, 'Override size:\s*(\d+)x(\d+)')
+    if (-not $sizeMatch.Success) { $sizeMatch = [regex]::Match($sizeText, '(\d+)x(\d+)') }
+    if ($sizeMatch.Success) {
+        $screenW = [int]$sizeMatch.Groups[1].Value
+        $screenH = [int]$sizeMatch.Groups[2].Value
+    }
 }
 # A scroll, not a fling: the list must stop where it was put, or the next tree read describes a
 # screen that is still moving.

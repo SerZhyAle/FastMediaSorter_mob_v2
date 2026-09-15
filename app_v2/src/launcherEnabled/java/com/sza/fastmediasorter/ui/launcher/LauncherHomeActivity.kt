@@ -102,10 +102,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
-    /**
-     * S2811: false in the start-window entry, which is an ordinary app screen and must leave to the app
-     * rather than stay put or hand the home role back.
-     */
     protected open val isHomeSurface: Boolean get() = true
 
     private val viewModel: LauncherHomeViewModel by viewModels()
@@ -444,6 +440,14 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         onBackPressedDispatcher.addCallback(this) { handleBackPressed() }
         cellBinder.gadgetBinder = gadgetRenderManager::bindGadget
         cellBinder.gadgetRebinder = gadgetRenderManager::rebindGadget
+        // A restored edit mode binds gadget resize handles during this first render.
+        resizeManager = LauncherResizeManager(
+            container = binding.launcherDesktop,
+            viewport = binding.launcherGridScroll,
+            gadgetRegistry = gadgetRegistry,
+            viewModel = viewModel,
+        )
+        Timber.d("S3087: resize manager ready before first desktop render")
         geometryManager.applyGridGeometry()
         geometryManager.seedDesktopIfNeeded()
 
@@ -500,12 +504,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // manager would otherwise sit paused until the next foreground edge.
         wallpaperManager.onStart()
         attachInstantPhotoCapture()
-        resizeManager = LauncherResizeManager(
-            container = binding.launcherDesktop,
-            viewport = binding.launcherGridScroll,
-            gadgetRegistry = gadgetRegistry,
-            viewModel = viewModel,
-        )
         attachDesktopSwipeActions()
         geometryManager.syncOrientation()
         addFlowManager.registerAddFlowListeners()
@@ -572,11 +570,9 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             // started inside one of them belongs to the strip. S2534's admission elsewhere is untouched.
             isHorizontalSwipeAllowedAtStart = { event ->
                 val onStrip = taskbarStripLocator.isTouchOnScrollingStrip(event.rawX, event.rawY)
-                Timber.d("S2728: horizontal swipe admission at start (onStrip=%b)", onStrip)
                 !onStrip
             },
-            onSwipe = { direction ->
-                Timber.d("S2534: desktop swipe passed gesture admission (direction=%s)", direction)
+            onSwipe = { direction, startedOnRightHalf ->
                 val settings = viewModel.launcherDesktopSettings.value
                 lifecycleScope.launch {
                     val (action, payload) = when (direction) {
@@ -593,6 +589,14 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                         direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT
                     val isUnassigned = action is LauncherDesktopSwipeAction.EdgeGestureAction &&
                         action.action == ScreenshotGestureAction.DO_NOT_USE
+                    val routedAction = if (startedOnRightHalf && isNotificationShadeDownSwipe(direction, action)) {
+                        Timber.d("S3148: right-half down swipe opens Quick Settings")
+                        LauncherDesktopSwipeAction.EdgeGestureAction(
+                            ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
+                        )
+                    } else {
+                        action
+                    }
                     val isLeft = direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT
                     val screenCount = settings.launcherScreenCount
                     // The pre-S2301 default: an unassigned horizontal swipe still pages, so a desktop
@@ -601,13 +605,12 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     if (isLeftRight && isUnassigned && screenCount > SINGLE_SCREEN) {
                         if (isLeft) pagingManager.next() else pagingManager.previous()
                     } else {
-                        swipeActionHandler.handle(action, payload)
+                        swipeActionHandler.handle(routedAction, payload)
                     }
                 }
             },
             onDoubleTap = {
                 val lockEnabled = viewModel.launcherDesktopSettings.value.launcherDesktopDoubleTapLockEnabled
-                Timber.d("S2384: desktop double tap reached the lock decision (enabled=%b)", lockEnabled)
                 if (lockEnabled) {
                     screenLockManager.turnScreenOff()
                     // S2384: the gesture must end here for the hierarchy - see endGestureForChildren.
@@ -616,6 +619,13 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             },
         )
     }
+
+    private fun isNotificationShadeDownSwipe(
+        direction: LauncherAllAppsGestureManager.DesktopSwipeDirection,
+        action: LauncherDesktopSwipeAction,
+    ): Boolean = direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.DOWN &&
+        action is LauncherDesktopSwipeAction.EdgeGestureAction &&
+        action.action == ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE
 
     /**
      * The desktop's gestures and the four entry points they can reach. Kept out of `setupViews` for the
@@ -656,7 +666,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         setIntent(intent)
         // S2388: Home button/gesture dismisses the active black screen overlay.
         if (blackScreenOverlayManager.isVisible) {
-            Timber.d("S2388: onNewIntent while black screen overlay visible -> hide black screen")
             blackScreenOverlayManager.hide()
             // S2384: the overlay is gone by a route that never reaches dispatchKeyEvent, so the
             // countdown has to be restarted here or the desktop goes dark again without an idle period.
@@ -757,7 +766,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
      * records that instead of leaving it as StrictMode noise on every toast this screen shows.
      */
     private fun showToast(messageResId: Int, duration: Int = Toast.LENGTH_SHORT) {
-        Timber.d("S2668: showToast wrapped in allowDiskIO, resId=%d", messageResId)
         StrictModeHelper.allowDiskIO {
             Toast.makeText(this, messageResId, duration).show()
         }
@@ -855,31 +863,22 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     /**
-     * S2388: Back dismisses the active black screen overlay rather than no-oping.
-     * S2811: on the start-window surface Back closes the screen; a home screen has nowhere to go back to,
-     * so it must not finish and expose whatever sits behind it.
+     * S2388: Back dismisses the active black screen overlay rather than no-oping. Otherwise it stays put:
+     * a home screen has nowhere to go back to, so it must not finish and expose whatever sits behind it.
      */
     private fun handleBackPressed() {
         if (blackScreenOverlayManager.isVisible) {
-            Timber.d("S2388: Back pressed while black screen overlay visible -> hide black screen")
             blackScreenOverlayManager.hide()
         } else if (!isHomeSurface) {
             leaveDesktop()
         }
     }
 
-    /**
-     * S2811: how a non-home desktop is left. The base surface is the device home screen, which has
-     * nowhere to go, so this is only ever reached by the start window - it overrides this to land in the
-     * app rather than on whatever sits behind an emptied task.
-     */
     protected open fun leaveDesktop() {
         finish()
     }
 
     private fun confirmExitLauncherMode() {
-        // S2811: the start window never held the home role, so leaving it is just closing a screen -
-        // showing the role-handback dialog there would offer to undo something the user never did.
         if (!isHomeSurface) {
             leaveDesktop()
             return
@@ -925,7 +924,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             // S2392: the App Functions cell. It passes its own id as well as the command, because its
             // last row removes the cell rather than acting on the feature behind it.
             is LauncherCellCommand.Feature -> {
-                Timber.d("S2392: long press on App Functions cell route=%s", command.routeKey)
                 cellActionMenuManager.showForFeature(view, command, cellUi.cell.id)
                 true
             }
@@ -973,7 +971,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // hide has to be re-issued here or the bar stays until the launcher is stopped outright. A
         // transient reveal by swipe keeps focus, so the shade gesture is untouched by this.
         if (hasFocus && statusBarHiddenByPolicy == true) {
-            Timber.d("S2737: focus returned to the desktop, re-hiding the system status bar")
             statusBarController().hide(WindowInsetsCompat.Type.statusBars())
         }
     }
@@ -1048,7 +1045,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private fun consumeTouchForBlackScreen(ev: MotionEvent): Boolean {
         if (!blackScreenOverlayManager.isVisible) return false
         if (ev.action == MotionEvent.ACTION_DOWN) {
-            Timber.d("S2388: touch event dismissed black screen overlay")
             blackScreenOverlayManager.hide()
         }
         return true
@@ -1066,7 +1062,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     private fun consumeGenericMotionForBlackScreen(): Boolean {
         if (!blackScreenOverlayManager.isVisible) return false
-        Timber.d("S2388: generic motion event dismissed black screen overlay")
         blackScreenOverlayManager.hide()
         return true
     }
@@ -1084,7 +1079,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private fun consumeKeyForBlackScreen(event: KeyEvent): Boolean {
         if (!blackScreenOverlayManager.isVisible) return false
         if (event.action == KeyEvent.ACTION_DOWN) {
-            Timber.d("S2388: key event dismissed black screen overlay (keyCode=%d)", event.keyCode)
             blackScreenOverlayManager.hide()
         }
         return true

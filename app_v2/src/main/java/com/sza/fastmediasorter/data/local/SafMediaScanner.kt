@@ -37,7 +37,6 @@ internal class SafMediaScanner(private val context: Context) {
         showHiddenFiles: Boolean,
         onProgress: ScanProgressCallback? = null
     ): List<MediaFile> = withContext(Dispatchers.IO) {
-        Timber.d("S2401: SafMediaScanner.scanFolderFast entered")
         val request = ScanRequest(uriString, supportedTypes, sizeFilter, scanSubdirectories, showHiddenFiles)
         runCatching { cursorScan(request, onProgress) }.getOrElse { error ->
             error.warnUnlessCancellation("SafMediaScanner: fast cursor scan failed, using DocumentFile walk")

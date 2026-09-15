@@ -98,8 +98,6 @@
                         app:str_helpTitle="@string/launcher_settings_enable_help_title"
                         app:str_helpMessage="@string/launcher_settings_enable_help_message" />
 
-                    <!-- S2811: orientation parity with portrait - the desktop as the app's own start
-                         window, independent of the home role above. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowLauncherStartWindow"
                         android:layout_width="match_parent"
@@ -107,10 +105,7 @@
                         android:layout_marginBottom="@dimen/margin_tiny"
                         app:str_icon="@drawable/ic_launcher_mode"
                         app:str_title="@string/launcher_start_window_title"
-                        app:str_subtitle="@string/launcher_start_window_desc"
-                        app:str_showHelp="true"
-                        app:str_helpTitle="@string/launcher_start_window_help_title"
-                        app:str_helpMessage="@string/launcher_start_window_help_message" />
+                        app:str_subtitle="@string/launcher_start_window_desc" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/rowLauncherSettings"
@@ -162,8 +157,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
-                        app:sdr_inline="true"
-                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_valueAsText="true"
                         app:sdr_title="@string/launcher_settings_unit_system_title"
                         app:sdr_entries="@array/unit_system_options" />
 
@@ -867,9 +861,9 @@
                     <!-- Show Log + Session Log -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShowLog" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/show_log" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnShowSessionLog" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShowLog" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" app:layout_constraintHorizontal_chainStyle="packed" app:layout_constraintHorizontal_bias="0" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/show_log" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnShowSessionLog" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintWidth_max="600dp" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShowSessionLog" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/show_current_session_log" app:layout_constraintStart_toEndOf="@+id/btnShowLog" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShowSessionLog" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_current_session_log" app:layout_constraintStart_toEndOf="@+id/btnShowLog" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintWidth_max="600dp" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -890,9 +884,9 @@
                     <!-- Integration Tests + Import Test Credentials -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/containerIntegrationTests" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnIntegrationTests" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/run_integration_tests" android:visibility="gone" app:icon="@drawable/ic_settings" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnImportTestCredentials" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnIntegrationTests" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" app:layout_constraintHorizontal_chainStyle="packed" app:layout_constraintHorizontal_bias="0" android:layout_height="wrap_content" android:text="@string/run_integration_tests" android:visibility="gone" app:icon="@drawable/ic_settings" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnImportTestCredentials" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintWidth_max="600dp" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportTestCredentials" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="0dp" android:layout_height="wrap_content" android:text="@string/import_test_credentials" android:visibility="gone" app:icon="@drawable/ic_cloud_upload" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toEndOf="@+id/btnIntegrationTests" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="600dp" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportTestCredentials" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/import_test_credentials" android:visibility="gone" app:icon="@drawable/ic_cloud_upload" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toEndOf="@+id/btnIntegrationTests" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintWidth_max="600dp" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 

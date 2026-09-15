@@ -110,6 +110,18 @@ object SubProgramCatalog {
             disable = { it.copy(linkAutoDownloadEnabled = false) },
         ),
         SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_BROADCAST,
+            order = 65,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+                SubProgramSurface.WIDGET,
+            ),
+            widgetKey = "broadcast_entry",
+            disable = { it.copy(enableBroadcasting = false) },
+        ),
+        SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_GAME,
             order = 70,
             surfaces = setOf(
@@ -139,8 +151,10 @@ object SubProgramCatalog {
                 SubProgramSurface.PROGRAMS_MENU,
                 SubProgramSurface.QUICK_ACCESS_PANEL,
                 SubProgramSurface.LAUNCHER_SHORTCUT,
+                SubProgramSurface.WIDGET,
             ),
             disable = { it.copy(enableTourist = false) },
+            widgetKey = "tourist_info",
         ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_WEAR_COMPANION,

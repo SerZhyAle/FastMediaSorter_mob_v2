@@ -33,6 +33,9 @@ class SatellitesGadget @Inject constructor(
     override val minSpanH: Int = 1
     override val labelRes: Int = R.string.launcher_gadget_satellites
     override val iconRes: Int = R.drawable.ic_satellites
+
+    // S3080: ic_satellites fills white and is invisible on the picker's light surface without a tint.
+    override val iconTintable: Boolean = true
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =

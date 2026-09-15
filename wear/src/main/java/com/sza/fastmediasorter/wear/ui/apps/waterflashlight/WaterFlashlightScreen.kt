@@ -64,7 +64,6 @@ fun WaterFlashlightScreen(
     KeepDisplayLit()
     SystemShadeLockEffect(enabled = viewModel.locksSystemShade)
     LaunchedEffect(viewModel.locksSystemShade) {
-        Timber.d("S2812: water flashlight shown, locksSystemShade=%s", viewModel.locksSystemShade)
     }
 
     val focusRequester = rememberRotaryFocus()
@@ -89,7 +88,6 @@ fun WaterFlashlightScreen(
             // worse failure than leaving by an unexpected button (strategic §6.1).
             .onPreviewKeyEvent { event ->
                 if (event.type == KeyEventType.KeyUp) {
-                    Timber.d("S2516: wear water flashlight key %d", event.nativeKeyEvent.keyCode)
                     onLeave()
                 }
                 true

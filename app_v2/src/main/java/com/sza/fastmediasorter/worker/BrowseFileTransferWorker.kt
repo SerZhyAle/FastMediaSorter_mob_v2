@@ -78,13 +78,11 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     }
 
     override suspend fun doWork(): Result {
-        Timber.d("S1224: BrowseFileTransferWorker.doWork started")
         ensureChannel()
         var overallResult = Result.success()
 
         while (true) {
             val request = requestStore.pollNextRequest() ?: break
-            Timber.d("S1224: worker processing ${request.operationType} (${request.sources.size} items)")
             val stepResult = try {
                 runTransfer(request)
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
@@ -298,7 +296,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                 // succeeding - a partial write proves the destination reachable, and the branches where
                 // it truly is not (Failure, AuthenticationRequired, PermissionRequired) are separate.
                 val dirOutcome = runDirectoryOperations(request)
-                Timber.d("S2586: partial half, dirs ok=%d fail=%d", dirOutcome.succeededCount, dirOutcome.failedCount)
                 BrowseFileTransferTerminalEvent.PartialSuccess(
                     workId = id.toString(),
                     operationType = request.operationType,

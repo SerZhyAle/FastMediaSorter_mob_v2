@@ -43,7 +43,6 @@ class WearCompanionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val binding = ActivityWearCompanionBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        Timber.d("S2460: companion window created with the shell toolbar")
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }

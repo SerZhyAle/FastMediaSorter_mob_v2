@@ -72,7 +72,6 @@ class NetworkSourceRepositoryImpl(
             if (index != -1) {
                 // S2502: see the note on addSource - the user-edit path stamps, the import path does not.
                 sources[index] = source.copy(lastEditedAt = System.currentTimeMillis())
-                Timber.d("S2502: watch edit stamped for source ${source.id}")
                 saveSources(sources)
                 Timber.d("Updated network source: ${source.name}")
             } else {

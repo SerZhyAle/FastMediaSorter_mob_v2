@@ -104,7 +104,6 @@ class TranslationBackend(
                 // supported set so a romanized tag degrades to its base language instead
                 // of crashing inside model loading.
                 val baseCode = detectedLang.substringBefore('-').lowercase(Locale.ROOT)
-                Timber.d("S3002: detectLanguage raw=$detectedLang base=$baseCode")
                 if (baseCode in TranslationLanguageCodeMapper.supportedCodes) {
                     Timber.d("Detected language: $detectedLang -> $baseCode")
                     baseCode
@@ -190,7 +189,6 @@ class TranslationBackend(
             }
         } catch (e: Exception) {
             Timber.e(e, "Translation error")
-            Timber.d("S3002: showError after translateDirect failure")
             callback.showError(context.getString(R.string.translation_error))
             return null
         }

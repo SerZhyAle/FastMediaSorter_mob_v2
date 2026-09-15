@@ -59,7 +59,6 @@ fun LocalHomeScreen(
  * route and not a token in one.
  */
 private fun routeForCategory(category: WearBrowseCategory): String {
-    Timber.d("S2495: local category tapped: %s", category.token)
     return routeOf(category)
 }
 

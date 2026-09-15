@@ -15,6 +15,7 @@ import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -116,17 +117,44 @@ class BroadcastCaptureService : Service() {
             server.stop()
             return
         }
+        val url = server.getBroadcastUrl() ?: run {
+            server.stop()
+            _state.value = BroadcastState.Failed(
+                BroadcastFailure.NETWORK_UNAVAILABLE,
+                "No reachable local IPv4 address"
+            )
+            isRecording.set(false)
+            stopSelf()
+            return
+        }
         httpServer = server
+        serviceScope.launch {
+            server.listenerCount.collect { count ->
+                _listenerCount.value = count
+            }
+        }
 
-        val url = server.getBroadcastUrl()
+        val endpoint = BroadcastEndpointDto(
+            url = url,
+            transport = "HTTP",
+            mode = BroadcastMode.AUDIO_ONLY.name,
+            audioCodec = "aac",
+            sampleRate = config.sampleRateHz,
+            bitrate = config.bitRateBps,
+            isLive = true,
+            targetLatencyMs = 200L
+        )
         val dto = BroadcastDescriptorDto(
             schemaVersion = 1,
             url = url,
             title = config.streamTitle,
             mode = BroadcastMode.AUDIO_ONLY.name,
             sourceId = config.sourceDeviceId,
+            endpoints = listOf(endpoint),
+            isLive = true,
+            targetLatencyMs = 200L
         )
-        Timber.d("S2814: source device id=%s", config.sourceDeviceId ?: "none")
+        Timber.d("S3051: audio descriptor published with endpoints=%s isLive=%s", dto.endpoints, dto.isLive)
         _state.value = BroadcastState.Live(dto, SystemClock.elapsedRealtime())
 
         captureAudioLoop(server, config)
@@ -134,9 +162,6 @@ class BroadcastCaptureService : Service() {
 
     private suspend fun readSessionConfig(): BroadcastSessionConfig {
         val settings = settingsRepository.getSettings().first()
-        Timber.d("S2817: session title=${settings.broadcastStreamTitle} bitrate=${settings.broadcastBitRateBps}")
-        Timber.d("S2817: session port=${settings.broadcastPort} rate=${settings.broadcastSampleRateHz}")
-        Timber.d("S2817: session channels=${settings.broadcastChannelCount}")
         val sourceDeviceId = settings.broadcastSourceDeviceId ?: run {
             val id = UUID.randomUUID().toString()
             settingsRepository.updateSettings(settings.copy(broadcastSourceDeviceId = id))
@@ -149,6 +174,7 @@ class BroadcastCaptureService : Service() {
             sampleRateHz = settings.broadcastSampleRateHz,
             channelCount = settings.broadcastChannelCount,
             sourceDeviceId = sourceDeviceId,
+            micGainPercent = settings.broadcastMicGainPercent,
         )
     }
 
@@ -176,7 +202,6 @@ class BroadcastCaptureService : Service() {
             return
         }
 
-        Timber.d("S2508: broadcast audio loop is encoding to ADTS AAC")
         try {
             val recorder = AudioRecord(
                 MediaRecorder.AudioSource.MIC,
@@ -187,11 +212,19 @@ class BroadcastCaptureService : Service() {
             )
             audioRecord = recorder
             recorder.startRecording()
+            Timber.d("S3049: broadcast audio capture starting with mic gain %d%%", config.micGainPercent)
 
             val buffer = ByteArray(bufferSize)
+            val gainPercent = config.micGainPercent
+            val gainMultiplier = gainPercent / 100.0f
+            val applyGain = gainPercent != 100
+
             while (isRecording.get()) {
                 val read = recorder.read(buffer, 0, bufferSize)
                 if (read > 0) {
+                    if (applyGain) {
+                        applyPcmGain(buffer, read, gainMultiplier)
+                    }
                     encoder.encode(buffer, read)
                 }
             }
@@ -213,6 +246,19 @@ class BroadcastCaptureService : Service() {
         httpServer?.stop()
         httpServer = null
         _state.value = BroadcastState.Idle
+        _listenerCount.value = 0
+    }
+
+    private fun applyPcmGain(buffer: ByteArray, length: Int, gainMultiplier: Float) {
+        var i = 0
+        while (i + 1 < length) {
+            val sample = (buffer[i].toInt() and 0xFF) or (buffer[i + 1].toInt() shl 8)
+            val shortSample = sample.toShort()
+            val scaled = (shortSample * gainMultiplier).toInt().coerceIn(-32768, 32767)
+            buffer[i] = (scaled and 0xFF).toByte()
+            buffer[i + 1] = ((scaled shr 8) and 0xFF).toByte()
+            i += 2
+        }
     }
 
     @Suppress("SwallowedException", "TooGenericExceptionCaught")
@@ -237,6 +283,9 @@ class BroadcastCaptureService : Service() {
 
         private val _state = MutableStateFlow<BroadcastState>(BroadcastState.Idle)
         val state: StateFlow<BroadcastState> = _state.asStateFlow()
+
+        private val _listenerCount = MutableStateFlow(0)
+        val listenerCount: StateFlow<Int> = _listenerCount.asStateFlow()
 
         fun start(context: Context, mode: BroadcastMode) {
             val intent = Intent(context, BroadcastCaptureService::class.java).apply {

@@ -1069,6 +1069,11 @@
     "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у правого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
     "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля правого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
+  "rowEnableBroadcasting": {
+    "en": "Enables audio and camera live broadcasting over HTTP/RTSP server from this device.",
+    "ru": "Включает прямую трансляцию аудио и камеры по HTTP/RTSP с этого устройства.",
+    "uk": "Увімкне пряму трансляцію аудіо та камери через HTTP/RTSP з цього пристрою."
+  },
   "rowGoToNextAfterCopy": {
     "en": "Automatically advances to the next file in the list after a copy operation completes.",
     "ru": "Автоматически переходит к следующему файлу в списке после завершения копирования.",
@@ -1199,6 +1204,11 @@
     "ru": "Включает лаунчер: приложение становится домашним экраном устройства, и кнопка «Домой» открывает его рабочий стол.",
     "uk": "Вмикає лаунчер: застосунок стає домашнім екраном пристрою, і кнопка «Додому» відкриває його робочий стіл."
   },
+  "rowLauncherStartWindow": {
+    "en": "Opens your desktop when you start the app normally, without making it the device home screen. Turn it off to open the app's main window instead.",
+    "ru": "Открывает ваш рабочий стол при обычном запуске приложения, не назначая его домашним экраном устройства. Выключите, чтобы вместо этого открывалось главное окно приложения.",
+    "uk": "Відкриває ваш робочий стіл під час звичайного запуску застосунку, не призначаючи його домашнім екраном пристрою. Вимкніть, щоб натомість відкривалося головне вікно застосунку."
+  },
   "rowLauncherOpenHomeSettings": {
     "en": "Opens Android's default-launcher chooser to switch the system home screen.",
     "ru": "Открывает системный выбор лаунчера по умолчанию для смены домашнего экрана.",
@@ -1210,9 +1220,9 @@
     "uk": "Замінює системний рядок стану власною областю годинника/статусу лаунчера; вимкнено - лишається системний рядок стану."
   },
   "rowLauncherScreenTimeout": {
-    "en": "Turns the screen off after a chosen period of inactivity on the launcher desktop - locking the device where a system lock is reachable, or showing a black screen where it is not. On by default after 30 seconds; presets of 5 to 300 seconds, a custom number of seconds, or never (off).",
-    "ru": "Гасит экран при простое на рабочем столе лаунчера: блокирует устройство там, где системная блокировка доступна, иначе показывает чёрный экран. По умолчанию включено с задержкой 30 секунд; предустановки от 5 до 300 секунд, заданное вручную число секунд или без отключения.",
-    "uk": "Гасить екран під час простою на робочому столі лаунчера: блокує пристрій там, де системне блокування доступне, інакше показує чорний екран. Типово увімкнено із затримкою 30 секунд; попередні налаштування від 5 до 300 секунд, довільна кількість секунд або без вимкнення."
+    "en": "Turns the screen off after a chosen period of inactivity on the launcher desktop - locking the device where a system lock is reachable, or showing a black screen where it is not. On by default after 30 seconds; presets of 5 to 300 seconds, a custom number of seconds, or never (off). Car head unit and photo-frame profiles start with never.",
+    "ru": "Гасит экран при простое на рабочем столе лаунчера: блокирует устройство там, где системная блокировка доступна, иначе показывает чёрный экран. По умолчанию включено с задержкой 30 секунд; предустановки от 5 до 300 секунд, заданное вручную число секунд или без отключения. Для профилей автомагнитолы и фоторамки по умолчанию выбрано «без отключения».",
+    "uk": "Гасить екран під час простою на робочому столі лаунчера: блокує пристрій там, де системне блокування доступне, інакше показує чорний екран. Типово увімкнено із затримкою 30 секунд; попередні налаштування від 5 до 300 секунд, довільна кількість секунд або без вимкнення. Для профілів автомагнітоли й фоторамки типово вибрано «без вимкнення»."
   },
   "rowLauncherSettings": {
     "en": "Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density.",
@@ -1233,11 +1243,6 @@
     "en": "Master switch for the launcher's tray block; the switches below it decide which indicators the block contains.",
     "ru": "Общий выключатель блока трея лаунчера; переключатели ниже решают, какие индикаторы в него входят.",
     "uk": "Загальний вимикач блока трея лаунчера; перемикачі нижче вирішують, які індикатори до нього входять."
-  },
-  "rowLauncherStartWindow": {
-    "en": "Opens the app on the launcher desktop instead of the file list when it is started from its icon; the device home screen is not affected.",
-    "ru": "Открывает приложение на рабочем столе лаунчера вместо списка файлов при запуске с иконки; домашний экран устройства не затрагивается.",
-    "uk": "Відкриває застосунок на робочому столі лаунчера замість списку файлів під час запуску з іконки; домашній екран пристрою не змінюється."
   },
   "rowLauncherTaskbarPlacement": {
     "en": "Puts the taskbar with the Start button along the bottom or the top edge of the desktop.",
@@ -1323,6 +1328,11 @@
     "en": "Enables the built-in microphone recording feature.",
     "ru": "Включает встроенную функцию записи звука с микрофона.",
     "uk": "Вмикає вбудовану функцію запису звуку з мікрофона."
+  },
+  "rowMicGain": {
+    "en": "Sets the digital PCM gain percentage (50% to 400%) for phone microphone broadcast audio.",
+    "ru": "Задаёт процент цифрового PCM-усиления микрофона (от 50% до 400%) для трансляции с телефона.",
+    "uk": "Задає відсоток цифрового PCM-посилення мікрофона (від 50% до 400%) для трансляції з телефона."
   },
   "rowMirror": {
     "en": "Adds the mirror to the programs list: the front camera inside a bright field that lights the face.",

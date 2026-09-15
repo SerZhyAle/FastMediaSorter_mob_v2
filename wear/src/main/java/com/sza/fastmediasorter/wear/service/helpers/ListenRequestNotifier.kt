@@ -96,7 +96,6 @@ class ListenRequestNotifier @Inject constructor(
                 NotificationManager.IMPORTANCE_HIGH
             )
         )
-        Timber.d("S2941: posting listen request with full-screen intent")
         manager.notify(WearNotificationIds.LISTEN_REQUEST, build())
         hasPendingRequest = true
         scheduleExpiry(onExpired)

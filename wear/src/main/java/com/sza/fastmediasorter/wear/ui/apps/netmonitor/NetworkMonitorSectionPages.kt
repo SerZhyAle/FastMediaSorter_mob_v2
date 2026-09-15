@@ -81,7 +81,6 @@ fun NetworkMonitorSectionPage(
     modifier: Modifier = Modifier,
     listState: ScalingLazyListState = rememberWearListState()
 ) {
-    Timber.d("S2805: Network Monitor section page with chip actions, section=%s", section.key)
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
@@ -200,7 +199,6 @@ private fun ActionChip(
     onClick: () -> Unit,
     primary: Boolean = false
 ) {
-    Timber.d("S2470: action chip content-width")
     Chip(
         onClick = onClick,
         colors = if (primary) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors(),

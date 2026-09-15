@@ -96,7 +96,6 @@ class ImportSettingsUseCase @Inject constructor(
                 val downloadsPath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     "MediaStore Downloads collection"
                 } else {
-                    @Suppress("DEPRECATION")
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
                 }
                 val errorMsg = """File not found: FastMediaSorter_backup.json (or legacy FastMediaSorter_export.xml)
@@ -666,7 +665,6 @@ class ImportSettingsUseCase @Inject constructor(
             // Without all-files access scoped storage blocks reading non-owned Downloads files.
             return null
         }
-        @Suppress("DEPRECATION")
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         if (!downloadsDir.isDirectory) return null
 
@@ -767,7 +765,6 @@ class ImportSettingsUseCase @Inject constructor(
                 }
         } else {
             // Android 9 and below: Direct file access
-            @Suppress("DEPRECATION")
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             val file = File(downloadsDir, fileName)
             

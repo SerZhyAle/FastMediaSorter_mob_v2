@@ -23,7 +23,6 @@ class PrepareVoiceNotePlaybackUseCase @Inject constructor(
 ) {
 
     operator fun invoke(note: VoiceNote): Long? {
-        Timber.d("S2161: voice-note playback requested")
         return publishedTargetId(note) ?: privateFileId(note)
     }
 

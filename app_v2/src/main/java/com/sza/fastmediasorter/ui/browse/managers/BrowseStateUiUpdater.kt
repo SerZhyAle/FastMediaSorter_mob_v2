@@ -251,7 +251,6 @@ class BrowseStateUiUpdater(
             !VirtualPathUtils.isVirtualPath(resource.path)
         binding.btnCreateFolder?.isVisible = canCreateFolder
         setCommandEligibility(R.id.btnCreateFolder, canCreateFolder)
-        Timber.d("S2594: create-folder bar button canCreateFolder=$canCreateFolder")
 
         // S0189: virtual "All Documents" writes new notes to the public Documents folder.
         val canCreateTextNote = TextNoteTargetPolicy.canCreateTextNote(resource)
@@ -261,7 +260,6 @@ class BrowseStateUiUpdater(
         // S0363: drawing allowed on real image folders + the virtual "all images" / "camera" resources.
         val canCreateDrawing = DrawingTargetPolicy.canCreateDrawing(resource)
         binding.btnCreateDrawing?.isVisible = canCreateDrawing
-        Timber.d("S2646: affordance note=%b drawing=%b", canCreateTextNote, canCreateDrawing)
         setCommandEligibility(R.id.btnCreateDrawing, canCreateDrawing)
     }
 

@@ -295,7 +295,6 @@ class SmbConnectionManagerTest {
             
             val result = connectionManager.withConnection(connectionInfo) { share ->
                 throw RuntimeException("Test exception")
-                @Suppress("UNREACHABLE_CODE")
                 SmbResult.Success(Unit)
             }
             

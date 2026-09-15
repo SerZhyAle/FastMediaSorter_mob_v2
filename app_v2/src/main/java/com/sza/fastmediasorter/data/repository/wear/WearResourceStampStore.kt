@@ -90,7 +90,9 @@ class SharedPreferencesWearResourceStampStore @Inject constructor(
         const val KEY_STAMPS = "resource_edit_stamps"
 
         // Gson erases the generic on a plain Map::class.java and hands back Double values; the token
-        // is what keeps the epoch-millis a Long.
-        val STAMP_MAP_TYPE = object : TypeToken<Map<String, Long>>() {}.type
+        // is what keeps the epoch-millis a Long. Built from class literals because an anonymous
+        // TypeToken subclass reads a `Signature` attribute R8 strips (S3068).
+        val STAMP_MAP_TYPE =
+            TypeToken.getParameterized(Map::class.java, String::class.java, Long::class.javaObjectType).type
     }
 }

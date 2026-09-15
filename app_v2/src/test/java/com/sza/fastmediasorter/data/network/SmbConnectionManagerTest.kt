@@ -22,7 +22,6 @@ class SmbConnectionManagerTest {
         val monitor = mockk<NetworkStateMonitor>(relaxed = true)
         val tracker = mockk<SmbPlaybackConnectionTracker>(relaxed = true)
         val gate = mockk<NetworkReachabilityGate>(relaxed = true)
-        @Suppress("UNCHECKED_CAST")
         val bootstrap = mockk<Lazy<NetworkLifecycleBootstrapper>>(relaxed = true)
         val idle = mockk<IdleDisconnectPolicy>(relaxed = true)
         return SmbConnectionManager(monitor, tracker, gate, bootstrap, idle)

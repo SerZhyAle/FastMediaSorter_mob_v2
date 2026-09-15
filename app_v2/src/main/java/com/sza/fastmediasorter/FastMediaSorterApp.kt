@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.TranslationCacheManager
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.debug.StrictModeViolationFilter
+import com.sza.fastmediasorter.core.debug.StrictModeViolationReport
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.init.FirstFrameSignal
 import com.sza.fastmediasorter.core.logging.LoggingHelper
@@ -527,7 +528,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             // logging a violation cannot trigger another one.
             threadPolicy.penaltyListener(Executors.newSingleThreadExecutor()) { violation ->
                 if (!StrictModeViolationFilter.isPlatformNoise(violation)) {
-                    Timber.w(violation, "StrictMode thread policy violation")
+                    logStrictModeViolation(violation)
                 }
             }
         } else {
@@ -537,6 +538,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         }
 
         StrictMode.setThreadPolicy(threadPolicy.build())
+        Timber.d("S3129: StrictMode policy set, violations log call site and repeat count")
 
             StrictMode.setVmPolicy(
                 StrictMode.VmPolicy.Builder()
@@ -545,6 +547,23 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
                 .penaltyLog()
                 .build()
             )
+    }
+
+    /**
+     * S3129: the session file keeps a WARN to one line and drops the stack, so the call site goes into
+     * the message. The throwable rides along on the first occurrence only, giving logcat one full stack
+     * per site instead of one per touch.
+     */
+    private fun logStrictModeViolation(violation: Throwable) {
+        val kind = violation.javaClass.simpleName
+        val site = StrictModeViolationReport.describeSite(violation)
+        val occurrence = StrictModeViolationReport.occurrence("$kind $site") ?: return
+        val message = "StrictMode $kind $site (x$occurrence)"
+        if (occurrence == 1) {
+            Timber.w(violation, message)
+        } else {
+            Timber.w(message)
+        }
     }
 
     // S0195: SMB auto-reset toast wiring moved verbatim into NetworkLifecycleBootstrapper.
@@ -665,7 +684,6 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
                 // memory: Play's 2027 thresholds judge bitmaps resident in background and cached
                 // states. Disk cache is deliberately untouched - it is outside those metrics and
                 // dropping it only costs reopening time (S2100, strategic ADR-3).
-                Timber.d("S2100: App backgrounded level=$level($levelName), mem=$memInfo, trimming Glide")
                 Glide.get(this).trimMemory(level)
             }
         }

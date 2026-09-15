@@ -115,7 +115,6 @@ object LocaleHelper {
         }
         if (lastLoggedS2936Language != resolved) {
             lastLoggedS2936Language = resolved
-            Timber.d("S2936: detectSystemLanguage hasContext=${context != null} api${Build.VERSION.SDK_INT} resolved $resolved")
         }
         return resolved
     }
@@ -329,7 +328,6 @@ object LocaleHelper {
 
         val localized = localizedContext(context, languageCode)
         Locale.setDefault(Locale.forLanguageTag(resolvedLanguageCode))
-        Timber.d("S2598: applyLocale ui=$resolvedLanguageCode region=${systemRegion(context)}")
         return localized
     }
 

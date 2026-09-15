@@ -25,6 +25,11 @@ sealed interface BroadcastState {
     data class Live(
         val descriptor: BroadcastDescriptorDto,
         val startedAtElapsedRealtimeMs: Long,
+        // S3038: current toggle state so the UI reflects whether camera and microphone are active.
+        val cameraEnabled: Boolean = false,
+        val microphoneEnabled: Boolean = true,
+        /** [BroadcastLensOption.id] of the lens on air; null for audio-only sessions. */
+        val activeLensId: String? = null,
     ) : BroadcastState
     data class Failed(val failure: BroadcastFailure, val detail: String) : BroadcastState
 }
@@ -36,8 +41,19 @@ interface BroadcastSourceController {
     val isAvailable: Boolean
     val state: StateFlow<BroadcastState>
 
-    fun start(mode: BroadcastMode)
+    // S3038: live count of connected listeners, published by the server.
+    val listenerCount: StateFlow<Int>
+
+    /** [lensId] is a [BroadcastLensOption.id]; null opens the phone's main back lens. Ignored by AUDIO_ONLY. */
+    fun start(mode: BroadcastMode, lensId: String? = null)
     fun stop()
+
+    // S3038: toggle camera and microphone during a live broadcast.
+    fun toggleCamera()
+    fun toggleMicrophone()
+
+    /** Switches a live video broadcast to any lens the phone offers, sub-lenses included. */
+    fun selectLens(lensId: String)
 
     /**
      * Returns a failed session to idle once the UI has reported it, so a rotation or a return to the

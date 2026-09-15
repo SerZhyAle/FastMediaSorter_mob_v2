@@ -111,6 +111,15 @@ elseif (-not [System.IO.Path]::IsPathRooted($Path)) {
     $Path = Join-Path $repoRoot $Path
 }
 
+. (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+
+# S3075: only when the whole gitignored root is missing. A memory index absent while .claude/ is
+# present is a real finding - somebody deleted it - and must stay exit 2.
+if (-not (Test-Path -LiteralPath (Join-Path $repoRoot '.claude'))) {
+    Exit-InputAbsent -Gate 'assert-memory-budget' -Path '.claude/' `
+        -Reason 'gitignored - the agent memory it judges is not published'
+}
+
 if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
     Write-Error "assert-memory-budget: memory index not found at $Path - nothing was judged." -ErrorAction Continue
     exit 2

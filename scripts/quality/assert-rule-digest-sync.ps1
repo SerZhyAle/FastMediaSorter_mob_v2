@@ -162,6 +162,16 @@ function Test-RuleCited([string] $text, [int] $number) {
 
 $failures = New-Object System.Collections.Generic.List[string]
 
+. (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+
+# S3075: the closing-gate detail file this gate reads lives under .claude/, which is gitignored
+# whole - so on a fresh clone, a release worktree or a CI runner it is absent by design and the
+# exit-2 branch below would report a published absence as a broken checkout.
+if (-not (Test-Path -LiteralPath (Join-Path $repoRoot '.claude'))) {
+    Exit-InputAbsent -Gate 'assert-rule-digest-sync' -Path '.claude/' `
+        -Reason 'gitignored - present only on a workstation checkout'
+}
+
 $authorityText = Read-RepoFile $authorityPath
 if ($null -eq $authorityText) {
     Write-Error "assert-rule-digest-sync: authority not found: $authorityPath" -ErrorAction Continue

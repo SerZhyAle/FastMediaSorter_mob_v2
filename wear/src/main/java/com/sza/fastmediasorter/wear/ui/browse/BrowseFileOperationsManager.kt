@@ -106,7 +106,6 @@ class BrowseFileOperationsManager @Inject constructor(
         isNetworkSource: () -> Boolean,
         onListInvalidated: () -> Unit
     ) {
-        Timber.d("S2444: operations helper bound to the browse screen")
         this.scope = scope
         this.displayedFiles = displayedFiles
         this.isNetworkSource = isNetworkSource
@@ -136,7 +135,6 @@ class BrowseFileOperationsManager @Inject constructor(
     }
 
     fun selectAll() {
-        Timber.d("S2444: select all over ${displayedFiles.value.size} displayed file(s)")
         _selectedFileIds.value = displayedFiles.value
             .filter { capabilityPolicy.operationsFor(it, isNetworkSource()).isNotEmpty() }
             .map { it.id }
@@ -176,7 +174,6 @@ class BrowseFileOperationsManager @Inject constructor(
      */
     fun runOperation(operation: WearFileOperation) {
         val targets = selectedIn(displayedFiles.value, _selectedFileIds.value)
-        Timber.d("S2444: run $operation over ${targets.size} target(s)")
         when {
             targets.isEmpty() -> Timber.w("Wear file operation requested with an empty selection")
             // S2142: a run already going is left alone rather than cancelled and restarted. A send

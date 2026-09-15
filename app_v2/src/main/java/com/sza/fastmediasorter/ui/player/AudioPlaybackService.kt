@@ -383,10 +383,6 @@ class AudioPlaybackService : MediaSessionService() {
             startForeground(MediaNotificationManager.NOTIFICATION_ID, placeholderNotification)
         }
 
-        setMediaNotificationProvider(
-            MediaNotificationManager.createNotificationProvider(this)
-        )
-
         val audioAttributes = AudioAttributes.Builder()
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)
@@ -622,7 +618,9 @@ class AudioPlaybackService : MediaSessionService() {
             .setCallback(AudioSessionCallback())
             .setSessionActivity(resumePendingIntent)
             .build()
+        setMediaNotificationProvider(MediaNotificationManager.createNotificationProvider(this))
 
+        Timber.d("S3137: MediaSession created before notification provider")
         Timber.d("AudioPlaybackService: MediaSession created")
     }
 
@@ -1002,7 +1000,6 @@ class AudioPlaybackService : MediaSessionService() {
             controller: MediaSession.ControllerInfo
         ): ConnectionResult {
             Timber.d("AudioPlaybackService: MediaSession onConnect from ${controller.packageName}")
-            Timber.d("S2914: onConnect building AcceptedResultBuilder with ControllerInfo")
             // S2810 / S2941: refuse the Wear OS companion bridge so the watch stops surfacing this
             // service's player. Refused when the owner's setting is on, or when a listen session is
             // live (isLiveSession), so the watch never shows the phone's media controls during
@@ -1012,10 +1009,6 @@ class AudioPlaybackService : MediaSessionService() {
             val isLive = RadioStreamBufferConfig.isLiveSession(this@AudioPlaybackService)
             val shouldSuppress = suppressWearMediaTakeover || isLive
             if (isWearBridge && shouldSuppress) {
-                Timber.d("S2810: refused Wear OS companion media-session connection")
-                if (isLive) {
-                    Timber.d("S2941: refused Wear companion bridge during live listen")
-                }
                 return ConnectionResult.reject()
             }
             // Explicitly include SEEK_TO_NEXT/PREVIOUS so notification always shows skip buttons

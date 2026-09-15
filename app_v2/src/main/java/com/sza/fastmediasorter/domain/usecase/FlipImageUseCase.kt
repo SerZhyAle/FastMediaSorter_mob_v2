@@ -88,7 +88,6 @@ class FlipImageUseCase @Inject constructor(
 
             // Save flipped bitmap to file
             FileOutputStream(file).use { out ->
-                @Suppress("DEPRECATION")
                 val format = when (file.extension.lowercase()) {
                     "png" -> Bitmap.CompressFormat.PNG
                     "webp" -> Bitmap.CompressFormat.WEBP

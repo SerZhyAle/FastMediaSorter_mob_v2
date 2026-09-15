@@ -81,19 +81,16 @@ class WaterFlashlightActivity : BaseActivity<ActivityWaterFlashlightBinding>() {
     override fun onStart() {
         super.onStart()
         deviceActionHandler.setTorch(this, true)
-        Timber.d("S2516: water flashlight torch requested on")
     }
 
     /** The window is ready here for the system-bar suppression that backs the wet-touch guard. */
     override fun onResume() {
         super.onResume()
         lockdown.engage(this)
-        Timber.d("S2718: water flashlight lockdown engaged, system bars suppressed")
     }
 
     override fun onStop() {
         deviceActionHandler.setTorch(this, false)
-        Timber.d("S2516: water flashlight torch requested off")
         super.onStop()
     }
 
@@ -120,8 +117,6 @@ class WaterFlashlightActivity : BaseActivity<ActivityWaterFlashlightBinding>() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode !in EXIT_KEYS) return super.dispatchKeyEvent(event)
         if (event.action == KeyEvent.ACTION_UP) {
-            Timber.d("S2778: water flashlight exit key reached")
-            Timber.d("S2516: water flashlight exit key %d", event.keyCode)
             Timber.d("water flashlight left by hardware key %d", event.keyCode)
             finish()
         }

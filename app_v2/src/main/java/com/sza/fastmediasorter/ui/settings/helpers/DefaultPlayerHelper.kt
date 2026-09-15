@@ -263,7 +263,6 @@ object DefaultPlayerHelper {
         if (foreignDefaultExists(context, mimeType)) {
             return null
         }
-        Timber.d("S2379: preparing private default-handler probe for %s", mimeType)
         val actualMime = concreteMime(mimeType)
         val uri = createProbeUri(context, actualMime) ?: return null
         return Intent(Intent.ACTION_VIEW).apply {

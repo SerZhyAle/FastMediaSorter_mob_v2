@@ -244,7 +244,6 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
                 INPUT_EVENT_GRID_DOWN -> 0 to -1
                 else -> return@runOnUiThread
             }
-            Timber.d("S1133: grid input event $eventType -> dx=$dx dy=$dy")
             val previousHover = dispatcher.hoveredIndex
             val resolved = dispatcher.navigate(dx, dy, cells, pageOffset)
             if (resolved != previousHover) {
@@ -366,7 +365,6 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         // S1133: the input mode is inherited from the previous mode exactly like the quad size is,
         // so the browser asserts thumbstick-as-grid here rather than trusting the native default.
         runtime.setInputMode(DiagnosticXrRuntime.INPUT_MODE_BROWSE)
-        Timber.d("S1133: session ready, input mode asserted browse")
         if (state == BrowseState.BROWSE) drawAndPushGrid()
     }
 

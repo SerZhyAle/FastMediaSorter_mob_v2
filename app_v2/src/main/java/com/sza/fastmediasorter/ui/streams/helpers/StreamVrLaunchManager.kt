@@ -65,7 +65,6 @@ class StreamVrLaunchManager @Inject constructor(
     fun launch(url: String, title: String) {
         val owner = context as? LifecycleOwner ?: return
 
-        Timber.d("S1218: streams VR entry tapped scheme=${url.substringBefore(':')}")
         owner.lifecycleScope.launch {
             val request = StartVrPlaybackRequest(
                 launchMode = VrLaunchMode.FILE_URI,

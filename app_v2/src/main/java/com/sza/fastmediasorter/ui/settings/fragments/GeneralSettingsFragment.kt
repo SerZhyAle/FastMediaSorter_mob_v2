@@ -90,6 +90,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     @Inject lateinit var launcherStartWindowManager: LauncherStartWindowManager
 
+
     // S1052: empty except on standard + noLegal (shared capture engine binds the menu launcher).
     // Gates the debug-only screenshot-test button relocated into the General-tab debug section.
     @Inject

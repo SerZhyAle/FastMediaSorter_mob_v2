@@ -123,14 +123,12 @@ class StopwatchActivity : BaseActivity<ActivityStopwatchBinding>() {
      * mirrors `CalculatorActivity.renderAvailability`, which is the shape S1411 phase 08 copied from.
      */
     private fun renderAvailability(enabled: Boolean) {
-        Timber.d("S2613: stopwatch screen renders enableStopwatch=$enabled")
         binding.stopwatchContentGroup.isVisible = enabled
         binding.stopwatchFallbackGroup.isVisible = !enabled
     }
 
     /** The Operations tab hosts `rowEnableStopwatch`, which is the switch the fallback asks for. */
     private fun openSettings() {
-        Timber.d("S2613: stopwatch fallback opens settings on TAB_OPERATIONS")
         startActivity(
             Intent(this, SettingsActivity::class.java)
                 .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)

@@ -30,7 +30,6 @@ fun NetworkMonitorDetailScreen(
     val permissionsState = rememberMultiplePermissionsState(permissions = requestable)
     val canRequestPermissions = requestable.isNotEmpty() && !permissionsState.allPermissionsGranted
     val section = WearNetworkSection.fromKey(sectionKey)
-    Timber.d("S2156: Network Monitor section opened as its own graph destination, key=%s", sectionKey)
 
     NetworkMonitorSectionPage(
         section = section,

@@ -22,7 +22,6 @@ import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
 import com.sza.fastmediasorter.ui.wear.WatchListenLaunchActivity
 import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
-import timber.log.Timber
 
 /**
  * S0774: single home for the main-window programs menu - item registration, count, click dispatch,
@@ -30,9 +29,9 @@ import timber.log.Timber
  *
  * S2673: which sub-programs the menu shows, in what order, and whether each is available now come
  * from [SubProgramCatalog] and the one route-availability chain. What stays here is what ADR-1 keeps
- * out of the registry - the label, the icon and the menu item id each route is drawn with. Four items
- * are not sub-programs and are still added by hand: the streams entry, VR Cinema, the quick-launch
- * panel and the live broadcast.
+ * out of the registry - the label, the icon and the menu item id each route is drawn with. Three items
+ * are not sub-programs and are still added by hand: the streams entry, VR Cinema and the quick-launch
+ * panel. The live broadcast is a registry entry; drawing it by hand as well listed it twice.
  *
  * Taps still travel through the per-program managers. A route's intent says how to OPEN a program,
  * never what a tap does: quick capture and the link download act inside this window, and routing them
@@ -85,8 +84,7 @@ class MainProgramsMenuCoordinator(
     // S0757: the quick-launch panel entry is always present (no toggle), so the count starts at 1 and
     // the three-dots menu button stays visible even when every other program is disabled.
     fun itemCount(gate: ProgramsMenuGate): Int =
-        1 + (if (gate.streams) 1 else 0) + (if (gate.vrCinema) 1 else 0) +
-            (if (gate.broadcast) 1 else 0) + visibleSubPrograms(gate).size
+        1 + (if (gate.streams) 1 else 0) + (if (gate.vrCinema) 1 else 0) + visibleSubPrograms(gate).size
 
     // S0756: excludeStreams drops the "Streams" item (the programs panel hides it when the streams
     // panel is visible, to avoid duplicating that entry point). The dropdown menu always passes false.
@@ -114,13 +112,11 @@ class MainProgramsMenuCoordinator(
         // S2673: the one call that draws a sub-program. Its order is the registry's own `order`, which
         // is what puts every surface on one sequence and what makes the accent pass below match.
         val visible = visibleSubPrograms(gate)
-        Timber.d("S2673: programs menu drew ${visible.size} sub-program entries from the registry")
         for (entry in visible) {
             val presentation = PRESENTATION.getValue(entry.routeKey)
             popup.menu.add(0, presentation.itemId, MainProgramsMenuOrder.menuOrderFor(entry), presentation.labelRes)
                 .setIcon(presentation.iconRes)
         }
-        broadcastMenuManager.populate(popup, gate.broadcast, MENU_ORDER_BROADCAST)
         applyProgramAccents(popup)
         return popup.menu.size()
     }
@@ -134,11 +130,13 @@ class MainProgramsMenuCoordinator(
     private fun visibleSubPrograms(gate: ProgramsMenuGate): List<SubProgramEntry> =
         SubProgramCatalog.forSurface(SubProgramSurface.PROGRAMS_MENU)
             .filter { it.routeKey in PRESENTATION && gate.isSubProgramAvailable(it.routeKey) }
+            // The route chain answers "streams available", which a flavor without a broadcast source also has.
+            .filter { it.routeKey != InternalRouteCatalog.KEY_BROADCAST || gate.broadcast }
 
     /**
      * S2510: colours each program's glyph with the accent that identifies it in every other list.
      *
-     * Runs as one pass over the finished menu rather than at each `setIcon` call because the four
+     * Runs as one pass over the finished menu rather than at each `setIcon` call because the three
      * non-registry items are added around the loop. Items are matched by `order` through
      * [MainProgramsMenuOrder], which owns the offset both sides of the join must apply - see its KDoc for
      * the S2673 incident, and S2889 for why the arithmetic no longer lives here.
@@ -409,19 +407,23 @@ class MainProgramsMenuCoordinator(
                 R.string.tourist_info_title,
                 R.drawable.ic_tourist,
             ),
+            InternalRouteCatalog.KEY_BROADCAST to MenuPresentation(
+                MainBroadcastMenuManager.MENU_ITEM_BROADCAST,
+                R.string.broadcast_menu_label,
+                R.drawable.ic_display,
+            ),
         )
 
         /** The route keys the menu can draw - read by SubProgramCatalogCompletenessTest. */
         val PRESENTABLE_ROUTE_KEYS: Set<String> get() = PRESENTATION.keys
 
-        // S2673: the four non-registry items sort outside the registry's own band, so the sequence
+        // S2673: the three non-registry items sort outside the registry's own band, so the sequence
         // the owner sees is unchanged while every sub-program carries its own registry order.
         // A menu order carries an Android category in its high 16 bits, so a negative value makes
         // MenuBuilder.add throw. The fixed items therefore sit below the registry's own orders, which
-        // MainProgramsMenuOrder shifts, and broadcast stays last (S2673).
+        // MainProgramsMenuOrder shifts.
         private const val MENU_ORDER_STREAMS = 10
         private const val MENU_ORDER_VR_CINEMA = 20
         private const val MENU_ORDER_APP_LAUNCH_PANEL = 30
-        private const val MENU_ORDER_BROADCAST = 1000
     }
 }

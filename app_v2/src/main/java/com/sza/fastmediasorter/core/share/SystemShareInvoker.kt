@@ -42,7 +42,6 @@ object SystemShareInvoker {
             startSafely(context, intent)
         } else {
             if (context.packageManager.queryIntentActivitiesCompat(intent, 0).isEmpty()) {
-                Timber.d("S2902: SystemShareInvoker: no activity handles share intent for type=${intent.type}")
                 return false
             }
             val chooser = Intent.createChooser(intent, chooserTitle)
@@ -87,7 +86,6 @@ object SystemShareInvoker {
         }
 
         if (context.packageManager.queryIntentActivitiesCompat(intent, 0).isEmpty()) {
-            Timber.d("S2902: SystemShareInvoker: no activity handles file share intent for mime=$mime")
             return false
         }
 

@@ -39,31 +39,40 @@ concurrency:
 
 jobs:
   # ─────────────────────────────────────────────
-  # verify = lint + unit tests + standard debug build in ONE Gradle call.
+  # verify = app_v2 lint + unit tests + standard debug build in ONE Gradle call.
   # Previously these were 3 separate jobs (lint -> unit-tests -> build),
   # each on a cold runner restoring cache and recompiling standardDebug
   # from scratch (~3x compile + 2 extra cold setups). Now the sources are
   # compiled once and shared across lint/test/assemble. --continue runs all
   # three even if one fails, so every report is still produced.
+  #
+  # S3074: that merge pays off only INSIDE a module. The wear and lint-rules
+  # tasks share no compiled class with app_v2, so sitting in the same
+  # invocation bought them nothing and cost them everything - in run
+  # 34694019558 they never started, because app_v2 alone (4m28s configuration,
+  # 6m compile, 4m lint, then a 5033-test suite still running) outlived the
+  # 30-minute ceiling and the runner cancelled the whole job, producing no
+  # lint report, no test xml and no APK. They now live in verify-wear, which
+  # runs in parallel, and this ceiling covers one module.
   # ─────────────────────────────────────────────
   verify:
-    name: Verify (lint + unit tests + standard build)
+    name: Verify (app_v2 - lint + unit tests + standard build)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: '17'
           distribution: 'temurin'
 
       # setup-gradle adds the Gradle build cache on top of dependency caching.
       - name: Set up Gradle (deps + build cache)
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -73,19 +82,22 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      # One invocation so lint, the unit suite, the detector suite and assemble share a single
-      # configuration + compile; separate steps would each pay a cold Gradle setup.
-      # S1195: :lint-rules:test belongs in THIS job, not a separate one - the custom detectors are
-      # what lintStandardDebug enforces, so a detector regression must fail the same job that runs
-      # lint. Before S1195 the suite was reachable from no job and no script and had never run.
-      - name: Lint + unit tests + detector tests + standard debug build (single invocation)
-        run: ./gradlew :app_v2:lintStandardDebug :app_v2:testStandardDebugUnitTest :app_v2:assembleStandardDebug :wear:lintStandardDebug :wear:testStandardDebugUnitTest :wear:assembleStandardDebug :lint-rules:test --continue --stacktrace
+      # One invocation so lint, the unit suite and assemble share a single configuration +
+      # compile; separate steps would each pay a cold Gradle setup. S1195's pairing of the
+      # detector suite with the lint that enforces it is preserved - it moved to verify-wear
+      # together with the wear tasks, so the detectors still fail a job that runs a lint.
+      # -Pfms.unitTestMaxParallelForks=4 (S3074): gradle.properties ships 8, measured in S2851
+      # on a 64 GB workstation. ubuntu-latest is 4 vCPU / 16 GB, where 8 forks sit beside a 6 GB
+      # Gradle daemon and a 4 GB Kotlin daemon. Both modules read the property through
+      # providers.gradleProperty, so -P overrides the runner without touching the workstation.
+      - name: Lint + unit tests + standard debug build (single invocation)
+        run: ./gradlew :app_v2:lintStandardDebug :app_v2:testStandardDebugUnitTest :app_v2:assembleStandardDebug --continue --stacktrace -Pfms.unitTestMaxParallelForks=4
         env:
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
 
       - name: Upload lint report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lint-report
           path: |
@@ -95,18 +107,17 @@ jobs:
 
       - name: Upload unit test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: unit-test-results
           path: |
             app_v2/build/reports/tests/
             app_v2/build/test-results/
-            lint-rules/build/reports/tests/
           retention-days: 14
 
       - name: Publish test report summary
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         with:
           name: Unit Test Results
           path: app_v2/build/test-results/**/*.xml
@@ -116,11 +127,87 @@ jobs:
       # standard debug APK is produced here once and uploaded as an artifact.
       - name: Upload standard debug APK
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: apk-standard-debug
           path: app_v2/build/outputs/apk/standard/debug/*.apk
           retention-days: 7
+
+  # ─────────────────────────────────────────────
+  # verify-wear = the wear module plus the custom lint detectors (S3074). Split
+  # out of verify along the module boundary: neither shares a compiled class
+  # with app_v2, so neither gained anything from the shared invocation while
+  # both queued behind app_v2's compile, lint and 5033-test suite - and were
+  # never reached at all when that job hit its ceiling. No `needs:`, so this
+  # runs in parallel with verify and reports its own verdict. The ceiling is
+  # sized for one small module: locally the three wear fast targets measure
+  # 2 s / 1 s / 11 s and its unit suite 21 s (S1807, S2851), so 25 minutes is
+  # hang detection, not a budget. S1195's invariant is preserved - the detector
+  # suite runs in the same job as a lintStandardDebug it enforces.
+  # ─────────────────────────────────────────────
+  verify-wear:
+    name: Verify (wear + lint detectors)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Gradle (deps + build cache)
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Fetch prebuilt native AARs
+        run: bash ./scripts/ci/fetch-prebuilt-libs.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Wear lint + unit tests + detector tests + wear debug build (single invocation)
+        run: ./gradlew :wear:lintStandardDebug :wear:testStandardDebugUnitTest :wear:assembleStandardDebug :lint-rules:test --continue --stacktrace -Pfms.unitTestMaxParallelForks=4
+        env:
+          DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
+
+      - name: Upload wear lint report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lint-report-wear
+          path: |
+            wear/build/reports/lint-results-*.html
+            wear/build/reports/lint-results.xml
+          retention-days: 14
+
+      - name: Upload wear and detector test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-test-results-wear
+          path: |
+            wear/build/reports/tests/
+            wear/build/test-results/
+            lint-rules/build/reports/tests/
+            lint-rules/build/test-results/
+          retention-days: 14
+
+      - name: Publish wear test report summary
+        if: always()
+        uses: dorny/test-reporter@v3
+        with:
+          name: Wear + Detector Test Results
+          path: |
+            wear/build/test-results/**/*.xml
+            lint-rules/build/test-results/**/*.xml
+          reporter: java-junit
+          fail-on-error: true
 
   # ─────────────────────────────────────────────
   # static-gates = pure-PowerShell quality gates (S2874). ~45 read-only text
@@ -138,7 +225,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+
+      # S3075: ~50 of the gates reach the process harness through a generated forwarder, and the
+      # harness ships with the sza Claude Code plugin, which no runner has. Without it those gates
+      # do not execute at all. The canon is a PUBLIC repository, so the job installs it from source
+      # and points SZA_HARNESS_ROOT at the same tools/harness the workstation resolves out of the
+      # plugin cache. Consequence the owner accepted: this job now depends on canon `main` - a
+      # broken canon turns it red. The alternative was leaving nine gates permanently unrun here.
+      - name: Install the SZA canon harness
+        run: |
+          git clone --depth 1 https://github.com/SerZhyAle/sza-unified-rules "$RUNNER_TEMP/sza-canon"
+          echo "SZA_HARNESS_ROOT=$RUNNER_TEMP/sza-canon/tools/harness" >> "$GITHUB_ENV"
 
       - name: Regenerate gitignored Kotlin catalog (app_v2)
         run: pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module app_v2
@@ -154,6 +252,8 @@ jobs:
   # `verify`, so it is no longer rebuilt here. Runs on main push, PRs, and
   # manual dispatch only (see if: below). needs: verify -> a lint/test failure
   # short-circuits these expensive builds (fail-fast = saved minutes).
+  # Only app_v2 flavors are built here, so verify alone gates it - verify-wear
+  # compiles nothing this job consumes.
   # ─────────────────────────────────────────────
   build-flavors:
     name: Build (${{ matrix.flavor }})
@@ -168,16 +268,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Set up Gradle (deps + build cache)
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -193,7 +293,7 @@ jobs:
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
 
       - name: Upload ${{ matrix.flavor }} APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: apk-${{ matrix.flavor }}-debug
           path: app_v2/build/outputs/apk/${{ matrix.flavor }}/debug/*.apk
@@ -205,25 +305,27 @@ jobs:
   # PRs + dispatch (a main push right after merge re-proves what the PR already
   # verified). Left enabled for safety.
   # ─────────────────────────────────────────────
+  # This job assembles :wear:assembleStandardRelease too, so a wear failure must
+  # short-circuit it exactly as an app_v2 one does - hence both verify jobs.
   release-check:
     name: Release Build (ProGuard/R8 check)
     runs-on: ubuntu-latest
     timeout-minutes: 40
-    needs: verify
+    needs: [ verify, verify-wear ]
     if: github.ref_name == 'main' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Set up Gradle (deps + build cache)
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -240,7 +342,7 @@ jobs:
 
       - name: Upload release build mapping
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-mapping
           path: app_v2/build/outputs/mapping/
@@ -265,16 +367,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Set up Gradle (deps + build cache)
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -310,7 +412,7 @@ jobs:
     name: Pipeline Status Notification
     runs-on: ubuntu-latest
     if: always()
-    needs: [ verify, static-gates, build-flavors, release-check ]
+    needs: [ verify, verify-wear, static-gates, build-flavors, release-check ]
     timeout-minutes: 5
 
     steps:
@@ -318,10 +420,11 @@ jobs:
         id: overall
         run: |
           VERIFY="${{ needs.verify.result }}"
+          WEAR="${{ needs.verify-wear.result }}"
           GATES="${{ needs.static-gates.result }}"
           FLAVORS="${{ needs.build-flavors.result }}"
           RELEASE="${{ needs.release-check.result }}"
-          if [[ ("$VERIFY" == "success" || "$VERIFY" == "skipped") && ("$GATES" == "success" || "$GATES" == "skipped") && ("$FLAVORS" == "success" || "$FLAVORS" == "skipped") && ("$RELEASE" == "success" || "$RELEASE" == "skipped") ]]; then
+          if [[ ("$VERIFY" == "success" || "$VERIFY" == "skipped") && ("$WEAR" == "success" || "$WEAR" == "skipped") && ("$GATES" == "success" || "$GATES" == "skipped") && ("$FLAVORS" == "success" || "$FLAVORS" == "skipped") && ("$RELEASE" == "success" || "$RELEASE" == "skipped") ]]; then
             echo "status=✅ ALL PASSED" >> "$GITHUB_OUTPUT"
             echo "emoji=✅" >> "$GITHUB_OUTPUT"
           else
@@ -336,7 +439,8 @@ jobs:
             echo ""
             echo "| Job | Result |"
             echo "| --- | ------ |"
-            echo "| Verify (lint+test+std) | ${{ needs.verify.result }} |"
+            echo "| Verify (app_v2)        | ${{ needs.verify.result }} |"
+            echo "| Verify (wear+lint-rules) | ${{ needs.verify-wear.result }} |"
             echo "| Static gates           | ${{ needs.static-gates.result }} |"
             echo "| Build (extra flavors)  | ${{ needs.build-flavors.result }} |"
             echo "| Release check          | ${{ needs.release-check.result }} |"
@@ -346,11 +450,12 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment on PR (on failure)
-        if: github.event_name == 'pull_request' && (needs.verify.result == 'failure' || needs.static-gates.result == 'failure' || needs.build-flavors.result == 'failure' || needs.release-check.result == 'failure')
-        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request' && (needs.verify.result == 'failure' || needs.verify-wear.result == 'failure' || needs.static-gates.result == 'failure' || needs.build-flavors.result == 'failure' || needs.release-check.result == 'failure')
+        uses: actions/github-script@v9
         with:
           script: |
             const verify  = '${{ needs.verify.result }}';
+            const wear    = '${{ needs.verify-wear.result }}';
             const gates   = '${{ needs.static-gates.result }}';
             const flavors = '${{ needs.build-flavors.result }}';
             const release = '${{ needs.release-check.result }}';
@@ -359,7 +464,8 @@ jobs:
               '',
               '| Job | Result |',
               '| --- | ------ |',
-              `| Verify (lint+test+std) | ${verify}  |`,
+              `| Verify (app_v2)        | ${verify}  |`,
+              `| Verify (wear+detectors)| ${wear}    |`,
               `| Static gates           | ${gates}   |`,
               `| Build (extra flavors)  | ${flavors} |`,
               `| Release check          | ${release} |`,

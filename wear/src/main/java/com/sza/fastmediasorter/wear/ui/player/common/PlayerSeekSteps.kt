@@ -14,7 +14,6 @@ internal const val PLAYER_SEEK_STEP_MS = 10_000L
  * this action within the first moments of a stream opening.
  */
 internal fun forwardSeekTarget(player: Player): Long {
-    Timber.d("S2432: shared forward seek step")
     val target = player.currentPosition + PLAYER_SEEK_STEP_MS
     val duration = player.duration
     return if (duration > 0) target.coerceAtMost(duration) else target

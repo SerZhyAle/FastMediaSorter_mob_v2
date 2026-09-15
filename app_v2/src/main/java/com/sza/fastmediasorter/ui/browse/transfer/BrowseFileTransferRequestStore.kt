@@ -110,11 +110,16 @@ class BrowseFileTransferRequestStore @Inject constructor(
     private fun readPendingQueue(): MutableList<BrowseFileTransferRequest> {
         if (!pendingQueueFile.exists()) return mutableListOf()
         val parsed = runCatching {
-            val listType = object : com.google.gson.reflect.TypeToken<List<BrowseFileTransferRequest>>() {}.type
-            gson.fromJson<List<BrowseFileTransferRequest>>(pendingQueueFile.readText(Charsets.UTF_8), listType)
+            // Class literals, not an anonymous TypeToken subclass: that subclass reads a `Signature`
+            // attribute R8 strips (S3068).
+            val listType = com.google.gson.reflect.TypeToken
+                .getParameterized(List::class.java, BrowseFileTransferRequest::class.java).type
+            // Element type declared nullable because a JSON array may hold a literal null, which Gson
+            // places in the list whatever the Kotlin type says.
+            gson.fromJson<List<BrowseFileTransferRequest?>>(pendingQueueFile.readText(Charsets.UTF_8), listType)
         }.onFailure { Timber.e(it, "BrowseFileTransferRequestStore: failed reading pending_queue.json") }
             .getOrNull()
-        return parsed?.filter { it != null && it.isStructurallyIntact() }?.toMutableList() ?: mutableListOf()
+        return parsed?.filterNotNull()?.filter { it.isStructurallyIntact() }?.toMutableList() ?: mutableListOf()
     }
 
     private fun writePendingQueue(queue: List<BrowseFileTransferRequest>) {

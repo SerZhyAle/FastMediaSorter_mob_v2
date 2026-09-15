@@ -36,6 +36,5 @@ class StandardWearRestrictedCapabilities @Inject constructor() : WearRestrictedC
      * S2995: health features (Blood Pressure log, Motion Monitor) are withheld from the store build.
      */
     override val offersHealthFeatures: Boolean = false.also {
-        timber.log.Timber.d("S2995: standard wear health capabilities requested, offersHealthFeatures=false")
     }
 }

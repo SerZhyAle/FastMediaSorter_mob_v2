@@ -39,3 +39,5 @@
 {"kind":"verdict","at":"2026-09-11T11:28:34+02:00","verdict":"reject","classifiedCount":28,"falseBlockCount":15,"slowSectorCount":1}
 {"kind":"refusal","at":"2026-09-11T22:26:03+02:00","session":"fd367ef7-1f4d-4c08-956b-6c0daa7fb176","tool":"Grep","pattern":"VIDEO_WITH_AUDIO","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}
 {"kind":"refusal","at":"2026-09-11T23:30:23+02:00","session":"fed1c0d9-c10e-4bf9-8e90-6103e6cca3a1","tool":"Grep","pattern":"VIDEO_WITH_AUDIO","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}
+{"kind":"refusal","at":"2026-09-13T20:22:53+02:00","session":"9c840439-232e-4445-abc7-2f789b1cc3a5","tool":"Grep","pattern":"Timber\\.d\\(\"S306[345]:","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}
+{"kind":"refusal","at":"2026-09-15T15:31:46+02:00","session":"fb90914c-58ce-4caa-a0af-b2b2158bc7d1","tool":"Grep","pattern":"allWarningsAsErrors|suppressWarnings|freeCompilerArgs|-Xsuppress|-nowarn|Xlint","glob":"*.kts","path":"","type":"","markerPresent":false,"classification":""}

@@ -72,7 +72,7 @@ class WearStreamPinsRepository @Inject constructor(
     /** Toggles the watch-pinned state for a stream and queues a delta. Returns the new state. */
     suspend fun togglePin(urlOrIdentity: String): Boolean = withContext(Dispatchers.IO) {
         val identity = foldWearStreamIdentity(urlOrIdentity)
-        val wasPinned = identity in _watchPins.value
+        val wasPinned = isPinned(identity)
         val newPinned = !wasPinned
         setPinInternal(identity, newPinned)
         newPinned
@@ -86,27 +86,36 @@ class WearStreamPinsRepository @Inject constructor(
 
     private fun setPinInternal(identity: String, isPinned: Boolean) {
         val current = _watchPins.value.toMutableSet()
-        val changed = if (isPinned) current.add(identity) else current.remove(identity)
-        if (changed) {
-            dir.mkdirs()
-            val pinsPayload: WearStreamPinsPayload = WearStreamPinsPayload(identities = current.toList())
-            val pinsJson = gson.toJson(pinsPayload)
-            writeAtomically(watchPinsFile, pinsJson.toByteArray(Charsets.UTF_8))
-            _watchPins.value = current
+        val watchChanged = if (isPinned) current.add(identity) else current.remove(identity)
+        val isPinnedOnPhone = identity in phonePinsRepository.observe().value
+        val shouldQueueDelta = watchChanged || (!isPinned && isPinnedOnPhone)
 
-            val deltas = readPendingDeltasFromFile()
-            val item = WearStreamPinDeltaItem(
-                urlOrIdentity = identity,
-                isPinned = isPinned,
-                changedAt = System.currentTimeMillis()
-            )
-            val updatedDeltas = appendStreamPinDelta(deltas, item)
-            val deltaPayload: WearStreamPinsDeltaPayload = WearStreamPinsDeltaPayload(items = updatedDeltas)
-            val deltasJson = gson.toJson(deltaPayload)
-            writeAtomically(pendingDeltasFile, deltasJson.toByteArray(Charsets.UTF_8))
-            Timber.d(
-                "WearStreamPinsRepository: stream $identity pin=$isPinned saved, pending deltas=${updatedDeltas.size}"
-            )
+        if (watchChanged || shouldQueueDelta) {
+            dir.mkdirs()
+            if (watchChanged) {
+                val pinsPayload: WearStreamPinsPayload = WearStreamPinsPayload(identities = current.toList())
+                val pinsJson = gson.toJson(pinsPayload)
+                writeAtomically(watchPinsFile, pinsJson.toByteArray(Charsets.UTF_8))
+                _watchPins.value = current
+            }
+
+            if (shouldQueueDelta) {
+                Timber.d("S3048: pin set id=$identity isPinned=$isPinned chg=$watchChanged phone=$isPinnedOnPhone")
+                val deltas = readPendingDeltasFromFile()
+                val item = WearStreamPinDeltaItem(
+                    urlOrIdentity = identity,
+                    isPinned = isPinned,
+                    changedAt = System.currentTimeMillis()
+                )
+                val updatedDeltas = appendStreamPinDelta(deltas, item)
+                val deltaPayload: WearStreamPinsDeltaPayload = WearStreamPinsDeltaPayload(items = updatedDeltas)
+                val deltasJson = gson.toJson(deltaPayload)
+                writeAtomically(pendingDeltasFile, deltasJson.toByteArray(Charsets.UTF_8))
+                Timber.d(
+                    "WearStreamPinsRepository: stream $identity pin=$isPinned saved, " +
+                        "pending deltas=${updatedDeltas.size}"
+                )
+            }
         }
     }
 

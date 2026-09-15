@@ -7,15 +7,16 @@ import com.bumptech.glide.load.data.DataFetcher
 import com.bumptech.glide.load.model.ModelLoader
 import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
+import com.sza.fastmediasorter.core.network.pathBelongsToResource
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
+import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.data.network.model.SmbResult
-import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
@@ -98,22 +99,47 @@ class NetworkFileDataFetcher(
 
         @Volatile private var persistenceInitialized = false
 
+        @Volatile private var persistenceLoadScheduled = false
+
+        @Volatile private var persistenceGeneration = 0L
+        private val persistenceLoadScope = CoroutineScope(Dispatchers.IO)
+
         private fun ensurePersistenceLoaded() {
             if (persistenceInitialized) return
-            synchronized(failedVideos) {
-                if (persistenceInitialized) return
+            val loadGeneration = synchronized(failedVideos) {
+                if (persistenceInitialized || persistenceLoadScheduled) return
+                persistenceLoadScheduled = true
+                persistenceGeneration
+            }
+            persistenceLoadScope.launch {
+                Timber.d("S3086: hydrating persisted thumbnail failure cache on IO")
                 try {
                     val persisted = VideoExtractionFailurePersistence.loadAll()
-                    for ((path, _) in persisted) {
-                        if (!failedVideos.containsKey(path)) {
-                            failedVideos[path] = true
+                    synchronized(failedVideos) {
+                        if (loadGeneration == persistenceGeneration) {
+                            for ((path, _) in persisted) {
+                                if (!failedVideos.containsKey(path)) {
+                                    failedVideos[path] = true
+                                }
+                            }
+                            persistenceInitialized = true
+                            Timber.d("Loaded ${persisted.size} persisted failure entries into in-memory cache")
                         }
                     }
-                    Timber.d("Loaded ${persisted.size} persisted failure entries into in-memory cache")
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Timber.w(e, "Failed to load persisted failure cache - continuing with empty in-memory cache")
+                    synchronized(failedVideos) {
+                        if (loadGeneration == persistenceGeneration) {
+                            persistenceInitialized = true
+                        }
+                    }
+                } finally {
+                    synchronized(failedVideos) {
+                        persistenceLoadScheduled = false
+                    }
                 }
-                persistenceInitialized = true
             }
         }
 
@@ -177,16 +203,19 @@ class NetworkFileDataFetcher(
 
         /** Clear all failed cache entries (in-memory + persistent). PUBLIC API for Settings. */
         fun clearFailedVideoCache() {
-            synchronized(failedVideos) {
-                val count = failedVideos.size
-                failedVideos.clear()
-                persistenceInitialized = false
-                Timber.i("Cleared failed video cache: $count entries removed")
-            }
+            // Storage is cleared before the generation bump: a hydration scheduled after the bump
+            // must read the already-empty set, or it would restore the entries being removed.
             try {
                 VideoExtractionFailurePersistence.clearAll()
             } catch (e: Exception) {
                 Timber.w(e, "Failed to clear persisted failure cache")
+            }
+            synchronized(failedVideos) {
+                val count = failedVideos.size
+                failedVideos.clear()
+                persistenceInitialized = false
+                persistenceGeneration += 1
+                Timber.i("Cleared failed video cache: $count entries removed")
             }
         }
 

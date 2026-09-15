@@ -24,7 +24,6 @@ class RestoreTransferredSignInUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke() {
-        Timber.d("S2101: transferred sign-in restore starting at application start")
         val record = store.readOnce()
         if (record == null) {
             Timber.d("No transferred sign-in record to restore")

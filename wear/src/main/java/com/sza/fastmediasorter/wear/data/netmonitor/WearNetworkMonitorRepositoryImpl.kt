@@ -417,7 +417,6 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
         }
 
     /** The platform answers an unavailable name with a quoted placeholder, which is not a name. */
-    @Suppress("DEPRECATION")
     private fun readableSsid(info: WifiInfo): String? {
         val ssid = info.ssid?.trim('"')
         return ssid?.takeIf { it.isNotBlank() && it != WifiManager.UNKNOWN_SSID.trim('"') }

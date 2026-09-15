@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.core.network.extractNetworkResourceKey
 import com.sza.fastmediasorter.data.local.preferences.BrowseStateDataStore
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -12,7 +13,6 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.net.URI
 
 /**
  * Encapsulates BrowseViewModel shutdown responsibilities:
@@ -38,10 +38,9 @@ class BrowseShutdownCoordinator(
         val r = stateFlow.value.resource ?: return null
         if (r.type == ResourceType.LOCAL) return null
         return when (r.type) {
-            ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP -> {
-                val uri = URI(r.path)
-                "${uri.scheme}://${uri.host}:${uri.port.takeIf { it != -1 } ?: 445}"
-            }
+            // S3069: string parsing, not java.net.URI - a share named with a space is a legal
+            // SMB path and an illegal URI, and this runs on the onCleared path where a throw crashes.
+            ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP -> extractNetworkResourceKey(r.path)
             ResourceType.CLOUD -> "cloud://${r.cloudProvider}/${r.cloudFolderId}"
             else -> null
         }

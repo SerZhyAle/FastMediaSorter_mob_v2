@@ -46,6 +46,7 @@
       - assert-suite-tracked           (S2411 every discovered suite runner is in the git index)
       - assert-dotsource-tracked       (S2616 every dot-sourced script target is in the git index)
       - assert-document-registry-coverage (S2618 every directory holding documents is registered or excused)
+      - assert-temp-root-inventory     (S3030 every top-level entry of temp/ is declared or ticket-bound)
 
     Where every gate belongs, and who decided it: scripts/quality/gate-placement.jsonl (S2870).
     That registry replaced the two paragraphs that used to stand here naming the gate deliberately
@@ -270,6 +271,12 @@ $gates = [ordered]@{
     # repository-wide and a new documentation tree appears on the scale of months, so a per-closure
     # run would spend the same minutes that gate spent to report a single finding.
     'assert-document-registry-coverage.ps1' = @('-Quiet')
+    # S3030. The top level of temp/ against the one inventory that declares it. Release scope for
+    # Rule 33's four criteria, and the attribution corollary is not theoretical here: the directory
+    # is shared by every concurrent session, so a per-closure run would fail whoever ran it over a
+    # neighbour's lock file or queue marker - which is how S2998's blacklist and then S3025's suite
+    # assertion were each broken by a process that was not under test.
+    'assert-temp-root-inventory.ps1'   = @('-Quiet')
 }
 
 # S3010. Which fingerprint input groups each gate reads, for -OnlyGroups. Deliberately PARTIAL: a

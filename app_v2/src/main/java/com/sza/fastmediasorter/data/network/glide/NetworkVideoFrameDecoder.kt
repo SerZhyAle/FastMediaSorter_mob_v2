@@ -11,6 +11,7 @@ import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.bumptech.glide.load.resource.drawable.DrawableResource
 import com.sza.fastmediasorter.FastMediaSorterApp
+import com.sza.fastmediasorter.core.network.extractNetworkResourceKey
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -401,7 +402,6 @@ class NetworkVideoFrameDecoder(
     /**
      * Custom Resource wrapper for BitmapDrawable that properly recycles the bitmap
      */
-    @Suppress("OVERRIDE_DEPRECATION")
     private class BitmapDrawableResource(
         drawable: BitmapDrawable,
         private val bitmapPool: BitmapPool

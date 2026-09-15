@@ -71,6 +71,5 @@ internal fun formatByteSize(
 ): String {
     val (amount, unit) = byteSizeAmount(bytes, style.minUnit, style.maxUnit)
     val formatted = String.format(locale, "%.${style.decimalsFor(unit)}f %s", amount, unit.suffix)
-    Timber.d("S2433: shared ladder formatted %d bytes as %s", bytes, formatted)
     return formatted
 }

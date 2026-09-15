@@ -302,10 +302,21 @@ def main():
             print(f"SUCCESS: AAB uploaded. Version Code: {version_code}")
 
         # 4. Read release notes
-        # A form-factor artifact ships the same release notes as the phone build but carries a
-        # different versionCode, so the fastlane changelog is filed under the phone's number.
-        # --notes-code names that number instead of shipping a Wear release with no notes at all.
-        release_notes = get_release_notes(notes_code if notes_code else version_code)
+        # The artifact's OWN changelog wins, and --notes-code is only the fallback for an artifact
+        # that has none of its own - a form-factor build that ships the phone's text rather than no
+        # text at all. It used to be the other way round, and that left a watch release exactly one
+        # place to put watch-specific notes: on top of the phone changelog the fallback names. The
+        # watch notes of 2026-09-05 landed in the phone's 260902195.txt that way, where they were
+        # what Play and IzzyOnDroid showed for the phone version until a merge collided (S3027).
+        release_notes = get_release_notes(version_code)
+        if release_notes:
+            print(f"Release notes: from this artifact's own versionCode {version_code}")
+        elif notes_code:
+            release_notes = get_release_notes(notes_code)
+            if release_notes:
+                print(f"Release notes: none under {version_code}, falling back to --notes-code {notes_code}")
+        if not release_notes:
+            print("Release notes: none found - the release is committed without notes")
         version_name = get_version_name(aab_path)
 
         # 5. Update Track

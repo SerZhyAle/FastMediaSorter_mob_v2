@@ -94,6 +94,12 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 # S2855: the devices block below judges device-lease liveness through the shared rule. Defining
 # the function takes no lock and posts nothing - the writer's own invariants are untouched.
 . (Join-Path $PSScriptRoot 'agent-lock.ps1')
+# The two device store paths come from their owner's declaration (S3036), so this dot-source points
+# from scripts/utils into scripts/devtest/lib - the reverse of the devtest -> utils/agent-lock.ps1
+# edge every devtest script uses. This writer is a borrower of those stores, not their owner, and a
+# borrower with its own copy of the path is how a moved store keeps answering 'absent' rather than
+# failing. At script scope rather than inside the reader: -Loop re-enters it every few seconds.
+. (Join-Path $PSScriptRoot '..\devtest\lib\device-store-paths.ps1')
 
 function Get-DeviceParkRows {
     <#
@@ -106,8 +112,8 @@ function Get-DeviceParkRows {
     #>
     param([Parameter(Mandatory)][string]$RepoRoot)
 
-    $registryDir = Join-Path $RepoRoot 'temp/DEVICE.REGISTRY'
-    $leaseDir = Join-Path $RepoRoot 'temp/DEVICE.LEASES'
+    $registryDir = Get-DeviceStoreDir -RepoRoot $RepoRoot -Store Registry
+    $leaseDir = Get-DeviceStoreDir -RepoRoot $RepoRoot -Store Lease
     $rows = [ordered]@{}
 
     foreach ($store in @(@{ Dir = $registryDir; Kind = 'registry' }, @{ Dir = $leaseDir; Kind = 'lease' })) {

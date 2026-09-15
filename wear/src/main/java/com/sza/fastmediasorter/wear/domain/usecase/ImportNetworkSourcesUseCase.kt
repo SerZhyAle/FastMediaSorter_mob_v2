@@ -43,7 +43,6 @@ class ImportNetworkSourcesUseCase @Inject constructor(
             return ImportResult(added = 0, updated = 0, skipped = 0)
         }
 
-        Timber.d("S2502: watch import leg entered, skew=${receivedAtEpochMillis - payload.sentAt} ms")
         val skewMillis = receivedAtEpochMillis - payload.sentAt
         // S2507: a tombstone always states the moment of deletion, so a comparison involving one is
         // always stamped on the sender's side. Judging it through the batch resolver below would let
@@ -57,7 +56,6 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         // S2932: both kinds of disappearance share one counter - the phone reports either as "Removed
         // N source(s)". No id is counted twice, because the withdrawals re-read what is still here.
         val removed = deleted + applyDeselections(payload.deselectedIds)
-        Timber.d("S2932: watch ack removed=$removed, of which tombstone deletions applied=$deleted")
 
         val stored = repository.getAllSources().toMutableList()
         val localTombstones = repository.getTombstones().associateBy { it.id }
@@ -100,7 +98,6 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         if (ids.isNullOrEmpty()) {
             return 0
         }
-        Timber.d("S2882: watch import received ${ids.size} withdrawn id(s)")
         val present = repository.getAllSources().map { it.id }.toSet()
         var removed = 0
         for (id in ids.filter { it in present }) {
@@ -132,7 +129,6 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         if (incoming.isNullOrEmpty()) {
             return 0
         }
-        Timber.d("S2507: watch import leg received ${incoming.size} tombstone(s) from the phone")
         val stored = repository.getAllSources().associateBy { it.id }
         var deleted = 0
         for (tombstone in incoming) {

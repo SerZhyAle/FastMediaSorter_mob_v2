@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
+import timber.log.Timber
 
 /**
  * S0404: profile -> starter desktop, as pure data + a pure row-major packer (strategic §5.3: adding a
@@ -87,6 +88,8 @@ object LauncherStarterSets {
     private const val PACKAGE_PLAY_STORE = "com.android.vending"
     private const val PACKAGE_CHROME = "com.android.chrome"
     private const val PACKAGE_GMAIL = "com.google.android.gm"
+    private const val PACKAGE_KEEP = "com.google.android.keep"
+    private const val PACKAGE_GEMINI = "com.google.android.apps.bard"
     private const val PACKAGE_GOOGLE_SEARCH = "com.google.android.googlequicksearchbox"
     private const val PACKAGE_PHOTOS = "com.google.android.apps.photos"
     private const val PACKAGE_DRIVE = "com.google.android.apps.docs"
@@ -100,6 +103,8 @@ object LauncherStarterSets {
         PACKAGE_PLAY_STORE,
         PACKAGE_CHROME,
         PACKAGE_GMAIL,
+        PACKAGE_KEEP,
+        PACKAGE_GEMINI,
         PACKAGE_GOOGLE_SEARCH,
         PACKAGE_PHOTOS,
         PACKAGE_DRIVE,
@@ -265,6 +270,7 @@ object LauncherStarterSets {
         resolvableOsShortcuts: Set<String> = allOsShortcutKeys,
         screenClass: LauncherScreenClass,
     ): List<StarterItem> {
+        Timber.d("S3136: Compose launcher starter set for $profile")
         val rule = LauncherStarterLayoutRules.ruleFor(screenClass)
         val groups = contentGroups(
             profile = profile,
@@ -421,9 +427,6 @@ object LauncherStarterSets {
         if (profile in LOCATION_TILE_PROFILES) {
             add(gadget(GADGET_COMPASS))
         }
-        if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
-            add(gadget(GADGET_SPEED))
-        }
         if (profile in NOW_PLAYING_PROFILES) {
             add(gadget(GADGET_AUDIO_NOW_PLAYING))
         }
@@ -556,10 +559,14 @@ object LauncherStarterSets {
     private fun googleSectionPackages(
         googleServicesAvailable: Boolean,
         installedPackages: Set<String>,
-    ): Set<String> = if (googleServicesAvailable) {
-        GOOGLE_APP_PACKAGES.filterTo(linkedSetOf()) { it in installedPackages }
-    } else {
-        emptySet()
+    ): Set<String> {
+        val packages = if (googleServicesAvailable) {
+            GOOGLE_APP_PACKAGES.filterTo(linkedSetOf()) { it in installedPackages }
+        } else {
+            emptySet()
+        }
+        Timber.d("S3145: Google launcher packages=$packages")
+        return packages
     }
 
     /**
@@ -617,11 +624,13 @@ object LauncherStarterSets {
         if (routeLaunchable[InternalRouteCatalog.KEY_STREAMS] == true) {
             add(shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_STREAMS)))
         }
-        addAll(SubProgramCatalog.forSurface(SubProgramSurface.LAUNCHER_SHORTCUT).mapNotNull { entry ->
-            entry.routeKey
-                .takeIf { routeLaunchable[it] == true && it !in utilityWidgetRoutes }
-                ?.let { shortcut(LauncherCellCommand.Feature(it)) }
-        })
+        addAll(
+            SubProgramCatalog.forSurface(SubProgramSurface.LAUNCHER_SHORTCUT).mapNotNull { entry ->
+                entry.routeKey
+                    .takeIf { routeLaunchable[it] == true && it !in utilityWidgetRoutes }
+                    ?.let { shortcut(LauncherCellCommand.Feature(it)) }
+            }
+        )
     }
 
     /**

@@ -646,7 +646,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                     return false
                 }
                 val stream = VrPlaybackSource.NetworkStream(address, launchInput.displayTitle.orEmpty())
-                Timber.d("S1218: immersive network launch title=${stream.displayName} live=${stream.isLive}")
                 listOf(PlaylistItem(stream, launchInput.mediaType)) to 0
             } else {
                 val launchFile = resolveSingleLaunchFile(launchInput)
@@ -845,7 +844,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
      */
     private fun hideHudStrip() {
         if (isFinishing || isDestroyed) return
-        Timber.d("S1281: hideHudStrip - strip going hidden, auto-hide countdown cancelled")
         hudAutoHide.cancel()
         // S1232: the quad stops drawing and stops reacting natively. Nothing is repainted - there
         // is no pill to leave behind, and the trigger is what brings it back.
@@ -861,7 +859,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
      */
     private fun armHudAutoHide() {
         if (!isPanelHudMode() || !hudVisible) return
-        Timber.d("S1281: armHudAutoHide - idle countdown armed for the visible strip")
         hudAutoHide.arm()
     }
 
@@ -960,7 +957,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         override fun onLayoutCycle(step: Int) {
             hapticBridge.triggerClickFeedback()
             layoutOverride = cycleRing(LAYOUT_RING, layoutOverride, step)
-            Timber.d("S1217: manual layout override cycled to $layoutOverride (step $step)")
             reapplyRenderConfig()
             refreshSettingsPanelModel()
             settingsController?.requestRepaint()
@@ -1175,7 +1171,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         if (current.layout != StereoLayout.MONO) return
         lifecycleScope.launch(Dispatchers.IO) {
             val fromBoxes = stereoConfigResolver.resolveFromMetadata(file.absolutePath)
-            Timber.d("S1217: metadata pass on ${file.name} -> $fromBoxes (filename said $current)")
             if (fromBoxes == null || fromBoxes.layout == StereoLayout.MONO) return@launch
             withContext(Dispatchers.Main) { applyStereoFromMetadata(fromBoxes, file.name) }
         }

@@ -30,6 +30,13 @@
                      Connect device(s) with USB debugging enabled before running.
 #>
 
+[CmdletBinding()]
+param(
+    # Seed only this device. Without it every attached device is seeded, which reached the owner's
+    # phone whenever it sat beside the sweep emulator (Rule 35).
+    [string]$DeviceId
+)
+
 $ErrorActionPreference = "Stop"
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
@@ -60,7 +67,14 @@ $serials = $rawDevices |
     Where-Object { $_ -match "\sdevice$" } |
     ForEach-Object { ($_ -split "\s+")[0] }
 
-if ($serials.Count -eq 0) {
+if ($DeviceId) {
+    if (@($serials) -notcontains $DeviceId) {
+        Write-Error "Device '$DeviceId' is not attached and online."
+    }
+    $serials = @($DeviceId)
+}
+
+if (@($serials).Count -eq 0) {
     Write-Error "No active ADB device. Connect a device/emulator with USB debugging enabled."
 }
 Write-Host "Found $($serials.Count) device(s): $($serials -join ', ')" -ForegroundColor Green

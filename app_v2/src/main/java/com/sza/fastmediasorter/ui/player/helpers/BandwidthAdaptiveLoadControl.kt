@@ -51,7 +51,6 @@ internal class BandwidthAdaptiveLoadControl private constructor(
         // Cap at the dynamic target first, then defer to the delegate for its memory/size thresholds.
         val targetUs = currentTargetBufferUs()
         if (parameters.bufferedDurationUs >= targetUs) {
-            Timber.d("S2914: shouldContinueLoading capped at target")
             return false
         }
         return delegate.shouldContinueLoading(parameters)
@@ -80,7 +79,6 @@ internal class BandwidthAdaptiveLoadControl private constructor(
 
     override fun shouldStartPlayback(parameters: LoadControl.Parameters): Boolean {
         isLive = parameters.targetLiveOffsetUs != C.TIME_UNSET
-        Timber.d("S2914: shouldStartPlayback live=$isLive")
         return delegate.shouldStartPlayback(parameters)
     }
 

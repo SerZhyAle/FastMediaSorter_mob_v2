@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
@@ -15,23 +16,28 @@ object BroadcastNotificationFactory {
 
     const val CHANNEL_ID = "broadcast_channel"
 
-    fun createNotification(context: Context): Notification {
+    /** [stopIntent] must address the service that owns the notification, or its stop action stops nothing. */
+    fun createNotification(
+        context: Context,
+        stopIntent: Intent = Intent(context, BroadcastCaptureService::class.java).apply {
+            action = BroadcastCaptureService.ACTION_STOP
+        },
+        @StringRes titleRes: Int = R.string.broadcast_notification_title,
+        @StringRes textRes: Int = R.string.broadcast_notification_text,
+    ): Notification {
         ensureChannelCreated(context)
 
-        val stopIntent = Intent(context, BroadcastCaptureService::class.java).apply {
-            action = BroadcastCaptureService.ACTION_STOP
-        }
         val stopPendingIntent = PendingIntent.getService(
             context,
-            0,
+            stopIntent.component?.className.hashCode(),
             stopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)
-            .setContentTitle(context.getString(R.string.broadcast_notification_title))
-            .setContentText(context.getString(R.string.broadcast_notification_text))
+            .setContentTitle(context.getString(titleRes))
+            .setContentText(context.getString(textRes))
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)

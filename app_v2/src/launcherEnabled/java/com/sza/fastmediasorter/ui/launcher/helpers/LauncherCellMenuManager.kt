@@ -53,7 +53,6 @@ class LauncherCellMenuManager(
      * resource's row can be a disk read.
      */
     suspend fun resourceById(resourceId: Long): MediaResource? = withContext(Dispatchers.IO) {
-        Timber.d("S2561: cellMenu.resourceById")
         resourceRepository.getResourceById(resourceId)
     }
 
@@ -66,7 +65,6 @@ class LauncherCellMenuManager(
      * the desktop under a delete would be a second surprise on top of the first.
      */
     fun deleteResource(resourceId: Long) {
-        Timber.d("S2561: cellMenu.deleteResource")
         scope.launch {
             val result = dependencies.deleteResource(resourceId)
             if (result.isFailure) {
@@ -118,7 +116,6 @@ class LauncherCellMenuManager(
      * removal from the desktop would leave an orphan file behind.
      */
     fun removeStream(source: StreamSourceEntity) {
-        Timber.d("S2561: cellMenu.removeStream")
         scope.launch {
             dependencies.removeStreamSource(source)
             dependencies.streamFrameStore.remove(source.url)

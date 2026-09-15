@@ -207,7 +207,6 @@ class SettingsViewModel @Inject constructor(
             if (pending != null && resolution.persisted == pending) {
                 _settingsOverride.value = null
                 _pendingClearSnapshot.value = null
-                Timber.d("S2800: override released by persisted emission (caught up)")
             }
         }
         .map { it.value }
@@ -272,7 +271,6 @@ class SettingsViewModel @Inject constructor(
                 if (_settingsOverride.value == settings) {
                     _settingsOverride.value = null
                     _pendingClearSnapshot.value = null
-                    Timber.d("S2800: override released by timeout fallback (normalization)")
                 }
                 applySettingsSideEffects(prev, settings)
             } catch (e: Exception) {
@@ -535,7 +533,6 @@ class SettingsViewModel @Inject constructor(
 
     fun resetMediaSection() {
         val defaults = AppSettings()
-        Timber.d("S2603: media reset defaults videoSizeMin=${defaults.videoSizeMin}")
         val current = settings.value
         updateSettings(
             current.copy(

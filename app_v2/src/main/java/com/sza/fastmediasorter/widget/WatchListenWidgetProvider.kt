@@ -89,7 +89,6 @@ class WatchListenWidgetProvider : AppWidgetProvider() {
 
         /** Refresh every placed instance to reflect the session state. Called by the renderer. */
         fun updateAllWidgets(context: Context, state: WearListenState) {
-            Timber.d("S2881: widget push, state=%s", state::class.java.simpleName)
             lastState = state
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(

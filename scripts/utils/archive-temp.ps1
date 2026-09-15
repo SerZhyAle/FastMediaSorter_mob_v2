@@ -13,11 +13,14 @@
       stream-catalog files, gradle-tmp, and the named generator working dirs) never move.
     - temp/Sxxxx*/ moves only when the ticket is Verified, Archived, or absent from
       PLAN/spec-catalog.jsonl - a live ticket keeps its artifacts.
-    - Loose root files and dated one-off directories move once older than -OlderThanDays.
+    - Loose root files move once older than -OlderThanDays, and so does EVERY unprotected
+      directory - not only a dated one. Until S3030 this line promised the narrower reading, and
+      that is what hid the exposure S3030 repaired: the age rule reaches any directory the inventory
+      does not protect, which at the time included the device registry.
     - Nothing is deleted; everything lands under temp/archive/<stamp>/ by category.
 
 .PARAMETER OlderThanDays
-  Age threshold for loose files and dated one-off directories. Default 7.
+  Age threshold for loose files and for every unprotected directory. Default 7.
 
 .PARAMETER IncludeScratch
   Also apply the age rule to entries inside temp/scratch/. The directory itself always
@@ -40,14 +43,17 @@ param(
     [int]$OlderThanDays = 7,
     [switch]$IncludeScratch,
     [switch]$DryRun,
-    [string]$Stamp
+    [string]$Stamp,
+    [string]$RepoRoot,
+    [string]$TempDir,
+    [string]$SelectCli
 )
 
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$temp = Join-Path $repoRoot 'temp'
-$selectCli = Join-Path $repoRoot 'scripts/spec_catalog/select.ps1'
+$repoRoot = if ($RepoRoot) { (Resolve-Path -LiteralPath $RepoRoot).Path } else { Split-Path -Parent (Split-Path -Parent $PSScriptRoot) }
+$temp = if ($TempDir) { (Resolve-Path -LiteralPath $TempDir).Path } else { Join-Path $repoRoot 'temp' }
+$selectCli = if ($SelectCli) { (Resolve-Path -LiteralPath $SelectCli).Path } else { Join-Path $repoRoot 'scripts/spec_catalog/select.ps1' }
 
 if (-not (Test-Path -LiteralPath $temp)) {
     Write-Error "temp/ not found at $temp" -ErrorAction Continue
@@ -58,29 +64,26 @@ if (-not (Test-Path -LiteralPath $selectCli)) {
     exit 2
 }
 
-# Fixed infrastructure per CLAUDE.md Rule 1 plus the working dirs live scripts write into.
-# S2170: the coordination names are DERIVED from the domain table, never listed here. A hand-kept
-# list is what let the split land with five live queue directories unprotected - the archiver still
-# knew only the two pre-split names, so a sweep could have moved a running session's queue away.
-. (Join-Path $PSScriptRoot 'agent-lock-domains.ps1')
-$lockDomainNames = @(Get-AgentLockDomainNames)
+# What may live at temp/ root is declared in ONE place and read here (S3030). S2170 established the
+# principle for the coordination names - they are DERIVED from the domain table, never listed, after
+# a hand-kept list let the split land with five live queue directories unprotected, so a sweep could
+# have moved a running session's queue away. S3030 finished the job: the whole set moved into the
+# inventory, because the part that stayed hand-kept here omitted the release-freeze pair CLAUDE.md
+# Rule 10 declares legitimate and seven live coordination directories, DEVICE.REGISTRY among them -
+# the roster Rule 35 reads, which is idle for a week in normal use and so was squarely in reach of
+# the age rule below.
+. (Join-Path $PSScriptRoot 'temp-root-inventory.ps1')
+$tempRootInventory = Get-TempRootInventory -RepoRoot $repoRoot
 
-$protectedDirs = @(
-    'archive', 'done', 'scratch', 'gradle-tmp', 'SPEC-TICKET.LEASES',
-    'sessions', 'metrics', 'test-devices', 'play-shots', 'play-shots-tablet',
-    'channel-preview-frames', 'channel-preview-publish',
-    'stream-logo-src', 'stream-logo-publish',
-    'tile-pack-publish', 'tile-pack-channel-preview-tiles', 'tile-pack-stream-logo-tiles'
-)
-$protectedDirs += @($lockDomainNames | ForEach-Object { "$($_.ToUpper()).QUEUE" })
-
-$protectedFiles = @(
-    'spec-all-queue.lock', 'spec-next-skip-cache.json',
-    'current.log', 'stream-catalog-liveness.csv', 'stream-catalog.zip', '.gitignore'
-)
-$protectedFiles += @($lockDomainNames | ForEach-Object { "$($_.ToUpper()).LOCK" })
-# Live logcat sinks the log tooling appends to. Turn markers (S2405) are swept by agent-lock.ps1.
-$protectedFilePatterns = @('fastmediasorter_*.log')
+$protectedDirs = @($tempRootInventory.FixedDirs)
+$protectedFiles = @($tempRootInventory.FixedFiles)
+# FixedFilePatterns only. RetainedFilePatterns is deliberately NOT protected here: those shapes are
+# legal at the root BECAUSE the age rule below carries them away, so protecting them would stop the
+# retention that is the whole reason they are allowed, and the per-run check logs would accumulate
+# without bound. The gate reads that member as "legal"; this consumer reads it as "sweepable". Turn
+# markers (S2405) are in it for the same reason - agent-lock.ps1 sweeps its own, and a week-old one
+# is dead.
+$protectedFilePatterns = @($tempRootInventory.FixedFilePatterns)
 
 Write-Host 'Reading spec catalog..'
 $specs = & $selectCli -Format json | ConvertFrom-Json

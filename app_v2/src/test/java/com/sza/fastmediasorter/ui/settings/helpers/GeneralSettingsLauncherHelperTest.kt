@@ -7,12 +7,14 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
+import com.sza.fastmediasorter.core.util.XrDeviceProbe
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.testing.MainDispatcherRule
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,6 +51,10 @@ class GeneralSettingsLauncherHelperTest {
         setBindingField("rowLauncherStartWindow", rowLauncherStartWindow)
         setBindingField("rowLauncherSettings", rowLauncherSettings)
         every { launcherModeContract.isAvailableInBuild } returns true
+        every { launcherStartWindowManager.isEnabled() } returns true
+        mockkObject(XrDeviceProbe)
+        every { fragment.requireContext() } returns mockk(relaxed = true)
+        every { XrDeviceProbe.isXrDevice(any()) } returns false
 
         helper = GeneralSettingsLauncherHelper(
             binding = binding,
@@ -85,6 +91,21 @@ class GeneralSettingsLauncherHelperTest {
         verify(exactly = 0) { launcherRoleManager.isRoleRequestPending() }
         verify(exactly = 0) { launcherRoleManager.isHomeRoleHeld() }
         verify(exactly = 0) { rowLauncherModeEnabled.setCheckedSilently(any()) }
+    }
+
+    @Test
+    fun `setup keeps the start window row but hides system launcher controls on an XR device`() = runTest(
+        dispatcherRule.testDispatcher
+    ) {
+        every { XrDeviceProbe.isXrDevice(any()) } returns true
+        every { launcherRoleManager.readState() } returns LauncherRoleManager.LauncherModeState(false, false, false)
+
+        helper.setup()
+        advanceUntilIdle()
+
+        verify { rowLauncherStartWindow.setCheckedSilently(true) }
+        verify { rowLauncherModeEnabled.visibility = View.GONE }
+        verify { rowLauncherSettings.visibility = View.GONE }
     }
 
     @Test
@@ -135,25 +156,5 @@ class GeneralSettingsLauncherHelperTest {
         verify(exactly = 0) { launcherRoleManager.disableModeForBackgroundRefresh() }
         verify { rowLauncherModeEnabled.setCheckedSilently(false) }
         verify { rowLauncherSettings.isEnabled = false }
-    }
-
-    @Test
-    fun `refreshState hides start window row when home role is held`() = runTest(dispatcherRule.testDispatcher) {
-        every { launcherRoleManager.readState() } returns LauncherRoleManager.LauncherModeState(false, true, true)
-
-        helper.refreshState()
-        advanceUntilIdle()
-
-        verify { rowLauncherStartWindow.visibility = View.GONE }
-    }
-
-    @Test
-    fun `refreshState shows start window row when home role is not held`() = runTest(dispatcherRule.testDispatcher) {
-        every { launcherRoleManager.readState() } returns LauncherRoleManager.LauncherModeState(false, false, false)
-
-        helper.refreshState()
-        advanceUntilIdle()
-
-        verify { rowLauncherStartWindow.visibility = View.VISIBLE }
     }
 }

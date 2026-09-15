@@ -25,13 +25,14 @@ class StreamsFilterTest {
         country: String? = null,
         topic: String? = null,
         mediaKind: String = "VIDEO",
+        sourceOrigin: String = "CATALOG",
         pinned: Boolean = false,
     ) = StreamSourceEntity(
         id = id,
         url = "http://example/$id",
         title = title,
         mediaKind = mediaKind,
-        sourceOrigin = "CATALOG",
+        sourceOrigin = sourceOrigin,
         sortIndex = 0,
         addedAt = 0L,
         category = category,
@@ -164,6 +165,33 @@ class StreamsFilterTest {
         )
         assertEquals(
             setOf("aud", "vid", "rtsp"),
+            ids(StreamsViewModel.applyFilter(sources, StreamsFilter(mediaKind = MediaKindFilter.ALL))),
+        )
+    }
+
+    @Test
+    fun `manual channels belong only to own category`() {
+        val sources = listOf(
+            source("catalogAudio", mediaKind = "AUDIO"),
+            source("importedVideo", mediaKind = "VIDEO", sourceOrigin = "IMPORTED"),
+            source("manualAudio", mediaKind = "AUDIO", sourceOrigin = "MANUAL"),
+            source("manualVideo", mediaKind = "VIDEO", sourceOrigin = "MANUAL"),
+        )
+
+        assertEquals(
+            setOf("catalogAudio"),
+            ids(StreamsViewModel.applyFilter(sources, StreamsFilter(mediaKind = MediaKindFilter.AUDIO))),
+        )
+        assertEquals(
+            setOf("importedVideo"),
+            ids(StreamsViewModel.applyFilter(sources, StreamsFilter(mediaKind = MediaKindFilter.VIDEO))),
+        )
+        assertEquals(
+            setOf("manualAudio", "manualVideo"),
+            ids(StreamsViewModel.applyFilter(sources, StreamsFilter(mediaKind = MediaKindFilter.OWN))),
+        )
+        assertEquals(
+            sources.map { it.id }.toSet(),
             ids(StreamsViewModel.applyFilter(sources, StreamsFilter(mediaKind = MediaKindFilter.ALL))),
         )
     }

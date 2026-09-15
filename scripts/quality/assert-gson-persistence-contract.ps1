@@ -234,10 +234,27 @@ function Get-TypeExpression {
 function Resolve-Identifier {
     param([string[]]$FileLines, [string]$Name)
 
-    foreach ($line in $FileLines) {
+    for ($i = 0; $i -lt $FileLines.Count; $i++) {
+        $line = $FileLines[$i]
         if ($line -notmatch "(?:va[lr]\s+|[,(]\s*)$Name\s*(?::|=)") { continue }
         # A named Gson type token holds the element type the declared type (`Type`) hides.
         if ($line -match 'TypeToken\s*<(.+)>\s*\(') { return $Matches[1] }
+        # S3068: the same element types spelled as class literals. The anonymous `TypeToken<List<Foo>>()`
+        # subclass above reads its own `Signature` attribute, which R8 strips from a class it does not
+        # keep - it crashed the shipped build in a class initializer, so app_v2 moved every token to
+        # `TypeToken.getParameterized(List::class.java, Foo::class.java).type`. Nothing here read that
+        # form, so each converted call site became a point with an unresolvable type and the gate went
+        # red over a fix. Read as a two-line window because the converted declarations wrap: the call is
+        # longer than the 120-character limit when it shares the `val` line, and the single-line walk
+        # this replaces saw only the `val NAME =` half.
+        $window = if ($i + 1 -lt $FileLines.Count) { $line + ' ' + $FileLines[$i + 1] } else { $line }
+        if ($window -match 'getParameterized\s*\(([^)]*)\)') {
+            $literals = @([regex]::Matches($Matches[1], '([A-Za-z_]\w*)\s*::\s*class\s*\.\s*java\w*') |
+                ForEach-Object { $_.Groups[1].Value })
+            # The container is the first literal and the arguments follow it, which is the shape
+            # Get-TypeName already lifts every identifier out of.
+            if ($literals.Count -ge 2) { return ($literals[0] + '<' + (($literals | Select-Object -Skip 1) -join ', ') + '>') }
+        }
         $declared = [regex]::Match($line, "$Name\s*:\s*")
         if ($declared.Success) {
             $type = Get-TypeExpression -Text $line -Start ($declared.Index + $declared.Length)

@@ -38,7 +38,7 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 
 | Target | Wall clock | Verdict |
 | --- | ---: | --- |
-| `a.ps1 fg` (fast static gates, 62 gates concurrent since S2451) | 47 s | foreground |
+| `a.ps1 fg` (fast static gates, 63 gates concurrent since S2451) | 47 s | foreground |
 <!-- S2612 moved this measurement out of CLAUDE.md Rule 6, which was at its always-loaded ceiling.
      `fg` is the one target that ever crossed the 120 s threshold: 45 gates running one at a time
      reached 142.8 s and were preempted into the background twice, delivering the verdict the way
@@ -196,6 +196,8 @@ S2451 then found the batch **past** the threshold, and the `fg` row above is the
 The batch is now bounded below by its slowest single gate, `assert-source-gates` at 38.5 s - raising the concurrency further buys nothing. If `fg` approaches the threshold again, that gate's own cost is the next lever, not the schedule.
 
 S2935 re-measured the row on 2026-09-11 and the sentence above still points the right way, but the gap it implies is spent. Two paired runs on an unloaded host read 46.3 s and 46.8 s; the same runs put `assert-source-gates` at 38.5 s, and the 61 gates' medians sum to 381.7 s, which over a throttle of 12 is a queue floor of 31.8 s. So the slowest gate is still the binding bound - 40.6 s against 31.8 s on the 14-day medians - but the two bounds now sit **1.28x** apart where S2451 left them 2.7x apart (11.9 s of queue against 32 s of slowest gate). One more expensive gate and the batch's SIZE takes the critical path back, at which point the lever moves from that one gate's cost to the throttle and the gate count together. The batch also sits 8 s above its own slowest gate, which is a long gate starting late in the queue rather than work anyone is doing. Read against the telemetry the S2453 gate judges - 189 `(batch)` records in 14 days, median 58.2 s, p90 102.0 s - the row keeps the quiet-host convention this table's header promises, the same call made on 2026-08-09 when a 46.1 s run under contention was rejected as a measurement of contention rather than of the batch.
+
+A gate can also end **NOT RUN** (S3075). A child exit code of 3 means the gate judged nothing - `lib/absent-input.ps1` when a gitignored root (`PLAN/`, `.claude/`) is not in this checkout, `lib/fixed-input-scope.ps1` when the changed set charges a fixed-input gate nothing - and those rows are printed in their own `NOT RUN (input absent)` block, outside both scope blocks and outside the failure count. On a workstation the block is empty, because both roots are there; on a fresh clone, in the release worktree and on a CI runner it is where those gates go. `-FailOnSkipped` puts them back into the count for a caller that requires full coverage rather than "everything runnable here was green". Folding exit 3 into FAIL is what made the GitHub "Static Gates" job state one published fact - that `PLAN/` and `.claude/` are not published - as nine separate findings.
 
 The gate count in that row is no longer hand-held: `assert-gate-count-prose.ps1` (S2935) reads the live `$gates` table out of `assert-fast-gates.ps1` by AST and fails when the row disagrees. It was written because the count had gone fifteen revisions stale in silence - every ticket that adds a gate moves it, and none of them read this row.
 

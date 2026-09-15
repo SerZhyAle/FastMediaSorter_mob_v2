@@ -138,7 +138,6 @@ private class YouTubeChannelWindowGadgetView(
     }
 
     private fun onPlayPressed() {
-        Timber.d("S2032: channel window pressed, embedUsable=$embedUsable playing=$isPlaying")
         if (channel == null) return
         if (!embedUsable) {
             openChannelExternally(channel)

@@ -240,6 +240,23 @@ $repairArgs = @(Get-KotlinStaleIncrementalRepairArgs)
 Assert-That 'the repair turns incremental compilation off for the retry' `
 ($repairArgs -contains '-Pkotlin.incremental=false') "args=$($repairArgs -join ' ')"
 
+# --- fresh device artifact (S3094) -------------------------------------------------------------
+# Dropping any one flag reopens a reuse channel that can ship a stale Hilt component, and the script
+# would still parse green - so the exact set is asserted, not merely its presence.
+$freshArgs = @(Get-FreshGeneratedArtifactBuildArgs)
+$expectedFresh = @('--no-build-cache', '--rerun-tasks', '-Pkotlin.incremental=false')
+Assert-That 'fresh artifact args are exactly the three reuse-disabling flags' `
+((@(Compare-Object $freshArgs $expectedFresh).Count -eq 0) -and $freshArgs.Count -eq 3) `
+"args=$($freshArgs -join ' ')"
+
+Assert-That 'fresh artifact args leave configuration cache to the caller' `
+(-not ($freshArgs -match 'configuration-cache')) "args=$($freshArgs -join ' ')"
+
+$deviceBuilder = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/builders/build-standard-device.ps1') -Raw
+Assert-That 'device builder passes the fresh artifact args to Gradle' `
+($deviceBuilder -match 'Get-FreshGeneratedArtifactBuildArgs' -and $deviceBuilder -match '@freshArtifactArgs') `
+'build-standard-device.ps1 does not use the fresh artifact args'
+
 # --- JUnit report outcome (S1464) --------------------------------------------------------------
 # Existence is not execution. Each fixture below is a report a gate might be handed; only one of them
 # licenses the claim "the thing under test is wrong".

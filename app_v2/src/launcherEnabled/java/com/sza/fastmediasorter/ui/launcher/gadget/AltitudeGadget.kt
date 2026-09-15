@@ -43,6 +43,9 @@ class AltitudeGadget @Inject constructor(
     override val minSpanH: Int = 1
     override val labelRes: Int = R.string.launcher_gadget_altitude
     override val iconRes: Int = R.drawable.ic_altitude
+
+    // S3080: ic_altitude fills white and is invisible on the picker's light surface without a tint.
+    override val iconTintable: Boolean = true
     override val requiresResourceParam: Boolean = false
 
     override fun isAvailable(): Boolean = availability.isAvailable(SensorCapability.LOCATION)

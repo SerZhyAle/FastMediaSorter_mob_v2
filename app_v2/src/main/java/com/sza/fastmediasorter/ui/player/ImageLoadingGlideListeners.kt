@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
 import com.sza.fastmediasorter.ui.player.helpers.AnimatedImageController
 import com.sza.fastmediasorter.ui.player.helpers.LoadingSource
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLoadingIndicatorCoordinator
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 
 /** Glide [RequestListener]s for [ImageLoadingManager]: static [Drawable] + GIF. Extracted from the manager body to keep the host class under the 1000-LOC budget. */
@@ -55,11 +56,9 @@ internal class ImageLoadingGlideListeners(
             // S0704: load failed - drop IMAGE_GLIDE and cancel its pending show + safety.
             loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
             if (ImageLoadingDiagnostics.isNonCriticalNetworkImageError(e)) return false
-            val isRaceConditionError = e?.rootCauses?.any { cause ->
-                val msg = cause.message ?: ""
-                msg.contains("memory mapping") || msg.contains("setDataSource failed") || msg.contains("cancelled")
-            } == true
-            if (isRaceConditionError) {
+            val isCancelledRequest = e?.rootCauses.orEmpty().any(::hasCancellationCause)
+            Timber.d("S3127: player image load failed; cancelled=$isCancelledRequest")
+            if (isCancelledRequest) {
                 Timber.w("ImageLoadingManager: Race condition error during fast scrolling")
                 if (!callback.isDestroyed()) {
                     callback.showToast(binding.root.context.getString(R.string.image_scroll_too_fast))
@@ -202,4 +201,7 @@ internal class ImageLoadingGlideListeners(
         val fileName = modelValue.substringAfterLast('/').ifBlank { modelValue.substringAfterLast('\\') }
         return "file=${fileName.ifBlank { "<unknown>" }} source=$source"
     }
+
+    private fun hasCancellationCause(throwable: Throwable): Boolean =
+        generateSequence(throwable) { it.cause }.any { it is CancellationException }
 }

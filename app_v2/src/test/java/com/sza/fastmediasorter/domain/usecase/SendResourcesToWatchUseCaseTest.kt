@@ -268,6 +268,22 @@ class SendResourcesToWatchUseCaseTest {
     }
 
     @Test
+    fun `empty registry with forceDispatch true sends payload to data layer`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = emptyList()
+
+        val result = useCase(forceDispatch = true)
+
+        assertTrue(result.isSuccess)
+        assertEquals(0, result.getOrThrow().sent)
+        assertEquals(0, result.getOrThrow().skipped)
+        assertEquals(0, result.getOrThrow().deselected)
+        assertTrue(result.getOrThrow().dispatched)
+        assertEquals(1, wearableRepository.putCalls.size)
+        assertTrue(sentSources().isEmpty())
+    }
+
+    @Test
     fun `a deselected registry resource is declared withdrawn and a selected one is not`() = runTest {
         wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
         resourceRepository.resources = (1L..3L).map { id ->

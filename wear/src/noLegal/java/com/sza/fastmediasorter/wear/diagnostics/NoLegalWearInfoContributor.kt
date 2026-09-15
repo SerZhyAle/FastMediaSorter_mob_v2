@@ -43,7 +43,6 @@ class NoLegalWearInfoContributor @Inject constructor(
     override val order: Int = WearSystemInfoOrder.EXTENDED
 
     override suspend fun sections(): List<WearSystemInfoSection> {
-        Timber.d("S2165: noLegal extended section requested")
         return listOf(
             section(
                 titleRes = R.string.system_info_section_extended,

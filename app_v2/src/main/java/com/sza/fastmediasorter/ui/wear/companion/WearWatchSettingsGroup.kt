@@ -162,8 +162,6 @@ internal fun WearWatchSettingsGroup(
     state: WatchSettingsState,
     onChanged: () -> Unit
 ) {
-    Timber.d("S2169: companion watch-settings block drawn in canonical watch-menu order")
-    Timber.d("S2482: companion watch settings split into separate collapsible groups")
 
     // S2643: each subgroup owns its own expansion since S2482 split the block into four; the outer
     // expansion parameter that used to seed this one was never written by anyone and is gone.

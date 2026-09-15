@@ -194,7 +194,6 @@ class LauncherRoleManager @Inject constructor(
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
         val tvDevice = isTvDevice()
         if (tvDevice) {
-            Timber.d("S2901: TV form-factor detected, skipping ROLE_HOME dialog")
         }
         val roleManager = if (tvDevice) null else context.getSystemService(RoleManager::class.java)
         return roleManager

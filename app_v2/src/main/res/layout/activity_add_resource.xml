@@ -129,11 +129,11 @@
         <TextView android:id="@+id/tvImportSectionTitle" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_marginTop="@dimen/resource_section_margin_top" android:text="@string/resource_import_section_title" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
 
         <!-- baselineAligned=false + match_parent heights: keep both pills equal-height when one label wraps (landscape column). -->
-        <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginTop="@dimen/resource_margin_4dp">
+        <LinearLayout android:gravity="center" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginTop="@dimen/resource_margin_4dp">
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFromFile" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/resource_import_from_file" android:textAllCaps="false" app:icon="@drawable/ic_import" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFromFile" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginEnd="@dimen/margin_small" android:text="@string/resource_import_from_file" android:textAllCaps="false" app:icon="@drawable/ic_import" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFromBarcode" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="@string/resource_import_from_barcode" android:textAllCaps="false" app:icon="@drawable/ic_qr_scan" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFromBarcode" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="@string/resource_import_from_barcode" android:textAllCaps="false" app:icon="@drawable/ic_qr_scan" />
 
         </LinearLayout>
 

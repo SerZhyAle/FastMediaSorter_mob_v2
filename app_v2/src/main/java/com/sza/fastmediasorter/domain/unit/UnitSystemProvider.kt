@@ -6,9 +6,7 @@ import com.sza.fastmediasorter.domain.usecase.ObserveUnitSystemUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,9 +26,6 @@ class UnitSystemProvider @Inject constructor(
 
     /** For surfaces that must redraw when the setting flips while they are on screen. */
     val current: StateFlow<UnitSystem> = observeUnitSystemUseCase()
-        .onEach {
-            Timber.d("S2795: unit system published to every surface = %s", it)
-        }
         .stateIn(scope, SharingStarted.Eagerly, UnitSystem.DEFAULT)
 
     /** For a one-shot render - a widget update, an adapter bind, a dialog being built. */

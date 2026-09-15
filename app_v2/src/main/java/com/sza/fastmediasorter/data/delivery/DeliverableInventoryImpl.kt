@@ -379,7 +379,6 @@ class DeliverableInventoryImpl @Inject constructor(
     private fun liveSizeLabel(fallbackBytes: Long, live: suspend () -> Long?): Flow<String> = flow {
         emit(formatBytes(fallbackBytes))
         val measured = live()
-        Timber.d("S2652: extensions size label fallback=%d measured=%s", fallbackBytes, measured)
         if (measured != null && measured > 0L && measured != fallbackBytes) {
             emit(formatBytes(measured))
         }

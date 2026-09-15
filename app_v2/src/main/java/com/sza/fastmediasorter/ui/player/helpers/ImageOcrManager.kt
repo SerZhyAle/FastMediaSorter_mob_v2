@@ -5,7 +5,6 @@ import android.graphics.Canvas
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.bumptech.glide.load.resource.gif.GifDrawable
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
@@ -21,13 +20,13 @@ import timber.log.Timber
 
 /**
  * Manages OCR (Optical Character Recognition) operations for images.
- * 
+ *
  * Handles extracting text from images/GIFs displayed in PlayerActivity:
  * - Bitmap extraction from current image view (PhotoView or ImageView)
  * - GIF frame extraction (first frame)
  * - OCR text extraction using TranslationManager
  * - Display extracted text in TextViewerManager
- * 
+ *
  * Extracted from PlayerActivity to consolidate image OCR logic.
  */
 class ImageOcrManager(
@@ -39,7 +38,7 @@ class ImageOcrManager(
     private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator,
     private val callback: ImageOcrCallback
 ) {
-    
+
     /**
      * Callback interface for OCR operations.
      */
@@ -48,11 +47,11 @@ class ImageOcrManager(
         fun getString(resId: Int): String
         fun getString(resId: Int, vararg formatArgs: Any): String
     }
-    
+
     /**
      * Extract text from currently displayed image using OCR.
      * Works with regular images and GIFs (extracts first frame).
-     * 
+     *
      * Note: OCR requires ENABLE_TRANSLATION=true in BuildConfig.
      * Returns early if translation/OCR is not supported by this flavor.
      */
@@ -62,16 +61,16 @@ class ImageOcrManager(
             Timber.d("ImageOcrManager: OCR not available - translation capability is off")
             return
         }
-        
+
         if (currentFile?.type != MediaType.IMAGE && currentFile?.type != MediaType.GIF) {
             callback.showError(callback.getString(R.string.ocr_images_only))
             return
         }
-        
-        // Get bitmap from current image view (including GIF first frame)
-        val bitmap = extractBitmapFromImageView()
 
-        if (bitmap == null) {
+        // Get bitmap from current image view (including GIF first frame)
+        val displayBitmap = extractBitmapFromImageView()
+
+        if (displayBitmap == null) {
             callback.showError(callback.getString(R.string.ocr_extract_image_failed))
             return
         }
@@ -85,6 +84,7 @@ class ImageOcrManager(
         // Perform OCR in background
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                val bitmap = OcrInputBitmapLoader.load(binding.root.context, currentFile, displayBitmap)
                 val settings = settingsRepository.getSettings().first()
                 val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
 
@@ -111,7 +111,7 @@ class ImageOcrManager(
             }
         }
     }
-    
+
     /**
      * Extract bitmap from currently visible image view.
      * Handles both PhotoView (zoomable) and ImageView (quick view).
@@ -140,7 +140,7 @@ class ImageOcrManager(
             }
         }
     }
-    
+
     /**
      * Extract bitmap from a drawable.
      * Handles both BitmapDrawable and GifDrawable.
@@ -160,7 +160,7 @@ class ImageOcrManager(
                 val width = drawable.intrinsicWidth
                 val height = drawable.intrinsicHeight
                 if (width <= 0 || height <= 0) {
-                    Timber.e("ImageOcrManager: Invalid GIF dimensions: ${width}x${height}")
+                    Timber.e("ImageOcrManager: Invalid GIF dimensions: ${width}x$height")
                     return null
                 }
                 val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)

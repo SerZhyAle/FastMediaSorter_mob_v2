@@ -20,15 +20,20 @@
     chain - rather than by forging a lock file, so nothing here writes state a real session could
     mistake for its own.
 
+    S2697: every acquiring case targets temp/lock-fixture/, which the profile maps to the dedicated
+    Code.Fixture domain. Until then the suite held the production Code.Scripts - measured 14 of 63
+    Code.Scripts queue handoffs in three days were this suite, queuing real script work behind a test.
+    Code.Scripts stays covered by the read-only resolver cases and by one non-interference assertion.
+
     The exit-4 case runs in a nested pwsh for a second reason as well: Enter-CodeLockOrExit calls
     `exit` directly, so hitting a busy domain in-process would terminate this runner instead of
     producing an observable code.
 
 .NOTES
     Exit codes:
-      0 - every runnable case passed. When a code domain is held (by this session or a
-          sibling), the acquiring cases are skipped and the resolution and non-acquiring
-          cases are verified; the suite exits 0 with a note about the skipped cases.
+      0 - every runnable case passed. When Code.Fixture is held (by this session or a sibling), the
+          acquiring cases are skipped and the resolution and non-acquiring cases are verified; the
+          suite exits 0 with a note about the skipped cases.
       1 - a case failed.
 #>
 [CmdletBinding()]
@@ -56,35 +61,38 @@ function Assert-Case {
 . $helper
 
 $docTarget = Join-Path $repoRoot 'docs/ICON_LEGEND.md'
-$scriptsLock = Get-AgentLockPath -Name 'Code.Scripts'
-$phoneLock = Get-AgentLockPath -Name 'Code.Phone'
-$wearLock = Get-AgentLockPath -Name 'Code.Wear'
+$fixtureRelative = 'temp/lock-fixture/code-lock-scope.txt'
+$fixtureTarget = Join-Path $repoRoot $fixtureRelative
+$fixtureLock = Get-AgentLockPath -Name 'Code.Fixture'
+$allCodeDomains = 'Code.Phone,Code.Wear,Code.Scripts,Code.Fixture'
+$testIdentities = @('code-lock-scope-tests-foreign', 'code-lock-scope-tests-skipper')
+
+# Every OTHER code domain this session holds after an acquiring case would be a leak the fixture
+# retarget exists to prevent; a sibling's lock on them is not ours and is ignored.
+function Test-NoOtherOwnCodeLock {
+    $self = Get-AgentSessionId
+    foreach ($domain in @('Code.Phone', 'Code.Wear', 'Code.Scripts')) {
+        $status = Get-AgentLockStatus -Name $domain
+        if ($status.Exists -and [string]$status.SessionId -eq $self) { return $false }
+    }
+    return $true
+}
 
 Write-Host 'code-lock-scope contract suite' -ForegroundColor Cyan
 
-# --- Guard: skip acquiring cases when any code domain is held -----------------
-# The suite runs against the real lock store (a sandbox was tried and does not
-# work - Get-SzaProjectRoot caches the root once per process). The acquiring cases
-# need all code domains free. When any is held - by this session or a sibling -
-# run only the resolution and non-acquiring cases and exit 0, so the release-scope
-# gate gets a trustworthy verdict instead of a false red (this session holds) or
-# a cannot-verify (a sibling holds) that blocks the release while the runner's
-# own parallel model is running.
+# --- Guard: skip acquiring cases when the fixture domain is held --------------
+# The acquiring cases touch Code.Fixture only, so a sibling working in scripts/ no longer turns them
+# off. When the fixture domain is held - by this session or a parallel run of this suite - run only
+# the resolution and non-acquiring cases and exit 0, so the release-scope gate gets a trustworthy
+# verdict instead of a false red or a cannot-verify.
 $skipAcquiring = $false
-$heldDetail = ''
-foreach ($domain in @('Code.Phone', 'Code.Wear', 'Code.Scripts')) {
-    $status = Get-AgentLockStatus -Name $domain
-    if ($status.Exists -and -not $status.Stale) {
-        $skipAcquiring = $true
-        if ($heldDetail) { $heldDetail += ', ' }
-        $heldDetail += "$domain ($($status.SessionId))"
-    }
-}
-if ($skipAcquiring) {
-    Write-Host "  SKIP  acquiring cases - code domain(s) held: $heldDetail" -ForegroundColor Yellow
+$fixtureStatus = Get-AgentLockStatus -Name 'Code.Fixture'
+if ($fixtureStatus.Exists -and -not $fixtureStatus.Stale) {
+    $skipAcquiring = $true
+    Write-Host "  SKIP  acquiring cases - Code.Fixture held: $($fixtureStatus.SessionId)" -ForegroundColor Yellow
 }
 
-# --- Cases 1-4: path normalisation, no locks taken ----------------------------
+# --- Cases 1-5: path normalisation, no locks taken ----------------------------
 # The whole adoption rests on this: every caller in the family builds its targets with Join-Path
 # against a repo root, and an absolute path reaches the resolver as "unrecognised" -> every domain.
 function Resolve-ForTest {
@@ -105,71 +113,79 @@ Assert-Case 'an absolute app_v2 + docs pair gives exactly those two domains' `
         (Join-Path $repoRoot 'docs/OPEN_SOURCE.md'))) -eq 'Code.Phone,Code.Scripts')
 
 Assert-Case 'a rooted path outside the project still fails closed to every code domain' `
-    ((Resolve-ForTest -Path @('C:/somewhere/else/file.md')) -eq 'Code.Phone,Code.Wear,Code.Scripts')
+    ((Resolve-ForTest -Path @('C:/somewhere/else/file.md')) -eq $allCodeDomains) `
+    "resolved: $(Resolve-ForTest -Path @('C:/somewhere/else/file.md'))"
 
 # The near miss that actually happened, and the reason Enter-CodeLockOrExit announces this answer
 # instead of just returning it: every rule is an anchored PREFIX, so the CONTAINING directory of a
 # target matches nothing and widens to every code domain. Safe, wrong, and otherwise silent - two
 # docs renderers passed their $OutDir here and queued behind a sibling's Code.Phone (2026-09-06).
-# Asserted on the resolver rather than on a real acquisition: acquiring all three to read one
+# Asserted on the resolver rather than on a real acquisition: acquiring all of them to read one
 # advisory line would take the whole repository's code domains, and exit 4 on a busy one would take
 # this runner down with it.
 Assert-Case 'the containing directory alone still fails closed (the near miss)' `
-    ((Resolve-ForTest -Path @((Join-Path $repoRoot 'docs'))) -eq 'Code.Phone,Code.Wear,Code.Scripts')
+    ((Resolve-ForTest -Path @((Join-Path $repoRoot 'docs'))) -eq $allCodeDomains)
 
-# --- Cases 5-6: a free domain is acquired and fully released ------------------
+# S2697: the fixture rule must win over the temp/ exemption below it, or the acquiring cases would
+# silently test nothing.
+Assert-Case 'an absolute temp/lock-fixture/ path narrows to Code.Fixture alone' `
+    ((Resolve-ForTest -Path @($fixtureTarget)) -eq 'Code.Fixture') `
+    "resolved: $(Resolve-ForTest -Path @($fixtureTarget))"
+
+# --- Cases 6-7: a free domain is acquired and fully released ------------------
 if (-not $skipAcquiring) {
     $scope = $null
     try {
-        $scope = Enter-CodeLockOrExit -Path @($docTarget) -Reason 'code-lock-scope.tests case 5'
-        Assert-Case 'a docs/ target acquires Code.Scripts and nothing else' `
-            ((@($scope.Acquired) -join ',') -eq 'Code.Scripts' -and (Test-Path -LiteralPath $scriptsLock) -and
-             -not (Test-Path -LiteralPath $phoneLock) -and -not (Test-Path -LiteralPath $wearLock)) `
+        $scope = Enter-CodeLockOrExit -Path @($fixtureTarget) -Reason 'code-lock-scope.tests case 6'
+        Assert-Case 'a fixture target acquires Code.Fixture and nothing else' `
+            ((@($scope.Acquired) -join ',') -eq 'Code.Fixture' -and (Test-Path -LiteralPath $fixtureLock) -and
+             (Test-NoOtherOwnCodeLock)) `
             "acquired: $(@($scope.Acquired) -join ',')"
     }
     finally { if ($scope) { Exit-CodeLockScope -Scope $scope } }
-    Assert-Case 'the release removes the lock file' (-not (Test-Path -LiteralPath $scriptsLock))
+    Assert-Case 'the release removes the lock file' (-not (Test-Path -LiteralPath $fixtureLock))
 }
 
-# --- Cases 7-9: re-entry acquires nothing and releases nothing ----------------
+# --- Cases 8-10: re-entry acquires nothing and releases nothing ---------------
 if (-not $skipAcquiring) {
     $outer = $null
     try {
-        $outer = Enter-CodeLockOrExit -Path @($docTarget) -Reason 'code-lock-scope.tests case 7 outer'
-        $inner = Enter-CodeLockOrExit -Path @($docTarget) -Reason 'code-lock-scope.tests case 7 inner'
+        $outer = Enter-CodeLockOrExit -Path @($fixtureTarget) -Reason 'code-lock-scope.tests case 8 outer'
+        $inner = Enter-CodeLockOrExit -Path @($fixtureTarget) -Reason 'code-lock-scope.tests case 8 inner'
         Assert-Case 'a re-entrant call acquires nothing' (@($inner.Acquired).Count -eq 0)
         Exit-CodeLockScope -Scope $inner
-        Assert-Case 'the inner release leaves the outer lock in place' (Test-Path -LiteralPath $scriptsLock)
+        Assert-Case 'the inner release leaves the outer lock in place' (Test-Path -LiteralPath $fixtureLock)
     }
     finally { if ($outer) { Exit-CodeLockScope -Scope $outer } }
-    Assert-Case 'the outer release then frees the domain' (-not (Test-Path -LiteralPath $scriptsLock))
+    Assert-Case 'the outer release then frees the domain' (-not (Test-Path -LiteralPath $fixtureLock))
 }
 
-# --- Case 10: an exception between enter and exit still releases --------------
+# --- Case 11: an exception between enter and exit still releases --------------
 if (-not $skipAcquiring) {
     $threw = $false
     $scope4 = $null
     try {
-        $scope4 = Enter-CodeLockOrExit -Path @($docTarget) -Reason 'code-lock-scope.tests case 10'
+        $scope4 = Enter-CodeLockOrExit -Path @($fixtureTarget) -Reason 'code-lock-scope.tests case 11'
         throw 'deliberate failure inside the locked window'
     }
     catch { $threw = $true }
     finally { if ($scope4) { Exit-CodeLockScope -Scope $scope4 } }
     Assert-Case 'a throw inside the window still releases through the caller finally' `
-        ($threw -and -not (Test-Path -LiteralPath $scriptsLock))
+        ($threw -and -not (Test-Path -LiteralPath $fixtureLock))
 }
 
-# --- Case 11: a PLAN/ only path set takes no domain --------------------------
+# --- Case 12: a PLAN/ only path set takes no domain --------------------------
 $planScope = $null
 try {
     $planScope = Enter-CodeLockOrExit -Path @((Join-Path $repoRoot 'PLAN/S2615_bugfix-icon-inventory-regenerator-skips-code-lock.md')) `
-        -Reason 'code-lock-scope.tests case 11'
+        -Reason 'code-lock-scope.tests case 12'
     Assert-Case 'a PLAN/ only set resolves to no domain and acquires nothing' `
-        ((@($planScope.Acquired).Count -eq 0) -and ($skipAcquiring -or -not (Test-Path -LiteralPath $scriptsLock)))
+        ((@($planScope.Acquired).Count -eq 0) -and (Test-NoOtherOwnCodeLock) -and
+         ($skipAcquiring -or -not (Test-Path -LiteralPath $fixtureLock)))
 }
 finally { if ($planScope) { Exit-CodeLockScope -Scope $planScope } }
 
-# --- Case 11b: a temp/ path takes no domain either (S2710) --------------------
+# --- Case 13-14: a temp/ path takes no domain either (S2710) ------------------
 # The second exemption, and it arrived as a red contract suite rather than as a design: every path
 # rule is an anchored prefix and none of them named temp/, so a throwaway file under temp/scratch
 # hit the fail-closed branch and acquired ALL THREE code domains to write a file the run deletes.
@@ -183,14 +199,14 @@ Assert-Case 'a temp/ path resolves to no domain at all' `
 $tempScope = $null
 try {
     $tempScope = Enter-CodeLockOrExit -Path @((Join-Path $repoRoot 'temp/scratch/s2710-sandbox/baseline.txt')) `
-        -Reason 'code-lock-scope.tests case 11b'
+        -Reason 'code-lock-scope.tests case 14'
     Assert-Case 'a temp/ only set acquires nothing and creates no lock file' `
-        ((@($tempScope.Acquired).Count -eq 0) -and ($skipAcquiring -or
-         (-not (Test-Path -LiteralPath $scriptsLock) -and -not (Test-Path -LiteralPath $phoneLock) -and -not (Test-Path -LiteralPath $wearLock))))
+        ((@($tempScope.Acquired).Count -eq 0) -and (Test-NoOtherOwnCodeLock) -and
+         ($skipAcquiring -or -not (Test-Path -LiteralPath $fixtureLock)))
 }
 finally { if ($tempScope) { Exit-CodeLockScope -Scope $tempScope } }
 
-# --- Cases 12-13: a foreign holder yields exit 4 and writes nothing -----------
+# --- Cases 15-16: a foreign holder yields exit 4 and writes nothing -----------
 if (-not $skipAcquiring) {
     $probe = Join-Path $repoRoot 'temp/S2615/probe-exit-4.ps1'
     New-Item -ItemType Directory -Path (Split-Path -Parent $probe) -Force | Out-Null
@@ -198,22 +214,22 @@ if (-not $skipAcquiring) {
 Set-StrictMode -Version Latest
 `$ErrorActionPreference = 'Stop'
 . '$helper'
-`$null = Enter-CodeLockOrExit -Path @('docs/ICON_LEGEND.md') -Reason 'code-lock-scope.tests case 12 (foreign)'
+`$null = Enter-CodeLockOrExit -Path @('$fixtureRelative') -Reason 'code-lock-scope.tests case 15 (foreign)'
 exit 0
 "@ | Set-Content -LiteralPath $probe -Encoding utf8
 
     $held = $null
     $probeExit = -1
     try {
-        $held = Enter-CodeLockOrExit -Path @($docTarget) -Reason 'code-lock-scope.tests case 12 holder'
-        $before = (Get-Item -LiteralPath $scriptsLock).LastWriteTimeUtc
+        $held = Enter-CodeLockOrExit -Path @($fixtureTarget) -Reason 'code-lock-scope.tests case 15 holder'
+        $before = (Get-Item -LiteralPath $fixtureLock).LastWriteTimeUtc
         # A different first link of the identity chain makes the child a stranger to this lock, without
         # forging any state: it queues and refuses exactly as a real sibling session would.
         $priorAgentId = $env:FMS_AGENT_ID
         $env:FMS_AGENT_ID = 'code-lock-scope-tests-foreign'
         try { & pwsh -NoProfile -File $probe *> (Join-Path $repoRoot 'temp/S2615/probe-exit-4.out'); $probeExit = $LASTEXITCODE }
         finally { $env:FMS_AGENT_ID = $priorAgentId }
-        $after = (Get-Item -LiteralPath $scriptsLock).LastWriteTimeUtc
+        $after = (Get-Item -LiteralPath $fixtureLock).LastWriteTimeUtc
         Assert-Case 'a foreign holder makes the helper exit 4' ($probeExit -eq 4) "actual exit $probeExit"
         Assert-Case 'the refused run left the holder lock untouched' ($after -eq $before)
     }
@@ -221,23 +237,23 @@ exit 0
         if ($held) { Exit-CodeLockScope -Scope $held }
         # The refusal keeps its place in the queue by design; that place belongs to an identity nothing
         # else will ever reuse, so this suite retires it rather than leaving it on the real queue head.
-        Remove-AgentSessionTickets -Name 'Code.Scripts' -SessionId 'code-lock-scope-tests-foreign' | Out-Null
+        Remove-AgentSessionTickets -Name 'Code.Fixture' -SessionId 'code-lock-scope-tests-foreign' | Out-Null
     }
 }
 
-# --- Case 14: a null scope releases nothing and raises nothing ----------------
+# --- Case 17: a null scope releases nothing and raises nothing ----------------
 # The shape every adopting script's `finally` sees when the run died before Enter returned. A
 # Mandatory -Scope would PROMPT here, turning a cleanup path into an error that buries the real one.
 $nullReleaseOk = $true
 try { Exit-CodeLockScope -Scope $null } catch { $nullReleaseOk = $false }
 Assert-Case 'releasing a null scope is a silent no-op' $nullReleaseOk
 
-# --- Case 15: running the library as a script refuses -------------------------
+# --- Case 18: running the library as a script refuses -------------------------
 & pwsh -NoProfile -File $helper *> (Join-Path $repoRoot 'temp/S2615/probe-direct.out')
 Assert-Case 'invoking the library as a script exits 2' ($LASTEXITCODE -eq 2) "actual exit $LASTEXITCODE"
 
-# --- Cases 16-18: Enter-CodeLockOrSkip skips instead of exiting (S2635) -------
-# Same shape as cases 12-13, one assertion inverted: the busy domain must NOT end the process.
+# --- Cases 19-21: Enter-CodeLockOrSkip skips instead of exiting (S2635) -------
+# Same shape as cases 15-16, one assertion inverted: the busy domain must NOT end the process.
 # assert-source-gates.ps1 reaches this from inside the concurrent fg battery with its verdict
 # already computed, so an exit there would paint a passing gate red over a bookkeeping write.
 if (-not $skipAcquiring) {
@@ -247,7 +263,7 @@ if (-not $skipAcquiring) {
 Set-StrictMode -Version Latest
 `$ErrorActionPreference = 'Stop'
 . '$helper'
-`$s = Enter-CodeLockOrSkip -Path @('docs/ICON_LEGEND.md') -Reason 'code-lock-scope.tests skip (foreign)'
+`$s = Enter-CodeLockOrSkip -Path @('$fixtureRelative') -Reason 'code-lock-scope.tests skip (foreign)'
 Write-Host "SKIPPED=`$(`$s.Skipped) ACQUIRED=`$(@(`$s.Acquired).Count)"
 Exit-CodeLockScope -Scope `$s
 exit 0
@@ -258,8 +274,8 @@ exit 0
     $skipOut = ''
     $foreignQueued = -1
     try {
-        $skipHeld = Enter-CodeLockOrExit -Path @($docTarget) -Reason 'code-lock-scope.tests skip holder'
-        $beforeSkip = (Get-Item -LiteralPath $scriptsLock).LastWriteTimeUtc
+        $skipHeld = Enter-CodeLockOrExit -Path @($fixtureTarget) -Reason 'code-lock-scope.tests skip holder'
+        $beforeSkip = (Get-Item -LiteralPath $fixtureLock).LastWriteTimeUtc
         $skipOutFile = Join-Path $repoRoot 'temp/S2635/probe-skip-case.out'
         $priorAgentId = $env:FMS_AGENT_ID
         $env:FMS_AGENT_ID = 'code-lock-scope-tests-skipper'
@@ -269,8 +285,8 @@ exit 0
         }
         finally { $env:FMS_AGENT_ID = $priorAgentId }
         $skipOut = (Get-Content -LiteralPath $skipOutFile -Raw)
-        $afterSkip = (Get-Item -LiteralPath $scriptsLock).LastWriteTimeUtc
-        $foreignQueued = @(Get-AgentLockQueue -Name 'Code.Scripts' |
+        $afterSkip = (Get-Item -LiteralPath $fixtureLock).LastWriteTimeUtc
+        $foreignQueued = @(Get-AgentLockQueue -Name 'Code.Fixture' |
             Where-Object { [string]$_.sessionId -eq 'code-lock-scope-tests-skipper' }).Count
 
         Assert-Case 'a foreign holder makes OrSkip return instead of exiting' `
@@ -284,21 +300,31 @@ exit 0
     }
     finally {
         if ($skipHeld) { Exit-CodeLockScope -Scope $skipHeld }
-        Remove-AgentSessionTickets -Name 'Code.Scripts' -SessionId 'code-lock-scope-tests-skipper' | Out-Null
+        Remove-AgentSessionTickets -Name 'Code.Fixture' -SessionId 'code-lock-scope-tests-skipper' | Out-Null
     }
 }
 
-# --- Case 19: OrSkip on a free domain acquires and releases normally ----------
+# --- Cases 22-23: OrSkip on a free domain acquires and releases normally ------
 if (-not $skipAcquiring) {
     $freeSkip = $null
     try {
-        $freeSkip = Enter-CodeLockOrSkip -Path @($docTarget) -Reason 'code-lock-scope.tests free skip'
+        $freeSkip = Enter-CodeLockOrSkip -Path @($fixtureTarget) -Reason 'code-lock-scope.tests free skip'
         Assert-Case 'OrSkip on a free domain acquires the domain and does not skip' `
-            ((-not $freeSkip.Skipped) -and (@($freeSkip.Acquired).Count -eq 1) -and (Test-Path -LiteralPath $scriptsLock))
+            ((-not $freeSkip.Skipped) -and (@($freeSkip.Acquired) -join ',') -eq 'Code.Fixture' -and
+             (Test-Path -LiteralPath $fixtureLock))
     }
     finally { if ($freeSkip) { Exit-CodeLockScope -Scope $freeSkip } }
-    Assert-Case 'the OrSkip release frees the domain' (-not (Test-Path -LiteralPath $scriptsLock))
+    Assert-Case 'the OrSkip release frees the domain' (-not (Test-Path -LiteralPath $fixtureLock))
 }
+
+# --- Case 24: the suite never touched Code.Scripts (S2697) --------------------
+# The non-interference claim the fixture domain exists for: this session holds no production code
+# lock, and neither test identity left a ticket on the Code.Scripts queue.
+$scriptsLeftovers = @(Get-AgentLockQueue -Name 'Code.Scripts' |
+    Where-Object { $testIdentities -contains [string]$_.sessionId }).Count
+Assert-Case 'acquiring cases use Code.Fixture and leave Code.Scripts free of this suite' `
+    ((Test-NoOtherOwnCodeLock) -and ($scriptsLeftovers -eq 0)) `
+    "own production lock held: $(-not (Test-NoOtherOwnCodeLock)); test tickets on Code.Scripts: $scriptsLeftovers"
 
 # --- Verdict ------------------------------------------------------------------
 Write-Host ''
@@ -307,7 +333,7 @@ if ($failures -gt 0) {
     exit 1
 }
 if ($skipAcquiring) {
-    Write-Host "code-lock-scope.tests: PASS ($caseNo cases, acquiring cases skipped - domain(s) held)" -ForegroundColor Green
+    Write-Host "code-lock-scope.tests: PASS ($caseNo cases, acquiring cases skipped - Code.Fixture held)" -ForegroundColor Green
     exit 0
 }
 Write-Host "code-lock-scope.tests: PASS ($caseNo cases)" -ForegroundColor Green

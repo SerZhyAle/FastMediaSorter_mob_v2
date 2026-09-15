@@ -131,7 +131,6 @@ class WearPlaybackService : MediaSessionService() {
          * anyway; ending here means the battery does not pay for the timeout first.
          */
         override fun onPlayerError(error: PlaybackException) {
-            Timber.d("S2848: background playback error ends the session")
             Timber.w(error, "WearPlaybackService: playback error, ending the background session")
             stopPlaybackAndSelf()
         }
@@ -164,7 +163,6 @@ class WearPlaybackService : MediaSessionService() {
                 streamPlaybackSession.stop()
                 progressTicker?.stop()
                 if (player?.playWhenReady != true) {
-                    Timber.d("S2166: paused background session releases foreground service")
                     stopPlaybackAndSelf()
                     return
                 }
@@ -190,7 +188,6 @@ class WearPlaybackService : MediaSessionService() {
             backgroundSessionState.updateProgress(position, exoPlayer.isPlaying)
         }
         stallWatchdog = WearPlaybackStallWatchdog(serviceScope, WEAR_PLAYBACK_STALL_TIMEOUT_MS) {
-            Timber.d("S2848: stalled background session releases foreground service")
             Timber.w(
                 "WearPlaybackService: no sound for %d ms, ending the background session",
                 WEAR_PLAYBACK_STALL_TIMEOUT_MS
@@ -239,7 +236,6 @@ class WearPlaybackService : MediaSessionService() {
         // all, and prepare() on a null kind would claim one for a file already on disk.
         streamMediaKind?.let(streamPlaybackSession::prepare)
         val positionMs = intent.getLongExtra(EXTRA_POSITION_MS, 0L)
-        Timber.d("S2166: started background playback service for %s at %d ms", uri, positionMs)
         backgroundSessionState.start(
             WearBackgroundSession(
                 fileId = intent.getLongExtra(EXTRA_FILE_ID, NO_FILE_ID),

@@ -10,7 +10,7 @@ object MediaExtensions {
     )
     val AUDIO = setOf(
         "mp3", "flac", "aac", "ogg", "m4a", "wma", "opus", 
-        "amr", "awb", "ac3", "ec3", "ac4", "adts", "thd", "mka", "oga", "caf", "alac", "mia"
+        "amr", "awb", "ac3", "ec3", "ac4", "adts", "thd", "mka", "oga", "caf", "alac", "mia", "wav", "wave"
     ) + MidiPlaybackPolicy.SUPPORTED_EXTENSIONS
     val TEXT = setOf("txt", "md", "log", "json", "xml", "csv", "conf", "ini", "properties", "yml", "yaml")
     val PDF = setOf("pdf")

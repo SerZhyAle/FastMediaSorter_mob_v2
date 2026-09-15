@@ -29,7 +29,6 @@ class SafeSelectionMovementMethod : ArrowKeyMovementMethod() {
         try {
             super.onTouchEvent(widget, buffer, event)
         } catch (e: IndexOutOfBoundsException) {
-            Timber.d("S2572: guard caught the framework caret crash on a cleared field")
             Timber.w(e, "Caret restore rejected on a cleared field; collapsing selection to text end")
             Selection.setSelection(buffer, buffer.length)
             true

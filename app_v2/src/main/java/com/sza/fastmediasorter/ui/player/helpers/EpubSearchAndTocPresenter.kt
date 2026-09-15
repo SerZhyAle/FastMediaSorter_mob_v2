@@ -5,6 +5,7 @@ import android.webkit.WebView
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.warnUnlessCancellation
+import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import io.documentnode.epub4j.domain.Book
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -70,8 +71,6 @@ class EpubSearchAndTocPresenter(
             }
         }
 
-        // WebView.findAllAsync() is deprecated in API 16+ but still functional
-        @Suppress("DEPRECATION")
         webView.findAllAsync(query)
     }
 
@@ -146,7 +145,7 @@ class EpubSearchAndTocPresenter(
         etQuery.requestFocus()
         val imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
         etQuery.postDelayed(
-            { imm.showSoftInput(etQuery, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT) },
+            { imm.showSoftInputImplicitly(etQuery) },
             200
         )
 

@@ -17,7 +17,6 @@ class LauncherTaskbarPinnedAppMenuManager(
     /** Keeps the two taskbar-specific actions separate from the fuller all-apps menu. */
     fun show(anchor: View, command: LauncherCellCommand, position: Int): Boolean {
         if (!anchor.isAttachedToWindow || position < 0) return false
-        Timber.d("S1901: show pinned taskbar menu for %s at %d", command, position)
         dismiss()
         val context = anchor.context
         val rows = listOf(

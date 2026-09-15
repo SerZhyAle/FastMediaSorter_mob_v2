@@ -134,6 +134,8 @@ class KeyboardNavigationManager(
         horizontal: Int = 0,
     ) {
         val count = callbacks.getMediaFilesCount()
+        // coerceIn(0, count - 1) throws on an empty range; an empty folder must ignore arrow keys.
+        if (count <= 0) return
         val target = when {
             vertical != 0 && lm is GridLayoutManager -> {
                 (current + vertical * lm.spanCount).coerceIn(0, count - 1)

@@ -107,7 +107,6 @@ class VoiceRecordingSessionManager @Inject constructor(
     }
 
     suspend fun begin(mode: Mode) {
-        Timber.d("S2430: session manager begin, recorder open=%s", isSessionOpen)
         this.mode = mode
         when (mode) {
             Mode.VOICE_NOTE -> beginVoiceNote()
@@ -143,7 +142,6 @@ class VoiceRecordingSessionManager @Inject constructor(
     }
 
     suspend fun stop() {
-        Timber.d("S2430: session manager stop, recorder open=%s", isSessionOpen)
         val active = recorder
         if (active == null) {
             Timber.i("Ignoring a stop: no microphone session is open")
@@ -345,13 +343,15 @@ class VoiceRecordingSessionManager @Inject constructor(
 
         /**
          * ADR-4: self-delimiting ADTS frames, which is what lets a non-seekable sink carry them and
-         * what `AacExtractor` on the phone already reads.
+         * what `AacExtractor` on the phone already reads. S3049: uses VOICE_RECOGNITION audio source
+         * to enable Wear OS platform voice gain boost and AGC for live streams.
          */
         fun configureLiveStream(target: MediaRecorder, sink: ParcelFileDescriptor) {
-            target.setAudioSource(MediaRecorder.AudioSource.MIC)
+            target.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
             target.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
             configureEncoder(target)
             target.setOutputFile(sink.fileDescriptor)
+            Timber.d("S3049: wear live stream configured with VOICE_RECOGNITION audio source")
         }
 
         /**

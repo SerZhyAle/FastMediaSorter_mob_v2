@@ -61,7 +61,6 @@ class ResolveLastUsedResourceUseCase @Inject constructor(
      */
     private fun LastUsedResource.resolveAgainstChannels(channels: List<WearStreamChannel>): LastUsedResource? =
         channels.firstOrNull { normalizeWearStreamUrl(it.url) == id }?.let {
-            Timber.d("S2499: resolved channel %s with favicon %s", it.name, it.faviconIndex)
             copy(name = it.name, faviconIndex = it.faviconIndex)
         }
 }

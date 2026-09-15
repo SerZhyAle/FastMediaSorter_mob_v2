@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsBroadcastBinding
@@ -11,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import java.util.Locale
 
 /**
@@ -46,6 +48,9 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
         binding.rowAudioFormat.setEntries(
             AUDIO_FORMATS.map { formatAudioFormat(it) }
         )
+        binding.rowMicGain.setEntries(
+            MIC_GAINS.map { "$it%" }
+        )
 
         binding.rowStreamTitle.setOnCommitListener { value ->
             val title = value.toString().trim()
@@ -78,11 +83,22 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
             )
         }
 
+        bindDropdown(binding.rowMicGain) { index ->
+            val gain = MIC_GAINS.getOrNull(index) ?: return@bindDropdown
+            viewModel.updateSettings(viewModel.settings.value.copy(broadcastMicGainPercent = gain))
+        }
+
+        bindSwitch(binding.rowEnableBroadcasting) { isChecked ->
+            viewModel.updateSettings(viewModel.settings.value.copy(enableBroadcasting = isChecked))
+            updateBroadcastOptionsVisibility(isChecked)
+        }
+
         bindSwitch(binding.rowAutoOpenShare) { isChecked ->
             viewModel.updateSettings(viewModel.settings.value.copy(broadcastAutoOpenShare = isChecked))
         }
 
         collectOnLifecycle(viewModel.settings) { settings: AppSettings ->
+            updateBroadcastOptionsVisibility(settings.enableBroadcasting)
             if (binding.rowStreamTitle.text.toString() != settings.broadcastStreamTitle) {
                 binding.rowStreamTitle.text = settings.broadcastStreamTitle
             }
@@ -90,11 +106,25 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
                 binding.rowPort.text = settings.broadcastPort.toString()
             }
             withSettingsUpdate {
-                setDropdownSelection(binding.rowBitRate, BIT_RATES.indexOf(settings.broadcastBitRateBps).coerceAtLeast(0))
+                setSwitchChecked(binding.rowEnableBroadcasting, settings.enableBroadcasting)
+                setDropdownSelection(
+                    binding.rowBitRate,
+                    BIT_RATES.indexOf(settings.broadcastBitRateBps).coerceAtLeast(0)
+                )
                 setDropdownSelection(binding.rowAudioFormat, audioFormatIndex(settings))
+                setDropdownSelection(
+                    binding.rowMicGain,
+                    MIC_GAINS.indexOf(settings.broadcastMicGainPercent).coerceAtLeast(1)
+                )
                 setSwitchChecked(binding.rowAutoOpenShare, settings.broadcastAutoOpenShare)
             }
         }
+    }
+
+    private fun updateBroadcastOptionsVisibility(enabled: Boolean) {
+        binding.rowStreamTitle.isVisible = enabled
+        binding.broadcastConfigGroup.isVisible = enabled
+        binding.rowAutoOpenShare.isVisible = enabled
     }
 
     private fun formatBitRate(bps: Int): String =
@@ -113,8 +143,9 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun audioFormatIndex(settings: AppSettings): Int =
-        AUDIO_FORMATS.indexOfFirst { it.first == settings.broadcastSampleRateHz && it.second == settings.broadcastChannelCount }
-            .coerceAtLeast(0)
+        AUDIO_FORMATS.indexOfFirst { (sampleRate, channels) ->
+            sampleRate == settings.broadcastSampleRateHz && channels == settings.broadcastChannelCount
+        }.coerceAtLeast(0)
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -129,6 +160,9 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
         private const val STEREO_CHANNEL_COUNT = 2
 
         private val BIT_RATES = intArrayOf(128_000, 192_000, 256_000, 320_000)
+
+        // S3049: microphone digital gain percent options (50% .. 400%).
+        private val MIC_GAINS = intArrayOf(50, 100, 150, 200, 300, 400)
 
         // (sampleRateHz, channelCount) - index maps to the dropdown position.
         private val AUDIO_FORMATS = listOf(

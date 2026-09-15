@@ -553,3 +553,204 @@ level was left open to it, and no ticket claims it yet.
 Unchanged from §13.3 - the same one command. It now also prints both new axes and the fraction spread; it
 used to filter its echo through a hardcoded list of four axis names, which would have shown neither of the
 axes this round added while still exiting 0.
+
+
+## 15. Round 5 (2026-09-12): a rule arrives that does not fit our shape, and what that says
+
+The neighbouring project handed over a two-part rule against its worst overlay failure: an image with text
+in two separated regions - two speech balloons either side of a figure, two columns, a caption and a margin
+note - produces one plate that is a bar across the whole picture carrying both texts run into one sentence,
+and a translator then translates the run-on as one sentence, so the damage survives into every language.
+Their rule cuts the recognizer line between two consecutive words standing more than `MAX_WORD_GAP_RATIO`
+median word heights apart, then regroups the resulting runs into columns to restore reading order. The
+constant is `3.5`, bracketed over 46 corpus scenes plus the reported image on the 199 multi-word lines that
+cleared their confidence floor (tesseract.js 7, PSM 3, `eng`): widest gap inside a line that really is one
+line `2.57x`, narrowest cross-region stitch `4.80x`, and ratios `1.87-2.57x` declared undecidable by
+geometry - comic balloons drawn side by side stitch there while real lines reach into it.
+
+**The port was refused and the reason is structural.** It is recorded here rather than in a commit message
+because the refusal is a finding about the three pipelines, not about one change.
+
+### 15.1 Half the rule has no host here
+
+Their part 2 - regroup the cut runs into columns and emit column by column - exists because cutting alone
+makes a single-pass clustering worse: the runs interleave left, right, left, right down the page and the
+clustering closes its open plate on the first line that does not belong to it, measured as one balloon going
+from 1 oversized bar to 3 fragments. Both traps they paid a cycle for - the scope being the page rather than
+the recognizer paragraph, and a floor-failing full-page "line" chaining two real columns into one - are
+properties of that same clustering.
+
+We have no clustering. §4 S5 has said so since round 1, and the code agrees:
+`filterDuplicateAndOverlappingBlocks` in `TesseractManager` is a deduplicator keyed on text similarity and
+box overlap, it groups nothing geometrically, and `TranslationOverlayView.onDraw` walks `translatedBlocks`
+drawing one rounded rectangle per block. There is no pass, no open plate and no state between lines; the order blocks arrive in cannot
+affect what is drawn. Their part 2 asks that the clustering's own x-overlap test be reused rather than
+re-invented, and here there is nothing to reuse. Adopting it would mean writing the second overlap test
+their own text forbids.
+
+### 15.2 None of the three arguments for "nothing downstream can recover" applies
+
+They name three rules that look like they should catch the stitched bar and explain why each fails, and they
+ask a porter to check which exist before accepting the argument. Checked, 2026-09-12:
+
+- a column or x-overlap test on the clustering: **absent**, see §15.1;
+- a plate-coverage or oversize-release rule: **absent**. The nearest quantity is the `2.7x` growth cap on
+  the plate against its own source box; no fraction of the frame is computed anywhere;
+- a pitch or type-size comparison against neighbouring lines: **absent**. `OcrLineGeometry.typeSizePx`
+  compares words inside one line and never looks at another line.
+
+The conclusion survives the check but by a shorter route than theirs. On their side the stitched line defeats
+three recovery rules; on ours it becomes a plate immediately, because one recognizer line is one plate. The
+defect is the same and the argument for repairing it before the plate is formed is stronger here, not weaker.
+
+### 15.3 Their constant is not adoptable, and the reason is a hole of ours
+
+`3.5` was bracketed at PSM 3, which is where the cross-page layout walk that produces the stitch lives.
+**We do not know what page segmentation mode we ship.** `PageSegMode`, `PSM_` and `setVariable` return zero
+matches across `app_v2/src`. `getPageSegMode()` is present on the artefact - verified against
+`tesseract4android-4.8.0.aar`, `classes.jar`, `public int getPageSegMode()`, and all fourteen `PSM_*`
+constants are on `TessBaseAPI$PageSegMode` - so reading it costs one call, and nothing in this project has
+ever made it.
+
+Round 1 §9 listed that read as item 3 of five and S1715 was opened for it. S1715 is `Archived` and its spec
+file is gone from the tree, but it left two comments in `TesseractManager.init` - "S1715 pillar 1: read the
+mode we have been recognising in before anything sets it" on the best-model path, and "same reading on the
+fallback path" on the other - **above log statements that print the language and not the mode**. The reading
+was described, sited on both init paths, and never written. A comment claiming a measurement is worse than
+the absence it replaces: it answers the question for the next reader, and the answer is not there. This is
+the second time this exchange has recorded a defect of that shape - §13.1 has the corpus refusing to print a
+zero that would have read as a measurement - and it is worth naming as a class, because both sides now have
+one.
+
+### 15.4 What this round changes
+
+`S3039` carries the work, in dependency order, and nothing below it starts before the step above it reports.
+
+1. The mode is read on both init paths and printed at `Timber.i` with the engine's own enum name beside the
+   integer. Landed with this round; the value itself is a device reading and is **not yet in this document**.
+2. A dump of real recognizer output on an image with two separated regions: for every line of two or more
+   words, `max gap between consecutive word boxes / median word height` together with the line's confidence.
+   It is taken through the app on a device, because this workstation has no `tesseract` on `PATH` and the
+   `scripts/ocrbench` corpus holds no recognizer in its loop (§13.1) - six synthetic 800x600 scenes cannot
+   produce this distribution.
+3. Only then the cut itself, in `domain/ocr/` ahead of `OcrBlockFilter`, with the three expressions that
+   carry the rule's meaning kept intact: the gap measured **between boxes** (`max(next.left - prev.right,
+   prev.left - next.right)`, or a right-to-left line yields a negative gap on every pair and never cuts),
+   weighed against the **median word height** rather than the line box (the box is the union of its words, the
+   same reason §6.1 exists), and each run boxed to **its own** words with its own mean confidence. A line that
+   is not cut returns unchanged by identity.
+
+### 15.5 What we hand back
+
+- **A third pipeline shape.** Their argument that the repair belongs before the clustering was derived
+  against a pipeline that has one. It holds in a pipeline that has none, and for a simpler reason: with one
+  line per plate there is no stage between the stitch and the artwork at all. Whoever ports this next can
+  check §15.2's three absences quickly and skip part 2 outright if they come out the same way.
+- **The comment that claims a reading nobody took.** Both of our projects gate thresholds on measurements;
+  neither gates a *claim* of a measurement. A grep for the ticket id found the comments instantly; nothing
+  found that the call beside them was missing, because nothing looks for it.
+- **An open question on the constant's dependence on PSM.** If either side has the ratio distribution at a
+  mode other than 3, it decides whether `3.5` is a property of the material or of the layout analysis. We
+  will have exactly one such reading shortly and one reading is not a distribution.
+
+### 15.6 The dump instrument, 2026-09-13
+
+Item 2 of §15.4 now has its instrument and still has no reading.
+
+- `OcrLineGap.measure` in `domain/ocr/` returns, for a line of two or more words, the widest gap between
+  consecutive word boxes, the median word height and their ratio. It carries no threshold, so it does not
+  breach rule 2 of the exchange.
+- `RecognitionBackend` prints one `OCR line gap: ratio=.. gap=.. median=.. words=.. conf=..` line per such
+  line, at `Timber.i`, **before** `OcrBlockFilter`, so a line the filter later drops is still in the dump.
+  Recognised text is not printed: it is the content of the user's picture, the same constraint S1712 wrote.
+- The S1712 discard channel could not serve as the dump. `OcrDiscardRecorder.setEnabled` has no caller in
+  the tree, so the channel is off in every build, and it records rejected fragments only - an accepted
+  stitched line, the defect itself, never reaches it.
+
+What is still owed, unchanged in order: the mode reading from a device log, then the dump on material that
+holds at least one stitching scene and one honest multi-word scene, then the bracket, then the cut.
+
+## 16. Round 6 - the gap dump and the constant, 2026-09-13
+
+§15.3 said a dump could only come from a device. It could not have been more wrong about the workstation:
+`C:\Program Files\Tesseract-OCR\tesseract.exe` is installed, v5.4.0, and its `eng.traineddata` is 4113088 bytes,
+byte-for-byte the size of the `tessdata_fast` model the app downloads. The dump below is that engine on that
+model; the device reading of §15.4 item 1 stays owed as confirmation, not as a precondition.
+
+### 16.1 The mode we ship is PSM 6, not PSM 3
+
+- `tesseract --print-parameters` reports `tessedit_pageseg_mode 6` as the engine default. The command-line tool
+  overrides it to 3; the API does not.
+- `tesseract4android-4.8.0.aar`, `javap -c` on `TessBaseAPI`: none of the three `init` overloads invokes
+  `nativeSetPageSegMode`, and nothing in `app_v2/src` calls `setPageSegMode`.
+- So the app recognises in `PSM_SINGLE_BLOCK`. The neighbours bracketed `3.5` at PSM 3. Both modes were dumped.
+
+### 16.2 Material
+
+- The owner's scene `doc-html-translate/test_doc/1.png`, 2048x2048: ten speech bubbles on both sides of a
+  standing figure, several pairs at the same height. `GoogleLensTranslationHelper.maxOcrDimension` is 2048, so
+  it reaches the engine unscaled; a 1080x1080 copy was dumped too, for a player that decodes smaller.
+- From the same folder: a comic page, 800x1091, with bubbles drawn side by side and bullet-separated title
+  lists; a desktop settings dialog, 1226x882; a family-account list screenshot, 640x563, names left and roles
+  right. A personal document in that folder was not used.
+- Raw dump: `temp/S3039/dump-2026-09-13.txt`; the script mirrors `OcrLineGap.measure` exactly.
+
+### 16.3 What the dump shows
+
+- **At PSM 6 a photograph stitches almost every line.** On the owner's scene 28 of 34 multi-word lines carry a
+  gap of 7.00-271.60: a bubble joined to the other side of the figure, or to junk glyphs read off the shirt and
+  the wall. The six clean lines stay at or below 0.57. The account list stitches every name to its role at
+  13.00-16.83; the dialog stitches a list cell to the next column at 11.56 and two buttons at 6.38.
+- **At PSM 3 the same scene stitches five lines**, 36.43-99.86, and its honest lines reach 1.36.
+- **Honest lines, widest:** 3.33 at full resolution (a comic heading whose bullet was lost), 3.23 at PSM 6 on the
+  1080 copy, and 5.50 at PSM 3 on the 1080 copy - an eight-pixel median, where one misread space moves the
+  ratio by a whole unit.
+- **Stitches, narrowest:** 2.33 and 3.67 on the comic at PSM 3, both between speech bubbles drawn side by side;
+  6.38 on the dialog; 7.00 on the owner's scene.
+- **The unseparable band is 2.33-5.50.** Bubbles touching each other stitch below honest lines at low
+  resolution. The neighbours' band was 1.87-2.57 - the same kind of geometry, measured wider here because our
+  material holds a downscaled copy and theirs did not.
+- **A cut list is not a harmful cut.** The comic's bullet lists (5.43-5.86) are honest single printed lines
+  whose parts are separate titles; cutting them yields one plate per title.
+
+### 16.4 The constant
+
+`OcrLineSplitter.MAX_WORD_GAP_RATIO = 3.5`. It sits between the widest honest gap at full resolution (3.33) and
+the narrowest region-to-region stitch above it (3.67), and every PSM 6 honest line of all four scenes, at both
+resolutions, stays below it. It coincides with the neighbours' value; that agreement is a result, not the source.
+
+What it buys and what it costs:
+
+- Every PSM 6 stitch in the dump is cut, which at our default mode is almost every stitch there is.
+- The 2.33 side-by-side stitch is not cut. No value can cut it without cutting honest lines.
+- On a downscaled copy at PSM 3 one honest line (5.50) would be cut into two plates. Both pieces are longer than
+  `OcrBlockFilter.MIN_TEXT_LENGTH` and are translated; the sentence is split, not lost. PSM 3 is not what we ship.
+
+### 16.5 Where the cut sits
+
+`RecognitionBackend.recognizeAndTranslateBlocks`: after the recogniser's lines and the gap log, before
+`OcrBlockFilter`, so each piece faces the filter alone - a junk glyph cut off a real line now fails it instead of
+widening the real line's plate. Each piece is boxed to its own words with the mean of its own word confidences.
+
+### 16.6 What we hand back
+
+- **The mode question has an answer, and it changes the size of the problem.** A consumer of the Tesseract API
+  who never sets the mode runs PSM 6, where stitching on a photograph is the rule, not the edge case §15 took it
+  for. Whoever else wraps the API should read the mode before deciding the defect is rare.
+- **The constant survived a mode it was not bracketed at.** At PSM 6 honest lines sit far below 3.5 and stitches
+  far above; the tight part of the bracket is PSM 3 in both projects.
+- **Resolution widens the band.** Below roughly ten pixels of type size a single misread space costs a whole unit
+  of ratio. A bracket taken only at native resolution overstates the separable range.
+
+## 17. Round 7 - source-resolution player OCR, 2026-09-14
+
+The 2048 px guard in `GoogleLensTranslationHelper` was not sufficient when the player had already decoded an
+image at display size. With full-size image loading disabled, both direct image OCR and translated image OCR took
+their bitmap from the player drawable; the owner's 2048x2048 `1.png` therefore reached the recogniser as
+810x810. That erased the speech-bubble text before the line-gap measurement or splitter could act.
+
+S3088 adds `OcrInputBitmapLoader` before both image OCR entry points. For local files and content URIs it decodes
+the source with orientation applied, requests a software bitmap for native OCR, and constrains only images whose
+longest side exceeds 2048 px. Remote sources that cannot be resolved locally retain the displayed bitmap as an
+explicit fallback. The device handoff must confirm the `S3088: OCR input 2048x2048` probe before re-running
+S3039's ten-bubble acceptance scene.

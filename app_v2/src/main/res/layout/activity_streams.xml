@@ -96,8 +96,8 @@
                  active facet, both neutral means no filter; tapping the lit one clears it. -->
             <ImageButton
                 android:id="@+id/btnMediaKindVideo"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="@dimen/streams_media_filter_button_size"
+                android:layout_height="@dimen/streams_media_filter_button_size"
                 android:layout_marginStart="4dp"
                 android:src="@drawable/ic_video"
                 app:tint="?attr/colorControlNormal"
@@ -111,17 +111,31 @@
 
             <ImageButton
                 android:id="@+id/btnMediaKindAudio"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="@dimen/streams_media_filter_button_size"
+                android:layout_height="@dimen/streams_media_filter_button_size"
                 android:src="@drawable/ic_audio"
                 app:tint="?attr/colorControlNormal"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
                 android:nextFocusUp="@id/toolbar"
                 android:nextFocusLeft="@id/btnMediaKindVideo"
-                android:nextFocusRight="@id/btnFilter"
+                android:nextFocusRight="@id/btnMediaKindOwn"
                 android:nextFocusDown="@id/rvStreams"
                 android:contentDescription="@string/streams_media_filter_audio" />
+
+            <ImageButton
+                android:id="@+id/btnMediaKindOwn"
+                android:layout_width="@dimen/streams_media_filter_button_size"
+                android:layout_height="@dimen/streams_media_filter_button_size"
+                android:src="@drawable/ic_edit_20"
+                app:tint="?attr/colorControlNormal"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+                android:nextFocusUp="@id/toolbar"
+                android:nextFocusLeft="@id/btnMediaKindAudio"
+                android:nextFocusRight="@id/btnFilter"
+                android:nextFocusDown="@id/rvStreams"
+                android:contentDescription="@string/streams_media_filter_own" />
 
             <ImageButton
                 android:id="@+id/btnFilter"
@@ -134,7 +148,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:nextFocusUp="@id/toolbar"
-                android:nextFocusLeft="@id/btnMediaKindAudio"
+                android:nextFocusLeft="@id/btnMediaKindOwn"
                 android:nextFocusRight="@id/btnSort"
                 android:nextFocusDown="@id/rvStreams"
                 android:contentDescription="@string/streams_filter">

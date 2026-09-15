@@ -181,6 +181,7 @@ data class AppSettings(
     val streamsVisualizeAsMusic: Boolean = false,
 
     // S2817: an absent preference preserves the broadcast session defaults used before settings existed.
+    val enableBroadcasting: Boolean = false,
     val broadcastStreamTitle: String = "Phone Audio Stream",
     val broadcastBitRateBps: Int = 128_000,
     val broadcastPort: Int = 8768,
@@ -191,6 +192,15 @@ data class AppSettings(
     // generates a UUID and persists it; a receiver that scanned this phone before recognises it
     // across address changes instead of adding a second catalog entry.
     val broadcastSourceDeviceId: String? = null,
+    // S3038: camera and microphone defaults for broadcast mode selection, plus video quality.
+    val broadcastCameraEnabled: Boolean = false,
+    val broadcastMicrophoneEnabled: Boolean = true,
+    val broadcastVideoWidth: Int = 1280,
+    val broadcastVideoHeight: Int = 720,
+    val broadcastVideoFps: Int = 30,
+    val broadcastVideoBitrateBps: Int = 2_000_000,
+    // S3049: digital PCM microphone gain percentage for broadcasts (50% - 400%, default 100%).
+    val broadcastMicGainPercent: Int = 100,
 
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = false, // S0386: default OFF - translation engine delivered on demand
@@ -635,13 +645,14 @@ data class AppSettings(
         val LAUNCHER_DENSITY_OPTIONS = listOf(0.75f, 1.0f, 1.25f, 1.5f)
 
         /**
-         * S2320 shipped the dense grid; S2903 reversed it - the sparse step ships now, because the
-         * desktop a fresh install seeds is read from a driver's seat and the dense one opens with
-         * small cells and clipped labels there. Named rather than written at the field, so the
-         * settings row and the reset dialog can derive their selected index from it instead of
-         * carrying a position that outlives the value.
+         * S2320 shipped the dense grid; S2903 reversed it to sparse; S3031 moved it to standard, because the
+         * per-profile CSV row (`launcherDensityFactor` in `device_profile_presets.csv`) now carries an explicit
+         * value for every named profile, so the factory default only governs OTHER and the brief pre-onboarding
+         * window, where standard is the neutral choice. The car-head-unit concern from S2903 is covered by the
+         * CSV cell for that profile. Named rather than written at the field, so the settings row and the reset
+         * dialog can derive their selected index from it instead of carrying a position that outlives the value.
          */
-        const val DEFAULT_LAUNCHER_DENSITY_FACTOR: Float = 0.75f
+        const val DEFAULT_LAUNCHER_DENSITY_FACTOR: Float = 1.0f
 
         /** S1643: taskbar anchored to the bottom screen edge - the pre-S1643 layout and the default. */
         const val LAUNCHER_TASKBAR_PLACEMENT_BOTTOM = "BOTTOM"

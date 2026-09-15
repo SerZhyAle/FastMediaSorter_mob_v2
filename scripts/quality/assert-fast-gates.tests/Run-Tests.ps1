@@ -80,11 +80,25 @@ Assert-Case 'detekt telemetry records paths and a count only after its report is
     (($text -match 'FindingDetailsAvailable') -and ($text -match 'FindingCount') -and
         ($text -match 'FindingPaths') -and ($text -match 'if \(\$detektFindings\.Ok\)'))
 
+# S3151: the quiet shape, asserted from the text - the real run below cannot show it, because the
+# tree it runs on is rarely all green.
+Assert-Case 'quiet: a clean run keeps the summary blocks off the console' `
+    (($text -match '\$showSummary = \$consoleVerbose -or \$anyRed') -and ($text -match 'Write-Line -Text \$Title -Console \$showSummary'))
+Assert-Case 'quiet: only a red child prints its output without -ShowPasses' `
+    ($text -match "if \(\`$consoleVerbose -or \`$r\.Status -eq 'FAIL'\) \{ Write-Host")
+Assert-Case 'quiet: the PASS verdict carries passed and skipped counts' `
+    ($text -match '\$counts = "\$passedCount passed, \$\(\$skippedRows\.Count\) skipped"')
+Assert-Case 'protocol: every run writes fast-gates-runs and a failing run names it' `
+    (($text -match 'fast-gates-runs') -and ($text -match '(?s)FAIL \(\$failed gate\(s\)\)\.".*?protocol: \$protocolPath'))
+Assert-Case 'verbose: -ShowPasses and FMS_POSTCHANGE_VERBOSE restore the old output' `
+    ($text -match "\`$consoleVerbose = \`$ShowPasses -or \(\`$env:FMS_POSTCHANGE_VERBOSE -eq '1'\)")
+
 # The one real run. A file that exists and is not Kotlin keeps the set small; the assertion is the
 # relation between the blocks and the code, so the tree's actual state cannot make it flaky.
+# -ShowPasses because the blocks are what is judged, and a clean quiet run prints none of them.
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
 $probeFile = 'scripts/quality/assert-fast-gates.ps1'
-$output = & $pwshExe -NoProfile -File $subject -ChangedFiles $probeFile 2>&1 | Out-String
+$output = & $pwshExe -NoProfile -File $subject -ChangedFiles $probeFile -ShowPasses 2>&1 | Out-String
 $code = [int]$LASTEXITCODE
 
 Assert-Case 'a run with a changed set prints the set block' ($output -match 'YOUR SET')

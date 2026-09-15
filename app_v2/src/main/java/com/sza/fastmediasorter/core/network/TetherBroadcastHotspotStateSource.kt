@@ -32,7 +32,6 @@ class TetherBroadcastHotspotStateSource @Inject constructor(
 
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context?, intent: Intent?) {
-                Timber.d("S2027: TETHER_STATE_CHANGED delivered")
                 trySend(probe.probe())
             }
         }

@@ -30,6 +30,16 @@ $sourceRoots = @(
 )
 $helperPath = Join-Path $PSScriptRoot 'lib/ticket-acceptance-probes.ps1'
 
+. (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+
+# S3075: the journal is the one input whose absence is published - PLAN/ is gitignored, so a fresh
+# clone, a release worktree and a CI runner all lack it legitimately. The helper and the two source
+# roots are tracked, so their absence stays exit 2: that is a broken checkout, not a runner.
+if (-not (Test-Path -LiteralPath $catalogPath)) {
+    Exit-InputAbsent -Gate 'assert-ticket-acceptance-probes' -Path 'PLAN/spec-catalog.jsonl' `
+        -Reason 'PLAN/ is gitignored - present only on a workstation checkout'
+}
+
 try {
     foreach ($path in @($catalogPath, $helperPath) + $sourceRoots) {
         if (-not (Test-Path -LiteralPath $path)) { throw "Required acceptance-probe input is missing: $path" }

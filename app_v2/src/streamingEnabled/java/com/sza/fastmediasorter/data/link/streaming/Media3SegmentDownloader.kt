@@ -106,7 +106,6 @@ class Media3SegmentDownloader @Inject constructor(
                 .build()
             val downloaderFactory = DefaultDownloaderFactory(cacheFactory, Executor { it.run() })
             val downloader: Downloader = downloaderFactory.createDownloader(request)
-            Timber.d("S2914: downloader created via factory mime=$mimeType")
 
             LinkDownloadTrace.verbose(
                 "media3-segment-downloader start manifest=${manifest::class.simpleName} " +

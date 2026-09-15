@@ -23,7 +23,7 @@ do not merge a ticket flow into the root suites or vice versa.
 ## Layout
 
 - `maestro-run.ps1` (parent dir) - the runner. Discovers the Maestro binary, runs a flow
-  against the selected device, writes the full trace to `temp/<flow>_maestro_<TS>.log`
+  against the selected device, writes the full trace to `temp/scratch/maestro/<flow>_maestro_<TS>.log`
   (off-context), and emits a one-line verdict. Stable exit codes mirror `device-ready.ps1`.
 - `scripts/devtest/maestro/<Sxxxx>.yaml` - one flow per ticket, **named by ticket id**. The
   id-keyed name is what the Phase 2 `/spec-sweep` classifier matches on (auto-route when a
@@ -78,7 +78,7 @@ Exit codes (see the runner header for the authoritative table):
 - `3` - flow failed (a step / assertion failed).
 - `4` - Maestro execution error (no device, runtime/install error - flow never completed).
 
-The full per-step trace is in the `temp/<flow>_maestro_<TS>.log` named in the verdict line;
+The full per-step trace is in the `temp/scratch/maestro/<flow>_maestro_<TS>.log` named in the verdict line;
 read it only on a non-zero exit.
 
 ## Authoring a flow

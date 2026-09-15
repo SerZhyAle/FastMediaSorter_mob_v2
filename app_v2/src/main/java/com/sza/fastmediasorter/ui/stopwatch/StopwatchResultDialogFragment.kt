@@ -87,7 +87,6 @@ class StopwatchResultDialogFragment : DialogFragment() {
     }
 
     private fun renderResult(): String {
-        Timber.d("S2792: renderResult")
         return StopwatchResultRenderer.render(
             state = frozenState,
             nowMillis = frozenNowMillis,

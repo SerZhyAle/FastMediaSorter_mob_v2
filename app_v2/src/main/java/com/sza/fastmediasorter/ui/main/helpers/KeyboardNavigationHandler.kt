@@ -66,7 +66,7 @@ class KeyboardNavigationHandler(
      * - Shared semantic navigation via [KeyboardShortcutHandler]
      * - Insert / + remains a narrow local fallback for opening add-resource
      */
-    fun handleKeyDown(keyCode: Int, @Suppress("UNUSED_PARAMETER") event: KeyEvent?): Boolean {
+    fun handleKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (event != null && shortcutHandler.handleKeyEvent(keyCode, event)) {
             return true
         }

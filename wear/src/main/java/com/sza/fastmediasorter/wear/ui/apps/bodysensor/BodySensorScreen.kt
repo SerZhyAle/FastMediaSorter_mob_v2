@@ -64,7 +64,6 @@ fun BodySensorScreen(
         onPermissionsResult = { viewModel.refreshAvailability() }
     )
 
-    Timber.d("S3013: heart rate screen opened")
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

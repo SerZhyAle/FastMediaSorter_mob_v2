@@ -53,7 +53,6 @@ class ImportFavoritesUseCaseTest {
         // withTransaction is an extension fn: mockk indexes the receiver as arg 0, so the block is not
         // firstArg. Pick the function argument and run it so the wrapped import loop actually executes.
         coEvery { db.withTransaction<Any?>(any()) } coAnswers {
-            @Suppress("UNCHECKED_CAST")
             (args.first { it is Function<*> } as suspend () -> Any?).invoke()
         }
         useCase = ImportFavoritesUseCase(context, db, favoritesDao, resourceDao)

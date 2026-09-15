@@ -19,7 +19,8 @@
       - the tick counter grows while the loop runs (polled to a deadline, not timed);
       - -Stop ends the process within five seconds, removes the pid file, and the last snapshot says
         `stopped`;
-      - nothing new appears at the top level of temp/ (every artifact stays under -OutDir);
+      - no artifact the writer produces appears at the top level of temp/ (every one stays under
+        -OutDir); a file another process wrote there is not this suite's business;
       - -Status exits 0 before and after.
 
     Exit codes:
@@ -306,15 +307,19 @@ try {
 
     Write-Host 'Read-only outside -OutDir'
     $tempAfter = Get-TempTopLevel
-    # CLAUDE.md Rule 10 names the per-domain coordination files that live at temp/ root.
-    # A sibling session may create or remove any of them between the two snapshots, and
-    # they are not artifacts the writer produces, so exclude them from the diff.
-    $new = @($tempAfter | Where-Object {
+    # The subject of this case is the writer, so it asks only about the writer: did any artifact it
+    # produces land at temp/ root instead of under -OutDir? It deliberately does not diff the whole
+    # directory. temp/ root is shared, and naming what siblings happen to write can only ever grow
+    # into the next failure - S2998 added the five coordination files, and the r37 pre-release sweep
+    # then failed this case on a Maestro trace the writer never wrote, which made
+    # assert-release-scope-gates.ps1 exit 1 and held the release on a defect that did not exist
+    # (S3025). A whitelist has no such tail: an artifact the writer cannot produce cannot fail it.
+    $writerArtifacts = @('index.html', 'snapshot.js', 'writer.pid', 'STOP')
+    $strayed = @($tempAfter | Where-Object {
         $tempBefore -notcontains $_ -and
-        $_ -ne 'S2406' -and
-        $_ -notmatch '^(BUILD\.(PHONE|WEAR)|CODE\.(PHONE|WEAR|SCRIPTS))\.LOCK(\.QUEUE)?$'
+        ($writerArtifacts -contains $_ -or $_ -like 'index.html.tmp-*' -or $_ -like 'snapshot.js.tmp-*')
     })
-    Assert-That 'nothing new at the top level of temp/' ($new.Count -eq 0) ($new -join ',')
+    Assert-That 'no writer artifact escaped -OutDir into temp/ root' ($strayed.Count -eq 0) ($strayed -join ',')
 }
 finally {
     # A writer the suite failed to stop must not outlive it.

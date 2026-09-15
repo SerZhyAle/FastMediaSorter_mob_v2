@@ -45,7 +45,6 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         val trimmed = scannedUrl.trim()
         val moved = trimmed != known.url
         val renamed = offered != null && offered != known.title && isGeneratedTitle(known.title)
-        Timber.d("S2868: refresh stored='${known.title}' offered='$offered' moved=$moved renamed=$renamed")
         if (moved) repository.refreshSourceAddress(id = known.id, url = trimmed)
         if (renamed) repository.renameSource(id = known.id, title = requireNotNull(offered))
         return if (moved || renamed) ImportResult.Updated else ImportResult.Duplicate

@@ -71,7 +71,8 @@ class SharedPreferencesWearDeliveredResourceStore @Inject constructor(
         const val KEY_DELIVERED = "delivered_resource_ids"
 
         // The token is what keeps the deserialized shape a Set of String rather than Gson's default
-        // LinkedTreeMap guess for a bare generic.
-        val DELIVERED_SET_TYPE = object : TypeToken<Set<String>>() {}.type
+        // LinkedTreeMap guess for a bare generic. Class literals, not an anonymous TypeToken
+        // subclass: that subclass reads a `Signature` attribute R8 strips (S3068).
+        val DELIVERED_SET_TYPE = TypeToken.getParameterized(Set::class.java, String::class.java).type
     }
 }

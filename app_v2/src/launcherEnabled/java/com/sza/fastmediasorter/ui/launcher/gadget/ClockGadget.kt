@@ -219,7 +219,6 @@ private class ClockGadgetView(
      */
     private fun applyPattern(clock: TextClock, pattern: String) {
         val imperial = unitSystem == UnitSystem.IMPERIAL
-        Timber.d("S2795: desktop clock pattern=%s imperial=%s", pattern, imperial)
         clock.format12Hour = pattern.takeIf { imperial }
         clock.format24Hour = pattern.takeIf { !imperial }
     }

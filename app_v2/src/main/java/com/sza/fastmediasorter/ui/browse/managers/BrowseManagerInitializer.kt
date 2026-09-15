@@ -668,7 +668,6 @@ class BrowseManagerInitializer(
         // stream offered move/rename/delete here while the row's own buttons, already resolved
         // through the helper, correctly hid them.
         val canWrite = currentState.resource?.allowsWriteOperations() == true
-        Timber.d("S2566: row menu canWrite=$canWrite type=${currentState.resource?.type}")
         browseFileOverflowMenuManager.showFor(
             anchor = anchor,
             menuContext = com.sza.fastmediasorter.ui.browse.helpers.BrowseFileMenuContext(
@@ -832,7 +831,6 @@ class BrowseManagerInitializer(
         action: BrowseSwipeAction,
     ) {
         val settings = latestSettings ?: return
-        Timber.d("S2533: row swipe fired ${action.name} on ${file.name}")
         val actions = buildFileMenuActions(viewModel.state.value, settings)
         when (action) {
             BrowseSwipeAction.COPY -> actions.onCopy(file)

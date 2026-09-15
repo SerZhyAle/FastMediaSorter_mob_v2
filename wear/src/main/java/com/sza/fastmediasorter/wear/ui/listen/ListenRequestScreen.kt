@@ -75,7 +75,6 @@ fun ListenRequestScreen(
 
     LaunchedEffect(Unit) {
         if (state is ListenSessionState.Idle) {
-            Timber.d("S2941: auto-starting listen from full-screen intent window")
             viewModel.confirm()
         }
     }

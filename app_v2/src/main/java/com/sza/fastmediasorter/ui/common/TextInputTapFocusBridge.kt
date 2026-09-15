@@ -35,6 +35,6 @@ private fun focusEditorFromTap(context: Context, editor: TextInputEditText) {
     editor.post {
         if (!editor.isAttachedToWindow) return@post
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(editor, InputMethodManager.SHOW_IMPLICIT)
+        imm.showSoftInputImplicitly(editor)
     }
 }

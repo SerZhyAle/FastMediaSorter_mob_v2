@@ -72,7 +72,7 @@ class PlayerImageTranslationManager(
 
         translationJob?.cancel()
 
-        val bitmap = when {
+        val displayBitmap = when {
             binding.photoView.isVisible ->
                 extractBitmapFromDrawable(binding.photoView.drawable, "photoView")
             binding.photoViewSurfaceB?.isVisible == true ->
@@ -90,7 +90,7 @@ class PlayerImageTranslationManager(
             }
         }
 
-        if (bitmap == null) {
+        if (displayBitmap == null) {
             activity.showError(activity.getString(R.string.ocr_extract_image_failed))
             return
         }
@@ -106,7 +106,7 @@ class PlayerImageTranslationManager(
             val rect = binding.photoView.displayRect
             Timber.d("TRANSLATION_DEBUG: Captured displayRect from PhotoView: $rect")
             Timber.d("TRANSLATION_DEBUG: PhotoView dimensions: ${binding.photoView.width}x${binding.photoView.height}")
-            Timber.d("TRANSLATION_DEBUG: Bitmap dimensions: ${bitmap.width}x${bitmap.height}")
+            Timber.d("TRANSLATION_DEBUG: Bitmap dimensions: ${displayBitmap.width}x${displayBitmap.height}")
             rect
         } else {
             Timber.d("TRANSLATION_DEBUG: PhotoView not visible, using ImageView")
@@ -115,6 +115,7 @@ class PlayerImageTranslationManager(
 
         translationJob = activity.lifecycleScope.launch(Dispatchers.IO) {
             try {
+                val bitmap = OcrInputBitmapLoader.load(activity, currentFile, displayBitmap)
                 val settings = activity.playerHostFactory.settingsRepository.getSettings().first()
                 val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
                 val targetLang = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)

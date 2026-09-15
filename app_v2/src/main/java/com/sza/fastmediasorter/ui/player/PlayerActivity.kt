@@ -878,7 +878,6 @@ class PlayerActivity :
         val isAudioFile = viewModel.state.value.currentFile?.type == MediaType.AUDIO
         if (viewModel.state.value.showControls && !viewModel.state.value.isPaused && !isAudioFile) {
             val delayMs = viewModel.settings.value.playerPanelAutoHideSeconds.coerceIn(1, 600) * 1000L
-            Timber.d("S2505: PlayerActivity scheduleHideControls delayMs=$delayMs")
             hideControlsHandler.postDelayed(hideControlsRunnable, delayMs)
         }
     }
@@ -974,6 +973,7 @@ class PlayerActivity :
     // S0184: open a duplicate Player in a new window slot while keeping the source player alive.
     internal fun tearOffPlayer() {
         val filePath = currentFilePath ?: return
+        Timber.d("S3125: tearing off player document window")
         val state = viewModel.state.value
         val newWindowId = java.util.UUID.randomUUID().toString()
         val intent = Intent(this, PlayerActivity::class.java).apply {
@@ -981,7 +981,7 @@ class PlayerActivity :
             putExtra("initialIndex", state.currentIndex)
             putExtra("initialFilePath", filePath)
             putExtra(EXTRA_WINDOW_ID, newWindowId)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         }
         startActivity(intent)
     }

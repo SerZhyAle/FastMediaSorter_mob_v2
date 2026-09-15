@@ -844,6 +844,20 @@ function Get-SourceRules {
                     'Islands leave OPPORTUNISTICALLY, when another ticket reaches them, never as a campaign. Removing Compose from ' +
                     'app_v2/build.gradle.kts altogether has one precondition recorded in docs/ARCHITECTURE.md: Icons.Default.Pause / SkipNext / ' +
                     'SkipPrevious exist only in the extended icon set and must become vector drawables first (S0385).')),
+        # S3068: an anonymous TypeToken subclass reads its own generic superclass through the
+        # `Signature` attribute, and R8 keeps that attribute only on classes it considers kept - so
+        # the construct compiles, passes every debug test, and throws in the class initializer of the
+        # shipped APK. It reached production twice from the same keep rules: S0722 caught it on the
+        # minified benchmark variant, and S3068 found it in Play vitals on versionCode 260902195,
+        # crashing the watch settings mirror for real users. Baseline is 0 and the cure is mechanical,
+        # so this rule refuses growth outright rather than measuring it.
+        (New-RegexRule -Name 'anonymous-typetoken' `
+                -Pattern ([regex]'object\s*:\s*(?:com\.google\.gson\.reflect\.)?TypeToken\s*<') `
+                -FailMessage ('anonymous Gson TypeToken subclass in app_v2 (S3068). Build the type from class literals instead: ' +
+                    'TypeToken.getParameterized(Map::class.java, String::class.java, Long::class.javaObjectType).type - ' +
+                    'that call reads no generic signature, so it survives any R8 configuration. Use Long::class.javaObjectType, ' +
+                    'not Long::class.java: the latter is the primitive, which Gson has no adapter for. ' +
+                    'Judged in app_v2 only - wear/proguard-rules.pro keeps the unweakened Gson rules and has never seen the crash.')),
         # S1693: growth stop for findViewById, not a placement rule. Whether one call is legitimate
         # (custom View, adapter, runtime-resolved layout, documented host-neutral helper) or legacy
         # is NOT lexically decidable - both shapes look identical - so this rule counts growth only.

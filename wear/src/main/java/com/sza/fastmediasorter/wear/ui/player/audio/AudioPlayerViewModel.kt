@@ -296,11 +296,9 @@ class AudioPlayerViewModel @Inject constructor(
                 when (command) {
                     WearPlaybackCommand.PLAY_PAUSE -> togglePlayPause()
                     WearPlaybackCommand.NEXT -> {
-                        Timber.d("S2523: AudioPlayer received WearPlaybackCommand.NEXT, invoking skipToNext()")
                         skipToNext()
                     }
                     WearPlaybackCommand.PREVIOUS -> {
-                        Timber.d("S2523: AudioPlayer received WearPlaybackCommand.PREVIOUS, invoking skipToPrevious()")
                         skipToPrevious()
                     }
                     WearPlaybackCommand.STOP -> {
@@ -353,7 +351,6 @@ class AudioPlayerViewModel @Inject constructor(
             } else {
                 fileId
             }
-            Timber.d("S2166: resumeHandedBack id=$targetFileId pos=${background.positionMs}")
             val selected = selectedMediaManager.getSelectedFileById(targetFileId)
             if (selected != null) {
                 _uiState.update {
@@ -625,7 +622,6 @@ class AudioPlayerViewModel @Inject constructor(
         // it running, so the recomposition it drives is not what the dark screen costs, and the extra
         // stop/restart/refresh path bought nothing. What the screen does cost is tracked in S1709.
         _uiState.update { it.copy(isDimmed = !it.isDimmed) }
-        Timber.d("S2849: audio display hold=%b", _uiState.value.holdsDisplay)
     }
 
     /**
@@ -661,7 +657,6 @@ class AudioPlayerViewModel @Inject constructor(
         val uri = exoPlayer.currentMediaItem?.localConfiguration?.uri?.toString() ?: return
         val streamMediaKind = ClassifyWearStreamMediaKindUseCase.AUDIO
             .takeIf { networkSelection?.isDirectStream == true }
-        Timber.d("S2166: handOffToPlaybackService uri=%s position=%d", uri, exoPlayer.currentPosition)
         val intent = WearPlaybackService.startIntent(
             context = context,
             fileId = fileId,
@@ -770,7 +765,6 @@ class AudioPlayerViewModel @Inject constructor(
         if (_uiState.value.isStream) {
             viewModelScope.launch {
                 val nextState = toggleStreamPinUseCase.toggle(identity.filePath, _isPinned.value)
-                Timber.d("S2497: AudioPlayerViewModel toggled stream pin for ${identity.filePath} -> $nextState")
                 _isPinned.value = nextState
             }
         }
@@ -822,7 +816,6 @@ class AudioPlayerViewModel @Inject constructor(
      * one thing the wearer now needs to see.
      */
     private fun onPlaybackStalled() {
-        Timber.d("S2849: audio stall guard stops the session")
         Timber.w(
             "AudioPlayerViewModel: no sound for %d ms, stopping the stalled stream",
             WEAR_PLAYBACK_STALL_TIMEOUT_MS

@@ -144,7 +144,6 @@ internal fun PlayerCommandGrid(
             .padding(horizontal = horizontalPadding)
     ) {
         val targetSize = (maxWidth - COMMAND_GRID_GAP * (columns - 1)) / columns
-        Timber.d("S2479: PlayerCommandGrid cell size=%s", targetSize)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(COMMAND_GRID_GAP),

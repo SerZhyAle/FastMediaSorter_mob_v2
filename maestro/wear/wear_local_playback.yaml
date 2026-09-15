@@ -14,7 +14,7 @@ appId: com.sza.fastmediasorter.debug
 - tapOn:
     id: "wear_category_music"
 - tapOn:
-    point: "50%,45%"
+    id: "wear_media_file_0"
 - assertVisible:
     id: "wear_nav_root"
 - pressKey: Back

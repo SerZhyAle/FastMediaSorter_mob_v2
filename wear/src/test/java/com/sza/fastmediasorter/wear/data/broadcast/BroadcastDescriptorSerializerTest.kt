@@ -78,6 +78,46 @@ class BroadcastDescriptorSerializerTest {
         )
     }
 
+    @Test
+    fun v2DescriptorFieldsSerializeWithContractKeys() {
+        val dto = BroadcastDescriptorDto(
+            url = URL,
+            title = TITLE,
+            sourceId = "watch-123",
+            isLive = true,
+            targetLatencyMs = 1000L,
+            endpoints = listOf(
+                BroadcastEndpointDto(
+                    url = URL,
+                    transport = "HTTP",
+                    mode = "AUDIO_ONLY",
+                    sampleRate = 44100,
+                    bitrate = 64000,
+                    isLive = true,
+                    targetLatencyMs = 1000L
+                )
+            )
+        )
+        val json = parse(serializer.serialize(dto))
+
+        assertEquals("watch-123", json.get("sourceId").asString)
+        assertTrue(json.get("isLive").asBoolean)
+        assertEquals(1000L, json.get("targetLatencyMs").asLong)
+        assertTrue(json.has("endpoints"))
+
+        val endpoint = json.getAsJsonArray("endpoints").get(0).asJsonObject
+        assertEquals(URL, endpoint.get("url").asString)
+        assertEquals("HTTP", endpoint.get("transport").asString)
+        assertEquals("AUDIO_ONLY", endpoint.get("mode").asString)
+        assertEquals(44100, endpoint.get("sampleRate").asInt)
+        assertEquals(64000, endpoint.get("bitrate").asInt)
+    }
+
+    @Test
+    fun compressedPrefixMatchesPhoneBarcodePrefixConstant() {
+        assertEquals("FMSBCAST1:", BroadcastDescriptorSerializer.COMPRESSED_PREFIX)
+    }
+
     private fun descriptor() = BroadcastDescriptorDto(url = URL, title = TITLE)
 
     private fun longTitleDescriptor() =

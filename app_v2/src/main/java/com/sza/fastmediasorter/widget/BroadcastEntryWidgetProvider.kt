@@ -24,7 +24,6 @@ class BroadcastEntryWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray,
     ) {
-        Timber.d("S2818: broadcast entry widget update requested, ids=%s", appWidgetIds.contentToString())
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }

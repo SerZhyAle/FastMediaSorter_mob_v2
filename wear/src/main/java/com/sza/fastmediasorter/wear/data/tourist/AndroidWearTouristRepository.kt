@@ -84,21 +84,56 @@ class AndroidWearTouristRepository @Inject constructor(
             stepCount = sessionSteps.get(),
             hasLocationPermission = hasLocationPermission(),
             hasCompassSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) != null ||
-                (sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null &&
-                    sensorManager?.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null),
+                sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null &&
+                sensorManager?.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null,
             hasPressureSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PRESSURE) != null,
             hasStepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null ||
                 sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR) != null,
             hasHeartRateSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_HEART_RATE) != null,
         )
 
-        fun updateAndEmit(transform: (WearTouristState) -> WearTouristState) {
+        val updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit = { transform ->
             currentState = transform(currentState)
             trySend(currentState)
         }
 
-        // 1. Location and GNSS Listeners
-        val locationListener = object : LocationListener {
+        val locationListener = createLocationListener(updateAndEmit)
+        val gnssCallback = createGnssCallback(updateAndEmit)
+        registerLocationAndGnss(locationManager, locationListener, gnssCallback)
+
+        val sensorListener = createSensorListener(updateAndEmit)
+        registerSensors(sensorManager, sensorListener)
+
+        trySend(currentState)
+
+        val ticker = launch {
+            while (isActive) {
+                delay(AGE_TICK_INTERVAL_MS)
+                updateAndEmit { prev ->
+                    prev.copy(
+                        hasLocationPermission = hasLocationPermission(),
+                        tripDistanceMeters = accumulatedTripMeters.get(),
+                        maxSpeedKmh = maxSpeedKmh.get(),
+                        stepCount = sessionSteps.get(),
+                    )
+                }
+            }
+        }
+
+        awaitClose {
+            ticker.cancel()
+            sensorManager?.unregisterListener(sensorListener)
+            locationManager?.removeUpdates(locationListener)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && gnssCallback != null) {
+                locationManager?.unregisterGnssStatusCallback(gnssCallback)
+            }
+        }
+    }.sample(UPDATE_THROTTLE_MS)
+
+    private fun createLocationListener(
+        updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit,
+    ): LocationListener {
+        return object : LocationListener {
             override fun onLocationChanged(location: Location) {
                 val speed = if (location.hasSpeed()) location.speed * MS_TO_KMH else null
                 if (speed != null && speed > maxSpeedKmh.get()) {
@@ -136,62 +171,74 @@ class AndroidWearTouristRepository @Inject constructor(
 
             override fun onProviderEnabled(provider: String) = Unit
             override fun onProviderDisabled(provider: String) = Unit
+
             @Deprecated("Deprecated in Java")
             override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) = Unit
         }
+    }
 
-        var gnssCallback: GnssStatus.Callback? = null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && locationManager != null) {
-            gnssCallback = object : GnssStatus.Callback() {
-                override fun onSatelliteStatusChanged(status: GnssStatus) {
-                    val total = status.satelliteCount
-                    var used = 0
-                    for (i in 0 until total) {
-                        if (status.usedInFix(i)) used++
-                    }
-                    updateAndEmit {
-                        it.copy(
-                            satelliteCount = total,
-                            usedSatellites = used,
-                            hasGpsFix = used >= 4,
-                        )
-                    }
+    private fun createGnssCallback(
+        updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit,
+    ): GnssStatus.Callback? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return null
+        return object : GnssStatus.Callback() {
+            override fun onSatelliteStatusChanged(status: GnssStatus) {
+                val total = status.satelliteCount
+                var used = 0
+                for (i in 0 until total) {
+                    if (status.usedInFix(i)) used++
+                }
+                updateAndEmit {
+                    it.copy(
+                        satelliteCount = total,
+                        usedSatellites = used,
+                        hasGpsFix = used >= 4,
+                    )
                 }
             }
         }
+    }
 
-        if (hasLocationPermission() && locationManager != null) {
-            try {
-                if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                    locationManager.requestLocationUpdates(
-                        LocationManager.GPS_PROVIDER,
-                        MIN_LOCATION_TIME_MS,
-                        MIN_LOCATION_DISTANCE_M,
-                        locationListener,
-                    )
-                }
-                if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                    locationManager.requestLocationUpdates(
-                        LocationManager.NETWORK_PROVIDER,
-                        MIN_LOCATION_TIME_MS,
-                        MIN_LOCATION_DISTANCE_M,
-                        locationListener,
-                    )
-                }
-                val lastKnown = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                    ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-                lastKnown?.let { locationListener.onLocationChanged(it) }
-
-                gnssCallback?.let {
-                    locationManager.registerGnssStatusCallback(context.mainExecutor, it)
-                }
-            } catch (e: SecurityException) {
-                Timber.w(e, "Location permission not granted or revoked during registration")
+    @Suppress("LongParameterList")
+    private fun registerLocationAndGnss(
+        locationManager: LocationManager?,
+        locationListener: LocationListener,
+        gnssCallback: GnssStatus.Callback?,
+    ) {
+        if (!hasLocationPermission() || locationManager == null) return
+        try {
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    MIN_LOCATION_TIME_MS,
+                    MIN_LOCATION_DISTANCE_M,
+                    locationListener,
+                )
             }
-        }
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER,
+                    MIN_LOCATION_TIME_MS,
+                    MIN_LOCATION_DISTANCE_M,
+                    locationListener,
+                )
+            }
+            val lastKnown = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+            lastKnown?.let { locationListener.onLocationChanged(it) }
 
-        // 2. Sensor Listeners (Compass, Barometer, Steps)
-        val sensorListener = object : SensorEventListener {
+            gnssCallback?.let {
+                locationManager.registerGnssStatusCallback(context.mainExecutor, it)
+            }
+        } catch (e: SecurityException) {
+            Timber.w(e, "Location permission not granted or revoked during registration")
+        }
+    }
+
+    private fun createSensorListener(
+        updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit,
+    ): SensorEventListener {
+        return object : SensorEventListener {
             private val rotationMatrix = FloatArray(ROTATION_MATRIX_SIZE)
             private val orientationAngles = FloatArray(ORIENTATION_ANGLES_SIZE)
 
@@ -243,51 +290,31 @@ class AndroidWearTouristRepository @Inject constructor(
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
         }
+    }
 
+    private fun registerSensors(
+        sensorManager: SensorManager?,
+        listener: SensorEventListener,
+    ) {
         sensorManager?.let { sm ->
             sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)?.let {
-                sm.registerListener(sensorListener, it, SensorManager.SENSOR_DELAY_UI)
+                sm.registerListener(listener, it, SensorManager.SENSOR_DELAY_UI)
             }
             sm.getDefaultSensor(Sensor.TYPE_PRESSURE)?.let {
-                sm.registerListener(sensorListener, it, SensorManager.SENSOR_DELAY_UI)
+                sm.registerListener(listener, it, SensorManager.SENSOR_DELAY_UI)
             }
             sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)?.let {
-                sm.registerListener(sensorListener, it, SensorManager.SENSOR_DELAY_UI)
+                sm.registerListener(listener, it, SensorManager.SENSOR_DELAY_UI)
             } ?: sm.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)?.let {
-                sm.registerListener(sensorListener, it, SensorManager.SENSOR_DELAY_UI)
+                sm.registerListener(listener, it, SensorManager.SENSOR_DELAY_UI)
             }
             if (hasHeartRatePermission()) {
                 sm.getDefaultSensor(Sensor.TYPE_HEART_RATE)?.let {
-                    sm.registerListener(sensorListener, it, SensorManager.SENSOR_DELAY_UI)
+                    sm.registerListener(listener, it, SensorManager.SENSOR_DELAY_UI)
                 }
             }
         }
-
-        trySend(currentState)
-
-        val ticker = launch {
-            while (isActive) {
-                delay(AGE_TICK_INTERVAL_MS)
-                updateAndEmit { prev ->
-                    prev.copy(
-                        hasLocationPermission = hasLocationPermission(),
-                        tripDistanceMeters = accumulatedTripMeters.get(),
-                        maxSpeedKmh = maxSpeedKmh.get(),
-                        stepCount = sessionSteps.get(),
-                    )
-                }
-            }
-        }
-
-        awaitClose {
-            ticker.cancel()
-            sensorManager?.unregisterListener(sensorListener)
-            locationManager?.removeUpdates(locationListener)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && gnssCallback != null) {
-                locationManager?.unregisterGnssStatusCallback(gnssCallback)
-            }
-        }
-    }.sample(UPDATE_THROTTLE_MS)
+    }
 
     private fun hasLocationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -308,8 +335,8 @@ class AndroidWearTouristRepository @Inject constructor(
 
     private fun degreeToCardinal(degrees: Float): String {
         val directions = arrayOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
-        val index = ((degrees + 22.5f) / 45f).toInt() % 8
+        val index = ((degrees + CARDINAL_OFFSET_DEGREES) / CARDINAL_SECTOR_DEGREES)
+            .toInt() % CARDINAL_SECTORS_COUNT
         return directions[index]
     }
 }
-

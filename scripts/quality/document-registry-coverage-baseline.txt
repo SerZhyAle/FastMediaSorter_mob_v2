@@ -25,4 +25,6 @@
 # Lines starting with # are comments.
 
 .claude/agent-memory/** | Private per-agent memory written by Claude Code, gitignored and rewritten every session; belongs to the agent that owns the directory, not to a maintainer, so there is no document here anyone is answerable for.
+.claude/runner/** | Prompt fragments injected into unattended run-spec-queue.ps1 child sessions; machine input to a model, gitignored with the rest of .claude/, never read by a maintainer as a document.
+dev/handoff | Top-level one-off handoff notes to other repositories (e.g. the canon harness request); each is consumed by its recipient and not maintained here. The streams-source-spec subtree below it is registered separately.
 .agents/** | No longer memory: S2622 deleted the 125 stale copies this tree used to hold and left a pointer to .claude/agent-memory/android-rd-specialist/ plus the ZCode entry-point skill that names it. Both files exist to be resolved by a link, not read as documents, so neither is anything a maintainer is answerable for - and the tree stays tracked, which S2618 measured to be a poor signal of maintainedness in both directions.

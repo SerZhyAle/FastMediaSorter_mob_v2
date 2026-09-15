@@ -40,7 +40,6 @@ internal class ListenRecordingTeeDataSource(
             null
         }
         if (sink != null) {
-            Timber.d("S2881: recording tee open for %s", dataSpec.uri)
         }
         return length
     }

@@ -242,7 +242,9 @@ private fun failureLabelOf(reason: PhoneCameraFailure): Int = when (reason) {
     PhoneCameraFailure.NOT_ON_WIFI -> R.string.wear_phone_camera_failed_not_on_wifi
     PhoneCameraFailure.NO_NETWORK -> R.string.wear_phone_camera_failed_no_network
     PhoneCameraFailure.NARROW_LINK -> R.string.wear_phone_camera_failed_narrow_link
-    PhoneCameraFailure.NOT_ASKED -> R.string.wear_phone_camera_failed_not_asked
+    PhoneCameraFailure.NOT_ASKED -> {
+        R.string.wear_phone_camera_failed_not_asked
+    }
     PhoneCameraFailure.DECLINED -> R.string.wear_phone_camera_failed_declined
     PhoneCameraFailure.EXPIRED -> R.string.wear_phone_camera_failed_expired
     PhoneCameraFailure.CAPTURE_FAILED -> R.string.wear_phone_camera_failed_capture

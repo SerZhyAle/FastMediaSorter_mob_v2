@@ -83,7 +83,6 @@ class BloodPressureViewModel @Inject constructor(
         }
         viewModelScope.launch {
             repository.save(systolic, diastolic)
-            Timber.d("S3012: saved blood pressure $systolic/$diastolic mmHg")
             val lastCat = BloodPressureCategory.classify(systolic, diastolic)
             _state.value = _state.value.copy(
                 errorMessageRes = null,

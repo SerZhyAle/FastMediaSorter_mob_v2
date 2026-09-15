@@ -57,7 +57,6 @@ fun WearCompanionGroup(
     // Title and summary in the order CollapsibleSectionHeader.withSummary joins them, so the two
     // sides of the interop boundary announce one phrase rather than two arrangements of it.
     val description = if (summary.isNullOrBlank()) title else "$title, $summary"
-    Timber.d("S2863: companion group header semantics declared - tag=$tag expanded=$expanded")
 
     AndroidView(
         modifier = Modifier

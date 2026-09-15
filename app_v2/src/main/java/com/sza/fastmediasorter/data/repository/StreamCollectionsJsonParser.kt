@@ -85,7 +85,7 @@ class StreamCollectionsJsonParser @Inject constructor() {
         val fallbackName = names?.optString(FALLBACK_LOCALE)?.trim().orEmpty()
         val members = readMembers(collection)
         val complete = id.isNotEmpty() && fallbackName.isNotEmpty() && members.isNotEmpty()
-        return if (!complete) {
+        return if (names == null || !complete) {
             null
         } else {
             ParsedStreamCollection(

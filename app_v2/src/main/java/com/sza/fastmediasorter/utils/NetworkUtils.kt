@@ -14,7 +14,6 @@ object NetworkUtils {
     fun getLocalIpAddress(context: Context): String? {
         try {
             // Try WiFi first
-            @Suppress("DEPRECATION")
             val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
             @Suppress("DEPRECATION")
             wifiManager?.connectionInfo?.let { wifiInfo ->

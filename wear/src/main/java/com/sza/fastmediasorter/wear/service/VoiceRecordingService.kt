@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.core.notification.NotificationIcons
 import com.sza.fastmediasorter.wear.core.notification.WearNotificationIds
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastDescriptorDto
+import com.sza.fastmediasorter.wear.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastDescriptorSerializer
 import com.sza.fastmediasorter.wear.data.broadcast.WearBroadcastIdentityStore
 import com.sza.fastmediasorter.wear.data.wear.ListenAckSender
@@ -207,7 +208,6 @@ class VoiceRecordingService : Service() {
             Timber.i("Ignoring a start: the microphone session is already open")
             return
         }
-        Timber.d("S2161: voice recording started")
         val notification = buildNotification(R.string.wear_voice_recorder_notification_title)
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())
         serviceScope.launch {
@@ -282,13 +282,11 @@ class VoiceRecordingService : Service() {
     }
 
     private fun onListeningAbandoned() {
-        Timber.d("S2939: nobody took the listening stream, ending the session")
         Timber.i("Nobody took the listening stream for %d ms; ending the session", LISTEN_ABANDON_AFTER_MS)
         endListeningFromWatch()
     }
 
     private fun handleStopListeningFromNotification() {
-        Timber.d("S2939: listening stopped from the watch notification")
         endListeningFromWatch()
     }
 
@@ -369,11 +367,23 @@ class VoiceRecordingService : Service() {
         sourceId: String,
         watchName: String
     ): WearBroadcastSessionState.Live {
+        val endpointDto = BroadcastEndpointDto(
+            url = endpoint.url,
+            transport = "HTTP",
+            mode = BroadcastDescriptorDto.MODE_AUDIO_ONLY,
+            audioCodec = "aac",
+            isLive = true,
+            targetLatencyMs = 200L
+        )
         val descriptor = BroadcastDescriptorDto(
             url = endpoint.url,
             title = watchName,
-            sourceId = sourceId
+            sourceId = sourceId,
+            endpoints = listOf(endpointDto),
+            isLive = true,
+            targetLatencyMs = 200L
         )
+        Timber.d("S3051: watch descriptor published with endpoints=%s isLive=%s", descriptor.endpoints, descriptor.isLive)
         return WearBroadcastSessionState.Live(
             endpoint = endpoint,
             descriptorJson = descriptorSerializer.serialize(descriptor),

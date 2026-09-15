@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.databinding.ItemRenameFileBinding
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -86,7 +87,7 @@ class RenameDialog(
                 etFileName.requestFocus()
                 etFileName.postDelayed({
                     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-                    imm?.showSoftInput(etFileName, InputMethodManager.SHOW_IMPLICIT)
+                    imm?.showSoftInputImplicitly(etFileName)
                 }, 200)
             } else {
                 val fileNames = files.map { it.name }.toMutableList()
@@ -101,7 +102,7 @@ class RenameDialog(
                     if (firstViewHolder is RenameFilesAdapter.ViewHolder) {
                         firstViewHolder.binding.etFileName.requestFocus()
                         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-                        imm?.showSoftInput(firstViewHolder.binding.etFileName, InputMethodManager.SHOW_IMPLICIT)
+                        imm?.showSoftInputImplicitly(firstViewHolder.binding.etFileName)
                     }
                 }, 200)
             }

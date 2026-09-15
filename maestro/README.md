@@ -17,7 +17,7 @@ pwsh -NoProfile -File maestro/run-tests.ps1 -Suite player_image.yaml -ListFlows
 
 Runner contract:
 
-- Full Maestro traces are written under `temp/`; console output is a compact verdict only.
+- Full Maestro traces are written under `temp/scratch/maestro/`; console output is a compact verdict only.
 - `-Json` emits `{ pass, total, failed, reason, flows:[{flow,pass,status,log}] }`.
 - A `-Suite` ending in `.yaml` that no root resolves falls back to the file NAME under `maestro/`,
   so re-running one failed flow never requires remembering its category (S2396).

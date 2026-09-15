@@ -79,4 +79,59 @@ class BroadcastDescriptorRoundTripTest {
         val parsed = parser.parse("not json or marker")
         assertNull(parsed)
     }
+
+    @Test
+    fun testDescriptorV2WithEndpointsAndLiveMarkers() {
+        val endpoint1 = BroadcastEndpointDto(
+            url = "http://192.168.1.97:8768/live-audio.aac",
+            transport = "HTTP",
+            mode = "AUDIO_ONLY",
+            audioCodec = "AAC",
+            sampleRate = 44100,
+            bitrate = 128000,
+            isLive = true,
+            targetLatencyMs = 1000
+        )
+        val endpoint2 = BroadcastEndpointDto(
+            url = "rtsp://192.168.1.97:8554/live",
+            transport = "RTSP",
+            mode = "VIDEO_AUDIO",
+            videoCodec = "H264",
+            audioCodec = "AAC",
+            isLive = true,
+            targetLatencyMs = 1000
+        )
+        val dto = BroadcastDescriptorDto(
+            schemaVersion = 1,
+            url = endpoint1.url,
+            title = "Phone Multi-Track",
+            mode = endpoint1.mode,
+            sourceId = "test-device-id",
+            endpoints = listOf(endpoint1, endpoint2),
+            isLive = true,
+            targetLatencyMs = 1000
+        )
+
+        val serialized = serializer.serialize(dto)
+        val parsed = parser.parse(serialized)
+
+        assertNotNull(parsed)
+        assertEquals(dto, parsed)
+        assertEquals(2, parsed?.getEffectiveEndpoints()?.size)
+    }
+
+    @Test
+    fun testEffectiveEndpointsFallbackForLegacyDto() {
+        val dto = BroadcastDescriptorDto(
+            schemaVersion = 1,
+            url = "http://192.168.1.10:8768/live",
+            mode = "AUDIO_ONLY"
+        )
+
+        val effective = dto.getEffectiveEndpoints()
+        assertEquals(1, effective.size)
+        assertEquals("http://192.168.1.10:8768/live", effective[0].url)
+        assertEquals("HTTP", effective[0].transport)
+        assertEquals("AUDIO_ONLY", effective[0].mode)
+    }
 }

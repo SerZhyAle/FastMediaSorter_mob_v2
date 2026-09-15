@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
@@ -13,6 +12,7 @@ import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.databinding.GadgetLauncherTechnicalBinding
 import com.sza.fastmediasorter.domain.model.devicestatus.DeviceStatusProvider
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import com.sza.fastmediasorter.ui.icon.RecyclableIconTint
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -70,16 +70,19 @@ private class TechnicalGadgetView(
     init {
         // S2062: same tint the picker row applies for the same drawable - this is the live desktop tile,
         // the one other place besides the picker that draws a gadget's iconRes.
-        binding.gadgetTechnicalIcon.imageTintList = if (iconTintable) {
-            ColorStateList.valueOf(
+        // S3080: applied as a colour filter, because clearing the view's tint list also erases the
+        // `android:tint` the glyph declares for itself, leaving an untintable gadget icon black.
+        RecyclableIconTint.apply(
+            binding.gadgetTechnicalIcon,
+            if (iconTintable) {
                 MaterialColors.getColor(
                     binding.gadgetTechnicalIcon,
                     com.google.android.material.R.attr.colorOnSurfaceVariant,
                 )
-            )
-        } else {
-            null
-        }
+            } else {
+                null
+            },
+        )
         binding.gadgetTechnicalIcon.setImageResource(iconRes)
         binding.gadgetTechnicalBody.setOnClickListener { openFeature() }
         binding.gadgetTechnicalIcon.setOnClickListener { openFeature() }

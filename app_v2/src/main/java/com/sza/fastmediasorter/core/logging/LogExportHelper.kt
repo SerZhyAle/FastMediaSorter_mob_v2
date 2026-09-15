@@ -137,7 +137,6 @@ object LogExportHelper {
             }
 
             if (context.packageManager.queryIntentActivitiesCompat(intent, 0).isEmpty()) {
-                Timber.d("S2902: LogExportHelper: no app can handle log sharing")
                 return ExportResult.Error(context.getString(R.string.export_logs_no_share_target))
             }
 

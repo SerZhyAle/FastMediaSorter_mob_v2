@@ -40,6 +40,7 @@
         tools:visibility="visible" />
 
     <LinearLayout
+        android:gravity="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:baselineAligned="false"
@@ -48,10 +49,9 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnHistoryExport"
             style="@style/Widget.FastMediaSorter.Button.Filled"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_small"
-            android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
             android:nextFocusRight="@+id/btnHistoryClear"
@@ -61,11 +61,10 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnHistoryClear"
             style="@style/Widget.FastMediaSorter.Button.Outlined"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_small"
             android:layout_marginTop="@dimen/margin_small"
-            android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
             android:nextFocusLeft="@+id/btnHistoryExport"

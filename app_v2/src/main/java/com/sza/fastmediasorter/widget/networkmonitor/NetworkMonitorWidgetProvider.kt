@@ -232,7 +232,6 @@ class NetworkMonitorWidgetProvider : AppWidgetProvider() {
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             val section = NetworkMonitorWidgetIndicatorStore.readSection(context, appWidgetId)
             // The factory owns the section extra; no second route or entry point is introduced here.
-            Timber.d("S2027: widget bind ${indicator.name} system=${indicator.systemSurfaceKey}")
             val open = indicator.systemSurfaceKey?.let { systemSurfaceIntent(context, it) }
                 ?: NetworkMonitorActivity.createIntent(context, section)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)

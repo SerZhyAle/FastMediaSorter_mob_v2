@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
 import android.text.Editable
+import android.text.InputFilter
 import android.text.InputType
 import android.text.TextWatcher
 import android.util.AttributeSet
@@ -254,7 +255,6 @@ class SettingsInputRow @JvmOverloads constructor(
      */
     private fun applyEntry(position: Int) {
         val picked = entries.getOrNull(position) ?: return
-        Timber.d("S2786: preset picked in settings input row")
         editText.setText(picked)
         editText.setSelection(editText.text?.length ?: 0)
         commitListener?.invoke(picked)
@@ -267,7 +267,6 @@ class SettingsInputRow @JvmOverloads constructor(
      * (owner ruling 2026-09-01).
      */
     private fun applyInlineLayout() {
-        Timber.d("S2786: inline layout applied to settings input row")
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         titleLineSpacer.visibility = View.GONE
@@ -284,6 +283,17 @@ class SettingsInputRow @JvmOverloads constructor(
         inlineTailSpacer.updateLayoutParams<LayoutParams> {
             width = 0
             weight = 1f
+        }
+    }
+
+    /**
+     * Sets the maximum character length for the input field.
+     */
+    fun setMaxLength(maxLength: Int) {
+        if (maxLength > 0) {
+            editText.filters = arrayOf(InputFilter.LengthFilter(maxLength))
+        } else {
+            editText.filters = emptyArray()
         }
     }
 
@@ -310,6 +320,8 @@ class SettingsInputRow @JvmOverloads constructor(
             }
             val entriesRes = typedArray.getResourceId(R.styleable.SettingsInputRow_sir_entries, 0)
             if (entriesRes != 0) setEntries(resources.getTextArray(entriesRes).toList())
+            val maxLength = typedArray.getInt(R.styleable.SettingsInputRow_sir_maxLength, 0)
+            if (maxLength > 0) setMaxLength(maxLength)
             if (typedArray.getBoolean(R.styleable.SettingsInputRow_sir_inline, false)) applyInlineLayout()
         }
     }

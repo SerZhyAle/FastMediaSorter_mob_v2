@@ -41,7 +41,6 @@ internal class PlayerVolumeController(
             if (up) AudioManager.ADJUST_RAISE else AudioManager.ADJUST_LOWER,
             0,
         )
-        Timber.d("S2432: shared volume step up=$up")
         onReadout(
             audioManager.getStreamVolume(AudioManager.STREAM_MUSIC),
             audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)

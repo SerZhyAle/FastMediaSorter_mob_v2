@@ -326,7 +326,6 @@ class SettingsViewModel @Inject constructor(
             } else {
                 WearGeometryMode.ORIGINAL
             }
-            Timber.d("S2773: settings toggle writes geometry mode %s", next)
             preferencesRepository.setGeometryMode(next)
         }
     }
@@ -377,7 +376,6 @@ class SettingsViewModel @Inject constructor(
      * the silent press strategic section 1 calls the screen's second break.
      */
     fun onWatchPortalOpened(launched: Boolean) {
-        Timber.d("S2496: watch portal link pressed, browser launched=$launched")
         _watchPortalState.value = if (launched) {
             WearPortalLinkState.Idle
         } else {
@@ -396,11 +394,9 @@ class SettingsViewModel @Inject constructor(
         if (_phonePortalState.value is WearPortalLinkState.Busy) {
             return
         }
-        Timber.d("S2496: phone portal link pressed")
         _phonePortalState.value = WearPortalLinkState.Busy
         viewModelScope.launch {
             val outcome = openUrlOnPhoneRepository.openOnPhone(WearPortalLinks.WEB_PORTAL_URL)
-            Timber.d("S2496: phone portal request finished with $outcome")
             _phonePortalState.value = WearPortalLinkState.Finished(outcome.toLinkOutcome())
         }
     }
@@ -421,7 +417,6 @@ class SettingsViewModel @Inject constructor(
      * S2093 / ADR-3: the watch chooses the background mode, never the picture.
      */
     fun setBackgroundMode(mode: WearBackgroundMode) {
-        Timber.d("S2540: setBackgroundMode mode=%s", mode)
         viewModelScope.launch {
             preferencesRepository.setBackgroundMode(mode)
         }

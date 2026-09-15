@@ -58,6 +58,7 @@
                     app:singleLine="true" />
 
                 <LinearLayout
+                    android:gravity="center"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
@@ -66,9 +67,8 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnToolsPing"
                         style="@style/Widget.FastMediaSorter.Button.Filled"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:clickable="true"
                         android:focusable="true"
                         android:text="@string/network_monitor_action_ping" />
@@ -76,10 +76,9 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnToolsTraceroute"
                         style="@style/Widget.FastMediaSorter.Button.Filled"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/margin_small"
-                        android:layout_weight="1"
                         android:clickable="true"
                         android:focusable="true"
                         android:text="@string/network_monitor_action_traceroute" />
@@ -144,7 +143,8 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnToolsScanSubnet"
                     style="@style/Widget.FastMediaSorter.Button.Filled"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="center_horizontal"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
                     android:clickable="true"

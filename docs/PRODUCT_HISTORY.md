@@ -1,6 +1,6 @@
 # FastMediaSorter v2 - Product History
 
-**Snapshot Date**: July 17, 2026
+**Snapshot Date**: September 13, 2026
 **Audience**: Developer / product owner
 **Purpose**: A documented timeline of product lineage and major milestones, combining repository evidence with owner-supplied historical context where the current checkout is incomplete.
 
@@ -39,7 +39,8 @@ The current Android v2 product has grown into a broad media-management platform 
 - widgets and automation,
 - Wear OS support,
 - VR / noLegal sideload variants,
-- and, by July 2026, an in-progress launcher / desktop mode.
+- an in-progress launcher / desktop mode,
+- and, by September 2026, active live-broadcast and cross-device integration work.
 
 ## 3. Lineage Before Android v2
 
@@ -78,6 +79,12 @@ These do not prove the first day of v2, but they do prove that the app already e
 | 2026-06-27 | Google Play availability explicitly confirmed for version `v2.60.6270.802` | `.agents/MEMORY.md` |
 | 2026-07-10 | Windows companion strategy pivoted: instead of a separate companion app, the functionality was redirected into the existing `FastMediaSorter_Lite` Windows product. | `PLAN/spec-catalog-archive.jsonl` (`S0421`) |
 | 2026-07-17 | Launcher-mode / desktop-style surface is under active implementation; Room schema has reached version 41 | `dev/CHANGELOG.md`, `AppDatabase.kt` |
+| 2026-08-17 | Wear OS became a substantial standalone product surface: local browse and playback, image viewing and slideshow, album art, settings, SMB/FTP/SFTP sources, and two-way Phone Data Layer resource sync were all recorded as complete. | `docs/WEAR_OS_STATUS.md` |
+| 2026-09-09 to 2026-09-12 | Wear gained its own `wear:production` Play track. Version `2.60.9021.951` is recorded as completed; the following Wear submission was deliberately deferred for a package of physical-watch and listing fixes. | `docs/PLAY_PUBLISHING_STATE.md` |
+| 2026-08 to 2026-09 | The watch became an active companion rather than only a remote browser: it can listen to and record watch audio, cast eligible content through the paired phone, synchronize resources and settings, and browse phone media with paging and previews. | `docs/ALL_FEATURES.jsonl` (`S2531`, `S2881`, `S2915`, `S2982`-`S2985`) |
+| 2026-09 | Live broadcasting extended across devices: a phone broadcast can select/switch camera lenses, be sent to a paired watch for immediate playback, and is represented by a versioned descriptor with endpoint, codec, and latency data. Watch Streams separates Video, Audio, and phone-sent channels. | `docs/ALL_FEATURES.jsonl` (`S3038`, `S3051`, `S3062`, `S3063`) |
+| 2026-09 | OCR translation now separates spatially disconnected text before overlay rendering, avoiding one translation plate spanning unrelated regions of an image. | `docs/ALL_FEATURES.jsonl` (`S3039`) |
+| 2026-09-13 | A reproducible project snapshot records 653,193 non-empty code lines across Phone, Wear, and automation scripts, with 5 Gradle modules and 589 tracked images. This is a repository measurement, not a release claim. | `docs/PROJECT_STATISTICS.md` |
 
 ## 6. Development Phases
 
@@ -129,16 +136,31 @@ By mid-July, the product is clearly operating as a platform-style Android app:
 - the database schema has grown to version 41,
 - and the repo has formalized document-registry and phase-audit workflows.
 
+### Phase E - Cross-Device Integration and Operational Maturity (July to September 2026)
+
+The period turns Wear OS from a planned companion into a release-bearing product surface. Its own Play track exists, while the next watch submission is held for measured physical-watch and listing fixes rather than being rushed through review.
+
+The product scope now includes:
+
+- a standalone watch media app with local and network browse, three player types, slideshow, album art, settings, and Phone Data Layer sync;
+- watch-originated listening/recording and phone-mediated casting;
+- live broadcast hand-off from the phone to the watch, channel categories, and a typed exchange descriptor;
+- OCR overlay accuracy improvements for spatially separate text.
+
+This phase contains completed capabilities as well as ongoing broadcast and Wear release work. The distinction is intentional: a completed Play track and active development are recorded separately.
+
 ## 7. Current Reading
 
-As of July 17, 2026, the repository shows a product that has moved through these stages:
+As of September 13, 2026, the repository shows a product that has moved through these stages:
 
 1. Windows file-sorting utility lineage,
 2. Windows FastMediaSorter product line,
 3. first Android generation,
 4. Android v2 rewrite / expansion,
 5. multi-surface Android product,
-6. platform-like shell with launcher ambitions.
+6. platform-like shell with launcher ambitions,
+7. a standalone Wear OS companion with its own production track,
+8. cross-device media and broadcast integration.
 
 ## 8. Working Historical Summary
 
@@ -150,6 +172,7 @@ The best current historical reading is:
 - the current Android **v2** effort has been running since about **September 2025**;
 - by **March 2026**, the project switched into the current ticketed / process-driven development model;
 - by **June 27, 2026**, this Android v2 line was definitely live on Google Play;
-- by **July 2026**, the app had become a large platform-style Android product with launcher ambitions.
+- by **July 2026**, the app had become a large platform-style Android product with launcher ambitions;
+- by **September 2026**, Wear OS had become a standalone media companion with its own production track, while live broadcast hand-off, Phone-Wear synchronization, and OCR quality continued to expand the product.
 
 For code-size and effort estimation, see `dev/PRODUCT_COMPLEXITY_ASSESSMENT.md`.

@@ -34,8 +34,6 @@ fun WearAppBackground(
     running: Boolean,
     modifier: Modifier = Modifier
 ) {
-    Timber.d("S2544: dimmer wallpaper applied bg=%s running=%b", background, running)
-    Timber.d("S2729: second-pass dimmer applied bg=%s running=%b", background, running)
     // S2522: under a light scheme the content is dark, so the veil that has to sit between it and an
     // arbitrary photo is the light one. Only the side flips - S2864 moved the amount into the scrim
     // policy, which sizes it off the photo's own luminance.
@@ -105,7 +103,6 @@ fun WearAppBackground(
 private fun DeliveredFrame(image: WearBackground.Image): Float? {
     val frame: Pair<ImageBitmap, Float>? = remember(image.file.path, image.lastModified) {
         val bitmap = BitmapFactory.decodeFile(image.file.path)
-        Timber.d("S2541: DeliveredFrame path=%s stamp=%d ok=%b", image.file.path, image.lastModified, bitmap != null)
         bitmap?.let { it.asImageBitmap() to WearWallpaperScrimPolicy.averageLuminance(it) }
     }
     if (frame != null) {

@@ -51,7 +51,6 @@ class FlashlightShortcutCoordinator @Inject constructor(
     }
 
     private fun apply(enabled: Boolean) {
-        Timber.d("S2776: shortcut sync enabled=$enabled flash=${notifier.hasFlashUnit()}")
         if (enabled && notifier.hasFlashUnit()) {
             notifier.show()
             return

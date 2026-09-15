@@ -56,7 +56,6 @@ class ImportWatchSourcesUseCase @Inject constructor(
             var skipped = 0
             var updated = 0
 
-            Timber.d("S2502: phone import leg entered, ${payload.sources.size} record(s), sentAt=${payload.sentAt}")
             val skewMillis = payload.sentAt?.let { receivedAtEpochMillis - it } ?: 0L
             // S2507: a tombstone always states the moment of deletion, so a comparison involving one
             // is always stamped on the sender's side, whatever the ordinary records alongside it
@@ -121,7 +120,6 @@ class ImportWatchSourcesUseCase @Inject constructor(
         if (incoming.isNullOrEmpty()) {
             return
         }
-        Timber.d("S2507: phone import leg received ${incoming.size} tombstone(s) from the watch")
         val stamps = wearResourceStampStore.readStamps()
         for (tombstone in incoming) {
             // S2507 phase 04: a source the watch created itself lives here under an id this phone
@@ -228,7 +226,6 @@ class ImportWatchSourcesUseCase @Inject constructor(
         // S2507 phase 04: only an id this phone did not issue is worth remembering - a numeric id is
         // already the key a later tombstone will name.
         if (source.id.toLongOrNull() == null) {
-            Timber.d("S2507: aliasing watch-created source ${source.id} to phone resource $newId")
             wearResourceIdAliasStore.record(source.id, newId)
         }
         // S2502: addResource stamped this moment; the merged stamp is the watch's edit time corrected

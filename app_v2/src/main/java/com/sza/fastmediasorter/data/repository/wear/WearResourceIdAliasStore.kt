@@ -79,6 +79,10 @@ class SharedPreferencesWearResourceIdAliasStore @Inject constructor(
     private companion object {
         const val PREFERENCES_NAME = "wear_resource_id_aliases"
         const val KEY_ALIASES = "aliases"
-        val ALIAS_MAP_TYPE = object : TypeToken<Map<String, Long>>() {}.type
+
+        // Class literals, not an anonymous TypeToken subclass: that subclass reads a `Signature`
+        // attribute R8 strips (S3068).
+        val ALIAS_MAP_TYPE =
+            TypeToken.getParameterized(Map::class.java, String::class.java, Long::class.javaObjectType).type
     }
 }

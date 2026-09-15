@@ -272,7 +272,6 @@ class LinkDownloadWorker @AssistedInject constructor(
             is LinkAutoDownloadCoordinator.Result.BatchCompleted -> {
                 val s = result.summary
                 // S0224 §5.4: observability log so the batch notification total can be verified from logcat
-                // without device-side testing. Uses `Timber.i` (info) - not `Timber.d("S0224:` - because that
                 // tag idiom is bound to BlockNeedUserTest status only (CLAUDE.md "Debug Verification Tags").
                 Timber.i(
                     "LinkDownloadNotification set total=%d success=%d label=%s",

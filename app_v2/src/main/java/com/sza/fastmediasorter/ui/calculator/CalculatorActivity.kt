@@ -119,7 +119,6 @@ class CalculatorActivity :
      * `AppLaunchPanelRouteIntents.calculatorSettings` already pointed at Operations.
      */
     private fun openSettings() {
-        Timber.d("S2613: calculator fallback opens settings on TAB_OPERATIONS")
         startActivity(
             Intent(this, SettingsActivity::class.java)
                 .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)

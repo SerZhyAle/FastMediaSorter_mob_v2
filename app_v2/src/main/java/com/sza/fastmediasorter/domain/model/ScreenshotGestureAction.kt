@@ -37,6 +37,12 @@ enum class ScreenshotGestureAction {
     // where the capture engine is compiled in (standard fms.screenCapture=on + noLegal).
     START_SCREEN_RECORDING,
 
+    // S3032: pre-capture - open live broadcast confirmation screen.
+    START_BROADCAST,
+
+    // S3033: pre-capture - open Tourist Info sub-program dashboard.
+    OPEN_TOURIST_INFO,
+
     // S1038: device-control actions (all gesture flavors), pre-capture. Flashlight + brightness run
     // through DeviceActionHandler; volume + media transport through MediaActionHandler. All surface under
     // the single DEVICE picker group per the strategic spec's "device control" category.

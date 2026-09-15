@@ -57,34 +57,36 @@ object NetworkErrorMessageMapper {
         exception: NetworkException,
         resourceType: ResourceType,
         resourcePath: String,
-        contextAnalyzer: NetworkContextAnalyzer,
-        accessNote: String? = null
+        contextAnalyzer: NetworkContextAnalyzer
     ): String {
         // S1055: on the resource-open/navigation surface an access-denied on a companion (SFTP/FTP)
         // resource means a credential failure (share deleted+recreated), not a file-permission result,
         // so guide the user to re-pair rather than showing the generic "access denied". Host-key changes
-        // are already handled by the exhaustive toMessageRes branch below (non-connectivity early return).
-        if (exception is NetworkAccessDeniedException &&
-            (resourceType == ResourceType.SFTP || resourceType == ResourceType.FTP)) {
-            return context.getString(R.string.error_companion_repair_needed)
+        // are already handled by the exhaustive toMessageRes branch below.
+        val isConnectivityError = exception is NetworkConnectionLostException ||
+            exception is NetworkTimeoutException
+        return when {
+            exception is NetworkAccessDeniedException &&
+                (resourceType == ResourceType.SFTP || resourceType == ResourceType.FTP) -> {
+                context.getString(R.string.error_companion_repair_needed)
+            }
+            !isConnectivityError -> context.getString(toMessageRes(exception))
+            else -> {
+                val companionResource = resourceType == ResourceType.SFTP || resourceType == ResourceType.FTP
+                val contextual: String? = when {
+                    !contextAnalyzer.hasAnyNetwork() -> {
+                        context.getString(R.string.error_network_connection_lost)
+                    }
+                    resourceType == ResourceType.SMB -> {
+                        smbConnectivityMessage(context, resourcePath, contextAnalyzer)
+                    }
+                    // Companion notes are export-time snapshots, so use current failure diagnostics instead.
+                    companionResource -> context.getString(R.string.error_companion_connect_guidance)
+                    else -> null
+                }
+                contextual ?: context.getString(toMessageRes(exception))
+            }
         }
-        val isConnectivityError = exception is NetworkConnectionLostException
-                || exception is NetworkTimeoutException
-        if (!isConnectivityError) {
-            return context.getString(toMessageRes(exception))
-        }
-
-        val companionResource = resourceType == ResourceType.SFTP || resourceType == ResourceType.FTP
-        val contextual: String? = when {
-            // S1014: the companion knows its own network situation - prefer its guidance verbatim.
-            !accessNote.isNullOrBlank() -> accessNote
-            !contextAnalyzer.hasAnyNetwork() -> context.getString(R.string.error_network_connection_lost)
-            resourceType == ResourceType.SMB -> smbConnectivityMessage(context, resourcePath, contextAnalyzer)
-            // S1014: companion-style resources (SFTP/FTP) get actionable access guidance, not a bare timeout.
-            companionResource -> context.getString(R.string.error_companion_connect_guidance)
-            else -> null
-        }
-        return contextual ?: context.getString(toMessageRes(exception))
     }
 
     /** SMB-specific connectivity hint (cellular / off-local-network), or null to fall back to the default. */
@@ -112,7 +114,6 @@ object NetworkErrorMessageMapper {
         resourceType: ResourceType,
         resourcePath: String,
         contextAnalyzer: NetworkContextAnalyzer,
-        accessNote: String? = null,
     ): UiMessageSpec = UiMessageSpec(
         family = UiMessageFamily.ERROR,
         shortMessage = toContextAwareMessage(
@@ -121,7 +122,6 @@ object NetworkErrorMessageMapper {
             resourceType,
             resourcePath,
             contextAnalyzer,
-            accessNote,
         ),
     )
 }

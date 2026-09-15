@@ -70,7 +70,6 @@ class SettingsValueRowGroup @JvmOverloads constructor(
         val target = resolveLabelColumnWidth()
         if (target == appliedLabelWidth) return
         appliedLabelWidth = target
-        Timber.d("S2389: shared label column resolved to %d px", target)
         children.forEach { child ->
             (child as? LabelColumnRow)?.applyLabelColumnWidth(if (isExcluded(child)) 0 else target)
         }

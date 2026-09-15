@@ -55,7 +55,6 @@ class AudioFocusManager(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             requestFocusApi26()
         } else {
-            @Suppress("DEPRECATION")
             requestFocusLegacy()
         }
     }

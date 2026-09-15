@@ -60,7 +60,6 @@ class LauncherScreenTransitionManager(
     fun transition(direction: Int, render: () -> Unit) {
         // Shown before the motion starts, not after it ends: the number names the screen being moved to,
         // and the badge is a sibling of the sliding container, so its constraints are not dragged along.
-        Timber.d("S2730: transition badge=${showScreenNumber()} anim=${AnimationPolicy.isAnimationAllowed}")
         if (showScreenNumber()) {
             showBadge()
         }

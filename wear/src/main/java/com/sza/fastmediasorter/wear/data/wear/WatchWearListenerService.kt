@@ -149,7 +149,6 @@ class WatchWearListenerService : WearableListenerService() {
             capabilityInfo.nodes.isNotEmpty()
         if (phoneIsBack) {
             applicationScope.launch {
-                Timber.d("S2915: pending voice notes drain launched on the app scope")
                 drainPendingVoiceNotesUseCase()
             }
         }
@@ -159,7 +158,6 @@ class WatchWearListenerService : WearableListenerService() {
         if (channel.path.startsWith(WearDataLayerPaths.FILE_TRANSFER)) {
             val fileName = channel.path.substringAfterLast('/', DEFAULT_INCOMING_FILE_NAME)
             applicationScope.launch {
-                Timber.d("S2915: incoming file receive launched on the app scope")
                 val result = wearFileReceiverRepository.receiveFile(channel, fileName)
                 Timber.i("Incoming file %s ended as %s", fileName, result.outcome)
                 answerFileTransfer(channel.nodeId, result)
@@ -227,7 +225,6 @@ class WatchWearListenerService : WearableListenerService() {
     @Suppress("TooGenericExceptionCaught")
     private fun handleFileUploadOutcome(payloadBytes: ByteArray, uri: android.net.Uri) {
         applicationScope.launch {
-            Timber.d("S2915: upload outcome handling launched on the app scope")
             try {
                 val outcome = gson.fromJson(
                     payloadBytes.decodeToString(),
@@ -374,7 +371,6 @@ class WatchWearListenerService : WearableListenerService() {
 
     private fun handleStreamTransfer(nodeId: String, data: ByteArray) {
         applicationScope.launch {
-            Timber.d("S2915: stream transfer handling launched on the app scope")
             val payload = try {
                 val envelope = envelopeCodec.decode(data)
                 gson.fromJson(envelope.data.decodeToString(), WearStreamTransferPayload::class.java)
@@ -428,7 +424,6 @@ class WatchWearListenerService : WearableListenerService() {
      */
     private fun handleStreamPinsPush(payloadBytes: ByteArray) {
         applicationScope.launch {
-            Timber.d("S2915: stream pins push launched on the app scope")
             try {
                 val envelope = envelopeCodec.decode(payloadBytes)
                 val payload = gson.fromJson(envelope.data.decodeToString(), WearStreamPinsPayload::class.java)
@@ -452,7 +447,6 @@ class WatchWearListenerService : WearableListenerService() {
      */
     private fun handleSendToReceiversPush(payloadBytes: ByteArray) {
         applicationScope.launch {
-            Timber.d("S2915: send-to receivers push launched on the app scope")
             try {
                 val envelope = envelopeCodec.decode(payloadBytes)
                 val json = envelope.data.decodeToString()
@@ -470,7 +464,6 @@ class WatchWearListenerService : WearableListenerService() {
 
     private fun handlePlaybackCommand(data: ByteArray) {
         applicationScope.launch {
-            Timber.d("S2915: playback command launched on the app scope")
             try {
                 val envelope = envelopeCodec.decode(data)
                 val commandName = gson.fromJson(envelope.data.decodeToString(), String::class.java)
@@ -484,7 +477,6 @@ class WatchWearListenerService : WearableListenerService() {
 
     private fun handlePush(payloadBytes: ByteArray, senderNodeId: String) {
         applicationScope.launch {
-            Timber.d("S2915: network sources import launched on the app scope")
             try {
                 val json = payloadBytes.decodeToString()
                 val payload = gson.fromJson(json, WearSyncPayload::class.java)
@@ -504,7 +496,6 @@ class WatchWearListenerService : WearableListenerService() {
         val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             getSystemService<VibratorManager>()?.defaultVibrator
         } else {
-            @Suppress("DEPRECATION")
             getSystemService<Vibrator>()
         }
         vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 80, 60, 120), -1))
@@ -512,7 +503,6 @@ class WatchWearListenerService : WearableListenerService() {
 
     private suspend fun sendAck(nodeId: String, result: ImportResult) {
         if (nodeId.isBlank()) return
-        Timber.d("S2278: catalog sync ack serialized via Gson to $nodeId")
         val ackJson = gson.toJson(
             SyncAck(added = result.added, updated = result.updated, removed = result.removed)
         )

@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemSettingsSearchResultBinding
+import timber.log.Timber
 
 class SettingsSearchAdapter(
     private val onItemClicked: (SettingsSearchIndex) -> Unit
@@ -31,32 +32,16 @@ class SettingsSearchAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: SettingsSearchIndex) {
+            Timber.d("S3091: bind settings-search section=${item.sectionId}")
             binding.titleText.text = item.title
             binding.sectionText.text = binding.root.context.getString(
                 R.string.settings_search_section_format,
-                formatSection(item.sectionId)
+                binding.root.context.getString(settingsSearchSectionResId(item.sectionId))
             )
             binding.descriptionText.text = item.keywords.joinToString(separator = ", ")
 
             binding.root.setOnClickListener {
                 onItemClicked(item)
-            }
-        }
-
-        private fun formatSection(sectionId: String): String {
-            return when (sectionId) {
-                "general" -> binding.root.context.getString(R.string.settings_tab_general)
-                "playback" -> binding.root.context.getString(R.string.settings_tab_playback)
-                "destinations" -> binding.root.context.getString(R.string.settings_tab_operations)
-                "images" -> binding.root.context.getString(R.string.settings_category_images)
-                "video" -> binding.root.context.getString(R.string.settings_category_video)
-                "audio" -> binding.root.context.getString(R.string.settings_category_audio)
-                "documents" -> binding.root.context.getString(R.string.settings_category_documents)
-                // S2787: the Streams rows fell through to "other" and were labelled with a foreign
-                // section. Since the PiP toggle now appears twice under one title, this label is the
-                // only thing telling the two results apart.
-                "streams" -> binding.root.context.getString(R.string.settings_streams_section)
-                else -> binding.root.context.getString(R.string.settings_category_other)
             }
         }
     }
@@ -70,4 +55,17 @@ class SettingsSearchAdapter(
             return oldItem == newItem
         }
     }
+}
+
+internal fun settingsSearchSectionResId(sectionId: String): Int = when (sectionId) {
+    "general" -> R.string.settings_tab_general
+    "playback" -> R.string.settings_tab_playback
+    "destinations" -> R.string.settings_tab_operations
+    "images" -> R.string.settings_category_images
+    "video" -> R.string.settings_category_video
+    "audio" -> R.string.settings_category_audio
+    "documents" -> R.string.settings_category_documents
+    "streams" -> R.string.settings_streams_section
+    "broadcast" -> R.string.settings_broadcast_section
+    else -> R.string.settings_category_other
 }

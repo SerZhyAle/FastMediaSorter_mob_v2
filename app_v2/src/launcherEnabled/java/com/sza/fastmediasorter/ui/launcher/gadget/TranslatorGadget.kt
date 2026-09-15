@@ -35,8 +35,8 @@ import javax.inject.Inject
  * contract (strategic §5.3). Every flavor that has a desktop also has translation, so the cell needs no
  * runtime capability check and adds no gating axis.
  *
- * Seeds at 2x2 with a 2x1 floor - the owner's ruling of 2026-08-17: a translation almost never fits one
- * line, and the floor leaves the search-cell shape to whoever needs the space back.
+ * Seeds and stays at 2x2: a translation almost never fits one line, so the grid must keep room for the
+ * input and controls.
  */
 class TranslatorGadget @Inject constructor(
     private val facadeFactory: Lazy<TextTranslationFacadeFactory>,
@@ -47,13 +47,14 @@ class TranslatorGadget @Inject constructor(
     override val defaultSpanW: Int = 2
     override val defaultSpanH: Int = 2
     override val minSpanW: Int = 2
-    override val minSpanH: Int = 1
     override val labelRes: Int = R.string.launcher_gadget_translator
     override val iconRes: Int = R.drawable.ic_translate
     override val requiresResourceParam: Boolean = false
 
-    override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        TranslatorGadgetView(container.context, facadeFactory, settingsRepository)
+    override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View {
+        Timber.d("S3135: Translator gadget view created")
+        return TranslatorGadgetView(container.context, facadeFactory, settingsRepository)
+    }
 }
 
 /**
@@ -162,7 +163,6 @@ private class TranslatorGadgetView(
         // IME_FLAG_NO_ENTER_ACTION there, so the keyboard offers a newline and no action at all. This
         // button is what makes typed text translatable; the listener stays for hardware keyboards.
         binding.gadgetTranslatorTranslate.setOnClickListener {
-            Timber.d("S2732: translator cell translate button tapped")
             translate(binding.gadgetTranslatorInput.text?.toString().orEmpty())
         }
         binding.gadgetTranslatorSwap.setOnClickListener { swapDirection() }
@@ -272,9 +272,7 @@ private class TranslatorGadgetView(
                 if (translated != null) {
                     binding.gadgetTranslatorResult.text = translated
                 }
-                Timber.d("S2988: state translated=%s modelMissing=%s", translated != null, modelMissing)
                 val state = decideTranslatorState(text, translated, modelMissing, failed)
-                Timber.d("S2732: translator cell state after engine call: %s", state)
                 renderState(state)
             }
         }

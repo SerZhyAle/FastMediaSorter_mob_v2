@@ -486,6 +486,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 // which reuses the open home task, so wrapping the shared enum route too would show the
                 // same panel twice under two different keys.
                 launcherRouteAvailable = false,
+                currentSettings = { viewModel.settings.value },
             ),
         )
 

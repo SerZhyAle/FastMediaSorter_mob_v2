@@ -64,6 +64,7 @@ class WearAppCatalogTest {
         assertTrue(ids.contains(WearAppId.BODY_SENSOR))
         assertTrue(ids.contains(WearAppId.MOTION_MONITOR))
         assertTrue(ids.contains(WearAppId.BLOOD_PRESSURE))
+        assertTrue(ids.contains(WearAppId.TOURIST))
     }
 
     @Test
@@ -78,7 +79,14 @@ class WearAppCatalogTest {
         assertFalse(withheld.contains(WearAppId.BODY_SENSOR))
         assertFalse(withheld.contains(WearAppId.MOTION_MONITOR))
         assertFalse(withheld.contains(WearAppId.BLOOD_PRESSURE))
-        assertEquals(offered - setOf(WearAppId.BODY_SENSOR, WearAppId.MOTION_MONITOR, WearAppId.BLOOD_PRESSURE), withheld)
+        assertFalse(withheld.contains(WearAppId.TOURIST))
+        val expectedWithheld = setOf(
+            WearAppId.BODY_SENSOR,
+            WearAppId.MOTION_MONITOR,
+            WearAppId.BLOOD_PRESSURE,
+            WearAppId.TOURIST
+        )
+        assertEquals(offered - expectedWithheld, withheld)
     }
 
     @Test

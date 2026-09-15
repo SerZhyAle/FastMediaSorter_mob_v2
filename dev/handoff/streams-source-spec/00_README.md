@@ -51,6 +51,8 @@ The Windows app can consume this ZIP directly, and/or regenerate it with the sam
 | `08_build_publish_pipeline.md` | The offline producer: `collect-stream-candidates.ps1` (harvest, liveness probe, favicon fetch, atlas pack, CSV write, ZIP assemble, `gh` publish) and its guards. |
 | `09_logo_and_preview_atlases.md` | The two on-demand atlases delivered outside `stream-catalog.zip`: channel-preview and stream-logo geometry, sidecars, the Deliverable payloads, tile-pack vs sheet, and the render fallback order. |
 | `10_contract_amendment_2026-08-20.md` | **[Read first if you already implemented against this set]** What the 2026-08-19 catalog incident and the exchange with StreamsPlayer settled: the build is atomic, a row's absence never deletes user data, artwork is read by stable name plus manifest, and the preview sheet's height now follows its tile count - a breaking change for anyone who hardcoded 60 rows. |
+| `11_live_broadcast_contract.md` | **[Separate subject]** Live broadcasts from a phone or a watch: the four stream kinds, the descriptor, the barcode / file / link hand-off, LAN now and relay later, and the latency and buffering rule every consumer follows. |
+| `CONSUMER_PROMPT_live_broadcast.md` | A self-contained prompt for the developer or AI agent of any player that should play these live broadcasts (StreamsPlayer first): wire formats, descriptor, hand-off channels, the latency rule, tasks, test examples and what to report back. |
 
 Read order for a full understanding: `01` -> `03` -> `04` -> `02` -> `05` -> `06` -> `07` -> `08`.
 Already implemented against an earlier copy of this set? Read `10` first - it is the only file that

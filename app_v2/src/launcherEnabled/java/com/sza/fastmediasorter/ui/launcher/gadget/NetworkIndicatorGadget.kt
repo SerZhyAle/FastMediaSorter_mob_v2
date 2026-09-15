@@ -137,7 +137,6 @@ private class NetworkIndicatorGadgetView(
      */
     private fun openMonitor() {
         val systemSurfaceKey = indicator.systemSurfaceKey
-        Timber.d("S2027: tile tap ${indicator.name} systemSurfaceKey=$systemSurfaceKey")
         val command = if (systemSurfaceKey != null) {
             LauncherCellCommand.OsShortcut(systemSurfaceKey)
         } else {

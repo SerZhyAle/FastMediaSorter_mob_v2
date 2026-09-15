@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.data.repository
 
 import android.content.Context
 import com.google.gson.Gson
+import com.sza.fastmediasorter.wear.domain.model.foldWearStreamIdentity
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -75,5 +76,27 @@ class WearStreamPinsRepositoryTest {
         repo.clearPendingDelta()
         assertEquals(0, repo.getPendingDelta().size)
     }
-}
 
+    @Test
+    fun `unpin phone-only pinned stream queues unpin delta for phone`() = runBlocking {
+        val context = mockk<Context>()
+        every { context.filesDir } returns temporaryFolder.root
+        val phonePinsRepo = mockk<WearPhonePinsRepository>()
+        val foldedUrl = foldWearStreamIdentity("https://stream.example.com/phone_only")
+        val phonePinsFlow = kotlinx.coroutines.flow.MutableStateFlow(setOf(foldedUrl))
+        every { phonePinsRepo.observe() } returns phonePinsFlow
+
+        val repo = WearStreamPinsRepository(context, Gson(), phonePinsRepo)
+
+        assertTrue(repo.isPinned("https://stream.example.com/phone_only"))
+        assertFalse(repo.isPinnedOnWatch("https://stream.example.com/phone_only"))
+
+        val unpinnedNow = repo.togglePin("https://stream.example.com/phone_only")
+        assertFalse(unpinnedNow)
+
+        val deltas = repo.getPendingDelta()
+        assertEquals(1, deltas.size)
+        assertEquals(false, deltas.first().isPinned)
+        assertEquals(foldedUrl, deltas.first().urlOrIdentity)
+    }
+}

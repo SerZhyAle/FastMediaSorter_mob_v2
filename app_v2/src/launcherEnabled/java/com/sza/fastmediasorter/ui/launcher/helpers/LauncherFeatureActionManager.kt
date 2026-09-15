@@ -46,7 +46,6 @@ class LauncherFeatureActionManager(
         rows += action(R.string.remove_action, R.drawable.ic_delete) {
             removeDesktopCell(cellId)
         }
-        Timber.d("S2392: feature menu built rows=%d route=%s", rows.size, command.routeKey)
         return rows
     }
 

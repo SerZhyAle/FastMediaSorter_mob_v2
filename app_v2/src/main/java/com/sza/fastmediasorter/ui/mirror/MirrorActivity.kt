@@ -119,7 +119,6 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
     override fun keepScreenAwakeFor(settings: AppSettings): Boolean = true
 
     override fun setupViews() {
-        Timber.d("S2847: mirror setupViews - enlarged buttons with colored borders")
         applyControlInsets()
         zoomManager = MirrorZoomManager(
             container = binding.mirrorCornerBottomStart,
@@ -209,7 +208,6 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
             previewView = binding.mirrorPreview,
             onReady = {
                 sessionManager.switchToFacing(CameraSelector.LENS_FACING_FRONT, restoreSaved = false)
-                Timber.d("S1924: bound front lens, flipped=" + viewModel.horizontallyFlipped.value)
                 sessionManager.setZoomRatio(viewModel.zoomRatio.value)
                 zoomManager.showActive(viewModel.zoomRatio.value)
             },

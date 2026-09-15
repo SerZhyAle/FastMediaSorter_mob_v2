@@ -715,7 +715,7 @@
     <string name="wear_phone_camera_failed_not_on_wifi">Увімкніть Wi-Fi на годиннику</string>
     <string name="wear_phone_camera_failed_no_network">У годинника немає мережі</string>
     <string name="wear_phone_camera_failed_narrow_link">Цей Wi-Fi надто повільний для відео</string>
-    <string name="wear_phone_camera_failed_not_asked">На телефоні вимкнено сповіщення</string>
+    <string name="wear_phone_camera_failed_not_asked">Увімкніть сповіщення на телефоні</string>
     <string name="wear_phone_camera_failed_declined">Запит відхилено на телефоні</string>
     <string name="wear_phone_camera_failed_expired">На телефоні ніхто не відповів</string>
     <string name="wear_phone_camera_failed_capture">Телефон не зміг відкрити камеру</string>
@@ -729,7 +729,6 @@
     <string name="system_info_copied">Скопійовано</string>
     <string name="wear_game_caught_by_kryvavitsa">Спіймала Кривавиця</string>
     <string name="wear_game_caught_by_shadow">Спіймала Тінь</string>
-    <string name="wear_streams_filter_kind_all">Все</string>
     <string name="wear_streams_filter_kind_audio">Аудіо</string>
     <string name="wear_streams_filter_kind_video">Відео</string>
     <string name="wear_streams_empty_filtered">Фільтр не залишив жодного потоку. Зніміть його, щоб побачити весь каталог.</string>
@@ -847,4 +846,5 @@
     <string name="wear_tourist_unlock_screen">Розблокувати</string>
     <string name="wear_tourist_hold_to_unlock">Утримуйте для розблокування</string>
     <string name="wear_tourist_screen_locked">Екран закріплено</string>
+    <string name="wear_streams_filter_kind_own">Власні</string>
 </resources>

@@ -223,7 +223,6 @@ class WelcomeEnableAllManager @Inject constructor(
             // flag rises here with enableOcr - never earlier, or the route offers a translator whose
             // engines are not on disk yet (S0386).
             enqueueAndEnableOnInstall(DeliverableSet.OCR_ENGINES) {
-                Timber.d("S2674: OCR engines installed - raising the camera translation flag")
                 it.copy(enableOcr = true, cameraOcrTranslationEnabled = true)
             }
         }

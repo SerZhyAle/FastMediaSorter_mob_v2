@@ -145,7 +145,11 @@ class SharedPreferencesWearSettingsMirrorStore @Inject constructor(
         private const val KEY_WATCH_APP_VERSION = "watch_app_version_name"
 
         // Gson erases the generic on a plain Map::class.java and hands back Double values; the token
-        // is what keeps the epoch-millis a Long.
-        private val STAMP_MAP_TYPE = object : TypeToken<Map<String, Long>>() {}.type
+        // is what keeps the epoch-millis a Long. Built from class literals rather than an anonymous
+        // TypeToken subclass, because that subclass reads its own `Signature` attribute, which R8
+        // strips - the shipped crash S3068 was raised from. `javaObjectType` keeps the value
+        // java.lang.Long; `Long::class.java` is the primitive, which Gson has no adapter for.
+        private val STAMP_MAP_TYPE =
+            TypeToken.getParameterized(Map::class.java, String::class.java, Long::class.javaObjectType).type
     }
 }

@@ -49,7 +49,6 @@ class MotionMonitorViewModel @Inject constructor(
 
     fun resetSteps() {
         stepBaseline.value = lastKnownRawSteps
-        Timber.d("S3014: steps reset to baseline $lastKnownRawSteps")
     }
 
     fun saveCurrentSnapshot() {
@@ -63,7 +62,6 @@ class MotionMonitorViewModel @Inject constructor(
                 )
             )
             snapshotSaved.value = true
-            Timber.d("S3014: saved motion history snapshot with $displayed steps")
         }
     }
 

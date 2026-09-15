@@ -49,15 +49,65 @@ function New-FixtureSandbox {
 
     $phoneModel = Join-Path $phoneDir 'domain/model'
     $phoneSvc = Join-Path $phoneDir 'service'
+    $phoneBroadcast = Join-Path $phoneDir 'data/broadcast'
     $watchModel = Join-Path $watchDir 'domain/model'
     $watchSvc = Join-Path $watchDir 'data/wear'
+    $watchBroadcast = Join-Path $watchDir 'data/broadcast'
     $watchUseCase = Join-Path $watchDir 'domain/usecase'
 
     New-Item -ItemType Directory -Force -Path $phoneModel | Out-Null
     New-Item -ItemType Directory -Force -Path $phoneSvc | Out-Null
+    New-Item -ItemType Directory -Force -Path $phoneBroadcast | Out-Null
     New-Item -ItemType Directory -Force -Path $watchModel | Out-Null
     New-Item -ItemType Directory -Force -Path $watchSvc | Out-Null
+    New-Item -ItemType Directory -Force -Path $watchBroadcast | Out-Null
     New-Item -ItemType Directory -Force -Path $watchUseCase | Out-Null
+
+    @'
+package com.sza.fastmediasorter.data.broadcast
+class BroadcastDescriptorParser {
+    companion object {
+        const val COMPRESSED_PREFIX = "FMSBCAST1:"
+    }
+}
+'@ | Set-Content (Join-Path $phoneBroadcast 'BroadcastDescriptorParser.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.data.broadcast
+class BroadcastDescriptorSerializer {
+    companion object {
+        const val COMPRESSED_PREFIX = "FMSBCAST1:"
+    }
+}
+'@ | Set-Content (Join-Path $watchBroadcast 'BroadcastDescriptorSerializer.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.data.broadcast
+data class BroadcastDescriptorDto(
+    @SerializedName("url") val url: String
+)
+'@ | Set-Content (Join-Path $phoneBroadcast 'BroadcastDescriptorDto.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.data.broadcast
+data class BroadcastDescriptorDto(
+    @SerializedName("url") val url: String
+)
+'@ | Set-Content (Join-Path $watchBroadcast 'BroadcastDescriptorDto.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.data.broadcast
+data class BroadcastEndpointDto(
+    @SerializedName("url") val url: String
+)
+'@ | Set-Content (Join-Path $phoneBroadcast 'BroadcastEndpointDto.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.data.broadcast
+data class BroadcastEndpointDto(
+    @SerializedName("url") val url: String
+)
+'@ | Set-Content (Join-Path $watchBroadcast 'BroadcastEndpointDto.kt') -Encoding utf8NoBOM
 
     # Base valid contents
     @'

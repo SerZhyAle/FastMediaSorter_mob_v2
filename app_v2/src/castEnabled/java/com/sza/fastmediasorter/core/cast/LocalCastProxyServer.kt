@@ -1,29 +1,27 @@
 package com.sza.fastmediasorter.core.cast
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.LinkAddress
-import android.net.wifi.WifiManager
-import android.os.Build
 import android.webkit.MimeTypeMap
-import androidx.annotation.RequiresApi
+import com.sza.fastmediasorter.core.network.LanAddressResolver
 import fi.iki.elonen.NanoHTTPD
 import timber.log.Timber
 import java.io.File
-import java.net.Inet4Address
 
 /**
  * In-process HTTP server that serves a single file to the Chromecast receiver.
  *
  * Key design decisions:
  * - Binds to 0.0.0.0 (all interfaces) so the Chromecast can reach the phone over LAN.
- * - [castUrl] returns the phone's actual Wi-Fi LAN IP - NOT 127.0.0.1 (loopback is unreachable
- *   from a Chromecast device on the same network segment).
+ * - [castUrl] returns the phone's actual Wi-Fi/LAN IP - NOT 127.0.0.1 (loopback is unreachable
+ *   from a Chromecast device on the same network segment). Returns null when no LAN IP is resolved.
  * - RFC 1918 addresses are already permitted for cleartext in network_security_config.xml, so
  *   no XML change is needed.
  * - Tries port 8765, falls back to 8766 / 8767 if already in use.
  */
-class LocalCastProxyServer(private val context: Context) {
+class LocalCastProxyServer(
+    private val context: Context,
+    private val lanAddressProvider: () -> String? = { LanAddressResolver(context).resolve() },
+) {
 
     companion object {
         private val CANDIDATE_PORTS = intArrayOf(8765, 8766, 8767)
@@ -36,7 +34,12 @@ class LocalCastProxyServer(private val context: Context) {
          */
         fun mimeType(file: File): String {
             val ext = file.extension.lowercase()
-            return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
+            val fromMap = try {
+                MimeTypeMap.getSingleton()?.getMimeTypeFromExtension(ext)
+            } catch (_: Exception) {
+                null
+            }
+            return fromMap
                 ?: when (ext) {
                     "mp3" -> "audio/mpeg"
                     "m4a" -> "audio/mp4"
@@ -69,8 +72,8 @@ class LocalCastProxyServer(private val context: Context) {
         currentFile = file
     }
 
-    /** Returns the full URL the Cast receiver should fetch (phone LAN IP). */
-    fun castUrl(): String = "http://${getLanIp()}:$activePort$ENDPOINT"
+    /** Returns the full URL the Cast receiver should fetch (phone LAN IP), or null if unresolved. */
+    fun castUrl(): String? = lanAddressProvider()?.let { ip -> "http://$ip:$activePort$ENDPOINT" }
 
     fun start() {
         for (port in CANDIDATE_PORTS) {
@@ -95,48 +98,6 @@ class LocalCastProxyServer(private val context: Context) {
     }
 
     val isAlive: Boolean get() = server?.isAlive == true
-
-    // ── LAN IP resolution ────────────────────────────────────────────────────
-
-    private fun getLanIp(): String {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            getLanIpApi31()
-        } else {
-            getLanIpLegacy()
-        }
-    }
-
-    @Suppress("DEPRECATION")
-    private fun getLanIpLegacy(): String {
-        return try {
-            val wm = context.applicationContext
-                .getSystemService(Context.WIFI_SERVICE) as WifiManager
-            val ip = wm.connectionInfo.ipAddress
-            if (ip == 0) return "127.0.0.1"
-            // WifiManager returns little-endian int on all Android versions
-            "${ip and 0xff}.${(ip shr 8) and 0xff}.${(ip shr 16) and 0xff}.${(ip shr 24) and 0xff}"
-        } catch (e: Exception) {
-            Timber.w("LocalCastProxyServer: getLanIpLegacy failed - ${e.message}")
-            "127.0.0.1"
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun getLanIpApi31(): String {
-        return try {
-            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val network = cm.activeNetwork ?: return "127.0.0.1"
-            val props = cm.getLinkProperties(network) ?: return "127.0.0.1"
-            props.linkAddresses
-                .firstOrNull { la: LinkAddress ->
-                    la.address is Inet4Address && !la.address.isLoopbackAddress
-                }
-                ?.address?.hostAddress ?: "127.0.0.1"
-        } catch (e: Exception) {
-            Timber.w("LocalCastProxyServer: getLanIpApi31 failed - ${e.message}")
-            "127.0.0.1"
-        }
-    }
 
     // ── NanoHTTPD inner server ────────────────────────────────────────────────
 

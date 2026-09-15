@@ -100,7 +100,9 @@ $ErrorActionPreference = 'Stop'
 
 $MaestroDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $MaestroDir
-$TempDir     = Join-Path $ProjectRoot 'temp'
+# Rule 10 lists what may live at temp/ root and a per-flow trace is not on it, so an assertion
+# over that directory used to fail on this runner's logs (S3025).
+$LogDir      = Join-Path $ProjectRoot 'temp/scratch/maestro'
 
 # Probed once in the preflight; reported in both output modes so -Json callers see it too (S1673).
 $script:LauncherMode = 'unknown'
@@ -446,7 +448,7 @@ function Invoke-Flow {
     Clear-MaestroSessions
 
     $stamp   = (Get-Date).ToString('yyyyMMdd_HHmmss')
-    $logFile = Join-Path $TempDir ("{0}_maestro_{1}.log" -f $FlowFile.BaseName, $stamp)
+    $logFile = Join-Path $LogDir ("{0}_maestro_{1}.log" -f $FlowFile.BaseName, $stamp)
 
     $argList = @()
     if ($DeviceId) { $argList += @('--device', $DeviceId) }
@@ -483,8 +485,8 @@ function Invoke-Flow {
 }
 
 # ---------- main ----------
-if (-not (Test-Path -Path $TempDir -PathType Container)) {
-    New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
+if (-not (Test-Path -Path $LogDir -PathType Container)) {
+    New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
 }
 
 # -ListFlows answers the selection question alone. It runs before binary discovery and before any

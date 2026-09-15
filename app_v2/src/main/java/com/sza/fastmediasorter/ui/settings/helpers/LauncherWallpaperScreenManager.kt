@@ -73,12 +73,10 @@ class LauncherWallpaperScreenManager(
         binding.rowScreenCount.setEntries(SCREEN_COUNT_ENTRIES)
         binding.rowScreenCount.setOnItemSelectedListener { index ->
             if (isUpdating()) return@setOnItemSelectedListener
-            Timber.d("S2730: screen count row -> ${index + FIRST_SCREEN_COUNT}")
             applyScreens(index + FIRST_SCREEN_COUNT, null)
         }
         binding.rowShowScreenNumber.setOnCheckedChangeListener { isChecked ->
             if (isUpdating()) return@setOnCheckedChangeListener
-            Timber.d("S2730: show screen number row -> $isChecked")
             applyScreens(null, isChecked)
         }
     }

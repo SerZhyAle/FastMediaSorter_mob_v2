@@ -33,7 +33,6 @@ class BroadcastTileService : TileService() {
 
     override fun onClick() {
         super.onClick()
-        Timber.d("S2818: broadcast QS tile tapped, opening confirmation screen")
         val intent = Intent(this, BroadcastEntryActivity::class.java).apply {
             action = BroadcastEntryActivity.ACTION_OPEN_BROADCAST_ENTRY
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

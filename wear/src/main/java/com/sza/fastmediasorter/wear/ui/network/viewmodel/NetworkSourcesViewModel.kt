@@ -20,15 +20,20 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import javax.inject.Inject
 
 // S2486: internal rather than private - AddNetworkSourceViewModel collects the same setting through the
 // same window, and a second literal with the same number is the shape that drifts.
 internal const val VIEW_MODE_SUBSCRIPTION_MS = 5_000L
+
+/** S3044: maximum wait time for phone response before reporting sync failure. */
+private const val SYNC_TIMEOUT_MS = 10_000L
 
 sealed class SyncState {
     data object Idle : SyncState()
@@ -151,6 +156,16 @@ class NetworkSourcesViewModel @Inject constructor(
                     .sendMessage(nodeId, "/fms/network_sources/request", ByteArray(0))
                     .await()
                 Timber.d("Sync request sent to node $nodeId")
+
+                // S3044: wait up to 10s for phone response; report failure if phone does not answer
+                withTimeoutOrNull(SYNC_TIMEOUT_MS) {
+                    com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents.importResultFlow.first()
+                } ?: run {
+                    if (_syncState.value is SyncState.Pending) {
+                        Timber.w("requestSyncFromPhone: timeout waiting for phone response")
+                        _syncState.value = SyncState.Error(R.string.wear_sync_request_failed)
+                    }
+                }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Failed to request sync from phone")
                 _syncState.value = SyncState.Error(R.string.wear_sync_request_failed)
@@ -171,8 +186,10 @@ class NetworkSourcesViewModel @Inject constructor(
         _exportState.value = ExportState.Idle
     }
 
-    fun resetSyncState() {
-        _syncState.value = SyncState.Idle
+    fun resetSyncState(force: Boolean = false) {
+        if (force || _syncState.value is SyncState.Pending) {
+            _syncState.value = SyncState.Idle
+        }
     }
 
     fun retryLoad() {
@@ -271,7 +288,6 @@ class NetworkSourcesViewModel @Inject constructor(
             try {
                 // S2507: the user-delete path, which records the deletion event. The plain
                 // deleteSource is the import path - it applies a decision the phone already made.
-                Timber.d("S2507: watch user-delete, recording a tombstone for source $id")
                 networkSourceRepository.deleteSourceWithTombstone(id, System.currentTimeMillis())
                 Timber.d("Deleted source $id")
             } catch (e: Exception) {

@@ -97,7 +97,6 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
         binding.btnColor.setOnClickListener { openColorPicker() }
         bindBrightnessCells()
         refreshBrightnessSelection()
-        Timber.d("S2777: controls bound, brightness steps=${brightnessManager.levelCount}")
         supportFragmentManager.setFragmentResultListener(COLOR_REQUEST_KEY, this) { _, result ->
             val picked = result.getInt(ColorPickerDialog.RESULT_COLOR, currentGlowColor())
             Timber.d("glow colour picked %08X", picked)
@@ -156,7 +155,6 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
     }
 
     private fun applyWindowBrightness() {
-        Timber.d("S2777: brightness level=${brightnessManager.currentLevel}")
         window.attributes = window.attributes.apply { screenBrightness = brightnessManager.currentBrightness() }
     }
 

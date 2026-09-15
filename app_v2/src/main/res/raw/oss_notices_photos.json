@@ -86,15 +86,13 @@
     "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
     "oss": true,
     "shippedIn": [
-      "foss",
-      "legacy",
       "lite",
       "noLegal",
       "photos",
       "standard",
       "vr"
     ],
-    "allFlavors": true,
+    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,

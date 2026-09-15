@@ -14,10 +14,10 @@
     PlayerActivity.
 
     This is deliberately the ticket lease's shape, not the build lock's (S1926 ADR-1): one file per
-    lease under temp/DEVICE.LEASES/<serial>.json, the claim is an atomic file creation rather than
-    a check followed by a write, and losing a claim is a normal outcome (exit 3) meaning "take a
-    different device". There is NO queue: a device is held for as long as somebody's scenario runs,
-    which is unbounded, so waiting is worse than deferring the device stage.
+    lease under the store that lib\device-store-paths.ps1 declares (S3036), the claim is an atomic
+    file creation rather than a check followed by a write, and losing a claim is a normal outcome
+    (exit 3) meaning "take a different device". There is NO queue: a device is held for as long as
+    somebody's scenario runs, which is unbounded, so waiting is worse than deferring the device stage.
 
     Ownership is a session, not a process, so liveness is the write time of that session's
     transcript. That rule is NOT restated here - Get-AgentTicketLiveness in
@@ -84,12 +84,13 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 . (Join-Path $PSScriptRoot '..\utils\agent-lock.ps1')
+. (Join-Path $PSScriptRoot 'lib\device-store-paths.ps1')
 
 $timings = Get-AgentLockTimings -Name Device
 if ($StaleMinutes -le 0) { $StaleMinutes = $timings.SessionStaleMinutes }
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$leaseDir = Join-Path $root 'temp\DEVICE.LEASES'
+$leaseDir = Get-DeviceStoreDir -RepoRoot $root -Store Lease
 if (-not (Test-Path -LiteralPath $leaseDir)) {
     New-Item -ItemType Directory -Path $leaseDir -Force | Out-Null
 }
@@ -105,9 +106,10 @@ function Test-SerialShape {
 }
 
 function ConvertTo-LeaseFileName {
-    # ':' is legal in an adb serial (192.168.1.5:5555) and illegal in a Windows path segment.
+    # Delegates to the store declaration (S3036) so the lease store and the registry store cannot
+    # disagree about how a serial is spelled on disk.
     param([Parameter(Mandatory)][string]$Serial)
-    return ($Serial -replace ':', '_')
+    return (ConvertTo-DeviceSerialFileName -Serial $Serial)
 }
 
 function Get-LeasePath {

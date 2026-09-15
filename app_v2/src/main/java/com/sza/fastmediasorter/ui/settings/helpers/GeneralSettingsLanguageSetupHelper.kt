@@ -31,7 +31,6 @@ class GeneralSettingsLanguageSetupHelper(
     // S0567: raw Spinner -> SettingsDropdownRow. S1190: -> SettingsSelectionRow, because the interface
     // language set is now whatever locales_config.xml declares and no longer fits an inline dropdown.
     fun setup() {
-        Timber.d("S2601: language group setup entered in its extracted helper")
         val current = currentLanguageSelectionCode()
         binding.rowLanguage.setValue(UiLanguagePickerItems.label(fragment.requireContext(), current))
         // S1214: bound to the view lifecycle, not to the tap - a picker restored after host recreation
@@ -103,7 +102,6 @@ class GeneralSettingsLanguageSetupHelper(
     // The settings write that used to sit here ran in viewModelScope, which changeLanguage then killed
     // by finishing the activity, so the language was persisted in one place and lost in the other.
     private fun applyLanguage(newLanguageCode: String) {
-        Timber.d("S2571: settings language change -> $newLanguageCode, saved by LocaleHelper alone")
         LocaleHelper.markReturnToSettings(fragment.requireContext())
         LocaleHelper.changeLanguage(fragment.requireActivity(), newLanguageCode)
     }

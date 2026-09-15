@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +39,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -124,6 +126,7 @@ import com.sza.fastmediasorter.wear.ui.network.NetworkSourceMediaTypeScreen
 import com.sza.fastmediasorter.wear.ui.network.NetworkSourcesScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncResultScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncTransferScreen
+import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesViewModel
 import com.sza.fastmediasorter.wear.ui.permission.PermissionsScreen
 import com.sza.fastmediasorter.wear.ui.phone.PhoneResourceScreen
 import com.sza.fastmediasorter.wear.ui.phonecamera.PhoneCameraScreen
@@ -275,7 +278,6 @@ class MainActivity : ComponentActivity() {
         logAppInfo()
 
         Timber.d("MainActivity created")
-        Timber.d("S2913: wear compose stack initialized")
 
         // Only on a genuine start: a recreation re-delivers the same intent, and the module's
         // configChanges does not cover a locale, font-scale or density change, so re-reading it here
@@ -381,7 +383,6 @@ class MainActivity : ComponentActivity() {
             val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0L))
             } else {
-                @Suppress("DEPRECATION")
                 packageManager.getPackageInfo(packageName, 0)
             }
             val versionName = packageInfo.versionName ?: "unknown"
@@ -581,8 +582,6 @@ fun MainNavigation(
 
     val showWallpaper = showsWallpaper(currentRoute)
     val isResumed = lifecycleState.isAtLeast(Lifecycle.State.RESUMED) && currentRoute !in PLAYER_ROUTES
-    Timber.d("S2475: wallpaper scope route=%s show=%b bg=%s", currentRoute, showWallpaper, background)
-    Timber.d("S2542: wallpaper scope route=%s show=%b bg=%s", currentRoute, showWallpaper, background)
 
     // S2773: the geometry in force, published beside the wallpaper state because the shape helpers
     // every screen already calls read it from here. The initial value is the reviewed view, so the one
@@ -590,8 +589,6 @@ fun MainNavigation(
     val geometryMode by hostUseCases.observeGeometryMode().collectAsStateWithLifecycle(
         initialValue = WearGeometryMode.STORE
     )
-
-    Timber.d("S2773: geometry mode published to the screen tree = %s", geometryMode)
 
     CompositionLocalProvider(
         LocalWearWallpaperState provides WearWallpaperState(
@@ -700,8 +697,26 @@ private fun NavGraphBuilder.syncRoutes(navController: NavHostController) {
     composable(WearRoutes.ADD_SMB_ALIAS) {
         AddNetworkSourceScreen(navController = navController)
     }
-    composable(WearRoutes.SYNC_TRANSFER) {
-        SyncTransferScreen(navController = navController)
+    composable(WearRoutes.SYNC_TRANSFER) { backStackEntry ->
+        val parentEntry = remember(backStackEntry) {
+            try {
+                navController.getBackStackEntry(WearRoutes.NETWORK_SOURCES)
+            } catch (e: IllegalArgumentException) {
+                Timber.w(e, "NETWORK_SOURCES route not found on backstack for SYNC_TRANSFER")
+                null
+            }
+        }
+        val viewModel: NetworkSourcesViewModel = if (parentEntry != null) {
+            hiltViewModel(parentEntry)
+        } else {
+            hiltViewModel()
+        }
+        val syncState by viewModel.syncState.collectAsState()
+        SyncTransferScreen(
+            navController = navController,
+            syncState = syncState,
+            onDispose = { viewModel.resetSyncState() }
+        )
     }
     composable(
         route = WearRoutes.SYNC_RESULT_PATTERN,

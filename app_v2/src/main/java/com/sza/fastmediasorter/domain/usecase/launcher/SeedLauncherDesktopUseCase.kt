@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -121,8 +122,6 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // pays for it. A target that does not resolve is a cell that leads nowhere (strategic §3.2).
             val resolvableOsShortcuts =
                 OsShortcutCatalog.available(context).mapTo(mutableSetOf()) { it.key }
-            Timber.d("S2735: seed resolved ${resolvableOsShortcuts.size} resolvable system settings entries")
-            Timber.d("S2717: seed resolved ${thirdPartyApps.size} third-party app(s) for the Apps section")
 
             // S2309: read behind the same already-seeded early exit as every other probe above, so a
             // desktop that will not be seeded never pays for it (strategic §3.2).
@@ -256,7 +255,21 @@ class SeedLauncherDesktopUseCase @Inject constructor(
         // narrower than the desktop the seed had just built.
         if (desktop.seedIfEmpty(orientation, cells)) {
             desktop.updateColumns(orientation, columns)
-            Timber.d("S2679: seeded %s at width %d and recorded it", orientation, columns)
+            resortAllSections(orientation, columns)
+        }
+    }
+
+    /**
+     * S3031: repacks every section the seed just placed, so a reset that changed the density leaves no
+     * loosely packed sections. The starter-set placement is a first pass; this is the dense repack that
+     * closes the gaps the first pass may leave on a grid whose width differs from the previous one.
+     */
+    private suspend fun resortAllSections(orientation: LauncherOrientation, columns: Int) {
+        val seededCells = desktop.observeCells(orientation).first()
+        val sections = LauncherSectionMembership.sectionsInOrder(seededCells)
+        if (sections.isEmpty()) return
+        sections.forEach { header ->
+            desktop.resortSection(orientation, header.id, columns)
         }
     }
 }

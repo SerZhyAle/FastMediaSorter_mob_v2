@@ -46,7 +46,6 @@ object CalculatorHistoryFileWriter {
     }
 
     private fun writeLegacy(context: Context, fileName: String, content: String) {
-        @Suppress("DEPRECATION")
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             .also { it.mkdirs() }
         val file = File(downloadsDir, fileName)

@@ -30,6 +30,7 @@ object WearTestTags {
     private const val SETTINGS_ROW_PREFIX = "wear_settings_row_"
     private const val BROWSE_CATEGORY_PREFIX = "wear_category_"
     private const val MEDIA_TYPE_PREFIX = "wear_media_type_"
+    private const val MEDIA_FILE_PREFIX = "wear_media_file_"
 
     private val NON_TAG_CHARS = Regex("[^a-z0-9]+")
 
@@ -43,6 +44,14 @@ object WearTestTags {
         BROWSE_CATEGORY_PREFIX + NON_TAG_CHARS.replace(category.token.lowercase(), "_").trim('_')
 
     fun mediaType(type: WearContentType): String = MEDIA_TYPE_PREFIX + type.name.lowercase()
+
+    /**
+     * S3078: a file cell is addressed by its POSITION in the list, not by its name or its database
+     * id - a flow is written against a seeded stand whose file names it cannot know, and the row id
+     * changes with every rescan. The index is taken over the flat file list, so the same file keeps
+     * the same address whether the screen drew one column or three.
+     */
+    fun mediaFileAt(index: Int): String = MEDIA_FILE_PREFIX + index
 
     /**
      * A navigation route carries slashes, braces and argument placeholders; a `resource-id` that keeps

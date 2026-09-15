@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.domain.strategy.WearWatchResourceStrategy
 import com.sza.fastmediasorter.utils.FtpPathUtils
 import com.sza.fastmediasorter.utils.SftpPathUtils
 import com.sza.fastmediasorter.utils.SmbPathUtils
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -405,6 +406,9 @@ class ResourceEditorUseCase @Inject constructor(
                 } else {
                     updateVerificationStatus(resourceId, ResourceVerificationStatus.NEEDS_ATTENTION)
                 }
+            } catch (error: CancellationException) {
+                Timber.d("S3134: post-save verification cancelled for resourceId=$resourceId")
+                throw error
             } catch (error: Exception) {
                 Timber.w(error, "Post-save verification failed for resourceId=$resourceId")
                 updateVerificationStatus(resourceId, ResourceVerificationStatus.NEEDS_ATTENTION)

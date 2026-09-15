@@ -75,11 +75,6 @@
             </intent-filter>
         </activity>
 
-        <!--
-            S2811: the same desktop presentation as the app's own start window. No HOME intent-filter,
-            so this component never makes the app a home-screen candidate; no taskAffinity override and
-            no excludeFromRecents, so a user who never enabled home mode keeps the app in Recents.
-        -->
         <activity
             android:name="com.sza.fastmediasorter.ui.launcher.LauncherStartWindowActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"

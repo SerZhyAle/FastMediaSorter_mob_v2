@@ -116,9 +116,15 @@ $Script:RoomDatabaseTable = @(
     # is why the phone-shaped path fragments in post-change.ps1 never matched it.
     #
     # S2829: the watch runs THREE databases out of that one directory, and all three export a schema.
-    # They share MigrationDir and RegistrationFile because that is where they really live; what keeps
-    # their verdicts apart is Key, DatabaseClassFile, SchemaDir and MigrationFilePrefix. The voice-note
-    # database was there first and keeps the plain `Migration` prefix.
+    # They share MigrationDir because that is where they really live; what keeps their verdicts apart
+    # is Key, DatabaseClassFile, SchemaDir and MigrationFilePrefix. The voice-note database was there
+    # first and keeps the plain `Migration` prefix.
+    #
+    # S3078: they no longer share a RegistrationFile. All three rows named WearAppModule.kt, which
+    # builds no database at all any more - voice-note is provided by WearVoiceNoteModule.kt, the two
+    # health databases by WearHealthHistoryModule.kt. A registry pointed at an empty file makes the
+    # conformance gate answer "cannot verify" about a migration that is correctly wired, which is the
+    # one answer that looks like a code defect while being a registry defect.
     [pscustomobject]@{
         Module              = 'wear'
         Key                 = 'wear-voice-note'
@@ -127,7 +133,7 @@ $Script:RoomDatabaseTable = @(
         MigrationFilePrefix = 'Migration'
         MigrationAggregateFiles = @('WearVoiceNoteMigrations.kt')
         SchemaDir           = 'wear/schemas/com.sza.fastmediasorter.wear.data.db.WearVoiceNoteDatabase'
-        RegistrationFile    = 'wear/src/main/java/com/sza/fastmediasorter/wear/di/WearAppModule.kt'
+        RegistrationFile    = 'wear/src/main/java/com/sza/fastmediasorter/wear/di/WearVoiceNoteModule.kt'
         AndroidTestDir      = 'wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db'
         TestPackage         = 'com.sza.fastmediasorter.wear.data.db'
         ChainTestFile       = 'WearVoiceNoteDatabaseMigrationChainTest.kt'
@@ -141,7 +147,7 @@ $Script:RoomDatabaseTable = @(
         MigrationFilePrefix = 'HeartRateMigration'
         MigrationAggregateFiles = @()
         SchemaDir           = 'wear/schemas/com.sza.fastmediasorter.wear.data.db.WearHeartRateDatabase'
-        RegistrationFile    = 'wear/src/main/java/com/sza/fastmediasorter/wear/di/WearAppModule.kt'
+        RegistrationFile    = 'wear/src/main/java/com/sza/fastmediasorter/wear/di/WearHealthHistoryModule.kt'
         AndroidTestDir      = 'wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db'
         TestPackage         = 'com.sza.fastmediasorter.wear.data.db'
         ChainTestFile       = 'WearHeartRateDatabaseMigrationChainTest.kt'
@@ -155,7 +161,7 @@ $Script:RoomDatabaseTable = @(
         MigrationFilePrefix = 'BloodPressureMigration'
         MigrationAggregateFiles = @()
         SchemaDir           = 'wear/schemas/com.sza.fastmediasorter.wear.data.db.WearBloodPressureDatabase'
-        RegistrationFile    = 'wear/src/main/java/com/sza/fastmediasorter/wear/di/WearAppModule.kt'
+        RegistrationFile    = 'wear/src/main/java/com/sza/fastmediasorter/wear/di/WearHealthHistoryModule.kt'
         AndroidTestDir      = 'wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db'
         TestPackage         = 'com.sza.fastmediasorter.wear.data.db'
         ChainTestFile       = 'WearBloodPressureDatabaseMigrationChainTest.kt'

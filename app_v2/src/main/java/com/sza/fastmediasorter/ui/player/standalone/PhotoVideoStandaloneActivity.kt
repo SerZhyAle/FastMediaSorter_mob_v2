@@ -650,7 +650,6 @@ class PhotoVideoStandaloneActivity :
         val isVideoControllerVisible = binding.playerView.isControllerFullyVisible
         val shouldBeVisible = isVideoFullscreen && isVideoControllerVisible && pipManager?.isInPipMode != true
         btnFullscreenExit.isVisible = shouldBeVisible
-        Timber.d("S2895: standalone exit fs=$isVideoFullscreen ctrl=$isVideoControllerVisible vis=$shouldBeVisible")
     }
 
     private fun setupBackPressHandler() {

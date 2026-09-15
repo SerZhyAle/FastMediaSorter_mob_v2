@@ -24,6 +24,9 @@ class GoogleCalendarLiveFrameGadget @Inject constructor() : LauncherGadget {
     override val minSpanH: Int = SPAN_MIN
     override val labelRes: Int = R.string.launcher_gadget_google_calendar_live
     override val iconRes: Int = R.drawable.ic_schedule
+
+    // S3080: ic_schedule fills white and is invisible on the picker's light surface without a tint.
+    override val iconTintable: Boolean = true
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =

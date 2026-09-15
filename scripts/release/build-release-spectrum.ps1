@@ -120,10 +120,14 @@ if ($ReuseVersion) {
     # The AAB is the artifact `a.ps1 r` always produces, so its metadata is the version that run
     # shipped. Reading it back out of build.gradle.kts stopped being possible at ADR-4 - nothing
     # writes that file any more, and its constants are a deliberate non-releasable sentinel.
-    $bundleDir = Join-Path $projectRoot 'app_v2\build\outputs\bundle\standardRelease'
-    $prior = Get-ArtifactVersion -Dir $bundleDir
+    # S3029: the listing file is not always beside the bundle - on AGP 9.2.1 it is under
+    # intermediates - so a single-directory lookup threw "run a.ps1 r first" at a release whose AAB
+    # was sitting in the directory the message named. The candidate list and the search live beside
+    # Get-ArtifactVersion, so the refusal below reports exactly what the search tried.
+    $prior = Get-ReleaseArtifactVersion -ProjectRoot $projectRoot
     if (-not $prior) {
-        throw "-ReuseVersion: no build metadata at $bundleDir\output-metadata.json. Run a.ps1 r first - this flag reuses the version of the release it produced."
+        $tried = ((Get-ReleaseMetadataCandidate -ProjectRoot $projectRoot) | ForEach-Object { "  $_\output-metadata.json" }) -join "`n"
+        throw "-ReuseVersion: no build metadata in any known location. Run a.ps1 r first - this flag reuses the version of the release it produced. Tried:`n$tried"
     }
     $versionName    = $prior.VersionName
     $appVersionCode = $prior.VersionCode

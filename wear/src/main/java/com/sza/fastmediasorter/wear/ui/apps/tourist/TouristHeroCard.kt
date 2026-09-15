@@ -86,7 +86,10 @@ private fun HeroSpeedView(state: WearTouristState, isMetric: Boolean) {
         if (isMetric) {
             Pair(String.format(Locale.US, "%.1f", rawSpeed), stringResource(R.string.wear_tourist_unit_kmh))
         } else {
-            Pair(String.format(Locale.US, "%.1f", rawSpeed * KMH_TO_MPH), stringResource(R.string.wear_tourist_unit_mph))
+            Pair(
+                String.format(Locale.US, "%.1f", rawSpeed * KMH_TO_MPH),
+                stringResource(R.string.wear_tourist_unit_mph),
+            )
         }
     } else {
         val fallbackUnit = if (isMetric) {
@@ -256,7 +259,10 @@ private fun HeroTripDistanceView(state: WearTouristState, isMetric: Boolean) {
     val distMeters = state.tripDistanceMeters
     val (distVal, unit) = if (isMetric) {
         if (distMeters >= METERS_PER_KM) {
-            Pair(String.format(Locale.US, "%.2f", distMeters / METERS_PER_KM), stringResource(R.string.wear_tourist_unit_km))
+            Pair(
+                String.format(Locale.US, "%.2f", distMeters / METERS_PER_KM),
+                stringResource(R.string.wear_tourist_unit_km),
+            )
         } else {
             Pair(distMeters.toInt().toString(), stringResource(R.string.wear_tourist_unit_meters))
         }

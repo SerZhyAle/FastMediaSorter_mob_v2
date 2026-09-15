@@ -96,7 +96,6 @@ fun AddNetworkSourceScreen(
         return
     }
 
-    Timber.d("S2486: AddNetworkSourceScreen composing, offersCredentialEntry=${viewModel.offersCredentialEntry}")
     Timber.d("AddNetworkSourceScreen composing for protocol ${uiState.protocol}")
 
     if (editingField != null) {

@@ -303,7 +303,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
         // Mono has no sides to balance: keep the section visible and disable its controls, the same
         // shape setupVolumeTab() uses for maxVolume == 0.
         val isStereo = host().supportsChannelBalanceForActiveSource
-        Timber.d("S1267: balance tab opened left=$leftGain right=$rightGain stereo=$isStereo")
         binding.tvBalanceNoStereo.isVisible = !isStereo
         binding.btnBalance5050.isEnabled = isStereo
         binding.btnBalance3070.isEnabled = isStereo
@@ -354,7 +353,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
         // AudioManager.setStreamVolume calls were no-ops. The seek bar works in percent (0-100).
         val currentVolume = host().getPlayerVolume()
         val currentPercent = (currentVolume * PERCENT_SCALE).roundToInt()
-        Timber.d("S2907: setupVolumeTab playerVolume=$currentVolume percent=$currentPercent")
 
         binding.seekVolume.max = MAX_VOLUME_PERCENT
         binding.seekVolume.progress = currentPercent
@@ -489,7 +487,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 isFocusable = true
                 isFocusableInTouchMode = false
                 setOnClickListener {
-                    Timber.d("S2907: subtitle track selected group=${track.groupIndex} track=${track.trackIndex}")
                     handle.selectSubtitleTrack(track.groupIndex, track.trackIndex)
                     rememberStreamTrackPick { url ->
                         streamTrackPreferenceUseCase.writeSubtitle(url, track.language, true)

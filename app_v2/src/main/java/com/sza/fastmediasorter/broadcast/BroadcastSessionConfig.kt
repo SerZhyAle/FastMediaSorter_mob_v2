@@ -16,6 +16,14 @@ data class BroadcastSessionConfig(
     // it from settings (generating and persisting a UUID on first broadcast). Flows into the
     // descriptor's sourceId so receivers recognise the same phone across address changes.
     val sourceDeviceId: String? = null,
+    // S3038: video parameters for camera broadcast modes. Ignored by AUDIO_ONLY.
+    val videoWidth: Int = 1280,
+    val videoHeight: Int = 720,
+    val videoFps: Int = 30,
+    val videoBitrateBps: Int = 2_000_000,
+    val rtspPort: Int = 8554,
+    // S3049: digital PCM microphone gain percentage (50% - 400%, default 100%).
+    val micGainPercent: Int = 100,
 ) {
     companion object {
         val DEFAULT = BroadcastSessionConfig(

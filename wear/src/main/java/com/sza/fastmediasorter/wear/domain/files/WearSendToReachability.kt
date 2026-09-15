@@ -38,7 +38,6 @@ class WearSendToReachability @Inject constructor(
      * the watch": counting it would offer the owner an email receiver that does not exist and ends in
      * a refusal - exactly the offer ADR-3 forbids.
      */
-    @Suppress("DEPRECATION")
     private fun hasRealHandler(sendIntent: Intent): Boolean =
         context.packageManager.queryIntentActivities(sendIntent, 0)
             .any { it.activityInfo?.packageName != STUB_PACKAGE }

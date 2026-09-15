@@ -25,7 +25,6 @@ internal fun resolveFavoriteIdentity(
     selected: SelectedMedia?,
     fallbackUri: String?
 ): WearFavoriteIdentity? {
-    Timber.d("S2432: shared favourite identity, directStream=${selected?.isDirectStream}")
     if (selected != null && selected.isDirectStream) {
         return WearFavoriteIdentity(SOURCE_ID_STREAM, normalizeWearStreamUrl(selected.streamUri))
     }

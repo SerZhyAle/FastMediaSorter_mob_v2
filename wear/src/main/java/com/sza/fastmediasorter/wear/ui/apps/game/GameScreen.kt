@@ -114,7 +114,6 @@ fun GameScreen(
     )
 
     LaunchedEffect(isRound, shorterEdgeDp) {
-        Timber.d("S2158: game screen laid out, round=%b, sizeDp=%d", isRound, shorterEdgeDp)
         viewModel.configureScreen(isRound, shorterEdgeDp)
     }
 
@@ -146,7 +145,6 @@ fun GameScreen(
                     showGuideArrow = showGuideArrow,
                     onMove = { direction -> viewModel.move(direction) },
                     onOpenMenu = {
-                        Timber.d("S2158: in-play menu opened by long press")
                         menuOpen = true
                     },
                     onRestart = { viewModel.restart() }
@@ -161,7 +159,6 @@ fun GameScreen(
                     showGuideArrow = showGuideArrow,
                     onMove = { direction -> viewModel.move(direction) },
                     onOpenMenu = {
-                        Timber.d("S2158: in-play menu opened by long press")
                         menuOpen = true
                     },
                     onRestart = { viewModel.restart() }
@@ -171,11 +168,9 @@ fun GameScreen(
                 GameSideAffordances(
                     skipVisible = uiState.status == GameStatus.PLAYING,
                     onBack = {
-                        Timber.d("S2553: back affordance tapped on the game screen")
                         navController.popBackStack()
                     },
                     onSkipTurn = {
-                        Timber.d("S2553: skip turn tapped beside the board")
                         viewModel.skipTurn()
                     }
                 )
@@ -198,7 +193,6 @@ fun GameScreen(
 private fun AutoAdvanceOnWin(status: GameStatus, levelNumber: Int, onAdvance: () -> Unit) {
     LaunchedEffect(status, levelNumber) {
         if (status == GameStatus.LEVEL_WON) {
-            Timber.d("S2158: level %d won, advancing in %d ms", levelNumber, AUTO_ADVANCE_DELAY_MS)
             delay(AUTO_ADVANCE_DELAY_MS)
             onAdvance()
         }
@@ -312,7 +306,6 @@ private fun rememberGuideArrowVisibility(boardKey: Pair<Int, Long>?): Boolean {
             return@LaunchedEffect
         }
         visible = true
-        Timber.d("S2494: guide arrow shown for level %d seed %d", boardKey.first, boardKey.second)
         delay(GUIDE_ARROW_VISIBLE_MS)
         visible = false
     }

@@ -50,7 +50,6 @@ object StartupBrandFrameManager {
         applyClockFormat(activity, binding.startupBrandClock)
         val frame = binding.root
         host.addView(frame)
-        Timber.d("S2556: phone startup brand frame attached, holding ${FRAME_DURATION_MS}ms")
         // The parent is read at removal time, not captured now: the activity may be finishing by
         // then, and a detached view must make this a no-op rather than a crash.
         frame.postDelayed({ (frame.parent as? ViewGroup)?.removeView(frame) }, FRAME_DURATION_MS)

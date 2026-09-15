@@ -105,6 +105,27 @@ function Get-KotlinStaleIncrementalRepairArgs {
     return @('-Pkotlin.incremental=false')
 }
 
+function Get-FreshGeneratedArtifactBuildArgs {
+    <#
+    .SYNOPSIS
+        The Gradle arguments for an APK that is installed straight onto a device.
+
+    .DESCRIPTION
+        S3094: an incremental standard debug build paired a stale Hilt-generated component with a
+        recompiled MainActivity_GeneratedInjector consumer, and the installed APK crashed with a
+        ClassCastException on every launch; a clean rebuild of the same tree recovered it. Which
+        reused output went stale was not isolated, so all three reuse channels are closed: the build
+        cache, up-to-date task outputs and Kotlin incremental state.
+
+        Scoped to distributed artifacts on purpose. Fast compile checks stay incremental, because a
+        stale output there fails loudly at compile time instead of shipping a crash.
+
+        --configuration-cache is deliberately absent: it caches the task graph, not task outputs, and
+        a caller that already passes it keeps it.
+    #>
+    return @('--no-build-cache', '--rerun-tasks', '-Pkotlin.incremental=false')
+}
+
 function Get-JUnitSuiteOutcome {
     <#
     .SYNOPSIS

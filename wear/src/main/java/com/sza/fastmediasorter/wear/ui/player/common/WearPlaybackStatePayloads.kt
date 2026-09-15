@@ -22,7 +22,6 @@ internal fun wearPlaybackStatePayload(
     durationMs: Long,
     mediaType: String
 ): WearPlaybackStatePayload {
-    Timber.d("S2432: shared playback payload for $mediaType, playing=$isPlaying")
     return WearPlaybackStatePayload(
         isPlaying = isPlaying,
         fileName = fileName,

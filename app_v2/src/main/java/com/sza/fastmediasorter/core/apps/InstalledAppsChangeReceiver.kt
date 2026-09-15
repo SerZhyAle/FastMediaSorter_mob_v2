@@ -62,7 +62,6 @@ class InstalledAppsChangeReceiver : BroadcastReceiver() {
         val isReplacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
         val action = intent.action
         runInBackground(packageName) {
-            Timber.d("S2739: package change %s delivered for %s", action, packageName)
             changeHandler.handle(action, packageName, isReplacing)
         }
     }

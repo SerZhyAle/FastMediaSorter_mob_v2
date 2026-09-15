@@ -78,6 +78,10 @@ class SharedPreferencesWearResourceTombstoneStore @Inject constructor(
     private companion object {
         const val PREFERENCES_NAME = "wear_resource_tombstones"
         const val KEY_TOMBSTONES = "tombstones"
-        val TOMBSTONE_LIST_TYPE = object : TypeToken<List<WearSourceTombstonePayload>>() {}.type
+
+        // Class literals, not an anonymous TypeToken subclass: that subclass reads a `Signature`
+        // attribute R8 strips (S3068).
+        val TOMBSTONE_LIST_TYPE =
+            TypeToken.getParameterized(List::class.java, WearSourceTombstonePayload::class.java).type
     }
 }

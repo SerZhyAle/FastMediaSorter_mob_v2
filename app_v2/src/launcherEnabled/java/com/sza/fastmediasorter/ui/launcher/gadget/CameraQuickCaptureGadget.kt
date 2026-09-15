@@ -76,7 +76,6 @@ private class CameraQuickCaptureGadgetView(
      * `showUnavailable()` gives - rather than swallowing a tap that looked like it worked.
      */
     private fun showUnavailable(binding: GadgetHomeWidgetBinding, label: String) {
-        Timber.d("S2681: camera quick capture cell rendered unavailable - no instance token")
         val unavailable = context.getString(R.string.launcher_home_cell_unavailable)
         binding.gadgetHomeWidgetIcon.alpha = UNAVAILABLE_ALPHA
         binding.gadgetHomeWidgetLabel.text = "$label\n$unavailable"

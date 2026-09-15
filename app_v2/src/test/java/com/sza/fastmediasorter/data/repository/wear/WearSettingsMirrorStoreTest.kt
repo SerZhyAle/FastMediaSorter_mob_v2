@@ -74,4 +74,41 @@ class WearSettingsMirrorStoreTest {
     fun `last sync timestamp defaults to zero when nothing was ever written`() = runTest {
         assertEquals(0L, store.readLastSyncTimestamp())
     }
+
+    // S3068 replaced the anonymous TypeToken subclass behind the stamp map with
+    // TypeToken.getParameterized(..), because the anonymous form reads a `Signature` attribute R8
+    // strips and crashed the shipped build. The JSON is identical either way, so what needs pinning
+    // is that the replacement still types the value as Long - a bare Map::class.java would hand back
+    // Double and lose the epoch-millis.
+    @Test
+    fun `field timestamps read back as Long, not as Gson's default Double`() = runTest {
+        context.getSharedPreferences("wear_sync_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putString("watch_settings_field_timestamps", """{"audioEnabled":1700000000123}""")
+            .apply()
+
+        val erased = store.readFieldTimestamps() as Map<String, Any?>
+
+        assertEquals(java.lang.Long::class.java, erased["audioEnabled"]?.javaClass)
+        assertEquals(1_700_000_000_123L, erased["audioEnabled"])
+    }
+
+    @Test
+    fun `written field timestamps read back equal`() = runTest {
+        val stamps = mapOf("audioEnabled" to 1_700_000_000_123L, "appLanguage" to 1_700_000_000_456L)
+
+        store.writeFieldTimestamps(stamps)
+
+        assertEquals(stamps, store.readFieldTimestamps())
+    }
+
+    @Test
+    fun `malformed stored field timestamps read back empty instead of throwing`() = runTest {
+        context.getSharedPreferences("wear_sync_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putString("watch_settings_field_timestamps", "{not json")
+            .apply()
+
+        assertEquals(emptyMap<String, Long>(), store.readFieldTimestamps())
+    }
 }

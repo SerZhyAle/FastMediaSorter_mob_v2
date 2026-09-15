@@ -610,7 +610,7 @@ class DropboxClientImpl @Inject constructor(
         fileName: String,
         mimeType: String,
         parentFolderId: String?,
-        @Suppress("UNUSED_PARAMETER") fileSize: Long,
+        fileSize: Long,
         progressCallback: ((TransferProgress) -> Unit)?
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
@@ -922,7 +922,6 @@ class DropboxClientImpl @Inject constructor(
                 dbxClient = null
                 accountEmail = null
 
-                Timber.d("S2455: Dropbox sign-out successful")
                 CloudResult.Success(true)
             } catch (e: Exception) {
                 e.rethrowIfCancellation()

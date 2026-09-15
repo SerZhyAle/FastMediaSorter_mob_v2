@@ -285,7 +285,6 @@ class StreamGridAdapter(
         private fun showCountryFlagFallback(country: String?) {
             val code = country?.trim()?.takeIf { it.isNotBlank() } ?: return
             if (!LanguageFlagFormatter.applyCountryFlagGlyph(binding.tvTileFlag, code)) return
-            Timber.d("S2650: grid tile showing flag fallback for country code=%s", code)
             binding.ivFrame.setImageDrawable(null)
             binding.tvTileFlag.isVisible = true
         }

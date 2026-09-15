@@ -392,7 +392,6 @@ private fun VideoPlayerContent(
     }
 
     if (showMenu) {
-        Timber.d("S2531: video player overflow menu opened")
         PlayerOverflowMenu(
             actions = videoMenuActions(
                 uiState = uiState,
@@ -420,7 +419,6 @@ private fun PlayPauseButton(
     onClick: () -> Unit,
     size: Dp
 ) {
-    Timber.d("S2529: VideoPlayerScreen PlayPauseButton composed, isPlaying=$isPlaying")
     PlayerCommandButton(
         onClick = onClick,
         icon = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
@@ -453,7 +451,6 @@ private fun VideoActionButtons(
     // S2803: the ORIGINAL view restores the row of four - previous, play/pause, playback mode, next,
     // the composition the pre-S2766 tree drew - with the bare play button. STORE keeps the ring.
     val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
-    Timber.d("S2803: video primary restored=%b columns=%s", restored, playerPrimaryRowColumns())
     val playbackModeIcon = when (playbackMode) {
         WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
         WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
@@ -749,7 +746,6 @@ private fun VideoControlsSecondaryRow(
         if (uiState.isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
     )
     val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
-    Timber.d("S2803: video secondary restored=%b columns=%s", restored, secondaryRowColumns())
 
     PlayerCommandGrid(columns = secondaryRowColumns()) { targetSize ->
         PlayerCommandButton(

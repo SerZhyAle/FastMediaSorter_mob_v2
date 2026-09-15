@@ -59,7 +59,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -458,7 +457,6 @@ class StreamsViewModel @Inject constructor(
      * payload goes straight to the shared import use case and only its verdict reaches the screen.
      */
     fun onImportBroadcastDescriptor(payload: String) = viewModelScope.launch {
-        Timber.d("S2508: importing a broadcast descriptor from the streams toolbar")
         val messageRes = when (importStreamBroadcast(payload)) {
             ImportStreamBroadcastUseCase.ImportResult.Success -> R.string.broadcast_import_success
             ImportStreamBroadcastUseCase.ImportResult.Updated -> R.string.broadcast_import_refreshed
@@ -562,7 +560,6 @@ class StreamsViewModel @Inject constructor(
 
     private suspend fun applyCollectionSelection(collectionId: String?) {
         if (_filter.value.collectionId == collectionId) return
-        Timber.d("S2669: collection selected id=$collectionId")
         val memberOrder = collectionId
             ?.let { id -> observeStreamCollections.memberOrder(id) }
             .orEmpty()
@@ -721,6 +718,7 @@ class StreamsViewModel @Inject constructor(
         // opportunistically auto-refreshes at most once a day (no WorkManager periodic job).
         private const val ON_OPEN_THROTTLE_MS = 6 * 60 * 60 * 1000L
         private const val PERIODIC_THROTTLE_MS = 24 * 60 * 60 * 1000L
+        private const val SOURCE_ORIGIN_MANUAL = "MANUAL"
 
         /**
          * Filters by case-insensitive query (title/topic/language substring) and the active facets, then
@@ -728,10 +726,10 @@ class StreamsViewModel @Inject constructor(
          * are ANDed: each unset facet passes everything, so a separate ALL/ANY match-mode toggle is
          * redundant (selecting "All" on a facet already disables it). An active language facet now keeps
          * only rows whose language tokens explicitly contain that language, while rows without a language
-         * stay visible only under "All". The media-kind facet folds VIDEO and RTSP transports into a
-         * single "video" bucket. The incoming list is already pinned-first from the DAO; re-sorting keeps
-         * that invariant explicit and stable. `internal` so the pure filter logic is unit-testable without
-         * the ViewModel's injected graph.
+         * stay visible only under "All". The category facet folds VIDEO and RTSP transports into a
+         * single video bucket, while MANUAL rows belong only to Own. The incoming list is already
+         * pinned-first from the DAO; re-sorting keeps that invariant explicit and stable. `internal` so
+         * the pure filter logic is unit-testable without the ViewModel's injected graph.
          *
          * S1502: returns the two halves separately rather than concatenated. This is the only place the
          * catalog is partitioned - every downstream consumer reads the halves off the state instead of
@@ -783,19 +781,27 @@ class StreamsViewModel @Inject constructor(
                 source.language.tokens().any { it.equals(filter.language, ignoreCase = true) }
             // Country is a single code, so a plain equality (like category), not token matching.
             val countryHit = filter.country == null || source.country == filter.country
-            // mediaKind values are the StreamSourceEntity contract ("AUDIO" / "VIDEO" / "RTSP").
-            val mediaHit = when (filter.mediaKind) {
-                MediaKindFilter.ALL -> true
-                MediaKindFilter.AUDIO -> source.mediaKind == "AUDIO"
-                // RTSP is a video transport, so it shares the "video" bucket.
-                MediaKindFilter.VIDEO -> source.mediaKind == "VIDEO" || source.mediaKind == "RTSP"
-            }
+            val mediaHit = matchesMediaCategory(source, filter.mediaKind)
             val topicHit = filter.topic == null || source.topic == filter.topic
             // S0696: pinned-only keeps just the user-pinned rows when the facet is on.
             val pinnedHit = !filter.pinnedOnly || source.pinned
             val collectionHit = matchesCollection(source, filter)
             return queryHit && categoryHit && languageHit && countryHit && mediaHit && topicHit &&
                 pinnedHit && collectionHit
+        }
+
+        private fun matchesMediaCategory(
+            source: StreamSourceEntity,
+            category: MediaKindFilter,
+        ): Boolean {
+            val isManual = source.sourceOrigin == SOURCE_ORIGIN_MANUAL
+            return when (category) {
+                MediaKindFilter.ALL -> true
+                MediaKindFilter.AUDIO -> !isManual && source.mediaKind == "AUDIO"
+                MediaKindFilter.VIDEO ->
+                    !isManual && (source.mediaKind == "VIDEO" || source.mediaKind == "RTSP")
+                MediaKindFilter.OWN -> isManual
+            }
         }
 
         /**
@@ -907,8 +913,8 @@ class StreamsViewModel @Inject constructor(
 
     enum class SortMode { NAME, TOPIC, LANGUAGE, COUNTRY, RECENT }
 
-    /** Media-kind facet: ALL passes everything, AUDIO matches audio rows, VIDEO matches VIDEO + RTSP rows. */
-    enum class MediaKindFilter { ALL, AUDIO, VIDEO }
+    /** Category facet: media buckets exclude manual rows; OWN contains every manual row regardless of kind. */
+    enum class MediaKindFilter { ALL, AUDIO, VIDEO, OWN }
 
     sealed interface StreamsEvent {
         data class Message(@StringRes val messageResId: Int) : StreamsEvent

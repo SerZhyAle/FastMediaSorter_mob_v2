@@ -11,7 +11,10 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.ocr.OcrBlockFilter
 import com.sza.fastmediasorter.domain.ocr.OcrDiscardRecorder
+import com.sza.fastmediasorter.domain.ocr.OcrLineGap
 import com.sza.fastmediasorter.domain.ocr.OcrLineGeometry
+import com.sza.fastmediasorter.domain.ocr.OcrLineSplitter
+import com.sza.fastmediasorter.domain.ocr.OcrTextBlock
 import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngineProvider
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
@@ -111,8 +114,16 @@ class RecognitionBackend(
         val settings = settingsRepository.getSettings().first()
         val tessLang = mlKitToTesseractLang(sourceLangCode)
         val ocrEngine = offlineOcrEngineProvider.engineFor(settings, sourceLangCode)
-        Timber.d("TranslationManager.recognizeText: Trying offline OCR engine=${settings.ocrEngineType} for $sourceLangCode")
-        val ocrResult = offlineOcrEngineProvider.recognizeTextWithFallback(settings, bitmap, sourceLangCode, tessLang, ocrEngine)
+        Timber.d(
+            "TranslationManager.recognizeText: Trying offline OCR engine=${settings.ocrEngineType} for $sourceLangCode"
+        )
+        val ocrResult = offlineOcrEngineProvider.recognizeTextWithFallback(
+            settings,
+            bitmap,
+            sourceLangCode,
+            tessLang,
+            ocrEngine
+        )
         if (!ocrResult.isNullOrBlank()) {
             val cleanedText = cleanOcrText(ocrResult)
             statsSink.record(StatsEvent.OcrScan)
@@ -156,14 +167,24 @@ class RecognitionBackend(
         val settings = settingsRepository.getSettings().first()
         val tessLang = mlKitToTesseractLang(sourceLang)
         val ocrEngine = offlineOcrEngineProvider.engineFor(settings, sourceLang)
-        val ocrBlocks = offlineOcrEngineProvider.recognizeTextBlocksWithFallback(settings, bitmap, sourceLang, tessLang, ocrEngine)
+        val ocrBlocks = offlineOcrEngineProvider.recognizeTextBlocksWithFallback(
+            settings,
+            bitmap,
+            sourceLang,
+            tessLang,
+            ocrEngine
+        )
 
         if (!ocrBlocks.isNullOrEmpty()) {
             // S1712: the four thresholds live in OcrBlockFilter now, so the reason a fragment was
             // dropped survives the decision instead of collapsing into a boolean. The recorder reads that
             // same verdict - one function, two readers - and stays silent while its channel is off.
             discardRecorder.beginRun()
-            val filteredBlocks = ocrBlocks.filter { block ->
+            logLineGaps(ocrBlocks)
+            // S3039: cut before the filter so every piece is judged on its own - a junk glyph cut off a real line
+            // fails the filter instead of stretching that line's plate across the artwork.
+            Timber.d("S3039: splitting ${ocrBlocks.size} recogniser lines at word gaps before OcrBlockFilter")
+            val filteredBlocks = OcrLineSplitter.split(ocrBlocks).filter { block ->
                 val verdict = OcrBlockFilter.evaluate(block)
                 discardRecorder.record(block, verdict)
                 verdict == OcrBlockFilter.Verdict.ACCEPTED
@@ -193,6 +214,25 @@ class RecognitionBackend(
             }
         }
         return null
+    }
+
+    /**
+     * One line per multi-word recogniser line, before any filter: the device dump the stitched-line cut threshold
+     * is bracketed from. Geometry and confidence only - recognised text is the user's picture content and never
+     * reaches a permanent log.
+     */
+    private fun logLineGaps(blocks: List<OcrTextBlock>) {
+        blocks.forEach { block ->
+            val gap = OcrLineGap.measure(block) ?: return@forEach
+            Timber.i(
+                "OCR line gap: ratio=%.2f gap=%d median=%d words=%d conf=%.1f",
+                gap.ratio,
+                gap.maxGapPx,
+                gap.medianWordHeightPx,
+                block.words?.size ?: 0,
+                block.confidence
+            )
+        }
     }
 
     override suspend fun recognizeTextBlocksForSelection(bitmap: Bitmap): List<TranslationManager.TranslatedTextBlock>? {

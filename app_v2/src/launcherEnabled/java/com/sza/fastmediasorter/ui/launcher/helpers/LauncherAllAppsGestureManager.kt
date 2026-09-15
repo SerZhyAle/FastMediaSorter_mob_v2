@@ -24,7 +24,7 @@ class LauncherAllAppsGestureManager(
     private val viewport: View,
     private val isEnabled: () -> Boolean,
     private val isTouchOnInteractiveCell: (MotionEvent) -> Boolean,
-    private val onSwipe: (DesktopSwipeDirection) -> Unit,
+    private val onSwipe: (DesktopSwipeDirection, Boolean) -> Unit,
     private val onDoubleTap: (() -> Unit)? = null,
     private val gestureArea: View = viewport,
     private val isGestureStartAllowed: (MotionEvent) -> Boolean = { event ->
@@ -93,7 +93,7 @@ class LauncherAllAppsGestureManager(
         ?.takeIf(::isEligibleAtViewportBoundary)
         ?.takeIf(::isAxisAdmitted)
         ?.also { direction ->
-            onSwipe(direction)
+            onSwipe(direction, startedOnRightHalf(e1))
         } != null
 
     private fun handleDoubleTap(): Boolean {
@@ -106,6 +106,9 @@ class LauncherAllAppsGestureManager(
     private fun isTouchWithinGestureArea(event: MotionEvent): Boolean =
         gestureArea.getGlobalVisibleRect(viewportBounds) &&
             viewportBounds.contains(event.rawX.toInt(), event.rawY.toInt())
+
+    private fun startedOnRightHalf(event: MotionEvent): Boolean =
+        gestureArea.getGlobalVisibleRect(viewportBounds) && event.rawX >= viewportBounds.centerX()
 
     private fun classifyDirection(
         e1: MotionEvent,

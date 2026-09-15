@@ -599,10 +599,8 @@ class BrowseFileOperationsManager(
         destination: MediaResource,
         overwriteFiles: Boolean,
     ): BrowseFileTransferRequest {
-        val currentBrowsePath = selectedPaths.firstOrNull()?.let { firstPath ->
-            val lastSlashIndex = firstPath.lastIndexOf('/')
-            if (lastSlashIndex > 0) firstPath.substring(0, lastSlashIndex + 1) else null
-        }
+        val currentBrowsePath = callbacks.getCurrentBrowsePath()
+        Timber.d("S3126: transfer context path=${currentBrowsePath ?: "<virtual>"}")
         return BrowseFileTransferRequest(
             operationType = operationType,
             sourceResourceId = resource.id,
@@ -665,7 +663,6 @@ class BrowseFileOperationsManager(
      * DESTINATION_INSIDE_SOURCE could only fire for a nesting the forward operation already refused.
      */
     suspend fun enqueueDirectoryUndoTransfer(treePaths: List<String>, destinationParent: String): Boolean {
-        Timber.d("S1326: undo ride-back requested for ${treePaths.size} tree(s) into $destinationParent")
         val resource = callbacks.getCurrentResource()
         if (treePaths.isEmpty() || resource == null) return false
         val request = BrowseFileTransferRequest(

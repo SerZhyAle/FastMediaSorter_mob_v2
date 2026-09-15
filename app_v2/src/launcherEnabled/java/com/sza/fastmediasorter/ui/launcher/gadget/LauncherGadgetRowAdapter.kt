@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
-import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -10,6 +9,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.databinding.ItemLauncherGadgetRowBinding
+import com.sza.fastmediasorter.ui.icon.RecyclableIconTint
 
 /**
  * One row in a list gadget. [id] is the row's identity; [bitmap] is an already-decoded favicon tile
@@ -47,18 +47,21 @@ class LauncherGadgetRowAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: LauncherGadgetRow) {
-            binding.gadgetRowIcon.imageTintList = if (item.tintIcon) {
-                ColorStateList.valueOf(
+            // S3080: applied as a colour filter, because clearing the view's tint list also erases the
+            // `android:tint` a catalog glyph declares for itself, leaving an untinted row black.
+            RecyclableIconTint.apply(
+                binding.gadgetRowIcon,
+                if (item.tintIcon) {
                     MaterialColors.getColor(
                         binding.gadgetRowIcon,
                         com.google.android.material.R.attr.colorOnSurfaceVariant,
                     )
-                )
-            } else {
-                // Must be cleared, not left: the holder is recycled, so a tint set for a previous row
-                // would repaint this row's favicon or flatten its gradient icon.
-                null
-            }
+                } else {
+                    // Must be cleared, not left: the holder is recycled, so a tint set for a previous row
+                    // would repaint this row's favicon or flatten its gradient icon.
+                    null
+                },
+            )
             when {
                 item.bitmap != null -> binding.gadgetRowIcon.setImageBitmap(item.bitmap)
                 item.iconRes != null -> binding.gadgetRowIcon.setImageResource(item.iconRes)

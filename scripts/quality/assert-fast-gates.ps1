@@ -91,8 +91,19 @@
                       table that accepts the parameter (see $changedFilesAware below).
                       Omit it - as a release or CI run does - and every gate keeps its
                       strict project-wide judgement.
+      -FailOnSkipped  Count a gate that could not verify (child exit 3) as a failure. For a caller
+                      that requires full coverage rather than "everything runnable here was green".
       -Sequential     Run the children one at a time, as before S2451.
       -ThrottleLimit  Concurrent children; 0 (default) derives it from the core count.
+      -ShowPasses     Print every child's output and the summary blocks on a clean run too.
+                      FMS_POSTCHANGE_VERBOSE=1 does the same.
+
+    Output shape (S3151):
+      A clean run prints one line, "assert-fast-gates: PASS (..; <n> passed, <m> skipped).".
+      Every child's output and the summary blocks always go to the run's protocol file
+      temp/metrics/fast-gates-runs/<yyyyMMdd-HHmmss>-<pid>.log. When any gate is red - in the set
+      or in the tree - the output of each red child and the summary blocks print as before, and
+      the run ends with "protocol: <path>".
 
     Two verdicts under -ChangedFiles (S2693):
       Given a changed set, the summary splits in two. YOUR SET holds the gates that actually
@@ -118,9 +129,20 @@
 
     Exit codes:
       0  every gate passed; or, with -ChangedFiles, every gate that judged the changed set
-         passed and only project-wide gates were red.
+         passed and only project-wide gates were red. A gate that exited 3 - it could not verify,
+         see below - does not affect this code unless -FailOnSkipped was passed.
       1  at least one gate failed or is MISSING; with -ChangedFiles, at least one gate that
-         judged the changed set failed or is MISSING.
+         judged the changed set failed or is MISSING; or -FailOnSkipped and a gate was skipped.
+
+    Skipped gates (S3075):
+      A child exit code of 3 means "this run judged nothing", not "this run found nothing wrong" -
+      lib/absent-input.ps1 uses it when a gitignored root (PLAN/, .claude/) is not in the checkout,
+      lib/fixed-input-scope.ps1 when a fixed-input gate was handed a set that charges it nothing.
+      Such a gate is reported as SKIP in its own NOT RUN block and is left out of both scope blocks.
+      Folding it into FAIL is what made the GitHub "Static Gates" job state one published fact -
+      that PLAN/ and .claude/ are not published - as nine separate findings, in a summary that was
+      red on every run and therefore read on none. -FailOnSkipped restores the strict count for a
+      caller that requires full coverage.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1
@@ -134,8 +156,10 @@ param(
     [string]$Module,
     [string[]]$ChangedFiles,
     [switch]$Sequential,
+    [switch]$FailOnSkipped,
     [ValidateRange(0, 64)]
-    [int]$ThrottleLimit = 0
+    [int]$ThrottleLimit = 0,
+    [switch]$ShowPasses
 )
 
 Set-StrictMode -Version Latest
@@ -146,6 +170,28 @@ $ErrorActionPreference = 'Stop'
 # `a.ps1 fg` and what the caller waits on. Started before any gate so the record covers the
 # whole run including this script's own setup.
 $batchStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+
+# S3151: a clean batch answered with 60+ PASS rows that nobody acted on; they go to a protocol file.
+$consoleVerbose = $ShowPasses -or ($env:FMS_POSTCHANGE_VERBOSE -eq '1')
+$protocolPath = Join-Path (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path `
+    ("temp/metrics/fast-gates-runs/{0}-{1}.log" -f (Get-Date -Format 'yyyyMMdd-HHmmss'), $PID)
+function Write-Protocol {
+    param([string]$Text)
+    try {
+        $dir = Split-Path -Parent $protocolPath
+        if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+        Add-Content -LiteralPath $protocolPath -Value $Text -Encoding utf8
+    }
+    catch {
+        # The protocol is a convenience copy; the verdict and the telemetry journal do not depend on it.
+        Write-Host "  [protocol] WARN - not written: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+function Write-Line {
+    param([string]$Text, [bool]$Console, [string]$Color = 'Gray')
+    Write-Protocol $Text
+    if ($Console) { Write-Host $Text -ForegroundColor $Color }
+}
 
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
     "$env:ProgramFiles\PowerShell\7\pwsh.exe"
@@ -160,6 +206,9 @@ $gates = [ordered]@{
     'assert-ticket-acceptance-probes.ps1'       = @('-Quiet')
     'assert-acceptance-preconditions.ps1'       = @('-Quiet')
     'assert-spec-catalog-valid.ps1'             = @('-Quiet')
+    # S3084: the CI cost map in docs/BUILD_VS_RELEASE.md against the `on:` blocks and `jobs:` keys of
+    # .github/workflows/*.yml. Three files and one table, read as text - no gradle daemon.
+    'assert-ci-cost-map.ps1'                    = @('-Quiet')
     # S1338: one entry, twelve lexical rules, ONE walk of the tree. It replaces the five
     # separate entries that each spawned a pwsh process and each re-walked app_v2/src -
     # neuroslop (nine rules), flavor-flags, public-mutable-flow and deprecated-pm-flags.
@@ -553,10 +602,13 @@ $runOne = {
     $captured = & $pwshExe -NoProfile -File $item.Path -Gate @($item.GateArgs) 2>&1 | Out-String
     $code = [int]$LASTEXITCODE
     $sw.Stop()
+    # S3075: 3 is "this run judged nothing" - lib/absent-input.ps1 when a gitignored root is not in
+    # the checkout, lib/fixed-input-scope.ps1 when the changed set charges the gate nothing. Folding
+    # it into FAIL stated one published fact (PLAN/ and .claude/ are not published) as nine findings.
     [pscustomobject]@{
         Index    = $item.Index
         Gate     = $item.Gate
-        Status   = ($code -eq 0) ? 'PASS' : 'FAIL'
+        Status   = switch ($code) { 0 { 'PASS' } 3 { 'SKIP' } default { 'FAIL' } }
         ExitCode = $code
         Ms       = [int]$sw.Elapsed.TotalMilliseconds
         Output   = $captured
@@ -603,7 +655,10 @@ function Test-OutputNamesChangedFile {
 
 $results = [System.Collections.Generic.List[object]]::new()
 foreach ($r in (@($completed) + @($missing) | Sort-Object Index)) {
-    if ($r.Output) { Write-Host $r.Output.TrimEnd() }
+    if ($r.Output) {
+        Write-Protocol $r.Output.TrimEnd()
+        if ($consoleVerbose -or $r.Status -eq 'FAIL') { Write-Host $r.Output.TrimEnd() }
+    }
     $rowScope = $r.Scope
     if ($rowScope -eq 'tree' -and $r.Status -eq 'FAIL' -and (Test-OutputNamesChangedFile -Output $r.Output)) {
         $rowScope = 'set-named'
@@ -629,10 +684,11 @@ if ($IncludeDetekt) {
     if ($PSBoundParameters.ContainsKey('Module')) { $detektArgs += @('-Module', $Module) }
     if ($ChangedFiles) { $detektArgs += @('-ChangedFiles', ($ChangedFiles -join ',')) }
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    & $pwshExe @detektArgs | Write-Host
-    $sw.Stop()
+    $detektOutput = & $pwshExe @detektArgs 2>&1 | Out-String
     $detektExitCode = [int]$LASTEXITCODE
+    $sw.Stop()
     $status = ($detektExitCode -eq 0) ? 'PASS' : 'FAIL'
+    Write-Line -Text $detektOutput.TrimEnd() -Console ($consoleVerbose -or $status -eq 'FAIL')
     # Handed the changed set above, so under -ChangedFiles it narrows its findings to those files
     # and belongs to the set verdict.
     $detektScope = if ($split) { 'set' } else { 'tree' }
@@ -664,21 +720,32 @@ function Write-GateBlock {
         [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$Rows
     )
 
-    Write-Host $Title -ForegroundColor Cyan
+    Write-Line -Text $Title -Console $showSummary -Color Cyan
     foreach ($r in $Rows) {
         $color = switch ($r.Status) { 'PASS' { 'Green' } 'FAIL' { 'Red' } default { 'Yellow' } }
         $named = if ($r.Scope -eq 'set-named') { ' - names a file in your set' } else { '' }
-        Write-Host ("  {0,-40} {1} ({2} ms){3}" -f $r.Gate, $r.Status, $r.Ms, $named) -ForegroundColor $color
+        Write-Line -Text ("  {0,-40} {1} ({2} ms){3}" -f $r.Gate, $r.Status, $r.Ms, $named) -Console $showSummary -Color $color
     }
-    return @($Rows | Where-Object { $_.Status -ne 'PASS' })
+    # S3075: SKIP is not a failure and not a pass - the gate did not run, so it is reported in its
+    # own block below and never contributes to a block's failure list.
+    return @($Rows | Where-Object { $_.Status -notin @('PASS', 'SKIP') })
 }
 
-Write-Host ''
+# S3075: the skipped gates leave the two scope blocks entirely. Keeping them in place would make
+# every reader check the status column of a line that has nothing to say about the tree, and the
+# whole reason the split exists is that a summary nobody reads closely catches nothing.
+$skippedRows = @($results | Where-Object { $_.Status -eq 'SKIP' })
+$results = [System.Collections.Generic.List[object]]@($results | Where-Object { $_.Status -ne 'SKIP' })
+$passedCount = @($results | Where-Object { $_.Status -eq 'PASS' }).Count
+$anyRed = @($results | Where-Object { $_.Status -ne 'PASS' }).Count -gt 0
+$showSummary = $consoleVerbose -or $anyRed -or ($FailOnSkipped -and $skippedRows.Count -gt 0)
+
+Write-Line -Text '' -Console $showSummary
 if ($split) {
     $setRows = @($results | Where-Object { $_.Scope -in @('set', 'set-named') })
     $treeRows = @($results | Where-Object { $_.Scope -notin @('set', 'set-named') })
     $setFailures = @(Write-GateBlock -Title 'assert-fast-gates summary - YOUR SET:' -Rows $setRows)
-    Write-Host ''
+    Write-Line -Text '' -Console $showSummary
     $treeFailures = @(Write-GateBlock -Title 'assert-fast-gates summary - THE TREE (advisory):' -Rows $treeRows)
     $failed = $setFailures.Count
 }
@@ -688,9 +755,17 @@ else {
     $failed = $allFailures.Count
 }
 
+if ($skippedRows.Count -gt 0) {
+    Write-Line -Text '' -Console $showSummary
+    [void](Write-GateBlock -Title 'assert-fast-gates summary - NOT RUN (input absent):' -Rows $skippedRows)
+    Write-Line -Text '  Each line above printed the path it is missing. A gitignored root - PLAN/, .claude/ -' -Console $showSummary -Color Yellow
+    Write-Line -Text '  is absent by design on a fresh clone, a release worktree and a CI runner; -FailOnSkipped' -Console $showSummary -Color Yellow
+    Write-Line -Text '  makes these fatal for a caller that requires full coverage.' -Console $showSummary -Color Yellow
+}
+
 $batchStopwatch.Stop()
 $batchMs = [int]$batchStopwatch.Elapsed.TotalMilliseconds
-Write-Host ("  {0,-40} {1} ms (batch wall clock)" -f '(batch)', $batchMs) -ForegroundColor Cyan
+Write-Line -Text ("  {0,-40} {1} ms (batch wall clock)" -f '(batch)', $batchMs) -Console $showSummary -Color Cyan
 
 $batchScope = if ($split) { 'split' } else { $null }
 $batchArgs = @{ Runner = 'assert-fast-gates'; ElapsedMs = $batchMs }
@@ -704,12 +779,22 @@ if ($treeFailures.Count -gt 0) {
     Write-Host '  in assert-release-scope-gates.ps1 and in any run given no -ChangedFiles.' -ForegroundColor Yellow
 }
 
+if ($FailOnSkipped -and $skippedRows.Count -gt 0) {
+    $failed += $skippedRows.Count
+    Write-Host ("assert-fast-gates: -FailOnSkipped - {0} gate(s) could not be verified: {1}." -f
+        $skippedRows.Count, (($skippedRows | ForEach-Object { $_.Gate }) -join ', ')) -ForegroundColor Red
+}
+
 if ($failed -gt 0) {
     Write-GateBatchTelemetryRecord @batchArgs -ExitCode 1
     Write-Host "assert-fast-gates: FAIL ($failed gate(s))." -ForegroundColor Red
+    Write-Host "protocol: $protocolPath" -ForegroundColor DarkGray
     exit 1
 }
 Write-GateBatchTelemetryRecord @batchArgs -ExitCode 0
-$verdict = if ($split) { 'PASS (every gate judging your set is green).' } else { 'PASS (all fast gates green).' }
+$counts = "$passedCount passed, $($skippedRows.Count) skipped"
+$verdict = if ($split) { "PASS (every gate judging your set is green; $counts)." } else { "PASS (all fast gates green; $counts)." }
+if ($skippedRows.Count -gt 0 -and $showSummary) { $verdict += " $($skippedRows.Count) gate(s) NOT RUN - see the block above." }
 Write-Host "assert-fast-gates: $verdict" -ForegroundColor Green
+if ($showSummary) { Write-Host "protocol: $protocolPath" -ForegroundColor DarkGray }
 exit 0

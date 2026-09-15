@@ -10,10 +10,11 @@ import com.sza.fastmediasorter.databinding.DialogStreamsFilterBinding
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel
+import timber.log.Timber
 
 /**
  * Hosts the streams filter dialog so [com.sza.fastmediasorter.ui.streams.StreamsActivity] stays free of
- * dialog logic (Rule 3/5). Presents the All/Audio/Video media-kind toggle on top, then category and
+ * dialog logic (Rule 3/5). Presents the All/Audio/Video/Own media-kind toggle on top, then category and
  * language as two tappable columns, then full-width topic (S1168) and country (S0761) rows; each opens a
  * [SearchableOptionPickerDialog]. "Clear filters" lives in the dialog button bar
  * (neutral) next to OK and resets in place without dismissing. Selections are applied live through
@@ -40,6 +41,7 @@ class StreamsFilterDialogManager(
         ) -> Unit,
     ) {
         val binding = DialogStreamsFilterBinding.inflate(activity.layoutInflater)
+        Timber.d("S3061: filter dialog opened with four narrow-padded media category segments")
         var category = state.filter.category
         var topic = state.filter.topic
         var language = state.filter.language
@@ -173,6 +175,7 @@ class StreamsFilterDialogManager(
     ): Int = when (mediaKind) {
         StreamsViewModel.MediaKindFilter.AUDIO -> binding.btnMediaAudio.id
         StreamsViewModel.MediaKindFilter.VIDEO -> binding.btnMediaVideo.id
+        StreamsViewModel.MediaKindFilter.OWN -> binding.btnMediaOwn.id
         StreamsViewModel.MediaKindFilter.ALL -> binding.btnMediaAll.id
     }
 
@@ -182,6 +185,7 @@ class StreamsFilterDialogManager(
     ): StreamsViewModel.MediaKindFilter = when (checkedId) {
         binding.btnMediaAudio.id -> StreamsViewModel.MediaKindFilter.AUDIO
         binding.btnMediaVideo.id -> StreamsViewModel.MediaKindFilter.VIDEO
+        binding.btnMediaOwn.id -> StreamsViewModel.MediaKindFilter.OWN
         else -> StreamsViewModel.MediaKindFilter.ALL
     }
 

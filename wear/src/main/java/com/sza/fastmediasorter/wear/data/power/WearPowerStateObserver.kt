@@ -100,7 +100,6 @@ class WearPowerStateObserver @Inject constructor(
         )
         mutableLevel.value = next
         WearPowerPolicy.update(next)
-        Timber.d("S2536: watch level=$next charge=$chargePercent osSaver=$osPowerSaveMode")
     }
 
     private fun startObserving() {

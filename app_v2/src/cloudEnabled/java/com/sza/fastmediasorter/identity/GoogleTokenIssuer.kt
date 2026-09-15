@@ -119,7 +119,6 @@ class GoogleTokenIssuer @Inject constructor(
     }
 
     /** Invalidates every cached token and revokes them locally via `GoogleAuthUtil.clearToken`. */
-    @Suppress("DEPRECATION") // GoogleAuthUtil.clearToken - same Credential Manager gap as [issue]; see KDoc.
     suspend fun invalidate(): Unit = mutex.withLock {
         withContext(tokenDispatcher) {
             cache.values.forEach { runCatching { GoogleAuthUtil.clearToken(context, it.token) } }

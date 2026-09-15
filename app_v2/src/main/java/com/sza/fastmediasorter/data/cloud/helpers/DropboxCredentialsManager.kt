@@ -102,7 +102,6 @@ class DropboxCredentialsManager @Inject constructor(
                     .forEach { editor.remove(it) }
             }
             editor.apply()
-            Timber.d("S2455: Dropbox credentials cleared (account: ${accountEmail ?: "all"})")
         }
         forgetTransferableSecret()
     }

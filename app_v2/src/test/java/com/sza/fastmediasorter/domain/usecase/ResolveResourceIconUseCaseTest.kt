@@ -7,6 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.Locale
 
 class ResolveResourceIconUseCaseTest {
 
@@ -60,5 +61,19 @@ class ResolveResourceIconUseCaseTest {
     fun `resolveForProfileChange always returns a non-null id`() {
         val id = useCase.resolveForProfileChange(ResourceProfile.NONE, ResourceType.CLOUD)
         assertTrue(id.matches(Regex("ico-\\d{2}-\\d{3}")))
+    }
+
+    // S3070: the resolved id is a machine key, so a native-digit default locale must not reach it
+    @Test
+    fun `ids stay ASCII under a native-digit locale`() {
+        val original = Locale.getDefault()
+        Locale.setDefault(Locale.forLanguageTag("ar-EG-u-nu-arab"))
+        try {
+            assertEquals("ico-01-001", useCase("/x", ResourceProfile.AUDIO_LIBRARY, ResourceType.LOCAL))
+            val other = useCase("/x", ResourceProfile.NONE, ResourceType.SMB)
+            assertTrue("unexpected id $other", other!!.matches(Regex("ico-\\d{2}-\\d{3}")))
+        } finally {
+            Locale.setDefault(original)
+        }
     }
 }

@@ -118,7 +118,6 @@ class WatchListenSessionManager @Inject constructor(
      * watch - the wire contract is unchanged and recording is entirely a phone-side concern.
      */
     fun start(record: Boolean = false) {
-        Timber.d("S2881: start requested, record=%b, state=%s", record, _listenState.value::class.java.simpleName)
         if (_listenState.value !is WearListenState.Idle) {
             return
         }
@@ -159,7 +158,6 @@ class WatchListenSessionManager @Inject constructor(
     }
 
     private fun onListenAck(ack: WearListenAckPayload) {
-        Timber.d("S2881: watch ack arrived, requestId matches=%b", ack.requestId == listenRequestId)
         listenTimeoutJob?.cancel()
         val refusal = ack.refusal
         if (refusal == null) {
@@ -196,7 +194,6 @@ class WatchListenSessionManager @Inject constructor(
         if (_listenState.value !is WearListenState.Listening) {
             return
         }
-        Timber.d("S2939: phone playback ended outside the session, telling the watch")
         endListenSession(messageRes = null)
     }
 
@@ -223,7 +220,6 @@ class WatchListenSessionManager @Inject constructor(
      * @param messageRes what to say about why it ended, or null when the owner ended it themselves.
      */
     private fun endListenSession(@StringRes messageRes: Int?) {
-        Timber.d("S2881: session ends, message=%s", messageRes)
         val requestId = listenRequestId
         listenRequestId = null
         recordRequested = false

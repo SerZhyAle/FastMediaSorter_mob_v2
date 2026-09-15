@@ -780,6 +780,20 @@ class LauncherStarterSetsTest {
     }
 
     @Test
+    fun `google section includes installed Keep and Gemini`() {
+        val installed = setOf("com.google.android.keep", "com.google.android.apps.bard")
+
+        val targets = googleItems(googleServicesAvailable = true, installed = installed).map { it.target }
+        val headerIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_GOOGLE))
+
+        assertTrue("google header absent", headerIndex >= 0)
+        assertEquals(
+            listOf("app:com.google.android.keep", "app:com.google.android.apps.bard"),
+            targets.subList(headerIndex + 1, targets.size),
+        )
+    }
+
+    @Test
     fun `google section is absent when no candidate is installed`() {
         val targets = googleItems(googleServicesAvailable = true, installed = emptySet()).map { it.target }
         assertFalse(

@@ -280,7 +280,30 @@
 
         <activity android:name=".ui.duplicates.DuplicatesActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
-        <activity android:name=".ui.streams.StreamsActivity" android:exported="false" android:launchMode="singleTop" android:label="@string/streams_title" android:configChanges="orientation|screenSize|keyboardHidden" android:windowSoftInputMode="stateHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <activity android:name=".ui.streams.StreamsActivity" android:exported="true" android:launchMode="singleTop" android:label="@string/streams_title" android:configChanges="orientation|screenSize|keyboardHidden" android:windowSoftInputMode="stateHidden" android:parentActivityName=".ui.main.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/vnd.fms.bcast+json" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="fmsbcast" android:host="import" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.fmsbcast" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
 
         <activity android:name=".ui.game.GameActivity" android:exported="false" android:label="@string/game_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
@@ -327,6 +350,9 @@
 
         <!-- S2508: Live Broadcast share activity (QR code barcode display + file export) -->
         <activity android:name=".ui.broadcast.BroadcastShareActivity" android:exported="false" android:label="@string/broadcast_share_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
+        <!-- S3038: Live Broadcast control activity (camera preview, toggles, listener count, screen off) -->
+        <activity android:name=".ui.broadcast.BroadcastControlActivity" android:exported="false" android:label="@string/broadcast_control_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <!-- S2818: broadcast entry confirmation - the screen the shortcut, QS tile and widget open.
              No intent filter: surfaces launch it by explicit component. No orientation|screenSize in
@@ -715,6 +741,14 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_water_flashlight_info" />
         </receiver>
 
+        <!-- S3033: Tourist Info Widget -->
+        <receiver android:name=".widget.TouristInfoWidgetProvider" android:exported="true" android:label="@string/widget_tourist_label" android:icon="@drawable/ic_compass">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_tourist_info_info" />
+        </receiver>
+
         <!-- Camera OCR Translate Widget -->
         <receiver android:name=".widget.CameraOcrTranslateWidgetProvider" android:exported="true" android:label="@string/widget_camera_ocr_translate_label" android:icon="@drawable/ic_camera_ocr_translate">
             <intent-filter>
@@ -887,6 +921,8 @@
                 <data android:mimeType="audio/opus" />
                 <data android:mimeType="audio/3gpp" />
                 <data android:mimeType="audio/midi" />
+                <data android:mimeType="audio/wav" />
+                <data android:mimeType="audio/x-wav" />
                 <data android:mimeType="audio/x-matroska" />
                 <data android:mimeType="audio/*" />
             </intent-filter>
@@ -1008,6 +1044,8 @@
                 <data android:mimeType="audio/opus" />
                 <data android:mimeType="audio/3gpp" />
                 <data android:mimeType="audio/midi" />
+                <data android:mimeType="audio/wav" />
+                <data android:mimeType="audio/x-wav" />
                 <data android:mimeType="audio/x-matroska" />
                 <data android:mimeType="audio/*" />
             </intent-filter>

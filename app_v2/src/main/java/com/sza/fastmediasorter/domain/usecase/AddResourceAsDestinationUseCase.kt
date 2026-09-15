@@ -22,7 +22,6 @@ class AddResourceAsDestinationUseCase @Inject constructor(
     private val updateResourceUseCase: UpdateResourceUseCase
 ) {
     suspend operator fun invoke(resource: MediaResource): Result<Unit> {
-        Timber.d("S2625: add-destination type=${resource.type} allowsWrite=${resource.allowsWriteOperations()}")
         // S2625: the user flag alone misses the probe for LOCAL/CLOUD and never refuses a stream.
         if (!resource.allowsWriteOperations()) {
             Timber.w("AddResourceAsDestination: resource '${resource.name}' does not allow writes")

@@ -587,7 +587,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // must stay on the toolbar - a per-item listener would survive the first rotation as a
         // present but inert command.
         binding.toolbar.setOnMenuItemClickListener { item ->
-            Timber.d("S2898: toolbar menu item clicked: ${item.title}")
             when (item.itemId) {
                 R.id.action_stream_add -> {
                     showSourceDialog(isImport = false)
@@ -649,6 +648,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         mediaKindTrigger = StreamsMediaKindTriggerManager(
             videoButton = binding.btnMediaKindVideo,
             audioButton = binding.btnMediaKindAudio,
+            ownButton = binding.btnMediaKindOwn,
             onKindSelected = { kind ->
                 cancelHealthProbe()
                 viewModel.onMediaKindFilter(kind)
@@ -710,6 +710,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
         // S0637: a home-screen shortcut may have launched this screen to play a specific stream.
         handlePlayIntent(intent)
+        handleImportIntent(intent)
 
         // S0659: apply the catalog-refresh policy once the managers are wired. The ViewModel keeps this
         // idempotent across config-change recreation, so calling it from every setupViews is safe.
@@ -1006,12 +1007,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * and content (empty list / section headers) below, and that down from banner targets content in landscape.
      */
     private fun updateCatalogBannerFocus(bannerVisible: Boolean) {
-        Timber.d("S2991: updateCatalogBannerFocus bannerVisible=$bannerVisible")
         val upTargetId = if (bannerVisible) R.id.btnCatalogBannerAction else R.id.toolbar
         val sortUpTargetId = if (bannerVisible) R.id.btnCatalogBannerDismiss else R.id.toolbar
         binding.etSearch.nextFocusUpId = upTargetId
         binding.btnMediaKindVideo.nextFocusUpId = upTargetId
         binding.btnMediaKindAudio.nextFocusUpId = upTargetId
+        binding.btnMediaKindOwn.nextFocusUpId = upTargetId
         binding.btnFilter.nextFocusUpId = upTargetId
         binding.btnSort.nextFocusUpId = sortUpTargetId
 
@@ -1095,6 +1096,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         super.onNewIntent(intent)
         setIntent(intent)
         handlePlayIntent(intent)
+        handleImportIntent(intent)
     }
 
     /** S0637: resolve a home-screen shortcut's stream URL and play it; unknown URL shows a message. */
@@ -1102,6 +1104,23 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         if (intent?.action != ACTION_PLAY_STREAM) return
         val url = intent.getStringExtra(EXTRA_STREAM_URL)?.takeIf { it.isNotBlank() } ?: return
         viewModel.playByUrl(url)
+    }
+
+    /** S3052: imports a broadcast descriptor file passed via Intent (e.g. from file manager or ACTION_VIEW). */
+    private fun handleImportIntent(intent: Intent?) {
+        val uri = intent?.data ?: return
+        if (uri.scheme == BROADCAST_LINK_SCHEME && uri.host == BROADCAST_LINK_HOST) {
+            uri.getQueryParameter(BROADCAST_LINK_PAYLOAD)?.let { payload ->
+                viewModel.onImportBroadcastDescriptor(payload)
+            }
+            return
+        }
+        if (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND) {
+            val payload = broadcastImportManager.readDescriptorFile(uri)
+            if (payload != null) {
+                viewModel.onImportBroadcastDescriptor(payload)
+            }
+        }
     }
 
     /**
@@ -1560,6 +1579,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     companion object {
+        private const val BROADCAST_LINK_HOST = "import"
+        private const val BROADCAST_LINK_PAYLOAD = "payload"
+        private const val BROADCAST_LINK_SCHEME = "fmsbcast"
         const val ACTION_PLAY_STREAM = "com.sza.fastmediasorter.action.PLAY_STREAM"
         const val EXTRA_STREAM_URL = "extra_stream_url"
 

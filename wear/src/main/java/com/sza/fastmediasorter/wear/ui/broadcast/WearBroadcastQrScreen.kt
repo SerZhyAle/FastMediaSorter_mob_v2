@@ -67,7 +67,6 @@ fun WearBroadcastQrScreen(viewModel: WearBroadcastViewModel = hiltViewModel()) {
     val live = state as? WearBroadcastSessionState.Live
 
     LaunchedEffect(Unit) {
-        Timber.d("S2878: broadcast QR screen entered")
     }
 
     WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {

@@ -4,6 +4,8 @@ Who outside this repository reads our published stream-catalog artifacts, what e
 
 This document does **not** describe the catalog format. That description lives in `dev/handoff/streams-source-spec/`, and `01_delivery_contract.md` in particular; this file names the consumers and the obligations, and points at that set rather than repeating it.
 
+Live broadcasts from a phone or a watch are a different subject with their own contract, `dev/handoff/streams-source-spec/11_live_broadcast_contract.md` (S3050). StreamsPlayer is its first consumer too; the prompt handed to it and to any other player is `dev/handoff/streams-source-spec/CONSUMER_PROMPT_live_broadcast.md`. Nothing in this file applies to live broadcasts, and nothing in that file applies to the catalog.
+
 Everything published here is produced by one offline CLI, `scripts/streams/collect-stream-candidates.ps1`,
 which loads the implementation modules under `scripts/streams/modules/`.
 

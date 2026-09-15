@@ -33,6 +33,11 @@
         Fix   = 'An Activity in your files resolves resources outside the app locale wrapper, so it shows the framework configuration language instead of the one the user chose. Extend BaseActivity, or override attachBaseContext with super.attachBaseContext(LocaleHelper.applyLocale(newBase)). If it genuinely must not wrap its context (the print trampoline is the one such case), add it to scripts/quality/activity-locale-wrapper-baseline.txt with the reason - a row with no reason fails the gate.'
     }
 
+    'ci-cost-map' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-ci-cost-map.ps1'
+        Fix   = 'The CI cost map in docs/BUILD_VS_RELEASE.md disagrees with .github/workflows - the workflow file is the truth and the table is what moves. The finding names the workflow, the divergence class (row, jobs, trigger, branch, debug) and which cell to correct.'
+    }
+
     'doc-pin-drift' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-doc-pin-drift.ps1'
         Fix   = 'A version pin quoted in the docs no longer matches the build files - update the doc line to the value the report names, never the other way round.'
@@ -229,6 +234,11 @@
     'document-registry' = @{
         Repro = 'pwsh -NoProfile -File scripts/document_registry/query.ps1 -ProductArea "<area>"'
         Fix   = 'Your changed set touches registered documents - read the named records and pass their ids back as -RegistryAck on the same run.'
+    }
+
+    'codex-transcript-hygiene-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-codex-transcript-hygiene.ps1 -Id <Sxxxx>'
+        Fix   = 'A Codex session authored this closure and its own rollout transcript carries a bounded-read violation - read the finding list (oversized/truncated/cross-ticket/sleep-poll), fix the flagged calls in that Codex session, or accept the advisory if the flagged reads were already necessary and reviewed.'
     }
 
     'resource-link-gate' = @{

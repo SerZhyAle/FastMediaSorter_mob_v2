@@ -156,7 +156,6 @@ class VoiceNoteListViewModel @Inject constructor(
             val mapped = note.toMediaFile()
             val storageClass = capabilityPolicy.classify(mapped.file, isNetworkSource = false)
             val allowed = capabilityPolicy.allowedOperations(storageClass) - WITHHELD_OPERATIONS
-            Timber.d("S2495: note actions for a %s note: %s", storageClass, allowed)
             localState.value = localState.value.copy(
                 actions = VoiceNoteActions(note = note, file = mapped.file, allowed = allowed)
             )
@@ -184,7 +183,6 @@ class VoiceNoteListViewModel @Inject constructor(
                 },
                 renamePrivate = { name -> noteRepository.rename(noteId, name) != null }
             )
-            Timber.d("S2495: rename of note %d ended as %s", noteId, outcome)
             if (outcome != VoiceNoteRenameOutcome.SUCCEEDED) {
                 Timber.w("Rename of note %d ended as %s; both halves keep the old name", noteId, outcome)
                 localState.value = localState.value.copy(renameFailed = true)

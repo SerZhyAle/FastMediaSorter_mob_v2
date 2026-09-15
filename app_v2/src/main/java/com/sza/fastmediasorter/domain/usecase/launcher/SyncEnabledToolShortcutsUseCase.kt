@@ -71,7 +71,6 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
         } else {
             val newlyLaunchable = launchable - baseline
             val noLongerLaunchable = baseline - launchable
-            Timber.d("S2664: shortcut sync - %d gained, %d lost", newlyLaunchable.size, noLongerLaunchable.size)
             if (newlyLaunchable.isNotEmpty()) placeCellsFor(newlyLaunchable)
             if (noLongerLaunchable.isNotEmpty()) removeCellsFor(noLongerLaunchable)
             // S2664, ADR-1: the launchable set replaces the baseline instead of joining it. The union was
@@ -92,7 +91,6 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
         ) {
             return
         }
-        Timber.d("S2791: backfilling Stopwatch desktop shortcut")
         placeCellsFor(setOf(InternalRouteCatalog.KEY_STOPWATCH))
         syncBaseline.setStopwatchShortcutBackfilled()
     }

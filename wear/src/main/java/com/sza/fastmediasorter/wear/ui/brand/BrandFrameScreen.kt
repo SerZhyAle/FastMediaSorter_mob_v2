@@ -84,7 +84,6 @@ private fun currentTimeText(): String {
 @Composable
 fun BrandFrameScreen(onTimeout: () -> Unit) {
     LaunchedEffect(Unit) {
-        Timber.d("S2556: wear brand frame composed, holding ${BRAND_FRAME_DURATION_MS}ms")
         delay(BRAND_FRAME_DURATION_MS)
         onTimeout()
     }

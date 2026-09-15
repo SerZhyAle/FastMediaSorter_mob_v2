@@ -158,7 +158,6 @@ private fun ScalingLazyListScope.settingsItems(
                         modifier = Modifier
                             .size(CELL_BUTTON_SIZE)
                             .clickable {
-                                Timber.d("S2478: opened settings destination $route from the icon grid")
                                 onClick(route)
                             },
                         horizontalAlignment = Alignment.CenterHorizontally,

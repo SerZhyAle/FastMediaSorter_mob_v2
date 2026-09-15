@@ -17,6 +17,8 @@
       1. FMS_AGENT_ID is set. Without it the identity chain falls through to a pid that lives for
          one command, and one session wrote itself as 46 different agents in an hour with its
          lease dead from the first minute (2026-09-02).
+      1b. No FMS_AGENT_* variable is persisted in the User or Machine scope. A persisted value is
+         inherited by every later session on the machine, whatever its runtime (S3149).
       2. This identity posted a kind=session start line. It is the one fact separating "died
          mid-phase" from "finished and left", and no lock, queue or lease records it.
       3. No lock domain is still held by this identity. A leaked lock refuses every sibling.
@@ -105,6 +107,45 @@ if ([string]::IsNullOrWhiteSpace($explicitId)) {
 }
 else {
     Add-Check -Name 'agent identity' -Expected 'FMS_AGENT_ID set' -Actual $explicitId -Result 'PASS'
+}
+
+# --- 1b. persisted identity ---------------------------------------------------
+# A runtime once obeyed "set FMS_AGENT_ID first" with a User-scope write. Every later process on
+# the machine inherited it, Claude Code included, and signed its chat lines and leases as that one
+# Codex session - check 1 above PASSed throughout, because the variable WAS set. The identity is
+# per session by contract, so any persisted FMS_AGENT_* value is a leak, whoever wrote it.
+function Get-PersistedAgentVariable {
+    $override = [string]$env:FMS_PREFLIGHT_PERSISTED_ENV
+    if (-not [string]::IsNullOrWhiteSpace($override)) {
+        # Contract-suite seam: 'Scope:NAME=value;..' stands in for the real scopes, so no test
+        # ever writes the registry a live session reads.
+        return @($override -split ';' | ForEach-Object {
+                if ($_ -match '^(User|Machine):(FMS_AGENT_\w+)=') { "$($Matches[1]):$($Matches[2])" }
+            })
+    }
+    $found = @()
+    foreach ($scope in 'User', 'Machine') {
+        # Empty on a platform without persisted scopes, which is the correct answer there.
+        $vars = [Environment]::GetEnvironmentVariables([EnvironmentVariableTarget]$scope)
+        foreach ($name in @($vars.Keys)) {
+            # An empty value is inherited as nothing, so it is not an identity and not a finding.
+            if ([string]$name -like 'FMS_AGENT_*' -and -not [string]::IsNullOrWhiteSpace([string]$vars[$name])) {
+                $found += "${scope}:$name"
+            }
+        }
+    }
+    return $found
+}
+
+$persisted = @(Get-PersistedAgentVariable)
+if ($persisted.Count -gt 0) {
+    # Not SetEnvironmentVariable(.., $null, ..): PowerShell hands .NET an empty string for $null,
+    # which writes an empty value instead of deleting the name (measured 2026-09-15).
+    Add-Check -Name 'persisted identity' -Expected 'no FMS_AGENT_* in the User or Machine scope' -Actual ($persisted -join ', ') -Result 'FAIL' `
+        -Remedy "Remove-ItemProperty -Path HKCU:\Environment -Name <NAME> for a User value (Machine: 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment', elevated), then restart the host that inherited it; set the identity in the process only (`$env:FMS_AGENT_ID = '..'). AGENTS.md section 9.1."
+}
+else {
+    Add-Check -Name 'persisted identity' -Expected 'no FMS_AGENT_* in the User or Machine scope' -Actual 'none' -Result 'PASS'
 }
 
 # --- 2. session start line ----------------------------------------------------

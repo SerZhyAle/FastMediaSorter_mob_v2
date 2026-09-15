@@ -39,6 +39,7 @@ object InternalRouteCatalog {
     const val KEY_OCR = "ocr"
     const val KEY_STREAMS = "streams"
     const val KEY_FAVORITES = "favorites"
+    const val KEY_BROADCAST = "broadcast"
     const val KEY_QUICK_CAMERA = "quick_camera"
     const val KEY_QUICK_VOICE = "quick_voice"
     const val KEY_SCREEN_RECORDING = "screen_recording"
@@ -182,6 +183,13 @@ object InternalRouteCatalog {
             labelRes = R.string.app_launch_panel_route_favorites,
             iconRes = R.drawable.ic_resource_favorites,
             intent = AppLaunchPanelRouteIntents::favorites,
+        ),
+        Route(
+            key = KEY_BROADCAST,
+            labelRes = R.string.broadcast_menu_label,
+            iconRes = R.drawable.ic_cast,
+            intent = AppLaunchPanelRouteIntents::broadcast,
+            settingsIntent = AppLaunchPanelRouteIntents::broadcastSettings,
         ),
         // S0912: the four routes below reuse the exact label/icon the Programs-and-Scenarios main-menu
         // entry already uses for the same feature, so the panel picker never drifts from that wording.

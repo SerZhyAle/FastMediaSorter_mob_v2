@@ -19,6 +19,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogSearchableLanguagePickerBinding
 import com.sza.fastmediasorter.databinding.ItemSearchableLanguageBinding
+import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import com.sza.fastmediasorter.ui.player.helpers.LanguageCapability
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
@@ -100,7 +101,7 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         binding.editLanguageSearch.post {
             binding.editLanguageSearch.requestFocus()
             requireContext().getSystemService<InputMethodManager>()
-                ?.showSoftInput(binding.editLanguageSearch, InputMethodManager.SHOW_IMPLICIT)
+                ?.showSoftInputImplicitly(binding.editLanguageSearch)
         }
     }
 

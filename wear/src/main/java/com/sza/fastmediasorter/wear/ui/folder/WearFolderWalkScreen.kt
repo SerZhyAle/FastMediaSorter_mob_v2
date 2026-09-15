@@ -69,7 +69,6 @@ fun WearFolderWalkScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val fileListViewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
-    Timber.d("S2490: WearFolderWalkScreen composing with viewMode=%s", fileListViewMode)
 
     BackHandler(enabled = true) {
         if (!viewModel.navigateUp()) {

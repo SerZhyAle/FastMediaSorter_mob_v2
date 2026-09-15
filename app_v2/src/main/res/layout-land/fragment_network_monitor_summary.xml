@@ -255,7 +255,8 @@
                 android:id="@+id/tileGnss"
                 style="@style/Widget.FastMediaSorter.NetworkMonitor.Tile"
                 android:nextFocusUp="@+id/tileWifi"
-                android:nextFocusRight="@+id/tileInternet">
+                android:nextFocusRight="@+id/tileInternet"
+                android:nextFocusDown="@+id/tileTools">
 
                 <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.TileContent">
 
@@ -287,7 +288,8 @@
                 style="@style/Widget.FastMediaSorter.NetworkMonitor.Tile"
                 android:nextFocusUp="@+id/tileMobile"
                 android:nextFocusLeft="@+id/tileGnss"
-                android:nextFocusRight="@+id/tileHistory">
+                android:nextFocusRight="@+id/tileHistory"
+                android:nextFocusDown="@+id/tileSpeed">
 
                 <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.TileContent">
 
@@ -318,7 +320,8 @@
                 android:id="@+id/tileHistory"
                 style="@style/Widget.FastMediaSorter.NetworkMonitor.Tile"
                 android:nextFocusUp="@+id/tileBluetooth"
-                android:nextFocusLeft="@+id/tileInternet">
+                android:nextFocusLeft="@+id/tileInternet"
+                android:nextFocusDown="@+id/tileSpeed">
 
                 <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.TileContent">
 
@@ -340,6 +343,68 @@
 
                     <TextView
                         android:id="@+id/tileHistoryStatus"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.TileStatus"
+                        android:text="@string/network_monitor_status_unknown" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/tileTools"
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.Tile"
+                android:nextFocusUp="@+id/tileGnss"
+                android:nextFocusRight="@+id/tileSpeed">
+
+                <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.TileContent">
+
+                    <TextView
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.TileTitle"
+                        android:text="@string/network_monitor_section_tools" />
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:contentDescription="@null"
+                        app:srcCompat="@drawable/ic_settings" />
+
+                    <TextView
+                        android:id="@+id/tileToolsFact"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.TileFact"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tileToolsStatus"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.TileStatus"
+                        android:text="@string/network_monitor_status_unknown" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/tileSpeed"
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.Tile"
+                android:nextFocusUp="@+id/tileInternet"
+                android:nextFocusLeft="@+id/tileTools">
+
+                <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.TileContent">
+
+                    <TextView
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.TileTitle"
+                        android:text="@string/network_monitor_section_resource_speed" />
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_size_small"
+                        android:layout_height="@dimen/icon_size_small"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:contentDescription="@null"
+                        app:srcCompat="@drawable/ic_speed" />
+
+                    <TextView
+                        android:id="@+id/tileSpeedFact"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.TileFact"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tileSpeedStatus"
                         style="@style/Widget.FastMediaSorter.NetworkMonitor.TileStatus"
                         android:text="@string/network_monitor_status_unknown" />
                 </LinearLayout>

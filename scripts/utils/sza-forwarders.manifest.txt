@@ -2,10 +2,8 @@ scripts/spec_catalog/_blocker-links.ps1|spec_catalog/_blocker-links.ps1
 scripts/spec_catalog/_lib.ps1|spec_catalog/_lib.ps1
 scripts/spec_catalog/_research-items.ps1|spec_catalog/_research-items.ps1
 scripts/spec_catalog/_status-sets.ps1|spec_catalog/_status-sets.ps1
-scripts/spec_catalog/_task-fingerprint.ps1|spec_catalog/_task-fingerprint.ps1
 scripts/spec_catalog/archive.ps1|spec_catalog/archive.ps1
 scripts/spec_catalog/bulk-update.ps1|spec_catalog/bulk-update.ps1
-scripts/spec_catalog/check-audit-current.ps1|spec_catalog/check-audit-current.ps1
 scripts/spec_catalog/check-audit-recorded.ps1|spec_catalog/check-audit-recorded.ps1
 scripts/spec_catalog/check-block-note.ps1|spec_catalog/check-block-note.ps1
 scripts/spec_catalog/check-capability-recorded.ps1|spec_catalog/check-capability-recorded.ps1
@@ -41,7 +39,6 @@ scripts/spec_catalog/spec-next-preflight.ps1|spec_catalog/spec-next-preflight.ps
 scripts/spec_catalog/spec-next-session.ps1|spec_catalog/spec-next-session.ps1
 scripts/spec_catalog/spec-preamble.ps1|spec_catalog/spec-preamble.ps1
 scripts/spec_catalog/stats.ps1|spec_catalog/stats.ps1
-scripts/spec_catalog/task-fingerprint.ps1|spec_catalog/task-fingerprint.ps1
 scripts/spec_catalog/unverified-backlog.ps1|spec_catalog/unverified-backlog.ps1
 scripts/spec_catalog/update.ps1|spec_catalog/update.ps1
 scripts/spec_catalog/validate.ps1|spec_catalog/validate.ps1

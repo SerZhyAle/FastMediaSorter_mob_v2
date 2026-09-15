@@ -153,7 +153,6 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         applyKeepScreenAwake()
         collectOnLifecycle(appSettings) { settings ->
             keepScreenAwakeDecision = keepScreenAwakeFor(settings)
-            Timber.d("S2536: keepScreenAwake=$keepScreenAwakeDecision level=${AnimationPolicy.level}")
             applyKeepScreenAwake()
             // S1045: drive the secure flag from the same settings stream (initial + reactive apply).
             lastSecureFlagSettings = settings
@@ -297,14 +296,23 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        val orientation = if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            "LANDSCAPE"
+        } else {
+            "PORTRAIT"
+        }
         Timber.d(
-            "onConfigurationChanged: ${this::class.simpleName}, orientation=${if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) "LANDSCAPE" else "PORTRAIT"}, screenWidthDp=${newConfig.screenWidthDp}"
+            "onConfigurationChanged: ${this::class.simpleName}, " +
+                "orientation=$orientation, screenWidthDp=${newConfig.screenWidthDp}"
         )
 
         // Notify subclasses to handle layout changes after rotation.
-        // Guard the same destroyed-before-post race as onCreate(): the runnable must not
-        // reach a subclass that dereferences a cleared binding.
-        binding.root.post {
+        // S3071: two distinct races, one guard each. The safe call covers a configuration change
+        // delivered to an already-destroyed Activity, where the throwing binding getter used to
+        // crash before the check below was ever reached; the check itself covers a destroy that
+        // lands between posting and running, so the runnable never reaches a subclass with a
+        // cleared binding.
+        _binding?.root?.post {
             if (_binding == null || isDestroyed) return@post
             onLayoutConfigurationChanged(newConfig)
         }
@@ -401,7 +409,12 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     }
 
     private fun showGmsWarningIfNeeded() {
-        if (gmsWarningShown || GmsAvailabilityChecker.isOk) return
+        // S3071: this runs at the tail of the deferred onCreate runnable, after setupViews() and
+        // observeData() - a screen that finishes itself in either of them has already cleared the
+        // binding by now, and the warning has nowhere to show. Resolved with the other preconditions
+        // so the "already shown" flags below are not spent on a warning that cannot be displayed.
+        val root = _binding?.root
+        if (root == null || gmsWarningShown || GmsAvailabilityChecker.isOk) return
         gmsWarningShown = true
         // Persistent guard: show snackbar at most once per installation.
         if (GmsAvailabilityChecker.isWarningSeen(this)) return
@@ -411,7 +424,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         } else {
             R.string.gms_unavailable
         }
-        Snackbar.make(binding.root, msgRes, Snackbar.LENGTH_INDEFINITE)
+        Snackbar.make(root, msgRes, Snackbar.LENGTH_INDEFINITE)
             .setAction(R.string.gms_update_action) {
                 try {
                     startActivity(

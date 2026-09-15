@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.util.showBoundTo
 
@@ -26,6 +27,7 @@ class ScreenshotGestureActionPickerManager(
     // S2256: the launcher route exists only where the home surface is compiled in; the host supplies the
     // seam's own answer rather than each call site re-deciding it.
     private val launcherRouteAvailable: Boolean = false,
+    private val currentSettings: () -> AppSettings,
 ) {
 
     fun labelFor(context: Context, action: ScreenshotGestureAction): String =
@@ -42,7 +44,7 @@ class ScreenshotGestureActionPickerManager(
                 ScreenshotGestureAction.TOGGLE_SPLIT_SCREEN,
                 ScreenshotGestureAction.PREVIOUS_APP -> systemActionsAvailable
                 ScreenshotGestureAction.OPEN_ALL_APPS -> launcherRouteAvailable
-                else -> true
+                else -> isEnabledInSettings(action, currentSettings())
             }
         }
 
@@ -81,5 +83,14 @@ class ScreenshotGestureActionPickerManager(
             selectedKey = current,
             onPicked = onPicked,
         ).showBoundTo(lifecycleOwner)
+    }
+
+    internal companion object {
+        fun isEnabledInSettings(action: ScreenshotGestureAction, settings: AppSettings): Boolean =
+            when (action) {
+                ScreenshotGestureAction.START_BROADCAST -> settings.enableBroadcasting
+                ScreenshotGestureAction.OPEN_TOURIST_INFO -> settings.enableTourist
+                else -> true
+            }
     }
 }

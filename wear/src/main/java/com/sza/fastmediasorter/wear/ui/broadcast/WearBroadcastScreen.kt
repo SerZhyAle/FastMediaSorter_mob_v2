@@ -126,7 +126,6 @@ fun WearBroadcastScreen(
                     onGrant = permissionsState::launchMultiplePermissionRequest,
                     onShowQr = onShowQr,
                     onDimScreen = {
-                        Timber.d("S2878: broadcast screen-off requested")
                         dimmed = true
                     }
                 )
@@ -135,7 +134,6 @@ fun WearBroadcastScreen(
         if (dimmed) {
             PlayerDimOverlay(
                 onExit = {
-                    Timber.d("S2878: broadcast screen-off dismissed")
                     dimmed = false
                 }
             )

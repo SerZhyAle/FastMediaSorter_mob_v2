@@ -342,8 +342,47 @@ class AckStore(private val gson: Gson, private val context: Context) {
 }
 '@
 
+$parameterizedToken = @'
+package com.fixture.s3068
+
+import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+
+data class Tombstone(
+    val identity: String,
+    val removedAt: Long
+)
+
+class TombstoneStore(private val gson: Gson, private val context: Context) {
+    fun read(): List<Tombstone> {
+        val prefs = context.getSharedPreferences("fixture", Context.MODE_PRIVATE)
+        val stored = prefs.getString("tombstones", null) ?: return emptyList()
+        return gson.fromJson(stored, TOMBSTONE_LIST_TYPE) ?: emptyList()
+    }
+
+    private companion object {
+        val TOMBSTONE_LIST_TYPE =
+            TypeToken.getParameterized(List::class.java, Tombstone::class.java).type
+    }
+}
+'@
+
 try {
     Write-Host 'assert-gson-persistence-contract.tests' -ForegroundColor Cyan
+
+    # S3068: app_v2 moved every Gson type off the anonymous `TypeToken<List<Foo>>()` subclass, whose
+    # generic superclass R8 strips - it crashed the shipped build in a class initializer. The resolver
+    # read only the anonymous form, so each converted call site turned into a point with an unresolvable
+    # type and the gate went red over the fix. The declaration wraps onto a second line here on purpose:
+    # that is the shape the converted sources take, being past 120 characters on one line, and a resolver
+    # reading a single line finds nothing but `val TOMBSTONE_LIST_TYPE =`. Unpinned on purpose, so the
+    # case observes the model being REACHED - a pinned model passes whether the walk arrived or not.
+    $result = Invoke-Gate -Root (New-Fixture -Suffix 'parameterized-token' -Source $parameterizedToken)
+    Assert-That 'a wrapped TypeToken.getParameterized declaration is not an unresolvable type' `
+    ($result.text -notmatch 'unresolved-type') "gate reported an unresolvable type: $($result.text)"
+    Assert-That 'the model behind getParameterized is judged as the model, not as a parse failure' `
+    ($result.text -match 'annotated-none\s+com\.fixture\.s3068\.Tombstone') "expected an annotated-none line for Tombstone: $($result.text)"
 
     # The case the ticket was opened on. Before the fix this exited 1 with an unresolvable-type line
     # pointing at a model whose every field carried @SerializedName.

@@ -164,7 +164,6 @@ class LauncherTrayManager(
         val routeTo = { indicator: LauncherTrayIndicator ->
             val (sectionKey, osShortcutKey) = LauncherTraySectionRouting.routeFor(indicator, lastTransport)
             if (LauncherTraySectionRouting.opensSystemScreenDirectly(indicator)) {
-                Timber.d("S2027: tray tap $indicator -> system screen $osShortcutKey")
                 openSystem(osShortcutKey)
             } else {
                 openNetwork(sectionKey, osShortcutKey)
@@ -253,7 +252,6 @@ class LauncherTrayManager(
     }
 
     private fun renderHotspot(state: HotspotState) {
-        Timber.d("S2027: tray hotspot render state=$state")
         if (state != HotspotState.ENABLED) {
             indicators.trayHotspot.isVisible = false
             return
@@ -476,11 +474,20 @@ class LauncherTrayManager(
             .onFailure { Timber.w(it, "Launcher tray: network callback was not registered") }
     }
 
+    // API 31+ Wi-Fi capabilities carry their own WifiInfo, so only API 30 needs the manager's deprecated copy.
+    @Suppress("DEPRECATION")
+    private fun legacyConnectionInfo(): WifiInfo? =
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            (context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager)?.connectionInfo
+        } else {
+            null
+        }
+
     private fun renderNetwork(transport: NetworkTransport, capabilities: NetworkCapabilities? = null) {
         lastTransport = transport
         val badge = if (transport == NetworkTransport.WIFI && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val wifiInfo = (capabilities?.transportInfo as? WifiInfo)
-                ?: (context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager)?.connectionInfo
+            Timber.d("S3122: tray Wi-Fi badge, transportInfo=%s", capabilities?.transportInfo?.javaClass?.simpleName)
+            val wifiInfo = (capabilities?.transportInfo as? WifiInfo) ?: legacyConnectionInfo()
             wifiInfo?.wifiStandard?.let { WifiGenerationMapper.generationOf(it) }?.toString()
         } else {
             null
@@ -527,7 +534,6 @@ class LauncherTrayManager(
             charging,
         )
 
-        Timber.d("S2738: tray battery $percent%, plug source $chargingSource")
         // S2738 strategic §2 goal 3: the lightning mark is the half of the charging signal that survives
         // colour blindness and a warning colour, so it is on the number itself rather than on the tint.
         val valueRes = if (chargingSource.isCharging) {

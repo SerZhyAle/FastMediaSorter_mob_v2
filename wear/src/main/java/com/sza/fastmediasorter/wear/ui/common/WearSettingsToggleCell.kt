@@ -41,7 +41,6 @@ fun WearSettingsToggleCell(
     narrow: Boolean = false
 ) {
     val labelStyle = MaterialTheme.typography.caption2
-    Timber.d("S2986: toggle cell %s, narrow=%b", label, narrow)
     val icon = if (radio) {
         ToggleChipDefaults.radioIcon(checked)
     } else {
@@ -59,7 +58,6 @@ fun WearSettingsToggleCell(
             .heightIn(min = CELL_BUTTON_SIZE)
             .clickable(
                 onClick = {
-                    Timber.d("S2468: toggle %s tapped, checked=%b", label, checked)
                     onToggle()
                 }
             )

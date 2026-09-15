@@ -66,6 +66,7 @@
          keep inline stream audio alive, so it re-reads them in onConfigurationChanged. -->
     <dimen name="streams_list_side_padding">0dp</dimen>
     <dimen name="streams_mini_control_min_height">56dp</dimen>
+    <dimen name="streams_media_filter_button_size">40dp</dimen>
     <!-- S2669: curated-collection chip strip paddings - aligns the strip's chips with the control row
          text above it, with a smaller bottom gap so the list header follows closely. -->
     <dimen name="streams_collections_strip_side_padding">12dp</dimen>
@@ -905,6 +906,7 @@
     <dimen name="stopwatch_reading_text_size_step">2sp</dimen>
 
     <dimen name="broadcast_share_qr_size">280dp</dimen>
+    <dimen name="broadcast_control_qr_size">160dp</dimen>
 
     <!-- S2730: the wallpaper screen's preview of the chosen image. Shorter in landscape, where the
          screen splits into two columns and the whole block has half the height to spend. -->

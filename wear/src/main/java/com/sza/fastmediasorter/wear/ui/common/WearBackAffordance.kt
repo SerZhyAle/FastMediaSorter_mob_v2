@@ -92,7 +92,6 @@ fun WearBackAffordance(
         modifier = modifier
             .size(WearBackAffordanceSize)
             .nonSwallowingClickable(onClick = {
-                Timber.d("S2472: back affordance tapped, role=%s", role)
                 onClick()
             })
     ) {

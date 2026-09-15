@@ -309,7 +309,6 @@ class ResourceRepositoryImpl @Inject constructor(
     override suspend fun addResource(resource: MediaResource): Long {
         val id = resourceDao.insert(resource.toEntity())
         wearResourceStampStore.stampEdit(id.toString())
-        Timber.d("S2502: phone edit stamped for resource $id")
         return id
     }
 

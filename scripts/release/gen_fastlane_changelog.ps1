@@ -61,6 +61,9 @@
       0 - at least one locale produced a changelog file.
       1 - a locale's "Current release" block is missing or empty, or no changelog was produced
           at all.
+      3 - a changelog for this versionCode already exists with different content and -Overwrite was
+          not passed, so nothing was written for that locale (S3027). A published version's store
+          text is not replaced by accident.
       4 - the target's code domain is held by another session, so nothing was written. The queue
           place is held - wait for the turn in the background and rerun (S2635).
 #>
@@ -70,7 +73,10 @@ param(
     [Parameter(Mandatory)] [int] $VersionCode,
     [string] $VersionName,
     [string] $WhatsNewRoot,
-    [string] $FastlaneRoot
+    [string] $FastlaneRoot,
+    # Replace a changelog that already exists with DIFFERENT content. Without it such a rewrite is
+    # refused with exit 3 (S3027); identical content and a first write never need it.
+    [switch] $Overwrite
 )
 
 $ErrorActionPreference = "Stop"
@@ -246,8 +252,25 @@ try {
             New-Item -ItemType Directory -Path $outDir -Force | Out-Null
         }
         $outPath = Join-Path $outDir "$VersionCode.txt"
+        $body = $trimmed + "`n"
+
+        # S3027: this file is the localized "What's new" Play and IzzyOnDroid show for a version that
+        # may already be published, so whichever copy is written last is what users read. A wear
+        # release once replaced the phone's notes here and nothing noticed until an unrelated merge
+        # collided on the file. Identical content still writes silently - a re-run of the same
+        # release must stay idempotent - and a first write is untouched; only a DIFFERING rewrite
+        # has to be asked for.
+        if (Test-Path -LiteralPath $outPath) {
+            $existing = [System.IO.File]::ReadAllText($outPath)
+            if ($existing -ne $body -and -not $Overwrite) {
+                Write-Host "[gen_fastlane_changelog] FAIL ${localeDir}: $outPath already holds different notes for versionCode $VersionCode."
+                Write-Host "[gen_fastlane_changelog]   A published version's notes are not replaced by accident - pass -Overwrite to replace them deliberately."
+                exit 3
+            }
+        }
+
         # UTF-8 without BOM (consistent with other text artefacts).
-        [System.IO.File]::WriteAllText($outPath, ($trimmed + "`n"), (New-Object System.Text.UTF8Encoding $false))
+        [System.IO.File]::WriteAllText($outPath, $body, (New-Object System.Text.UTF8Encoding $false))
 
         Write-Host "[gen_fastlane_changelog] wrote ${localeDir}: $outPath ($($trimmed.Length) chars)"
         $produced++

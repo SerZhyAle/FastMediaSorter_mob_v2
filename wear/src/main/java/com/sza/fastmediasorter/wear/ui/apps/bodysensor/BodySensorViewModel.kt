@@ -81,7 +81,6 @@ class BodySensorViewModel @Inject constructor(
         val reading = lastHeartRate
         if (reading != null) {
             lastHeartRate = null
-            Timber.d("S3013: saving heart rate ${reading.beatsPerMinute} bpm to history")
             viewModelScope.launch { historyRepository.save(reading.beatsPerMinute) }
         }
     }

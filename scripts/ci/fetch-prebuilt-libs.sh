@@ -29,6 +29,22 @@ DELIVERY_TAG="delivery-so-v1"
 REPO="${GITHUB_REPOSITORY:-SerZhyAle/FastMediaSorter_mob_v2}"
 MANIFEST="scripts/ci/prebuilt-native-aars.txt"
 
+# In CI the bare name is right and stays first. On a developer machine the CLI is installed but on
+# no PATH this repository's shells see, so the release met "gh: command not found" with the binary
+# in Program Files (S3029). GH_CLI overrides both, for a machine that puts it somewhere else.
+if [ -n "${GH_CLI:-}" ]; then
+  GH="${GH_CLI}"
+elif command -v gh >/dev/null 2>&1; then
+  GH="gh"
+elif [ -x "/c/Program Files/GitHub CLI/gh.exe" ]; then
+  GH="/c/Program Files/GitHub CLI/gh.exe"
+elif [ -x "/mnt/c/Program Files/GitHub CLI/gh.exe" ]; then
+  GH="/mnt/c/Program Files/GitHub CLI/gh.exe"
+else
+  echo "::error::the GitHub CLI was not found - not on PATH, not at the known install paths, and GH_CLI is unset" >&2
+  exit 1
+fi
+
 if [ ! -s "${MANIFEST}" ]; then
   echo "::error::${MANIFEST} is missing or empty - it is the list of build-time AARs" >&2
   exit 1
@@ -46,7 +62,7 @@ while IFS= read -r raw || [ -n "${raw}" ]; do
   mkdir -p "${dir}"
 
   echo "Fetching ${asset} from release ${DELIVERY_TAG} .."
-  gh release download "${DELIVERY_TAG}" \
+  "${GH}" release download "${DELIVERY_TAG}" \
     --repo "${REPO}" \
     --pattern "${asset}" \
     --dir "${dir}" \

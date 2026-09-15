@@ -74,6 +74,8 @@ class MediaExtensionsTest {
         assertTrue("Expected aac", MediaExtensions.isAudio("aac"))
         assertTrue("Expected ogg", MediaExtensions.isAudio("ogg"))
         assertTrue("Expected m4a", MediaExtensions.isAudio("m4a"))
+        assertTrue("Expected wav", MediaExtensions.isAudio("wav"))
+        assertTrue("Expected wave", MediaExtensions.isAudio("wave"))
     }
 
     @Test
@@ -121,7 +123,8 @@ class MediaExtensionsTest {
     @Test
     fun `getMediaType returns correct type for audio`() {
         assertEquals(MediaType.AUDIO, MediaExtensions.getMediaType("mp3"))
-        // wav is not in v2's AUDIO list
+        assertEquals(MediaType.AUDIO, MediaExtensions.getMediaType("wav"))
+        assertEquals(MediaType.AUDIO, MediaExtensions.getMediaType("wave"))
         assertEquals(MediaType.AUDIO, MediaExtensions.getMediaType("flac"))
         assertEquals(MediaType.AUDIO, MediaExtensions.getMediaType("ogg"))
     }

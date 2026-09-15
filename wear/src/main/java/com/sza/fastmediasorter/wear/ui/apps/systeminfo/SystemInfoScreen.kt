@@ -93,12 +93,10 @@ fun SystemInfoScreen(
     val expansion = LocalWearSectionExpansion.current ?: remember { WearSectionExpansionStore() }
     val configuration = LocalConfiguration.current
     val columns = if (configuration.screenWidthDp >= TWO_COLUMN_MIN_SCREEN_WIDTH_DP) 2 else 1
-    Timber.d("S3018: system info screen composed with %d columns", columns)
     // Built here, in the screen's own recompose scope, rather than inside the list content lambda: the
     // expansion reads must invalidate something that rebuilds the whole item list, and a lazy list's
     // content lambda is not that scope.
     val rows = packSettingsRows(reportItems(uiState.sections, expansion), columns)
-    Timber.d("S2806: system information built %d rows from %d sections", rows.size, uiState.sections.size)
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -198,7 +196,6 @@ private fun reportItems(
                     hiddenCount = if (open) null else section.fields.size,
                     open = open,
                     onToggle = {
-                        Timber.d("S2806: section %d toggled, was open=%b", section.titleRes, open)
                         expansion.toggle(SYSTEM_INFO_SCREEN_KEY, section.titleRes)
                     }
                 )

@@ -5,13 +5,14 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
+import com.sza.fastmediasorter.utils.UserActionLogger
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import com.sza.fastmediasorter.utils.UserActionLogger
 
 /**
  * Manages search controls setup and search operations for PlayerActivity.
- * 
+ *
  * Responsibilities:
  * - Setup search button listeners (PDF/Text/EPUB)
  * - Show/hide search panel with keyboard management
@@ -19,7 +20,7 @@ import com.sza.fastmediasorter.utils.UserActionLogger
  * - Navigate search results (next/previous match)
  * - Update search counter display
  * - Clear search state
- * 
+ *
  * Supports search for:
  * - PDF files (via PdfViewerManager)
  * - Text files (via TextViewerManager)
@@ -36,14 +37,14 @@ class SearchControlsManager(
     private val callback: SearchControlsCallback
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
-    
+
     interface SearchControlsCallback {
         fun getCurrentMediaFile(): com.sza.fastmediasorter.domain.model.MediaFile?
         fun scheduleHideControls()
         fun onEpubTranslate()
         fun showTranslationSettingsDialog()
     }
-    
+
     /**
      * Setup all search control listeners.
      * Called once during PlayerActivity initialization.
@@ -55,20 +56,20 @@ class SearchControlsManager(
             showSearchPanel()
             callback.scheduleHideControls()
         }
-        
+
         binding.btnSearchTextCmd.setOnClickListener {
             UserActionLogger.logButtonClick("SearchTextCmd", "SearchControlsManager")
             showSearchPanel()
             callback.scheduleHideControls()
         }
-        
+
         // EPUB search in command panel
         binding.btnSearchEpubCmd.setOnClickListener {
             UserActionLogger.logButtonClick("SearchEpubCmd", "SearchControlsManager")
             showSearchPanel()
             callback.scheduleHideControls()
         }
-        
+
         // EPUB translate in command panel
         binding.btnTranslateEpubCmd.setOnClickListener {
             UserActionLogger.logButtonClick("TranslateEpubCmd", "SearchControlsManager")
@@ -85,31 +86,33 @@ class SearchControlsManager(
             }
             true
         }
-        
+
         // Search panel controls
         safeViews.btnCloseSearch.setOnClickListener {
             UserActionLogger.logButtonClick("CloseSearch", "SearchControlsManager")
             hideSearchPanel()
         }
-        
+
         safeViews.btnSearchNext.setOnClickListener {
             UserActionLogger.logButtonClick("SearchNext", "SearchControlsManager")
             performSearchNavigation(forward = true)
         }
-        
+
         safeViews.btnSearchPrev.setOnClickListener {
             UserActionLogger.logButtonClick("SearchPrev", "SearchControlsManager")
             performSearchNavigation(forward = false)
         }
-        
+
         // Search query input
         safeViews.etSearchQuery.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
                 performSearch()
                 true
-            } else false
+            } else {
+                false
+            }
         }
-        
+
         safeViews.etSearchQuery.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -122,7 +125,7 @@ class SearchControlsManager(
             }
         })
     }
-    
+
     /**
      * Show search panel with keyboard.
      * Displays search input field and focuses it.
@@ -130,9 +133,9 @@ class SearchControlsManager(
     fun showSearchPanel() {
         safeViews.searchPanel.isVisible = true
         safeViews.etSearchQuery.requestFocus()
-        inputMethodManager.showSoftInput(safeViews.etSearchQuery, InputMethodManager.SHOW_IMPLICIT)
+        inputMethodManager.showSoftInputImplicitly(safeViews.etSearchQuery)
     }
-    
+
     /**
      * Hide search panel with keyboard.
      * Clears search query and hides search results.
@@ -143,7 +146,7 @@ class SearchControlsManager(
         clearSearch()
         inputMethodManager.hideSoftInputFromWindow(safeViews.etSearchQuery.windowToken, 0)
     }
-    
+
     /**
      * Perform search in current media file.
      * Searches in PDF/Text/EPUB and updates counter.
@@ -154,9 +157,9 @@ class SearchControlsManager(
             safeViews.tvSearchCounter.isVisible = false
             return
         }
-        
+
         val currentFile = callback.getCurrentMediaFile() ?: return
-        
+
         lifecycleScope.launch {
             val matchCount = when (currentFile.type) {
                 MediaType.TEXT -> {
@@ -172,20 +175,20 @@ class SearchControlsManager(
                 }
                 else -> 0
             }
-            
+
             safeViews.tvSearchCounter.text = if (matchCount > 0) "1/$matchCount" else "0/0"
             safeViews.tvSearchCounter.isVisible = matchCount > 0
         }
     }
-    
+
     /**
      * Navigate to next/previous search match.
-     * 
+     *
      * @param forward true for next match, false for previous
      */
     private fun performSearchNavigation(forward: Boolean) {
         val currentFile = callback.getCurrentMediaFile() ?: return
-        
+
         when (currentFile.type) {
             MediaType.TEXT -> {
                 // TextView doesn't have built-in navigation, would need custom implementation
@@ -211,7 +214,7 @@ class SearchControlsManager(
             else -> {}
         }
     }
-    
+
     /**
      * Update search counter display.
      * Shows current match / total matches.
@@ -221,14 +224,14 @@ class SearchControlsManager(
         safeViews.tvSearchCounter.text = "$current/$total"
         safeViews.tvSearchCounter.isVisible = total > 0
     }
-    
+
     /**
      * Clear search state for current media file.
      * Removes highlights and hides counter.
      */
     fun clearSearch() {
         val currentFile = callback.getCurrentMediaFile() ?: return
-        
+
         when (currentFile.type) {
             MediaType.TEXT -> {
                 textViewerManagerProvider().clearSearch()
@@ -238,7 +241,7 @@ class SearchControlsManager(
             }
             else -> {}
         }
-        
+
         safeViews.tvSearchCounter.isVisible = false
     }
 }

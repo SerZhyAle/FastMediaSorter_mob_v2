@@ -340,7 +340,6 @@ private fun FavouriteChip(
     onUnmark: (WearFavoriteRecord) -> Unit,
     onLongPress: (WearFavoriteRecord) -> Unit
 ) {
-    Timber.d("S2526: FavouriteChip composed for %s", record.displayName)
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)

@@ -105,7 +105,6 @@ private fun BeamDialogContent(
             val vibrator = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
                 context.getSystemService<VibratorManager>()?.defaultVibrator
             } else {
-                @Suppress("DEPRECATION")
                 context.getSystemService<Vibrator>()
             }
             // VibrationEffect.createOneShot is API 26+; fall back to deprecated overload on older devices (legacy@23).
@@ -230,7 +229,6 @@ private fun PulsingBeamAnimation() {
     // stopping them tells the user nothing false. Held at phase zero the same three rings read as an
     // intentional static graphic rather than as a dialog that died.
     val mayPulse = rememberAnimationAllowed(AnimationIntent.DECORATIVE)
-    Timber.d("S2567: beam rings mayPulse=$mayPulse")
     val pulse = if (mayPulse) beamPulsePhase() else 0f
     val color = MaterialTheme.colorScheme.primary
     Box(modifier = Modifier.height(120.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {

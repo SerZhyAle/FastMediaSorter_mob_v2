@@ -323,6 +323,7 @@ scripts/post-change.ps1
     -ScopeToFile         [SwitchParameter]
     -RegistryAck         [String[]]
     -ShowSkips           [SwitchParameter]
+    -ShowPasses          [SwitchParameter]
   Exit: 0 every gate that ran passed. The verdict line reads either
 ```
 
@@ -1017,6 +1018,33 @@ scripts/builders/gradle-worker-reaper.tests/Run-Tests.ps1
   (no param block)
 ```
 
+## scripts\ci
+
+### ensure-prebuilt-libs.ps1
+Assert the prebuilt native AARs a release build needs are present, and fetch what is missing.
+
+```
+scripts/ci/ensure-prebuilt-libs.ps1
+  Assert the prebuilt native AARs a release build needs are present, and fetch what is missing.
+  Params:
+    -RepoRoot             [String]
+    -ManifestPath         [String]
+    -NoFetch              [SwitchParameter]
+  Exit: 0 - every AAR in the manifest is present and non-empty (fetched now, or already there).; 1 - an AAR is missing and could not be fetched (no CLI, or the download failed or was empty).; 2 - the manifest is absent, empty, or could not be read.
+```
+
+## scripts\ci\ensure-prebuilt-libs.tests
+
+### Run-Tests.ps1
+Contract suite for scripts/ci/ensure-prebuilt-libs.ps1 (S3029).
+
+```
+scripts/ci/ensure-prebuilt-libs.tests/Run-Tests.ps1
+  Contract suite for scripts/ci/ensure-prebuilt-libs.ps1 (S3029).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the fixture could not be prepared.
+```
+
 ## scripts\devtest
 
 ### adb.ps1
@@ -1113,11 +1141,11 @@ scripts/devtest/device-lease.ps1
 ```
 
 ### device-ready.ps1
-Pre-flight readiness check for on-device testing skills (/spec-test-device, /verify).
+Pre-flight readiness check for on-device testing skills (/spec-test-device).
 
 ```
 scripts/devtest/device-ready.ps1
-  Pre-flight readiness check for on-device testing skills (/spec-test-device, /verify).
+  Pre-flight readiness check for on-device testing skills (/spec-test-device).
   Params:
     -DeviceId                [String]
     -Package                 [String]
@@ -1552,6 +1580,15 @@ scripts/devtest/lib/device-form-factor.ps1
   (no param block)
 ```
 
+### device-store-paths.ps1
+Declares WHERE the two device stores live and HOW a serial becomes a file name (S3036).
+
+```
+scripts/devtest/lib/device-store-paths.ps1
+  Declares WHERE the two device stores live and HOW a serial becomes a file name (S3036).
+  (no param block)
+```
+
 ### find-adb.ps1
 Shared adb-path auto-discovery, extracted from adb.ps1 (S1341) so every caller (adb.ps1, spec-prerelease.md, any future device script) uses one discovery order instead of each hand-rolling its own hardcoded fallback.
 
@@ -1613,6 +1650,18 @@ S2779 - the watch walk's standing position, and the decision to recover it.
 scripts/devtest/lib/wear-walk-position.ps1
   S2779 - the watch walk's standing position, and the decision to recover it.
   (no param block)
+```
+
+## scripts\devtest\lib\device-store-paths.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/devtest/lib/device-store-paths.ps1 (S3036).
+
+```
+scripts/devtest/lib/device-store-paths.tests/Run-Tests.ps1
+  Contract tests for scripts/devtest/lib/device-store-paths.ps1 (S3036).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\devtest\prerelease-log-audit.tests
@@ -2136,6 +2185,21 @@ scripts/metrics/agent-cost-report.ps1
     -Json                   [SwitchParameter]
 ```
 
+### measure-pipeline-load.ps1
+S3151: classify the tool calls of recent pipeline sessions into the nine load buckets.
+
+```
+scripts/metrics/measure-pipeline-load.ps1
+  S3151: classify the tool calls of recent pipeline sessions into the nine load buckets.
+  Params:
+    -Sessions               [Int32] = 40  {range 1..1000}
+    -Since                  [String] = ''
+    -TranscriptRoot         [String] = ''
+    -Json                   [SwitchParameter]
+    -JsonPath               [String] = ''
+  Exit: 0 report written.; 2 bad invocation, or no matching transcript found.
+```
+
 ### measure-unit-fork-parallelism.ps1
 S2851: measure the app_v2 unit suite's wall clock against fms.unitTestMaxParallelForks, recording for every run what else was building at the same time.
 
@@ -2146,6 +2210,35 @@ scripts/metrics/measure-unit-fork-parallelism.ps1
     -Forks           [String] = "1,2,4"
     -Repeats         [Int32] = 1
     -CsvPath         [String]
+```
+
+### ticket-cost.ps1
+Per-ticket agent token-cost journal: record a ticket's transcript window, show its context map, summarise a time window (S3147).
+
+```
+scripts/metrics/ticket-cost.ps1
+  Per-ticket agent token-cost journal: record a ticket's transcript window, show its context map, summarise a time window (S3147).
+  Params:
+    -Verb        (req)  [String]  {Record|Map|Summary}
+    -Id                 [String]
+    -Transcript         [String]
+    -Since              [String]
+    -Until              [String]
+    -Top                [Int32] = 10
+    -Json               [SwitchParameter]
+  Exit: 0 - Record wrote a row, Map printed the map, Summary printed.; 1 - the extractor failed.; 2 - bad invocation, or python not found.; 3 - Map: no context map recorded for the ticket.
+```
+
+## scripts\metrics\measure-pipeline-load.tests
+
+### Run-Tests.ps1
+S3151: contract suite for measure-pipeline-load.ps1 over a synthetic transcript fixture.
+
+```
+scripts/metrics/measure-pipeline-load.tests/Run-Tests.ps1
+  S3151: contract suite for measure-pipeline-load.ps1 over a synthetic transcript fixture.
+  (no param block)
+  Exit: 0 every case passed.; 1 at least one case failed.; 2 cannot verify - the subject script is missing.
 ```
 
 ## scripts\ocrbench
@@ -2347,6 +2440,20 @@ scripts/quality/assert-bridge-scenario-coverage.ps1
   Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: a catalog or the registry is missing or unreadable. Never conflated
 ```
 
+### assert-ci-cost-map.ps1
+S3084 - CI cost map vs .github/workflows parity gate.
+
+```
+scripts/quality/assert-ci-cost-map.ps1
+  S3084 - CI cost map vs .github/workflows parity gate.
+  Params:
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: the workflow directory or docs/BUILD_VS_RELEASE.md is missing or
+```
+
 ### assert-code-domain-writers.ps1
 S2635: every script that writes a Code.* path takes that domain, and no new writer slips in.
 
@@ -2358,6 +2465,17 @@ scripts/quality/assert-code-domain-writers.ps1
     -UpdateBaseline         [SwitchParameter]
     -Quiet                  [SwitchParameter]
   Exit: 0 every manifest entry adopts the helper, and the unregistered-writer count is at or below
+```
+
+### assert-codex-transcript-hygiene.ps1
+Advisory closing-gate (S3141): judge the Codex session transcript that authored the given ticket against the bounded-read protocol, and flag it if it did not follow one.
+
+```
+scripts/quality/assert-codex-transcript-hygiene.ps1
+  Advisory closing-gate (S3141): judge the Codex session transcript that authored the given ticket against the bounded-read protocol, and flag it if it did not follow one.
+  Params:
+    -Id  (req)  [String]
+  Exit: 0 - not applicable (wrong runtime, or no rollout found), or applicable with zero findings.; 2 - measure-codex-transcript.ps1 itself could not verify (its own exit 2).; 3 - applicable, and one or more findings (advisory).
 ```
 
 ### assert-ctor-arg-slots.ps1
@@ -2590,7 +2708,9 @@ scripts/quality/assert-fast-gates.ps1
     -Module                [String]  {app_v2|wear}
     -ChangedFiles          [String[]]
     -Sequential            [SwitchParameter]
+    -FailOnSkipped         [SwitchParameter]
     -ThrottleLimit         [Int32] = 0  {range 0..64}
+    -ShowPasses            [SwitchParameter]
   Exit: 0 every gate passed; or, with -ChangedFiles, every gate that judged the changed set
 ```
 
@@ -3029,6 +3149,18 @@ scripts/quality/assert-no-orphan-merged-resources.ps1
     -Fix            [SwitchParameter]
     -Quiet          [SwitchParameter]
   Exit: 0 - no orphaned artifact, or nothing has been built yet.; 1 - at least one artifact has no source; the output names every one.; 2 - cannot verify: the module directory does not exist.
+```
+
+### assert-no-release-probes.ps1
+S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's src/main.
+
+```
+scripts/quality/assert-no-release-probes.ps1
+  S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's src/main.
+  Params:
+    -Module  (req)  [String]  {app_v2|wear}
+    -Quiet          [SwitchParameter]
+  Exit: 0 - no probes found in the module's src/main.; 1 - one or more probes found; the release must not proceed.; 2 - cannot verify: the module directory is absent, or the shared harness library is unavailable.
 ```
 
 ### assert-no-ticket-logs.ps1
@@ -3517,6 +3649,18 @@ scripts/quality/assert-tactical-step-form.ps1
   Exit: 0 - clean (count <= baseline), or audit mode (no -Gate), or baseline updated.; 1 - substantive failure: more Why-less steps than the baseline allows.; 2 - the gate itself cannot run (PLAN/ or the baseline file is missing/unreadable).; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
 ```
 
+### assert-temp-root-inventory.ps1
+Holds the top level of temp/ to the inventory that declares it (S3030).
+
+```
+scripts/quality/assert-temp-root-inventory.ps1
+  Holds the top level of temp/ to the inventory that declares it (S3030).
+  Params:
+    -Root          [String]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - every top-level entry is accounted for.; 1 - at least one unaccounted entry.; 2 - cannot verify: the root or the inventory library is missing.
+```
+
 ### assert-test-suite-complete.ps1
 Fails when a unit-test run covered fewer test classes than the source set contains.
 
@@ -3540,6 +3684,20 @@ scripts/quality/assert-ticket-acceptance-probes.ps1
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
   Exit: 0 - clean, or mismatches reported in audit mode.; 1 - `-Gate` found a missing source template or invalid alternative evidence.; 2 - required catalog, helper, or source roots cannot be read.
+```
+
+### assert-trivial-scope.ps1
+S3151: refuse a Trivial ticket whose changed set outgrew the Trivial checklist.
+
+```
+scripts/quality/assert-trivial-scope.ps1
+  S3151: refuse a Trivial ticket whose changed set outgrew the Trivial checklist.
+  Params:
+    -Id               [String] = ''
+    -Files            [String] = ''
+    -Deleted          [String] = ''
+    -RepoRoot         [String] = ''
+  Exit: 0 trivial-scope: PASS - the set fits the checklist.; 1 trivial-scope: ESCALATE - the set outgrew it; the ticket continues on the Simple path.; 2 bad invocation - no -Files, no readable `trivial` profile key, or not a git work tree.
 ```
 
 ### assert-ui-sweep-catalog.ps1
@@ -3749,6 +3907,21 @@ scripts/quality/audit-shared-state-writers.ps1
     -Json               [String]
 ```
 
+### audit-stale-suppressions.ps1
+Finds compiler names inside @Suppress that no longer hide any warning, and removes them (S3152).
+
+```
+scripts/quality/audit-stale-suppressions.ps1
+  Finds compiler names inside @Suppress that no longer hide any warning, and removes them (S3152).
+  Params:
+    -Verb      (req)  [String]  {Mask|Analyze|Apply|Restore}
+    -Roots            [String]
+    -Logs             [String]
+    -OutDir           [String] = 'temp/scratch/suppression-audit'
+    -RepoRoot         [String]
+  Exit: 0 - the verb completed.; 2 - could not verify: missing argument, manifest, report or log; a log with no warning line; a
+```
+
 ### detekt-preflight.ps1
 
 ```
@@ -3793,6 +3966,19 @@ scripts/quality/generate-toolchain-pins.ps1
   Exit: 0 - clean (pins in sync, or a successful -Write).; 1 - substantive failure: doc-vs-build pin drift under -Check.; 2 - the tool itself cannot run: a build file or target document is missing,
 ```
 
+### measure-codex-transcript.ps1
+Attribute a Codex session rollout transcript: context growth, tool-output size, and the S3141 hygiene flags (oversized inline reads, truncated output, sleep-polling, cross-ticket reads) for one call sequence.
+
+```
+scripts/quality/measure-codex-transcript.ps1
+  Attribute a Codex session rollout transcript: context growth, tool-output size, and the S3141 hygiene flags (oversized inline reads, truncated output, sleep-polling, cross-ticket reads) for one call sequence.
+  Params:
+    -Id           [String]
+    -Path         [String]
+    -Json         [SwitchParameter]
+  Exit: 0 - ran to completion, whatever the outcome (including `found: false`).; 2 - cannot verify: an explicit -Path does not exist, or a found file does not parse as
+```
+
 ### measure-file-touch-frequency.ps1
 S1595: how often has each given file been touched, according to the dev log?
 
@@ -3834,6 +4020,18 @@ scripts/quality/measure-hotspots.ps1
   Params:
     -Floor         [Int32] = 600
     -Top           [Int32] = 15
+```
+
+### measure-project-statistics.ps1
+Measures reproducible project statistics and records a dated history snapshot.
+
+```
+scripts/quality/measure-project-statistics.ps1
+  Measures reproducible project statistics and records a dated history snapshot.
+  Params:
+    -NoRecord         [SwitchParameter]
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - measurement completed; history and report were written unless -NoRecord was used; 1 - measurement could not be completed
 ```
 
 ### migrate-locale-fingerprints-module.ps1
@@ -4338,6 +4536,18 @@ scripts/quality/assert-swallowed-cancellation.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify - the baseline file is missing.
 ```
 
+## scripts\quality\assert-temp-root-inventory.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/quality/assert-temp-root-inventory.ps1 (S3030).
+
+```
+scripts/quality/assert-temp-root-inventory.tests/Run-Tests.ps1
+  Contract tests for scripts/quality/assert-temp-root-inventory.ps1 (S3030).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
 ## scripts\quality\assert-ticket-acceptance-probes.tests
 
 ### Run-Tests.ps1
@@ -4345,6 +4555,18 @@ scripts/quality/assert-swallowed-cancellation.tests/Run-Tests.ps1
 ```
 scripts/quality/assert-ticket-acceptance-probes.tests/Run-Tests.ps1
   (no param block)
+```
+
+## scripts\quality\assert-trivial-scope.tests
+
+### Run-Tests.ps1
+S3151: contract suite for assert-trivial-scope.ps1 against a throwaway git fixture.
+
+```
+scripts/quality/assert-trivial-scope.tests/Run-Tests.ps1
+  S3151: contract suite for assert-trivial-scope.ps1 against a throwaway git fixture.
+  (no param block)
+  Exit: 0 every case passed.; 1 at least one case failed.; 2 cannot verify - git is not on PATH or the subject script is missing.
 ```
 
 ## scripts\quality\assert-wear-mirrored-strings.tests
@@ -4405,6 +4627,18 @@ scripts/quality/assert-window-insets.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not acquire the Code.Phone domain for the end-to-end case - re-run once the lock is free.
 ```
 
+## scripts\quality\audit-stale-suppressions.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S3152) - regression suite for scripts/quality/audit-stale-suppressions.ps1.
+
+```
+scripts/quality/audit-stale-suppressions.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S3152) - regression suite for scripts/quality/audit-stale-suppressions.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
 ## scripts\quality\detekt-scoped.tests
 
 ### Run-Tests.ps1
@@ -4428,6 +4662,15 @@ scripts/quality/doc-icon-gate-routing.tests/Run-Tests.ps1
 ```
 
 ## scripts\quality\lib
+
+### absent-input.ps1
+S3075: one way for a gate to say "cannot verify - my input is not in this checkout".
+
+```
+scripts/quality/lib/absent-input.ps1
+  S3075: one way for a gate to say "cannot verify - my input is not in this checkout".
+  (no param block)
+```
 
 ### android-string-format.ps1
 
@@ -4868,6 +5111,7 @@ scripts/release/gen_fastlane_changelog.ps1
     -VersionName          [String]
     -WhatsNewRoot         [String]
     -FastlaneRoot         [String]
+    -Overwrite            [SwitchParameter]
   Exit: 0 - at least one locale produced a changelog file.; 1 - a locale's "Current release" block is missing or empty, or no changelog was produced
 ```
 
@@ -5092,6 +5336,18 @@ scripts/release/compose-play-screenshots.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (the subject is missing, the project virtual environment is absent,
 ```
 
+## scripts\release\gen-fastlane-changelog.tests
+
+### Run-Tests.ps1
+Contract suite for the overwrite rule in scripts/release/gen_fastlane_changelog.ps1 (S3027).
+
+```
+scripts/release/gen-fastlane-changelog.tests/Run-Tests.ps1
+  Contract suite for the overwrite rule in scripts/release/gen_fastlane_changelog.ps1 (S3027).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the fixture could not be prepared.
+```
+
 ## scripts\release\lib
 
 ### marked-region.ps1
@@ -5208,15 +5464,6 @@ scripts/spec_catalog/_status-sets.ps1
   (no param block)
 ```
 
-### _task-fingerprint.ps1
-Shared fingerprint of a spec's TASK TEXT - the thing an audit claims to have judged (S2367).
-
-```
-scripts/spec_catalog/_task-fingerprint.ps1
-  Shared fingerprint of a spec's TASK TEXT - the thing an audit claims to have judged (S2367).
-  (no param block)
-```
-
 ### archive.ps1
 Archive one or more specs: move their files to PLAN/archive/ and flip the records to Archived.
 
@@ -5238,17 +5485,6 @@ scripts/spec_catalog/bulk-update.ps1
     -Status             [String]  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
     -Priority           [Int32] = -1  {range 0..100}
     -StatusNote         [String] = $null
-```
-
-### check-audit-current.ps1
-Gate: the recorded audit judged the task text the spec carries NOW (S2367).
-
-```
-scripts/spec_catalog/check-audit-current.ps1
-  Gate: the recorded audit judged the task text the spec carries NOW (S2367).
-  Params:
-    -Id  (req)  [String]
-  Exit: 0 - the audit block stamps the current task text.; 1 - no stamp, or the stamp names a different task text than the file now carries.; 2 - bad invocation (malformed id, or an id no record carries), or catalog / spec
 ```
 
 ### check-audit-recorded.ps1
@@ -5694,19 +5930,6 @@ scripts/spec_catalog/stats.ps1
     -Format         [String] = 'table'  {table|json}
 ```
 
-### task-fingerprint.ps1
-Print the task-text fingerprint of a spec, for stamping into its `## Last Audit` block (S2367).
-
-```
-scripts/spec_catalog/task-fingerprint.ps1
-  Print the task-text fingerprint of a spec, for stamping into its `## Last Audit` block (S2367).
-  Params:
-    -Id           [String]
-    -Path         [String]
-    -Line         [SwitchParameter]
-  Exit: 0 - fingerprint printed.; 2 - bad invocation (neither or both selectors, malformed id, id no record carries),
-```
-
 ### ticket-lease.ps1
 Ticket leases for parallel /spec-next and /spec-do sessions (S1437).
 
@@ -5786,18 +6009,6 @@ scripts/spec_catalog/assert-closing-gates.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2656) - regression suite for WHICH checkers Assert-ClosingGates runs on a
   (no param block)
   Exit: 0 every case passed (skips are not failures).; 1 at least one case failed.; 2 could not look - the harness _lib.ps1 did not resolve, or the catalog is unreadable.
-```
-
-## scripts\spec_catalog\check-audit-current.tests
-
-### Run-Tests.ps1
-Regression suite for check-audit-current.ps1 and the task fingerprint it reads (S2367).
-
-```
-scripts/spec_catalog/check-audit-current.tests/Run-Tests.ps1
-  Regression suite for check-audit-current.ps1 and the task fingerprint it reads (S2367).
-  (no param block)
-  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
 
 ## scripts\spec_catalog\check-audit-recorded.tests
@@ -6253,6 +6464,9 @@ scripts/utils/archive-temp.ps1
     -IncludeScratch         [SwitchParameter]
     -DryRun                 [SwitchParameter]
     -Stamp                  [String]
+    -RepoRoot               [String]
+    -TempDir                [String]
+    -SelectCli              [String]
   Exit: 0 - completed (or dry run completed); 1 - a move failed; 2 - could not verify: repo root or spec catalog CLI not found
 ```
 
@@ -6319,6 +6533,24 @@ Single home of the build-version derivation: one instant -> one versionName and 
 scripts/utils/build-version-stamp.ps1
   Single home of the build-version derivation: one instant -> one versionName and both modules' versionCode.
   (no param block)
+```
+
+### capture-draft.ps1
+S3151: capture a Draft ticket from a slug and the owner's verbatim text in one call.
+
+```
+scripts/utils/capture-draft.ps1
+  S3151: capture a Draft ticket from a slug and the owner's verbatim text in one call.
+  Params:
+    -Slug               [String] = ''
+    -Text               [String]
+    -TextFile           [String] = ''
+    -Attach             [String] = ''
+    -Tier               [Int32] = 3  {range 0..4}
+    -Priority           [Int32] = -1
+    -DedupQuery         [String] = ''
+    -RepoRoot           [String] = ''
+  Exit: 0 ticket created, or -WhatIf finished its dedup report.; 1 the catalog refused the insert or the spec file could not be written.; 2 bad invocation - invalid slug, no text or both text forms, missing attachment or template.
 ```
 
 ### check-typo-lint.ps1
@@ -6500,7 +6732,8 @@ Release every code domain this session holds. Safe no-op if unheld or held by an
 ```
 scripts/utils/exit-code-lock.ps1
   Release every code domain this session holds. Safe no-op if unheld or held by another session.
-  (no param block)
+  Params:
+    -Name         [String] = 'Code'
 ```
 
 ### extract-device-logs.ps1
@@ -6903,6 +7136,23 @@ scripts/utils/publish-artifact.ps1
   Exit: 0 - the artifact was delivered, or a sink is not reachable on this machine and that half was
 ```
 
+### read-window.ps1
+Bounded-read / evidence-offload tool for Codex sessions (S3141).
+
+```
+scripts/utils/read-window.ps1
+  Bounded-read / evidence-offload tool for Codex sessions (S3141).
+  Params:
+    -Id                (req)  [String]
+    -Path                     [String]
+    -Pattern                  [String]
+    -SearchPath               [String]
+    -ContextLines             [Int32] = 20
+    -AllowCrossTicket         [SwitchParameter]
+    -Reason                   [String]
+  Exit: 0 - printed (inline, or offloaded with header + excerpt).; 2 - invalid arguments: neither or both of -Path / (-Pattern + -SearchPath) given, or
+```
+
 ### reap-abandoned-script-processes.ps1
 Find - and optionally kill - pwsh processes running this repository's scripts that a caller started and never reaped (S2610).
 
@@ -7220,6 +7470,15 @@ scripts/utils/start-detached.ps1
   Exit: 0 started (prints pid, log and marker paths) - or, with -Status, the marker was read.; 1 bad arguments: no command, or -Status given a log path that does not exist.; 2 the command could not be resolved (a .ps1 that does not exist, or a name not on PATH).
 ```
 
+### temp-root-inventory.ps1
+Declares what may exist at the TOP LEVEL of temp/ - the single copy of that list (S3030).
+
+```
+scripts/utils/temp-root-inventory.ps1
+  Declares what may exist at the TOP LEVEL of temp/ - the single copy of that list (S3030).
+  (no param block)
+```
+
 ### test-agent-lock-queue.ps1
 Scenario check for the agent-lock queue: fairness, ticket retirement, liveness, compatibility.
 
@@ -7272,6 +7531,23 @@ scripts/utils/withdraw-lock-ticket.ps1
   Exit: 0 - withdrawal judged: this session's tickets, if any, are gone. Zero removed is a normal
 ```
 
+### write-codex-handoff.ps1
+Write a Codex session-boundary handoff (S3141): the content channel, paired with the already-existing `ticket-lease.ps1 -Handoff` identity channel.
+
+```
+scripts/utils/write-codex-handoff.ps1
+  Write a Codex session-boundary handoff (S3141): the content channel, paired with the already-existing `ticket-lease.ps1 -Handoff` identity channel.
+  Params:
+    -Id                (req)  [String]
+    -Facts                    [String] = 'none stated'
+    -ChangedPaths             [String] = 'none'
+    -ExpectedActual           [String] = 'none recorded'
+    -GateVerdict              [String] = 'not recorded'
+    -AuditManualState         [String] = 'not recorded'
+    -NextAction               [String] = 'not stated'
+  Exit: 0 - handoff file written.; 2 - invalid arguments, or -Id does not resolve in the spec catalog.; 4 - no LEASE-HANDOFF file found for -Id under temp/LEASE-HANDOFF/.
+```
+
 ## scripts\utils\agent-chat.tests
 
 ### Run-Tests.ps1
@@ -7308,6 +7584,29 @@ scripts/utils/agent-watchdog.tests/Run-Tests.ps1
   Exit: 2 - out-of-range arguments are refused rather than silently clamped. An interval of one second
 ```
 
+## scripts\utils\archive-temp.tests
+
+### Run-Tests.ps1
+Test suite for scripts/utils/archive-temp.ps1 (S3037).
+
+```
+scripts/utils/archive-temp.tests/Run-Tests.ps1
+  Test suite for scripts/utils/archive-temp.ps1 (S3037).
+  (no param block)
+```
+
+## scripts\utils\capture-draft.tests
+
+### Run-Tests.ps1
+S3151: contract suite for capture-draft.ps1 against a throwaway project root.
+
+```
+scripts/utils/capture-draft.tests/Run-Tests.ps1
+  S3151: contract suite for capture-draft.ps1 against a throwaway project root.
+  (no param block)
+  Exit: 0 every case passed.; 1 at least one case failed.; 2 cannot verify - the subject script or a fixture source is missing.
+```
+
 ## scripts\utils\code-lock-scope.tests
 
 ### Run-Tests.ps1
@@ -7317,7 +7616,7 @@ S2615 - contract tests for scripts/utils/code-lock-scope.ps1.
 scripts/utils/code-lock-scope.tests/Run-Tests.ps1
   S2615 - contract tests for scripts/utils/code-lock-scope.ps1.
   (no param block)
-  Exit: 0 - every runnable case passed. When a code domain is held (by this session or a
+  Exit: 0 - every runnable case passed. When Code.Fixture is held (by this session or a sibling), the
 ```
 
 ## scripts\utils\dev-monitor-snapshot.tests
@@ -7468,6 +7767,18 @@ Fixture for the reaper contract suite: a repository script that is idle itself b
 scripts/utils/reap-abandoned-script-processes.tests/fixtures/supervise.ps1
   Fixture for the reaper contract suite: a repository script that is idle itself but supervises a
   (no param block)
+```
+
+## scripts\utils\release-artifact-version.tests
+
+### Run-Tests.ps1
+Contract suite for Get-ReleaseMetadataCandidate / Get-ReleaseArtifactVersion in scripts/utils/build-version-stamp.ps1 (S3029).
+
+```
+scripts/utils/release-artifact-version.tests/Run-Tests.ps1
+  Contract suite for Get-ReleaseMetadataCandidate / Get-ReleaseArtifactVersion in scripts/utils/build-version-stamp.ps1 (S3029).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the fixture could not be prepared.
 ```
 
 ## scripts\utils\release-freeze.tests

@@ -2,10 +2,14 @@ package com.sza.fastmediasorter.ui.icon
 
 import androidx.annotation.DrawableRes
 import com.sza.fastmediasorter.R
+import java.util.Locale
 
 /**
  * Constant registry mapping `ico-XX-NNN` icon ids to `@DrawableRes` integers.
  * All 100 entries are listed by hand - no reflection used.
+ *
+ * S3070: every id is built with [Locale.ROOT]. An icon id is a machine key, and the default locale
+ * of an `ar`/`bn`/`ur` device renders `%02d` in native digits, producing a key no entry can match.
  */
 object ResourceIconRegistry {
 
@@ -130,7 +134,7 @@ object ResourceIconRegistry {
 
     /** Returns all ids belonging to [set] in ordinal order. */
     fun idsFor(set: ResourceIconSet): List<String> {
-        val prefix = "ico-%02d-".format(set.setId)
+        val prefix = String.format(Locale.ROOT, "ico-%02d-", set.setId)
         return registry.keys.filter { it.startsWith(prefix) }.sorted()
     }
 
@@ -148,12 +152,13 @@ object ResourceIconRegistry {
     /** Returns true if [iconId] is a known, well-formed id. */
     fun isValid(iconId: String): Boolean = registry.containsKey(iconId)
 
-    /** Picks a random id from [set]. */
+    /** Picks a random id from [set], or its first id when the set yields nothing. */
     fun randomIdFor(
         set: ResourceIconSet,
         random: kotlin.random.Random = kotlin.random.Random.Default
-    ): String = idsFor(set).random(random)
+    ): String = idsFor(set).randomOrNull(random) ?: firstIdFor(set)
 
     /** Returns the first id of [set] (`ico-0X-001`), used for predefined resources. */
-    fun firstIdFor(set: ResourceIconSet): String = "ico-%02d-001".format(set.setId)
+    fun firstIdFor(set: ResourceIconSet): String =
+        String.format(Locale.ROOT, "ico-%02d-001", set.setId)
 }

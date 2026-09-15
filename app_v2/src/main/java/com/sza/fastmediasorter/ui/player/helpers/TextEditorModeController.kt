@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel
 import com.sza.fastmediasorter.ui.editor.dirty.EditorDirtyStateTracker
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
@@ -110,7 +111,7 @@ internal class TextEditorModeController(
         getAutoSaveManager()?.startAutoSave(safeViews.etTextContent, filePath)
         findReplaceManager.setupCursorPositionTracking()
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(safeViews.etTextContent, InputMethodManager.SHOW_IMPLICIT)
+        imm.showSoftInputImplicitly(safeViews.etTextContent)
     }
 
     fun exitEditMode() {

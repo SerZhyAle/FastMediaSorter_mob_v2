@@ -39,7 +39,6 @@ object ChannelBalanceController : ChannelBalanceSource {
     fun setBalance(leftGain: Float, rightGain: Float) {
         this.leftGain = leftGain
         this.rightGain = rightGain
-        Timber.d("S1267: balance applied left=$leftGain right=$rightGain")
     }
 
     /** Called by the processor on every format negotiation, so mono content disables the section. */

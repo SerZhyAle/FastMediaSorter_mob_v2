@@ -715,7 +715,7 @@
     <string name="wear_phone_camera_failed_not_on_wifi">Turn on Wi-Fi on the watch</string>
     <string name="wear_phone_camera_failed_no_network">The watch has no network</string>
     <string name="wear_phone_camera_failed_narrow_link">This Wi-Fi is too slow for video</string>
-    <string name="wear_phone_camera_failed_not_asked">Notifications are off on the phone</string>
+    <string name="wear_phone_camera_failed_not_asked">Turn on notifications on the phone</string>
     <string name="wear_phone_camera_failed_declined">The request was declined on the phone</string>
     <string name="wear_phone_camera_failed_expired">Nobody answered on the phone</string>
     <string name="wear_phone_camera_failed_capture">The phone could not open its camera</string>
@@ -729,7 +729,6 @@
     <string name="system_info_copied">Copied</string>
     <string name="wear_game_caught_by_kryvavitsa">Caught by Kryvavitsa</string>
     <string name="wear_game_caught_by_shadow">Caught by Shadow</string>
-    <string name="wear_streams_filter_kind_all">All</string>
     <string name="wear_streams_filter_kind_audio">Audio</string>
     <string name="wear_streams_filter_kind_video">Video</string>
     <string name="wear_streams_empty_filtered">No streams match the filter. Clear it to see the whole catalog.</string>
@@ -847,4 +846,5 @@
     <string name="wear_tourist_unlock_screen">Unlock</string>
     <string name="wear_tourist_hold_to_unlock">Hold to unlock</string>
     <string name="wear_tourist_screen_locked">Screen Locked</string>
+    <string name="wear_streams_filter_kind_own">Own</string>
 </resources>

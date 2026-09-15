@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
+import com.sza.fastmediasorter.core.util.XrDeviceProbe
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
@@ -54,15 +55,16 @@ class GeneralSettingsLauncherHelper(
             binding.rowLauncherSettings.isVisible = false
             return
         }
-        // S2811: the start window is the entry for the user who declined the home role. S2858: the row's
-        // visibility is tied to homeRoleHeld in refreshState - when the app is the device launcher the
-        // desktop is already the Home button destination, so the setting is redundant and hidden.
         binding.rowLauncherStartWindow.setCheckedSilently(launcherStartWindowManager.isEnabled())
         binding.rowLauncherStartWindow.setOnCheckedChangeListener { isChecked ->
             coroutineScope.launch {
                 withContext(ioDispatcher) { launcherStartWindowManager.setEnabled(isChecked) }
             }
         }
+        val showSystemLauncher = !XrDeviceProbe.isXrDevice(fragment.requireContext())
+        binding.rowLauncherModeEnabled.isVisible = showSystemLauncher
+        binding.rowLauncherSettings.isVisible = showSystemLauncher
+        Timber.d("S3123: system launcher visible=%s", showSystemLauncher)
         binding.rowLauncherModeEnabled.setOnCheckedChangeListener { isChecked ->
             val host = fragment.activity ?: return@setOnCheckedChangeListener
             coroutineScope.launch {
@@ -97,7 +99,6 @@ class GeneralSettingsLauncherHelper(
     fun refreshState() {
         if (!launcherModeContract.isAvailableInBuild) return
         coroutineScope.launch {
-            Timber.d("S2659: refreshing launcher-role settings state")
             val state = withContext(ioDispatcher) { launcherRoleManager.readState() }
             if (state.roleRequestPending) return@launch
             if (!state.homeRoleHeld && state.modeEnabled) {
@@ -107,8 +108,6 @@ class GeneralSettingsLauncherHelper(
             }
             binding.rowLauncherModeEnabled.setCheckedSilently(state.homeRoleHeld)
             updateOpenRowEnabled(state.homeRoleHeld)
-            binding.rowLauncherStartWindow.isVisible = !state.homeRoleHeld
-            Timber.d("S2858: startWindowRow visible=${!state.homeRoleHeld}")
         }
     }
 
