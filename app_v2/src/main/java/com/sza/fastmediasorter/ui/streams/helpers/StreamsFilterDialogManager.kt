@@ -41,7 +41,6 @@ class StreamsFilterDialogManager(
         ) -> Unit,
     ) {
         val binding = DialogStreamsFilterBinding.inflate(activity.layoutInflater)
-        Timber.d("S3061: filter dialog opened with four narrow-padded media category segments")
         var category = state.filter.category
         var topic = state.filter.topic
         var language = state.filter.language

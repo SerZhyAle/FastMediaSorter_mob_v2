@@ -268,7 +268,6 @@ class StreamsViewModel @Inject constructor(
     // not - strategic Non-goals keep this to filter and sort, and a restored query would empty the
     // list on a word the wearer cannot see.
     fun setFilterKind(kind: StreamFilterKind) {
-        Timber.d("S3062: stream filter kind set to $kind")
         _uiState.update { it.copy(filterKind = kind, showFilterDialog = false) }
         projectionInputs.update { it.copy(filterKind = kind) }
         viewModelScope.launch { preferencesRepository.setStreamsFilterKindName(kind.name) }

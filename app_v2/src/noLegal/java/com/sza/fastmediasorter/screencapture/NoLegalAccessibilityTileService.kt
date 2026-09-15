@@ -54,7 +54,6 @@ class NoLegalAccessibilityTileService : TileService() {
                     intent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
-                Timber.d("S3122: noLegal tile opens accessibility settings via PendingIntent")
                 startActivityAndCollapse(pendingIntent)
             } else {
                 @Suppress("DEPRECATION", "StartActivityAndCollapseDeprecated")

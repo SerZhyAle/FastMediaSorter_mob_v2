@@ -32,7 +32,6 @@ class SettingsSearchAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: SettingsSearchIndex) {
-            Timber.d("S3091: bind settings-search section=${item.sectionId}")
             binding.titleText.text = item.title
             binding.sectionText.text = binding.root.context.getString(
                 R.string.settings_search_section_format,

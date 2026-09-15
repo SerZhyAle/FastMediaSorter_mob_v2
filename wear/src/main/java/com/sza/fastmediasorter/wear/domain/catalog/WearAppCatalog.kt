@@ -23,7 +23,6 @@ import timber.log.Timber
 object WearAppCatalog {
 
     fun apps(capabilities: WearRestrictedCapabilities): List<WearApp> {
-        Timber.d("S3042: Tourist offersHealthFeatures=%s", capabilities.offersHealthFeatures)
         return listOf(
             WearApp(
                 id = WearAppId.CALCULATOR,

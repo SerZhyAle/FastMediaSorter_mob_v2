@@ -138,7 +138,6 @@ class GeneralSettingsViewSetupHelper(
             if (current.unitSystem == system) return@setOnItemSelectedListener
             viewModel.updateSettings(current.copy(unitSystem = system))
         }
-        Timber.d("S3124: Unit System value-text row bound")
         binding.rowCompactElements?.let { row ->
             row.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener

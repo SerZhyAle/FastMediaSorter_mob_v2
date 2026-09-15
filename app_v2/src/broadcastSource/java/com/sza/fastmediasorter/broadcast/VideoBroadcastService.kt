@@ -66,7 +66,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
-                Timber.d("S3038: video stop action received")
                 stopBroadcast()
                 stopSelf()
                 return START_NOT_STICKY
@@ -210,7 +209,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                 isLive = true,
                 targetLatencyMs = 200L
             )
-            Timber.d("S3051: video descriptor published with endpoints=%s isLive=%s", dto.endpoints, dto.isLive)
 
             currentMicEnabled = currentMode != BroadcastMode.VIDEO_ONLY
             _state.value = BroadcastState.Live(
@@ -221,7 +219,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                 activeLensId = lensId ?: camera.currentCameraId,
             )
             Timber.d("VideoBroadcastService: RTSP streaming started at %s", endpoint)
-            Timber.d("S3038: video session live, audio track announced only with microphone")
         } catch (e: Exception) {
             Timber.e(e, "VideoBroadcastService: failed to start RTSP server")
             _state.value = BroadcastState.Failed(
@@ -284,7 +281,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     private fun toggleMicInternal() {
         val camera = cameraServer ?: return
-        Timber.d("S3038: microphone toggle")
         if (camera.isAudioMuted) {
             camera.enableAudio()
             currentMicEnabled = true
@@ -317,7 +313,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             }
             BroadcastLensOption.physicalIdOf(lensId)?.let { openPhysicalLens(camera, it) }
             _state.value = liveState.copy(activeLensId = lensId)
-            Timber.d("S3038: lens switched on air")
         } catch (e: CameraOpenException) {
             Timber.w(
                 e,
@@ -348,7 +343,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     private fun toggleCameraInternal() {
         val liveState = _state.value as? BroadcastState.Live ?: return
         val cameraOn = !liveState.cameraEnabled
-        Timber.d("S3038: camera toggle via video mute")
         previewProvider.setVideoMuted(!cameraOn)
         _state.value = liveState.copy(cameraEnabled = cameraOn)
     }
@@ -408,7 +402,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     private fun publishListenerCount() {
         _listenerCount.value = cameraServer?.streamClient?.getNumClients() ?: 0
-        Timber.d("S3038: RTSP listener count published")
     }
 
     override fun onAuthError() {

@@ -176,7 +176,6 @@ fun WearScreenScaffold(
         pageIndicator = pageIndicator,
         timeText = if (showTimeText) {
             {
-                Timber.d("S3045: WearScreenScaffold top bar rendered with clock and battery level")
                 // S2522: the colour is passed explicitly because the clock does not follow the palette
                 // on its own - the library Scaffold does not wrap this slot in a content colour, so
                 // TimeText resolves to the hardcoded white below LocalContentColor. The theme now

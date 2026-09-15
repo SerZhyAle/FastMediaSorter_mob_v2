@@ -71,7 +71,6 @@ internal fun ScalingLazyListScope.mediaFileItems(
     selectedIds: Set<Long>,
     actions: MediaFileActions
 ) {
-    Timber.d("S3078: file cells tagged, count=${files.size} columns=$columns")
     if (columns == SINGLE_COLUMN) {
         itemsIndexed(files, key = { _, file -> file.id }) { index, file ->
             LaunchedEffect(file.id) { actions.onThumbnailNeeded(file) }

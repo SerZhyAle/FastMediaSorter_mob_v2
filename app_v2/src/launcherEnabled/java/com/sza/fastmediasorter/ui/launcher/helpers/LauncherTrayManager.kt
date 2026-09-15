@@ -486,7 +486,6 @@ class LauncherTrayManager(
     private fun renderNetwork(transport: NetworkTransport, capabilities: NetworkCapabilities? = null) {
         lastTransport = transport
         val badge = if (transport == NetworkTransport.WIFI && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Timber.d("S3122: tray Wi-Fi badge, transportInfo=%s", capabilities?.transportInfo?.javaClass?.simpleName)
             val wifiInfo = (capabilities?.transportInfo as? WifiInfo) ?: legacyConnectionInfo()
             wifiInfo?.wifiStandard?.let { WifiGenerationMapper.generationOf(it) }?.toString()
         } else {

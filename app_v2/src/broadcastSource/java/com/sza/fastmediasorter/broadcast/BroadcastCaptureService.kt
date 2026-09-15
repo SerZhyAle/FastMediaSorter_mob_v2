@@ -154,7 +154,6 @@ class BroadcastCaptureService : Service() {
             isLive = true,
             targetLatencyMs = 200L
         )
-        Timber.d("S3051: audio descriptor published with endpoints=%s isLive=%s", dto.endpoints, dto.isLive)
         _state.value = BroadcastState.Live(dto, SystemClock.elapsedRealtime())
 
         captureAudioLoop(server, config)
@@ -212,7 +211,6 @@ class BroadcastCaptureService : Service() {
             )
             audioRecord = recorder
             recorder.startRecording()
-            Timber.d("S3049: broadcast audio capture starting with mic gain %d%%", config.micGainPercent)
 
             val buffer = ByteArray(bufferSize)
             val gainPercent = config.micGainPercent

@@ -349,7 +349,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         if (settingsRepository.get().getSettings().first().enableBroadcasting) {
             launchBroadcast(context)
         } else {
-            Timber.d("S3096: ignored disabled Broadcast gesture")
         }
     }
 
@@ -365,7 +364,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         if (settingsRepository.get().getSettings().first().enableTourist) {
             launchTouristInfo(context)
         } else {
-            Timber.d("S3096: ignored disabled Tourist gesture")
         }
     }
 

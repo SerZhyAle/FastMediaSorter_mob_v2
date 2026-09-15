@@ -600,7 +600,6 @@ class BrowseFileOperationsManager(
         overwriteFiles: Boolean,
     ): BrowseFileTransferRequest {
         val currentBrowsePath = callbacks.getCurrentBrowsePath()
-        Timber.d("S3126: transfer context path=${currentBrowsePath ?: "<virtual>"}")
         return BrowseFileTransferRequest(
             operationType = operationType,
             sourceResourceId = resource.id,

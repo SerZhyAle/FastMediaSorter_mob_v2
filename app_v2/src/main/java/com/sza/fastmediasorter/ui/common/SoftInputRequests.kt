@@ -14,6 +14,5 @@ import timber.log.Timber
  */
 @Suppress("DEPRECATION")
 fun InputMethodManager.showSoftInputImplicitly(view: View): Boolean {
-    Timber.d("S3122: implicit soft-input request for %s", view.javaClass.simpleName)
     return showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
 }
