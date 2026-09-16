@@ -1,72 +1,65 @@
 package com.sza.fastmediasorter.wear.ui.apps.bloodpressure
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CompactChip
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.domain.model.BloodPressureCategory
+import com.sza.fastmediasorter.wear.domain.bodysensor.heartRatePermission
 import com.sza.fastmediasorter.wear.domain.model.BloodPressureHistoryEntry
-import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 
 private val TITLE_BOTTOM_PADDING = 6.dp
-private val SECTION_VERTICAL_PADDING = 4.dp
-private val BUTTON_SIZE = 36.dp
-private val STEPPER_FIELD_WIDTH = 56.dp
-private val STEPPER_CORNER_RADIUS = 6.dp
-private val STEPPER_FIELD_PADDING = 6.dp
-private const val STEPPER_DELTA = 5
-private const val BADGE_ALPHA = 0.2f
+private val SECTION_PADDING = 8.dp
 
 /**
- * S3012: The blood pressure input and monitoring screen.
+ * S3012/S3113: the blood-pressure screen - an estimate from the pulse wave, started by opening the screen.
  *
- * Provides interactive stepper controls (+/-) and text entry for systolic/diastolic values,
- * real-time category classification (AHA/WHO guidelines), last reading status card,
- * and navigation to history & analytics.
+ * Until S3113 this was a manual entry form; the form now lives on the calibration screen, where a typed
+ * value is a cuff reading taken together with the pulse wave, and this screen only estimates. The heart-rate
+ * permission the capture needs is asked from the "measure again" chip, and the answer restarts the window.
  */
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun BloodPressureScreen(
     viewModel: BloodPressureViewModel = hiltViewModel(),
     listState: ScalingLazyListState = rememberWearListState(positionKey = WearRoutes.BLOOD_PRESSURE),
+    onCalibrationClick: (() -> Unit)? = null,
     onHistoryClick: (() -> Unit)? = null
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val requested = remember { listOf(heartRatePermission()) }
+    val permissionsState = rememberMultiplePermissionsState(
+        permissions = requested,
+        onPermissionsResult = { viewModel.startMeasurement() }
+    )
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -79,60 +72,38 @@ fun BloodPressureScreen(
             centered = true
         ) {
             item { ScreenTitle() }
+            item { BloodPressureEstimateContent(state.phase) }
 
-            state.lastReading?.let { reading ->
-                item {
-                    LastReadingCard(
-                        reading = reading,
-                        category = state.lastReadingCategory
-                    )
-                }
+            // S3113: the previous value is hidden while a window runs - beside the progress it read as the
+            // result of the measurement still in progress.
+            val lastReading = state.lastReading
+            val showsLastReading = state.phase !is BloodPressureEstimatePhase.Estimated &&
+                state.phase !is BloodPressureEstimatePhase.Capturing
+            if (showsLastReading && lastReading != null) {
+                item { LastReadingCard(lastReading) }
             }
-
-            state.currentCategory?.let { category ->
-                item { CategoryBadge(category = category) }
+            if (state.canMeasure) {
+                item { MeasureChip(onClick = { measureOrAsk(permissionsState, viewModel) }) }
             }
-
-            item {
-                PressureStepperRow(
-                    label = stringResource(R.string.blood_pressure_systolic),
-                    value = state.systolicInput,
-                    onValueChange = viewModel::onSystolicChanged,
-                    onAdjust = viewModel::adjustSystolic,
-                    descPair = Pair(
-                        stringResource(R.string.blood_pressure_decrease_systolic),
-                        stringResource(R.string.blood_pressure_increase_systolic)
-                    ),
-                    imeAction = ImeAction.Next
-                )
+            if (onCalibrationClick != null) {
+                item { NavigationChip(R.string.blood_pressure_calibration_title, onCalibrationClick) }
             }
-
-            item {
-                PressureStepperRow(
-                    label = stringResource(R.string.blood_pressure_diastolic),
-                    value = state.diastolicInput,
-                    onValueChange = viewModel::onDiastolicChanged,
-                    onAdjust = viewModel::adjustDiastolic,
-                    descPair = Pair(
-                        stringResource(R.string.blood_pressure_decrease_diastolic),
-                        stringResource(R.string.blood_pressure_increase_diastolic)
-                    ),
-                    imeAction = ImeAction.Done
-                )
-            }
-
-            state.errorMessageRes?.let { res ->
-                item { ErrorText(res) }
-            }
-
-            if (state.canSave) {
-                item { SaveChip(onClick = { viewModel.save() }) }
-            }
-
             if (onHistoryClick != null) {
-                item { HistoryChip(onClick = onHistoryClick) }
+                item { NavigationChip(R.string.blood_pressure_btn_history_analytics, onHistoryClick) }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+private fun measureOrAsk(
+    permissionsState: MultiplePermissionsState,
+    viewModel: BloodPressureViewModel
+) {
+    if (permissionsState.allPermissionsGranted) {
+        viewModel.startMeasurement()
+    } else {
+        permissionsState.launchMultiplePermissionRequest()
     }
 }
 
@@ -149,17 +120,14 @@ private fun ScreenTitle() {
 }
 
 @Composable
-private fun LastReadingCard(
-    reading: BloodPressureHistoryEntry,
-    category: BloodPressureCategory?
-) {
+private fun LastReadingCard(reading: BloodPressureHistoryEntry) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = SECTION_VERTICAL_PADDING)
-            .clip(RoundedCornerShape(8.dp))
+            .padding(horizontal = SECTION_PADDING, vertical = 4.dp)
+            .clip(RoundedCornerShape(SECTION_PADDING))
             .background(MaterialTheme.colors.surface)
-            .padding(8.dp),
+            .padding(SECTION_PADDING),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -167,135 +135,37 @@ private fun LastReadingCard(
             style = MaterialTheme.typography.caption1.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colors.onSurface
         )
-        category?.let { cat ->
+        reading.pulse?.let { pulse ->
             Text(
-                text = stringResource(cat.labelRes),
-                style = MaterialTheme.typography.caption2.copy(fontWeight = FontWeight.SemiBold),
-                color = cat.color,
-                modifier = Modifier.padding(top = 2.dp)
+                text = stringResource(R.string.blood_pressure_pulse, pulse),
+                style = MaterialTheme.typography.caption1,
+                color = MaterialTheme.colors.onSurface
             )
         }
-    }
-}
-
-@Composable
-private fun CategoryBadge(category: BloodPressureCategory) {
-    Box(
-        modifier = Modifier
-            .padding(vertical = 2.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(category.color.copy(alpha = BADGE_ALPHA))
-            .padding(horizontal = 12.dp, vertical = 3.dp),
-        contentAlignment = Alignment.Center
-    ) {
         Text(
-            text = stringResource(category.labelRes),
-            style = MaterialTheme.typography.caption1.copy(fontWeight = FontWeight.Bold),
-            color = category.color,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-private fun PressureStepperRow(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    onAdjust: (Int) -> Unit,
-    descPair: Pair<String, String>,
-    imeAction: ImeAction
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = SECTION_VERTICAL_PADDING),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = label,
+            text = stringResource(sourceText(reading.source)),
             style = MaterialTheme.typography.caption2,
             color = MaterialTheme.colors.onSurfaceVariant
         )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            RectangularButton(
-                onClick = { onAdjust(-STEPPER_DELTA) },
-                modifier = Modifier
-                    .size(BUTTON_SIZE)
-                    .semantics { contentDescription = descPair.first },
-                colors = ButtonDefaults.secondaryButtonColors()
-            ) {
-                Text(text = "−5", style = MaterialTheme.typography.button)
-            }
-
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier
-                    .size(width = STEPPER_FIELD_WIDTH, height = BUTTON_SIZE)
-                    .clip(RoundedCornerShape(STEPPER_CORNER_RADIUS))
-                    .background(MaterialTheme.colors.surface)
-                    .padding(vertical = STEPPER_FIELD_PADDING),
-                textStyle = MaterialTheme.typography.title3.copy(
-                    color = MaterialTheme.colors.onSurface,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold
-                ),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = imeAction
-                ),
-                singleLine = true
-            )
-
-            RectangularButton(
-                onClick = { onAdjust(STEPPER_DELTA) },
-                modifier = Modifier
-                    .size(BUTTON_SIZE)
-                    .semantics { contentDescription = descPair.second },
-                colors = ButtonDefaults.secondaryButtonColors()
-            ) {
-                Text(text = "+5", style = MaterialTheme.typography.button)
-            }
-        }
     }
 }
 
 @Composable
-private fun ErrorText(stringRes: Int) {
-    Text(
-        text = stringResource(stringRes),
-        style = MaterialTheme.typography.body2,
-        color = MaterialTheme.colors.error,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = SECTION_VERTICAL_PADDING),
-        textAlign = TextAlign.Center
-    )
-}
-
-@Composable
-private fun SaveChip(onClick: () -> Unit) {
+private fun MeasureChip(onClick: () -> Unit) {
     CompactChip(
         onClick = onClick,
-        label = { Text(stringResource(R.string.blood_pressure_save)) },
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        label = { Text(stringResource(R.string.blood_pressure_measure_again)) },
+        modifier = Modifier.fillMaxWidth().padding(horizontal = SECTION_PADDING),
         colors = ChipDefaults.primaryChipColors()
     )
 }
 
 @Composable
-private fun HistoryChip(onClick: () -> Unit) {
+private fun NavigationChip(label: Int, onClick: () -> Unit) {
     CompactChip(
         onClick = onClick,
-        label = { Text(stringResource(R.string.blood_pressure_btn_history_analytics)) },
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        label = { Text(stringResource(label)) },
+        modifier = Modifier.fillMaxWidth().padding(horizontal = SECTION_PADDING),
         colors = ChipDefaults.secondaryChipColors()
     )
 }

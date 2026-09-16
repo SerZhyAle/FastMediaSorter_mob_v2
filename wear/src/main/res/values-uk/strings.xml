@@ -668,19 +668,19 @@
     <string name="wear_listen_stop">Припинити прослуховування</string>
     <string name="wear_listen_dim_screen">Заслабити екран</string>
     <string name="wear_listen_notification_title">Телефон слухає через цей годинник</string>
-    <string name="wear_broadcast_notification_title">Цей годинник веде трансляцію</string>
-    <string name="wear_broadcast_notification_stop">Зупинити трансляцію</string>
-    <string name="wear_section_broadcast">Трансляція</string>
-    <string name="wear_broadcast_app">Трансляція</string>
-    <string name="wear_broadcast_idle_caption">Транслювати мікрофон годинника слухачам у тій самій мережі Wi-Fi</string>
-    <string name="wear_broadcast_start">Почати трансляцію</string>
+    <string name="wear_broadcast_notification_title">Цей годинник веде мовлення</string>
+    <string name="wear_broadcast_notification_stop">Зупинити мовлення</string>
+    <string name="wear_section_broadcast">Мовлення</string>
+    <string name="wear_broadcast_app">Мовлення</string>
+    <string name="wear_broadcast_idle_caption">Вести мовлення з мікрофона годинника слухачам у тій самій мережі Wi-Fi</string>
+    <string name="wear_broadcast_start">Почати мовлення</string>
     <string name="wear_broadcast_starting">Запуск..</string>
     <string name="wear_broadcast_live_label">В ефірі</string>
-    <string name="wear_broadcast_active_description">Мікрофон відкритий, годинник веде трансляцію</string>
+    <string name="wear_broadcast_active_description">Мікрофон відкритий, годинник веде мовлення</string>
     <string name="wear_broadcast_stop">Зупинити</string>
     <string name="wear_broadcast_share_qr">Показати QR-код</string>
     <string name="wear_broadcast_qr_caption">Відскануйте на пристрої слухача</string>
-    <string name="wear_broadcast_qr_unavailable">Трансляція не йде, сканувати нічого</string>
+    <string name="wear_broadcast_qr_unavailable">Мовлення не триває, сканувати нічого</string>
     <string name="wear_broadcast_failed_no_network">Немає Wi-Fi, слухач не зможе підключитися до годинника</string>
     <string name="wear_broadcast_failed_capture">Не вдалося відкрити мікрофон</string>
     <string name="wear_document_format_text">Текст</string>
@@ -704,7 +704,7 @@
     <string name="wear_phone_camera_idle_caption">Дивіться те, що бачить телефон, через Wi-Fi</string>
     <string name="wear_phone_camera_start">Почати</string>
     <string name="wear_phone_camera_requested">Запит надіслано на телефон..</string>
-    <string name="wear_phone_camera_live">Триває трансляція з телефона</string>
+    <string name="wear_phone_camera_live">Триває мовлення з телефона</string>
     <string name="wear_phone_camera_stop">Зупинити</string>
     <string name="wear_phone_camera_stopped">Сеанс завершено</string>
     <string name="wear_phone_camera_lenses">Камери</string>
@@ -718,7 +718,7 @@
     <string name="wear_phone_camera_failed_declined">Запит відхилено на телефоні</string>
     <string name="wear_phone_camera_failed_expired">На телефоні ніхто не відповів</string>
     <string name="wear_phone_camera_failed_capture">Телефон не зміг відкрити камеру</string>
-    <string name="wear_phone_camera_failed_busy">Телефон уже веде трансляцію</string>
+    <string name="wear_phone_camera_failed_busy">Телефон уже веде мовлення</string>
     <string name="wear_phone_camera_failed_not_supported">Ця збірка телефона не вміє передавати відео</string>
     <string name="wear_phone_camera_failed_unknown">Телефон відмовив без пояснення</string>
     <string name="wear_tile_shortcut_more">Ще</string>
@@ -729,7 +729,7 @@
     <string name="wear_game_caught_by_shadow">Спіймала Тінь</string>
     <string name="wear_streams_filter_kind_audio">Аудіо</string>
     <string name="wear_streams_filter_kind_video">Відео</string>
-    <string name="wear_streams_empty_filtered">Фільтр не залишив жодного потоку. Зніміть його, щоб побачити весь каталог.</string>
+    <string name="wear_streams_empty_filtered">Фільтр не залишив жодної трансляції. Зніміть його, щоб побачити весь каталог.</string>
     <string name="wear_streams_clear_filters">Зняти фільтри</string>
     <string name="body_sensor_history">Історія</string>
     <string name="body_sensor_history_title">Історія пульсу</string>
@@ -808,8 +808,8 @@
     <string name="wear_cast_unsupported">Це не можна показати на телевізорі</string>
     <string name="wear_cast_not_found">Телефон більше не знаходить це джерело</string>
     <string name="wear_cast_phone_busy">Телефон не відповів - перевірте, що він поруч</string>
-    <string name="wear_cast_not_castable">На телевізорі можна показати лише стріми та файли з джерел телефона</string>
-    <string name="wear_stream_stalled">Потік припинив передавати дані. Відтворення зупинено, щоб не садити батарею.</string>
+    <string name="wear_cast_not_castable">На телевізорі можна показати лише трансляції та файли з джерел телефона</string>
+    <string name="wear_stream_stalled">Трансляція припинила передавати дані. Відтворення зупинено, щоб не садити батарею.</string>
     <string name="phone_resource_companion_disabled">На телефоні вимкнено Wear-супутник. Увімкніть його в налаштуваннях FastMediaSorter і повторіть.</string>
 
     <!-- S3007: Tourist sub-program on Wear OS -->
@@ -882,4 +882,29 @@
     <string name="wear_onboarding_activity_reason">Щоб рахувати кроки в моніторі руху.</string>
     <string name="wear_onboarding_nearby_title">Пристрої поблизу</string>
     <string name="wear_onboarding_nearby_reason">Щоб показувати стан Bluetooth і Wi-Fi в моніторі мережі.</string>
+    <string name="blood_pressure_capture_done">Пульсову хвилю записано</string>
+    <string name="blood_pressure_capture_start">Записати пульсову хвилю</string>
+    <string name="blood_pressure_reason_no_raw_sensor">Цей годинник не віддає сиру пульсову хвилю</string>
+    <string name="blood_pressure_estimate_label">Оцінка</string>
+    <string name="blood_pressure_estimate_basis">Калібрувань: %1$d, остання %2$d дн. тому</string>
+    <string name="blood_pressure_estimate_error">Похибка моделі ±%1$d/±%2$d мм рт. ст.</string>
+    <string name="blood_pressure_estimate_description">Оцінка тиску %1$d на %2$d. Калібрувань: %3$d, остання %4$d днів тому</string>
+    <string name="blood_pressure_hold_still">Тримайте руку нерухомо на рівні серця</string>
+    <string name="blood_pressure_not_calibrated">Спершу калібрування: %1$d з %2$d вимірів манжетою</string>
+    <string name="blood_pressure_reject_motion">Рука рухалася. Завмріть і виміряйте знову</string>
+    <string name="blood_pressure_reject_weak_signal">Слабкий сигнал пульсу. Затягніть ремінець і виміряйте знову</string>
+    <string name="blood_pressure_reject_too_few_beats">Записано замало ударів. Виміряйте знову</string>
+    <string name="blood_pressure_measure_again">Виміряти знову</string>
+    <string name="blood_pressure_calibration_title">Калібрування</string>
+    <string name="blood_pressure_calibration_hint">Запустіть манжету на іншій руці та введіть її результат</string>
+    <string name="blood_pressure_calibration_saved">Калібрування збережено</string>
+    <string name="blood_pressure_calibration_pair">%1$d/%2$d, пульс %3$d</string>
+    <string name="blood_pressure_calibration_delete">Видалити калібрування %1$s</string>
+    <string name="blood_pressure_calibration_pairs_title">Збережені калібрування</string>
+    <string name="blood_pressure_source_manual">Вручну</string>
+    <string name="blood_pressure_source_calibration">Манжета</string>
+    <string name="blood_pressure_measuring">Вимірюємо тиск..</string>
+    <string name="blood_pressure_seconds_short">%1$d с</string>
+    <string name="blood_pressure_measuring_description">Триває вимірювання тиску, лишилося %1$d секунд. Тримайте руку нерухомо</string>
+    <string name="blood_pressure_pulse">Пульс %1$d</string>
 </resources>

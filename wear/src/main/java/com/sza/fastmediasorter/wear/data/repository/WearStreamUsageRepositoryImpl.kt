@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.data.repository
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
+import com.google.gson.JsonParseException
 import com.google.gson.reflect.TypeToken
 import com.sza.fastmediasorter.wear.domain.model.WearStreamUsage
 import com.sza.fastmediasorter.wear.domain.model.recordWearStreamPlay
@@ -61,14 +62,18 @@ class WearStreamUsageRepositoryImpl @Inject constructor(
      * the two copies disagree. The map the projection wants is built on the way out instead.
      */
     private fun read(): List<WearStreamUsage> {
+        Timber.d("S3199: stream usage read with narrowed catch")
         return try {
             val json = prefs.getString(KEY_USAGE, null) ?: return emptyList()
             val type = TypeToken.getParameterized(List::class.java, WearStreamUsage::class.java).type
             gson.fromJson<List<WearStreamUsage>>(json, type) ?: emptyList()
-        } catch (e: Exception) {
+        } catch (e: JsonParseException) {
             // A store this build cannot parse reads as "nothing played yet": the counter only orders
             // a list, so starting it over costs order, while rethrowing would cost the screen.
             Timber.e(e, "WearStreamUsageRepositoryImpl: failed to read stream usage")
+            emptyList()
+        } catch (e: ClassCastException) {
+            Timber.e(e, "WearStreamUsageRepositoryImpl: stream usage stored under a non-string type")
             emptyList()
         }
     }

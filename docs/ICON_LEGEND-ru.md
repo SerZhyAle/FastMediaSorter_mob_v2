@@ -15,9 +15,9 @@ permalink: /docs/ICON_LEGEND_RU.html
 |---|---|
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | Облачное хранилище |
 | <img src="icons/svg/ic_resource_ftp.svg" alt="ic_resource_ftp" width="24" height="24"> | Сервер FTP |
-| <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Поток HTTP |
+| <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляция HTTP |
 | <img src="icons/svg/ic_resource_local.svg" alt="ic_resource_local" width="24" height="24"> | Локальное хранилище |
-| <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Поток RTSP |
+| <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляция RTSP |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Сервер SFTP |
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | Сетевой ресурс SMB |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Сопряжённые часы Wear OS |

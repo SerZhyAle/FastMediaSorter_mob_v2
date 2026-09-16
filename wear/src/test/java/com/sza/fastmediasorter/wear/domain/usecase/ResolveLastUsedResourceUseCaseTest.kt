@@ -127,7 +127,8 @@ class ResolveLastUsedResourceUseCaseTest {
         runTest {
             every { preferences.lastUsedResources } returns flowOf(listOf(rememberedChannel()))
             every { sources.observeSources() } returns flowOf(emptyList())
-            every { channels.observeChannels() } returns flowOf(listOf(channel(CHANNEL_URL, CHANNEL_NAME, faviconIndex = 42)))
+            every { channels.observeChannels() } returns
+                flowOf(listOf(channel(CHANNEL_URL, CHANNEL_NAME, faviconIndex = 42)))
 
             assertEquals(42, useCase().first().single().faviconIndex)
         }

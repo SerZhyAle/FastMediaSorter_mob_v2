@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.wear.di
 
 import com.sza.fastmediasorter.wear.bodysensor.WithheldBodySensorDataSource
+import com.sza.fastmediasorter.wear.bodysensor.WithheldPpgDataSource
 import com.sza.fastmediasorter.wear.domain.bodysensor.WearBodySensorDataSource
+import com.sza.fastmediasorter.wear.domain.bodysensor.WearPpgDataSource
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -20,4 +22,10 @@ abstract class StandardBodySensorModule {
     abstract fun bindWearBodySensorDataSource(
         impl: WithheldBodySensorDataSource
     ): WearBodySensorDataSource
+
+    /** S3113: the withheld pulse-wave source; the blood-pressure view model compiles in this flavor too. */
+    @Binds
+    abstract fun bindWearPpgDataSource(
+        impl: WithheldPpgDataSource
+    ): WearPpgDataSource
 }

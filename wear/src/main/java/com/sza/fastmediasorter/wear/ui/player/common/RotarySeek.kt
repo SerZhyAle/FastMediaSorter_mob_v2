@@ -16,7 +16,6 @@ import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import com.sza.fastmediasorter.wear.ui.common.LocalWearRotaryFocusStack
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S1683: the bezel's action arrives as a lambda and this file never learns what it does. The owner

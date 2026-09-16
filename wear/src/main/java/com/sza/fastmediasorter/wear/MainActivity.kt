@@ -85,6 +85,7 @@ import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchAddressUseCase
 import com.sza.fastmediasorter.wear.ui.apps.AppsScreen
 import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.BloodPressureScreen
+import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.calibration.BloodPressureCalibrationScreen
 import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.history.BloodPressureHistoryScreen
 import com.sza.fastmediasorter.wear.ui.apps.bodysensor.BodySensorScreen
 import com.sza.fastmediasorter.wear.ui.apps.bodysensor.history.HeartRateHistoryScreen
@@ -115,7 +116,6 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.WearDimOverlay
-import com.sza.fastmediasorter.wear.ui.common.WearEndRimReservation
 import com.sza.fastmediasorter.wear.ui.common.WearListPositionStore
 import com.sza.fastmediasorter.wear.ui.common.WearRotaryFocusStack
 import com.sza.fastmediasorter.wear.ui.common.WearScreenOffAffordance
@@ -769,12 +769,13 @@ private fun BoxScope.WearNavScreenOffHost(
         return
     }
     WearScreenOffAffordance(
-        onClick = onDim,
+        onClick = {
+            Timber.d("S3196: screen-off control selected")
+            onDim()
+        },
         modifier = Modifier
             .align(Alignment.CenterEnd)
-            // One step inwards on every route, because what occupies the right rim - the Wear
-            // position indicator - is on every scrollable screen rather than on a list of them.
-            .padding(end = wearBackAffordanceInset() + WearEndRimReservation)
+            .padding(end = wearBackAffordanceInset())
     )
 }
 
@@ -1228,8 +1229,13 @@ private fun NavGraphBuilder.healthAndHardwareAppRoutes(
         // S2809: registered in noLegal flavor when offersHealthFeatures is true.
         composable(WearRoutes.BLOOD_PRESSURE) {
             BloodPressureScreen(
+                onCalibrationClick = { navController.navigate(WearRoutes.BLOOD_PRESSURE_CALIBRATION) },
                 onHistoryClick = { navController.navigate(WearRoutes.BLOOD_PRESSURE_HISTORY) }
             )
+        }
+
+        composable(WearRoutes.BLOOD_PRESSURE_CALIBRATION) {
+            BloodPressureCalibrationScreen()
         }
 
         composable(WearRoutes.BLOOD_PRESSURE_HISTORY) {

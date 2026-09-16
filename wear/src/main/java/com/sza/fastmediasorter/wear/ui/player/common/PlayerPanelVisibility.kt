@@ -25,4 +25,3 @@ internal suspend fun awaitPanelHide(isActive: Boolean, delayMillis: Long): Boole
     delay(delayMillis)
     return true
 }
-

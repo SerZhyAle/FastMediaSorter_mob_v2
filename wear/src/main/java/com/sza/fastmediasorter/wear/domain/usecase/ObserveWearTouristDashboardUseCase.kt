@@ -1,11 +1,9 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
-import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearTouristRepository
 import com.sza.fastmediasorter.wear.domain.tourist.TouristMetricType
 import com.sza.fastmediasorter.wear.domain.tourist.WearTouristState
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -21,4 +19,3 @@ class ObserveWearTouristDashboardUseCase @Inject constructor(
         return touristRepository.observeTelemetry()
     }
 }
-

@@ -13,8 +13,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.launcher.LauncherPrimaryWindowManager
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
-import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.power.PowerStateObserver
@@ -33,7 +33,6 @@ import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
-import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.auth.AuthSessionsActivity
@@ -81,15 +80,15 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     @Inject lateinit var powerStateObserver: PowerStateObserver
 
     @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
+
     @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
 
-    // S1088: gate + role plumbing for the System-launcher enable toggle relocated into General -> Interface.
+    // S1088 / S3024: gate + role plumbing and primary window policy for the General -> Interface settings.
     @Inject lateinit var launcherModeContract: LauncherModeContract
 
     @Inject lateinit var launcherRoleManager: LauncherRoleManager
 
-    @Inject lateinit var launcherStartWindowManager: LauncherStartWindowManager
-
+    @Inject lateinit var launcherPrimaryWindowManager: LauncherPrimaryWindowManager
 
     // S1052: empty except on standard + noLegal (shared capture engine binds the menu launcher).
     // Gates the debug-only screenshot-test button relocated into the General-tab debug section.
@@ -101,7 +100,8 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     @Inject lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
 
     // S0391: gate decides whether the cloud group toggle row is visible on this flavor.
-    @Inject lateinit var remoteSourceAvailabilityGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+    @Inject lateinit var remoteSourceAvailabilityGate:
+        com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 
     // S1190: asks Play for the chosen interface language before the switch is applied.
     @Inject lateinit var languageSplitInstaller: com.sza.fastmediasorter.core.util.LanguageSplitInstaller
@@ -165,7 +165,9 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         }
 
     private val exportResourcesLauncher: androidx.activity.result.ActivityResultLauncher<String> =
-        registerForActivityResult(ActivityResultContracts.CreateDocument(com.sza.fastmediasorter.domain.model.ResourceShareFormat.MIME_TYPE)) { uri ->
+        registerForActivityResult(
+            ActivityResultContracts.CreateDocument(com.sza.fastmediasorter.domain.model.ResourceShareFormat.MIME_TYPE)
+        ) { uri ->
             uri?.let { backupViewModel.exportAllResources(it) }
         }
 
@@ -226,7 +228,11 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         )
     }
     private val googleAccountHelper by lazy {
-        com.sza.fastmediasorter.ui.settings.helpers.GoogleAccountSettingsHelper(this, googleAccountViewModel, cctChecker)
+        com.sza.fastmediasorter.ui.settings.helpers.GoogleAccountSettingsHelper(
+            this,
+            googleAccountViewModel,
+            cctChecker
+        )
     }
     private val prefetchHelper by lazy {
         GeneralSettingsPrefetchHelper(binding, viewModel, this, streamingCacheRepository)
@@ -261,10 +267,15 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             languageSplitInstaller = languageSplitInstaller,
         )
     }
+
     // S0328: color theme spinner (Auto/Light/Dark) in General → Interface, after the language spinner.
     private val colorThemeHelper by lazy {
         com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsColorThemeHelper(
-            binding, viewModel, this, { isUpdatingSpinner }, { isUpdatingSpinner = it }
+            binding,
+            viewModel,
+            this,
+            { isUpdatingSpinner },
+            { isUpdatingSpinner = it }
         )
     }
     private val profileHelper by lazy {
@@ -276,7 +287,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             this,
             launcherModeContract,
             launcherRoleManager,
-            launcherStartWindowManager,
+            launcherPrimaryWindowManager,
             launcherRoleLauncher,
         )
     }
@@ -406,11 +417,19 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         binding.tvGmsSettingsLink.visibility = View.VISIBLE
         binding.tvGmsSettingsLink.setOnClickListener {
             try {
-                startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,
-                    android.net.Uri.parse("market://details?id=com.google.android.gms")))
+                startActivity(
+                    android.content.Intent(
+                        android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("market://details?id=com.google.android.gms")
+                    )
+                )
             } catch (e: Exception) {
-                startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,
-                    android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")))
+                startActivity(
+                    android.content.Intent(
+                        android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")
+                    )
+                )
             }
         }
     }
@@ -443,8 +462,13 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
         fun updateLayoutParams(view: View, isHorizontal: Boolean) {
             val params = view.layoutParams as LinearLayout.LayoutParams
-            if (isHorizontal) { params.width = 0; params.weight = 1f }
-            else { params.width = ViewGroup.LayoutParams.MATCH_PARENT; params.weight = 0f }
+            if (isHorizontal) {
+                params.width = 0
+                params.weight = 1f
+            } else {
+                params.width = ViewGroup.LayoutParams.MATCH_PARENT
+                params.weight = 0f
+            }
             view.layoutParams = params
         }
 

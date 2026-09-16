@@ -6,7 +6,6 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
-import timber.log.Timber
 
 /**
  * S2795: the one place a watch surface turns an instant into a clock time or a date.

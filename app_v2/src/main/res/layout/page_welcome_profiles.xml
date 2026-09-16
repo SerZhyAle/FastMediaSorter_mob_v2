@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S0399 device-profile onboarding page. Pinned header (title + subtitle) over a RecyclerView of
-     full profile tiles (item_device_profile_tile.xml via DeviceProfileTileAdapter). The holder
-     (ProfilesPageViewHolder) builds the grid layout manager, orders profiles small-screen-first,
-     pre-selects + auto-scrolls to the recommended tile, and keeps a cached adapter for direct
-     selection refresh. Dense layout: minimal page padding, tile spacing comes from the item margin.
+<!-- S0399 / S3024: Device-profile and primary-window onboarding page.
+     Header over a RecyclerView of profile tiles and a second block with primary window choices
+     when launcher mode is available in the build.
      All ids must stay in sync with the landscape variant (layout-land/page_welcome_profiles.xml). -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -16,11 +14,11 @@
         android:id="@+id/layoutContent"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        app:layout_constraintWidth_max="@dimen/welcome_content_max_width"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintWidth_max="@dimen/welcome_content_max_width">
 
         <!-- Header: title -->
         <TextView
@@ -53,26 +51,64 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvProfilesTitle" />
 
-        <!-- Tile grid: fills the rest. Focusable so D-pad enters the grid; afterDescendants lets
-             RecyclerView's grid focus-search move tile-to-tile and absorb LEFT/RIGHT until a true
-             row edge. clipToPadding=false keeps the small inset spacing while allowing overscroll. -->
+        <!-- Tile grid: focusable with explicit D-pad nextFocus to primary window choices. -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvProfiles"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:clipToPadding="false"
             android:descendantFocusability="afterDescendants"
             android:focusable="true"
+            android:nextFocusDown="@id/rvPrimaryWindowChoices"
+            android:nextFocusForward="@id/rvPrimaryWindowChoices"
             android:paddingStart="2dp"
             android:paddingEnd="2dp"
-            android:paddingBottom="8dp"
+            android:paddingBottom="4dp"
             android:scrollbars="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/layoutPrimaryWindow"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvProfilesSubtitle"
             tools:listitem="@layout/item_device_profile_tile" />
+
+        <!-- S3024: Primary window choice block (visible when launcher available in build) -->
+        <LinearLayout
+            android:id="@+id/layoutPrimaryWindow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/rvProfiles"
+            tools:visibility="visible">
+
+            <TextView
+                android:id="@+id/tvPrimaryWindowTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/welcome_primary_window_title"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/toggler_title_text_size"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvPrimaryWindowChoices"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:clipToPadding="false"
+                android:descendantFocusability="afterDescendants"
+                android:focusable="true"
+                android:nestedScrollingEnabled="false"
+                android:nextFocusUp="@id/rvProfiles"
+                tools:listitem="@layout/item_welcome_primary_window_choice" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

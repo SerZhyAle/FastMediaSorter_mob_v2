@@ -29,7 +29,6 @@ import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionState
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearStackedSquareSide
-import timber.log.Timber
 
 private val SECTION_GAP = 8.dp
 private val TEXT_HORIZONTAL_PADDING = 12.dp

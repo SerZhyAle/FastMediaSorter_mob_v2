@@ -50,7 +50,6 @@ fun NetworkMonitorScreen(
         WearNetworkSection.Summary
     }
 
-
     if (targetSection == WearNetworkSection.Summary) {
         if (state.sections.isEmpty()) {
             WearScreenScaffold {

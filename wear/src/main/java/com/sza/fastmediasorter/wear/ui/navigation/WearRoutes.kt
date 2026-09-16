@@ -80,11 +80,17 @@ object WearRoutes {
     /** S2808: the heart-rate measurement history screen, reached from the body sensor screen. */
     const val HEART_RATE_HISTORY = "heart_rate_history"
 
-    /** S2809: the blood pressure input screen. Available in both flavors - no permission needed. */
+    /**
+     * S2809/S3113: the blood pressure estimate screen; offered only with offersHealthFeatures, and the
+     * capture behind it needs the heart-rate permission.
+     */
     const val BLOOD_PRESSURE = "blood_pressure"
 
     /** S2809: the blood pressure history screen, reached from the blood pressure screen. */
     const val BLOOD_PRESSURE_HISTORY = "blood_pressure_history"
+
+    /** S3113: cuff readings taken together with the pulse wave, which the estimate is fitted on. */
+    const val BLOOD_PRESSURE_CALIBRATION = "blood_pressure_calibration"
 
     /**
      * S2008: the watch's own report, relocated from `settings/system_info`. Its value is the program's

@@ -6,7 +6,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /** S1701: how long the volume readout stays after the last bezel step. */
 private const val VOLUME_VISIBLE_MS = 1_500L

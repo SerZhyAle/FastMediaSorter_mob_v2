@@ -22,7 +22,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.input.TvNavAction
-import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.launcher.LauncherPrimaryWindowManager
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
+import com.sza.fastmediasorter.domain.launcher.LauncherPrimaryWindow
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.profile.DeviceProfilePickerDialogFragment
@@ -79,7 +80,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     lateinit var launcherModeContract: LauncherModeContract
 
     @Inject
-    lateinit var launcherRoleManager: LauncherRoleManager
+    lateinit var launcherPrimaryWindowManager: LauncherPrimaryWindowManager
 
     // Overlay-permission result for the Welcome gesture toggle. Registered at construction (before
     // STARTED, as the API requires); the callback routes back into the functionality controller.
@@ -185,10 +186,16 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     override fun observeData() {
         collectOnLifecycle(viewModel.state) { state ->
-            // The device-profile page (S0399) is seeded at setup; once detection resolves, refresh the
-            // grid selection directly (ViewPager2 will not rebind the visible page on notifyItemChanged).
+            // The device-profile page (S0399 / S3024) is seeded at setup; once detection resolves, refresh the
+            // grid selection and primary window choice directly (ViewPager2 will not rebind the visible page
+            // on notifyItemChanged).
             if (::pagerAdapter.isInitialized) {
-                pagerAdapter.refreshProfiles(state.recommendedProfile, state.selectedProfile)
+                pagerAdapter.refreshProfiles(
+                    recommendedType = state.recommendedProfile,
+                    selectedType = state.selectedProfile,
+                    selectedPrimaryWindow = viewModel.getSelectedPrimaryWindow(),
+                    recommendedPrimaryWindow = viewModel.getRecommendedPrimaryWindow(),
+                )
             }
         }
 
@@ -350,26 +357,36 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 onLanguagePickerRequested = ::showWelcomeLanguagePicker,
                 showThemePicker = true,
                 onThemeSelected = ::onWelcomeThemeSelected,
-                showLauncherModeToggle = shellPitch,
-                launcherModeChecked = viewModel.launcherModeRequested,
-                onLauncherModeToggled = { viewModel.setLauncherModeRequested(it) },
             ),
         )
 
-        // S0399: device-profile page (index 1). Full tile grid; selection seeded from detection and
-        // refreshed via refreshProfiles() once async detection resolves.
+        // S0399 / S3024: device-profile and primary-window page (index 1).
         pagesList.add(
             WelcomePage(
                 isProfilesPage = true,
                 selectableProfiles = viewModel.selectableProfiles(),
                 recommendedProfileType = viewModel.state.value.recommendedProfile,
                 selectedProfileType = viewModel.state.value.selectedProfile,
-                onProfileSelected = { type -> viewModel.onProfileSelected(type) },
+                onProfileSelected = { type ->
+                    viewModel.onProfileSelected(type)
+                    pagerAdapter.refreshProfiles(
+                        recommendedType = viewModel.state.value.recommendedProfile,
+                        selectedType = type,
+                        selectedPrimaryWindow = viewModel.getSelectedPrimaryWindow(),
+                        recommendedPrimaryWindow = viewModel.getRecommendedPrimaryWindow(),
+                    )
+                },
                 // S1383: tapping the already-selected tile means "this one, go on" - the same step
                 // Next would take, so the profile page needs no separate confirm control.
                 onProfileConfirmed = { type ->
                     viewModel.onProfileSelected(type)
                     tvNavigation.flipPage(forward = true)
+                },
+                showPrimaryWindowChoice = shellPitch,
+                selectedPrimaryWindow = viewModel.getSelectedPrimaryWindow(),
+                recommendedPrimaryWindow = viewModel.getRecommendedPrimaryWindow(),
+                onPrimaryWindowSelected = { choice ->
+                    viewModel.onPrimaryWindowSelected(choice)
                 },
             )
         )
@@ -738,22 +755,16 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         if (hasRequiredMediaPermissions()) {
             viewModel.setMediaPermissionsGranted(true)
         }
-        // S0404/S1107: the user opted in to launcher mode on the first Welcome page. Enable the HOME
-        // component as a durable candidate now, but do NOT launch the role dialog from this finishing
-        // frame - it would be buried under the MainActivity+SettingsActivity stack (ADR-2). Instead route
-        // the request to the non-finishing first-run Settings screen, which auto-triggers the working
-        // enableMode() path there (the "chooser on next Home press" never fires when a default launcher
-        // already exists, which is every real device).
-        val requestLauncherRole =
-            !launcherModeHandled && launcherModeContract.isAvailableInBuild && viewModel.launcherModeRequested
-        if (requestLauncherRole) {
+        // S0404 / S3024: apply the primary window choice through LauncherPrimaryWindowManager.
+        // When Home screen is chosen, the HOME component is enabled as a durable candidate and the
+        // role request is left pending for the non-finishing SettingsActivity to issue.
+        val primaryWindowChoice = viewModel.getSelectedPrimaryWindow()
+        if (!launcherModeHandled && launcherModeContract.isAvailableInBuild) {
             launcherModeHandled = true
-            launcherRoleManager.markAsHomeCandidate()
-            // The opt-in outlives this frame as a durable flag rather than an intent extra: the first-run
-            // Settings screen is recreated while theme and locale are applied, and an extra consumed by a
-            // doomed instance took the user's choice with it.
-            launcherRoleManager.markRoleRequestPending()
+            launcherPrimaryWindowManager.applyChoice(primaryWindowChoice)
         }
+        val requestLauncherRole =
+            launcherModeContract.isAvailableInBuild && primaryWindowChoice == LauncherPrimaryWindow.HOME_SCREEN
         goToMainActivity(requestLauncherRole)
     }
 

@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.wear.ui.player.common
 
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionManager
-import timber.log.Timber
 
 /**
  * S2432: play/pause as both watch players do it - a pause always releases the wide channel, and a

@@ -544,7 +544,7 @@ storage class, meaning "the phone still holds the original of this".
 The watch home screen carries an **Apps** section holding eleven self-contained programs, each usable
 with the phone out of range: a **calculator**, a **network monitor**, a **mini-game**, a **voice
 recorder**, **system information**, a **water flashlight**, a **motion monitor**, a **heart-rate
-check**, **blood pressure** (S2809), an audio **broadcast** (S2509) and a **stopwatch** (S2825). Ten of
+check**, **blood pressure** (S2809; since S3113 estimated from the pulse wave after cuff calibration, with calibration on its own screen), an audio **broadcast** (S2509) and a **stopwatch** (S2825). Ten of
 them appear in `noLegal`; the Google Play variant lists only the calculator, the game, the water
 flashlight, the stopwatch and the clipboard - every other program is `noLegal` only (S3178).
 

@@ -3,8 +3,8 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.content.Context
 import android.net.Uri
 import com.sza.fastmediasorter.wear.data.files.WearMediaFileStager
-import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.data.files.WearMediaStoreFileWriter
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.domain.files.WEAR_PHONE_FILE_CACHE_DIR
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.files.WearMediaStoreConsent
@@ -256,4 +256,3 @@ class PerformWearFileOperationUseCaseTest {
         const val TOKEN = "content://phone/clip.mp4"
     }
 }
-

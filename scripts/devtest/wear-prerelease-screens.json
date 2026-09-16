@@ -141,7 +141,11 @@
       "expect": "Clear",
       "screen": "CalculatorScreen",
       "expectRes": "wear_calc_clear",
-      "backAfter": 1
+      "backAfter": 1,
+      "acceptedOffGlass": {
+        "flavors": ["noLegal"],
+        "reason": "S3192 owner ruling 2026-09-16: the noLegal calculator keeps the S3104 layout, which reaches past the round glass by design; the standard build draws its own calculator inside the inscribed square and is still held to WO-V16 here"
+      }
     },
     {
       "id": "apps-network-monitor",
@@ -332,6 +336,11 @@
       "screen": "AudioPlayerScreen",
       "reason": "needs-seeded-content",
       "note": "Reached by tapping a row captioned with a file name, so it needs seeded media with predictable names."
+    },
+    {
+      "screen": "BloodPressureCalibrationScreen",
+      "reason": "absent-from-this-flavor",
+      "note": "S3113. Reached only by the Calibration chip on BloodPressureScreen, which the entry above excludes because the standard build answers offersHealthFeatures false. In noLegal it also starts a heart-rate sensor window on open, which an emulator walk cannot satisfy."
     },
     {
       "screen": "BloodPressureHistoryScreen",

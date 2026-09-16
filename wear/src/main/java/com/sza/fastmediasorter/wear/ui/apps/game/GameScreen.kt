@@ -52,7 +52,6 @@ import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import kotlinx.coroutines.delay
-import timber.log.Timber
 import kotlin.math.abs
 
 /** Below this the gesture was a tap or a tremor, not a swipe, and no move is made. */

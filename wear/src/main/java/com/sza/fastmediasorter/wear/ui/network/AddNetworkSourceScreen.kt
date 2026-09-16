@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -39,6 +38,7 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -46,12 +46,9 @@ import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearChoiceRows
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.AddNetworkSourceUiState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.AddNetworkSourceViewModel
-import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
 private const val FIELD_CELL_MAX_LINES = 2
-private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val GRID_CELL_HEIGHT = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 
 /** The protocols the watch offers to type in by hand. */
 private val PROTOCOL_OPTIONS = listOf(
@@ -82,7 +79,6 @@ fun AddNetworkSourceScreen(
     var editingValue by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     val listState = rememberWearListState()
-    val viewMode by viewModel.viewMode.collectAsState()
 
     // S2486: the gate's second boundary. Both routes to this screen stay registered so a back-stack entry
     // saved by an older build still resolves, which means the flavor that withholds credential entry has to
@@ -121,12 +117,11 @@ fun AddNetworkSourceScreen(
             scrollState = listState,
             positionIndicator = { PositionIndicator(listState) }
         ) {
-            // S2486: the column count comes from the width this composable actually gets, never from the
-            // mode name - the same two lines the sources list applies, so the form and the screen it opens
-            // from cannot drift apart.
+            // S3198: one column whatever view mode the user chose elsewhere (owner ruling 2026-09-17,
+            // reversing S2486 for this screen). A form is filled field by field, and narrow cells at the
+            // edge of the round glass did not open on the first tap.
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                 val availableWidthDp = maxWidth.value.toInt()
-                val columns = GridColumnFit.columnsFor(viewMode, availableWidthDp)
                 WearListColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = listState
@@ -153,33 +148,31 @@ fun AddNetworkSourceScreen(
                         )
                     }
 
-                    // Three fixed short labels, which is exactly the set WearChoiceGrid was written for.
-                    // Routing them through it also brings the check glyph and the `selected` semantics
-                    // flag, so the choice is never carried by colour alone.
+                    // Routed through WearChoiceGrid in its LIST shape for the check glyph and the `selected`
+                    // semantics flag, so the choice is never carried by colour alone.
                     wearChoiceRows(
                         options = PROTOCOL_OPTIONS,
                         selected = uiState.protocol,
                         labelOf = { protocol -> protocolLabel(protocol) },
                         onSelected = { protocol -> viewModel.setProtocol(protocol) },
                         gridFit = WearChoiceGridFit(
-                            viewMode = viewMode,
+                            viewMode = WearViewMode.LIST,
                             availableWidthDp = availableWidthDp
                         )
                     )
 
-                    // A cell keeps its label AND its value. S1947's ban on gridding long text is about a
-                    // set whose LABEL comes from data, where truncation stops telling the cells apart;
-                    // here the label is a fixed field name and the value is secondary, so it may
-                    // ellipsize and still show at a glance which fields are filled.
-                    items(connectionFields(uiState).chunked(columns)) { rowFields ->
-                        AddFieldRow(
-                            fields = rowFields,
-                            columns = columns,
-                            uiState = uiState,
-                            onEdit = { field ->
+                    // A row keeps its label AND its value, so the form shows at a glance which fields are
+                    // filled; the value is secondary and may ellipsize.
+                    items(connectionFields(uiState)) { field ->
+                        EditableFieldChip(
+                            label = fieldTitle(field),
+                            value = editableDisplayOf(uiState, field),
+                            fallback = stringResource(fieldFallbackRes(field)),
+                            onClick = {
                                 editingField = field
                                 editingValue = editableValueOf(uiState, field)
-                            }
+                            },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
 
@@ -397,42 +390,8 @@ private fun EditableFieldChip(
 }
 
 /**
- * S2486: one row of the field grid. A short final row is padded with empty weights so its cells keep the
- * width of a full row's cells, the same way `WearChoiceGridRow` does - without it the last field on an
- * odd-length form would stretch to the whole screen and read as a different kind of control.
- */
-@Composable
-private fun AddFieldRow(
-    fields: List<AddField>,
-    columns: Int,
-    uiState: AddNetworkSourceUiState,
-    onEdit: (AddField) -> Unit
-) {
-    com.sza.fastmediasorter.wear.ui.common.CenteredGridRow(
-        columns = columns,
-        itemCount = fields.size,
-        gap = GRID_GAP
-    ) {
-        fields.forEach { field ->
-            EditableFieldChip(
-                label = fieldTitle(field),
-                value = editableDisplayOf(uiState, field),
-                fallback = stringResource(fieldFallbackRes(field)),
-                onClick = { onEdit(field) },
-                modifier = Modifier
-                    .weight(1f)
-                    // S2755: a minimum, so a two-line field cell grows with the font scale instead of
-                    // cropping its own value.
-                    .heightIn(min = GRID_CELL_HEIGHT)
-            )
-        }
-    }
-}
-
-/**
  * The fields the current protocol asks for, in the order they are filled in. The SSH key is deliberately
- * absent: it is emitted after the toggle that enables it, so it cannot be chunked into a row that would
- * place it before its own switch.
+ * absent: it is emitted after the toggle that enables it, so it can never be listed before its own switch.
  */
 private fun connectionFields(state: AddNetworkSourceUiState): List<AddField> = buildList {
     add(AddField.NAME)

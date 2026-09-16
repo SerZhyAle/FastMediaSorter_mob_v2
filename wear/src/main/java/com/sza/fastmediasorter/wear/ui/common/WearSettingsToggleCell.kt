@@ -20,7 +20,6 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.ToggleChipDefaults
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 // Read from the column rule, not written down again: the same threshold that decides how many
 // columns fit is what a cell's control must not fall below, so one number owns both answers.

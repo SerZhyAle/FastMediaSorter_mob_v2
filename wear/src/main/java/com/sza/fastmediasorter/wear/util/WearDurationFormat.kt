@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.util
 
-import timber.log.Timber
 import java.util.Locale
 
 private const val MILLIS_PER_SECOND = 1_000L

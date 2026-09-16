@@ -2712,7 +2712,7 @@
     <string name="launcher_edit_unpin_named">Unpin %1$s</string>
     <string name="launcher_settings_enable_title">Make this app the home screen</string>
     <string name="launcher_start_window_title">Open the desktop when the app starts</string>
-    <string name="launcher_start_window_desc">Open your desktop instead of the file browser. This does not change the device home screen.</string>
+    <string name="launcher_start_window_desc">Open your desktop instead of Resource Manager. This does not change the device home screen.</string>
     <string name="launcher_settings_enable_desc">The Home button opens your own desktop with shortcuts and gadgets. Turn this off any time to bring back your previous home screen.</string>
     <string name="launcher_settings_enable_help_title">Home screen mode</string>
     <string name="launcher_settings_enable_help_message">When you turn this on, Android asks which home screen to use - pick this app and tap Always (or Just once to try it). To go back, turn this off and Android restores your previous home screen.</string>
@@ -4126,4 +4126,22 @@
     <string name="wear_screenshot_captured">The watch sent its screenshot</string>
     <string name="wear_screenshot_no_answer">The watch did not answer</string>
     <string name="wear_companion_group_operations">Watch operations</string>
+    <string name="resource_manager_title">Resource Manager</string>
+    <string name="welcome_primary_window_title">Primary window</string>
+    <string name="welcome_primary_window_subtitle">Choose what opens when you start FastMediaSorter</string>
+    <string name="launcher_primary_window_recommended">Recommended</string>
+    <string name="launcher_primary_window_home_title">Device home screen</string>
+    <string name="launcher_primary_window_home_desc">The app becomes your device home screen</string>
+    <string name="launcher_primary_window_desktop_title">Desktop as primary window</string>
+    <string name="launcher_primary_window_desktop_desc">Open desktop inside the app without changing the device home screen</string>
+    <string name="launcher_primary_window_resource_manager_title">Resource Manager</string>
+    <string name="launcher_primary_window_resource_manager_desc">Open file and media resource management directly</string>
+    <string name="setting_launcher_primary_window_title">Primary startup window</string>
+    <string name="setting_launcher_primary_window_desc">Choose whether the app opens as the device home screen, in-app desktop, or Resource Manager</string>
+
+    <string-array name="launcher_primary_window_options">
+        <item>@string/launcher_primary_window_home_title</item>
+        <item>@string/launcher_primary_window_desktop_title</item>
+        <item>@string/launcher_primary_window_resource_manager_title</item>
+    </string-array>
 </resources>

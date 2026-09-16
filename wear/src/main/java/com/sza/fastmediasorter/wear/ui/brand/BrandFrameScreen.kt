@@ -24,7 +24,6 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
 import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 /**
  * S1981: how long the frame holds itself, in ms.

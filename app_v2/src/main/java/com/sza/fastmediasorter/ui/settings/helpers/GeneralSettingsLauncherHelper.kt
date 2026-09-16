@@ -6,11 +6,12 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.core.launcher.LauncherPrimaryWindowManager
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
-import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.core.util.XrDeviceProbe
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
+import com.sza.fastmediasorter.domain.launcher.LauncherPrimaryWindow
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -18,13 +19,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /**
- * S1088: owns the System-launcher entry in General -> Interface: the enable toggle (reflects the HOME
- * component state, launches the system role request) plus the button that opens
- * [LauncherSettingsDialogFragment] for the launcher's own settings. The whole pair is hidden when the
- * build has no launcher surface ([LauncherModeContract.isAvailableInBuild]).
+ * S1088: owns the System-launcher entry in General -> Interface.
+ * S3024: Consolidated primary window choice (Home screen, Desktop in-app, Resource Manager)
+ * backed by [LauncherPrimaryWindowManager] plus the button that opens [LauncherSettingsDialogFragment]
+ * for the launcher's own settings. Hidden when the build has no launcher surface
+ * ([LauncherModeContract.isAvailableInBuild]).
  *
  * S1107: this General screen also issues the HOME-role request left pending by onboarding (the finishing
  * Welcome frame cannot present it). The request is deferred past the first-run recreation storm so it
@@ -35,7 +36,7 @@ class GeneralSettingsLauncherHelper(
     private val fragment: Fragment,
     private val launcherModeContract: LauncherModeContract,
     private val launcherRoleManager: LauncherRoleManager,
-    private val launcherStartWindowManager: LauncherStartWindowManager,
+    private val launcherPrimaryWindowManager: LauncherPrimaryWindowManager,
     private val launcherRoleLauncher: ActivityResultLauncher<Intent>,
     private val scopeProvider: () -> CoroutineScope = { fragment.viewLifecycleOwner.lifecycleScope },
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -50,24 +51,23 @@ class GeneralSettingsLauncherHelper(
 
     fun setup() {
         if (!launcherModeContract.isAvailableInBuild) {
-            binding.rowLauncherModeEnabled.isVisible = false
-            binding.rowLauncherStartWindow.isVisible = false
+            binding.rowLauncherPrimaryWindow.isVisible = false
             binding.rowLauncherSettings.isVisible = false
             return
         }
-        binding.rowLauncherStartWindow.setCheckedSilently(launcherStartWindowManager.isEnabled())
-        binding.rowLauncherStartWindow.setOnCheckedChangeListener { isChecked ->
-            coroutineScope.launch {
-                withContext(ioDispatcher) { launcherStartWindowManager.setEnabled(isChecked) }
-            }
-        }
         val showSystemLauncher = !XrDeviceProbe.isXrDevice(fragment.requireContext())
-        binding.rowLauncherModeEnabled.isVisible = showSystemLauncher
+        binding.rowLauncherPrimaryWindow.isVisible = showSystemLauncher
         binding.rowLauncherSettings.isVisible = showSystemLauncher
-        binding.rowLauncherModeEnabled.setOnCheckedChangeListener { isChecked ->
-            val host = fragment.activity ?: return@setOnCheckedChangeListener
+        if (!showSystemLauncher) return
+
+        binding.rowLauncherPrimaryWindow.setOnItemSelectedListener { position ->
+            val choice = LauncherPrimaryWindow.entries.getOrNull(position) ?: return@setOnItemSelectedListener
+            val host = fragment.activity ?: return@setOnItemSelectedListener
             coroutineScope.launch {
-                if (isChecked) {
+                withContext(ioDispatcher) {
+                    launcherPrimaryWindowManager.applyChoice(choice)
+                }
+                if (choice == LauncherPrimaryWindow.HOME_SCREEN) {
                     val roleIntent = withContext(ioDispatcher) {
                         launcherRoleManager.enableModeForRequest()
                     }
@@ -76,12 +76,8 @@ class GeneralSettingsLauncherHelper(
                     } else {
                         launcherRoleManager.openHomeChooser(host)
                     }
-                } else {
-                    withContext(ioDispatcher) {
-                        launcherRoleManager.disableModeForBackgroundRefresh()
-                    }
                 }
-                updateOpenRowEnabled(isChecked)
+                updateOpenRowEnabled(choice != LauncherPrimaryWindow.RESOURCE_MANAGER)
             }
         }
         binding.rowLauncherSettings.setOnClickListener {
@@ -91,26 +87,27 @@ class GeneralSettingsLauncherHelper(
     }
 
     /**
-     * S2381: Re-reads the home role holding state; call from onResume and the role-request result callback.
+     * S2381 / S3024: Re-reads the home role holding state and primary window selection.
+     * Call from onResume and the role-request result callback.
      * When a role request is not pending, if the role is not held by this app, resets the component state
-     * via [LauncherRoleManager.disableMode] and updates the UI toggle to false so the user can re-attempt.
+     * via [LauncherRoleManager.disableMode] and updates the selection so the user can re-attempt.
      */
     fun refreshState() {
         if (!launcherModeContract.isAvailableInBuild) return
         coroutineScope.launch {
-            val state = withContext(ioDispatcher) { launcherRoleManager.readState() }
-            if (state.roleRequestPending) return@launch
-            if (!state.homeRoleHeld && state.modeEnabled) {
-                withContext(ioDispatcher) {
+            val choice = withContext(ioDispatcher) {
+                val state = launcherRoleManager.readState()
+                if (!state.roleRequestPending && !state.homeRoleHeld && state.modeEnabled) {
                     launcherRoleManager.disableModeForBackgroundRefresh()
                 }
+                launcherPrimaryWindowManager.getCurrentChoice()
             }
-            binding.rowLauncherModeEnabled.setCheckedSilently(state.homeRoleHeld)
-            updateOpenRowEnabled(state.homeRoleHeld)
+            binding.rowLauncherPrimaryWindow.setSelection(choice.ordinal)
+            updateOpenRowEnabled(choice != LauncherPrimaryWindow.RESOURCE_MANAGER)
         }
     }
 
-    // The launcher-settings button only makes sense once the launcher is enabled - keep it inert otherwise.
+    // The launcher-settings button only makes sense once desktop is active - keep it inert otherwise.
     private fun updateOpenRowEnabled(enabled: Boolean) {
         binding.rowLauncherSettings.isEnabled = enabled
     }
@@ -153,11 +150,11 @@ class GeneralSettingsLauncherHelper(
         }
     }
 
-    // Best-effort: expand the (default-collapsed) Interface section and scroll the enable toggle into view
+    // Best-effort: expand the (default-collapsed) Interface section and scroll the control into view
     // so the returning user sees the control the deep-link acted on.
     private fun revealEnableToggle() {
         binding.headerInterface.setExpanded(true, notify = true)
-        val target = binding.rowLauncherModeEnabled
+        val target = binding.rowLauncherPrimaryWindow
         target.post {
             target.requestRectangleOnScreen(Rect(0, 0, target.width, target.height), false)
         }

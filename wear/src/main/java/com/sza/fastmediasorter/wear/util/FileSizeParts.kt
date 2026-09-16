@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.wear.util
 
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.wear.R
-import timber.log.Timber
 import java.util.Locale
 
 /** A size already split into the number to print and the resource that names its unit. */

@@ -30,7 +30,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.ui.common.LocalWearGeometryMode
 import com.sza.fastmediasorter.wear.ui.common.nonSwallowingClickable
 import com.sza.fastmediasorter.wear.ui.common.wearIsCompactScreen
-import timber.log.Timber
 
 // Declared as const rather than as a `val ..: Dp` because detekt's MagicNumber is active on this
 // module's main sources and exempts a constant declaration but not a property one.

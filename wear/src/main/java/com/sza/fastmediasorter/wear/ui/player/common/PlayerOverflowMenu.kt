@@ -18,7 +18,6 @@ import androidx.wear.compose.material.dialog.Dialog
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearActionColumn
-import timber.log.Timber
 
 /**
  * The menu behind the players' "more" button, holding the commands their rows cannot show.
@@ -48,7 +47,6 @@ fun PlayerOverflowMenu(
         label = backLabel,
         icon = { Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) },
         onClick = {
-            Timber.d("S3118: player menu closed by its back entry")
             onDismiss()
         }
     )

@@ -15,9 +15,9 @@ permalink: /docs/ICON_LEGEND_UK.html
 |---|---|
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | Хмарне сховище |
 | <img src="icons/svg/ic_resource_ftp.svg" alt="ic_resource_ftp" width="24" height="24"> | Сервер FTP |
-| <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Потік HTTP |
+| <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляція HTTP |
 | <img src="icons/svg/ic_resource_local.svg" alt="ic_resource_local" width="24" height="24"> | Локальне сховище |
-| <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Потік RTSP |
+| <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляція RTSP |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Сервер SFTP |
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | Мережевий ресурс SMB |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Спарений годинник Wear OS |

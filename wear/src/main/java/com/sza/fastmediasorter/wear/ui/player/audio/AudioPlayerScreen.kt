@@ -391,7 +391,7 @@ private fun AudioPlayerContent(
                 actions = actions,
                 paddings = PlayerColumnPaddings(trackInfoPadding, commandRowPadding),
                 onOpenMenu = {
-                    Timber.d("S3120: audio player menu opened as one list with the file operations")
+                    Timber.d("S3120: audio menu opened without the pin or favourite the row draws")
                     showMenu = true
                 }
             )
@@ -512,8 +512,8 @@ private fun ColumnScope.PlayerColumnContent(
  *
  * S2766: the rows carry three primary and two or three secondary commands now, so the commands they
  * no longer show need a container that is itself reachable - otherwise they have not moved, they have
- * disappeared. The favourite appears here only below the breakpoint, because above it the secondary
- * row still has the slot.
+ * disappeared. The favourite and the pin appear here only where the secondary row draws no slot for
+ * them.
  *
  * S3120 (ADR-2, ADR-3): a command drawn on the panel is not repeated here - a command reachable twice
  * is the extra menu trip this ticket removes - and the file operations end the list as entries rather
@@ -551,10 +551,9 @@ private fun playerMenuActions(
         if (isCasting) R.string.wear_cast_stop else R.string.wear_cast_send
     )
     val castIcon = if (isCasting) Icons.Filled.CastConnected else Icons.Filled.Cast
-    val showFavorite = wearIsCompactScreen()
     // S3120: the playback mode is a button of the primary row in the restored view only, and that is
     // exactly where this entry would be the second way to reach it.
-    val playbackModeOnPanel = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
+    val playbackModeOnPanel = playerRestoredView()
 
     return buildList {
         if (!playbackModeOnPanel) {
@@ -566,11 +565,11 @@ private fun playerMenuActions(
                 )
             )
         }
-        if (showFavorite) {
+        if (!playerFavoriteOnPanel()) {
             val icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
             add(playerMenuAction(favoriteLabel, icon, onDismiss, actions.onToggleFavorite))
         }
-        if (uiState.isStream) {
+        if (uiState.isStream && !playerPinOnPanel(uiState.isStream)) {
             val icon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin
             add(playerMenuAction(pinLabel, icon, onDismiss, actions.onTogglePin))
         }
@@ -987,11 +986,8 @@ private fun SecondaryControls(
     val pinDesc = stringResource(
         if (isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
     )
-    // S2803: the primary row's answer names the view in force - four means the restored composition,
-    // three the reviewed one. S2531: the cast entry lives in the overflow menu, so the restored row
-    // keeps a menu button where the pre-S2766 tree held screen off - screen off moved to the menu.
-    val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
-
+    // S2531: the cast entry lives in the overflow menu, so the restored row keeps a menu button where
+    // the pre-S2766 tree held screen off.
     PlayerCommandGrid(
         horizontalPadding = horizontalPadding,
         columns = secondaryRowColumns()
@@ -1003,7 +999,7 @@ private fun SecondaryControls(
             size = targetSize
         )
 
-        if (restored || !wearIsCompactScreen()) {
+        if (playerFavoriteOnPanel()) {
             PlayerCommandButton(
                 onClick = actions.onToggleFavorite,
                 icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
@@ -1013,26 +1009,24 @@ private fun SecondaryControls(
             )
         }
 
-        if (restored) {
-            if (isStream) {
-                PlayerCommandButton(
-                    onClick = actions.onTogglePin,
-                    icon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                    contentDescription = pinDesc,
-                    size = targetSize,
-                    checked = isPinned
-                )
-            } else {
-                // S3120: the slot held a second three-dot button whose glyph was the menu's own, so the
-                // wearer could not tell which list a tap would open. The file operations moved into that
-                // menu as entries, and the freed slot took screen off - the owner's placement.
-                PlayerCommandButton(
-                    onClick = actions.onToggleDimmed,
-                    icon = Icons.Filled.DarkMode,
-                    contentDescription = screenOffDesc,
-                    size = targetSize
-                )
-            }
+        if (playerPinOnPanel(isStream)) {
+            PlayerCommandButton(
+                onClick = actions.onTogglePin,
+                icon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                contentDescription = pinDesc,
+                size = targetSize,
+                checked = isPinned
+            )
+        } else if (playerShowsDimCommand(isStream)) {
+            // S3120: the slot held a second three-dot button whose glyph was the menu's own, so the
+            // wearer could not tell which list a tap would open. The file operations moved into that
+            // menu as entries, and the freed slot took screen off - the owner's placement.
+            PlayerCommandButton(
+                onClick = actions.onToggleDimmed,
+                icon = Icons.Filled.DarkMode,
+                contentDescription = screenOffDesc,
+                size = targetSize
+            )
         }
 
         PlayerCommandButton(
@@ -1091,8 +1085,25 @@ private fun playerShowsDimRow(isStream: Boolean): Boolean =
  * (ADR-1). Everywhere else the command is the third row's or the menu's, as before this ticket.
  */
 @Composable
-private fun playerShowsDimCommand(isStream: Boolean): Boolean =
-    !isStream && playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
+private fun playerShowsDimCommand(isStream: Boolean): Boolean = !isStream && playerRestoredView()
+
+/**
+ * The restored (ORIGINAL) geometry, the only view whose secondary row has a slot to spare.
+ *
+ * S3120: the row and the menu read the view from this one place, because they must agree command by
+ * command - a slot the row draws is an entry the menu must not. The device run found the menu still
+ * offering the pin and the favourite the restored row already drew.
+ */
+@Composable
+private fun playerRestoredView(): Boolean = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
+
+/** The secondary row draws the favourite above the compact breakpoint, and in the restored view. */
+@Composable
+private fun playerFavoriteOnPanel(): Boolean = playerRestoredView() || !wearIsCompactScreen()
+
+/** The pin takes the restored row's third slot for a stream; the reviewed row has no slot for it. */
+@Composable
+private fun playerPinOnPanel(isStream: Boolean): Boolean = isStream && playerRestoredView()
 
 @Composable
 private fun ErrorContent(message: String) {

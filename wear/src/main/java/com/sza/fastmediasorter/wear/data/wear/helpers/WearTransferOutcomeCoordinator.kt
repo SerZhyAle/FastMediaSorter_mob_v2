@@ -17,7 +17,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import javax.inject.Inject
 
 /** S1944: long enough for a composed collector, far below the phone's own 15 s ack timeout. */

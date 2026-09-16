@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import javax.inject.Inject
 
 class ApplyWearSettingsUseCase @Inject constructor(

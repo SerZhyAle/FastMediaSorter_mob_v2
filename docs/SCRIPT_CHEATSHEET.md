@@ -3165,11 +3165,11 @@ scripts/quality/assert-no-orphan-merged-resources.ps1
 ```
 
 ### assert-no-release-probes.ps1
-S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's src/main.
+S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's shipping source sets.
 
 ```
 scripts/quality/assert-no-release-probes.ps1
-  S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's src/main.
+  S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's shipping source sets.
   Params:
     -Module  (req)  [String]  {app_v2|wear}
     -Quiet          [SwitchParameter]

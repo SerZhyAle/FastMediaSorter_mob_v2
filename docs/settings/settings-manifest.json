@@ -147,8 +147,8 @@
       "layout": "fragment_settings_broadcast",
       "kind": "INPUT_ROW",
       "titleEn": "Stream title",
-      "titleRu": "Заголовок потока",
-      "titleUk": "Заголовок потоку"
+      "titleRu": "Название вещания",
+      "titleUk": "Назва мовлення"
     },
     {
       "key": "cbOcrOnly",
@@ -1741,14 +1741,14 @@
       "titleUk": "Language/Язык/Мова"
     },
     {
-      "key": "rowLauncherModeEnabled",
+      "key": "rowLauncherPrimaryWindow",
       "sectionId": "general",
       "destination": "GENERAL",
       "layout": "fragment_settings_general",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Make this app the home screen",
-      "titleRu": "Лаунчер: сделать приложение домашним экраном",
-      "titleUk": "Лаунчер: зробити застосунок домашнім екраном"
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Primary startup window",
+      "titleRu": "Основное стартовое окно",
+      "titleUk": "Основне стартове вікно"
     },
     {
       "key": "rowLauncherSettings",
@@ -1759,16 +1759,6 @@
       "titleEn": "System launcher settings",
       "titleRu": "Настройки системного лаунчера",
       "titleUk": "Налаштування системного лаунчера"
-    },
-    {
-      "key": "rowLauncherStartWindow",
-      "sectionId": "general",
-      "destination": "GENERAL",
-      "layout": "fragment_settings_general",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Open the desktop when the app starts",
-      "titleRu": "Открывать рабочий стол при запуске",
-      "titleUk": "Відкривати робочий стіл під час запуску"
     },
     {
       "key": "rowOpenStatistics",

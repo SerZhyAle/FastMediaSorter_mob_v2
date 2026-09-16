@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.BloodPressureCategory
 import com.sza.fastmediasorter.wear.domain.model.BloodPressureHistoryEntry
 import com.sza.fastmediasorter.wear.domain.model.BloodPressureSummary
+import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.sourceText
 import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
 import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
@@ -228,6 +229,19 @@ private fun BloodPressureHistoryCard(entry: BloodPressureHistoryEntry) {
                 text = stringResource(R.string.blood_pressure_reading_format, entry.systolic, entry.diastolic),
                 style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colors.onSurface
+            )
+            entry.pulse?.let { pulse ->
+                Text(
+                    text = stringResource(R.string.blood_pressure_pulse, pulse),
+                    style = MaterialTheme.typography.caption2,
+                    color = MaterialTheme.colors.onSurface
+                )
+            }
+            // S3113: an estimate and a cuff reading must never look alike in the diary.
+            Text(
+                text = stringResource(sourceText(entry.source)),
+                style = MaterialTheme.typography.caption3,
+                color = MaterialTheme.colors.onSurfaceVariant
             )
         }
 

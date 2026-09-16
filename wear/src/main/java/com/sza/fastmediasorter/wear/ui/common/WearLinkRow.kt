@@ -13,7 +13,6 @@ import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
-import timber.log.Timber
 
 /**
  * S2496: a row that reads as a link rather than as a button.

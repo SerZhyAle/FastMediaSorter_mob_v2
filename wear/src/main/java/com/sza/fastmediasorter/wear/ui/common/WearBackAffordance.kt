@@ -33,19 +33,8 @@ import com.sza.fastmediasorter.wear.R
 private const val AFFORDANCE_TOUCH_TARGET_DP = 40
 private const val AFFORDANCE_GLYPH_DP = 24
 private val AFFORDANCE_EDGE_SHIFT = 6.dp
-private const val END_RIM_RESERVATION_DP = 8
-
-/**
- * S3098: the band along the RIGHT rim that a floating control must leave alone, unlike the left one.
- *
- * It is sized to the permanent occupant - the volume bar Browse pins at this very height, 4 dp wide
- * with 4 dp of edge padding (S2477) - and deliberately not to the further one. Wear's own position
- * indicator sits about 11 to 15 dp in from the glass on a scrollable screen, and a reservation deep
- * enough to clear it put the mark on the content band instead: measured on the Galaxy Watch 7 on
- * 2026-09-16, 16 dp laid the moon over a grid tile, while 8 dp left the content untouched and cost
- * only the crescent's outer horn grazing an indicator that is drawn while scrolling and fades after.
- */
-val WearEndRimReservation: Dp = END_RIM_RESERVATION_DP.dp
+private val AFFORDANCE_HALF_GLYPH_DP = (AFFORDANCE_GLYPH_DP / 2).dp
+private val AFFORDANCE_EXTRA_OUTWARD_SHIFT = 8.dp
 
 /**
  * Size of the control a caller has to place. Published because the edge inset that puts it against
@@ -53,10 +42,15 @@ val WearEndRimReservation: Dp = END_RIM_RESERVATION_DP.dp
  */
 val WearBackAffordanceSize = AFFORDANCE_TOUCH_TARGET_DP.dp
 
-/** The left inset shared by every floating navigation affordance. */
+/** The rim inset shared by the navigation affordance (left) and the screen-off command (right). */
 @Composable
 fun wearBackAffordanceInset(): Dp =
-    (wearSideBandInset(WearBackAffordanceSize) - AFFORDANCE_EDGE_SHIFT).coerceAtLeast(0.dp)
+    (
+        wearSideBandInset(WearBackAffordanceSize) -
+            AFFORDANCE_EDGE_SHIFT -
+            AFFORDANCE_HALF_GLYPH_DP -
+            AFFORDANCE_EXTRA_OUTWARD_SHIFT
+        ).coerceAtLeast(0.dp)
 
 /**
  * What the affordance does on the screen it stands on; it decides sign, announcement and meaning

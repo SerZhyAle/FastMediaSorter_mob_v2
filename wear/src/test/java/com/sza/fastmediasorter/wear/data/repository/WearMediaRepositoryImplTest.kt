@@ -1,13 +1,13 @@
 package com.sza.fastmediasorter.wear.data.repository
 
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import io.mockk.every
-import io.mockk.mockk
 
 class WearMediaRepositoryImplTest {
 

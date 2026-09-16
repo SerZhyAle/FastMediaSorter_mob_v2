@@ -9,9 +9,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -33,6 +31,8 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
@@ -43,7 +43,6 @@ import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.scrollAway
 import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
-import timber.log.Timber
 import kotlin.math.sqrt
 
 /** Warning threshold percentage: above it the bar is neutral white (S3100). */
@@ -68,6 +67,11 @@ private val BATTERY_TRACK_COLOR = Color(BATTERY_TRACK_COLOR_HEX)
 private val BATTERY_BAR_WIDTH_DP = 36.dp
 private val BATTERY_BAR_HEIGHT_DP = 2.5.dp
 private val BATTERY_BAR_CORNER_RADIUS_DP = 1.25.dp
+private val BATTERY_BAR_GAP_DP = 1.dp
+
+/** Mirrors the library's private TimeTextDefaults padding, which is what the clock sits inside. */
+private val TIME_TEXT_PADDING_DP = 2.dp
+private const val CLOCK_SAMPLE_TEXT = "00:00"
 
 /**
  * Share of the shorter screen edge kept clear of controls on a round display. A chord near the top
@@ -194,15 +198,27 @@ fun WearScreenScaffold(
                     )
                 )
                 val batteryLevel = rememberBatteryLevel()
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = if (scrollState == null) Modifier else Modifier.scrollAway(scrollState)
+                // S3100: TimeText measures the whole frame - a square CurvedLayout on a round watch, a
+                // fillMaxSize Row on a square one - so a bar stacked beneath it in a Column was placed
+                // past the bottom edge and never drawn. The bar overlays the same frame instead, pushed
+                // down by the clock's own text height.
+                val clockTextHeight = with(LocalDensity.current) {
+                    rememberTextMeasurer().measure(CLOCK_SAMPLE_TEXT, textStyle).size.height.toDp()
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .then(if (scrollState == null) Modifier else Modifier.scrollAway(scrollState))
                 ) {
                     TimeText(
                         timeTextStyle = textStyle
                     )
-                    Spacer(modifier = Modifier.height(1.dp))
-                    WearBatteryBar(batteryLevel = batteryLevel)
+                    WearBatteryBar(
+                        batteryLevel = batteryLevel,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = TIME_TEXT_PADDING_DP + clockTextHeight + BATTERY_BAR_GAP_DP)
+                    )
                 }
             }
         } else {
@@ -591,7 +607,6 @@ private fun WearBatteryBar(
         else -> BATTERY_COLOR_LOW
     }
     val clampedLevel = batteryLevel.coerceIn(0, BATTERY_FULL_PERCENT)
-    Timber.d("S3100: battery bar level=$clampedLevel color=$barColor")
     val fillWidth = BATTERY_BAR_WIDTH_DP * (clampedLevel.toFloat() / BATTERY_FULL_PERCENT)
 
     Box(

@@ -1,3 +1,6 @@
+// The file is named for the keypad it lays out; CalculatorCell is only the row element it builds.
+@file:Suppress("MatchingDeclarationName")
+
 package com.sza.fastmediasorter.wear.ui.apps.calculator
 
 import androidx.compose.ui.Alignment

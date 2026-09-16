@@ -13,8 +13,8 @@
     "SFTP": { "en": "SFTP server", "ru": "Сервер SFTP", "uk": "Сервер SFTP" },
     "FTP": { "en": "FTP server", "ru": "Сервер FTP", "uk": "Сервер FTP" },
     "CLOUD": { "en": "Cloud storage", "ru": "Облачное хранилище", "uk": "Хмарне сховище" },
-    "HTTP_STREAM": { "en": "HTTP stream", "ru": "Поток HTTP", "uk": "Потік HTTP" },
-    "RTSP_STREAM": { "en": "RTSP stream", "ru": "Поток RTSP", "uk": "Потік RTSP" },
+    "HTTP_STREAM": { "en": "HTTP stream", "ru": "Трансляция HTTP", "uk": "Трансляція HTTP" },
+    "RTSP_STREAM": { "en": "RTSP stream", "ru": "Трансляция RTSP", "uk": "Трансляція RTSP" },
     "WEAR_WATCH": { "en": "Paired Wear OS watch", "ru": "Сопряжённые часы Wear OS", "uk": "Спарений годинник Wear OS" }
   },
   "overrides": {}

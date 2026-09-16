@@ -21,8 +21,8 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.core.notification.NotificationIcons
 import com.sza.fastmediasorter.wear.core.notification.WearNotificationIds
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastDescriptorDto
-import com.sza.fastmediasorter.wear.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastDescriptorSerializer
+import com.sza.fastmediasorter.wear.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.wear.data.broadcast.WearBroadcastIdentityStore
 import com.sza.fastmediasorter.wear.data.wear.ListenAckSender
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastFailure
@@ -149,22 +149,39 @@ class VoiceRecordingService : Service() {
     /** Never bound - see the class KDoc. A binder would put the session back under the screen. */
     override fun onBind(intent: Intent?): IBinder? = null
 
-    /**
-     * START_NOT_STICKY: a service the platform restarts arrives with a null intent and no microphone
-     * session, so there is nothing to resume. Restarting it would only raise a recording
-     * notification over a recorder that is not recording.
-     */
+    /** The broadcast needs its original intent redelivered after a system kill; listening does not. */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
-            ACTION_START -> handleStart()
-            ACTION_START_LISTENING -> handleStartListening()
-            ACTION_STOP_LISTENING -> handleStopListeningFromNotification()
-            ACTION_START_BROADCAST -> handleStartBroadcast()
-            ACTION_STOP_BROADCAST -> serviceScope.launch { stopBroadcastSession() }
-            ACTION_STOP -> serviceScope.launch { stopSession() }
-            else -> Timber.w("VoiceRecordingService started with an unknown action: %s", intent?.action)
+        return when (intent?.action) {
+            ACTION_START -> {
+                handleStart()
+                START_NOT_STICKY
+            }
+            ACTION_START_LISTENING -> {
+                handleStartListening()
+                START_NOT_STICKY
+            }
+            ACTION_STOP_LISTENING -> {
+                handleStopListeningFromNotification()
+                START_NOT_STICKY
+            }
+            ACTION_START_BROADCAST -> {
+                Timber.d("S3197: broadcast start intent received; flags=%d", flags)
+                handleStartBroadcast()
+                START_REDELIVER_INTENT
+            }
+            ACTION_STOP_BROADCAST -> {
+                serviceScope.launch { stopBroadcastSession() }
+                START_NOT_STICKY
+            }
+            ACTION_STOP -> {
+                serviceScope.launch { stopSession() }
+                START_NOT_STICKY
+            }
+            else -> {
+                Timber.w("VoiceRecordingService started with an unknown action: %s", intent?.action)
+                START_NOT_STICKY
+            }
         }
-        return START_NOT_STICKY
     }
 
     override fun onDestroy() {

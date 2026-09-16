@@ -40,7 +40,6 @@ import com.sza.fastmediasorter.wear.ui.common.SystemShadeLockEffect
 import com.sza.fastmediasorter.wear.ui.common.findActivity
 import com.sza.fastmediasorter.wear.ui.player.common.rememberRotaryFocus
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 /**
  * The water flashlight on the watch: the display itself is the light, and no touch closes it

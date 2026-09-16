@@ -16,4 +16,3 @@ class ResetWearTouristStepsUseCase @Inject constructor(
         touristRepository.resetSteps()
     }
 }
-

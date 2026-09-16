@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.util
 
-import timber.log.Timber
 import java.util.Locale
 
 private const val BYTES_PER_UNIT = 1024.0

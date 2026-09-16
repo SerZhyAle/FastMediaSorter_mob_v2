@@ -135,8 +135,15 @@ Write-Host "assert-test-suite-complete: source roots for $flavor - $($sourceRoot
 $reports = Get-ChildItem -Path $reportRoot -Filter "TEST-*.xml" -File
 $reportPackages = @{}
 foreach ($report in $reports) {
-    # TEST-<fqcn>.xml -> package is the fqcn minus the class name.
+    # TEST-<fqcn>.xml -> package is the fqcn minus the class name. The file name is only a fallback: Gradle
+    # shortens a long one by replacing part of the package with a hash (S3113 measured
+    # "TEST-com.-FLEP0FDF6HA7M.fastmediasorter.wear.ui.apps.bloodpressure.calibration.<Class>.xml"), which
+    # read as a package with no report and failed a complete run as TRUNCATED. The testsuite element in
+    # the first line of the report always carries the real name.
     $fqcn = $report.BaseName -replace '^TEST-', ''
+    $head = Get-Content -LiteralPath $report.FullName -TotalCount 3 -ErrorAction SilentlyContinue
+    $suiteName = [regex]::Match(($head -join "`n"), '<testsuite\s+name="([^"]+)"')
+    if ($suiteName.Success) { $fqcn = $suiteName.Groups[1].Value }
     $lastDot = $fqcn.LastIndexOf('.')
     if ($lastDot -gt 0) { $reportPackages[$fqcn.Substring(0, $lastDot)] = $true }
 }

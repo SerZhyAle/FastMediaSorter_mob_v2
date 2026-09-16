@@ -398,7 +398,6 @@ private fun VideoPlayerContent(
             uiState = uiState,
             actions = actions,
             onOpenMenu = {
-                Timber.d("S3118: video menu opened")
                 showMenu = true
             }
         )
@@ -779,7 +778,6 @@ private fun VideoControlsSecondaryRow(
         if (restored) {
             PlayerCommandButton(
                 onClick = {
-                    Timber.d("S3118: scale mode toggled from the command row")
                     actions.onToggleScaleMode()
                 },
                 icon = scaleModeIcon(uiState.scaleMode),

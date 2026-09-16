@@ -1,16 +1,13 @@
 package com.sza.fastmediasorter.wear.ui.apps.calculator
 
 import android.os.Build
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -18,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,8 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -39,7 +33,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,18 +47,13 @@ import androidx.wear.compose.material.dialog.Confirmation
 import androidx.wear.compose.material.dialog.Dialog
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorEngine
-import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
-import com.sza.fastmediasorter.wear.ui.common.LocalWearGeometryMode
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.WearFitText
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import com.sza.fastmediasorter.wear.ui.common.wearChordInset
-import com.sza.fastmediasorter.wear.ui.common.wearRingInset
-import com.sza.fastmediasorter.wear.ui.common.wearScrollViewportInset
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 // S2007, owner ruling 2026-08-26: half the interactive minimum, deliberately. S1965 had raised this
@@ -75,17 +63,8 @@ import com.sza.fastmediasorter.wear.util.GridColumnFit
 // value row on the glass at once is worth more than the 48 dp target, which no five-row keypad ever
 // fitted anyway (S2007 section 6 item 3). The cost is a smaller key, stated rather than hidden.
 // GridColumnFit.DEFAULT_MIN_TARGET_DP stays 48 dp for every other watch control.
-private val KEY_HEIGHT = 25.dp
-private val KEY_GAP = 2.dp
-
-/**
- * S3104: how much of the value glyph's own height the row drops by, as a divisor of that height
- * (owner ruling 2026-09-14).
- *
- * Stated against the type rather than as a dp literal, so the drop follows the value's size if the
- * watch palette or the type scale is ever restated.
- */
-private const val VALUE_ROW_DROP_DIVISOR = 2
+internal val KEY_HEIGHT = 25.dp
+internal val KEY_GAP = 2.dp
 
 /** A low-contrast alternate plate makes the odd digits form a readable checkerboard. */
 private const val ODD_DIGIT_TINT_ALPHA = 0.12f
@@ -106,13 +85,13 @@ private const val EVEN_DIVISOR = 2
  * Both children of the value row therefore carry this size in the dimension where they fall short of
  * it: the row is at least this tall so the inflation has nowhere to grow upwards, and the operation
  * element is exactly this wide so it has nowhere to grow sideways. What is judged is then the row's
- * real box, which [wearChordInset] and [wearRingInset] already keep whole.
+ * real box, which each flavor's `CalculatorBody` keeps whole.
  *
- * S3104 aligns those children to the bottom of the row, which leaves this argument intact: a child
+ * S3104 aligns those children to the bottom of the row in noLegal, which leaves this argument intact: a child
  * shorter than the target inflates about its own centre, and a child resting on the row's bottom edge
  * inflates upwards into the row's own free height rather than past its top edge.
  */
-private val TOUCH_TARGET = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
+internal val TOUCH_TARGET = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 
 /** S2493: how many columns a keypad row divides into, which is what sizes the clear key below it. */
 private const val KEYPAD_COLUMNS = 4
@@ -149,129 +128,6 @@ private const val TRIPLE_ZERO_COUNT = 3
 
 /** S2007: how much of the theme's error colour the two destructive keys carry as a plate. */
 private const val DESTRUCTIVE_TINT_ALPHA = 0.35f
-
-/**
- * S2007: empty space below the last row, so the bottom row can be scrolled to the middle of the
- * display instead of being parked against the rim.
- *
- * A round screen narrows towards its edges, and the scaling this keypad dropped was quietly paying
- * for that: a full-size row at the end of the viewport has its outer keys off the glass. Measured on
- * a 480 px round emulator at maximum scroll, the clear key's tap centre landed about 15 px outside a
- * circle of radius 240 - the key could not be pressed at all. The space survives the 2026-08-26
- * ruling that halved the key: a shorter row is likelier to fit at rest, which makes this cheap
- * insurance rather than dead weight, and it costs nothing until scrolled to. This is not the
- * `autoCentering` padding ADR-2
- * rejected: that sat ABOVE the first row and was why the keypad opened on emptiness, while this sits
- * below the last row and costs nothing until the user scrolls down to it.
- */
-private val KEYPAD_TRAILING_SPACE = KEY_HEIGHT * 2
-
-/**
- * S2273: every width this screen places content by, read once so the value row and the keypad cannot
- * drift apart the way they did when one used the module's inset and the other a flat 6 dp.
- */
-private data class CalculatorShape(
-    val valueRowWidth: Dp,
-    val valueRowTop: Dp,
-    val keypadPadding: PaddingValues,
-    /**
-     * S2770: how far above the bottom of the display the keypad's VIEWPORT ends.
-     *
-     * Bounding the viewport is what makes [keypadPadding] answerable at all: a scrolling row passes
-     * through every height its viewport spans, so the width it must fit is the chord at the viewport's
-     * worst edge, not the chord where the row happens to rest.
-     */
-    val keypadViewportBottom: Dp
-)
-
-/**
- * S3104: half the height of a digit in the value row, which is how far the row drops (owner ruling
- * 2026-09-14).
- *
- * Read off the style the value is drawn in rather than off a literal, because the whole point of the
- * drop is that the row clears its own glyph by a stated fraction of it.
- */
-@Composable
-private fun valueRowDrop(): Dp {
-    val valueFontSize = MaterialTheme.typography.title1.fontSize
-    return with(LocalDensity.current) { valueFontSize.toDp() } / VALUE_ROW_DROP_DIVISOR
-}
-
-/**
- * S2273: where the round glass lets this screen put things.
- *
- * S3104: the value row no longer takes the inscribed square's side. That side is one number for the
- * whole glass, so it answers for the worst band of the circle wherever the row actually stands - and
- * once the row is lowered it stands where the chord is wider, which is exactly what the owner asked
- * the drop to buy (two more digits on a 480 px round watch). The width now comes from the chord over
- * the row's own TOP edge, which is the worst edge for anything standing above the centre of the
- * glass, through the same [wearChordInset] the keypad below it already uses.
- *
- * S2770: the keypad no longer takes the ordinary `wearScreenInsets`. That inset is uniform, so it
- * inscribes a RECTANGLE in a round display - the middle of a row gets clearance to spare while the
- * outer keys of the top and bottom rows stand off the arc. Measured on the Galaxy Watch 7, the corner
- * keys of the last row put 3205 px and 3284 px of ink outside a 240 px radius and the backspace key's
- * own centre landed 248.7 px out, past any finger. Bounding the viewport with [wearRingInset] and
- * taking the width from [wearChordInset] over that same edge fits every row at every scroll offset,
- * because no row can reach lower than the viewport it scrolls inside.
- */
-@Composable
-private fun calculatorShape(): CalculatorShape {
-    // S2773: the mode-aware form of the bound S2770 introduced. In the store view it is still
-    // `wearRingInset()`; in the original view it is zero, which returns the full-height viewport whose
-    // outer keys the glass cuts.
-    val isOriginal = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
-    val viewportBottom = wearScrollViewportInset()
-    val sideInset = wearChordInset(viewportBottom)
-    val valueRowTop = (if (isOriginal) 0.dp else wearRingInset()) + valueRowDrop()
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val shape = CalculatorShape(
-        valueRowWidth = screenWidth - wearChordInset(valueRowTop) * 2,
-        valueRowTop = valueRowTop,
-        keypadPadding = PaddingValues(
-            start = sideInset,
-            top = KEY_GAP,
-            end = sideInset,
-            bottom = KEY_GAP + KEYPAD_TRAILING_SPACE
-        ),
-        keypadViewportBottom = viewportBottom
-    )
-    return shape
-}
-
-/**
- * The scrolling keypad, drawn under the value row and inside the arc.
- *
- * Its own composable rather than a block inside the screen so the viewport bound and the chord inset
- * that S2770 introduced sit next to each other and cannot be read apart.
- */
-@Composable
-private fun ColumnScope.CalculatorKeypad(
-    shape: CalculatorShape,
-    scrollState: ScrollState,
-    onKey: (CalculatorKey) -> Unit,
-    onLongKey: (CalculatorKey) -> Unit,
-    onLeave: () -> Unit
-) {
-    val isOriginal = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .weight(1f)
-            // S2770: the bottom padding sits BEFORE the scroll, so it shortens the viewport instead
-            // of the content. A row scrolled to the bottom of a full-height viewport stands where the
-            // chord is shortest, which no content padding can undo.
-            .padding(bottom = shape.keypadViewportBottom)
-            .verticalScroll(scrollState, enabled = !isOriginal)
-            .padding(shape.keypadPadding),
-        verticalArrangement = Arrangement.spacedBy(KEY_GAP)
-    ) {
-        keypadRows().forEach { row ->
-            CalculatorKeyRow(cells = row, onKey = onKey, onLongKey = onLongKey)
-        }
-        ClearKeyRow(onKey = onKey, onLeave = onLeave)
-    }
-}
 
 /**
  * What a key does when pressed. The screen holds no arithmetic - every action is one call into the
@@ -320,7 +176,6 @@ fun CalculatorScreen(
     val menuListState = rememberWearListState()
     val historyListState = rememberWearListState()
     var copyConfirmationShown by remember { mutableStateOf(false) }
-    val shape = calculatorShape()
     // S2007: no `scrollState` is handed to the scaffold. That parameter exists only to scroll
     // `TimeText` away, and the value row is fixed below the clock while the keypad scrolls beneath
     // the value row - so nothing that moves here ever reaches the clock to obscure it.
@@ -338,32 +193,25 @@ fun CalculatorScreen(
         },
         background = Color.Black
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CalculatorDisplay(
-                uiState = uiState,
-                shape = shape,
-                // The same view-model entry the operator keys reach through `dispatch`; the element
-                // repeats an operation, it does not open a second way into the arithmetic.
-                onOperation = { symbol -> viewModel.onOperator(symbol) },
-                onCopy = { value ->
-                    clipboard.setText(AnnotatedString(value))
-                    // S2152 ADR-3: from API 33 the platform draws its own clipboard confirmation, and
-                    // two confirmations of one action on a watch-sized screen read as a fault. Below
-                    // it there is none at all, and this module supports back to 28.
-                    copyConfirmationShown = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
-                }
-            )
-            CalculatorKeypad(
-                shape = shape,
-                scrollState = keypadScrollState,
-                onKey = { key -> dispatch(key, viewModel) { menuOpen = true } },
-                onLongKey = { key -> dispatchLongPress(key, viewModel, onLeave) },
-                onLeave = onLeave
-            )
-        }
+        // S3192: where the value row and the keypad stand is the flavor's decision (owner ruling
+        // 2026-09-16) - noLegal keeps the S3104 layout, standard keeps every node inside the glass.
+        CalculatorBody(
+            uiState = uiState,
+            keypadScrollState = keypadScrollState,
+            // The same view-model entry the operator keys reach through `dispatch`; the element
+            // repeats an operation, it does not open a second way into the arithmetic.
+            onOperation = { symbol -> viewModel.onOperator(symbol) },
+            onCopy = { value ->
+                clipboard.setText(AnnotatedString(value))
+                // S2152 ADR-3: from API 33 the platform draws its own clipboard confirmation, and
+                // two confirmations of one action on a watch-sized screen read as a fault. Below
+                // it there is none at all, and this module supports back to 28.
+                copyConfirmationShown = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+            },
+            onKey = { key -> dispatch(key, viewModel) { menuOpen = true } },
+            onLongKey = { key -> dispatchLongPress(key, viewModel, onLeave) },
+            onLeave = onLeave
+        )
 
         if (menuOpen) {
             CalculatorMenuOverlay(
@@ -464,10 +312,17 @@ private fun CopyConfirmation(onTimeout: () -> Unit) {
     }
 }
 
+/**
+ * The value row's content: the value and the operation element.
+ *
+ * S3192: the row's width and top offset are supplied by the flavor's `CalculatorBody` in [placement],
+ * because that is exactly where the two calculators differ; everything drawn inside the row is shared.
+ */
 @Composable
-private fun CalculatorDisplay(
+internal fun CalculatorValueRow(
     uiState: CalculatorUiState,
-    shape: CalculatorShape,
+    placement: Modifier,
+    verticalAlignment: Alignment.Vertical,
     onOperation: (String) -> Unit,
     onCopy: (String) -> Unit
 ) {
@@ -481,29 +336,19 @@ private fun CalculatorDisplay(
         text
     }
     Row(
-        // S3104: the keypad column's `top = KEY_GAP` is now the WHOLE gap between the value row and
-        // the first keypad row, which is the owner's ruling of 2026-09-14 - the digits stand off the
-        // keys by exactly what the keys stand off each other. The row keeps its [TOUCH_TARGET]
-        // minimum height below, so the free height that minimum leaves has to go somewhere: aligning
-        // the children to the BOTTOM spends it above the digits, into the empty band under the clock,
-        // instead of below them where the owner measured it as lost space.
-        //
         // S2273: the row is sized and placed by the glass, not by the frame. It does not scroll, so
         // `clip-check` judges it OFF-GLASS the moment a corner leaves the circle - there is no scroll
         // position that could redeem it - and both of its children were exactly that on 192 dp. Width
         // and top offset are the two halves of one statement and have to stay together: the square is
         // only whole while it sits in the band the ring inset leaves it.
         //
-        // [TOUCH_TARGET] is the third part of that statement. Both children sit centred in this row, so each one
+        // [TOUCH_TARGET] is the third part of that statement. Both children sit in this row, so each one
         // publishes a box of at least that size centred on the ROW's centre line: a row shorter than
         // the target reaches above its own top edge by the difference, which is how a box placed at
         // 28.8 dp came to be reported starting at 21.5 dp.
-        modifier = Modifier
-            .width(shape.valueRowWidth)
-            .padding(top = shape.valueRowTop)
-            .heightIn(min = TOUCH_TARGET),
+        modifier = placement.heightIn(min = TOUCH_TARGET),
         horizontalArrangement = Arrangement.spacedBy(KEY_GAP),
-        verticalAlignment = Alignment.Bottom
+        verticalAlignment = verticalAlignment
     ) {
         Text(
             text = text,
@@ -544,6 +389,23 @@ private fun CalculatorDisplay(
             modifier = Modifier.width(TOUCH_TARGET)
         )
     }
+}
+
+/**
+ * S3192: the keypad's rows and the clear row, in order, for the flavor's scrolling column to hold.
+ *
+ * Shared so the two calculators differ only in where the column stands, never in what it carries.
+ */
+@Composable
+internal fun CalculatorKeypadContent(
+    onKey: (CalculatorKey) -> Unit,
+    onLongKey: (CalculatorKey) -> Unit,
+    onLeave: () -> Unit
+) {
+    keypadRows().forEach { row ->
+        CalculatorKeyRow(cells = row, onKey = onKey, onLongKey = onLongKey)
+    }
+    ClearKeyRow(onKey = onKey, onLeave = onLeave)
 }
 
 /**

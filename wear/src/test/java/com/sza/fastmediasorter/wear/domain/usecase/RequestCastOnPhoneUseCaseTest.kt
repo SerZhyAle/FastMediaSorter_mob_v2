@@ -78,7 +78,6 @@ class RequestCastOnPhoneUseCaseTest {
         assertNull(repository.sent)
     }
 
-
     private fun networkFile(sourceId: String) = WearCastSubject.NetworkFile(
         source = NetworkSource(
             id = sourceId,

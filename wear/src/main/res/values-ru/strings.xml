@@ -573,8 +573,8 @@
     <string name="about_web_portal_phone_opened">Открыто. Посмотрите на телефон</string>
     <string name="about_web_portal_no_phone">Телефон не подключён. Поднесите его ближе</string>
     <string name="about_web_portal_phone_failed">Не удалось передать на телефон. Попробуйте ещё раз</string>
-    <string name="wear_player_stream_pin">Закрепить поток</string>
-    <string name="wear_player_stream_unpin">Открепить поток</string>
+    <string name="wear_player_stream_pin">Закрепить трансляцию</string>
+    <string name="wear_player_stream_unpin">Открепить трансляцию</string>
     <string name="wear_browse_voice_notes">Голосовые заметки</string>
     <string name="wear_voice_note_rename_failed">Не удалось переименовать заметку</string>
     <string name="panel_auto_hide_label">Автоскрытие: %dс</string>
@@ -668,19 +668,19 @@
     <string name="wear_listen_stop">Прекратить прослушивание</string>
     <string name="wear_listen_dim_screen">Погасить экран</string>
     <string name="wear_listen_notification_title">Телефон слушает через эти часы</string>
-    <string name="wear_broadcast_notification_title">Эти часы ведут трансляцию</string>
-    <string name="wear_broadcast_notification_stop">Остановить трансляцию</string>
-    <string name="wear_section_broadcast">Трансляция</string>
-    <string name="wear_broadcast_app">Трансляция</string>
-    <string name="wear_broadcast_idle_caption">Транслировать микрофон часов слушателям в той же сети Wi-Fi</string>
-    <string name="wear_broadcast_start">Начать трансляцию</string>
+    <string name="wear_broadcast_notification_title">Эти часы ведут вещание</string>
+    <string name="wear_broadcast_notification_stop">Остановить вещание</string>
+    <string name="wear_section_broadcast">Вещание</string>
+    <string name="wear_broadcast_app">Вещание</string>
+    <string name="wear_broadcast_idle_caption">Вещать с микрофона часов слушателям в той же сети Wi-Fi</string>
+    <string name="wear_broadcast_start">Начать вещание</string>
     <string name="wear_broadcast_starting">Запуск..</string>
     <string name="wear_broadcast_live_label">В эфире</string>
-    <string name="wear_broadcast_active_description">Микрофон открыт, часы ведут трансляцию</string>
+    <string name="wear_broadcast_active_description">Микрофон открыт, часы ведут вещание</string>
     <string name="wear_broadcast_stop">Остановить</string>
     <string name="wear_broadcast_share_qr">Показать QR-код</string>
     <string name="wear_broadcast_qr_caption">Отсканируйте на устройстве слушателя</string>
-    <string name="wear_broadcast_qr_unavailable">Трансляция не идёт, сканировать нечего</string>
+    <string name="wear_broadcast_qr_unavailable">Вещание не идёт, сканировать нечего</string>
     <string name="wear_broadcast_failed_no_network">Нет Wi-Fi, слушатель не сможет подключиться к часам</string>
     <string name="wear_broadcast_failed_capture">Не удалось открыть микрофон</string>
     <string name="wear_document_format_text">Текст</string>
@@ -704,7 +704,7 @@
     <string name="wear_phone_camera_idle_caption">Смотрите то, что видит телефон, по Wi-Fi</string>
     <string name="wear_phone_camera_start">Начать</string>
     <string name="wear_phone_camera_requested">Запрос отправлен на телефон..</string>
-    <string name="wear_phone_camera_live">Идёт трансляция с телефона</string>
+    <string name="wear_phone_camera_live">Идёт вещание с телефона</string>
     <string name="wear_phone_camera_stop">Остановить</string>
     <string name="wear_phone_camera_stopped">Сеанс завершён</string>
     <string name="wear_phone_camera_lenses">Камеры</string>
@@ -718,7 +718,7 @@
     <string name="wear_phone_camera_failed_declined">Запрос отклонён на телефоне</string>
     <string name="wear_phone_camera_failed_expired">На телефоне никто не ответил</string>
     <string name="wear_phone_camera_failed_capture">Телефон не смог открыть камеру</string>
-    <string name="wear_phone_camera_failed_busy">Телефон уже ведёт трансляцию</string>
+    <string name="wear_phone_camera_failed_busy">Телефон уже ведёт вещание</string>
     <string name="wear_phone_camera_failed_not_supported">Эта сборка телефона не умеет передавать видео</string>
     <string name="wear_phone_camera_failed_unknown">Телефон отказал без объяснения</string>
     <string name="wear_tile_shortcut_more">Ещё</string>
@@ -729,7 +729,7 @@
     <string name="wear_game_caught_by_shadow">Поймала Тень</string>
     <string name="wear_streams_filter_kind_audio">Аудио</string>
     <string name="wear_streams_filter_kind_video">Видео</string>
-    <string name="wear_streams_empty_filtered">Фильтр не оставил ни одного потока. Снимите его, чтобы увидеть весь каталог.</string>
+    <string name="wear_streams_empty_filtered">Фильтр не оставил ни одной трансляции. Снимите его, чтобы увидеть весь каталог.</string>
     <string name="wear_streams_clear_filters">Снять фильтры</string>
     <string name="body_sensor_history">История</string>
     <string name="body_sensor_history_title">История пульса</string>
@@ -808,8 +808,8 @@
     <string name="wear_cast_unsupported">Это нельзя показать на телевизоре</string>
     <string name="wear_cast_not_found">Телефон больше не находит этот источник</string>
     <string name="wear_cast_phone_busy">Телефон не ответил - проверьте, что он рядом</string>
-    <string name="wear_cast_not_castable">На телевизоре можно показать только стримы и файлы из источников телефона</string>
-    <string name="wear_stream_stalled">Поток перестал передавать данные. Воспроизведение остановлено, чтобы не сажать батарею.</string>
+    <string name="wear_cast_not_castable">На телевизоре можно показать только трансляции и файлы из источников телефона</string>
+    <string name="wear_stream_stalled">Трансляция перестала передавать данные. Воспроизведение остановлено, чтобы не сажать батарею.</string>
     <string name="phone_resource_companion_disabled">На телефоне выключен Wear-компаньон. Включите его в настройках FastMediaSorter и повторите.</string>
 
     <!-- S3007: Tourist sub-program on Wear OS -->
@@ -882,4 +882,29 @@
     <string name="wear_onboarding_activity_reason">Чтобы считать шаги в мониторе движения.</string>
     <string name="wear_onboarding_nearby_title">Устройства поблизости</string>
     <string name="wear_onboarding_nearby_reason">Чтобы показывать состояние Bluetooth и Wi-Fi в мониторе сети.</string>
+    <string name="blood_pressure_capture_done">Пульсовая волна записана</string>
+    <string name="blood_pressure_capture_start">Записать пульсовую волну</string>
+    <string name="blood_pressure_reason_no_raw_sensor">Эти часы не отдают сырую пульсовую волну</string>
+    <string name="blood_pressure_estimate_label">Оценка</string>
+    <string name="blood_pressure_estimate_basis">Калибровок: %1$d, последняя %2$d дн. назад</string>
+    <string name="blood_pressure_estimate_error">Ошибка модели ±%1$d/±%2$d мм рт. ст.</string>
+    <string name="blood_pressure_estimate_description">Оценка давления %1$d на %2$d. Калибровок: %3$d, последняя %4$d дней назад</string>
+    <string name="blood_pressure_hold_still">Держите руку неподвижно на уровне сердца</string>
+    <string name="blood_pressure_not_calibrated">Сначала калибровка: %1$d из %2$d замеров манжетой</string>
+    <string name="blood_pressure_reject_motion">Рука двигалась. Замрите и измерьте снова</string>
+    <string name="blood_pressure_reject_weak_signal">Слабый сигнал пульса. Затяните ремешок и измерьте снова</string>
+    <string name="blood_pressure_reject_too_few_beats">Записано слишком мало ударов. Измерьте снова</string>
+    <string name="blood_pressure_measure_again">Измерить снова</string>
+    <string name="blood_pressure_calibration_title">Калибровка</string>
+    <string name="blood_pressure_calibration_hint">Запустите манжету на другой руке и введите её результат</string>
+    <string name="blood_pressure_calibration_saved">Калибровка сохранена</string>
+    <string name="blood_pressure_calibration_pair">%1$d/%2$d, пульс %3$d</string>
+    <string name="blood_pressure_calibration_delete">Удалить калибровку %1$s</string>
+    <string name="blood_pressure_calibration_pairs_title">Сохранённые калибровки</string>
+    <string name="blood_pressure_source_manual">Вручную</string>
+    <string name="blood_pressure_source_calibration">Манжета</string>
+    <string name="blood_pressure_measuring">Измеряем давление..</string>
+    <string name="blood_pressure_seconds_short">%1$d с</string>
+    <string name="blood_pressure_measuring_description">Идёт измерение давления, осталось %1$d секунд. Держите руку неподвижно</string>
+    <string name="blood_pressure_pulse">Пульс %1$d</string>
 </resources>

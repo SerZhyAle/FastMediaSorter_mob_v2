@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.wear.ui.player.common
 
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
-import timber.log.Timber
 
 /** What the phone is told a file plays from when it did not come off the network. */
 private const val LOCAL_SOURCE_NAME = "Local"

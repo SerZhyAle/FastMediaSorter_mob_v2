@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.wear.domain.repository.WearThermalState
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import timber.log.Timber
 
 private const val DECI = 10.0
 private const val MICRO_PER_MILLI = 1000

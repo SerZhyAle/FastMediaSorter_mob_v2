@@ -144,7 +144,7 @@ class GameViewModel @Inject constructor(
      * S2350: reset the game to level 1 and clear statistics in one tap from the in-game menu.
      */
     fun startNewGame() {
-        val currentLevel = _uiState.value.level?.config?.levelNumber ?: FIRST_LEVEL_NUMBER
+        Timber.d("S3199: startNewGame after unused level read removed")
         val generated = generate(FIRST_LEVEL_NUMBER) ?: return
         publish(generated)
     }
