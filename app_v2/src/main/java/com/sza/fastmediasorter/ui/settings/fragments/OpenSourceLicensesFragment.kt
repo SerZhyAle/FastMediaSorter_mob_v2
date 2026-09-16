@@ -11,11 +11,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.databinding.FragmentOpenSourceLicensesBinding
 import com.sza.fastmediasorter.ui.common.OverlayFocusTrap
 import com.sza.fastmediasorter.ui.settings.OpenSourceLicenseAdapter
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONException
 import timber.log.Timber
@@ -47,10 +51,19 @@ class OpenSourceLicensesFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-        val notices = loadNotices()
         binding.noticesList.layoutManager = LinearLayoutManager(requireContext())
-        binding.noticesList.adapter = OpenSourceLicenseAdapter(notices, ::openUrl)
-        binding.emptyState.visibility = if (notices.isEmpty()) View.VISIBLE else View.GONE
+
+        // S3159: the notices are a raw resource parsed as JSON - reading them inline blocked the main
+        // thread while the screen was being laid out. The adapter and the empty state are bound only
+        // after the parse returns, so the list never flashes an empty state it then replaces.
+        viewLifecycleOwner.lifecycleScope.launch {
+            val notices = withContext(Dispatchers.IO) { loadNotices() }
+            if (_binding == null) {
+                return@launch
+            }
+            binding.noticesList.adapter = OpenSourceLicenseAdapter(notices, ::openUrl)
+            binding.emptyState.visibility = if (notices.isEmpty()) View.VISIBLE else View.GONE
+        }
 
         // S2899: Ensure initial focus on TV / D-pad
         view.post {
@@ -84,7 +97,9 @@ class OpenSourceLicensesFragment : Fragment() {
                         licenseUrl = notice.getString("licenseUrl"),
                         sourceUrl = notice.getString("sourceUrl"),
                         oss = notice.getBoolean("oss"),
-                        note = notice.optString("note").takeIf { it.isNotBlank() }
+                        // optString renders a JSON null as the four-letter string "null", which then
+                        // passes isNotBlank and prints a "null" line under every entry that has no note.
+                        note = notice.optString("note").takeIf { it.isNotBlank() && it != "null" }
                     )
                 )
             }

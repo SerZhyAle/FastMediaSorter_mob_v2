@@ -439,4 +439,74 @@ class BackupMapperRoundTripTest {
         assertTrue(restored.flashlightShortcutNotificationEnabled)
         assertTrue(restored.suppressWearMediaTakeover)
     }
+
+    /**
+     * S3163: the eight broadcast settings this ticket carried - the master switch, the camera and
+     * microphone source choice, the mic gain and the four video-quality numbers - must survive a full
+     * round trip. Before this ticket each was in the model but absent from [BackupSettings], so a user
+     * moving to a new device lost every one of them without a word from either side.
+     */
+    @Test
+    fun s3163_eightBroadcastSettings_surviveTheRoundTrip() {
+        val configured = AppSettings().copy(
+            enableBroadcasting = true,
+            broadcastCameraEnabled = true,
+            broadcastMicrophoneEnabled = false,
+            broadcastMicGainPercent = 250,
+            broadcastVideoWidth = 1920,
+            broadcastVideoHeight = 1080,
+            broadcastVideoFps = 60,
+            broadcastVideoBitrateBps = 6_000_000
+        )
+
+        val restored = BackupMapper.toAppSettings(
+            BackupMapper.toBackupSettings(configured),
+            AppSettings(),
+            BackupPayload.CURRENT_VERSION
+        )
+
+        assertTrue(restored.enableBroadcasting)
+        assertTrue(restored.broadcastCameraEnabled)
+        assertFalse(restored.broadcastMicrophoneEnabled)
+        assertEquals(250, restored.broadcastMicGainPercent)
+        assertEquals(1920, restored.broadcastVideoWidth)
+        assertEquals(1080, restored.broadcastVideoHeight)
+        assertEquals(60, restored.broadcastVideoFps)
+        assertEquals(6_000_000, restored.broadcastVideoBitrateBps)
+    }
+
+    /**
+     * S3163: the other half of the nullable convention - a backup written before these eight keys
+     * existed must leave the values already on the device alone, rather than resetting a tuned
+     * broadcast to the class defaults.
+     */
+    @Test
+    fun s3163_backupWrittenBeforeTheBroadcastFieldsExisted_keepsCurrentSettings() {
+        val current = AppSettings().copy(
+            enableBroadcasting = true,
+            broadcastCameraEnabled = true,
+            broadcastMicrophoneEnabled = false,
+            broadcastMicGainPercent = 250,
+            broadcastVideoWidth = 1920,
+            broadcastVideoHeight = 1080,
+            broadcastVideoFps = 60,
+            broadcastVideoBitrateBps = 6_000_000
+        )
+        val legacyBackup = BackupSettings(
+            streams = BackupSettings.Streams(),
+            programs = BackupSettings.Programs(),
+            integration = BackupSettings.Integration()
+        )
+
+        val restored = BackupMapper.toAppSettings(legacyBackup, current, BackupPayload.CURRENT_VERSION)
+
+        assertTrue(restored.enableBroadcasting)
+        assertTrue(restored.broadcastCameraEnabled)
+        assertFalse(restored.broadcastMicrophoneEnabled)
+        assertEquals(250, restored.broadcastMicGainPercent)
+        assertEquals(1920, restored.broadcastVideoWidth)
+        assertEquals(1080, restored.broadcastVideoHeight)
+        assertEquals(60, restored.broadcastVideoFps)
+        assertEquals(6_000_000, restored.broadcastVideoBitrateBps)
+    }
 }

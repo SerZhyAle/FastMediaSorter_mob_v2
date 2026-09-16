@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S0404: the launcher taskbar - Start button, recent launches, pinned icons, tray. Included by
      both orientations of activity_launcher_home (bottom-anchored in each, per the Windows-desktop
-     model), so it is deliberately a single shared file. -->
+     model), so it is deliberately a single shared file.
+     S3131: the height below is the one-row case only - LauncherTaskbarManager owns it at runtime and
+     multiplies it by the configured row count. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"

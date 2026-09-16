@@ -51,13 +51,20 @@ class SensorsInfoContributor @Inject constructor(
     /**
      * Formatted with [Locale.US] on the same reasoning the byte counts use: these are measurements,
      * and a decimal separator that followed the watch's locale would print one reading two ways.
+     *
+     * The purpose leads the entry since S3108: the name is a part number, so a list read from the
+     * name alone says how many sensors the watch has and never which. A watch that would not say
+     * drops the leading part rather than printing an empty one.
      */
-    private fun describe(sensor: WearSensorDescriptor): String = String.format(
-        Locale.US,
-        "%s - %s - %.2f mA - %.4f",
-        sensor.name,
-        sensor.vendor,
-        sensor.powerMilliAmps,
-        sensor.resolution
-    )
+    private fun describe(sensor: WearSensorDescriptor): String {
+        val measured = String.format(
+            Locale.US,
+            "%s - %s - %.2f mA - %.4f",
+            sensor.name,
+            sensor.vendor,
+            sensor.powerMilliAmps,
+            sensor.resolution
+        )
+        return if (sensor.type.isBlank()) measured else "${sensor.type} - $measured"
+    }
 }

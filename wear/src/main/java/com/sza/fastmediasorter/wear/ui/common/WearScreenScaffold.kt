@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import androidx.compose.foundation.ScrollState
-import timber.log.Timber
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -44,18 +43,19 @@ import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.scrollAway
 import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
+import timber.log.Timber
 import kotlin.math.sqrt
 
-/** High battery threshold percentage (above 50% is green). */
-private const val BATTERY_HIGH_THRESHOLD = 50
+/** Warning threshold percentage: above it the bar is neutral white (S3100). */
+private const val BATTERY_HIGH_THRESHOLD = 25
 
-/** Low battery threshold percentage (20% or below is red). */
-private const val BATTERY_LOW_THRESHOLD = 20
+/** Critical threshold percentage: at it or below the bar is red (S3100). */
+private const val BATTERY_LOW_THRESHOLD = 10
 
 /** Full battery scale percentage. */
 private const val BATTERY_FULL_PERCENT = 100
 
-private const val BATTERY_COLOR_HIGH_HEX = 0xFF4CAF50L
+private const val BATTERY_COLOR_HIGH_HEX = 0xFFFFFFFFL
 private const val BATTERY_COLOR_MEDIUM_HEX = 0xFFFFC107L
 private const val BATTERY_COLOR_LOW_HEX = 0xFFF44336L
 private const val BATTERY_TRACK_COLOR_HEX = 0x66000000L
@@ -538,7 +538,11 @@ private fun rememberBatteryLevel(): Int {
 
 /**
  * Small battery charge indicator bar drawn directly below the time text.
- * Width matches clock digits (~36.dp), color reflects battery level (Green/Yellow/Red).
+ *
+ * Width matches clock digits (~36.dp) and the filled share is the charge percentage. The colour is a
+ * warning channel rather than a gauge (S3100): white while the charge is unremarkable, amber at 25%
+ * and below, red at 10% and below, so a glance at the clock carries the state without reading a
+ * number.
  */
 @Composable
 private fun WearBatteryBar(
@@ -551,6 +555,7 @@ private fun WearBatteryBar(
         else -> BATTERY_COLOR_LOW
     }
     val clampedLevel = batteryLevel.coerceIn(0, BATTERY_FULL_PERCENT)
+    Timber.d("S3100: battery bar level=$clampedLevel color=$barColor")
     val fillWidth = BATTERY_BAR_WIDTH_DP * (clampedLevel.toFloat() / BATTERY_FULL_PERCENT)
 
     Box(

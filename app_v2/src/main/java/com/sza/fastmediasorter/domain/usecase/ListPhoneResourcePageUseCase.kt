@@ -36,10 +36,18 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     @ApplicationScope private val applicationScope: CoroutineScope
 ) {
 
-    suspend operator fun invoke(request: WearPhoneResourceRequest): WearPhoneResourcePage =
-        when (request.kind) {
+    suspend operator fun invoke(request: WearPhoneResourceRequest): WearPhoneResourcePage {
+        // S3160: a token this build does not know is refused, never widened. Answering it with every
+        // media kind produces a list the wearer did not ask for and looks exactly like a success.
+        val requestedFilter = request.mediaType
+        Timber.d("S3160: watch browse request mediaType='$requestedFilter' kind=${request.kind}")
+        if (requestedFilter != null && requestedFilter !in KNOWN_MEDIA_TYPE_FILTERS) {
+            Timber.w("Watch asked for unknown mediaType '%s' - refusing the page", requestedFilter)
+            return failure(request, WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA)
+        }
+        return when (request.kind) {
             WearPhoneResourceRequestKind.ROOT -> {
-                if (request.isFlat == true || request.mediaType == FILTER_RECENTS) {
+                if (request.isFlat == true || requestedFilter == FILTER_RECENTS) {
                     listFlatItems(request)
                 } else {
                     listRoots(request)
@@ -49,6 +57,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             WearPhoneResourceRequestKind.OPEN -> failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
             WearPhoneResourceRequestKind.THUMBNAIL -> thumbnailFor(request)
         }
+    }
 
     /**
      * S2129: one picture for one item, answered as a page carrying that item alone.
@@ -462,8 +471,13 @@ class ListPhoneResourcePageUseCase @Inject constructor(
      *
      * The strings are the watch route's vocabulary rather than a second enum: the value travels from the
      * route through the request unchanged, so a mapping here is the only place the two spellings meet.
-     * An unknown string is treated as no filter, because refusing the page would turn a future chip into
-     * the dead end this ticket exists to remove.
+     *
+     * S3160: `else` reaches exactly the two values that mean "no filter" - a null `mediaType` and
+     * [FILTER_ALL] - because `invoke` refuses anything outside [KNOWN_MEDIA_TYPE_FILTERS] before the
+     * request gets this far. It used to reach an unknown token as well, on the reasoning that refusing
+     * would turn a future chip into a dead end; that reasoning is void, because the pair ships as one
+     * artifact set (`WEAR_PHONE_RESOURCE_SCHEMA_VERSION`) and a list silently widened back to every
+     * kind is the worse of the two answers - it looks like a success.
      */
     private fun WearPhoneResourceRequest.mediaTypeFilter(): Set<MediaType>? = when (mediaType) {
         FILTER_PHOTOS -> setOf(MediaType.IMAGE, MediaType.GIF)
@@ -527,6 +541,28 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         private const val FILTER_MUSIC = "music"
         private const val FILTER_DOCUMENTS = "documents"
         private const val FILTER_RECENTS = "recents"
+        private const val FILTER_ALL = "all"
+
+        /**
+         * S3160: every `mediaType` value this build accepts off the wire.
+         *
+         * The phone's half of a vocabulary whose other half is `BrowseCategoryCatalog.PHONE_FILTER_TOKENS`
+         * in the watch module. Declared as one set rather than left implicit in the branches of
+         * [mediaTypeFilter] for two reasons: a branch list cannot tell a token it refuses from a token it
+         * forgot, and the two sides compile separately, so only a set either side can be read out of is
+         * comparable at all - `assert-wear-wire-vocabulary-parity.ps1` compares these two by value.
+         *
+         * [FILTER_ALL] is in here and maps to no filter: the watch sends null for the All chip today,
+         * and the request KDoc has promised both spellings since S1846.
+         */
+        private val KNOWN_MEDIA_TYPE_FILTERS: Set<String> = setOf(
+            FILTER_PHOTOS,
+            FILTER_VIDEOS,
+            FILTER_MUSIC,
+            FILTER_DOCUMENTS,
+            FILTER_RECENTS,
+            FILTER_ALL
+        )
 
         /** Upper bound of items in one watch-bound page. */
         const val PAGE_SIZE = 50

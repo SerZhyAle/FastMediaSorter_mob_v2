@@ -63,6 +63,16 @@ object LoggingHelper {
     const val WATCH_LOG_PREFIX = "watch_log_"
     const val WATCH_LOG_SUFFIX = ".txt"
 
+    /**
+     * Shape of a system-information report the watch sent (S3108).
+     *
+     * Its own prefix rather than [WATCH_LOG_PREFIX]: the two kinds are told apart by name alone in
+     * this directory, and sharing a prefix would let five arriving reports prune away every log the
+     * user was about to send on.
+     */
+    const val WATCH_SYSTEM_INFO_PREFIX = "watch_sysinfo_"
+    const val WATCH_SYSTEM_INFO_SUFFIX = ".txt"
+
     /** Shape of the phone's own session logs. */
     const val LOG_FILE_PREFIX = "fastmediasorter_"
     const val LOG_FILE_SUFFIX = ".log"

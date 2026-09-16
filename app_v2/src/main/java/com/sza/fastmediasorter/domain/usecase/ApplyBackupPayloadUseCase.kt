@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.RawSettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -33,6 +34,7 @@ class ApplyBackupPayloadUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val db: AppDatabase,
     private val settingsRepository: SettingsRepository,
+    private val rawSettingsRepository: RawSettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val scheduledOperationRepository: ScheduledOperationRepository,
     private val credentialsRepository: NetworkCredentialsRepository,
@@ -71,6 +73,15 @@ class ApplyBackupPayloadUseCase @Inject constructor(
         payload.settings?.let { backupSettings ->
             val current = settingsRepository.getSettings().first()
             settingsRepository.updateSettings(BackupMapper.toAppSettings(backupSettings, current, payload.version))
+            settingsRestored = true
+        }
+
+        // S3130: the raw section goes on top of the typed one. The typed pass runs first because it
+        // carries the trust rules for older payloads; the raw section exists only in payloads this
+        // build's own format produced, where it is an exact superset of the typed fields.
+        payload.rawSettings?.takeIf { it.isNotEmpty() }?.let { rawSettings ->
+            Timber.d("S3130: restore applies %d raw settings", rawSettings.size)
+            rawSettingsRepository.importAll(rawSettings)
             settingsRestored = true
         }
 

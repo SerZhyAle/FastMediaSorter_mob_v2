@@ -320,6 +320,11 @@ class EnableAllCoverageClassificationTest {
                 "enableTranslation",
             ),
             Coverage.PRIVACY_OR_SECURITY to setOf(
+                // S3163: each one decides that a live camera or microphone feed leaves the device over
+                // the network once a broadcast starts. The system permission dialog asks about access,
+                // not about broadcasting, so the button would be answering that second question alone.
+                "broadcastCameraEnabled",
+                "broadcastMicrophoneEnabled",
                 "cameraGeotagEnabled",
                 "enableStatistics",
                 "recordGnssTrack",

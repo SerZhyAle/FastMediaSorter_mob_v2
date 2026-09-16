@@ -85,6 +85,7 @@
     <string name="settings_profile_title">Profilo del dispositivo</string>
     <plurals name="settings_profile_warning_count">
         <item quantity="one">Passare a questo profilo sostituisce %1$d impostazione con il valore che il profilo definisce. Continuare?</item>
+        <item quantity="many">Passare a questo profilo sostituisce %1$d di impostazioni con i valori che il profilo definisce. Continuare?</item>
         <item quantity="other">Passare a questo profilo sostituisce %1$d impostazioni con i valori che il profilo definisce. Continuare?</item>
     </plurals>
     <string name="settings_all_files_create_resource">Crea la risorsa \"Tutti i file\"</string>

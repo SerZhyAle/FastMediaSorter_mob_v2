@@ -1249,6 +1249,11 @@
     "ru": "Размещает панель задач с кнопкой «Пуск» у нижнего или у верхнего края рабочего стола.",
     "uk": "Розміщує панель задач із кнопкою «Пуск» біля нижнього або верхнього краю робочого стола."
   },
+  "rowLauncherTaskbarRows": {
+    "en": "Sets how many rows tall the Start panel is drawn: a taller panel holds more recent apps and stacks the tray indicators one above another.",
+    "ru": "Задаёт, во сколько строк рисуется панель «Пуск»: более высокая панель вмещает больше последних программ, а индикаторы трея встают друг над другом.",
+    "uk": "Задає, у скільки рядків малюється панель «Пуск»: вища панель вміщає більше останніх програм, а індикатори трея стають один над одним."
+  },
   "rowLauncherTopStatusStrip": {
     "en": "Moves the clock with seconds to the left of the launcher top bar and the device indicators to the right, freeing the Start panel for more recent apps; available only while the system status area is replaced.",
     "ru": "Переносит часы с секундами в левый край верхней полосы лаунчера, а показатели устройства - в правый, освобождая панель «Пуск» под большее число недавних приложений; доступно только при замещённой системной области статуса.",

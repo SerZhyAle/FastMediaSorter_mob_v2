@@ -281,7 +281,9 @@ object LauncherStarterSets {
             thirdPartyApps = thirdPartyApps,
             resolvableOsShortcuts = resolvableOsShortcuts,
         )
-        return unsectionedTop(profile) + emitGroups(groups, rule)
+        val seeded = unsectionedTop(profile) + emitGroups(groups, rule)
+        Timber.d("S3162: seed $profile fn=${seeded.count { it.target.startsWith("fn:") }} cells=${seeded.size}")
+        return seeded
     }
 
     /** Every key [OsShortcutCatalog] declares - the default when no device probe was run. */

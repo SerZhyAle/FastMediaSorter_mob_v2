@@ -3548,7 +3548,7 @@
     <string name="tourist_tile_weather">আবহাওয়া</string>
     <string name="tourist_tile_dew_point">শিশিরাঙ্ক</string>
     <string name="tourist_action_reset_tile">রিসেট</string>
-    <string name="tourist_detail_speed">সর্বোচ্চ: %1$.1f km/h • ট্রিপ: %2$.2f km</string>
+    <string name="tourist_detail_speed">সর্বোচ্চ: %1$.1f %2$s • ট্রিপ: %3$.2f %4$s</string>
     <string name="tourist_detail_altitude">MSL / GPS উচ্চতা</string>
     <string name="tourist_detail_coordinates">WGS84 • Lat, Lon</string>
     <string name="tourist_detail_steps">সেশন পদক্ষেপ কাউন্টার</string>

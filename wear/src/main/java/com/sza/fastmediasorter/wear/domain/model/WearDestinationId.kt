@@ -41,6 +41,9 @@ enum class WearDestinationId {
     /** S3007: the watch Tourist dashboard, addressable as a shortcut. */
     TOURIST,
 
+    /** S3109: the watch clipboard and its send action, addressable as a shortcut like every program above. */
+    CLIPBOARD,
+
     /** S2551: the paired phone's camera, watched here. Addressable as a shortcut like the rest. */
     PHONE_CAMERA,
 
@@ -75,7 +78,20 @@ fun destinationFor(id: WearAppId): WearDestinationId = when (id) {
     WearAppId.BROADCAST -> WearDestinationId.BROADCAST
     WearAppId.STOPWATCH -> WearDestinationId.STOPWATCH
     WearAppId.TOURIST -> WearDestinationId.TOURIST
+    WearAppId.CLIPBOARD -> WearDestinationId.CLIPBOARD
 }
+
+/**
+ * The program a destination stands for, or null when the destination is a home section (S3109).
+ *
+ * Derived from [destinationFor] rather than written out as a second table: the two would be one
+ * edit apart from disagreeing, and a table that can disagree with its own inverse is the shape a
+ * tile and its screen come to show different things through. Its callers - the route table and the
+ * tile glyph table - each collapse twelve identical arms into one because of it, which is what keeps
+ * both of them under detekt's complexity ceiling as the program list grows.
+ */
+fun appIdFor(destination: WearDestinationId): WearAppId? =
+    WearAppId.entries.firstOrNull { app -> destinationFor(app) == destination }
 
 /**
  * The destination a home section is reached at, or null when the section has no fixed address.
@@ -95,5 +111,8 @@ fun destinationFor(id: HomeSectionId): WearDestinationId? = when (id) {
     // tile pointed at either of them lands in the same place.
     HomeSectionId.BROADCAST -> WearDestinationId.BROADCAST
     HomeSectionId.PHONE_CAMERA -> WearDestinationId.PHONE_CAMERA
+    // S3116: null for the same reason as the two rows below - the row stands for whatever was opened
+    // last rather than for a fixed screen, and it is addressed by the program it carries.
+    HomeSectionId.LAST_USED_APP -> null
     HomeSectionId.LAST_USED_RESOURCE, HomeSectionId.LAST_USED_STREAM -> null
 }

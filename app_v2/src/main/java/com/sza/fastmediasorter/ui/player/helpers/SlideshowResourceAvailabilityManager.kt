@@ -33,8 +33,18 @@ class SlideshowResourceAvailabilityManager(
     private var isNetworkCallbackRegistered = false
 
     init {
-        // Lifetime collects: drive failure-tracking and network-callback registration for background-capable
-        // audio slideshow; must keep observing while the Activity is STOPPED, so NOT repeatOnLifecycle-scoped.
+        observeSlideshowState(lifecycleScope)
+    }
+
+    /**
+     * Lifetime collects: drive failure-tracking and network-callback registration for background-capable
+     * audio slideshow; must keep observing while the Activity is STOPPED, so NOT repeatOnLifecycle-scoped.
+     *
+     * S3159: the collects live in their own method so the suppression that declares that reasoning to
+     * lint covers these two observers alone; an unsafe collect added elsewhere here is still reported.
+     */
+    @Suppress("UnsafeFlowCollect")
+    private fun observeSlideshowState(lifecycleScope: LifecycleCoroutineScope) {
         lifecycleScope.launch {
             activity.viewModel.state
                 .map { it.isSlideShowActive }

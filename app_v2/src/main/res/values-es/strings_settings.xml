@@ -85,6 +85,7 @@
     <string name="settings_profile_title">Perfil del dispositivo</string>
     <plurals name="settings_profile_warning_count">
         <item quantity="one">Cambiar a este perfil sustituye %1$d ajuste por el valor que define este perfil. ¿Continuar?</item>
+        <item quantity="many">Cambiar a este perfil sustituye %1$d de ajustes por los valores que define este perfil. ¿Continuar?</item>
         <item quantity="other">Cambiar a este perfil sustituye %1$d ajustes por los valores que define este perfil. ¿Continuar?</item>
     </plurals>
     <string name="settings_all_files_create_resource">Crear la fuente \"Todos los archivos\"</string>
@@ -133,7 +134,7 @@
     <string name="setting_camera_ocr_only_title">Solo OCR (sin traducción)</string>
     <string name="setting_camera_ocr_translation_desc">Activar el flujo rápido Foto-OCR-Traducción</string>
     <string name="setting_camera_ocr_translation_title">Traducción con OCR de cámara</string>
-    <string name="setting_compact_elements_desc">Reducir en un 50% el tamaño y el espaciado de los elementos en toda la aplicación</string>
+    <string name="setting_compact_elements_desc" formatted="false">Reducir en un 50% el tamaño y el espaciado de los elementos en toda la aplicación</string>
     <string name="setting_confirm_delete_desc">Pedir confirmación antes de eliminar archivos</string>
     <string name="setting_confirm_delete_player_desc">Pedir confirmación antes de eliminar archivos en el reproductor</string>
     <string name="setting_confirm_move_desc">Pedir confirmación antes de mover archivos</string>

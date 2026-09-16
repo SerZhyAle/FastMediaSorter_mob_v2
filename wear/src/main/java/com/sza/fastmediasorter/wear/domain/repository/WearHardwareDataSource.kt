@@ -1,7 +1,17 @@
 package com.sza.fastmediasorter.wear.domain.repository
 
-/** One sensor this watch physically carries, described rather than read. */
+/**
+ * One sensor this watch physically carries, described rather than read.
+ *
+ * @param type what the sensor is FOR, in the platform's own vocabulary and stripped of its
+ * `android.sensor.` prefix - `heart_rate`, `accelerometer`. Carried since S3108 because [name] and
+ * [vendor] are a part number and a manufacturer, so a list built from them alone answers how many
+ * sensors the watch has and never which. The platform's string is taken instead of a translated
+ * table of `Sensor.TYPE_*`: a vendor sensor has no constant to translate and still answers here.
+ * Empty when the platform would not say.
+ */
 data class WearSensorDescriptor(
+    val type: String,
     val name: String,
     val vendor: String,
     val powerMilliAmps: Float,

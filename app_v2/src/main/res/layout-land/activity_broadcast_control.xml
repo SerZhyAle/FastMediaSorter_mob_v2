@@ -135,6 +135,20 @@
                     app:icon="@drawable/ic_settings" />
             </LinearLayout>
 
+            <!-- BROADCAST SETTINGS PANEL - the settings screen's own Broadcast body, hosted here (S3060).
+                 The column already scrolls, so this wrapper only carries the id the code toggles. -->
+            <LinearLayout
+                android:id="@+id/containerBroadcastSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <include
+                    android:id="@+id/layoutBroadcastSettings"
+                    layout="@layout/fragment_settings_broadcast" />
+            </LinearLayout>
+
             <!-- LIVE STREAM CONTROLS CONTAINER -->
             <LinearLayout
                 android:id="@+id/layoutLiveControls"

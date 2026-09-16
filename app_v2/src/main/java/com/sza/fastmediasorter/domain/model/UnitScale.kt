@@ -20,6 +20,9 @@ object UnitScale {
     private const val METRES_PER_KILOMETRE = 1000.0
     private const val METRES_PER_MILE = 1609.344
     private const val METRES_PER_FOOT = 0.3048
+    private const val KILOMETRES_PER_MILE = 1.609344
+    private const val FAHRENHEIT_PER_CELSIUS = 1.8
+    private const val FAHRENHEIT_AT_ZERO_CELSIUS = 32.0
 
     /** Year first, 24-hour clock. */
     const val PATTERN_DATE_METRIC: String = "yyyy-MM-dd"
@@ -66,6 +69,15 @@ object UnitScale {
 
     fun metresPerSecondToMph(metresPerSecond: Double): Double =
         metresPerSecond * SECONDS_PER_HOUR / METRES_PER_MILE
+
+    /**
+     * S3101: a surface whose state already carries km/h converts from there rather than from metres
+     * per second - routing it back through the base unit would round the same reading twice.
+     */
+    fun kmhToMph(kmh: Double): Double = kmh / KILOMETRES_PER_MILE
+
+    fun celsiusToFahrenheit(celsius: Double): Double =
+        celsius * FAHRENHEIT_PER_CELSIUS + FAHRENHEIT_AT_ZERO_CELSIUS
 
     fun metresToFeet(metres: Double): Double = metres / METRES_PER_FOOT
 

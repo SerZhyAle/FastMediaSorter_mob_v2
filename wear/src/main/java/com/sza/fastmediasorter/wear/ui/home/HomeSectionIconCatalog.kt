@@ -42,5 +42,10 @@ object HomeSectionIconCatalog {
         // S2551: the camera glyph, not ic_share. This row is the opposite direction of the one above -
         // something is watched here rather than sent out - and the entity it stands for is a camera.
         HomeSectionId.PHONE_CAMERA -> R.drawable.ic_camera_capture
+        // S3116: the Apps glyph is the fallback nothing should reach - this row carries the program it
+        // stands for and is drawn from that program's own glyph. It answers here for the caller that
+        // has the section id alone, and says the only true thing available then: a program of the
+        // Apps list is behind it.
+        HomeSectionId.LAST_USED_APP -> R.drawable.ic_apps
     }
 }

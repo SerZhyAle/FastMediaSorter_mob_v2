@@ -510,18 +510,6 @@ class VideoPlayerViewModel @Inject constructor(
         }
     }
 
-    /**
-     * S2815: blanks the screen without touching playback, and any touch on the black screen calls this
-     * again. The flag lives here rather than in the composition so it survives a recomposition, and it
-     * dies with this view model when the player is left - a screen reopened is never already dark.
-     *
-     * The control panel's own visibility is left alone: the wearer had it open to reach this command,
-     * so the touch that leaves the mode puts the screen back exactly as it was found.
-     */
-    fun toggleDimmed() {
-        _uiState.update { it.copy(isDimmed = !it.isDimmed) }
-    }
-
     private fun showControls() {
         controlsHideJob?.cancel()
         _uiState.update { it.copy(showControls = true) }
@@ -710,7 +698,6 @@ class VideoPlayerViewModel @Inject constructor(
         streamPlaybackSession.stop()
         _uiState.update {
             it.copy(
-                isDimmed = false,
                 isLoading = false,
                 isPlaying = false,
                 error = context.getString(R.string.wear_stream_stalled)

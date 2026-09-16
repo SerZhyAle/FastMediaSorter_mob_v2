@@ -101,7 +101,7 @@ class DeviceProfilePresetCsvDataSource @Inject constructor(
      */
     private fun splitCsvLine(line: String): List<String> {
         // Strip a UTF-8 BOM that spreadsheet exports prepend to the first line, and a trailing CR.
-        val clean = line.removePrefix("﻿").trimEnd('\r')
+        val clean = line.removePrefix("\uFEFF").trimEnd('\r')
         val fields = ArrayList<String>()
         val sb = StringBuilder()
         var inQuotes = false

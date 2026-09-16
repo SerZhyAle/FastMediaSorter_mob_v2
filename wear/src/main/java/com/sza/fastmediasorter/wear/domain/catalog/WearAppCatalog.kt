@@ -4,7 +4,6 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.model.WearApp
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
-import timber.log.Timber
 
 /**
  * The Apps screen renders what this catalog returns; it never decides for itself which programs exist.
@@ -84,6 +83,13 @@ object WearAppCatalog {
                 id = WearAppId.TOURIST,
                 labelRes = R.string.wear_tourist_app,
                 isAvailable = capabilities.offersHealthFeatures
+            ),
+            // S3109: listed in both flavors - moving text between the two devices needs no permission
+            // and no hardware, so there is nothing here for a store review to withhold. Appended
+            // rather than placed beside a program it resembles: the order of this list is the owner's.
+            WearApp(
+                id = WearAppId.CLIPBOARD,
+                labelRes = R.string.wear_app_clipboard
             )
         ).filter { it.isAvailable }
     }

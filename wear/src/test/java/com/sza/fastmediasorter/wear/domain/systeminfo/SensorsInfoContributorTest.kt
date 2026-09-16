@@ -19,7 +19,23 @@ class SensorsInfoContributorTest {
         val field = section.fields.single()
         val entries = (field.value as WearSystemInfoValue.Enumerated).entries
         assertEquals(2, entries.size)
-        assertTrue(entries.first().startsWith("Accelerometer - STM"))
+        assertTrue(entries.first().startsWith("accelerometer - LSM6DSO Accelerometer - STM"))
+    }
+
+    @Test
+    fun `an entry leads with what the sensor is for, not with its part number`() = runTest {
+        val entries = enumerated(FakeWearHardwareDataSource())
+
+        assertTrue(entries[1].startsWith("heart_rate - "))
+    }
+
+    @Test
+    fun `a watch that will not name the purpose still lists the sensor`() = runTest {
+        val unnamed = FakeWearHardwareDataSource().apply {
+            sensors = sensors?.map { sensor -> sensor.copy(type = "") }
+        }
+
+        assertTrue(enumerated(unnamed).first().startsWith("LSM6DSO Accelerometer - STM"))
     }
 
     @Test
@@ -38,13 +54,10 @@ class SensorsInfoContributorTest {
 
     @Test
     fun `the entry order is the one the watch answered in`() = runTest {
-        val entries = (
-            sensors(FakeWearHardwareDataSource()).fields.single().value
-                as WearSystemInfoValue.Enumerated
-            ).entries
+        val entries = enumerated(FakeWearHardwareDataSource())
 
-        assertTrue(entries[0].startsWith("Accelerometer"))
-        assertTrue(entries[1].startsWith("Heart rate"))
+        assertTrue(entries[0].startsWith("accelerometer"))
+        assertTrue(entries[1].startsWith("heart_rate"))
     }
 
     @Test
@@ -76,6 +89,9 @@ class SensorsInfoContributorTest {
 
     private suspend fun sensors(source: FakeWearHardwareDataSource): WearSystemInfoSection =
         SensorsInfoContributor(source).sections().single()
+
+    private suspend fun enumerated(source: FakeWearHardwareDataSource): List<String> =
+        (sensors(source).fields.single().value as WearSystemInfoValue.Enumerated).entries
 
     private fun enumeratedOf(section: WearSystemInfoSection, labelRes: Int): List<String> {
         val field = section.fields.first { it.labelRes == labelRes }

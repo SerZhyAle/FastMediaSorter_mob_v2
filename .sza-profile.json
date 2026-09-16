@@ -84,6 +84,8 @@
   },
   "codexContext": {
     "maxInlineChars": 8000,
+    "maxOutputTokens": 2000,
+    "stageContextBudget": 120000,
     "evidenceDirTemplate": "temp/{Id}/evidence"
   },
   "probes": {

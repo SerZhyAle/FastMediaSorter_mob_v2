@@ -2751,6 +2751,16 @@
       "titleUk": "Розташування панелі задач"
     },
     {
+      "key": "rowLauncherTaskbarRows",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Start panel rows",
+      "titleRu": "Строк панели «Пуск»",
+      "titleUk": "Рядків панелі «Пуск»"
+    },
+    {
       "key": "rowLauncherTopStatusStrip",
       "sectionId": "launcher",
       "destination": "GENERAL",

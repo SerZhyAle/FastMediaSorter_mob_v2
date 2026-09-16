@@ -208,6 +208,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
 
     private fun setupRows() {
         setupPlacementRow()
+        setupTaskbarRowsRow()
         desktopSwipeSettingsManager?.setupRows()
         allAppsSwipeSettingsManager?.setupRows()
         setupTaskbarVisibilityRows()
@@ -298,6 +299,23 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             val options = AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS
             val placement = options.getOrElse(index) { AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM }
             viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(taskbarPlacement = placement) })
+        }
+    }
+
+    /**
+     * S3131: how many rows tall the taskbar is drawn. The entries are the range itself, so the selected
+     * index plus the minimum is the value and no second mapping can drift away from the first.
+     */
+    private fun setupTaskbarRowsRow() {
+        binding.rowLauncherTaskbarRows.setEntries(
+            (AppSettings.MIN_LAUNCHER_TASKBAR_ROWS..AppSettings.MAX_LAUNCHER_TASKBAR_ROWS)
+                .map { it.toString() }
+        )
+        binding.rowLauncherTaskbarRows.setOnItemSelectedListener { index ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val rows = index + AppSettings.MIN_LAUNCHER_TASKBAR_ROWS
+            Timber.d("S3131: taskbar rows row picked $rows")
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(taskbarRows = rows) })
         }
     }
 
@@ -434,6 +452,9 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             binding.rowLauncherForeignNotifications.setCheckedSilently(settings.launcherForeignNotificationsEnabled)
             renderForeignNotificationsRow(settings.launcherForeignNotificationsEnabled)
             binding.rowLauncherTaskbarPlacement.setSelection(placementIndex(settings))
+            binding.rowLauncherTaskbarRows.setSelection(
+                settings.launcherTaskbarRows - AppSettings.MIN_LAUNCHER_TASKBAR_ROWS,
+            )
             renderDesktopSwipeRows(settings)
             binding.rowLauncherLockDesktop.setCheckedSilently(settings.launcherDesktopLocked)
             binding.rowLauncherDesktopDoubleTapLock.setCheckedSilently(

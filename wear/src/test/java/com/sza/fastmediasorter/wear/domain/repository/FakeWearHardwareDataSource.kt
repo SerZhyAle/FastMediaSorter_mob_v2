@@ -12,8 +12,14 @@ private const val CORE_COUNT = 4
  */
 class FakeWearHardwareDataSource : WearHardwareDataSource {
     override var sensors: List<WearSensorDescriptor>? = listOf(
-        WearSensorDescriptor("Accelerometer", "STM", ACCELEROMETER_POWER_MA, ACCELEROMETER_RESOLUTION),
-        WearSensorDescriptor("Heart rate", "Samsung", HEART_RATE_POWER_MA, HEART_RATE_RESOLUTION)
+        WearSensorDescriptor(
+            "accelerometer",
+            "LSM6DSO Accelerometer",
+            "STM",
+            ACCELEROMETER_POWER_MA,
+            ACCELEROMETER_RESOLUTION
+        ),
+        WearSensorDescriptor("heart_rate", "Samsung HR Sensor", "Samsung", HEART_RATE_POWER_MA, HEART_RATE_RESOLUTION)
     )
     override var supportedAbis: List<String>? = listOf("arm64-v8a", "armeabi-v7a")
     override var socManufacturer: String? = "Samsung"

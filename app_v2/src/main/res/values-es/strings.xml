@@ -27,6 +27,7 @@
     <string name="dialog_player_exit_pending_queue_title">Aún hay operaciones en segundo plano en curso</string>
     <plurals name="dialog_player_exit_pending_queue_message">
         <item quantity="one">%1$d operación de archivo todavía se está completando. Quédate aquí para dejar que termine, o sal ahora.</item>
+        <item quantity="many">%1$d de operaciones de archivo todavía se están completando. Quédate aquí para dejar que terminen, o sal ahora.</item>
         <item quantity="other">%1$d operaciones de archivo todavía se están completando. Quédate aquí para dejar que terminen, o sal ahora.</item>
     </plurals>
     <string name="dialog_player_exit_pending_queue_leave">Salir de todos modos</string>
@@ -1012,14 +1013,17 @@
     <string name="cursor_position">Línea %1$d, Columna %2$d</string>
     <plurals name="added_n_resources">
         <item quantity="one">Recurso %1$d añadido</item>
+        <item quantity="many">%1$d de recursos añadidos</item>
         <item quantity="other">Recursos añadidos %1$d</item>
     </plurals>
     <plurals name="updated_n_resources">
         <item quantity="one">Recurso %1$d actualizado</item>
+        <item quantity="many">%1$d de recursos actualizados</item>
         <item quantity="other">Recursos actualizados %1$d</item>
     </plurals>
     <plurals name="selected_n_files">
         <item quantity="one">Archivo %1$d seleccionado</item>
+        <item quantity="many">%1$d de archivos seleccionados</item>
         <item quantity="other">Archivos %1$d seleccionados</item>
     </plurals>
     <string name="resource_deleted">Recurso eliminado</string>
@@ -1474,6 +1478,7 @@
     <string name="auth_sessions_delete_button_desc">Eliminar autorización guardada</string>
     <plurals name="auth_sessions_cookie_count">
         <item quantity="one">%d cookie</item>
+        <item quantity="many">%d de cookies</item>
         <item quantity="other">%d cookies</item>
     </plurals>
     <string name="webview_auth_save_button">Guardar autorización</string>
@@ -3549,7 +3554,7 @@
     <string name="tourist_tile_weather">Tiempo</string>
     <string name="tourist_tile_dew_point">Punto de rocío</string>
     <string name="tourist_action_reset_tile">Restablecer</string>
-    <string name="tourist_detail_speed">Máx.: %1$.1f km/h • Recorrido: %2$.2f km</string>
+    <string name="tourist_detail_speed">Máx.: %1$.1f %2$s • Recorrido: %3$.2f %4$s</string>
     <string name="tourist_detail_altitude">Altitud MSL / GPS</string>
     <string name="tourist_detail_coordinates">WGS84 • Lat, Lon</string>
     <string name="tourist_detail_steps">Contador de pasos de la sesión</string>

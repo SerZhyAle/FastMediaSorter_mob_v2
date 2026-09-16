@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.service
 
+import com.sza.fastmediasorter.domain.model.WearClipboardTextAck
 import com.sza.fastmediasorter.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.domain.model.WearListenAckPayload
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
+import com.sza.fastmediasorter.domain.model.WearScreenshotRequestAck
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.domain.model.WearStreamTransferAck
@@ -67,7 +69,33 @@ object WearSyncEvents {
         MutableSharedFlow<WearListenAckPayload>(replay = 1, extraBufferCapacity = 4)
     val listenAckFlow: SharedFlow<WearListenAckPayload> = _listenAckFlow.asSharedFlow()
 
+    /**
+     * S3109: the watch's answer to a clipboard this phone pushed - taken, or refused with a reason.
+     *
+     * No replay, unlike [listenAckFlow]: this answer follows a message the watch handles without any
+     * human in the loop, so it arrives within seconds of the request and a replayed one would be a
+     * previous send's verdict shown against a fresh tap.
+     */
+    private val _clipboardTextAckFlow =
+        MutableSharedFlow<WearClipboardTextAck>(extraBufferCapacity = 4)
+    val clipboardTextAckFlow: SharedFlow<WearClipboardTextAck> = _clipboardTextAckFlow.asSharedFlow()
+
+    /**
+     * S3110: the watch's verdict on a screenshot this phone asked for - captured, or refused.
+     *
+     * No replay, for [clipboardTextAckFlow]'s reason: it answers a request nobody on the watch has to
+     * approve, so it arrives on its own and a replayed one would be a previous ask's verdict shown
+     * against a fresh tap.
+     */
+    private val _screenshotAckFlow =
+        MutableSharedFlow<WearScreenshotRequestAck>(extraBufferCapacity = 4)
+    val screenshotAckFlow: SharedFlow<WearScreenshotRequestAck> = _screenshotAckFlow.asSharedFlow()
+
     suspend fun emitAck(json: String) = _ackFlow.emit(json)
+
+    suspend fun emitClipboardTextAck(ack: WearClipboardTextAck) = _clipboardTextAckFlow.emit(ack)
+
+    suspend fun emitScreenshotAck(ack: WearScreenshotRequestAck) = _screenshotAckFlow.emit(ack)
 
     suspend fun emitStreamTransferAck(ack: WearStreamTransferAck) = _streamTransferAckFlow.emit(ack)
 

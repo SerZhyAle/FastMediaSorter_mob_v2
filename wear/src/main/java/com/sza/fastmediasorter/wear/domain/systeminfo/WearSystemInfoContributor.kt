@@ -34,15 +34,19 @@ object WearSystemInfoOrder {
     const val DEVICE = 10
     const val APP = 20
     const val HEALTH = 30
-    const val SENSORS = 40
-
-    /** Live readings sit directly under the list of sensors they are read from. */
-    const val ENVIRONMENT = 45
-
     const val RADIO = 50
     const val MEMORY = 60
     const val STORAGE = 70
     const val PHONE_LINK = 80
+
+    /**
+     * Below [PHONE_LINK] since S3108: the hardware inventory is the least often read part of the
+     * report, and the pairing state is what the screen is usually opened for.
+     */
+    const val SENSORS = 85
+
+    /** Live readings sit directly under the list of sensors they are read from. */
+    const val ENVIRONMENT = 86
 
     /** Contributed only by `wear/src/noLegal`; in the `standard` build nothing occupies this slot. */
     const val EXTENDED = 90

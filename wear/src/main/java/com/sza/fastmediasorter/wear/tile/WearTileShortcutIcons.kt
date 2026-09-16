@@ -3,8 +3,8 @@ package com.sza.fastmediasorter.wear.tile
 import androidx.annotation.DrawableRes
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
-import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearDestinationId
+import com.sza.fastmediasorter.wear.domain.model.appIdFor
 import com.sza.fastmediasorter.wear.ui.apps.WearAppIconCatalog
 import com.sza.fastmediasorter.wear.ui.home.HomeSectionIconCatalog
 
@@ -19,32 +19,28 @@ import com.sza.fastmediasorter.wear.ui.home.HomeSectionIconCatalog
  * silently inherit some default.
  */
 @DrawableRes
-internal fun tileShortcutIconFor(destination: WearDestinationId): Int = when (destination) {
-    WearDestinationId.RESOURCES -> HomeSectionIconCatalog.iconFor(HomeSectionId.RESOURCES)
-    WearDestinationId.PHONE -> HomeSectionIconCatalog.iconFor(HomeSectionId.PHONE)
-    WearDestinationId.LOCAL -> HomeSectionIconCatalog.iconFor(HomeSectionId.LOCAL)
-    WearDestinationId.STREAMS -> HomeSectionIconCatalog.iconFor(HomeSectionId.STREAMS)
-    WearDestinationId.APPS -> HomeSectionIconCatalog.iconFor(HomeSectionId.APPS)
-    WearDestinationId.FAVOURITES -> HomeSectionIconCatalog.iconFor(HomeSectionId.FAVOURITES)
-    // S2509: read from the Home section rather than the Programs row. The two entrances are equal and
-    // carry the same glyph, so either would answer - the section is taken because this destination is
-    // listed first among the sections in WearDestinationId.
-    WearDestinationId.BROADCAST -> HomeSectionIconCatalog.iconFor(HomeSectionId.BROADCAST)
-    // S2551: a Home section only - it is no program of the Apps grid, so the section table is the
-    // only one that answers for it.
-    WearDestinationId.PHONE_CAMERA -> HomeSectionIconCatalog.iconFor(HomeSectionId.PHONE_CAMERA)
-    WearDestinationId.CALCULATOR -> WearAppIconCatalog.iconFor(WearAppId.CALCULATOR)
-    WearDestinationId.NETWORK_MONITOR -> WearAppIconCatalog.iconFor(WearAppId.NETWORK_MONITOR)
-    WearDestinationId.GAME -> WearAppIconCatalog.iconFor(WearAppId.GAME)
-    WearDestinationId.VOICE_RECORDER -> WearAppIconCatalog.iconFor(WearAppId.VOICE_RECORDER)
-    WearDestinationId.SYSTEM_INFO -> WearAppIconCatalog.iconFor(WearAppId.SYSTEM_INFO)
-    WearDestinationId.WATER_FLASHLIGHT -> WearAppIconCatalog.iconFor(WearAppId.WATER_FLASHLIGHT)
-    WearDestinationId.MOTION_MONITOR -> WearAppIconCatalog.iconFor(WearAppId.MOTION_MONITOR)
-    WearDestinationId.BODY_SENSOR -> WearAppIconCatalog.iconFor(WearAppId.BODY_SENSOR)
-    WearDestinationId.BLOOD_PRESSURE -> WearAppIconCatalog.iconFor(WearAppId.BLOOD_PRESSURE)
-    WearDestinationId.STOPWATCH -> WearAppIconCatalog.iconFor(WearAppId.STOPWATCH)
-    WearDestinationId.TOURIST -> WearAppIconCatalog.iconFor(WearAppId.TOURIST)
-    // S2511: no catalog answers for the overflow cell - it stands for no entity, it is the way out of the
-    // grid into the screen that lists the rest, which is what the "open elsewhere" glyph says.
-    WearDestinationId.HOME -> R.drawable.ic_open_in_new
+internal fun tileShortcutIconFor(destination: WearDestinationId): Int {
+    // A program is answered through appIdFor, which collapses twelve identical arms into one line and
+    // is what keeps this function under detekt's complexity ceiling as the program list grows. The
+    // watch broadcast is both a section and a program and is answered as a program - the two
+    // entrances are equal and carry the same glyph, so either table gives the same drawable (S2509).
+    val program = appIdFor(destination)
+    if (program != null) {
+        return WearAppIconCatalog.iconFor(program)
+    }
+    return when (destination) {
+        WearDestinationId.RESOURCES -> HomeSectionIconCatalog.iconFor(HomeSectionId.RESOURCES)
+        WearDestinationId.PHONE -> HomeSectionIconCatalog.iconFor(HomeSectionId.PHONE)
+        WearDestinationId.LOCAL -> HomeSectionIconCatalog.iconFor(HomeSectionId.LOCAL)
+        WearDestinationId.STREAMS -> HomeSectionIconCatalog.iconFor(HomeSectionId.STREAMS)
+        WearDestinationId.APPS -> HomeSectionIconCatalog.iconFor(HomeSectionId.APPS)
+        WearDestinationId.FAVOURITES -> HomeSectionIconCatalog.iconFor(HomeSectionId.FAVOURITES)
+        // S2551: a Home section only - it is no program of the Apps grid, so the section table is the
+        // only one that answers for it.
+        WearDestinationId.PHONE_CAMERA -> HomeSectionIconCatalog.iconFor(HomeSectionId.PHONE_CAMERA)
+        // S2511: no catalog answers for the overflow cell - it stands for no entity, it is the way out
+        // of the grid into the screen that lists the rest, which is what this glyph says. A home
+        // section added without a glyph lands here too, which is the same honest "open elsewhere".
+        else -> R.drawable.ic_open_in_new
+    }
 }

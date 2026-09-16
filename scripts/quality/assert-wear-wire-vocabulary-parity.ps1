@@ -154,6 +154,27 @@ $vocabularies = @(
        PhoneFile = 'domain/model/Models.kt'; WatchFile = 'domain/usecase/ImportNetworkSourcesUseCase.kt'
        PhoneSet = 'WATCH_TRANSFERABLE'; WatchFunction = 'parseType' },
 
+    # S3160: the browse chip vocabulary, the one string field of this channel that was outside the gate
+    # (S2861 section 15.5). Like the S2641 row above it, the two sides are not same-named - the phone
+    # calls its members FILTER_*, the watch TOKEN_* - so the discovery half below cannot see it, and
+    # neither side is an enum it could see anyway. Compared by VALUE, which is what crosses the wire.
+    # Until this row the phone answered an unrecognised token with an unnarrowed page and no log line,
+    # so a divergence here was invisible on both sides at once.
+    @{ Name = 'WearPhoneResourceRequest.mediaType browse vocabulary'
+       Kind = 'Mirrored'; Compare = 'namedSetValues'
+       PhoneFile = 'domain/usecase/ListPhoneResourcePageUseCase.kt'
+       WatchFile = 'domain/browse/BrowseCategoryCatalog.kt'
+       PhoneSet = 'KNOWN_MEDIA_TYPE_FILTERS'; WatchSet = 'PHONE_FILTER_TOKENS' },
+
+    # S3161: the favourite delta's sourceId vocabulary. The phone had no copy at all until this
+    # ticket - it applied every delta item by its path and never read the id - so a watch-local
+    # MediaStore address reached the phone's favorites table, where it resolved to nothing or to an
+    # unrelated file with the same numeric id. The fix rests entirely on both modules spelling
+    # 'local' and 'voice_note' the same way, which nothing but matching characters guarantees.
+    @{ Name = 'WearFavoriteDeltaItem.sourceId vocabulary'; Kind = 'Mirrored'; Compare = 'constMap'
+       PhoneFile = 'domain/model/WearFavoritesPayload.kt'; WatchFile = 'domain/model/WearFavoriteRecord.kt'
+       Prefix = 'SOURCE_ID_' },
+
     # Not a wire vocabulary, but both copies' KDoc states the invariant in words - "the copy is
     # deliberate and the pair must move together" - so the row makes that claim checkable instead of
     # leaving it as a request in a comment.
@@ -263,6 +284,13 @@ foreach ($v in $vocabularies) {
             # neither side has an order the wire can observe.
             Get-KotlinNamedSetMember   -Source $phone -SetName $v.PhoneSet       | ForEach-Object { $phoneMap[$_] = $_ }
             Get-KotlinWhenBranchLiteral -Source $watch -FunctionName $v.WatchFunction | ForEach-Object { $watchMap[$_] = $_ }
+        }
+        'namedSetValues' {
+            # S3160: both sides declare a named set of string constants, under different constant
+            # names. Compared as a value SET for the same reason the rows above are - neither side has
+            # an order the wire can observe.
+            Get-KotlinNamedSetResolvedValue -Source $phone -SetName $v.PhoneSet | ForEach-Object { $phoneMap[$_] = $_ }
+            Get-KotlinNamedSetResolvedValue -Source $watch -SetName $v.WatchSet | ForEach-Object { $watchMap[$_] = $_ }
         }
         'serializedVsPlain' {
             # The phone pins its wire names with @SerializedName and the watch relies on the member name

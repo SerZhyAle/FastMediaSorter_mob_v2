@@ -47,6 +47,12 @@ object NotificationIds {
     /** S2776: the permanent shade entry that lights and extinguishes the camera flash on a tap. */
     const val FLASHLIGHT_SHORTCUT = 4209
 
+    /** S3108: one system-information report arrived from the paired watch and is stored here. */
+    const val WATCH_SYSTEM_INFO_REPORT = 4210
+
+    /** S3109: the paired watch sent its text clipboard and it now sits on this phone's clipboard. */
+    const val WEAR_CLIPBOARD_TEXT = 4211
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 

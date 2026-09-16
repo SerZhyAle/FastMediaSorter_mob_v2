@@ -127,6 +127,12 @@ object WearRoutes {
      */
     const val TOURIST = "tourist_info"
 
+    /**
+     * S3109: the watch's text clipboard and its send action. Ships in both watch flavors with no
+     * `WearRestrictedCapabilities` gate - it needs no permission and no hardware.
+     */
+    const val CLIPBOARD = "clipboard"
+
     const val ARG_MEDIA_TYPE = "mediaType"
     const val ARG_SOURCE_ID = "sourceId"
     const val ARG_SOURCE_NAME = "sourceName"

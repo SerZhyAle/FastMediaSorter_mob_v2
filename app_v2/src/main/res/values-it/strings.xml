@@ -27,6 +27,7 @@
     <string name="dialog_player_exit_pending_queue_title">Operazioni in background ancora in corso</string>
     <plurals name="dialog_player_exit_pending_queue_message">
         <item quantity="one">%1$d operazione sul file non è ancora terminata. Resta qui per lasciarla finire, oppure esci ora.</item>
+        <item quantity="many">%1$d di operazioni sui file non sono ancora terminate. Resta qui per lasciarle finire, oppure esci ora.</item>
         <item quantity="other">%1$d operazioni sui file non sono ancora terminate. Resta qui per lasciarle finire, oppure esci ora.</item>
     </plurals>
     <string name="dialog_player_exit_pending_queue_leave">Esci comunque</string>
@@ -1012,14 +1013,17 @@
     <string name="cursor_position">Ln %1$d, Col %2$d</string>
     <plurals name="added_n_resources">
         <item quantity="one">Aggiunta la risorsa %1$d</item>
+        <item quantity="many">Aggiunte %1$d di risorse</item>
         <item quantity="other">Aggiunte %1$d risorse</item>
     </plurals>
     <plurals name="updated_n_resources">
         <item quantity="one">Risorsa %1$d aggiornata</item>
+        <item quantity="many">%1$d di risorse aggiornate</item>
         <item quantity="other">Risorse %1$d aggiornate</item>
     </plurals>
     <plurals name="selected_n_files">
         <item quantity="one">File %1$d selezionato</item>
+        <item quantity="many">%1$d di file selezionati</item>
         <item quantity="other">File %1$d selezionati</item>
     </plurals>
     <string name="resource_deleted">Risorsa eliminata</string>
@@ -1474,6 +1478,7 @@
     <string name="auth_sessions_delete_button_desc">Elimina l\'autorizzazione salvata</string>
     <plurals name="auth_sessions_cookie_count">
         <item quantity="one">%d cookie</item>
+        <item quantity="many">%d di cookie</item>
         <item quantity="other">%d cookie</item>
     </plurals>
     <string name="webview_auth_save_button">Salva autorizzazione</string>
@@ -3550,7 +3555,7 @@
     <string name="tourist_tile_weather">Meteo</string>
     <string name="tourist_tile_dew_point">Punto di rugiada</string>
     <string name="tourist_action_reset_tile">Ripristina</string>
-    <string name="tourist_detail_speed">Max: %1$.1f km/h • Percorso: %2$.2f km</string>
+    <string name="tourist_detail_speed">Max: %1$.1f %2$s • Percorso: %3$.2f %4$s</string>
     <string name="tourist_detail_altitude">Altitudine MSL / GPS</string>
     <string name="tourist_detail_coordinates">WGS84 • Lat, Lon</string>
     <string name="tourist_detail_steps">Contapassi della sessione</string>

@@ -23,7 +23,6 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearActionColumn
-import timber.log.Timber
 
 /**
  * Every action this menu can run, in the order it draws them, each beside what it calls.
@@ -76,6 +75,32 @@ internal data class FileActionsCallbacks(
 )
 
 /**
+ * The allowed operations as menu entries, in this dialog's order and with its labels and icons.
+ *
+ * S3118: shared with the player menu, which draws the same operations inline instead of behind a
+ * second dialog. The order, the wording and the icons are the answer this file already gives, and a
+ * second rendering of them would drift from it a label at a time.
+ */
+@Composable
+internal fun fileOperationActions(
+    allowedOperations: Set<WearFileOperationKind>,
+    callbacks: FileActionsCallbacks
+): List<WearAction> = batchActions(callbacks)
+    .filter { it.first in allowedOperations }
+    .map { (kind, onClick) ->
+        WearAction(
+            label = stringResource(kind.labelRes()),
+            icon = {
+                Icon(
+                    painter = painterResource(kind.iconRes()),
+                    contentDescription = null
+                )
+            },
+            onClick = onClick
+        )
+    }
+
+/**
  * The action menu for the current selection, following the S1833 precedent in `NetworkSourcesScreen`:
  * a long press leads to a menu, and a destructive choice inside it leads to its own confirmation.
  */
@@ -84,20 +109,7 @@ internal fun FileActionsDialog(
     state: FileActionsDialogState,
     callbacks: FileActionsCallbacks
 ) {
-    val operationActions = batchActions(callbacks)
-        .filter { it.first in state.allowedOperations }
-        .map { (kind, onClick) ->
-            WearAction(
-                label = stringResource(kind.labelRes()),
-                icon = {
-                    Icon(
-                        painter = painterResource(kind.iconRes()),
-                        contentDescription = null
-                    )
-                },
-                onClick = onClick
-            )
-        }
+    val operationActions = fileOperationActions(state.allowedOperations, callbacks)
 
     val actions = buildList {
         if (state.selectedCount < state.totalCount) {

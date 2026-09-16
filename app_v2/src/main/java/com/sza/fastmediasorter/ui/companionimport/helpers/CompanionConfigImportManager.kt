@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.companionimport.helpers
 
 import android.content.ContentResolver
 import android.net.Uri
+import android.provider.OpenableColumns
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigException
 import com.sza.fastmediasorter.data.companion.CompanionConfigParser
@@ -35,6 +36,26 @@ class CompanionConfigImportManager @Inject constructor(
     /** Runs the insert-only import of an already-parsed config. */
     suspend fun import(config: CompanionConfigDto): Result<CompanionImportResult> = importUseCase.import(config)
 
+    /**
+     * S3052: a broadcast descriptor saved through SAF carries `application/vnd.fms.bcast+json`, but a
+     * file manager reading it back through MediaStore reports `application/octet-stream` - the type this
+     * activity claims for `.fmscfg`. The name is the only surviving discriminator at that point, so the
+     * caller re-routes such a document to the streams importer instead of rejecting it as a bad config.
+     */
+    fun isBroadcastDescriptor(contentResolver: ContentResolver, uri: Uri): Boolean {
+        val name = displayName(contentResolver, uri) ?: uri.lastPathSegment.orEmpty()
+        return name.endsWith(BROADCAST_DESCRIPTOR_EXTENSION, ignoreCase = true)
+    }
+
+    private fun displayName(contentResolver: ContentResolver, uri: Uri): String? =
+        runCatching {
+            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) cursor.getString(0) else null
+            }
+        }.onFailure { error ->
+            Timber.w(error, "Reading the incoming document name failed")
+        }.getOrNull()
+
     // Broad catch is an intentional import-boundary guard: any read/parse failure rejects the file
     // (transparent host) instead of crashing. (S0988: surfaced by the diff-scoped detekt gate.)
     @Suppress("TooGenericExceptionCaught")
@@ -67,5 +88,6 @@ class CompanionConfigImportManager @Inject constructor(
     private companion object {
         const val MAX_CONFIG_BYTES = 64 * 1024
         const val READ_CHUNK_BYTES = 8 * 1024
+        const val BROADCAST_DESCRIPTOR_EXTENSION = ".fmsbcast"
     }
 }

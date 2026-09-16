@@ -3545,7 +3545,7 @@
     <string name="tourist_tile_weather">天气</string>
     <string name="tourist_tile_dew_point">露点</string>
     <string name="tourist_action_reset_tile">重置</string>
-    <string name="tourist_detail_speed">最高: %1$.1f km/h • 行程: %2$.2f km</string>
+    <string name="tourist_detail_speed">最高: %1$.1f %2$s • 行程: %3$.2f %4$s</string>
     <string name="tourist_detail_altitude">MSL / GPS 海拔</string>
     <string name="tourist_detail_coordinates">WGS84 • Lat, Lon</string>
     <string name="tourist_detail_steps">会话步数计数器</string>

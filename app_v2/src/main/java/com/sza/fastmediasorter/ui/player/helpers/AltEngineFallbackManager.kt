@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.playback.AltPlaybackEngine
 import timber.log.Timber
+import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,8 +20,13 @@ class AltEngineFallbackManager @Inject constructor(
 ) {
 
     private var activeEngine: AltPlaybackEngine? = null
-    private var inflatedContainer: ViewGroup? = null
-    private var viewStub: ViewStub? = null
+
+    // S3157: this manager is @Singleton for its process-wide engine set, so both UI-bound fields are held
+    // weakly - release() still clears them from PlayerActivity.onDestroy, and the weak reference only
+    // decides what happens when a teardown path is missed. Both stay strongly reachable while the activity
+    // lives: the container sits in the view tree after inflate(), and the stub is a ViewBinding field.
+    private var inflatedContainer: WeakReference<ViewGroup>? = null
+    private var viewStub: WeakReference<ViewStub>? = null
 
     val isFallbackActive: Boolean
         get() = activeEngine != null
@@ -35,7 +41,7 @@ class AltEngineFallbackManager @Inject constructor(
         get() = activeEngine?.durationMs ?: 0L
 
     fun bindViewStub(stub: ViewStub?) {
-        this.viewStub = stub
+        this.viewStub = stub?.let(::WeakReference)
     }
 
     fun canFallback(file: MediaFile): Boolean {
@@ -66,7 +72,7 @@ class AltEngineFallbackManager @Inject constructor(
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ): Boolean {
-        val targetStub = stubOverride ?: viewStub
+        val targetStub = stubOverride ?: viewStub?.get()
         val engine = findEngineFor(file)
         if (engine == null) {
             return false
@@ -86,12 +92,13 @@ class AltEngineFallbackManager @Inject constructor(
         return try {
             releaseActiveEngine()
 
-            val container = inflatedContainer ?: targetStub?.inflate() as? ViewGroup
+            val container = inflatedContainer?.get() ?: targetStub?.inflate() as? ViewGroup
             if (container == null) {
                 Timber.w("AltEngineFallbackManager: failed to inflate ViewStub")
                 false
             } else {
-                inflatedContainer = container
+                inflatedContainer = WeakReference(container)
+                Timber.d("S3157: alt-engine container resolved through the weakly held stub")
 
                 engine.setListener(object : AltPlaybackEngine.Listener {
                     override fun onEnded() {

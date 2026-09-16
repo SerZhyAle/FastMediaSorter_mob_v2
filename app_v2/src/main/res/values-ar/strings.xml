@@ -27,6 +27,10 @@
     <string name="dialog_player_exit_pending_queue_title">لا تزال العمليات في الخلفية قيد التنفيذ</string>
     <plurals name="dialog_player_exit_pending_queue_message">
         <item quantity="one">%1$d عملية ملفات لا تزال قيد الإنهاء. ابق هنا لإتمامها أو غادر الآن.</item>
+        <item quantity="zero">%1$d عمليات ملفات لا تزال قيد الإنهاء. ابق هنا لإتمامها أو غادر الآن.</item>
+        <item quantity="two">%1$d عمليتان على الملفات لا تزالان قيد الإنهاء. ابق هنا لإتمامهما أو غادر الآن.</item>
+        <item quantity="few">%1$d عمليات ملفات لا تزال قيد الإنهاء. ابق هنا لإتمامها أو غادر الآن.</item>
+        <item quantity="many">%1$d عملية ملفات لا تزال قيد الإنهاء. ابق هنا لإتمامها أو غادر الآن.</item>
         <item quantity="other">%1$d عمليات ملفات لا تزال قيد الإنهاء. ابق هنا لإتمامها أو غادر الآن.</item>
     </plurals>
     <string name="dialog_player_exit_pending_queue_leave">المغادرة على أي حال</string>
@@ -1012,14 +1016,26 @@
     <string name="cursor_position">Ln %1$d, Col %2$d</string>
     <plurals name="added_n_resources">
         <item quantity="one">تمت إضافة مورد %1$d</item>
+        <item quantity="zero">تمت إضافة موارد %1$d</item>
+        <item quantity="two">تمت إضافة موردين %1$d</item>
+        <item quantity="few">تمت إضافة موارد %1$d</item>
+        <item quantity="many">تمت إضافة مورد %1$d</item>
         <item quantity="other">تمت إضافة موارد %1$d</item>
     </plurals>
     <plurals name="updated_n_resources">
         <item quantity="one">تم تحديث مورد %1$d</item>
+        <item quantity="zero">تم تحديث موارد %1$d</item>
+        <item quantity="two">تم تحديث موردين %1$d</item>
+        <item quantity="few">تم تحديث موارد %1$d</item>
+        <item quantity="many">تم تحديث مورد %1$d</item>
         <item quantity="other">موارد %1$d المحدثة</item>
     </plurals>
     <plurals name="selected_n_files">
         <item quantity="one">الملف المحدد %1$d</item>
+        <item quantity="zero">الملفات المحددة %1$d</item>
+        <item quantity="two">الملفان المحددان %1$d</item>
+        <item quantity="few">الملفات المحددة %1$d</item>
+        <item quantity="many">الملف المحدد %1$d</item>
         <item quantity="other">الملفات المحددة %1$d</item>
     </plurals>
     <string name="resource_deleted">تم حذف المورد</string>
@@ -1473,6 +1489,10 @@
     <string name="auth_sessions_delete_button_desc">حذف التفويض المحفوظ</string>
     <plurals name="auth_sessions_cookie_count">
         <item quantity="one">ملف تعريف الارتباط %d</item>
+        <item quantity="zero">%d ملفات تعريف الارتباط</item>
+        <item quantity="two">%d ملفا تعريف الارتباط</item>
+        <item quantity="few">%d ملفات تعريف الارتباط</item>
+        <item quantity="many">%d ملف تعريف الارتباط</item>
         <item quantity="other">%d ملفات تعريف الارتباط</item>
     </plurals>
     <string name="webview_auth_save_button">حفظ التفويض</string>
@@ -3547,7 +3567,7 @@
     <string name="tourist_tile_weather">الطقس</string>
     <string name="tourist_tile_dew_point">نقطة الندى</string>
     <string name="tourist_action_reset_tile">إعادة ضبط</string>
-    <string name="tourist_detail_speed">الحد الأقصى: %1$.1f km/h • الرحلة: %2$.2f km</string>
+    <string name="tourist_detail_speed">الحد الأقصى: %1$.1f %2$s • الرحلة: %3$.2f %4$s</string>
     <string name="tourist_detail_altitude">ارتفاع MSL / GPS</string>
     <string name="tourist_detail_coordinates">WGS84 • Lat, Lon</string>
     <string name="tourist_detail_steps">عدّاد خطوات الجلسة</string>

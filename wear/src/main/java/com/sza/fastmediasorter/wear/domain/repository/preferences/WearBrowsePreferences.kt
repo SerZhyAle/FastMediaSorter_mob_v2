@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.domain.repository.preferences
 
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
+import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import kotlinx.coroutines.flow.Flow
@@ -51,4 +52,15 @@ interface WearBrowsePreferences {
      */
     suspend fun setLastUsedStream(normalizedUrl: String, name: String)
     suspend fun clearLastUsedResource()
+
+    /**
+     * S3116: the mini-program opened last, or null when none has been opened on this watch yet.
+     *
+     * A single value rather than a history: the home screen gives this one cell, so a list would
+     * carry entries nothing could draw. A stored name the current build no longer knows reads as
+     * null, so a program dropped from [WearAppId] returns the row to its Broadcast default instead
+     * of addressing a screen that is gone.
+     */
+    val lastUsedApp: Flow<WearAppId?>
+    suspend fun setLastUsedApp(id: WearAppId)
 }

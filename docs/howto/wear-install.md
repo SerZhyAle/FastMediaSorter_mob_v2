@@ -108,7 +108,7 @@ The checkbox switches the whole companion on: the button that opens its window a
 
 If the Phone section is empty, return to the companion window on the phone and confirm that at least one resource is selected.
 
-> **Tip:** You can navigate back from any screen on your watch using the visible universal back affordance button on the left edge, swiping from the left edge, or pressing your watch's hardware back button. On the main home screen, tapping the back affordance shows a close icon (×) to exit or a double-chevron («) to minimize background playback.
+> **Tip:** You can navigate back from any screen on your watch using the visible universal back affordance button on the left edge, swiping from the left edge, or pressing your watch's hardware back button. On the main home screen, tapping the back affordance shows a close icon (×) to exit or a double-chevron («) to minimize background playback. On every screen that shows that button, a moon button faces it at the right edge and blanks the watch screen; a double tap, a press and hold, or the hardware button brings it back.
 
 ---
 

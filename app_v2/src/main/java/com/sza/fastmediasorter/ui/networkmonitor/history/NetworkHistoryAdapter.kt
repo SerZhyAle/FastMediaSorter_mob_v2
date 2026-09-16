@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.networkmonitor.history
 
-import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.StringRes
@@ -8,7 +7,10 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.databinding.ItemNetworkMeasurementBinding
+import com.sza.fastmediasorter.domain.model.Quantity
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkMeasurement
 import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkMeasurementKind
 
@@ -18,9 +20,14 @@ import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkMeasurementKin
  * A `ListAdapter` rather than a joined text block, unlike the Bluetooth section's short device list: the
  * history is capped in the hundreds, and inflating that many rows into a `ScrollView` would build the whole
  * list on every store write.
+ *
+ * S3101: the row's stamp is a user-facing clock reading, so it comes from [QuantityFormatter] and the
+ * app's own unit system - `DateUtils` would hand the 12/24-hour choice back to the device setting.
  */
-class NetworkHistoryAdapter :
-    ListAdapter<NetworkMeasurement, NetworkHistoryAdapter.MeasurementViewHolder>(DIFF) {
+class NetworkHistoryAdapter(
+    private val quantityFormatter: QuantityFormatter,
+    private val unitSystem: () -> UnitSystem,
+) : ListAdapter<NetworkMeasurement, NetworkHistoryAdapter.MeasurementViewHolder>(DIFF) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MeasurementViewHolder {
         val binding = ItemNetworkMeasurementBinding.inflate(
@@ -32,19 +39,21 @@ class NetworkHistoryAdapter :
     }
 
     override fun onBindViewHolder(holder: MeasurementViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), quantityFormatter, unitSystem())
     }
 
     class MeasurementViewHolder(
         private val binding: ItemNetworkMeasurementBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(measurement: NetworkMeasurement) {
-            val context = binding.root.context
-            binding.measurementTime.text = DateUtils.formatDateTime(
-                context,
-                measurement.takenAtMillis,
-                DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_ALL,
+        fun bind(
+            measurement: NetworkMeasurement,
+            quantityFormatter: QuantityFormatter,
+            unitSystem: UnitSystem,
+        ) {
+            binding.measurementTime.text = quantityFormatter.format(
+                Quantity.DateTime(measurement.takenAtMillis),
+                unitSystem,
             )
             binding.measurementKind.setText(measurement.kind.toLabelRes())
             binding.measurementNetwork.text = measurement.networkLabel

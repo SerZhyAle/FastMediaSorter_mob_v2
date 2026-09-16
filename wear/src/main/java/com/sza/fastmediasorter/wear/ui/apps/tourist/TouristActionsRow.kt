@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.apps.tourist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
@@ -15,52 +16,73 @@ import androidx.wear.compose.material.CompactChip
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 
+private val ACTION_LABEL_SIZE_SP = 10.sp
+private val ATHLETE_LABEL_SIZE_SP = 13.sp
+private val ATHLETE_H_PADDING = 14.dp
+private val ATHLETE_V_PADDING = 6.dp
+private val ROW_SPACING = 6.dp
+private val COLUMN_SPACING = 4.dp
+
 /**
- * S3007 / S3015: Quick action buttons for resetting metrics, toggling athlete mode and locking screen.
+ * S3007 / S3015: Quick action buttons for resetting metrics and entering athlete mode. S3115 moved the
+ * lock control onto the hero panel itself, so this row no longer carries it.
  */
 @Composable
 fun TouristActionsRow(
     onResetTrip: () -> Unit,
     onResetSteps: () -> Unit,
     onToggleAthleteMode: () -> Unit,
-    onLockScreen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(COLUMN_SPACING),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(ROW_SPACING, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CompactChip(
                 onClick = onResetTrip,
-                label = { Text(stringResource(R.string.wear_tourist_action_reset_trip), fontSize = 10.sp) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.wear_tourist_action_reset_trip),
+                        fontSize = ACTION_LABEL_SIZE_SP,
+                    )
+                },
                 colors = ChipDefaults.secondaryChipColors(),
             )
             CompactChip(
                 onClick = onResetSteps,
-                label = { Text(stringResource(R.string.wear_tourist_action_reset_steps), fontSize = 10.sp) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.wear_tourist_action_reset_steps),
+                        fontSize = ACTION_LABEL_SIZE_SP,
+                    )
+                },
                 colors = ChipDefaults.secondaryChipColors(),
             )
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(ROW_SPACING, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CompactChip(
                 onClick = onToggleAthleteMode,
-                label = { Text("🏃 " + stringResource(R.string.wear_tourist_athlete_mode), fontSize = 10.sp) },
+                label = {
+                    Text(
+                        text = "🏃 " + stringResource(R.string.wear_tourist_athlete_mode),
+                        fontSize = ATHLETE_LABEL_SIZE_SP,
+                    )
+                },
                 colors = ChipDefaults.primaryChipColors(),
-            )
-            CompactChip(
-                onClick = onLockScreen,
-                label = { Text("🔒 " + stringResource(R.string.wear_tourist_lock_screen), fontSize = 10.sp) },
-                colors = ChipDefaults.secondaryChipColors(),
+                contentPadding = PaddingValues(
+                    horizontal = ATHLETE_H_PADDING,
+                    vertical = ATHLETE_V_PADDING,
+                ),
             )
         }
     }

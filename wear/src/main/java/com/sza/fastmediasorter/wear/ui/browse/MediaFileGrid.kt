@@ -127,10 +127,13 @@ private fun MediaFileRow(
                     onLongClick = { actions.onFileLongClick(file) },
                     // A file with a thumbnail keeps the two-line caption under its own picture; one
                     // without shows the mime-type glyph shared by every file of that type, and there
-                    // the name moves onto it (S2177).
+                    // the name moves onto it (S2177). Audio is the exception: its picture is cover
+                    // art, which identifies an album and not the file, so the name goes on the cover
+                    // and the audio cells line up with each other however few resolved one (S3119).
                     captionLayout = CellCaption(
                         maxLines = GRID_CAPTION_LINES,
-                        overGroupIcon = true
+                        overGroupIcon = true,
+                        overReadyPicture = captionOverCover(file.mimeType)
                     )
                 ) { glyphModifier ->
                     // The inset is the cell's, not the glyph's: ThumbnailCell hands the S2003
@@ -189,6 +192,20 @@ private fun MediaFileChip(
             )
         }
     )
+}
+
+/**
+ * Whether this file's resolved picture should carry the caption rather than sit above it.
+ *
+ * Only audio says yes: the picture it resolves is embedded cover art, which the owner cannot read a
+ * file name out of, while every other type resolves a preview of the file itself (S3119).
+ */
+internal fun captionOverCover(mimeType: String?): Boolean {
+    val overCover = mimeType?.startsWith(AUDIO_PREFIX) == true
+    if (overCover) {
+        Timber.d("S3119: audio grid cell draws its caption over the cover")
+    }
+    return overCover
 }
 
 /**

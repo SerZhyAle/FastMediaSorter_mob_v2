@@ -49,11 +49,25 @@ private val CAPTION_MARGIN = 2.dp
  * @param overGroupIcon the screen's own statement that its fallback glyph stands for a whole class -
  * one `ic_cast` for every channel, one glyph per source type - and therefore does not identify the
  * item. It is only half the condition: see [ThumbnailCell].
+ * @param overReadyPicture the screen's statement that the picture itself does not identify the item
+ * either, so the caption belongs on it. Audio cover art is the case it exists for (S3119): a cover
+ * tells the owner nothing about which file he is looking at, and a caption below it would leave audio
+ * rows misaligned against the audio files that never resolved a cover.
  */
 data class CellCaption(
     val maxLines: Int = 1,
-    val overGroupIcon: Boolean = false
+    val overGroupIcon: Boolean = false,
+    val overReadyPicture: Boolean = false
 )
+
+/**
+ * Where this cell's caption goes, decided from the layout rule and the picture actually in hand.
+ *
+ * Separate from the composable so the rule is readable without a composition: it is the one branch
+ * the two callers of [CellCaption] disagree about.
+ */
+internal fun CellCaption.overlaysPicture(thumbnail: WearThumbnail): Boolean =
+    if (thumbnail is WearThumbnail.Ready) overReadyPicture else overGroupIcon
 
 /**
  * One file cell, drawn identically by both watch file lists.
@@ -66,8 +80,9 @@ data class CellCaption(
  * on the modifier: the caller's modifier is applied outside this cell's own click handler, so the
  * inner handler wins the down and the outer detector never fires at all (S1953).
  *
- * **Where the caption goes (S2177).** Over the picture when [CellCaption.overGroupIcon] is set *and*
- * this cell is actually showing its fallback glyph; under it otherwise. Both halves are needed and
+ * **Where the caption goes (S2177, S3119).** Over the fallback glyph when [CellCaption.overGroupIcon]
+ * is set *and* this cell is actually showing that glyph; over a resolved picture when
+ * [CellCaption.overReadyPicture] is set; under it otherwise. The glyph halves are both needed and
  * neither is sufficient: a Home tile is permanently [WearThumbnail.Unavailable] yet its glyph differs
  * per section, and a channel cell that resolved its favicon is showing a picture of its own. This
  * composable is the only place that sees both facts, which is why the choice is made here.
@@ -90,7 +105,7 @@ fun ThumbnailCell(
     captionLayout: CellCaption = CellCaption(),
     fallback: @Composable (Modifier) -> Unit
 ) {
-    val captionOverIcon = captionLayout.overGroupIcon && thumbnail !is WearThumbnail.Ready
+    val captionOverPicture = captionLayout.overlaysPicture(thumbnail)
     Column(
         modifier = modifier
             .defaultMinSize(minWidth = CELL_MIN_TARGET, minHeight = CELL_MIN_TARGET)
@@ -108,7 +123,7 @@ fun ThumbnailCell(
         // Only the overlay needs to know the square's height, and BoxWithConstraints buys that with a
         // SubcomposeLayout. Charging every cell in a scrolling watch grid for a measurement half of
         // them never read is why the two cases are separate nodes rather than one parameterised node.
-        if (captionOverIcon) {
+        if (captionOverPicture) {
             BoxWithConstraints(modifier = square, contentAlignment = Alignment.Center) {
                 CellPicture(thumbnail = thumbnail, fallback = fallback)
                 CaptionOverlay(caption = caption, maxLines = linesFitting(maxHeight))
@@ -118,7 +133,7 @@ fun ThumbnailCell(
                 CellPicture(thumbnail = thumbnail, fallback = fallback)
             }
         }
-        if (!captionOverIcon) {
+        if (!captionOverPicture) {
             WearCaptionText(
                 text = caption,
                 maxLines = captionLayout.maxLines,

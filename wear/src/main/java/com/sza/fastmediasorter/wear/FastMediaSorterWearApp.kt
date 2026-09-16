@@ -4,7 +4,9 @@ import android.app.Application
 import android.util.Log
 import com.sza.fastmediasorter.wear.core.logging.WearLogTree
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
+import com.sza.fastmediasorter.wear.data.bodysensor.HeartRateSessionManager
 import com.sza.fastmediasorter.wear.data.power.WearPowerStateObserver
+import com.sza.fastmediasorter.wear.data.wear.WearForegroundWindowHolder
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
@@ -46,6 +48,18 @@ class FastMediaSorterWearApp : Application() {
     @Inject lateinit var powerStateObserver: WearPowerStateObserver
 
     /**
+     * S3110: not `Lazy`. Registering it is the whole cost, and it has to be in place before the first
+     * activity resumes, or the first screenshot request after a cold start finds no window.
+     */
+    @Inject lateinit var foregroundWindowHolder: WearForegroundWindowHolder
+
+    /**
+     * S3112: not `Lazy`. Registering it is the whole cost at process start - the manager touches no
+     * sensor and opens no database until the first activity is started.
+     */
+    @Inject lateinit var heartRateSessionManager: HeartRateSessionManager
+
+    /**
      * Outlives every screen by construction: the drain must finish even if the user closes the app
      * while it is running. Never cancelled - an Application has no end short of the process ending.
      */
@@ -65,6 +79,8 @@ class FastMediaSorterWearApp : Application() {
         }
 
         registerActivityLifecycleCallbacks(powerStateObserver)
+        registerActivityLifecycleCallbacks(foregroundWindowHolder)
+        registerActivityLifecycleCallbacks(heartRateSessionManager)
 
         // S1814: apply persisted app language on startup
         applicationScope.launch(Dispatchers.Main.immediate) {

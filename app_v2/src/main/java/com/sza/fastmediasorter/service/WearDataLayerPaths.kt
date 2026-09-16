@@ -71,6 +71,64 @@ object WearDataLayerPaths {
     /** Message, phone → watch. Answers one log report - accepted, or refused with a reason. */
     const val LOG_REPORT_ACK = "/fms/phone/log_report_ack"
 
+    /**
+     * Message, watch → phone. Carries the watch's own system-information report as flat text (S3108).
+     *
+     * Its own route rather than a shape inside [LOG_REPORT_REQUEST]: the phone names the stored file
+     * and its notification after what arrived, and a phone shipped before this route would have
+     * written a system report into the log set and called it a log.
+     */
+    const val SYSTEM_INFO_REPORT = "/fms/watch/system_info_report"
+
+    /** Message, phone → watch. Answers one system-information report - stored, or refused with a reason. */
+    const val SYSTEM_INFO_REPORT_ACK = "/fms/phone/system_info_report_ack"
+
+    /**
+     * Message, watch → phone. Carries the watch's own text clipboard (S3109).
+     *
+     * Under the `/fms/watch` prefix `src/wearGms/AndroidManifest.xml` already declares for
+     * PhoneWearListenerService, so it needs no filter of its own; a path named outside a declared
+     * prefix is dropped by GMS in silence (S1697), which makes the prefix the delivery contract.
+     */
+    const val CLIPBOARD_TEXT_FROM_WATCH = "/fms/watch/clipboard_text"
+
+    /** Message, phone → watch. Answers one watch clipboard - taken, or refused with a reason. */
+    const val CLIPBOARD_TEXT_FROM_WATCH_ACK = "/fms/phone/clipboard_text_ack"
+
+    /**
+     * Message, phone → watch. Carries this phone's text clipboard (S3109).
+     *
+     * The direction is decided by ADR-1 rather than by symmetry: since Android 10 only the foreground
+     * app may read its own clipboard, so the side whose clipboard is read is always the side that
+     * starts, and there is no route by which a watch could ask for this text.
+     *
+     * Under the `/fms/phone` prefix `wear/src/main/AndroidManifest.xml` already declares, so it needs
+     * no manifest edit on either side.
+     */
+    const val CLIPBOARD_TEXT_FROM_PHONE = "/fms/phone/clipboard_text"
+
+    /** Message, watch → phone. Answers one phone clipboard - taken, or refused with a reason. */
+    const val CLIPBOARD_TEXT_FROM_PHONE_ACK = "/fms/watch/clipboard_text_ack"
+
+    /**
+     * Message, phone → watch. Asks the watch for a picture of its own screen (S3110).
+     *
+     * The image never rides this route: a Data Layer message is capped at 100 KB, so the watch sends
+     * the PNG over [FILE_TRANSFER] and this path carries only the ask.
+     *
+     * Under the `/fms/phone` prefix `wear/src/main/AndroidManifest.xml` already declares, so it needs
+     * no manifest edit on either side.
+     */
+    const val SCREENSHOT_REQUEST = "/fms/phone/screenshot_request"
+
+    /**
+     * Message, watch → phone. Answers one screenshot request - captured, or refused with a reason.
+     *
+     * It carries the name of the file the watch sent, because the phone receives that file through the
+     * generic transfer route and has nothing else with which to tie an arrival to its own request.
+     */
+    const val SCREENSHOT_REQUEST_ACK = "/fms/watch/screenshot_request_ack"
+
     /** Message, phone → watch. Carries one stream channel description to store on the watch. */
     const val STREAM_TRANSFER = "/fms/phone/stream_transfer"
 

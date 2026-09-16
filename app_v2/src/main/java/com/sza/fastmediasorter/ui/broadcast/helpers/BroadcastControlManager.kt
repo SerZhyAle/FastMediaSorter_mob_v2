@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.broadcast.helpers
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.view.View
 import android.widget.Toast
@@ -15,6 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.google.zxing.WriterException
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.BroadcastMode
@@ -29,7 +29,6 @@ import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
-import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.Lazy
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +49,7 @@ class BroadcastControlManager @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val mediaCapabilities: MediaCapabilities,
     private val sendStreamToWatch: Lazy<SendStreamToWatchUseCase>,
+    private val settingsPanelManager: BroadcastSettingsPanelManager,
 ) {
     private var selectedMode: BroadcastMode = BroadcastMode.AUDIO_ONLY
     private var selectedLensId: String? = null
@@ -107,9 +107,11 @@ class BroadcastControlManager @Inject constructor(
             controller.start(selectedMode, selectedLensId)
         }
 
+        settingsPanelManager.bind(activity, binding.layoutBroadcastSettings)
         binding.btnBroadcastSettings.setOnClickListener {
-            val intent = Intent(activity, SettingsActivity::class.java)
-            activity.startActivity(intent)
+            val shown = binding.containerBroadcastSettings.visibility == View.VISIBLE
+            Timber.d("S3060: broadcast settings panel toggled on the broadcast screen")
+            binding.containerBroadcastSettings.visibility = if (shown) View.GONE else View.VISIBLE
         }
 
         updateLensSelectionVisibility(activity, binding)
@@ -132,7 +134,7 @@ class BroadcastControlManager @Inject constructor(
                     onLensSelected = { lensId -> selectedLensId = lensId }
                 )
                 lensChips.render(
-                    BroadcastEntryManager.LensUi(
+                    BroadcastEntryUi.LensUi(
                         options = choice.options,
                         selectedLensId = selectedLensId,
                         visible = choice.options.isNotEmpty()
@@ -340,19 +342,49 @@ class BroadcastControlManager @Inject constructor(
             is BroadcastState.Live -> {
                 binding.layoutPreStream.visibility = View.GONE
                 binding.layoutLiveControls.visibility = View.VISIBLE
+                hideSettingsPanel(binding)
                 renderModeControls(binding, state.descriptor.mode)
                 renderToggles(binding, state)
                 renderSendToWatch(binding, state)
                 previewBinder.attach(binding.previewContainer)
             }
-            is BroadcastState.Idle, is BroadcastState.Failed -> {
-                previewBinder.detach()
-                binding.layoutPreStream.visibility = View.VISIBLE
-                binding.layoutLiveControls.visibility = View.GONE
-                binding.previewContainer.visibility = View.GONE
-                binding.layoutSharePanel.visibility = View.GONE
+            is BroadcastState.Idle -> renderPreStream(binding)
+            is BroadcastState.Failed -> {
+                renderPreStream(binding)
+                showFailure(binding, state)
             }
         }
+    }
+
+    private fun renderPreStream(binding: ActivityBroadcastControlBinding) {
+        previewBinder.detach()
+        binding.layoutPreStream.visibility = View.VISIBLE
+        binding.layoutLiveControls.visibility = View.GONE
+        binding.previewContainer.visibility = View.GONE
+        binding.layoutSharePanel.visibility = View.GONE
+    }
+
+    /** Going live leaves no pre-stream block to configure, so the panel closes with it. */
+    private fun hideSettingsPanel(binding: ActivityBroadcastControlBinding) {
+        binding.containerBroadcastSettings.visibility = View.GONE
+    }
+
+    /**
+     * Every entry surface that starts a broadcast from this screen - tile, widget, panel, shortcut -
+     * used to return to the idle layout with no word of the failure, because only the main screen
+     * reported it (S3054).
+     */
+    private fun showFailure(
+        binding: ActivityBroadcastControlBinding,
+        state: BroadcastState.Failed,
+    ) {
+        Timber.d("S3054: broadcast failure surfaced on the control screen")
+        Timber.w("Broadcast failed: %s (%s)", state.failure, state.detail)
+        val message = binding.root.context.getString(BroadcastFailureMessage.resFor(state.failure))
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+        // The state is static and its service is already gone, so nothing else retires it - without this
+        // a rotation would replay the same message and the next start would begin from a failed state.
+        controller.acknowledgeFailure()
     }
 
     private fun renderSendToWatch(

@@ -27,6 +27,7 @@
     <string name="dialog_player_exit_pending_queue_title">Operações em segundo plano ainda estão em execução</string>
     <plurals name="dialog_player_exit_pending_queue_message">
         <item quantity="one">%1$d operação de arquivo ainda está sendo concluída. Fique aqui para deixá-la terminar, ou saia agora.</item>
+        <item quantity="many">%1$d de operações de arquivo ainda estão sendo concluídas. Fique aqui para deixá-las terminar, ou saia agora.</item>
         <item quantity="other">%1$d operações de arquivo ainda estão sendo concluídas. Fique aqui para deixá-las terminar, ou saia agora.</item>
     </plurals>
     <string name="dialog_player_exit_pending_queue_leave">Sair mesmo assim</string>
@@ -1012,14 +1013,17 @@
     <string name="cursor_position">Linha %1$d, Col %2$d</string>
     <plurals name="added_n_resources">
         <item quantity="one">Recurso %1$d adicionado</item>
+        <item quantity="many">%1$d de recursos adicionados</item>
         <item quantity="other">Recursos %1$d adicionados</item>
     </plurals>
     <plurals name="updated_n_resources">
         <item quantity="one">Recurso %1$d atualizado</item>
+        <item quantity="many">%1$d de recursos atualizados</item>
         <item quantity="other">Recursos %1$d atualizados</item>
     </plurals>
     <plurals name="selected_n_files">
         <item quantity="one">Arquivo %1$d selecionado</item>
+        <item quantity="many">%1$d de arquivos selecionados</item>
         <item quantity="other">Arquivos %1$d selecionados</item>
     </plurals>
     <string name="resource_deleted">Recurso excluído</string>
@@ -1474,6 +1478,7 @@
     <string name="auth_sessions_delete_button_desc">Excluir autorização salva</string>
     <plurals name="auth_sessions_cookie_count">
         <item quantity="one">cookie %d</item>
+        <item quantity="many">%d de cookies</item>
         <item quantity="other">%d cookies</item>
     </plurals>
     <string name="webview_auth_save_button">Salvar autorização</string>
@@ -3549,7 +3554,7 @@
     <string name="tourist_tile_weather">Clima</string>
     <string name="tourist_tile_dew_point">Ponto de orvalho</string>
     <string name="tourist_action_reset_tile">Redefinir</string>
-    <string name="tourist_detail_speed">Máx.: %1$.1f km/h • Viagem: %2$.2f km</string>
+    <string name="tourist_detail_speed">Máx.: %1$.1f %2$s • Viagem: %3$.2f %4$s</string>
     <string name="tourist_detail_altitude">Altitude MSL / GPS</string>
     <string name="tourist_detail_coordinates">WGS84 • Lat, Lon</string>
     <string name="tourist_detail_steps">Contador de passos da sessão</string>

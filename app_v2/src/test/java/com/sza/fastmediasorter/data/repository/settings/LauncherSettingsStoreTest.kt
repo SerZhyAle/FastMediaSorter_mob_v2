@@ -49,6 +49,9 @@ class LauncherSettingsStoreTest {
         // itself reads would compare it with itself and pin nothing.
         assertEquals(0.25f, values.widgetBackdropAlpha, 0.0f)
         assertEquals(AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM, values.taskbarPlacement)
+        // S3131: one row is the pre-ticket bar, pinned as a literal so a later default move is a
+        // deliberate edit here rather than a constant compared with itself.
+        assertEquals(1, values.taskbarRows)
         assertEquals(AppSettings.LAUNCHER_WALLPAPER_BRANDED, values.wallpaperMode)
         // S2213: no saved place yet is the state a fresh install is in, and the branch a device pass is
         // least likely to reach - the tester has picked a city before he thinks to test this.
@@ -67,6 +70,19 @@ class LauncherSettingsStoreTest {
         LauncherSettingsStore.write(prefs, AppSettings(launcher = LauncherSettings(widgetBackdropAlpha = 0.02f)))
 
         assertEquals(0.0f, LauncherSettingsStore.read(prefs).widgetBackdropAlpha, 0.0f)
+    }
+
+    /**
+     * S3131: the settings row offers 1..3, so a stored value outside that range must resolve to one the
+     * row can select - otherwise the bar and the row it is configured by disagree (the S2320 lesson).
+     */
+    @Test
+    fun `a stored taskbar row count above the range reads back as the maximum`() {
+        val prefs = mutablePreferencesOf()
+
+        LauncherSettingsStore.write(prefs, AppSettings(launcher = LauncherSettings(taskbarRows = 9)))
+
+        assertEquals(AppSettings.MAX_LAUNCHER_TASKBAR_ROWS, LauncherSettingsStore.read(prefs).taskbarRows)
     }
 
     @Test

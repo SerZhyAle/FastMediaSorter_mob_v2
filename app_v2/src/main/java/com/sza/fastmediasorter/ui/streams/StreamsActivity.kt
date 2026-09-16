@@ -213,7 +213,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             ?.let { payload -> viewModel.onImportBroadcastDescriptor(payload) }
     }
 
-    // A descriptor file carries no registered MIME type, so the picker has to accept any document.
+    // S3052 registers application/vnd.fms.bcast+json, but a provider that never saw the file created
+    // still reports .fmsbcast as octet-stream, so the picker keeps accepting any document.
     private val broadcastDescriptorPickerLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
     ) { uri ->

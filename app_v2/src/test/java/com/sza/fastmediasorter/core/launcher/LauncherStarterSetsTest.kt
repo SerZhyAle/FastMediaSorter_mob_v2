@@ -177,9 +177,11 @@ class LauncherStarterSetsTest {
         assertFalse("act:${LauncherActionCatalog.KEY_CREATE_RESOURCE}" in actions)
         assertTrue("widgets header must come first", widgetsHeaderIndex < actionsHeaderIndex)
         // S2749: minus the routes the utility section owns, which this grid no longer repeats.
+        // S3162: plus the streams cell, which S1736 kept out of the registry and commonFeatures seeds
+        // ahead of it, so the run is one longer than the catalogue it is built from.
         val actionsStart = actionsHeaderIndex +
             SubProgramCatalog.forSurface(SubProgramSurface.LAUNCHER_SHORTCUT).size -
-            utilityRouteTargets.size + 1
+            utilityRouteTargets.size + STREAMS_CELLS_IN_APP_FUNCTIONS + 1
         assertEquals(actions, targets.subList(actionsStart, actionsStart + actions.size))
     }
 
@@ -323,6 +325,10 @@ class LauncherStarterSetsTest {
                 "res:1:BROWSE", "res:2:BROWSE", "res:3:BROWSE",
                 "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
                 "sec:app_functions",
+                // S3162: S1736 kept streams out of SubProgramCatalog as a part of the main application,
+                // so commonFeatures seeds it ahead of the registry run and a list built from the
+                // catalogue alone cannot describe this section.
+                "fn:streams",
             ) +
                 SubProgramCatalog
                     .forSurface(SubProgramSurface.LAUNCHER_SHORTCUT)
@@ -451,6 +457,8 @@ class LauncherStarterSetsTest {
                 "sec:widgets", "playlist:7", "streams", "audio_now_playing", "media_audio_window:7",
                 "sec:resources", "res:7:BROWSE",
                 "sec:app_functions",
+                // S3162: the launchable streams route is the one App Functions cell this fixture earns.
+                "fn:streams",
             ) +
                 actionTargets(DeviceProfileType.AUDIO_PLAYER) +
                 commonTail +
@@ -512,8 +520,10 @@ class LauncherStarterSetsTest {
         ).filter { it.screenIndex == 0 }.map { it.target }.toSet()
 
         assertNotEquals(car, smartphone)
-        assertTrue("car needs speed", "speed" in car)
-        assertFalse("smartphone must not get speed", "speed" in smartphone)
+        // S3162: speed stopped separating the two with S2251, which made it a Utilities tile every
+        // profile gets on screen 1. The now-playing cell is what the head unit still earns alone here.
+        assertTrue("car needs now playing", "audio_now_playing" in car)
+        assertFalse("smartphone must not get now playing", "audio_now_playing" in smartphone)
     }
 
     @Test
@@ -521,10 +531,9 @@ class LauncherStarterSetsTest {
         val installed = setOf(LauncherStarterSets.PACKAGE_MAPS, FM_RADIO_PACKAGE)
         assertEquals(DeviceProfileType.entries.toSet(), profileGrid.keys)
         profileGrid.forEach { (profile, expected) ->
-            val targets = LauncherStarterSets
+            val seeded = LauncherStarterSets
                 .itemsFor(profile, StarterResources(), allPaddingLaunchable, installed, screenClass = mediumWide)
-                .filter { it.screenIndex == 0 }
-                .map { it.target }.toSet()
+            val targets = seeded.filter { it.screenIndex == 0 }.map { it.target }.toSet()
             assertEquals("$profile weather", profile != DeviceProfileType.AUDIO_PLAYER, "weather" in targets)
             // S2735: Wi-Fi and Bluetooth stopped being grid rows - the settings section reaches every
             // profile, so the question is no longer which profiles get them but that neither is seeded
@@ -538,7 +547,11 @@ class LauncherStarterSetsTest {
             assertEquals("$profile compass", expected.locationTiles, "compass" in targets)
             assertFalse("$profile altitude", "altitude" in targets)
             assertFalse("$profile satellites", "satellites" in targets)
-            assertEquals("$profile speed", profile == DeviceProfileType.CAR_HEAD_UNIT, "speed" in targets)
+            // S3162: speed stopped being a car-only row with S2251, which moved it into the Utilities
+            // section every profile carries on screen 1 - so the row now reads as a placement, not as a
+            // membership. It was a screen-0 read against the pre-S2251 grid until this ticket.
+            assertFalse("$profile speed on screen 0", "speed" in targets)
+            assertEquals("$profile speed", 1, seeded.count { it.target == "speed" })
             assertEquals("$profile maps", expected.maps, "app:${LauncherStarterSets.PACKAGE_MAPS}" in targets)
             assertEquals("$profile FM radio", expected.fmRadio, "app:$FM_RADIO_PACKAGE" in targets)
             assertTrue("$profile all apps", "act:all_apps" in targets)
@@ -1379,6 +1392,9 @@ class LauncherStarterSetsTest {
 
         /** BUDGET_GADGETS scaled by the compact size adjustment - 6 at 60 percent. */
         const val COMPACT_GADGET_BUDGET = 3
+
+        /** S3162: the one App Functions cell commonFeatures seeds from outside SubProgramCatalog. */
+        const val STREAMS_CELLS_IN_APP_FUNCTIONS = 1
 
         /** S2735: BUDGET_SYSTEM_SETTINGS unscaled - what the medium size adjustment leaves. */
         const val SYSTEM_SETTINGS_BUDGET_MEDIUM = 8

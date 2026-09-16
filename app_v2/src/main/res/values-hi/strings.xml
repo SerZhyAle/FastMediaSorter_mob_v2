@@ -3546,7 +3546,7 @@
     <string name="tourist_tile_weather">मौसम</string>
     <string name="tourist_tile_dew_point">ओस बिंदु</string>
     <string name="tourist_action_reset_tile">रीसेट</string>
-    <string name="tourist_detail_speed">अधिकतम: %1$.1f km/h • ट्रिप: %2$.2f km</string>
+    <string name="tourist_detail_speed">अधिकतम: %1$.1f %2$s • ट्रिप: %3$.2f %4$s</string>
     <string name="tourist_detail_altitude">MSL / GPS ऊंचाई</string>
     <string name="tourist_detail_coordinates">WGS84 • Lat, Lon</string>
     <string name="tourist_detail_steps">सत्र कदम काउंटर</string>

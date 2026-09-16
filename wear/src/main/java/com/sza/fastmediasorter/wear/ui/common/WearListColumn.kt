@@ -149,6 +149,7 @@ private fun WearListPositionMemory(
         val saved = store.peek(positionKey) ?: return@LaunchedEffect
         snapshotFlow { state.layoutInfo.totalItemsCount }.first { it > saved.index }
         state.scrollToItem(saved.index, saved.offset)
+        Timber.d("S3106: wear list '$positionKey' restored to index=${saved.index}")
         settled.value = true
     }
 
@@ -158,6 +159,7 @@ private fun WearListPositionMemory(
             val offset = state.centerItemScrollOffset
             if (settled.value && state.layoutInfo.totalItemsCount > 0) {
                 store.save(positionKey, index, offset)
+                Timber.d("S3106: wear list '$positionKey' saved index=$index")
             }
         }
     }

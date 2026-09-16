@@ -3550,7 +3550,7 @@
     <string name="tourist_tile_weather">موسم</string>
     <string name="tourist_tile_dew_point">شبنم نقطہ</string>
     <string name="tourist_action_reset_tile">ریسیٹ</string>
-    <string name="tourist_detail_speed">زیادہ سے زیادہ: %1$.1f km/h • سفر: %2$.2f km</string>
+    <string name="tourist_detail_speed">زیادہ سے زیادہ: %1$.1f %2$s • سفر: %3$.2f %4$s</string>
     <string name="tourist_detail_altitude">MSL / GPS بلندی</string>
     <string name="tourist_detail_coordinates">WGS84 • Lat, Lon</string>
     <string name="tourist_detail_steps">سیشن کا قدموں کا شمار</string>

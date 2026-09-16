@@ -25,13 +25,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.CastConnected
 import androidx.compose.material.icons.filled.CropFree
-import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
@@ -58,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -86,20 +85,23 @@ import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
-import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearIsCompactScreen
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.player.common.PRIMARY_ROW_COLUMNS
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastMessage
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
-import com.sza.fastmediasorter.wear.ui.player.common.PlayerDimOverlay
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogVisibilities
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogsHost
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerOverflowMenu
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerProgressRing
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
+import com.sza.fastmediasorter.wear.ui.player.common.closingWith
 import com.sza.fastmediasorter.wear.ui.player.common.playerMenuAction
 import com.sza.fastmediasorter.wear.ui.player.common.playerPrimaryRowColumns
+import com.sza.fastmediasorter.wear.ui.player.common.rememberPlayerFileActionEntries
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
 import timber.log.Timber
@@ -129,11 +131,43 @@ private data class VideoPlayerActions(
     val onPanDelta: (Float, Float) -> Unit,
     val onToggleFavorite: () -> Unit,
     val onTogglePin: () -> Unit,
-    val onToggleDimmed: () -> Unit,
-    val onFileOperations: () -> Unit,
+    /** S3118: the file operations as menu entries, built from the file capability policy's set. */
+    val fileActions: List<WearAction>,
     val onToggleCast: () -> Unit,
     /** The phone.s reported session, which decides only the wording of the one cast entry (S2531). */
     val isCasting: Boolean
+)
+
+/** Every command the panel and the menu can issue, bound to the one view model behind them. */
+private fun videoPlayerActions(
+    viewModel: VideoPlayerViewModel,
+    onBack: () -> Unit,
+    fileActions: List<WearAction>,
+    isCasting: Boolean
+): VideoPlayerActions = VideoPlayerActions(
+    onBack = onBack,
+    onScreenTap = viewModel::onScreenTap,
+    onPlayPause = viewModel::togglePlayPause,
+    onSkipNext = viewModel::skipToNext,
+    onSkipPrevious = viewModel::skipToPrevious,
+    seek = PlayerSeekActions(
+        onSeekTo = viewModel::seekTo,
+        onSeekBackward = viewModel::seekBackward,
+        onSeekForward = viewModel::seekForward
+    ),
+    onRotaryStep = { step ->
+        // S2140: the bezel now matches audio's volume binding (S1701) instead of seeking - seeking
+        // moved to a long press on the previous/next buttons.
+        viewModel.onVolumeStep(up = step > 0)
+    },
+    onToggleScaleMode = viewModel::toggleScaleMode,
+    onTogglePlaybackMode = viewModel::togglePlaybackMode,
+    onPanDelta = viewModel::onPanDelta,
+    onToggleFavorite = viewModel::toggleFavorite,
+    onTogglePin = viewModel::togglePin,
+    fileActions = fileActions,
+    onToggleCast = viewModel::toggleCast,
+    isCasting = isCasting
 )
 
 /**
@@ -149,9 +183,26 @@ fun VideoPlayerScreen(
     val castState by viewModel.castManager.castState.collectAsStateWithLifecycle()
     val isCasting = castState.isCasting
 
+    // S3118: this player draws the file operations as entries of its own menu, so the file-action
+    // dialog never opens here and the flag only ever reads false. It is still passed to the shared
+    // host, which owns the rename, delete and receiver dialogs the entries do open.
     var showActions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showReceivers by remember { mutableStateOf(false) }
+
+    val dialogVisibilities = PlayerDialogVisibilities(
+        showActions = showActions,
+        showDeleteConfirm = showDeleteConfirm,
+        showReceivers = showReceivers,
+        onActionsVisibilityChange = { showActions = it },
+        onDeleteVisibilityChange = { showDeleteConfirm = it },
+        onReceiversVisibilityChange = { showReceivers = it }
+    )
+    val fileActions = rememberPlayerFileActionEntries(
+        operations = viewModel.fileOperations,
+        visibilities = dialogVisibilities,
+        currentFileName = uiState.mediaFile?.name
+    )
 
     LaunchedEffect(uiState.closeScreen) {
         if (uiState.closeScreen) {
@@ -165,14 +216,8 @@ fun VideoPlayerScreen(
         viewModel.onHostStopped()
     }
 
-    // S2815: the watch must not sleep while the sheet is down - the host's ON_STOP pause above would
-    // stop the very stream the mode exists to keep playing.
-    KeepScreenOnEffect(enabled = uiState.holdsDisplay)
-
     WearScreenScaffold(
-        // The clock is drawn by the scaffold above the content, so the sheet cannot cover it - it has
-        // to be withheld, or the dark screen keeps a lit element on it.
-        showTimeText = uiState.showControls && !uiState.isDimmed,
+        showTimeText = uiState.showControls,
         contentPadding = PaddingValues(0.dp)
     ) {
         when {
@@ -191,30 +236,10 @@ fun VideoPlayerScreen(
                 VideoPlayerContent(
                     uiState = uiState,
                     player = viewModel.getPlayer(),
-                    actions = VideoPlayerActions(
+                    actions = videoPlayerActions(
+                        viewModel = viewModel,
                         onBack = onBack,
-                        onScreenTap = viewModel::onScreenTap,
-                        onPlayPause = viewModel::togglePlayPause,
-                        onSkipNext = viewModel::skipToNext,
-                        onSkipPrevious = viewModel::skipToPrevious,
-                        seek = PlayerSeekActions(
-                            onSeekTo = viewModel::seekTo,
-                            onSeekBackward = viewModel::seekBackward,
-                            onSeekForward = viewModel::seekForward
-                        ),
-                        onRotaryStep = { step ->
-                            // S2140: the bezel now matches audio's volume binding (S1701) instead of
-                            // seeking - seeking moved to a long press on the previous/next buttons.
-                            viewModel.onVolumeStep(up = step > 0)
-                        },
-                        onToggleScaleMode = viewModel::toggleScaleMode,
-                        onTogglePlaybackMode = viewModel::togglePlaybackMode,
-                        onPanDelta = viewModel::onPanDelta,
-                        onToggleFavorite = viewModel::toggleFavorite,
-                        onTogglePin = viewModel::togglePin,
-                        onToggleDimmed = viewModel::toggleDimmed,
-                        onFileOperations = { showActions = true },
-                        onToggleCast = viewModel::toggleCast,
+                        fileActions = fileActions,
                         isCasting = isCasting
                     )
                 )
@@ -222,20 +247,13 @@ fun VideoPlayerScreen(
         }
     }
 
-    com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogsHost(
+    PlayerDialogsHost(
         operations = viewModel.fileOperations,
-        visibilities = com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogVisibilities(
-            showActions = showActions,
-            showDeleteConfirm = showDeleteConfirm,
-            showReceivers = showReceivers,
-            onActionsVisibilityChange = { showActions = it },
-            onDeleteVisibilityChange = { showDeleteConfirm = it },
-            onReceiversVisibilityChange = { showReceivers = it }
-        ),
+        visibilities = dialogVisibilities,
         currentFileName = uiState.mediaFile?.name
     )
 
-    com.sza.fastmediasorter.wear.ui.player.common.PlayerCastMessage(viewModel.castManager)
+    PlayerCastMessage(viewModel.castManager)
 }
 
 @Composable
@@ -376,19 +394,14 @@ private fun VideoPlayerContent(
             )
         }
 
-        if (!uiState.isDimmed) {
-            VideoControlsOverlay(
-                uiState = uiState,
-                actions = actions,
-                onOpenMenu = { showMenu = true }
-            )
-        }
-
-        // Last child of the box on purpose: it has to cover the video surface and swallow the tap that
-        // would otherwise reach the surface below and summon the control panel.
-        if (uiState.isDimmed) {
-            PlayerDimOverlay(onExit = actions.onToggleDimmed)
-        }
+        VideoControlsOverlay(
+            uiState = uiState,
+            actions = actions,
+            onOpenMenu = {
+                Timber.d("S3118: video menu opened")
+                showMenu = true
+            }
+        )
     }
 
     if (showMenu) {
@@ -637,12 +650,22 @@ private fun BoxScope.VideoControlsOverlay(
     }
 }
 
+/** The glyph that states which scale mode is in force, shared by the panel button and the menu. */
+private fun scaleModeIcon(scaleMode: VideoScaleMode): ImageVector =
+    if (scaleMode == VideoScaleMode.CROP_PAN) Icons.Filled.AspectRatio else Icons.Filled.CropFree
+
 /**
- * Everything the video panel's rows shed, in one list.
+ * Everything the video panel's rows shed, plus the file operations, in one list.
  *
- * S2766: the same menu the audio player opens, plus the scale mode, which exists only here. The file
- * operations stay their own entry opening the existing dialog rather than being merged into it - that
- * dialog answers what the file capability policy allows (ADR-4) and nothing else belongs in it.
+ * S2766: the same menu the audio player opens, plus the scale mode, which exists only here.
+ *
+ * S3118: a command the panel draws as a button in the view in force is left out here - offering it
+ * twice makes the menu the second answer to a question the row already answers - so the playback
+ * mode and the scale mode appear only under STORE, where neither has a cell. The file operations are
+ * appended rather than hidden behind an entry opening their own dialog, so one opening reaches a
+ * rename; they are still the capability policy's set, read through the shared builder. Screen-off is
+ * gone from the video player altogether: dimming the glass during a video hides the one thing the
+ * screen is open for. It stays in the audio players, which is where it means something.
  */
 @Composable
 private fun videoMenuActions(
@@ -673,29 +696,25 @@ private fun videoMenuActions(
         if (uiState.isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
     )
     val scaleLabel = stringResource(R.string.wear_scale_mode)
-    val screenOffLabel = stringResource(R.string.wear_screen_off)
-    val fileActionsLabel = stringResource(R.string.wear_player_file_actions)
     // S2531: the wording carries the state, not a colour - strategic 3.2 accessibility.
     val castLabel = stringResource(
         if (actions.isCasting) R.string.wear_cast_stop else R.string.wear_cast_send
     )
     val castIcon = if (actions.isCasting) Icons.Filled.CastConnected else Icons.Filled.Cast
-    val scaleIcon = if (uiState.scaleMode == VideoScaleMode.CROP_PAN) {
-        Icons.Filled.AspectRatio
-    } else {
-        Icons.Filled.CropFree
-    }
     val showFavorite = wearIsCompactScreen()
+    val onPanel = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
 
     return buildList {
-        add(
-            playerMenuAction(
-                playbackModeLabel,
-                playbackModeIcon,
-                onDismiss,
-                actions.onTogglePlaybackMode
+        if (!onPanel) {
+            add(
+                playerMenuAction(
+                    playbackModeLabel,
+                    playbackModeIcon,
+                    onDismiss,
+                    actions.onTogglePlaybackMode
+                )
             )
-        )
+        }
         if (showFavorite) {
             val icon = if (uiState.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
             add(playerMenuAction(favoriteLabel, icon, onDismiss, actions.onToggleFavorite))
@@ -704,26 +723,20 @@ private fun videoMenuActions(
             val icon = if (uiState.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin
             add(playerMenuAction(pinLabel, icon, onDismiss, actions.onTogglePin))
         }
-        add(playerMenuAction(scaleLabel, scaleIcon, onDismiss, actions.onToggleScaleMode))
-        add(playerMenuAction(castLabel, castIcon, onDismiss, actions.onToggleCast))
-        add(
-            playerMenuAction(
-                screenOffLabel,
-                Icons.Filled.DarkMode,
-                onDismiss,
-                actions.onToggleDimmed
-            )
-        )
-        if (!uiState.isStream) {
+        if (!onPanel) {
             add(
                 playerMenuAction(
-                    fileActionsLabel,
-                    Icons.AutoMirrored.Filled.List,
+                    scaleLabel,
+                    scaleModeIcon(uiState.scaleMode),
                     onDismiss,
-                    actions.onFileOperations
+                    actions.onToggleScaleMode
                 )
             )
         }
+        add(playerMenuAction(castLabel, castIcon, onDismiss, actions.onToggleCast))
+        // Last, and last for the same reason the file-action dialog puts them last: delete closes
+        // the list, and the outer rows of a round screen are the easiest to reach by accident.
+        addAll(actions.fileActions.map { entry -> entry.closingWith(onDismiss) })
     }
 }
 
@@ -731,9 +744,11 @@ private fun videoMenuActions(
  * S2766: back, the favourite where a third slot exists, and the menu button - the same two-or-three
  * composition the audio player draws. The scale mode and the stream pin left this row for the menu.
  *
- * S2803: the ORIGINAL view restores pin for a stream or file operations for a file. S2531: the cast
- * entry lives in the overflow menu, so the restored row keeps a menu button where it held scale mode
- * - scale mode moved to the menu.
+ * S3118: the ORIGINAL view's third slot holds the scale mode. It held a second "more" button - file
+ * operations for a file, the pin for a stream - and two identical three-dot glyphs in one row gave
+ * the wearer no way to tell which list a tap would open. Both of those commands stay reachable as
+ * menu entries; the scale mode is the one this row can show as a state, because its glyph differs
+ * per mode.
  */
 @Composable
 private fun VideoControlsSecondaryRow(
@@ -742,9 +757,7 @@ private fun VideoControlsSecondaryRow(
     onOpenMenu: () -> Unit
 ) {
     val menuDesc = stringResource(R.string.wear_file_op_actions)
-    val pinDesc = stringResource(
-        if (uiState.isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
-    )
+    val scaleDesc = stringResource(R.string.wear_scale_mode)
     val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
 
     PlayerCommandGrid(columns = secondaryRowColumns()) { targetSize ->
@@ -764,22 +777,16 @@ private fun VideoControlsSecondaryRow(
         }
 
         if (restored) {
-            if (uiState.isStream) {
-                PlayerCommandButton(
-                    onClick = actions.onTogglePin,
-                    icon = if (uiState.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                    contentDescription = pinDesc,
-                    size = targetSize,
-                    checked = uiState.isPinned
-                )
-            } else {
-                PlayerCommandButton(
-                    onClick = actions.onFileOperations,
-                    icon = Icons.Default.MoreVert,
-                    contentDescription = menuDesc,
-                    size = targetSize
-                )
-            }
+            PlayerCommandButton(
+                onClick = {
+                    Timber.d("S3118: scale mode toggled from the command row")
+                    actions.onToggleScaleMode()
+                },
+                icon = scaleModeIcon(uiState.scaleMode),
+                contentDescription = scaleDesc,
+                size = targetSize,
+                checked = uiState.scaleMode == VideoScaleMode.CROP_PAN
+            )
         }
 
         PlayerCommandButton(

@@ -108,7 +108,7 @@ class ImportSettingsUseCase @Inject constructor(
             
             // S0406: read once, then dispatch by format. JSON → unified applier; XML → legacy parser.
             val importText = inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
-            val trimmedText = importText.trimStart('﻿', ' ', '\n', '\r', '\t', ' ')
+            val trimmedText = importText.trimStart('\uFEFF', ' ', '\n', '\r', '\t', ' ')
             if (trimmedText.startsWith("{")) {
                 return@withContext importFromJson(trimmedText)
             }

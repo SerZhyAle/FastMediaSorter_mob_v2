@@ -58,7 +58,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -190,6 +189,7 @@ class LauncherHomeViewModel @Inject constructor(
                 showPinned = it.launcherTaskbarShowPinned,
                 showTray = it.launcherTaskbarShowTray,
                 topStatusStripMode = it.launcherTopStatusStripMode && it.launcherReplaceSystemStatusArea,
+                rows = it.launcherTaskbarRows,
             )
         }
         .distinctUntilChanged()

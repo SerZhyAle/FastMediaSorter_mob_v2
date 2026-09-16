@@ -4,6 +4,8 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.HomeSection
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
+import com.sza.fastmediasorter.wear.domain.model.WearApp
+import com.sza.fastmediasorter.wear.domain.model.WearAppId
 
 /**
  * The home screen renders what this catalog returns; it never decides for itself which sections exist.
@@ -59,15 +61,7 @@ object HomeSectionCatalog {
                 labelRes = R.string.wear_section_apps
             )
         )
-        // S2509: the owner ruled the broadcast reachable by two equal paths, and this is the first of
-        // them. Unconditional, because strategic §3.2 forbids hiding this entrance behind the
-        // restricted-capability gate - the capability ships in both Wear flavors.
-        add(
-            HomeSection(
-                id = HomeSectionId.BROADCAST,
-                labelRes = R.string.wear_section_broadcast
-            )
-        )
+        add(lastUsedAppSection(visibility.lastUsedApp))
         // S2551: the opposite direction of the row above - the phone's camera watched here, rather
         // than this watch's microphone heard there. Unconditional for the same reason: both Wear
         // flavors carry it, and the phone half answers NOT_SUPPORTED where its own build cannot.
@@ -82,6 +76,31 @@ object HomeSectionCatalog {
                 id = HomeSectionId.FAVOURITES,
                 labelRes = R.string.wear_section_favourites
             )
+        )
+    }
+
+    /**
+     * S3116: the slot after Apps - the program opened last, or the broadcast entrance.
+     *
+     * S2509 made this slot the first of the broadcast's two equal paths, and it stays exactly that
+     * until a program has been opened, and again whenever the broadcast itself was the last one: the
+     * broadcast row is returned unchanged in both cases rather than dressed up as a recent program,
+     * so every entrance already pointed at it - the tile among them - keeps addressing the same row.
+     *
+     * Unconditional in either shape, because strategic §3.2 forbids hiding this entrance behind the
+     * restricted-capability gate - the capability ships in both Wear flavors.
+     */
+    private fun lastUsedAppSection(lastUsedApp: WearApp?): HomeSection {
+        if (lastUsedApp == null || lastUsedApp.id == WearAppId.BROADCAST) {
+            return HomeSection(
+                id = HomeSectionId.BROADCAST,
+                labelRes = R.string.wear_section_broadcast
+            )
+        }
+        return HomeSection(
+            id = HomeSectionId.LAST_USED_APP,
+            labelRes = lastUsedApp.labelRes,
+            appId = lastUsedApp.id
         )
     }
 

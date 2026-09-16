@@ -85,6 +85,7 @@
     <string name="settings_profile_title">Perfil do aparelho</string>
     <plurals name="settings_profile_warning_count">
         <item quantity="one">Mudar para este perfil substitui %1$d configuração pelo valor que o perfil define. Continuar?</item>
+        <item quantity="many">Mudar para este perfil substitui %1$d de configurações pelos valores que o perfil define. Continuar?</item>
         <item quantity="other">Mudar para este perfil substitui %1$d configurações pelos valores que o perfil define. Continuar?</item>
     </plurals>
     <string name="settings_all_files_create_resource">Criar a fonte \"Todos os arquivos\"</string>

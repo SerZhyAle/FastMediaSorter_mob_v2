@@ -5,12 +5,14 @@ import com.google.gson.GsonBuilder
 import com.sza.fastmediasorter.core.serialization.InstantTypeAdapter
 import com.sza.fastmediasorter.data.detector.RealDeviceProfileDetector
 import com.sza.fastmediasorter.data.game.GameStateRepositoryImpl
+import com.sza.fastmediasorter.data.local.ContentMediaAddressResolver
 import com.sza.fastmediasorter.data.repository.DischargeRateBatteryRuntimeEstimator
 import com.sza.fastmediasorter.data.repository.FavoritesRepositoryImpl
 import com.sza.fastmediasorter.data.repository.NetworkCredentialsRepositoryImpl
 import com.sza.fastmediasorter.data.repository.PlatformDeviceMemorySource
 import com.sza.fastmediasorter.data.repository.PlatformStorageVolumeSource
 import com.sza.fastmediasorter.data.repository.PlaybackPositionRepositoryImpl
+import com.sza.fastmediasorter.data.repository.RawSettingsRepositoryImpl
 import com.sza.fastmediasorter.data.repository.RealDeviceProfileRepository
 import com.sza.fastmediasorter.data.repository.ResourceRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ResumeStateRepositoryImpl
@@ -35,6 +37,7 @@ import com.sza.fastmediasorter.data.repository.wear.WearResourceTombstoneStore
 import com.sza.fastmediasorter.data.repository.wear.WearSettingsMirrorStore
 import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
 import com.sza.fastmediasorter.domain.game.GameStateRepository
+import com.sza.fastmediasorter.domain.port.MediaAddressResolver
 import com.sza.fastmediasorter.domain.repository.BatteryRuntimeEstimator
 import com.sza.fastmediasorter.domain.repository.DeviceMemoryRepository
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
@@ -42,6 +45,7 @@ import com.sza.fastmediasorter.domain.repository.FavoritesRepository
 import com.sza.fastmediasorter.domain.repository.MainListSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+import com.sza.fastmediasorter.domain.repository.RawSettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
@@ -133,6 +137,12 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
+    abstract fun bindRawSettingsRepository(
+        impl: RawSettingsRepositoryImpl
+    ): RawSettingsRepository
+
+    @Binds
+    @Singleton
     abstract fun bindStatisticsRepository(
         impl: StatisticsRepositoryImpl
     ): StatisticsRepository
@@ -178,6 +188,13 @@ abstract class RepositoryModule {
     abstract fun bindFavoritesRepository(
         impl: FavoritesRepositoryImpl
     ): FavoritesRepository
+
+    // S3161: the existence answer the watch-written favourite prune deletes by.
+    @Binds
+    @Singleton
+    abstract fun bindMediaAddressResolver(
+        impl: ContentMediaAddressResolver
+    ): MediaAddressResolver
 
     @Binds
     @Singleton

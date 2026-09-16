@@ -23,8 +23,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
+import timber.log.Timber
 
 private val INFORMATION_ROW_VERTICAL_PADDING = 2.dp
+
+/**
+ * What one information row's two gestures do, when either differs from the default.
+ *
+ * The two travel together rather than as two parameters: they are one decision - a row that owns a
+ * tap is exactly the row whose clipboard text is not the pair it displays - and the row already
+ * carries the number of parameters detekt allows.
+ *
+ * @param onClick what a tap does instead of copying. A row that declares one copies on long press.
+ * @param copyText what to put in the clipboard instead of the rendered "label: value", for a row
+ * whose visible value stands for content it does not itself show - a collapsed set showing its size.
+ */
+data class WearInformationRowGestures(
+    val onClick: (() -> Unit)? = null,
+    val copyText: String? = null
+)
 
 /**
  * A compact caption-value pair for watch-sized information screens.
@@ -34,12 +51,25 @@ private val INFORMATION_ROW_VERTICAL_PADDING = 2.dp
  * value cannot separate itself from the caption that explains it. One merged semantic node keeps
  * the pair meaningful to TalkBack as well.
  *
- * Long-press copies the value to the clipboard with haptic confirmation (S2775). On a watch the
- * haptic is the primary feedback: there is no Snackbar host and a toast would cover the report.
+ * Vertically the two columns share a first baseline rather than a centre (S3180): a device-provided
+ * value that wraps to three lines used to centre the caption against the whole block, leaving the
+ * value's first line above the caption and its last line below, so the row read as two unrelated
+ * blocks. The baseline also fits the single-line case better, because the caption is drawn in the
+ * smaller caption2 while the value is body2.
+ *
+ * Copying is what a plain value tile DOES (S3108): a tile with no click of its own copies on tap,
+ * because it is drawn as a pressable panel and used to answer a press with nothing at all. A tile
+ * that owns a click keeps it and copies on long press instead, so no element carries two meanings
+ * for the same gesture. Either way the haptic is the whole confirmation: there is no Snackbar host
+ * on a watch, and a toast would cover the report the user is reading (S2775).
+ *
+ * What lands in the clipboard is "label: value", not the bare value - the report is pasted into a
+ * message or a note, where a reading with no name attached says nothing.
  *
  * @param accentColor when non-null the value text is drawn in this colour instead of the theme
  * default, used by the system-information report to highlight anomalous health readings (S2775).
  * @param narrow when true, label and value are stacked vertically for 2-column tile cell placement (S3018).
+ * @param gestures what the row's tap and long press do, when either differs from the default.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -47,22 +77,25 @@ fun WearInformationRow(
     @StringRes labelRes: Int,
     value: String,
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
     accessibilitySuffix: String? = null,
     accentColor: Color? = null,
-    narrow: Boolean = false
+    narrow: Boolean = false,
+    gestures: WearInformationRowGestures = WearInformationRowGestures()
 ) {
     val label = stringResource(labelRes)
-    val description = listOfNotNull("$label: $value", accessibilitySuffix).joinToString(". ")
+    val pair = "$label: $value"
+    val description = listOfNotNull(pair, accessibilitySuffix).joinToString(". ")
     val clipboard = LocalClipboardManager.current
     val haptic = LocalHapticFeedback.current
 
+    val copy = {
+        Timber.d("S3108: information row copied to clipboard")
+        clipboard.setText(AnnotatedString(gestures.copyText ?: pair))
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
     val interactionModifier = modifier.combinedClickable(
-        onClick = onClick ?: {},
-        onLongClick = {
-            clipboard.setText(AnnotatedString(value))
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-        }
+        onClick = gestures.onClick ?: copy,
+        onLongClick = copy
     )
 
     val commonModifier = interactionModifier
@@ -91,22 +124,25 @@ fun WearInformationRow(
     } else {
         Row(
             modifier = commonModifier,
-            horizontalArrangement = Arrangement.spacedBy(INFORMATION_ROW_VERTICAL_PADDING),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.spacedBy(INFORMATION_ROW_VERTICAL_PADDING)
         ) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.caption2,
                 color = MaterialTheme.colors.onSurfaceVariant,
                 textAlign = TextAlign.End,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .alignByBaseline()
             )
             Text(
                 text = value,
                 style = MaterialTheme.typography.body2,
                 color = accentColor ?: Color.Unspecified,
                 textAlign = TextAlign.Start,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .alignByBaseline()
             )
         }
     }

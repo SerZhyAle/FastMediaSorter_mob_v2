@@ -78,12 +78,14 @@ import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.domain.model.displayName
+import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
 import com.sza.fastmediasorter.wear.ui.common.AnimationIntent
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearAction
+import com.sza.fastmediasorter.wear.ui.common.WearDimOverlay
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearBandEdgeOffset
@@ -96,7 +98,6 @@ import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogVisibilities
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogsHost
-import com.sza.fastmediasorter.wear.ui.player.common.PlayerDimOverlay
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerOverflowMenu
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerProgressRing
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
@@ -107,7 +108,7 @@ import com.sza.fastmediasorter.wear.ui.player.common.playerMenuCycleAction
 import com.sza.fastmediasorter.wear.ui.player.common.playerPrimaryRowColumns
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
-import timber.log.Timber
+import java.util.Locale
 
 /** Keeps white text readable over the animation, made 33% more visible per S1866. */
 private const val ANIMATION_SCRIM_ALPHA = 0.37f
@@ -128,6 +129,9 @@ private val PROGRESS_BAR_SPACING = 6.dp
 
 /** A fully rounded cap on a bar this thin reads as a track rather than as a rectangle. */
 private const val PROGRESS_BAR_CORNER_PERCENT = 50
+
+/** S3099: punctuation between the station's fields, so it needs no locale of its own. */
+private const val STATION_PART_SEPARATOR = " · "
 
 private const val DRAG_THRESHOLD_UP_PX = -10f
 private const val DRAG_THRESHOLD_DOWN_PX = 10f
@@ -194,7 +198,6 @@ fun AudioPlayerScreen(
 
     AudioPlayerLifecycleEffects(viewModel)
 
-
     var showActions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showReceivers by remember { mutableStateOf(false) }
@@ -250,7 +253,7 @@ fun AudioPlayerScreen(
             }
         }
         if (uiState.isDimmed) {
-            PlayerDimOverlay(onExit = viewModel::toggleDimmed)
+            WearDimOverlay(onExit = viewModel::toggleDimmed)
         }
     }
 
@@ -435,13 +438,22 @@ private fun ColumnScope.PlayerColumnContent(
     // more than the glass leaves them at 192 dp, and this row costs about 24. Below the breakpoint
     // the position moves onto the ring around the play button instead.
     if (!wearIsCompactScreen()) {
-        PlaybackTimeRow(
-            currentPosition = uiState.currentPositionFormatted,
-            duration = uiState.durationFormatted,
-            progress = uiState.progress,
-            durationMs = uiState.durationMs,
-            onSeekTo = actions.seek.onSeekTo
-        )
+        // S3099: a broadcast has no duration and nowhere to seek to, so the same row carries what the
+        // station says about itself instead of a bar that cannot move and a `0:00` that never changes.
+        if (uiState.isStream) {
+            StreamStationRow(
+                elapsed = uiState.currentPositionFormatted,
+                station = uiState.station
+            )
+        } else {
+            PlaybackTimeRow(
+                currentPosition = uiState.currentPositionFormatted,
+                duration = uiState.durationFormatted,
+                progress = uiState.progress,
+                durationMs = uiState.durationMs,
+                onSeekTo = actions.seek.onSeekTo
+            )
+        }
     }
 
     PlaybackControls(
@@ -461,6 +473,13 @@ private fun ColumnScope.PlayerColumnContent(
         horizontalPadding = paddings.commandRow,
         onOpenMenu = onOpenMenu
     )
+
+    if (playerShowsDimRow()) {
+        DisplayControls(
+            onToggleDimmed = actions.onToggleDimmed,
+            horizontalPadding = paddings.commandRow
+        )
+    }
 
     if (!uiState.isStream && uiState.positionText.isNotEmpty()) {
         Text(
@@ -535,14 +554,19 @@ private fun playerMenuActions(
             add(playerMenuAction(pinLabel, icon, onDismiss, actions.onTogglePin))
         }
         add(playerMenuAction(castLabel, castIcon, onDismiss, actions.onToggleCast))
-        add(
-            playerMenuAction(
-                screenOffLabel,
-                Icons.Filled.DarkMode,
-                onDismiss,
-                actions.onToggleDimmed
+        // S3097: the entry and the third row are alternatives, never both - a command reachable twice
+        // leaves the menu trip the owner asked to remove, and a command removed from the menu where no
+        // row is drawn is unreachable.
+        if (!playerShowsDimRow()) {
+            add(
+                playerMenuAction(
+                    screenOffLabel,
+                    Icons.Filled.DarkMode,
+                    onDismiss,
+                    actions.onToggleDimmed
+                )
             )
-        )
+        }
         if (!uiState.isStream) {
             add(
                 playerMenuAction(
@@ -680,6 +704,46 @@ private fun PlayerBackground(
             .fillMaxSize()
             .background(Color.Black.copy(alpha = scrimAlpha))
     )
+}
+
+/**
+ * S3099: the stream's own row - how long this station has been playing, and what it says it is.
+ *
+ * The station text is what gives way when the round glass runs out of width: the elapsed time is two
+ * or three glyphs of known width, the station line is arbitrary text from a third party.
+ */
+@Composable
+private fun StreamStationRow(
+    elapsed: String,
+    station: WearStationInfo?
+) {
+    val bitrateFormat = stringResource(R.string.wear_stream_station_bitrate)
+    val stationText = station
+        ?.textParts { kbps -> String.format(Locale.US, bitrateFormat, kbps) }
+        ?.joinToString(STATION_PART_SEPARATOR)
+        .orEmpty()
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(PROGRESS_BAR_SPACING),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = elapsed,
+            style = MaterialTheme.typography.caption3,
+            color = Color.Gray
+        )
+        if (stationText.isNotEmpty()) {
+            Text(
+                text = stationText,
+                style = MaterialTheme.typography.caption3,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
 }
 
 /**
@@ -961,6 +1025,41 @@ private fun SecondaryControls(
         )
     }
 }
+
+/**
+ * S3097: the third command row the owner asked for, and it carries one command - screen off, which
+ * was two taps deep in the overflow menu on a screen used on every track.
+ *
+ * It is a centred row rather than a one-cell [PlayerCommandGrid]: a grid divides the whole width
+ * among its cells, so a single cell would be the width of the glass, and [PlayerCommandButton] floors
+ * its height at its width - a full-width cell would be a row roughly a screen tall. The command
+ * therefore takes the standard target and the row centres it.
+ */
+@Composable
+private fun DisplayControls(onToggleDimmed: () -> Unit, horizontalPadding: Dp) {
+    val screenOffDesc = stringResource(R.string.wear_screen_off)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = horizontalPadding),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        PlayerCommandButton(
+            onClick = onToggleDimmed,
+            icon = Icons.Filled.DarkMode,
+            contentDescription = screenOffDesc
+        )
+    }
+}
+
+/**
+ * S3097 (ADR-1): the compact glass already gave up its time row to fit the column (S2766), so another
+ * 48 dp row there rebuilds the overflowing composition Google's review photographed. Below the
+ * breakpoint the command stays where it was, in the menu; above it the row replaces that entry.
+ */
+@Composable
+private fun playerShowsDimRow(): Boolean = !wearIsCompactScreen()
 
 @Composable
 private fun ErrorContent(message: String) {

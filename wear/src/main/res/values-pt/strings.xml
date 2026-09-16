@@ -95,7 +95,6 @@
     <string name="wear_previous_file">Ficheiro anterior</string>
     <string name="wear_next_file">Ficheiro seguinte</string>
     <string name="wear_screen_off">Ecrã desligado</string>
-    <string name="wear_screen_off_exit">Toque para ativar o ecrã</string>
     <string name="wear_seek_backward">Recuar 10 segundos</string>
     <string name="wear_seek_forward">Avançar 10 segundos</string>
     <string name="wear_video_continue">Continuar</string>
@@ -786,7 +785,6 @@
     <string name="wear_tourist_metric_sun">Sol</string>
     <string name="wear_tourist_action_reset_trip">Repor percurso</string>
     <string name="wear_tourist_action_reset_steps">Repor passos</string>
-    <string name="wear_tourist_permission_location">Permissão de localização necessária</string>
     <string name="wear_tourist_permission_grant">Conceder</string>
     <string name="wear_tourist_unit_mph">mph</string>
     <string name="wear_tourist_sunrise">Nascer do sol</string>
@@ -796,10 +794,6 @@
     <string name="wear_tourist_metric_heart_rate">Freq. cardíaca</string>
     <string name="wear_tourist_unit_bpm">bpm</string>
     <string name="wear_tourist_athlete_mode">Atleta</string>
-    <string name="wear_tourist_dashboard_mode">Painel</string>
     <string name="wear_tourist_lock_screen">Bloquear</string>
-    <string name="wear_tourist_unlock_screen">Desbloquear</string>
-    <string name="wear_tourist_hold_to_unlock">Manter para desbloquear</string>
-    <string name="wear_tourist_screen_locked">Ecrã bloqueado</string>
     <string name="wear_streams_filter_kind_own">Próprios</string>
 </resources>

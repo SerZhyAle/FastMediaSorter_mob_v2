@@ -145,7 +145,15 @@ internal object BackupSettingsGroupMapper {
         broadcastPort = settings.broadcastPort,
         broadcastSampleRateHz = settings.broadcastSampleRateHz,
         broadcastChannelCount = settings.broadcastChannelCount,
-        broadcastAutoOpenShare = settings.broadcastAutoOpenShare
+        broadcastAutoOpenShare = settings.broadcastAutoOpenShare,
+        enableBroadcasting = settings.enableBroadcasting,
+        broadcastCameraEnabled = settings.broadcastCameraEnabled,
+        broadcastMicrophoneEnabled = settings.broadcastMicrophoneEnabled,
+        broadcastMicGainPercent = settings.broadcastMicGainPercent,
+        broadcastVideoWidth = settings.broadcastVideoWidth,
+        broadcastVideoHeight = settings.broadcastVideoHeight,
+        broadcastVideoFps = settings.broadcastVideoFps,
+        broadcastVideoBitrateBps = settings.broadcastVideoBitrateBps
     )
 
     fun toAppearance(settings: AppSettings): BackupSettings.Appearance = BackupSettings.Appearance(
@@ -366,7 +374,15 @@ internal object BackupSettingsGroupMapper {
             broadcastPort = backup.broadcastPort ?: broadcastPort,
             broadcastSampleRateHz = backup.broadcastSampleRateHz ?: broadcastSampleRateHz,
             broadcastChannelCount = backup.broadcastChannelCount ?: broadcastChannelCount,
-            broadcastAutoOpenShare = backup.broadcastAutoOpenShare ?: broadcastAutoOpenShare
+            broadcastAutoOpenShare = backup.broadcastAutoOpenShare ?: broadcastAutoOpenShare,
+            enableBroadcasting = backup.enableBroadcasting ?: enableBroadcasting,
+            broadcastCameraEnabled = backup.broadcastCameraEnabled ?: broadcastCameraEnabled,
+            broadcastMicrophoneEnabled = backup.broadcastMicrophoneEnabled ?: broadcastMicrophoneEnabled,
+            broadcastMicGainPercent = backup.broadcastMicGainPercent ?: broadcastMicGainPercent,
+            broadcastVideoWidth = backup.broadcastVideoWidth ?: broadcastVideoWidth,
+            broadcastVideoHeight = backup.broadcastVideoHeight ?: broadcastVideoHeight,
+            broadcastVideoFps = backup.broadcastVideoFps ?: broadcastVideoFps,
+            broadcastVideoBitrateBps = backup.broadcastVideoBitrateBps ?: broadcastVideoBitrateBps
         )
     }
 

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.network
 
+import androidx.annotation.WorkerThread
 import com.hierynomus.smbj.SMBClient
 import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.auth.AuthenticationContext
@@ -243,6 +244,9 @@ class SmbConnectionManager @Inject constructor(
     }
 
     /** Execute block with a pooled SMB connection. Handles connection pooling, retry logic, and health tracking. S0195: trigger network lifecycle bootstrap on first SMB use. */
+    // S3156: the annotation declares to NetworkDataSourceDispatcherDetector that `block` runs on a
+    // background dispatcher, so smbj calls inside a caller's lambda are not reported as unconfined.
+    @WorkerThread
     suspend fun <T> withConnection(
         connectionInfo: SmbConnectionInfo,
         allowRetry: Boolean = true,

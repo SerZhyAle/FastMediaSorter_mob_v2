@@ -57,9 +57,11 @@ UTF-8 JSON: `schemaVersion` (1), `url` (required), `mode` (required: `AUDIO_ONLY
 - **Import file:** the plain JSON. Named `*.fmsbcast` and declared `application/vnd.fms.bcast+json` (shipped S3052). Read at most 64 KiB.
 - **Link:** "Send link" shares an Android `intent://` URI. The embedded target is
   `fmsbcast://import?payload=<url-encoded FMSBCAST1 payload>`; consumers may read that payload directly.
-  Its browser fallback opens the public import page when FastMediaSorter is absent. A bare stream URL of
-  section 1.1 also works.
-  A clickable link form is coming; its scheme is not decided.
+  Its browser fallback opens the public import page when FastMediaSorter is absent, and that page offers
+  installation plus an explicit app-open tap - never an automatic jump to `fmsbcast://`, which has no
+  fallback of its own. A bare stream URL of section 1.1 also works.
+  The `package=` hint names the sending build's application id; a consumer producing a link for the store
+  app writes `package=com.sza.fastmediasorter`.
 
 ### 1.4 Transport
 

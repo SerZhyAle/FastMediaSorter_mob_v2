@@ -203,6 +203,17 @@
       "note3": "Unmeasured, and the one risk left in this block: WaterFlashlightScreen shares this exit mechanism and was measured leaving TWO levels on one key (see its note3). If the stopwatch does the same, it lands on Home and the flashlight entry after it scores unreachable - read the tree before changing either number."
     },
     {
+      "id": "apps-clipboard",
+      "name": "Apps - Clipboard",
+      "label": "Clipboard",
+      "expect": "Send to phone",
+      "screen": "ClipboardScreen",
+      "expectRes": "wear_clipboard_send_action",
+      "backAfter": 1,
+      "note": "S3109. The marker is the send chip, not the title: this screen repeats its Apps chip label as its heading, so the title appears on the parent too and would match before the screen ever opened.",
+      "note2": "Inserted before the water flashlight rather than after it, so the entry that leaves the Apps list for Settings keeps the exit path it was measured with."
+    },
+    {
       "id": "apps-water-flashlight",
       "name": "Water flashlight",
       "label": "Water flashlight",

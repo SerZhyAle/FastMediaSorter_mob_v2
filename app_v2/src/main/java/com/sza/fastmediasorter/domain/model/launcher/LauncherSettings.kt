@@ -37,6 +37,11 @@ data class LauncherSettings(
     // because an update must not move an existing user's bar before the user asks for it (ADR-2);
     // the car head unit profile overrides it to the top edge through the preset CSV.
     val taskbarPlacement: String = AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
+    // S3131: how many rows tall the taskbar is drawn, within
+    // [AppSettings.MIN_LAUNCHER_TASKBAR_ROWS]..[AppSettings.MAX_LAUNCHER_TASKBAR_ROWS]. One row is the
+    // pre-S3131 bar, so an install that never touches the row keeps the layout it had. A taller bar
+    // buys recents capacity and stacks the tray rather than enlarging any icon.
+    val taskbarRows: Int = AppSettings.DEFAULT_LAUNCHER_TASKBAR_ROWS,
     val taskbarShowRecents: Boolean = true,
     val taskbarShowPinned: Boolean = true,
     val taskbarShowTray: Boolean = true,

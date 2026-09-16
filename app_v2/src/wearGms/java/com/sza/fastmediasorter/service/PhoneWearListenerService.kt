@@ -86,6 +86,12 @@ class PhoneWearListenerService : WearableListenerService() {
 
     @Inject lateinit var wearLogReportReceiver: WearLogReportReceiver
 
+    @Inject lateinit var wearSystemInfoReportReceiver: WearSystemInfoReportReceiver
+
+    @Inject lateinit var wearClipboardTextReceiver: WearClipboardTextReceiver
+
+    @Inject lateinit var wearScreenshotAckReceiver: WearScreenshotAckReceiver
+
     @Inject lateinit var openOnPhoneNotifier: OpenOnPhoneNotifier
 
     @Inject lateinit var receiveWatchFileUseCase: ReceiveWatchFileUseCase
@@ -130,8 +136,48 @@ class PhoneWearListenerService : WearableListenerService() {
                 wearCastRequestHandler.handle(event.sourceNodeId, event.data)
             WearDataLayerPaths.CAST_STOP ->
                 wearCastRequestHandler.handleStop(event.sourceNodeId, event.data)
+            else -> onWatchContentMessageReceived(event)
+        }
+    }
+
+    /**
+     * The routes on which the watch hands this phone something to keep - a log, a system report, a
+     * clipboard (S3109).
+     *
+     * Its own half rather than three more branches above, for the reason the transfer half already
+     * records: one `when` over every route passes detekt's complexity ceiling, and the ceiling is
+     * right because the list only ever grows. The split is by subject, so a fourth thing the watch
+     * hands over lands here rather than wherever there is room.
+     */
+    private fun onWatchContentMessageReceived(event: MessageEvent) {
+        when (event.path) {
             WearDataLayerPaths.LOG_REPORT_REQUEST ->
                 handleLogReport(event.sourceNodeId, event.data)
+            WearDataLayerPaths.SYSTEM_INFO_REPORT ->
+                handleSystemInfoReport(event.sourceNodeId, event.data)
+            // Launched inline rather than through a handler of its own: this class sits on detekt's
+            // function ceiling, and the receiver is what the branch would delegate to anyway.
+            WearDataLayerPaths.CLIPBOARD_TEXT_FROM_WATCH ->
+                applicationScope.launch {
+                    wearClipboardTextReceiver.handle(event.sourceNodeId, event.data)
+                }
+            WearDataLayerPaths.CLIPBOARD_TEXT_FROM_PHONE_ACK ->
+                applicationScope.launch { wearClipboardTextReceiver.publishAck(event.data) }
+            WearDataLayerPaths.SCREENSHOT_REQUEST_ACK ->
+                applicationScope.launch { wearScreenshotAckReceiver.publishAck(event.data) }
+            else -> onTransferMessageReceived(event)
+        }
+    }
+
+    /**
+     * The second half of the same dispatch - the file, stream and session routes.
+     *
+     * Split off because one `when` over every route this phone answers passes detekt's complexity
+     * ceiling, and the ceiling is right: the list only ever grows. The split is by subject, so a new
+     * route lands in the half it belongs to rather than wherever there is room.
+     */
+    private fun onTransferMessageReceived(event: MessageEvent) {
+        when (event.path) {
             WearDataLayerPaths.STREAM_TRANSFER_ACK -> handleStreamTransferAck(event.data)
             WearDataLayerPaths.FILE_TRANSFER_ACK -> handleFileTransferAck(event.data)
             WearDataLayerPaths.FILE_TRANSFER_META -> handleFileTransferMeta(event.data)
@@ -432,6 +478,12 @@ class PhoneWearListenerService : WearableListenerService() {
     private fun handleLogReport(nodeId: String, data: ByteArray) {
         applicationScope.launch {
             wearLogReportReceiver.handle(nodeId, data)
+        }
+    }
+
+    private fun handleSystemInfoReport(nodeId: String, data: ByteArray) {
+        applicationScope.launch {
+            wearSystemInfoReportReceiver.handle(nodeId, data)
         }
     }
 

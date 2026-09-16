@@ -1,10 +1,12 @@
 package com.sza.fastmediasorter.ui.launcher.helpers
 
 import android.view.View
+import android.widget.LinearLayout
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.LauncherTaskbarBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
@@ -31,8 +33,17 @@ class LauncherTaskbarManager(
             2 * getDimensionPixelSize(R.dimen.launcher_taskbar_item_spacing)
     }
 
+    /** S3131: the height of one taskbar row, and the unit the whole bar's height is a multiple of. */
+    private val rowHeight = binding.root.resources.getDimensionPixelSize(R.dimen.launcher_taskbar_height)
+
     /** Reported capacities are deduplicated here so a layout pass that changed nothing re-queries nothing. */
     private var reportedRecentsCapacity = 0
+
+    /**
+     * S3131: the row count the views currently carry. Zero until the first render, so the seeded
+     * composition still reaches [applyRows] once even though it holds the default row count.
+     */
+    private var appliedRows = 0
 
     private val recentsLayoutListener = View.OnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
         reportRecentsCapacity(view.width)
@@ -86,11 +97,10 @@ class LauncherTaskbarManager(
     ) {
         binding.btnStart.setOnClickListener { callbacks.onStartClick() }
         binding.btnAllApps.setOnClickListener { callbacks.onAllAppsClick() }
-        binding.taskbarRecents.layoutManager =
-            LinearLayoutManager(binding.root.context, LinearLayoutManager.HORIZONTAL, false)
+        // S3131: the layout managers are created by applyRows, so the row count has exactly one owner.
+        // Qualified, because the flow parameter of this function shadows the field it is collected into.
+        applyRows(this.composition.rows)
         binding.taskbarRecents.adapter = recentsAdapter
-        binding.taskbarPinned.layoutManager =
-            LinearLayoutManager(binding.root.context, LinearLayoutManager.HORIZONTAL, false)
         binding.taskbarPinned.adapter = pinnedAdapter
         binding.taskbarRecents.addOnLayoutChangeListener(recentsLayoutListener)
 
@@ -162,6 +172,7 @@ class LauncherTaskbarManager(
     }
 
     private fun render() {
+        applyRows(composition.rows)
         binding.taskbarRecents.isVisible = composition.showRecents && !editing
         binding.taskbarPinned.isVisible = composition.showPinned
         // S1431 ADR-5: the mode subordinates the tray rather than competing with it. The stored switch is
@@ -171,6 +182,35 @@ class LauncherTaskbarManager(
         // editing, one level below the container so it can hide without taking the clock with it.
         binding.trayIndicators.root.isVisible = composition.showTray && !composition.topStatusStripMode && !editing
     }
+
+    /**
+     * S3131: turns the row count into the three things that actually differ between a one-row bar and a
+     * taller one - the bar's own height, the number of tracks each icon strip fills, and whether the tray
+     * runs across or down.
+     *
+     * The height is assigned here rather than in the layout because both `launcher_taskbar.xml` and the
+     * `<include>` in `activity_launcher_home.xml` fix it statically, and the include's value is the one
+     * that survives inflation; a layout-only change would leave the setting looking dead (strategic §7).
+     */
+    private fun applyRows(rows: Int) {
+        if (rows == appliedRows) {
+            return
+        }
+        appliedRows = rows
+        Timber.d("S3131: taskbar applying $rows row(s), height ${rowHeight * rows}px")
+        binding.root.updateLayoutParams { height = rowHeight * rows }
+        binding.taskbarRecents.layoutManager = stripLayoutManager(rows)
+        binding.taskbarPinned.layoutManager = stripLayoutManager(rows)
+        // The tray is the one block whose children are laid out by the container itself, so stacking is
+        // an orientation flip rather than a track count (strategic §2.4).
+        binding.trayContainer.orientation =
+            if (rows > 1) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+        reportRecentsCapacity(binding.taskbarRecents.width)
+    }
+
+    /** A horizontal grid of [rows] tracks - at one row this is the single strip the bar always had. */
+    private fun stripLayoutManager(rows: Int) =
+        GridLayoutManager(binding.root.context, rows, GridLayoutManager.HORIZONTAL, false)
 
     /**
      * S1431 ADR-4: the recents list asks for as many entries as this row can actually show, so it grows when
@@ -183,7 +223,9 @@ class LauncherTaskbarManager(
         if (width <= 0 || recentsItemWidth <= 0) {
             return
         }
-        val capacity = width / recentsItemWidth
+        // S3131: every row holds a full strip's worth of icons, so the taller bar must ask the journal for
+        // that many more entries - otherwise the new rows stay blank (strategic §5.1).
+        val capacity = width / recentsItemWidth * appliedRows
         if (capacity == reportedRecentsCapacity) {
             return
         }
@@ -215,6 +257,11 @@ data class LauncherTaskbarComposition(
     val showTray: Boolean,
     /** S1431: while the top strip carries the indicators, the tray is hidden whatever [showTray] says. */
     val topStatusStripMode: Boolean = false,
+    /**
+     * S3131: how many rows tall the bar is drawn, already coerced into the settings range by the store.
+     * One row is the pre-S3131 bar, so a default composition renders exactly as it did before.
+     */
+    val rows: Int = 1,
 )
 
 private const val OPAQUE_ALPHA = 255

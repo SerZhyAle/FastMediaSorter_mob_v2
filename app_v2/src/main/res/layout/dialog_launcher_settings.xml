@@ -82,6 +82,18 @@
                     app:sdr_inline="true"
                     app:sdr_title="@string/launcher_settings_taskbar_placement_title" />
 
+                <!-- S3131: the bar's height in rows. Sits beside the placement row because both describe
+                     the bar itself rather than what it contains. -->
+                <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                    android:id="@+id/rowLauncherTaskbarRows"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                    app:sdr_inline="true"
+                    app:sdr_subtitle="@string/launcher_settings_taskbar_rows_subtitle"
+                    app:sdr_title="@string/launcher_settings_taskbar_rows_title" />
+
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowLauncherShowRecents"
                     android:layout_width="match_parent"

@@ -119,6 +119,7 @@ class BroadcastCaptureService : Service() {
             return
         }
         val url = server.getBroadcastUrl() ?: run {
+            Timber.d("S3054: rejecting broadcast without a reachable LAN IPv4 address")
             server.stop()
             _state.value = BroadcastState.Failed(
                 BroadcastFailure.NETWORK_UNAVAILABLE,

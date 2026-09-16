@@ -1,14 +1,18 @@
 package com.sza.fastmediasorter.ui.settings
 
+import android.content.ClipboardManager
 import android.content.Context
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
 import com.sza.fastmediasorter.domain.model.PairedWatchStatus
+import com.sza.fastmediasorter.domain.model.PhoneClipboardSendOutcome
 import com.sza.fastmediasorter.domain.model.UnitSystem
+import com.sza.fastmediasorter.domain.model.WatchScreenshotOutcome
 import com.sza.fastmediasorter.domain.model.WearFileTransferOutcome
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
@@ -131,6 +135,17 @@ sealed class SettingsPushEvent {
     data class Failed(val message: String) : SettingsPushEvent()
 }
 
+/**
+ * S3109: one line about the last companion action's outcome, as a resource plus its optional argument.
+ *
+ * Named after the clipboard push it was written for; S3110's screenshot ask reuses it rather than
+ * declaring an identical type, because both say one sentence about one round trip to the watch.
+ *
+ * A resource id rather than a resolved string, so the line follows a locale change like every other
+ * label on the screen; [arg] carries the watch's refusal reason for the one wording that names it.
+ */
+data class ClipboardSendOutcomeText(@StringRes val res: Int, val arg: String? = null)
+
 // Every parameter is a distinct collaborator this screen needs (sync legs, watch resource ops,
 // listening, settings mirror) - S2731 added settingsRepository for the one read-only unitSystem value.
 @Suppress("LongParameterList")
@@ -198,6 +213,23 @@ class WearSyncViewModel @Inject constructor(
 
     private val _watchPlaybackState = MutableStateFlow<WearPlaybackStatePayload?>(null)
     val watchPlaybackState: StateFlow<WearPlaybackStatePayload?> = _watchPlaybackState.asStateFlow()
+
+    // S3109: the clipboard push and its verdict. Two fields rather than one sealed state, because the
+    // outcome of the previous send stays readable while the next one is in flight - the row has no
+    // Snackbar host and the line under it is the only place an answer appears.
+    private val _clipboardSendInFlight = MutableStateFlow(false)
+    val clipboardSendInFlight: StateFlow<Boolean> = _clipboardSendInFlight.asStateFlow()
+
+    private val _clipboardSendOutcome = MutableStateFlow<ClipboardSendOutcomeText?>(null)
+    val clipboardSendOutcome: StateFlow<ClipboardSendOutcomeText?> = _clipboardSendOutcome.asStateFlow()
+
+    // S3110: the screenshot ask and its verdict, in the shape S3109 chose for the clipboard beside it.
+    private val _screenshotRequestInFlight = MutableStateFlow(false)
+    val screenshotRequestInFlight: StateFlow<Boolean> = _screenshotRequestInFlight.asStateFlow()
+
+    private val _screenshotRequestOutcome = MutableStateFlow<ClipboardSendOutcomeText?>(null)
+    val screenshotRequestOutcome: StateFlow<ClipboardSendOutcomeText?> =
+        _screenshotRequestOutcome.asStateFlow()
 
     // S2000: the chosen background is a field of the mirrored payload like every other watch
     // setting, but it is also read on its own by the group that offers the two options, so it is
@@ -736,6 +768,102 @@ class WearSyncViewModel @Inject constructor(
     /** The stop action on the card. */
     fun stopListening() {
         watchListenSessionManager.stop()
+    }
+
+    /**
+     * S3109: sends this phone's text clipboard to the paired watch.
+     *
+     * The clipboard is read here rather than inside the use case: ADR-1 makes the foreground app the
+     * only one allowed to read it since Android 10, and this view model is alive exactly while the
+     * companion screen is in front of the owner.
+     *
+     * Ignored while a send is in flight: a second tap would open a second round trip whose answer
+     * would overwrite the first one's for no gain.
+     */
+    fun sendClipboardToWatch() {
+        if (_clipboardSendInFlight.value) {
+            return
+        }
+        val text = readClipboard()
+        if (text.isBlank()) {
+            _clipboardSendOutcome.value = ClipboardSendOutcomeText(R.string.wear_clipboard_send_empty)
+            return
+        }
+        Timber.d("S3109: phone clipboard send to watch requested")
+        _clipboardSendInFlight.value = true
+        _clipboardSendOutcome.value = null
+        viewModelScope.launch {
+            val outcome = outbound.sendClipboardText(text)
+            Timber.i("Phone clipboard: %s", outcome::class.java.simpleName)
+            _clipboardSendInFlight.value = false
+            _clipboardSendOutcome.value = clipboardWording(outcome)
+        }
+    }
+
+    /**
+     * S3110: asks the paired watch for a picture of its own screen.
+     *
+     * Ignored while an ask is in flight, for the clipboard's reason: a second tap would open a second
+     * round trip whose answer would overwrite the first one's for no gain.
+     */
+    fun requestWatchScreenshot() {
+        if (_screenshotRequestInFlight.value) {
+            return
+        }
+        Timber.d("S3110: watch screenshot requested from the companion screen")
+        _screenshotRequestInFlight.value = true
+        _screenshotRequestOutcome.value = null
+        viewModelScope.launch {
+            val outcome = outbound.requestWatchScreenshot()
+            Timber.i("Watch screenshot: %s", outcome::class.java.simpleName)
+            _screenshotRequestInFlight.value = false
+            _screenshotRequestOutcome.value = screenshotWording(outcome)
+        }
+    }
+
+    private fun screenshotWording(outcome: WatchScreenshotOutcome): ClipboardSendOutcomeText =
+        when (outcome) {
+            is WatchScreenshotOutcome.Captured ->
+                ClipboardSendOutcomeText(R.string.wear_screenshot_captured)
+            is WatchScreenshotOutcome.NoConnectedWatch ->
+                ClipboardSendOutcomeText(R.string.wear_screenshot_no_watch)
+            is WatchScreenshotOutcome.WatchDidNotAnswer ->
+                ClipboardSendOutcomeText(R.string.wear_screenshot_no_answer)
+            is WatchScreenshotOutcome.WatchAppNotOpen ->
+                ClipboardSendOutcomeText(R.string.wear_screenshot_no_foreground)
+            is WatchScreenshotOutcome.WatchRefused ->
+                ClipboardSendOutcomeText(R.string.wear_screenshot_refused, outcome.reason)
+        }
+
+    private fun clipboardWording(outcome: PhoneClipboardSendOutcome): ClipboardSendOutcomeText =
+        when (outcome) {
+            is PhoneClipboardSendOutcome.Delivered ->
+                ClipboardSendOutcomeText(R.string.wear_clipboard_send_sent)
+            is PhoneClipboardSendOutcome.NothingToSend ->
+                ClipboardSendOutcomeText(R.string.wear_clipboard_send_empty)
+            is PhoneClipboardSendOutcome.NoConnectedWatch ->
+                ClipboardSendOutcomeText(R.string.wear_clipboard_send_no_watch)
+            is PhoneClipboardSendOutcome.WatchDidNotAnswer ->
+                ClipboardSendOutcomeText(R.string.wear_clipboard_send_no_answer)
+            is PhoneClipboardSendOutcome.WatchRefused ->
+                ClipboardSendOutcomeText(R.string.wear_clipboard_send_refused, outcome.reason)
+        }
+
+    private fun readClipboard(): String {
+        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return ""
+        return try {
+            clipboard.primaryClip
+                ?.takeIf { clip -> clip.itemCount > 0 }
+                ?.getItemAt(0)
+                ?.coerceToText(context)
+                ?.toString()
+                .orEmpty()
+        } catch (e: SecurityException) {
+            // Some builds refuse a clipboard read the app cannot influence; the owner is told there
+            // is nothing to send rather than shown a crash.
+            Timber.w(e, "Phone clipboard: the read was refused")
+            ""
+        }
     }
 
     // S1682: the watch reports two numbers, `added` and `updated`. Reading only `added` showed

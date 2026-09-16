@@ -1,42 +1,52 @@
 package com.sza.fastmediasorter.wear.ui.apps.tourist
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.core.util.WearUnitScale
 import com.sza.fastmediasorter.wear.domain.tourist.TouristMetricType
 import com.sza.fastmediasorter.wear.domain.tourist.WearTouristState
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
+import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
+import timber.log.Timber
 import java.util.Locale
 
-private val TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
 private val ACCENT_COLOR = Color(0xFF00BFA5.toInt())
 private val HR_COLOR = Color(0xFFFF5252.toInt())
 private val GPS_FIX_COLOR = Color(0xFF00E676.toInt())
 private val SUNSET_COLOR = Color(0xFFFF8A80.toInt())
-
-private const val KMH_TO_MPH = 0.621371f
-private const val METERS_TO_FEET = 3.28084
-private const val METERS_TO_MILES = 0.000621371
-private const val METERS_PER_KM = 1000.0
+private val LOCK_ICON_SIZE_SP = 14.sp
+private val COMPASS_HEADING_SIZE_SP = 20.sp
+private val NEEDLE_SIZE = 64.dp
+private val NEEDLE_NORTH_COLOR = Color(0xFFE53935.toInt())
+private val NEEDLE_SOUTH_COLOR = Color(0xFF9E9E9E.toInt())
+private const val NEEDLE_BASE_FRACTION = 0.22f
+private const val NEEDLE_PIVOT_FRACTION = 0.10f
 
 /**
  * S3007 / S3015: Hero card displaying the primary active telemetry metric in large focal typography.
@@ -45,8 +55,11 @@ private const val METERS_PER_KM = 1000.0
 fun TouristHeroCard(
     state: WearTouristState,
     isMetric: Boolean,
+    isScreenLocked: Boolean,
+    onLockScreen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val lockDescription = stringResource(R.string.wear_tourist_lock_screen)
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -55,6 +68,18 @@ fun TouristHeroCard(
             .padding(12.dp),
         contentAlignment = Alignment.Center,
     ) {
+        // The lock rides on the reading itself, so the panel the owner is watching carries its own
+        // control; while locked it disappears, since only a hardware key ends the lock.
+        if (!isScreenLocked) {
+            Text(
+                text = "🔒",
+                fontSize = LOCK_ICON_SIZE_SP,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .clickable(onClick = onLockScreen)
+                    .semantics { contentDescription = lockDescription },
+            )
+        }
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -69,6 +94,7 @@ fun TouristHeroCard(
                 TouristMetricType.TRIP_DISTANCE -> HeroTripDistanceView(state, isMetric)
                 TouristMetricType.SUN_TIME -> HeroSunTimeView(state)
                 TouristMetricType.HEART_RATE -> HeroHeartRateView(state)
+                TouristMetricType.BODY_TEMPERATURE -> HeroBodyTemperatureView(state)
             }
         }
     }
@@ -87,7 +113,7 @@ private fun HeroSpeedView(state: WearTouristState, isMetric: Boolean) {
             Pair(String.format(Locale.US, "%.1f", rawSpeed), stringResource(R.string.wear_tourist_unit_kmh))
         } else {
             Pair(
-                String.format(Locale.US, "%.1f", rawSpeed * KMH_TO_MPH),
+                String.format(Locale.US, "%.1f", WearUnitScale.kmhToMph(rawSpeed.toDouble())),
                 stringResource(R.string.wear_tourist_unit_mph),
             )
         }
@@ -110,7 +136,11 @@ private fun HeroSpeedView(state: WearTouristState, isMetric: Boolean) {
         style = MaterialTheme.typography.caption2,
         color = Color.Gray,
     )
-    val maxVal = if (isMetric) state.maxSpeedKmh else state.maxSpeedKmh * KMH_TO_MPH
+    val maxVal = if (isMetric) {
+        state.maxSpeedKmh.toDouble()
+    } else {
+        WearUnitScale.kmhToMph(state.maxSpeedKmh.toDouble())
+    }
     Text(
         text = "Max: ${String.format(Locale.US, "%.1f", maxVal)} $unit",
         style = MaterialTheme.typography.caption3,
@@ -130,7 +160,10 @@ private fun HeroAltitudeView(state: WearTouristState, isMetric: Boolean) {
         if (isMetric) {
             Pair(rawAlt.toInt().toString(), stringResource(R.string.wear_tourist_unit_meters))
         } else {
-            Pair((rawAlt * METERS_TO_FEET).toInt().toString(), stringResource(R.string.wear_tourist_unit_feet))
+            Pair(
+                WearUnitScale.metresToFeet(rawAlt).toInt().toString(),
+                stringResource(R.string.wear_tourist_unit_feet),
+            )
         }
     } else {
         val fallbackUnit = if (isMetric) {
@@ -163,14 +196,71 @@ private fun HeroCompassView(state: WearTouristState) {
     val azimuth = state.azimuthDegrees
     val heading = azimuth?.toInt()?.toString() ?: "--"
     val cardinal = state.cardinalDirection ?: ""
+    CompassNeedle(azimuthDegrees = azimuth ?: 0f)
     Text(
         text = "$heading° $cardinal",
-        fontSize = 28.sp,
+        fontSize = COMPASS_HEADING_SIZE_SP,
+        fontWeight = FontWeight.Bold,
+        color = Color.White,
+    )
+    if (!state.hasCompassSensor) {
+        Text(
+            text = stringResource(R.string.wear_tourist_sensor_unavailable),
+            style = MaterialTheme.typography.caption2,
+            color = Color.Gray,
+        )
+    }
+}
+
+/**
+ * The needle is rotated against the azimuth, the way the phone's launcher widget rotates its compass
+ * rose: a bare heading number carries no direction at the glance this screen is read in.
+ */
+@Composable
+private fun CompassNeedle(azimuthDegrees: Float, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(NEEDLE_SIZE)) {
+        val centre = Offset(size.width / 2f, size.height / 2f)
+        val radius = size.minDimension / 2f
+        val halfBase = radius * NEEDLE_BASE_FRACTION
+        rotate(degrees = -azimuthDegrees, pivot = centre) {
+            drawPath(
+                path = Path().apply {
+                    moveTo(centre.x, centre.y - radius)
+                    lineTo(centre.x - halfBase, centre.y)
+                    lineTo(centre.x + halfBase, centre.y)
+                    close()
+                },
+                color = NEEDLE_NORTH_COLOR,
+            )
+            drawPath(
+                path = Path().apply {
+                    moveTo(centre.x, centre.y + radius)
+                    lineTo(centre.x - halfBase, centre.y)
+                    lineTo(centre.x + halfBase, centre.y)
+                    close()
+                },
+                color = NEEDLE_SOUTH_COLOR,
+            )
+        }
+        drawCircle(color = Color.White, radius = radius * NEEDLE_PIVOT_FRACTION, center = centre)
+    }
+}
+
+@Composable
+private fun HeroBodyTemperatureView(state: WearTouristState) {
+    Text(
+        text = stringResource(R.string.wear_tourist_metric_body_temperature),
+        style = MaterialTheme.typography.caption2,
+        color = ACCENT_COLOR,
+    )
+    Text(
+        text = state.bodyTemperatureCelsius?.let { String.format(Locale.US, "%.1f", it) } ?: "--",
+        fontSize = 32.sp,
         fontWeight = FontWeight.Bold,
         color = Color.White,
     )
     Text(
-        text = if (state.hasCompassSensor) "Heading" else stringResource(R.string.wear_tourist_sensor_unavailable),
+        text = stringResource(R.string.wear_tourist_unit_celsius),
         style = MaterialTheme.typography.caption2,
         color = Color.Gray,
     )
@@ -257,18 +347,27 @@ private fun HeroTripDistanceView(state: WearTouristState, isMetric: Boolean) {
         color = ACCENT_COLOR,
     )
     val distMeters = state.tripDistanceMeters
+    // Below the large unit the reading switches to the small one, or a short walk reads as a zero.
     val (distVal, unit) = if (isMetric) {
-        if (distMeters >= METERS_PER_KM) {
+        val kilometres = WearUnitScale.metresToKilometres(distMeters)
+        if (kilometres >= 1.0) {
             Pair(
-                String.format(Locale.US, "%.2f", distMeters / METERS_PER_KM),
+                String.format(Locale.US, "%.2f", kilometres),
                 stringResource(R.string.wear_tourist_unit_km),
             )
         } else {
             Pair(distMeters.toInt().toString(), stringResource(R.string.wear_tourist_unit_meters))
         }
     } else {
-        val miles = distMeters * METERS_TO_MILES
-        Pair(String.format(Locale.US, "%.2f", miles), stringResource(R.string.wear_tourist_unit_miles))
+        val miles = WearUnitScale.metresToMiles(distMeters)
+        if (miles >= 1.0) {
+            Pair(String.format(Locale.US, "%.2f", miles), stringResource(R.string.wear_tourist_unit_miles))
+        } else {
+            Pair(
+                WearUnitScale.metresToFeet(distMeters).toInt().toString(),
+                stringResource(R.string.wear_tourist_unit_feet),
+            )
+        }
     }
     Text(
         text = distVal,
@@ -290,12 +389,12 @@ private fun HeroSunTimeView(state: WearTouristState) {
         style = MaterialTheme.typography.caption2,
         color = ACCENT_COLOR,
     )
-    val sunriseStr = state.sunriseMillis?.let {
-        TIME_FORMATTER.format(Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()))
-    } ?: "--:--"
-    val sunsetStr = state.sunsetMillis?.let {
-        TIME_FORMATTER.format(Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()))
-    } ?: "--:--"
+    // The clock length and the AM/PM marker are the watch seam's decision, so this delegates to it.
+    val formatter = LocalWearDateTimeFormatter.current
+    val system = LocalWearUnitSystem.current
+    Timber.d("S3101: watch sun time rendering under $system")
+    val sunriseStr = state.sunriseMillis?.let { formatter.formatTime(it, system) } ?: "--:--"
+    val sunsetStr = state.sunsetMillis?.let { formatter.formatTime(it, system) } ?: "--:--"
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,

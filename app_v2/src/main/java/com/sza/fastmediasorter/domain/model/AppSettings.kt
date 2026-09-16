@@ -458,6 +458,7 @@ data class AppSettings(
     val launcherScreenCount: Int get() = launcher.screenCount
     val launcherShowScreenNumber: Boolean get() = launcher.showScreenNumber
     val launcherTaskbarPlacement: String get() = launcher.taskbarPlacement
+    val launcherTaskbarRows: Int get() = launcher.taskbarRows
     val launcherTaskbarShowRecents: Boolean get() = launcher.taskbarShowRecents
     val launcherTaskbarShowPinned: Boolean get() = launcher.taskbarShowPinned
     val launcherTaskbarShowTray: Boolean get() = launcher.taskbarShowTray
@@ -665,6 +666,20 @@ data class AppSettings(
             LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
             LAUNCHER_TASKBAR_PLACEMENT_TOP,
         )
+
+        /**
+         * S3131: one row - the pre-S3131 taskbar, so an update moves nobody's bar until they ask.
+         */
+        const val DEFAULT_LAUNCHER_TASKBAR_ROWS: Int = 1
+
+        /** S3131: the floor of the taskbar row count, and the shape every earlier build drew. */
+        const val MIN_LAUNCHER_TASKBAR_ROWS: Int = 1
+
+        /**
+         * S3131: three rows take about a third of a phone's short side; five would leave the desktop
+         * fewer than two cell rows, so the range stops here (strategic §6.1).
+         */
+        const val MAX_LAUNCHER_TASKBAR_ROWS: Int = 3
 
         /** S1101: branded procedural waves-and-particles animation - the default desktop wallpaper. */
         const val LAUNCHER_WALLPAPER_BRANDED = "BRANDED"

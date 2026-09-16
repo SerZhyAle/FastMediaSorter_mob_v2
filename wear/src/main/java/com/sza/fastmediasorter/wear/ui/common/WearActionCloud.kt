@@ -88,9 +88,13 @@ fun WearActionButton(
  * `positionIndicator` at it; a host drawn beside one - a file-action menu raised over a screen -
  * draws the indicator itself. Neither is possible while the state stays private here, which is how
  * these menus reached Google Play with no scroll indicator at all.
+ *
+ * S3114 made it public: a menu that mixes a stacked action set with a wrapping row of short answers
+ * is neither a column nor a cloud, and re-deriving the square, the rotary binding and the backdrop
+ * cancel beside it is how the two copies drift apart.
  */
 @Composable
-private fun WearActionSquareHost(
+fun WearActionSquare(
     modifier: Modifier = Modifier,
     header: (@Composable () -> Unit)? = null,
     onDismiss: (() -> Unit)? = null,
@@ -182,7 +186,7 @@ fun WearActionColumn(
     onDismiss: (() -> Unit)? = null,
     scrollState: ScrollState = rememberScrollState()
 ) {
-    WearActionSquareHost(
+    WearActionSquare(
         modifier = modifier,
         header = header,
         onDismiss = onDismiss,
@@ -215,7 +219,7 @@ fun WearActionCloud(
     onDismiss: (() -> Unit)? = null,
     scrollState: ScrollState = rememberScrollState()
 ) {
-    WearActionSquareHost(
+    WearActionSquare(
         modifier = modifier,
         header = header,
         onDismiss = onDismiss,

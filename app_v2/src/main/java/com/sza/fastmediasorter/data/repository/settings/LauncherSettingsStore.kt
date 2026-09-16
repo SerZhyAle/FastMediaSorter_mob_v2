@@ -49,6 +49,7 @@ object LauncherSettingsStore {
     private val KEY_LAUNCHER_FOREIGN_NOTIFICATIONS =
         booleanPreferencesKey("launcher_foreign_notifications_enabled")
     private val KEY_LAUNCHER_TASKBAR_PLACEMENT = stringPreferencesKey("launcher_taskbar_placement")
+    private val KEY_LAUNCHER_TASKBAR_ROWS = intPreferencesKey("launcher_taskbar_rows")
     private val KEY_LAUNCHER_ROTATION_HINT_SHOWN = booleanPreferencesKey("launcher_rotation_hint_shown")
     private val KEY_LAUNCHER_DESKTOP_LOCKED = booleanPreferencesKey("launcher_desktop_locked")
     private val KEY_LAUNCHER_DESKTOP_DOUBLE_TAP_LOCK_ENABLED =
@@ -138,7 +139,20 @@ object LauncherSettingsStore {
         )
 
     private fun readCore(preferences: Preferences): LauncherSettings =
-        readCoreValues(preferences).withWallpaperTuning(preferences)
+        readCoreValues(preferences).withWallpaperTuning(preferences).withTaskbarRows(preferences)
+
+    /**
+     * S3131: the taskbar row count, applied on top of the core read for the same length reason as
+     * [withWallpaperTuning].
+     *
+     * Coerced on read, so a value written by a build with a wider range - or a corrupted one - paints
+     * what the settings row can select instead of the two disagreeing (the S2320 lesson).
+     */
+    private fun LauncherSettings.withTaskbarRows(preferences: Preferences): LauncherSettings = copy(
+        taskbarRows = preferences
+            .getOrDefault(KEY_LAUNCHER_TASKBAR_ROWS, AppSettings.DEFAULT_LAUNCHER_TASKBAR_ROWS)
+            .coerceIn(AppSettings.MIN_LAUNCHER_TASKBAR_ROWS, AppSettings.MAX_LAUNCHER_TASKBAR_ROWS),
+    )
 
     /**
      * S2730: the branded backdrop's three tuning values, applied on top of the core read.
@@ -295,6 +309,7 @@ object LauncherSettingsStore {
         preferences[KEY_LAUNCHER_TOP_STATUS_STRIP_MODE] = settings.launcherTopStatusStripMode
         preferences[KEY_LAUNCHER_FOREIGN_NOTIFICATIONS] = settings.launcherForeignNotificationsEnabled
         preferences[KEY_LAUNCHER_TASKBAR_PLACEMENT] = settings.launcherTaskbarPlacement
+        preferences[KEY_LAUNCHER_TASKBAR_ROWS] = settings.launcherTaskbarRows
         preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] = settings.launcherRotationHintShown
         preferences[KEY_LAUNCHER_DESKTOP_LOCKED] = settings.launcherDesktopLocked
         preferences[KEY_LAUNCHER_DESKTOP_DOUBLE_TAP_LOCK_ENABLED] =

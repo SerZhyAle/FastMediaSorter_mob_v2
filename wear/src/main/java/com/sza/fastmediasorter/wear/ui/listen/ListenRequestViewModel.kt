@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.ui.listen
 import android.content.Context
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.data.wear.ListenAckSender
 import com.sza.fastmediasorter.wear.domain.listen.ListenRequestRegistry
 import com.sza.fastmediasorter.wear.domain.listen.ListenSessionState
@@ -15,7 +16,11 @@ import com.sza.fastmediasorter.wear.service.VoiceRecordingService
 import com.sza.fastmediasorter.wear.service.helpers.ListenRequestNotifier
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -36,7 +41,35 @@ class ListenRequestViewModel @Inject constructor(
     private val evaluateStreamStart: EvaluateStreamStartUseCase
 ) : ViewModel() {
 
-    val state: StateFlow<ListenSessionState> = stateHolder.state
+    /**
+     * S3164: set by [confirm] and never cleared, because it is what tells a session that has already
+     * ended apart from one that has not started. The screen is the whole scope of that distinction -
+     * the ViewModel dies with the window, and a later request opens a new one.
+     */
+    private val startRequested = MutableStateFlow(false)
+
+    val uiState: StateFlow<ListenRequestUiState> = combine(
+        stateHolder.state,
+        startRequested
+    ) { session, requested -> uiStateOf(session, requested) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(STATE_SUBSCRIPTION_TIMEOUT_MS),
+            initialValue = uiStateOf(stateHolder.state.value, startRequested.value)
+        )
+
+    private fun uiStateOf(session: ListenSessionState, startRequested: Boolean): ListenRequestUiState =
+        when (session) {
+            is ListenSessionState.Starting -> ListenRequestUiState.Starting
+            is ListenSessionState.Live -> ListenRequestUiState.Live
+            is ListenSessionState.Failed -> ListenRequestUiState.Failed
+            is ListenSessionState.Idle -> if (startRequested) {
+                Timber.d("S3164: the listening session ended; the screen offers a close action")
+                ListenRequestUiState.Ended
+            } else {
+                ListenRequestUiState.Requesting
+            }
+        }
 
     /**
      * Honours the request: the notification is spent, and the service opens the microphone and binds
@@ -44,6 +77,7 @@ class ListenRequestViewModel @Inject constructor(
      * the session outlives this screen by design (ADR-4).
      */
     fun confirm() {
+        startRequested.value = true
         if (registry.peek() == null) {
             // The request expired while this window was open - the notification's timer runs on, and
             // the phone was already told nobody answered. Opening the microphone now would leave it
@@ -115,5 +149,11 @@ class ListenRequestViewModel @Inject constructor(
     private fun listenRefusalFor(reason: StreamChannelReason): ListenRefusal = when (reason) {
         StreamChannelReason.NOT_ON_WIFI -> ListenRefusal.NOT_ON_WIFI
         else -> ListenRefusal.NO_NETWORK
+    }
+
+    private companion object {
+        // Outlives a rotation, so the screen does not fall back to its initial value and re-enter the
+        // auto-start it already performed.
+        const val STATE_SUBSCRIPTION_TIMEOUT_MS = 5_000L
     }
 }

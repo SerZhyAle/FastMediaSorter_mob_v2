@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,7 +54,7 @@ fun WearStopwatchScreen(
     var menuOpen by remember { mutableStateOf(false) }
     var resultOpen by remember { mutableStateOf(false) }
     var resultText by remember { mutableStateOf<String?>(null) }
-    val menuListState = rememberWearListState()
+    val menuScrollState = rememberScrollState()
     val resultListState = rememberWearListState()
     // The two words are resolved here, as format strings, and filled in when the result is rendered:
     // the renderer is plain Kotlin and its label lambdas run outside composition, where a resource
@@ -109,40 +110,19 @@ fun WearStopwatchScreen(
         if (menuOpen) {
             WearStopwatchMenuSheet(
                 participantCount = uiState.participantCount,
-                listState = menuListState,
-                actions = WearStopwatchMenuActions(
-                    onStartAll = {
-                        viewModel.onStartAll()
-                        menuOpen = false
-                    },
-                    onStopAll = {
-                        viewModel.onStopAll()
-                        menuOpen = false
-                    },
-                    onResetAll = {
-                        viewModel.onResetAll()
-                        menuOpen = false
-                    },
-                    onParticipantCountSelected = { count ->
-                        viewModel.onParticipantCountSelected(count)
-                        menuOpen = false
-                    },
+                scrollState = menuScrollState,
+                actions = stopwatchMenuActions(
+                    viewModel = viewModel,
+                    onClose = { menuOpen = false },
                     onResult = {
-                        // Rendered here because only the screen can resolve the words; the view model
-                        // keeps the text so it survives the program being dismissed. The page is shown
-                        // the text just rendered rather than the stored one - the store is written
-                        // asynchronously and would still hold the previous measurement at this instant.
-                        val rendered = WearStopwatchResultRenderer.render(
-                            uiState.state,
-                            uiState.nowMillis,
-                            labels
-                        )
+                        // The page is shown the text just rendered rather than the stored one: the
+                        // store is written asynchronously and still holds the previous measurement here.
+                        val rendered = WearStopwatchResultRenderer.render(uiState.state, uiState.nowMillis, labels)
                         viewModel.onResultRendered(rendered)
                         resultText = rendered
                         menuOpen = false
                         resultOpen = true
-                    },
-                    onDismiss = { menuOpen = false }
+                    }
                 )
             )
         }
@@ -156,3 +136,33 @@ fun WearStopwatchScreen(
         }
     }
 }
+
+/**
+ * Every menu answer closes the menu, so the closing is written once here instead of five times at the
+ * call site; the result page is the one answer that also opens something, and it stays with the screen
+ * because only the screen can resolve the words it renders.
+ */
+private fun stopwatchMenuActions(
+    viewModel: WearStopwatchViewModel,
+    onClose: () -> Unit,
+    onResult: () -> Unit
+): WearStopwatchMenuActions = WearStopwatchMenuActions(
+    onStartAll = {
+        viewModel.onStartAll()
+        onClose()
+    },
+    onStopAll = {
+        viewModel.onStopAll()
+        onClose()
+    },
+    onResetAll = {
+        viewModel.onResetAll()
+        onClose()
+    },
+    onParticipantCountSelected = { count ->
+        viewModel.onParticipantCountSelected(count)
+        onClose()
+    },
+    onResult = onResult,
+    onDismiss = onClose
+)

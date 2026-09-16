@@ -26,6 +26,9 @@ class HeartRateHistoryRepositoryImpl @Inject constructor(
                 timestampMillis = System.currentTimeMillis()
             )
         )
+        // S3112: the trim rides on the insert because this is the only write path into the table, so
+        // the row count cannot grow at any other moment and no periodic job is needed to notice.
+        dao.trimToNewest(MAX_HISTORY_ENTRIES)
     }
 
     override fun observeAll(): Flow<List<HeartRateHistoryEntry>> =
@@ -33,5 +36,10 @@ class HeartRateHistoryRepositoryImpl @Inject constructor(
 
     override suspend fun deleteAll() {
         dao.deleteAll()
+    }
+
+    private companion object {
+        /** S3112: the owner asked for "the last many measurements"; 500 rows is that, bounded. */
+        const val MAX_HISTORY_ENTRIES = 500
     }
 }

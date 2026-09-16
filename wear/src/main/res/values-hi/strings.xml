@@ -95,7 +95,6 @@
     <string name="wear_previous_file">पिछली फ़ाइल</string>
     <string name="wear_next_file">अगली फ़ाइल</string>
     <string name="wear_screen_off">स्क्रीन बंद</string>
-    <string name="wear_screen_off_exit">स्क्रीन जगाने के लिए टैप करें</string>
     <string name="wear_seek_backward">10 सेकंड पीछे</string>
     <string name="wear_seek_forward">10 सेकंड आगे</string>
     <string name="wear_video_continue">जारी रखें</string>
@@ -786,7 +785,6 @@
     <string name="wear_tourist_metric_sun">सूर्य</string>
     <string name="wear_tourist_action_reset_trip">यात्रा रीसेट करें</string>
     <string name="wear_tourist_action_reset_steps">कदम रीसेट करें</string>
-    <string name="wear_tourist_permission_location">स्थान अनुमति आवश्यक</string>
     <string name="wear_tourist_permission_grant">दें</string>
     <string name="wear_tourist_unit_mph">mph</string>
     <string name="wear_tourist_sunrise">सूर्योदय</string>
@@ -796,10 +794,6 @@
     <string name="wear_tourist_metric_heart_rate">हृदय गति</string>
     <string name="wear_tourist_unit_bpm">bpm</string>
     <string name="wear_tourist_athlete_mode">एथलीट</string>
-    <string name="wear_tourist_dashboard_mode">डैशबोर्ड</string>
     <string name="wear_tourist_lock_screen">लॉक</string>
-    <string name="wear_tourist_unlock_screen">अनलॉक</string>
-    <string name="wear_tourist_hold_to_unlock">अनलॉक के लिए दबाएं</string>
-    <string name="wear_tourist_screen_locked">स्क्रीन लॉक</string>
     <string name="wear_streams_filter_kind_own">अपने</string>
 </resources>

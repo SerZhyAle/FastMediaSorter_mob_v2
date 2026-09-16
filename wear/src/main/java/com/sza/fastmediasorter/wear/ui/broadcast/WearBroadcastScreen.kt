@@ -50,12 +50,11 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastFailure
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionState
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
+import com.sza.fastmediasorter.wear.ui.common.WearDimOverlay
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import com.sza.fastmediasorter.wear.ui.player.common.PlayerDimOverlay
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
-import timber.log.Timber
 
 private val SECTION_GAP = 6.dp
 private val STATUS_ICON_SIZE = 32.dp
@@ -132,7 +131,7 @@ fun WearBroadcastScreen(
             }
         }
         if (dimmed) {
-            PlayerDimOverlay(
+            WearDimOverlay(
                 onExit = {
                     dimmed = false
                 }

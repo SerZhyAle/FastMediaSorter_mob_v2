@@ -3,83 +3,6 @@
 
     <issue
         id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPFile.getName` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="            .filterNot { it.name == SELF_ENTRY || it.name == PARENT_ENTRY }"
-        errorLine2="                         ~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
-            line="62"
-            column="26"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPFile.getName` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="            .filterNot { it.name == SELF_ENTRY || it.name == PARENT_ENTRY }"
-        errorLine2="                                                  ~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
-            line="62"
-            column="51"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPFile.getName` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="                    name = ftpFile.name,"
-        errorLine2="                           ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
-            line="65"
-            column="28"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPFile.getName` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="                    path = &quot;$parent/${ftpFile.name}&quot;,"
-        errorLine2="                                      ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
-            line="66"
-            column="39"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPFile.isDirectory` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="                    isDirectory = ftpFile.isDirectory,"
-        errorLine2="                                  ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
-            line="67"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPFile.getSize` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="                    sizeBytes = ftpFile.size,"
-        errorLine2="                                ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
-            line="68"
-            column="33"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPFile.getTimestamp` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="                    dateModifiedEpochMillis = ftpFile.timestamp?.timeInMillis ?: 0L"
-        errorLine2="                                              ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
-            line="69"
-            column="47"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
         message="Network I/O operation calling `org.apache.commons.net.ftp.FTPClient.completePendingCommand` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
         errorLine1="                if (!client.completePendingCommand()) {"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -102,17 +25,6 @@
 
     <issue
         id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.SocketClient.isConnected` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="                runCatching { if (client.isConnected) client.disconnect() }"
-        errorLine2="                                  ~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
-            line="145"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
         message="Network I/O operation calling `org.apache.commons.net.ftp.FTPClient.disconnect` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
         errorLine1="                runCatching { if (client.isConnected) client.disconnect() }"
         errorLine2="                                                      ~~~~~~~~~~~~~~~~~~~">
@@ -120,17 +32,6 @@
             file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
             line="145"
             column="55"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.ftp.FTP.setControlEncoding` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="    controlEncoding = &quot;UTF-8&quot;"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpEncodingSupport.kt"
-            line="23"
-            column="5"/>
     </issue>
 
     <issue
@@ -157,39 +58,6 @@
 
     <issue
         id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.ftp.FTP.getReplyCode` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="    if (!FTPReply.isPositiveCompletion(replyCode)) {"
-        errorLine2="                                       ~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpSessionSupport.kt"
-            line="19"
-            column="40"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPReply.isPositiveCompletion` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="    if (!FTPReply.isPositiveCompletion(replyCode)) {"
-        errorLine2="         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpSessionSupport.kt"
-            line="19"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.ftp.FTP.getReplyCode` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="        error(&quot;FTP server refused connection (code=$replyCode)&quot;)"
-        errorLine2="                                                    ~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpSessionSupport.kt"
-            line="20"
-            column="53"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
         message="Network I/O operation calling `org.apache.commons.net.ftp.FTPClient.login` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
         errorLine1="    if (!login(source.username, source.password)) {"
         errorLine2="         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -197,17 +65,6 @@
             file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpSessionSupport.kt"
             line="22"
             column="10"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPClient.enterLocalPassiveMode` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="    enterLocalPassiveMode()"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpSessionSupport.kt"
-            line="28"
-            column="5"/>
     </issue>
 
     <issue
@@ -234,50 +91,6 @@
 
     <issue
         id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `com.hierynomus.smbj.SmbConfig.Builder.build` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="    private val config = SmbConfig.builder()"
-        errorLine2="                         ^">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/smb/SmbDataSource.kt"
-            line="44"
-            column="26"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `com.hierynomus.smbj.SmbConfig.Builder.withSoTimeout` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="    private val config = SmbConfig.builder()"
-        errorLine2="                         ^">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/smb/SmbDataSource.kt"
-            line="44"
-            column="26"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `com.hierynomus.smbj.SmbConfig.Builder.withTimeout` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="    private val config = SmbConfig.builder()"
-        errorLine2="                         ^">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/smb/SmbDataSource.kt"
-            line="44"
-            column="26"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `com.hierynomus.smbj.SmbConfig.builder` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="    private val config = SmbConfig.builder()"
-        errorLine2="                         ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/smb/SmbDataSource.kt"
-            line="44"
-            column="26"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
         message="Network I/O operation calling `com.hierynomus.smbj.SMBClient.SMBClient` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
         errorLine1="    private val client = SMBClient(config)"
         errorLine2="                         ~~~~~~~~~~~~~~~~~">
@@ -285,50 +98,6 @@
             file="src/main/java/com/sza/fastmediasorter/wear/data/network/smb/SmbDataSource.kt"
             line="49"
             column="26"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `com.hierynomus.smbj.connection.Connection.isConnected` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="        return connection?.isConnected == true &amp;&amp; share != null"
-        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/smb/SmbDataSource.kt"
-            line="295"
-            column="16"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `com.jcraft.jsch.Session.setConfig` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="            session.setConfig(&quot;StrictHostKeyChecking&quot;, &quot;no&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/sftp/WearHostKeyPolicy.kt"
-            line="31"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `com.jcraft.jsch.Session.setHostKeyRepository` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="            session.setHostKeyRepository(PinnedHostKeyRepository(pin))"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/sftp/WearHostKeyPolicy.kt"
-            line="34"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="NetworkDataSourceDispatcher"
-        message="Network I/O operation calling `com.jcraft.jsch.Session.setConfig` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
-        errorLine1="            session.setConfig(&quot;StrictHostKeyChecking&quot;, &quot;yes&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/data/network/sftp/WearHostKeyPolicy.kt"
-            line="35"
-            column="13"/>
     </issue>
 
     <issue
@@ -547,7 +316,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="177"
+            line="176"
             column="13"/>
     </issue>
 
@@ -558,7 +327,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="184"
+            line="183"
             column="13"/>
     </issue>
 
@@ -569,7 +338,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="186"
+            line="185"
             column="13"/>
     </issue>
 
@@ -580,7 +349,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="244"
+            line="243"
             column="13"/>
     </issue>
 
@@ -591,7 +360,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="263"
+            line="262"
             column="13"/>
     </issue>
 
@@ -602,7 +371,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="289"
+            line="288"
             column="13"/>
     </issue>
 
@@ -613,7 +382,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="290"
+            line="289"
             column="13"/>
     </issue>
 
@@ -624,7 +393,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="291"
+            line="290"
             column="13"/>
     </issue>
 
@@ -635,7 +404,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="454"
+            line="453"
             column="13"/>
     </issue>
 
@@ -646,7 +415,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="461"
+            line="460"
             column="13"/>
     </issue>
 
@@ -657,7 +426,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="462"
+            line="461"
             column="13"/>
     </issue>
 
@@ -668,7 +437,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="463"
+            line="462"
             column="13"/>
     </issue>
 
@@ -679,7 +448,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="511"
+            line="510"
             column="13"/>
     </issue>
 
@@ -690,7 +459,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="524"
+            line="523"
             column="13"/>
     </issue>
 
@@ -701,7 +470,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="536"
+            line="535"
             column="13"/>
     </issue>
 
@@ -712,7 +481,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="545"
+            line="544"
             column="13"/>
     </issue>
 
@@ -723,7 +492,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="799"
+            line="798"
             column="13"/>
     </issue>
 
@@ -734,7 +503,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="831"
+            line="830"
             column="13"/>
     </issue>
 
@@ -745,7 +514,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="833"
+            line="832"
             column="13"/>
     </issue>
 
@@ -756,7 +525,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="834"
+            line="833"
             column="13"/>
     </issue>
 
@@ -767,7 +536,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="835"
+            line="834"
             column="13"/>
     </issue>
 
@@ -778,7 +547,40 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="836"
+            line="835"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_listen_ended&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_listen_ended&quot;>Listening ended&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="849"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_screen_off_exit_hint&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_screen_off_exit_hint&quot;>Double tap, press and hold, or use the watch button to wake the screen&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="850"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_stream_station_bitrate&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_stream_station_bitrate&quot;>%1$d kbps&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="851"
             column="13"/>
     </issue>
 
@@ -789,7 +591,7 @@
         errorLine2="                                             ~~~~~~~~~~">
         <location
             file="src/main/res/values-pt/strings.xml"
-            line="408"
+            line="407"
             column="46"/>
     </issue>
 
@@ -811,7 +613,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="292"
+            line="291"
             column="5"/>
     </issue>
 
@@ -822,7 +624,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="543"
+            line="542"
             column="5"/>
     </issue>
 
@@ -833,7 +635,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="544"
+            line="543"
             column="5"/>
     </issue>
 
@@ -844,7 +646,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="628"
+            line="627"
             column="5"/>
     </issue>
 
@@ -1127,7 +929,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="122"
+            line="121"
             column="13"/>
     </issue>
 
@@ -1138,7 +940,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="128"
+            line="127"
             column="13"/>
     </issue>
 
@@ -1149,7 +951,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="129"
+            line="128"
             column="13"/>
     </issue>
 
@@ -1160,7 +962,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="135"
+            line="134"
             column="13"/>
     </issue>
 
@@ -1171,7 +973,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="143"
+            line="142"
             column="13"/>
     </issue>
 
@@ -1182,7 +984,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="258"
+            line="257"
             column="13"/>
     </issue>
 
@@ -1193,7 +995,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="282"
+            line="281"
             column="13"/>
     </issue>
 
@@ -1204,7 +1006,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="290"
+            line="289"
             column="13"/>
     </issue>
 
@@ -1215,7 +1017,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="291"
+            line="290"
             column="13"/>
     </issue>
 
@@ -1226,7 +1028,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="373"
+            line="372"
             column="13"/>
     </issue>
 
@@ -1237,7 +1039,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="375"
+            line="374"
             column="13"/>
     </issue>
 
@@ -1248,7 +1050,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="377"
+            line="376"
             column="13"/>
     </issue>
 
@@ -1259,7 +1061,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="390"
+            line="389"
             column="13"/>
     </issue>
 
@@ -1270,7 +1072,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="399"
+            line="398"
             column="13"/>
     </issue>
 
@@ -1281,7 +1083,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="400"
+            line="399"
             column="13"/>
     </issue>
 
@@ -1292,7 +1094,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="402"
+            line="401"
             column="13"/>
     </issue>
 
@@ -1303,7 +1105,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="531"
+            line="530"
             column="13"/>
     </issue>
 
@@ -1314,7 +1116,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="532"
+            line="531"
             column="13"/>
     </issue>
 
@@ -1325,7 +1127,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="556"
+            line="555"
             column="13"/>
     </issue>
 
@@ -1336,7 +1138,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="569"
+            line="568"
             column="13"/>
     </issue>
 
@@ -1347,7 +1149,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="570"
+            line="569"
             column="13"/>
     </issue>
 
@@ -1358,7 +1160,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="663"
+            line="662"
             column="13"/>
     </issue>
 
@@ -1369,7 +1171,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="729"
+            line="728"
             column="13"/>
     </issue>
 
@@ -1380,7 +1182,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="736"
+            line="735"
             column="13"/>
     </issue>
 
@@ -1391,7 +1193,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="740"
+            line="739"
             column="13"/>
     </issue>
 
@@ -1402,7 +1204,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="741"
+            line="740"
             column="13"/>
     </issue>
 
@@ -1413,7 +1215,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="764"
+            line="763"
             column="13"/>
     </issue>
 
@@ -1424,7 +1226,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="830"
+            line="829"
             column="13"/>
     </issue>
 
@@ -1435,7 +1237,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="846"
+            line="845"
             column="13"/>
     </issue>
 
@@ -1475,7 +1277,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-ar/strings.xml"
-            line="717"
+            line="716"
             column="47"/>
     </issue>
 
@@ -1486,7 +1288,7 @@
         errorLine2="                                              ~~~~~~~~~~~">
         <location
             file="src/main/res/values-b+zh+Hans/strings.xml"
-            line="717"
+            line="716"
             column="47"/>
     </issue>
 
@@ -1497,7 +1299,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-bn/strings.xml"
-            line="717"
+            line="716"
             column="47"/>
     </issue>
 
@@ -1508,7 +1310,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-de/strings.xml"
-            line="717"
+            line="716"
             column="47"/>
     </issue>
 
@@ -1519,7 +1321,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-es/strings.xml"
-            line="717"
+            line="716"
             column="47"/>
     </issue>
 
@@ -1530,7 +1332,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-fr/strings.xml"
-            line="717"
+            line="716"
             column="47"/>
     </issue>
 
@@ -1541,7 +1343,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-hi/strings.xml"
-            line="717"
+            line="716"
             column="47"/>
     </issue>
 
@@ -1552,7 +1354,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-it/strings.xml"
-            line="717"
+            line="716"
             column="47"/>
     </issue>
 
@@ -1563,7 +1365,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-pt/strings.xml"
-            line="717"
+            line="716"
             column="47"/>
     </issue>
 
@@ -1574,7 +1376,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-ur/strings.xml"
-            line="717"
+            line="716"
             column="47"/>
     </issue>
 
@@ -1585,7 +1387,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-ar/strings.xml"
-            line="724"
+            line="723"
             column="43"/>
     </issue>
 
@@ -1596,7 +1398,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-b+zh+Hans/strings.xml"
-            line="724"
+            line="723"
             column="43"/>
     </issue>
 
@@ -1607,7 +1409,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-bn/strings.xml"
-            line="724"
+            line="723"
             column="43"/>
     </issue>
 
@@ -1618,7 +1420,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-de/strings.xml"
-            line="724"
+            line="723"
             column="43"/>
     </issue>
 
@@ -1629,7 +1431,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-hi/strings.xml"
-            line="724"
+            line="723"
             column="43"/>
     </issue>
 
@@ -1640,7 +1442,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-it/strings.xml"
-            line="724"
+            line="723"
             column="43"/>
     </issue>
 
@@ -1651,7 +1453,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-pt/strings.xml"
-            line="724"
+            line="723"
             column="43"/>
     </issue>
 
@@ -1662,7 +1464,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-ur/strings.xml"
-            line="724"
+            line="723"
             column="43"/>
     </issue>
 
@@ -1673,7 +1475,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-ru/strings.xml"
-            line="754"
+            line="753"
             column="47"/>
     </issue>
 
@@ -1684,7 +1486,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-uk/strings.xml"
-            line="754"
+            line="753"
             column="47"/>
     </issue>
 
@@ -1695,7 +1497,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="754"
+            line="753"
             column="47"/>
     </issue>
 
@@ -1706,7 +1508,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-ru/strings.xml"
-            line="761"
+            line="760"
             column="43"/>
     </issue>
 
@@ -1717,7 +1519,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-uk/strings.xml"
-            line="761"
+            line="760"
             column="43"/>
     </issue>
 
@@ -1728,7 +1530,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="761"
+            line="760"
             column="43"/>
     </issue>
 
@@ -1902,7 +1704,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt"
-            line="399"
+            line="429"
             column="25"/>
     </issue>
 
@@ -1913,7 +1715,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt"
-            line="569"
+            line="624"
             column="25"/>
     </issue>
 

@@ -25,6 +25,15 @@ enum class HomeSectionId {
      * owner to guess which device is the source.
      */
     PHONE_CAMERA,
+
+    /**
+     * S3116: the mini-program opened last, offered again in the slot after [APPS].
+     *
+     * Distinct from [BROADCAST] rather than replacing it: that row is what this one falls back to
+     * before any program has been opened, and what it becomes again whenever the broadcast was the
+     * last one, so both meanings stay nameable.
+     */
+    LAST_USED_APP,
     FAVOURITES
 }
 
@@ -52,7 +61,14 @@ data class HomeSection(
     val dynamicLabel: String? = null,
     val iconId: String? = null,
     val faviconIndex: Int? = null,
-    val targetRef: WearTileTargetRef? = null
+    val targetRef: WearTileTargetRef? = null,
+    /**
+     * S3116: the mini-program this row stands for, carried only by [HomeSectionId.LAST_USED_APP].
+     *
+     * It is what addresses the row - the id alone cannot, because the program behind it changes -
+     * and it is also what tells the screen to draw the program's own glyph instead of a fixed one.
+     */
+    val appId: WearAppId? = null
 )
 
 /**
@@ -64,5 +80,14 @@ data class HomeSection(
  * one cell.
  */
 data class HomeSectionVisibility(
-    val streamsEnabled: Boolean
+    val streamsEnabled: Boolean,
+    /**
+     * S3116: the program opened last, or null when there is none - which is the state the catalog
+     * draws the Broadcast row for.
+     *
+     * The program record rather than its id: it carries the caption the row needs, and taking it from
+     * the record the Apps screen already drew is also what filters it - a program this flavor does not
+     * offer is not in that catalog, so it can never arrive here.
+     */
+    val lastUsedApp: WearApp? = null
 )

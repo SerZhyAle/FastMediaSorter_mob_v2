@@ -36,15 +36,19 @@ import com.sza.fastmediasorter.wear.domain.bodysensor.BodySensorUnavailableReaso
 import com.sza.fastmediasorter.wear.domain.bodysensor.heartRatePermission
 import com.sza.fastmediasorter.wear.domain.model.HeartRateHistoryEntry
 import com.sza.fastmediasorter.wear.domain.model.HeartRateZone
+import com.sza.fastmediasorter.wear.ui.apps.bodysensor.history.HeartRateTrendChart
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import timber.log.Timber
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 
 private val TITLE_BOTTOM_PADDING = 6.dp
 private val VALUE_VERTICAL_PADDING = 4.dp
 private val CARD_CORNER_RADIUS = 8.dp
 private const val ZONE_BADGE_ALPHA = 0.2f
+
+/** S3112: one point draws no trend, so the chart appears with the second saved measurement. */
+private const val MIN_CHART_ENTRIES = 2
 
 /**
  * S3013: Foreground heart-rate reading screen with physiological zone classification
@@ -54,7 +58,7 @@ private const val ZONE_BADGE_ALPHA = 0.2f
 @Composable
 fun BodySensorScreen(
     viewModel: BodySensorViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState(),
+    listState: ScalingLazyListState = rememberWearListState(positionKey = WearRoutes.BODY_SENSOR),
     onHistoryClick: (() -> Unit)? = null
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -63,7 +67,6 @@ fun BodySensorScreen(
         permissions = requested,
         onPermissionsResult = { viewModel.refreshAvailability() }
     )
-
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -83,6 +86,10 @@ fun BodySensorScreen(
             }
 
             item { ReadingValue(state.reading) }
+
+            if (state.history.size >= MIN_CHART_ENTRIES) {
+                item { HeartRateTrendChart(entries = state.history) }
+            }
 
             state.currentZone?.let { zone ->
                 item { ZoneBadge(zone = zone) }

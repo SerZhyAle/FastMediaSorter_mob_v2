@@ -131,7 +131,8 @@
     <string name="setting_camera_ocr_only_title">Only OCR (no translation)</string>
     <string name="setting_camera_ocr_translation_desc">Enable quick Photo-OCR-Translation flow</string>
     <string name="setting_camera_ocr_translation_title">Camera OCR translation</string>
-    <string name="setting_compact_elements_desc">Reduce element sizes and spacing across the app by 50%</string>
+    <!-- The percent sign is literal; this description is never passed to String.format. -->
+    <string name="setting_compact_elements_desc" formatted="false">Reduce element sizes and spacing across the app by 50%</string>
     <string name="setting_confirm_delete_desc">Ask for confirmation before deleting files</string>
     <string name="setting_confirm_delete_player_desc">Ask for confirmation before deleting files in the player</string>
     <string name="setting_confirm_move_desc">Ask for confirmation before moving files</string>

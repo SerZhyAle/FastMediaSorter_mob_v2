@@ -61,6 +61,10 @@ internal object WearPreferenceKeys {
     val LAST_USED_RESOURCE = stringPreferencesKey("wear_last_used_resource")
     val LAST_USED_RESOURCE_ID = stringPreferencesKey("wear_last_used_resource_id")
     val LAST_USED_RESOURCES = stringPreferencesKey("wear_last_used_resources")
+
+    // S3116: the mini-program opened last, stored as a WearAppId name. Absent means none has been
+    // opened yet, which the home row reads as the Broadcast entrance it carried before this ticket.
+    val LAST_USED_APP = stringPreferencesKey("wear_last_used_app")
     val STREAMS_SECTION_ENABLED = booleanPreferencesKey("wear_streams_section_enabled")
 
     // S2146: the streams screen's own filter and sort memory. Named per screen, not shared.

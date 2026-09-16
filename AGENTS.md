@@ -63,7 +63,7 @@
 1. `dev/PROJECT_OPERATIONS_INDEX.md`
 2. Specs: `scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`
 3. Kotlin classes: `dev/CATALOG/scripts/query.ps1` before global grep.
-4. Docs: `docs/ARCHITECTURE.md`, `docs/DEV_OPS.md`, `dev/TECH_REQUIREMENTS.md`, `dev/FLAVOR_DEVELOPMENT_RULES.md` - one call per document through `scripts/utils/read-window.ps1 -Id <Sxxxx> -Path <doc>`, never several combined in one call. A combined multi-document read that stayed in session history was the largest single cost source measured in S3137 (PLAN/S3141_codex-session-context-amplification.md).
+4. Docs: `docs/ARCHITECTURE.md`, `docs/DEV_OPS.md`, `dev/TECH_REQUIREMENTS.md`, `dev/FLAVOR_DEVELOPMENT_RULES.md` - one call per document through `scripts/utils/read-window.ps1 -Id <Sxxxx> -Path <doc>`, never several combined in one call.
    Which capability is live in which flavor: `docs/FLAVOR_MATRIX.md` - generated from `productFlavors` by `scripts/docs/generate-flavor-matrix.ps1`, enforced by `scripts/quality/assert-flavor-matrix-docs.ps1`. Never restate the grid or the flavor list from memory.
 5. Document-registry loop: mandatory at task start, material scope change, phase boundary, and before final response - see `.claude/skills/document-registry/SKILL.md`.
 
@@ -157,9 +157,9 @@ Read, in this order, before doing anything: AGENTS.md (this is the complete Code
 docs/NON_CLAUDE_RUNTIME_RULES.md (the rules nothing will enforce for you),
 dev/PROJECT_OPERATIONS_INDEX.md. You have no hooks, no slash commands and no subagents: a pipeline
 named /name is the file .claude/commands/<name>.md and you must read it in full before its first step
-of THAT stage - not every stage's driver up front. Read a reference doc one at a time through
-scripts/utils/read-window.ps1 -Id <Sxxxx>, never several combined in one call: one read per exec
-command, never chained with `;`. Wait for a build, lock or gate in ONE blocking call - never a
+of THAT stage - not every stage's driver up front. Cap every exec_command at max_output_tokens 2000,
+read only what your path needs, and check the context at each stage boundary (NON_CLAUDE_RUNTIME_RULES
+rules 17-19); one read-window.ps1 read per exec command, never chained with `;`. Wait for a build, lock or gate in ONE blocking call - never a
 Start-Sleep or Wait-Process -Timeout loop across turns.
 If you are resuming a named ticket Sxxxx, check temp/Sxxxx/handoff/ first: read only the newest file
 there instead of rebuilding the ticket's state from the research-order list below.

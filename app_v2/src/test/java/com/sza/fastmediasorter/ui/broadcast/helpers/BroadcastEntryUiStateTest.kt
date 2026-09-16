@@ -11,7 +11,7 @@ import org.junit.Test
  * support ends in Unavailable (no dead end in disabled flavors, strategic criterion 4) and a live
  * session renders the stop state, never a second start (ADR-2).
  */
-class BroadcastEntryManagerUiStateTest {
+class BroadcastEntryUiStateTest {
 
     @Test
     fun `unavailable controller maps every state to Unavailable`() {
@@ -22,8 +22,8 @@ class BroadcastEntryManagerUiStateTest {
         )
         states.forEach { state ->
             assertEquals(
-                BroadcastEntryManager.UiState.Unavailable,
-                BroadcastEntryManager.mapState(state, isAvailable = false),
+                BroadcastEntryUi.UiState.Unavailable,
+                BroadcastEntryUi.mapState(state, isAvailable = false),
             )
         }
     }
@@ -31,24 +31,24 @@ class BroadcastEntryManagerUiStateTest {
     @Test
     fun `idle with available controller renders Confirm`() {
         assertEquals(
-            BroadcastEntryManager.UiState.Confirm,
-            BroadcastEntryManager.mapState(BroadcastState.Idle, isAvailable = true),
+            BroadcastEntryUi.UiState.Confirm,
+            BroadcastEntryUi.mapState(BroadcastState.Idle, isAvailable = true),
         )
     }
 
     @Test
     fun `live session renders Live`() {
         assertEquals(
-            BroadcastEntryManager.UiState.Live,
-            BroadcastEntryManager.mapState(liveState(), isAvailable = true),
+            BroadcastEntryUi.UiState.Live,
+            BroadcastEntryUi.mapState(liveState(), isAvailable = true),
         )
     }
 
     @Test
     fun `failed session falls back to Confirm layout`() {
         assertEquals(
-            BroadcastEntryManager.UiState.Confirm,
-            BroadcastEntryManager.mapState(failedState(), isAvailable = true),
+            BroadcastEntryUi.UiState.Confirm,
+            BroadcastEntryUi.mapState(failedState(), isAvailable = true),
         )
     }
 

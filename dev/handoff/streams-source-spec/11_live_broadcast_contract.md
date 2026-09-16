@@ -112,9 +112,14 @@ Rules:
 
 - "Send link" shares an Android `intent://` URI carrying the URL-encoded `FMSBCAST1:` descriptor. Its
   `fmsbcast://import?payload=` target opens FastMediaSorter import; Chrome's browser fallback opens
-  `broadcast-import.html`, which retries the app link and offers installation when the app is absent. The
-  plain stream URL of section 2 also works on its
+  `broadcast-import.html`, which offers both installation and an explicit app-open tap when the app is
+  absent. The plain stream URL of section 2 also works on its
   own in any player.
+- The link's `package=` hint names the **sending** build's own application id, so a link shared from a debug
+  or `noLegal` build opens that same build. A third-party producer targeting the store app writes
+  `package=com.sza.fastmediasorter`.
+- The fallback page never auto-navigates to `fmsbcast://`: with no handler an unresolvable custom scheme
+  replaces the page and leaves the receiver with a browser error and no install route.
 - A plain URL carries no description: no title, no `sourceId`, no kind. A consumer that has only the URL
   applies section 5 when the user marks the stream as live, or when it can tell the stream is one of ours.
 - Next: a clickable link form that opens the importer directly. Its scheme is not decided.

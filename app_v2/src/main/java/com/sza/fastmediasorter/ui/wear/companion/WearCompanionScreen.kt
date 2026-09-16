@@ -50,10 +50,10 @@ import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.service.WearListenState
+import com.sza.fastmediasorter.ui.settings.ClipboardSendOutcomeText
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import dagger.hilt.android.EntryPointAccessors
-import timber.log.Timber
 
 internal val SPACING_TINY = 4.dp
 internal val SPACING_SMALL = 8.dp
@@ -103,6 +103,8 @@ fun WearCompanionScreen(
     val pendingWatchSources by viewModel.pendingWatchSources.collectAsState()
     val watchPlaybackState by viewModel.watchPlaybackState.collectAsState()
     val listenState by viewModel.listenState.collectAsState()
+    val clipboardSending by viewModel.clipboardSendInFlight.collectAsState()
+    val clipboardOutcome by viewModel.clipboardSendOutcome.collectAsState()
 
     // The content is taller than the window on a short phone, and before this the slideshow slider
     // and the push button were the parts that fell past the fold (S1730).
@@ -159,6 +161,10 @@ fun WearCompanionScreen(
             onStop = viewModel::stopListening
         )
 
+        SendClipboardRow(clipboardSending, clipboardOutcome, viewModel::sendClipboardToWatch)
+
+        RequestScreenshotRow(viewModel)
+
         Spacer(Modifier.height(SPACING_SECTION))
 
         SyncSettingsRow(
@@ -183,6 +189,85 @@ fun WearCompanionScreen(
         Spacer(Modifier.height(SPACING_SECTION))
 
         WearDocsLinkBlock(onOpenDocLink = onOpenDocLink)
+    }
+}
+
+/**
+ * S3109: hands this phone's text clipboard to the watch, and says underneath what came of it.
+ *
+ * There is no "fetch the watch clipboard" counterpart here and there cannot be: since Android 10 only
+ * the foreground app may read its own clipboard, so a watch asked for its clipboard from here would be
+ * asked while it is not in front of anyone (ADR-1). The watch sends its own clipboard from its
+ * Clipboard program instead, and it lands on this phone without this screen being open.
+ */
+@Composable
+private fun SendClipboardRow(
+    sending: Boolean,
+    outcome: ClipboardSendOutcomeText?,
+    onSend: () -> Unit
+) {
+    Spacer(Modifier.height(SPACING_CARD))
+    Column(modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = onSend,
+            enabled = !sending,
+            modifier = Modifier.testTag("wearSendClipboard")
+        ) {
+            Text(stringResource(R.string.wear_clipboard_send_to_watch))
+        }
+        if (outcome != null && !sending) {
+            Text(
+                text = if (outcome.arg == null) {
+                    stringResource(outcome.res)
+                } else {
+                    stringResource(outcome.res, outcome.arg)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = SPACING_SMALL)
+            )
+        }
+    }
+}
+
+/**
+ * S3110: asks the watch to photograph its own screen, and says underneath what came of it.
+ *
+ * What arrives is the watch app's screen, never the watch face or another app: reaching those needs
+ * MediaProjection, whose consent dialog would have to be tapped on the watch for every request and
+ * would take the initiative back off this phone (ADR-1). The picture itself does not land here - it
+ * travels the ordinary watch-file route and is announced by its own notification.
+ */
+@Composable
+private fun RequestScreenshotRow(viewModel: WearSyncViewModel) {
+    // Read here rather than beside the screen's other state: the host composable is at detekt's length
+    // ceiling, and these two values are read by nothing above this row.
+    val requesting by viewModel.screenshotRequestInFlight.collectAsState()
+    val outcome by viewModel.screenshotRequestOutcome.collectAsState()
+    val onRequest = viewModel::requestWatchScreenshot
+
+    Spacer(Modifier.height(SPACING_CARD))
+    Column(modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = onRequest,
+            enabled = !requesting,
+            modifier = Modifier.testTag("wearRequestScreenshot")
+        ) {
+            Text(stringResource(R.string.wear_screenshot_request))
+        }
+        val line = outcome
+        if (line != null && !requesting) {
+            Text(
+                text = if (line.arg == null) {
+                    stringResource(line.res)
+                } else {
+                    stringResource(line.res, line.arg)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = SPACING_SMALL)
+            )
+        }
     }
 }
 

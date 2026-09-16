@@ -99,8 +99,12 @@ data class WearPhoneResourceRequest(
      * S1846: which kind of file the watch is asking for, or null for "everything".
      *
      * The accepted values are the watch route's own vocabulary, so the two sides cannot drift apart on
-     * spelling: `photos`, `videos`, `music`, `documents`, `all`. `all` and null mean the same thing and
-     * both leave the phone's answer unnarrowed; the unfiltered `Phone` entrance sends null.
+     * spelling: `photos`, `videos`, `music`, `documents`, `recents`, `all`. `all` and null mean the same
+     * thing and both leave the phone's answer unnarrowed; the unfiltered `Phone` entrance sends null.
+     *
+     * S3160: anything outside that list is answered [WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA]
+     * rather than served unnarrowed. A watch that introduces a token this phone build does not carry
+     * gets a refusal it can word, instead of a list of every media kind that looks like the filtered one.
      */
     @SerializedName("mediaType") val mediaType: String? = null,
     @SerializedName("isFlat") val isFlat: Boolean? = null

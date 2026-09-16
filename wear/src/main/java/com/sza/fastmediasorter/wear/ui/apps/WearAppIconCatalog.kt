@@ -41,5 +41,7 @@ object WearAppIconCatalog {
         WearAppId.STOPWATCH -> R.drawable.ic_stopwatch
         // S3007: the phone's own tourist glyph, copied name-for-name.
         WearAppId.TOURIST -> R.drawable.ic_tourist
+        // S3109: the copy glyph this module already carries for tap-to-copy - one act, one symbol.
+        WearAppId.CLIPBOARD -> R.drawable.ic_copy
     }
 }

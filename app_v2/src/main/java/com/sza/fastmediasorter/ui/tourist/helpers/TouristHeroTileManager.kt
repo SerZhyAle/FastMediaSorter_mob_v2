@@ -8,16 +8,17 @@ import com.sza.fastmediasorter.databinding.ActivityTouristInfoBinding
 import com.sza.fastmediasorter.domain.model.sensors.SensorAccuracy
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.util.Locale
 
 /**
  * S2922/S3000: binds the prominent Hero focus card on the Tourist dashboard.
+ *
+ * S3101: every reading with two scales goes through [TouristTileValueFormatter]; nothing here picks a
+ * unit or a clock length of its own.
  */
 class TouristHeroTileManager(
     private val binding: ActivityTouristInfoBinding,
+    private val valueFormatter: TouristTileValueFormatter,
     private val onResetClicked: (TouristTileType) -> Unit = {},
 ) {
 
@@ -46,7 +47,7 @@ class TouristHeroTileManager(
 
     private fun bindTileContent(state: TouristDashboardState, context: Context) {
         when (state.focusedTile) {
-            TouristTileType.SPEED -> bindSpeedTile(state, context)
+            TouristTileType.SPEED -> bindSpeedTile(state)
             TouristTileType.ALTITUDE -> bindAltitudeTile(state, context)
             TouristTileType.COMPASS -> bindCompassTile(state)
             TouristTileType.COORDINATES -> bindCoordinatesTile(state)
@@ -59,21 +60,22 @@ class TouristHeroTileManager(
         }
     }
 
-    private fun bindSpeedTile(state: TouristDashboardState, context: Context) {
+    private fun bindSpeedTile(state: TouristDashboardState) {
         binding.ivHeroIcon.setImageResource(R.drawable.ic_speed)
         binding.tvHeroTitle.setText(R.string.tourist_tile_speed)
-        binding.tvHeroPrimaryValue.text = state.speedKmh?.let { String.format(Locale.US, "%.1f", it) } ?: "--"
-        binding.tvHeroPrimaryUnit.setText(R.string.tourist_unit_kmh)
-        val tripKm = state.tripDistanceMeters / METERS_PER_KM
+        val speed = valueFormatter.speed(state.speedKmh)
+        binding.tvHeroPrimaryValue.text = speed.value
+        binding.tvHeroPrimaryUnit.text = speed.unit
         binding.tvHeroSecondaryDetail.text =
-            context.getString(R.string.tourist_detail_speed, state.maxSpeedKmh, tripKm)
+            valueFormatter.speedDetail(state.maxSpeedKmh, state.tripDistanceMeters)
     }
 
     private fun bindAltitudeTile(state: TouristDashboardState, context: Context) {
         binding.ivHeroIcon.setImageResource(R.drawable.ic_altitude)
         binding.tvHeroTitle.setText(R.string.tourist_tile_altitude)
-        binding.tvHeroPrimaryValue.text = state.altitudeMeters?.let { String.format(Locale.US, "%.0f", it) } ?: "--"
-        binding.tvHeroPrimaryUnit.setText(R.string.tourist_unit_meters)
+        val altitude = valueFormatter.altitude(state.altitudeMeters)
+        binding.tvHeroPrimaryValue.text = altitude.value
+        binding.tvHeroPrimaryUnit.text = altitude.unit
         val detailText = if (state.altitudeMeters != null) {
             context.getString(R.string.tourist_detail_altitude)
         } else {
@@ -145,14 +147,9 @@ class TouristHeroTileManager(
     private fun bindTripDistanceTile(state: TouristDashboardState) {
         binding.ivHeroIcon.setImageResource(R.drawable.ic_route_distance)
         binding.tvHeroTitle.setText(R.string.tourist_tile_trip_distance)
-        if (state.tripDistanceMeters >= METERS_PER_KM) {
-            val km = state.tripDistanceMeters / METERS_PER_KM
-            binding.tvHeroPrimaryValue.text = String.format(Locale.US, "%.2f", km)
-            binding.tvHeroPrimaryUnit.text = "km"
-        } else {
-            binding.tvHeroPrimaryValue.text = String.format(Locale.US, "%.0f", state.tripDistanceMeters)
-            binding.tvHeroPrimaryUnit.setText(R.string.tourist_unit_meters)
-        }
+        val trip = valueFormatter.tripDistance(state.tripDistanceMeters)
+        binding.tvHeroPrimaryValue.text = trip.value
+        binding.tvHeroPrimaryUnit.text = trip.unit
         binding.tvHeroSecondaryDetail.setText(R.string.tourist_detail_trip_distance)
     }
 
@@ -160,8 +157,8 @@ class TouristHeroTileManager(
         binding.ivHeroIcon.setImageResource(if (state.isDaylight) R.drawable.ic_sunrise else R.drawable.ic_sunset)
         binding.tvHeroTitle.setText(R.string.tourist_tile_sun_time)
 
-        val sunriseStr = formatTimeMillis(state.sunriseMillis)
-        val sunsetStr = formatTimeMillis(state.sunsetMillis)
+        val sunriseStr = valueFormatter.clockTime(state.sunriseMillis)
+        val sunsetStr = valueFormatter.clockTime(state.sunsetMillis)
 
         if (state.isDaylight) {
             binding.tvHeroPrimaryValue.text = sunsetStr
@@ -177,8 +174,9 @@ class TouristHeroTileManager(
     private fun bindWeatherTile(state: TouristDashboardState, context: Context) {
         binding.ivHeroIcon.setImageResource(R.drawable.ic_info)
         binding.tvHeroTitle.setText(R.string.tourist_tile_weather)
-        binding.tvHeroPrimaryValue.text = state.temperatureCelsius?.let { String.format(Locale.US, "%.1f", it) } ?: "--"
-        binding.tvHeroPrimaryUnit.text = "°C"
+        val temperature = valueFormatter.temperature(state.temperatureCelsius)
+        binding.tvHeroPrimaryValue.text = temperature.value
+        binding.tvHeroPrimaryUnit.text = temperature.unit
         binding.tvHeroSecondaryDetail.text =
             state.weatherCondition ?: context.getString(R.string.tourist_status_sensor_unavailable)
     }
@@ -186,8 +184,9 @@ class TouristHeroTileManager(
     private fun bindDewPointTile(state: TouristDashboardState) {
         binding.ivHeroIcon.setImageResource(R.drawable.ic_info)
         binding.tvHeroTitle.setText(R.string.tourist_tile_dew_point)
-        binding.tvHeroPrimaryValue.text = state.dewPointCelsius?.let { String.format(Locale.US, "%.1f", it) } ?: "--"
-        binding.tvHeroPrimaryUnit.text = "°C"
+        val dewPoint = valueFormatter.temperature(state.dewPointCelsius)
+        binding.tvHeroPrimaryValue.text = dewPoint.value
+        binding.tvHeroPrimaryUnit.text = dewPoint.unit
         binding.tvHeroSecondaryDetail.setText(R.string.tourist_tile_dew_point)
     }
 
@@ -210,14 +209,7 @@ class TouristHeroTileManager(
         return directions[index]
     }
 
-    private fun formatTimeMillis(millis: Long?): String {
-        if (millis == null) return "--:--"
-        val zdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault())
-        return String.format(Locale.US, "%02d:%02d", zdt.hour, zdt.minute)
-    }
-
     private companion object {
-        private const val METERS_PER_KM = 1000.0
         private const val HALF_SECTOR = 22.5f
         private const val SECTOR = 45f
         private const val FULL_CIRCLE = 360

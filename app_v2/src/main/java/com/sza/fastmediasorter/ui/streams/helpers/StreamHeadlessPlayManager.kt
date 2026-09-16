@@ -127,7 +127,10 @@ class StreamHeadlessPlayManager @Inject constructor(
             if (!settled.compareAndSet(false, true)) return
             player?.removeListener(listener)
             player = null
-            controller.release()
+            // S3164: both callers are Player.Listener callbacks, and a release taken from inside one
+            // removes the controller's record while the session is still iterating them.
+            Timber.d("S3164: the headless stream controller is released after the session's dispatch")
+            controller.releaseAfterDispatch()
             if (continuation.isActive) continuation.resume(outcome)
         }
     }

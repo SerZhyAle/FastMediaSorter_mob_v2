@@ -21,7 +21,6 @@ import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepositor
 import com.sza.fastmediasorter.wear.domain.repository.WearTileAssignmentRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -82,7 +81,9 @@ class LoadWearTileContentUseCase @Inject constructor(
      */
     private suspend fun loadSectionsContent(): WearTileContent {
         val streamsEnabled = preferencesRepository.streamsSectionEnabled.first()
-        val visibility = HomeSectionVisibility(streamsEnabled = streamsEnabled)
+        // S3116: null on purpose - the tile is drawn once and kept, so a row that follows what was
+        // opened last would go stale between redraws; this grid keeps the broadcast entrance it had.
+        val visibility = HomeSectionVisibility(streamsEnabled = streamsEnabled, lastUsedApp = null)
         return WearTileContent.Shortcuts(
             HomeSectionCatalog.tileSectionsFor(visibility).mapNotNull { section ->
                 destinationFor(section.id)?.let { destination ->

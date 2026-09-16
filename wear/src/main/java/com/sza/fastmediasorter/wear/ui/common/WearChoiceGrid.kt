@@ -1,11 +1,15 @@
 package com.sza.fastmediasorter.wear.ui.common
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -24,6 +28,7 @@ import com.sza.fastmediasorter.wear.util.GridColumnFit
 private const val SINGLE_COLUMN = 1
 private const val GRID_LABEL_MAX_LINES = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
+private val FLOW_CHIP_GAP = 6.dp
 private val CHOICE_ICON_SIZE = 20.dp
 private val GRID_CELL_HEIGHT = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 
@@ -102,6 +107,33 @@ fun <T> ScalingLazyListScope.wearChoiceRows(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+fun <T> ScalingLazyListScope.wearFlowChoiceRows(
+    options: List<T>,
+    selected: T?,
+    labelOf: @Composable (T) -> String,
+    onSelected: (T) -> Unit,
+    unselectedColors: ChipColors? = null
+) {
+    item {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(FLOW_CHIP_GAP, Alignment.CenterHorizontally),
+            verticalArrangement = Arrangement.spacedBy(FLOW_CHIP_GAP),
+            maxItemsInEachRow = Int.MAX_VALUE
+        ) {
+            options.forEach { option ->
+                WearChoiceFlowChip(
+                    label = labelOf(option),
+                    isSelected = option == selected,
+                    onClick = { onSelected(option) },
+                    unselectedColors = unselectedColors
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun WearChoiceListChip(
     label: String,
@@ -128,6 +160,34 @@ private fun WearChoiceListChip(
         },
         modifier = Modifier
             .fillMaxWidth()
+            .semantics { this.selected = isSelected },
+        colors = chipColorsFor(isSelected, unselectedColors)
+    )
+}
+
+@Composable
+private fun WearChoiceFlowChip(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    unselectedColors: ChipColors?
+) {
+    Chip(
+        onClick = onClick,
+        label = { Text(text = label) },
+        icon = if (isSelected) {
+            {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(CHOICE_ICON_SIZE)
+                )
+            }
+        } else {
+            null
+        },
+        modifier = Modifier
+            .heightIn(min = GRID_CELL_HEIGHT)
             .semantics { this.selected = isSelected },
         colors = chipColorsFor(isSelected, unselectedColors)
     )

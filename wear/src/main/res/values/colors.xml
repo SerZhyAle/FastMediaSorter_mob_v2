@@ -74,4 +74,8 @@
     <color name="color_program_accent_brown">#FF8C6F5A</color>
     <!-- S3007: the twelfth name, for Tourist dashboard. Emerald/lime green, distinct from game green. -->
     <color name="color_program_accent_emerald">#FF4E8D62</color>
+    <!-- S3109: the thirteenth name, for the clipboard. Watch-only like the four above it, and slate
+         rather than another blue - the Motion Monitor holds blue and the accent test forbids a repeat
+         because the whole list fits one watch screen at once. -->
+    <color name="color_program_accent_slate">#FF6B7A8C</color>
 </resources>

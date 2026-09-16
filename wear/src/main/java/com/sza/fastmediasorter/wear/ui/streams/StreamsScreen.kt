@@ -73,7 +73,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
 import com.sza.fastmediasorter.wear.ui.common.WearDialogListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.WearSegmentedToggleRow
+import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
@@ -82,6 +82,7 @@ import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearBandEdgeOffset
 import com.sza.fastmediasorter.wear.ui.common.wearChoiceRows
 import com.sza.fastmediasorter.wear.ui.common.wearChordInset
+import com.sza.fastmediasorter.wear.ui.common.wearFlowChoiceRows
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
@@ -775,12 +776,10 @@ private fun StreamSearchDialog(
 }
 
 /**
- * S2819: the kind choice is a single compact toggle row, the facet sections below it stay list rows.
+ * S3102: the type choice uses the settings' full-width radio rows, so every localized label is readable.
  *
- * The dialog no longer takes the screen's view mode: the kind row has one shape by construction, and
- * every facet below is a data-driven set that S1947 pinned to one column regardless of view mode. So
- * nothing here could still read that parameter, and carrying it would leave the grid the owner called
- * unreadable one edit away from returning.
+ * The dialog does not take the screen's view mode: type rows keep one readable shape, and every facet
+ * below is a data-driven set that S1947 pinned to one column regardless of view mode.
  */
 @Composable
 private fun StreamFilterDialog(
@@ -810,34 +809,37 @@ private fun StreamFilterDialog(
                     )
                 }
 
-                item {
-                    WearSegmentedToggleRow(
-                        // S3062: ALL is not a cell - no lit cell means the whole list, and tapping the lit
-                        // cell again returns to it, because a fourth cell does not fit the round dialog.
-                        options = listOf(
-                            StreamFilterKind.VIDEO_ONLY,
-                            StreamFilterKind.AUDIO_ONLY,
-                            StreamFilterKind.OWN
-                        ),
-                        selected = state.selectedFilter,
-                        labelOf = { filter ->
-                            when (filter) {
-                                StreamFilterKind.VIDEO_ONLY ->
-                                    stringResource(R.string.wear_streams_filter_kind_video)
-                                StreamFilterKind.AUDIO_ONLY ->
-                                    stringResource(R.string.wear_streams_filter_kind_audio)
-                                StreamFilterKind.OWN, StreamFilterKind.ALL ->
-                                    stringResource(R.string.wear_streams_filter_kind_own)
-                            }
-                        },
-                        onSelected = { tapped ->
-                            val next = if (tapped == state.selectedFilter) StreamFilterKind.ALL else tapped
-                            actions.onFilterSelected(next)
+                listOf(
+                    StreamFilterKind.ALL,
+                    StreamFilterKind.AUDIO_ONLY,
+                    StreamFilterKind.VIDEO_ONLY,
+                    StreamFilterKind.OWN
+                ).forEach { filter ->
+                    item {
+                        val label = when (filter) {
+                            StreamFilterKind.ALL -> stringResource(R.string.wear_phone_all)
+                            StreamFilterKind.AUDIO_ONLY ->
+                                stringResource(R.string.wear_streams_filter_kind_audio)
+                            StreamFilterKind.VIDEO_ONLY ->
+                                stringResource(R.string.wear_streams_filter_kind_video)
+                            StreamFilterKind.OWN -> stringResource(R.string.wear_streams_filter_kind_own)
                         }
-                    )
+                        WearSettingsToggleCell(
+                            label = label,
+                            checked = state.selectedFilter == filter,
+                            onToggle = {
+                                if (state.selectedFilter != filter) {
+                                    Timber.d("S3102: selected stream filter type $filter")
+                                    actions.onFilterSelected(filter)
+                                }
+                            },
+                            radio = true,
+                            accessibilityLabel = "${stringResource(R.string.wear_streams_filter)}: $label"
+                        )
+                    }
                 }
 
-                streamTopicFilterChoices(state, actions, gridFit)
+                streamTopicFilterChoices(state, actions)
                 streamLanguageFilterChoices(state, actions, gridFit)
                 streamCollectionFilterChoices(state, actions, gridFit)
             }
@@ -849,13 +851,20 @@ private fun StreamFilterDialog(
 
 private fun ScalingLazyListScope.streamTopicFilterChoices(
     state: StreamsFilterDialogState,
-    actions: StreamsFilterDialogActions,
-    gridFit: WearChoiceGridFit
+    actions: StreamsFilterDialogActions
 ) {
     if (state.availableTopics.isEmpty()) return
+    val countById = state.availableTopics.associate { it.id to it.channelCount }
     item {
+        val context = LocalContext.current
+        val selectedTopicLabel = state.selectedTopic?.let { selectedTopic ->
+            facetLabelWithCount(
+                WearStreamRubricCatalog.label(context, selectedTopic) ?: selectedTopic,
+                countById[selectedTopic]
+            )
+        } ?: stringResource(R.string.wear_streams_filter_topic_all)
         Text(
-            text = stringResource(R.string.wear_streams_filter_topic_header),
+            text = "${stringResource(R.string.wear_streams_filter_topic_header)}: $selectedTopicLabel",
             style = MaterialTheme.typography.caption1,
             modifier = Modifier
                 .fillMaxWidth()
@@ -863,9 +872,7 @@ private fun ScalingLazyListScope.streamTopicFilterChoices(
             textAlign = TextAlign.Center
         )
     }
-    // Built once per list build rather than searched per row: the lambda below runs for every chip.
-    val countById = state.availableTopics.associate { it.id to it.channelCount }
-    wearChoiceRows(
+    wearFlowChoiceRows(
         options = listOf<String?>(null) + state.availableTopics.map { it.id },
         selected = state.selectedTopic,
         // S2146: only the LABEL is localized and counted. `options` and `selected` stay the raw
@@ -873,11 +880,16 @@ private fun ScalingLazyListScope.streamTopicFilterChoices(
         // would break selection in every locale but English.
         labelOf = { topic ->
             topic?.let {
-                facetLabelWithCount(WearStreamRubricCatalog.label(LocalContext.current, it) ?: it, countById[it])
+                facetLabelWithCount(
+                    WearStreamRubricCatalog.label(LocalContext.current, it) ?: it,
+                    countById[it]
+                )
             } ?: stringResource(R.string.wear_streams_filter_topic_all)
         },
-        onSelected = { actions.onTopicSelected(it) },
-        gridFit = gridFit
+        onSelected = { topic ->
+            Timber.d("S3103: selected stream topic ${topic ?: "all"}")
+            actions.onTopicSelected(topic)
+        }
     )
 }
 

@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
+import com.sza.fastmediasorter.domain.model.WATCH_HELD_FAVORITE_SOURCE_IDS
 import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
 import com.sza.fastmediasorter.domain.repository.FavoritesRepository
+import timber.log.Timber
 import javax.inject.Inject
 
 class ApplyWatchFavoritesDeltaUseCase @Inject constructor(
@@ -10,7 +12,15 @@ class ApplyWatchFavoritesDeltaUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(payload: WearFavoritesDeltaPayload) {
-        for (item in payload.items) {
+        // S3161: an item addressed by watch storage describes a file only the watch can open. Its
+        // MediaStore address is not the phone's: applied here it either creates a row pointing at
+        // nothing or, on the remove branch, deletes the phone favourite that happens to carry the
+        // same numeric id. Partitioned rather than filtered so both branches below are unreachable
+        // for such an item - the remove branch is why this cannot guard the add branch alone.
+        val (watchHeld, applicable) = payload.items.partition {
+            it.sourceId in WATCH_HELD_FAVORITE_SOURCE_IDS
+        }
+        for (item in applicable) {
             if (item.isFavorite) {
                 // S0932: the watch delta carries only a path (no kind/resourceId/streamMediaKind), so
                 // rebuilding an entity here as a plain FILE row clobbers an existing STREAM favorite
@@ -33,6 +43,10 @@ class ApplyWatchFavoritesDeltaUseCase @Inject constructor(
             } else {
                 favoritesRepository.removeFavorite(item.filePath)
             }
+        }
+        Timber.d("S3161: favourites delta ${payload.items.size} item(s), ${watchHeld.size} watch-held skipped")
+        if (watchHeld.isNotEmpty()) {
+            Timber.i("ApplyWatchFavoritesDelta: skipped %d watch-held item(s)", watchHeld.size)
         }
     }
 }

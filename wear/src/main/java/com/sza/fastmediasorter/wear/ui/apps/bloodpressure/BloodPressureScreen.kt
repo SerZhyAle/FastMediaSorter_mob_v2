@@ -42,7 +42,7 @@ import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import timber.log.Timber
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 
 private val TITLE_BOTTOM_PADDING = 6.dp
 private val SECTION_VERTICAL_PADDING = 4.dp
@@ -63,11 +63,10 @@ private const val BADGE_ALPHA = 0.2f
 @Composable
 fun BloodPressureScreen(
     viewModel: BloodPressureViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState(),
+    listState: ScalingLazyListState = rememberWearListState(positionKey = WearRoutes.BLOOD_PRESSURE),
     onHistoryClick: (() -> Unit)? = null
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

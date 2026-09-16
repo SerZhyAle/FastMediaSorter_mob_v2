@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.core.init.DefaultPlayerStateBootstrapper
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.transfer.TempFileManager
 import com.sza.fastmediasorter.domain.usecase.BackfillSmbCredentialShareNameUseCase
+import com.sza.fastmediasorter.domain.usecase.PruneWatchLocalFavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.RefreshInstalledAppsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.MigrateStreamShortcutsUseCase
 import dagger.assisted.Assisted
@@ -32,6 +33,7 @@ class DeferredStartupWorker @AssistedInject constructor(
     private val backfillSmbCredentialShareNameUseCase: dagger.Lazy<BackfillSmbCredentialShareNameUseCase>,
     private val refreshInstalledApps: dagger.Lazy<RefreshInstalledAppsUseCase>,
     private val migrateStreamShortcuts: dagger.Lazy<MigrateStreamShortcutsUseCase>,
+    private val pruneWatchLocalFavorites: dagger.Lazy<PruneWatchLocalFavoritesUseCase>,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -42,6 +44,11 @@ class DeferredStartupWorker @AssistedInject constructor(
         // now happens only on an explicit refresh gesture.
         runTask("cleanup-old-temp-files") {
             tempFileManager.get().cleanupOldTempFiles(24 * 60 * 60 * 1000L)
+        }
+        // S3161: idempotent and finite, so it needs no "already done" flag - a second run reads the
+        // favourites table once and finds nothing to delete.
+        runTask("prune-watch-local-favorites") {
+            pruneWatchLocalFavorites.get().invoke()
         }
         runTask("backfill-smb-credential-share-name") {
             backfillSmbCredentialShareNameUseCase.get().invoke()

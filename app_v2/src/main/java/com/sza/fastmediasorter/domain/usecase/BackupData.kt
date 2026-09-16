@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BackupPreference
 
 /**
  * Backup payload serialized to/from JSON for Google Drive backup.
@@ -23,13 +24,18 @@ data class BackupPayload(
     val networkCredentials: List<BackupNetworkCredential>? = null,
     val webAuthSessions: List<BackupWebAuthSession>? = null,
     // S1740: Launcher desktop items (shortcuts, gadgets, sections)
-    val launcherCells: List<BackupLauncherCell>? = null
+    val launcherCells: List<BackupLauncherCell>? = null,
+    // S3130: every stored preference, taken by a loop over the settings store rather than by a
+    // hand-maintained field list, so a setting added later travels without a backup-code edit.
+    val rawSettings: List<BackupPreference>? = null
 ) {
     companion object {
         // S1346: v5->v6 - not a payload-shape change but a trust marker for
         // linkAutoDownloadOpenInPlayer. Pre-v6 backups always persisted `true` (the pre-S0981
         // default), so BackupMapper must not trust that field from a payload below this version.
-        const val CURRENT_VERSION = 6
+        // S3130: v6->v7 - [rawSettings] added. A v6 payload carries no raw section and restores
+        // through the typed section alone, exactly as before.
+        const val CURRENT_VERSION = 7
     }
 }
 
@@ -421,15 +427,27 @@ data class BackupSettings(
         val prefetchCacheMultiplier: String? = null,
         // S2843: nullable for the S2730 reason - a backup file written before this ticket carries no
         // key here, and a non-null default would push the class default over a value the user chose.
-        // The broadcast block below is the audio-broadcast session the user tuned; the source device
-        // id is deliberately absent, because it addresses one phone (see BackupSettingsCoverageTest).
+        // The broadcast block below is the broadcast session the user tuned - the master switch, the
+        // audio transport, the camera and microphone source choice and the video quality all travel.
+        // The source device id is deliberately absent, because it addresses one phone (see
+        // BackupSettingsCoverageTest).
         val streamsVisualizeAsMusic: Boolean? = null,
         val broadcastStreamTitle: String? = null,
         val broadcastBitRateBps: Int? = null,
         val broadcastPort: Int? = null,
         val broadcastSampleRateHz: Int? = null,
         val broadcastChannelCount: Int? = null,
-        val broadcastAutoOpenShare: Boolean? = null
+        val broadcastAutoOpenShare: Boolean? = null,
+        // S3163: nullable for the S2730 reason, like the fields above - a backup file written before
+        // this ticket carries no key here.
+        val enableBroadcasting: Boolean? = null,
+        val broadcastCameraEnabled: Boolean? = null,
+        val broadcastMicrophoneEnabled: Boolean? = null,
+        val broadcastMicGainPercent: Int? = null,
+        val broadcastVideoWidth: Int? = null,
+        val broadcastVideoHeight: Int? = null,
+        val broadcastVideoFps: Int? = null,
+        val broadcastVideoBitrateBps: Int? = null
     )
 
     /** S2648: appearance and the general interaction settings that shape every screen. */

@@ -30,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -77,6 +78,7 @@ import com.sza.fastmediasorter.wear.domain.usecase.PrepareVoiceNotePlaybackUseCa
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearFilePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearNetworkFilePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.RecordLastUsedAppUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchAddressUseCase
 import com.sza.fastmediasorter.wear.ui.apps.AppsScreen
@@ -85,6 +87,7 @@ import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.history.BloodPressureH
 import com.sza.fastmediasorter.wear.ui.apps.bodysensor.BodySensorScreen
 import com.sza.fastmediasorter.wear.ui.apps.bodysensor.history.HeartRateHistoryScreen
 import com.sza.fastmediasorter.wear.ui.apps.calculator.CalculatorScreen
+import com.sza.fastmediasorter.wear.ui.apps.clipboard.ClipboardScreen
 import com.sza.fastmediasorter.wear.ui.apps.game.GameRulesScreen
 import com.sza.fastmediasorter.wear.ui.apps.game.GameScreen
 import com.sza.fastmediasorter.wear.ui.apps.motionmonitor.MotionMonitorScreen
@@ -109,8 +112,11 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.LocalWearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
+import com.sza.fastmediasorter.wear.ui.common.WearDimOverlay
+import com.sza.fastmediasorter.wear.ui.common.WearEndRimReservation
 import com.sza.fastmediasorter.wear.ui.common.WearListPositionStore
 import com.sza.fastmediasorter.wear.ui.common.WearRotaryFocusStack
+import com.sza.fastmediasorter.wear.ui.common.WearScreenOffAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearSectionExpansionStore
 import com.sza.fastmediasorter.wear.ui.common.WearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
@@ -176,6 +182,8 @@ data class WearHostUseCases(
     val observeGeometryMode: ObserveWearGeometryModeUseCase,
     // S2995: restricted capabilities for build flavor routing
     val capabilities: WearRestrictedCapabilities,
+    // S3116: records the mini-program the host navigated to, for the home row that offers it again.
+    val recordLastUsedApp: RecordLastUsedAppUseCase,
 )
 
 /**
@@ -256,6 +264,10 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var capabilities: WearRestrictedCapabilities
 
+    // S3116: the host is where a mini-program is seen to open, whichever entrance was used, so it is
+    // where the home row's "last program" is recorded (strategic ADR-1).
+    @Inject lateinit var recordLastUsedApp: RecordLastUsedAppUseCase
+
     // S1961: the pending-open notification is this app's own, so it is this app that puts it away
     // once the user is here and no longer needs it.
     @Inject lateinit var openOnWatchNotifier: WearOpenOnWatchNotifier
@@ -335,6 +347,7 @@ class MainActivity : ComponentActivity() {
                         prepareNetworkFilePlayback = prepareNetworkFilePlayback,
                         observeGeometryMode = observeGeometryMode,
                         capabilities = capabilities,
+                        recordLastUsedApp = recordLastUsedApp,
                     ),
                     launchEntry = WearLaunchEntry(
                         resolveAddress = resolveLaunchAddress,
@@ -574,6 +587,8 @@ fun MainNavigation(
 
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
+    RecordLastUsedAppEffect(currentRoute = currentRoute, recordLastUsedApp = hostUseCases.recordLastUsedApp)
+
     // S2097 - When on WearRoutes.HOME (root destination), intercept Back press to call moveTaskToBack(true)
     // instead of finishing the Activity and overshooting into developer options or settings.
     BackHandler(enabled = currentRoute == WearRoutes.HOME) {
@@ -599,6 +614,11 @@ fun MainNavigation(
     val geometryMode by hostUseCases.observeGeometryMode().collectAsStateWithLifecycle(
         initialValue = WearGeometryMode.STORE
     )
+
+    // S3098: the screen-off command reaches about thirty screens, so it belongs to none of them. The
+    // three screens that dimmed before this ticket keep their own state and are not in the route set
+    // below, so the two owners never raise a sheet over each other.
+    var dimmed by rememberSaveable { mutableStateOf(false) }
 
     CompositionLocalProvider(
         LocalWearWallpaperState provides WearWallpaperState(
@@ -651,6 +671,19 @@ fun MainNavigation(
 
             // S2472: the universal back affordance, drawn above the host.
             WearNavBackAffordanceHost(currentRoute = currentRoute, navController = navController)
+
+            // S3098: its mirror at the opposite rim, on exactly the same routes.
+            WearNavScreenOffHost(
+                currentRoute = currentRoute,
+                dimmed = dimmed,
+                onDim = { dimmed = true }
+            )
+
+            // Drawn last so the sheet covers both rim controls; a control left glowing over a dark
+            // screen is the one thing this mode exists to remove.
+            if (dimmed) {
+                WearDimOverlay(onExit = { dimmed = false })
+            }
         }
     }
 }
@@ -676,6 +709,31 @@ private fun BoxScope.WearNavBackAffordanceHost(
                 .padding(start = wearBackAffordanceInset())
         )
     }
+}
+
+/**
+ * S3098: the screen-off command at the right rim, opposite the shared back arrow.
+ *
+ * It hides while the sheet is up because the sheet covers it anyway, and a command that cannot be seen
+ * must not stay pressable underneath.
+ */
+@Composable
+private fun BoxScope.WearNavScreenOffHost(
+    currentRoute: String?,
+    dimmed: Boolean,
+    onDim: () -> Unit
+) {
+    if (!showsNavBackAffordance(currentRoute) || dimmed) {
+        return
+    }
+    WearScreenOffAffordance(
+        onClick = onDim,
+        modifier = Modifier
+            .align(Alignment.CenterEnd)
+            // One step inwards on every route, because what occupies the right rim - the Wear
+            // position indicator - is on every scrollable screen rather than on a list of them.
+            .padding(end = wearBackAffordanceInset() + WearEndRimReservation)
+    )
 }
 
 /**
@@ -897,6 +955,26 @@ private fun OpenFileOnWatchEffect(
 }
 
 /**
+ * S3116: records the mini-program the host is showing, so the home row can offer it again.
+ *
+ * Keyed on the route rather than collecting an event stream: a program is reached from the Apps list,
+ * from the home row, from a tile shortcut and from an external launch intent, and every one of those
+ * ends as this route - one observation covers four entrances (strategic ADR-1). A route naming no
+ * program records nothing, which is what leaves the value at the program actually opened last.
+ */
+@Composable
+private fun RecordLastUsedAppEffect(
+    currentRoute: String?,
+    recordLastUsedApp: RecordLastUsedAppUseCase,
+) {
+    LaunchedEffect(currentRoute) {
+        val program = currentRoute?.let(WearLaunchRoutes::appIdForRoute) ?: return@LaunchedEffect
+        Timber.d("S3116: recording opened program %s", program)
+        recordLastUsedApp(program)
+    }
+}
+
+/**
  * S1955: opens what the launch intent named, once there is a host able to open it.
  *
  * Deliberately the same shape as [OpenStreamOnWatchEffect], including the STARTED boundary. The waiting is
@@ -1020,6 +1098,11 @@ private fun NavGraphBuilder.miniAppRoutes(
     // S3007: Tourist telemetry and navigation dashboard
     composable(WearRoutes.TOURIST) {
         TouristScreen()
+    }
+
+    // S3109: the watch's text clipboard, and the action that hands it to the paired phone.
+    composable(WearRoutes.CLIPBOARD) {
+        ClipboardScreen()
     }
 
     healthAndHardwareAppRoutes(navController, capabilities)

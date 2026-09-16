@@ -54,6 +54,9 @@ function New-FixtureSandbox {
     $watchSvc = Join-Path $watchDir 'data/wear'
     $watchBroadcast = Join-Path $watchDir 'data/broadcast'
     $watchUseCase = Join-Path $watchDir 'domain/usecase'
+    # S3160: the browse mediaType row's two sides live outside domain/model on both modules.
+    $phoneUseCase = Join-Path $phoneDir 'domain/usecase'
+    $watchBrowse = Join-Path $watchDir 'domain/browse'
 
     New-Item -ItemType Directory -Force -Path $phoneModel | Out-Null
     New-Item -ItemType Directory -Force -Path $phoneSvc | Out-Null
@@ -62,6 +65,8 @@ function New-FixtureSandbox {
     New-Item -ItemType Directory -Force -Path $watchSvc | Out-Null
     New-Item -ItemType Directory -Force -Path $watchBroadcast | Out-Null
     New-Item -ItemType Directory -Force -Path $watchUseCase | Out-Null
+    New-Item -ItemType Directory -Force -Path $phoneUseCase | Out-Null
+    New-Item -ItemType Directory -Force -Path $watchBrowse | Out-Null
 
     @'
 package com.sza.fastmediasorter.data.broadcast
@@ -292,6 +297,53 @@ class ImportNetworkSourcesUseCase {
 }
 '@ | Set-Content (Join-Path $watchUseCase 'ImportNetworkSourcesUseCase.kt') -Encoding utf8NoBOM
 
+    # S3160: the browse mediaType row. Both sides are named sets of string constants whose CONSTANT
+    # names differ by design, so the fixture keeps that asymmetry - a fixture that named them alike
+    # would pass whether the gate compared values or names.
+    @'
+package com.sza.fastmediasorter.domain.usecase
+class ListPhoneResourcePageUseCase {
+    companion object {
+        private const val FILTER_PHOTOS = "photos"
+        private const val FILTER_VIDEOS = "videos"
+        private val KNOWN_MEDIA_TYPE_FILTERS: Set<String> = setOf(
+            FILTER_PHOTOS,
+            FILTER_VIDEOS
+        )
+    }
+}
+'@ | Set-Content (Join-Path $phoneUseCase 'ListPhoneResourcePageUseCase.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.domain.browse
+object BrowseCategoryCatalog {
+    const val TOKEN_VIDEOS = "videos"
+    const val TOKEN_PHOTOS = "photos"
+    val PHONE_FILTER_TOKENS: Set<String> = setOf(
+        TOKEN_PHOTOS,
+        TOKEN_VIDEOS
+    )
+}
+'@ | Set-Content (Join-Path $watchBrowse 'BrowseCategoryCatalog.kt') -Encoding utf8NoBOM
+
+    # S3161: the favourite delta's sourceId vocabulary. Both sides are top-level constants outside
+    # any object, which is the shape no other row in this fixture exercises.
+    @'
+package com.sza.fastmediasorter.domain.model
+const val SOURCE_ID_LOCAL = "local"
+const val SOURCE_ID_NETWORK = "network"
+const val SOURCE_ID_STREAM = "stream"
+const val SOURCE_ID_VOICE_NOTE = "voice_note"
+'@ | Set-Content (Join-Path $phoneModel 'WearFavoritesPayload.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+const val SOURCE_ID_LOCAL = "local"
+const val SOURCE_ID_NETWORK = "network"
+const val SOURCE_ID_STREAM = "stream"
+const val SOURCE_ID_VOICE_NOTE = "voice_note"
+'@ | Set-Content (Join-Path $watchModel 'WearFavoriteRecord.kt') -Encoding utf8NoBOM
+
     return @{ Root = $sandbox; Phone = $phoneDir; Watch = $watchDir }
 }
 
@@ -511,6 +563,63 @@ object WearDataLayerPaths {
 '@ | Set-Content (Join-Path $sb.Watch 'data/wear/WearDataLayerPaths.kt') -Encoding utf8NoBOM
     $code = Invoke-GateOnSandbox $sb
     Assert-That "13. Route value diverges while event values match" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 14: watch drops a browse mediaType token alone (S3160) ---
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.wear.domain.browse
+object BrowseCategoryCatalog {
+    const val TOKEN_VIDEOS = "videos"
+    const val TOKEN_PHOTOS = "photos"
+    val PHONE_FILTER_TOKENS: Set<String> = setOf(
+        TOKEN_PHOTOS
+    )
+}
+'@ | Set-Content (Join-Path $sb.Watch 'domain/browse/BrowseCategoryCatalog.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "14. Watch drops a browse mediaType token alone" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 15: a browse token is renamed on one side only (S3160) ---
+#
+# The value is what travels, so this is the case that decides whether the row compares values or
+# constant names: the two sides' CONSTANT names differ in the clean fixture already, and a row
+# comparing names would have failed case 1 instead of this one.
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.wear.domain.browse
+object BrowseCategoryCatalog {
+    const val TOKEN_VIDEOS = "clips"
+    const val TOKEN_PHOTOS = "photos"
+    val PHONE_FILTER_TOKENS: Set<String> = setOf(
+        TOKEN_PHOTOS,
+        TOKEN_VIDEOS
+    )
+}
+'@ | Set-Content (Join-Path $sb.Watch 'domain/browse/BrowseCategoryCatalog.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "15. Browse token value renamed on one side" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 16: the watch respells a favourite source id alone (S3161) ---
+#
+# The phone decides whether to apply a delta item by comparing this value, so a respelling on one
+# side silently restores the bug the row exists to prevent: the item stops matching and its watch
+# MediaStore address reaches the phone's favorites table again.
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+const val SOURCE_ID_LOCAL = "watch_local"
+const val SOURCE_ID_NETWORK = "network"
+const val SOURCE_ID_STREAM = "stream"
+const val SOURCE_ID_VOICE_NOTE = "voice_note"
+'@ | Set-Content (Join-Path $sb.Watch 'domain/model/WearFavoriteRecord.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "16. Favourite source id respelled on the watch alone" ($code -eq 1) "expected 1, got $code"
 } finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
 
 Write-Host ''

@@ -43,6 +43,7 @@ import com.sza.fastmediasorter.wear.domain.model.asSessionFailure
 import com.sza.fastmediasorter.wear.domain.repository.PhoneCameraSessionHolder
 import com.sza.fastmediasorter.wear.domain.repository.WearCastRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
+import com.sza.fastmediasorter.wear.domain.usecase.CaptureAndSendWearScreenshotUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ImportNetworkSourcesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.StoreTransferredStreamUseCase
@@ -126,6 +127,12 @@ class WatchWearListenerService : WearableListenerService() {
     // S2531: the cast replies land here rather than on a listener the repository registers, because the
     // phone pushes session state between requests and two receivers would race over the same two paths.
     @Inject lateinit var wearCastRepository: WearCastRepository
+
+    // S3109: the phone's text clipboard. Its own receiver rather than a branch body here, because the
+    // write, the toast and the answer all have to outlive this service's callback.
+    @Inject lateinit var wearClipboardTextReceiver: WearClipboardTextReceiver
+
+    @Inject lateinit var captureAndSendWearScreenshotUseCase: CaptureAndSendWearScreenshotUseCase
 
     // S2915: every handler below launches on the application-owned scope. The platform destroys this
     // service shortly after the callback returns, and the service-owned scope this used to cancel in
@@ -262,6 +269,10 @@ class WatchWearListenerService : WearableListenerService() {
             WearDataLayerPaths.CAMERA_VIEW_ACK -> handleCameraViewAck(event.data)
             WearDataLayerPaths.CAST_ACK -> wearCastRepository.onAckReceived(event.data)
             WearDataLayerPaths.CAST_STATE -> wearCastRepository.onStateReceived(event.data)
+            WearDataLayerPaths.CLIPBOARD_TEXT_FROM_PHONE ->
+                handleClipboardText(event.sourceNodeId, event.data)
+            WearDataLayerPaths.SCREENSHOT_REQUEST ->
+                handleScreenshotRequest(event.sourceNodeId, event.data)
             else -> Timber.d("WatchWearListenerService: unhandled message path ${event.path}")
         }
     }
@@ -359,6 +370,64 @@ class WatchWearListenerService : WearableListenerService() {
                     activeLensId = ack.activeLensId
                 )
             )
+        }
+    }
+
+    /**
+     * S3109: launched on the application scope, never on a service-owned one - the platform destroys
+     * this service shortly after the callback returns, and S2915 recorded that a service-owned scope
+     * took every job still in flight with it, so a slow handler died with no log line on either side.
+     */
+    private fun handleClipboardText(nodeId: String, data: ByteArray) {
+        applicationScope.launch {
+            wearClipboardTextReceiver.handle(nodeId, data)
+        }
+    }
+
+    /**
+     * S3110: the phone asking for a picture of this watch's screen.
+     *
+     * An unparseable request is answered too, under an empty request id: the phone has to be able to
+     * tell a refusal from a lost link, and it can tolerate an id that matches nothing it sent.
+     */
+    private fun handleScreenshotRequest(nodeId: String, data: ByteArray) {
+        Timber.d("S3110: screenshot request received on the watch")
+        applicationScope.launch {
+            val ack = when (val parsed = WearScreenshotRequestCodec.parse(data, gson)) {
+                is WearScreenshotRequestParseResult.Malformed -> WearScreenshotRequestAck(
+                    requestId = "",
+                    captured = false,
+                    reason = WearScreenshotRefusalReasons.MALFORMED
+                )
+
+                is WearScreenshotRequestParseResult.UnsupportedVersion -> {
+                    Timber.w("Screenshot request: unknown format version ${parsed.version}")
+                    WearScreenshotRequestAck(
+                        requestId = "",
+                        captured = false,
+                        reason = WearScreenshotRefusalReasons.UNSUPPORTED_VERSION
+                    )
+                }
+
+                is WearScreenshotRequestParseResult.Parsed ->
+                    captureAndSendWearScreenshotUseCase(parsed.payload.requestId)
+            }
+            sendScreenshotRequestAck(nodeId, ack)
+        }
+    }
+
+    private suspend fun sendScreenshotRequestAck(nodeId: String, ack: WearScreenshotRequestAck) {
+        if (nodeId.isBlank()) return
+        try {
+            Wearable.getMessageClient(this)
+                .sendMessage(
+                    nodeId,
+                    WearDataLayerPaths.SCREENSHOT_REQUEST_ACK,
+                    WearScreenshotRequestCodec.serializeAck(ack, gson)
+                )
+                .await()
+        } catch (e: Exception) {
+            e.errorUnlessCancellation("Failed to send screenshot request ack")
         }
     }
 

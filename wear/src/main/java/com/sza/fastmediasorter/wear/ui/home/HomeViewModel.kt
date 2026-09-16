@@ -6,12 +6,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.catalog.HomeSectionCatalog
+import com.sza.fastmediasorter.wear.domain.catalog.WearAppCatalog
 import com.sza.fastmediasorter.wear.domain.model.HomeSection
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
 import com.sza.fastmediasorter.wear.domain.model.LastUsedKind
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
+import com.sza.fastmediasorter.wear.domain.model.WearApp
+import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearTileTargetRef
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
@@ -50,6 +54,8 @@ class HomeViewModel @Inject constructor(
     private val resolveLaunchAddress: ResolveWearLaunchAddressUseCase,
     private val backgroundSessionState: WearBackgroundSessionState,
     private val faviconAtlasStore: WearFaviconAtlasStore,
+    // S3116: decides whether the program stored as "opened last" exists in this build at all.
+    private val capabilities: WearRestrictedCapabilities,
     @ApplicationContext private val context: Context,
     nowPlayingRepository: WearNowPlayingRepository
 ) : ViewModel() {
@@ -117,9 +123,10 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = combine(
         resolveLastUsedResource(),
         preferencesRepository.streamsSectionEnabled,
-        preferencesRepository.viewMode
-    ) { lastUsedResources, streamsEnabled, viewMode ->
-        HomeSources(lastUsedResources, streamsEnabled, viewMode)
+        preferencesRepository.viewMode,
+        preferencesRepository.lastUsedApp
+    ) { lastUsedResources, streamsEnabled, viewMode, lastUsedApp ->
+        HomeSources(lastUsedResources, streamsEnabled, viewMode, availableApp(lastUsedApp))
     }.map { sources ->
         HomeUiState(
             lastUsedResources = sources.lastUsedResources
@@ -128,7 +135,10 @@ class HomeViewModel @Inject constructor(
                 .filter { sources.streamsEnabled || it.kind == LastUsedKind.RESOURCE }
                 .map(::shortcutSection),
             sections = HomeSectionCatalog.sectionsFor(
-                HomeSectionVisibility(streamsEnabled = sources.streamsEnabled)
+                HomeSectionVisibility(
+                    streamsEnabled = sources.streamsEnabled,
+                    lastUsedApp = sources.lastUsedApp
+                )
             ),
             viewMode = sources.viewMode
         )
@@ -150,6 +160,19 @@ class HomeViewModel @Inject constructor(
     }
 
     /**
+     * S3116: the program record behind a stored id, or null when this build does not offer it.
+     *
+     * Read out of the very catalog the Apps screen draws, so a program withheld from this flavor -
+     * recorded before an update, or by a sibling build sharing the watch - has no record to be found
+     * and the row falls back to the broadcast entrance rather than opening a screen the build hides.
+     */
+    private fun availableApp(id: WearAppId?): WearApp? {
+        val app = id?.let { stored -> WearAppCatalog.apps(capabilities).firstOrNull { it.id == stored } }
+        Timber.d("S3116: home row program stored=%s offered=%s", id, app?.id)
+        return app
+    }
+
+    /**
      * S2499: the address a shortcut opens, resolved at the moment it is tapped.
      *
      * A resource answers instantly with the route it already carries. A channel has none to carry -
@@ -160,6 +183,9 @@ class HomeViewModel @Inject constructor(
      */
     suspend fun resolveShortcutRoute(section: HomeSection): String? {
         val route = section.route
+            // S3116: the program the row carries, addressed through the table every other entrance to
+            // that program uses, so this row and its cell in the Apps list open one screen.
+            ?: section.appId?.let { destinationFor(it) }?.let(WearLaunchRoutes::routeFor)
             ?: destinationFor(section.id)?.let(WearLaunchRoutes::routeFor)
             ?: section.targetRef
                 ?.let { resolveLaunchAddress(WearLaunchTarget.Open(it)) }
@@ -200,5 +226,7 @@ class HomeViewModel @Inject constructor(
 private data class HomeSources(
     val lastUsedResources: List<LastUsedResource>,
     val streamsEnabled: Boolean,
-    val viewMode: WearViewMode
+    val viewMode: WearViewMode,
+    /** S3116: already resolved to a program this build offers, or null when there is none. */
+    val lastUsedApp: WearApp?
 )

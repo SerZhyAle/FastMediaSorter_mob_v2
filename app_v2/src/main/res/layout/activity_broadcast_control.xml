@@ -125,6 +125,20 @@
             app:icon="@drawable/ic_settings" />
     </LinearLayout>
 
+    <!-- BROADCAST SETTINGS PANEL - the settings screen's own Broadcast body, hosted here (S3060) -->
+    <ScrollView
+        android:id="@+id/containerBroadcastSettings"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone"
+        android:fillViewport="true">
+
+        <include
+            android:id="@+id/layoutBroadcastSettings"
+            layout="@layout/fragment_settings_broadcast" />
+    </ScrollView>
+
     <!-- LIVE STREAM CONTROLS CONTAINER -->
     <LinearLayout
         android:id="@+id/layoutLiveControls"

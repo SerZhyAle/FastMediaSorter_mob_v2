@@ -11,59 +11,648 @@
     "notes": "N/A causes, defect carriers, and scope caveats"
   },
   "scenarios": [
-    { "id": "A1", "slug": "companion-toggle-node-visibility", "group": "A", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Companion enabled on the phone - the watch shows up as a node; disabled - no nodes, and the watch side says so instead of failing silently.", "notes": "Precondition for every other group." },
-    { "id": "A2", "slug": "pairing-visible-both-ways", "group": "A", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Within the same minute the watch sees the phone and the phone sees the watch; on Samsung watches the bond reads via secure device_paired (clockwork_* keys are always empty there; global space has no such key).", "notes": "" },
-    { "id": "A3", "slug": "link-break-and-recover", "group": "A", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Carry the phone out of range - the watch reports the phone unavailable; bring it back - the exchange recovers on its own, no app restart.", "notes": "Physical action, not scriptable by adb (S2861 research item 3)." },
-    { "id": "A4", "slug": "same-build-stamp-both-sides", "group": "A", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "versionName matches on both devices before the first scenario; a mismatch voids every compatibility verdict.", "notes": "Run first, before everything else." },
-    { "id": "B1", "slug": "phone-setting-reaches-watch", "group": "B", "channels": ["/fms/wear/settings"], "logMarker": "/fms/wear/settings", "requiresPair": true, "expectation": "A setting changed on the phone lands on the watch.", "notes": "" },
-    { "id": "B2", "slug": "watch-setting-reaches-phone", "group": "B", "channels": ["/fms/watch/settings_report"], "logMarker": "/fms/watch/settings_report", "requiresPair": true, "expectation": "The same setting changed on the watch lands on the phone; the companion window shows the watch's values.", "notes": "Verdict ticket S2799." },
-    { "id": "B3", "slug": "unit-system-applies-on-watch", "group": "B", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Unit system switched on the phone takes effect on every watch screen that shows a measured value.", "notes": "Verdict ticket S2731 (wear half confirmed in run 1)." },
-    { "id": "B4", "slug": "conflicting-settings-merge", "group": "B", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Change the same setting on both devices while the link is down, restore the link, describe which side won.", "notes": "The known merge weak point; physical disconnect, not scriptable. Verdict ticket S2799." },
-    { "id": "B5", "slug": "unknown-setting-does-not-break-apply", "group": "B", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "A setting the watch build does not have is dropped without breaking the application of the rest.", "notes": "" },
-    { "id": "C1", "slug": "resource-selection-syncs", "group": "C", "channels": ["/fms/network_sources/request", "/fms/network_sources/push", "/fms/network_sources/ack"], "logMarker": "/fms/network_sources/ack", "requiresPair": true, "expectation": "Picking resources in the companion window syncs them; the confirmation reports added and updated counts.", "notes": "Run 2 starts at group C." },
-    { "id": "C2", "slug": "empty-selection-sends-nothing", "group": "C", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "An empty selection sends nothing and says so, instead of pushing the whole registry.", "notes": "" },
-    { "id": "C3", "slug": "deselected-resource-removed-on-watch", "group": "C", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Deselecting a resource on the phone removes it on the watch, leaving no orphan.", "notes": "" },
-    { "id": "C4", "slug": "watch-sources-export", "group": "C", "channels": ["/fms/watch/sources_export"], "logMarker": "/fms/watch/sources_export", "requiresPair": true, "expectation": "Sources exported from the watch land on the phone.", "notes": "" },
-    { "id": "D1", "slug": "phone-file-list-no-duplicates", "group": "D", "channels": ["/fms/watch/phone_resource/browse", "/fms/phone/phone_resource/page"], "logMarker": "/fms/phone/phone_resource/page", "requiresPair": true, "expectation": "The phone file list on the watch shows every file exactly once; the verdict reads from the page channel in the log, not from the screen.", "notes": "Currently failing - S2860; duplication seen in the drawing itself, two probe lines per label." },
-    { "id": "D2", "slug": "previews-load", "group": "D", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Previews load.", "notes": "Currently failing - secondary observation of S2860. For the phone-folder source this is also S2801's verdict." },
-    { "id": "D3", "slug": "media-filter-and-favorites", "group": "D", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Media-type filter and local favorites work on the watch.", "notes": "" },
-    { "id": "D4", "slug": "large-folder-paginates-cleanly", "group": "D", "channels": ["/fms/watch/phone_resource/browse", "/fms/phone/phone_resource/page"], "logMarker": "/fms/phone/phone_resource/page", "requiresPair": true, "expectation": "A folder that cannot fit one page: pages arrive in order, nothing lost or duplicated; the verdict reads the page counter in the response. Data item cap 25 KB - exceeding it reads on the watch as phone unavailable.", "notes": "" },
-    { "id": "D5", "slug": "single-file-open-transfer", "group": "D", "channels": ["/fms/watch/phone_resource/open", "/fms/phone/phone_resource/transfer"], "logMarker": "/fms/phone/phone_resource/transfer", "requiresPair": true, "expectation": "Opening one file transfers its bytes over the channel and the file opens on the watch.", "notes": "" },
-    { "id": "E1", "slug": "phone-photo-on-watch", "group": "E", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "A phone photo plays on the watch.", "notes": "Human judgement of the picture." },
-    { "id": "E2", "slug": "phone-video-on-watch", "group": "E", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "A phone video plays on the watch.", "notes": "Human judgement of the picture." },
-    { "id": "E3", "slug": "phone-audio-on-watch", "group": "E", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Phone audio plays on the watch.", "notes": "Human judgement of the sound." },
-    { "id": "E4", "slug": "watch-controls-phone-playback", "group": "E", "channels": ["/fms/phone/playback_cmd"], "logMarker": "/fms/phone/playback_cmd", "requiresPair": true, "expectation": "The watch drives the phone player: play, pause, next, volume.", "notes": "" },
-    { "id": "E5", "slug": "playback-state-visible-on-watch", "group": "E", "channels": ["/fms/watch/playback_state"], "logMarker": "/fms/watch/playback_state", "requiresPair": true, "expectation": "The phone player state is visible on the watch and updates when changed from the phone.", "notes": "" },
-    { "id": "E6", "slug": "media-takeover-suppression", "group": "E", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "With the suppression setting on, the watch does not take over media control; off - it does. Needs simultaneous playback on both devices.", "notes": "Verdict ticket S2810." },
-    { "id": "E7", "slug": "cast-from-watch-via-phone", "group": "E", "channels": ["/fms/watch/cast_request", "/fms/watch/cast_stop", "/fms/phone/cast_ack", "/fms/phone/cast_state"], "logMarker": "/fms/phone/cast_ack", "requiresPair": true, "expectation": "Cast from the watch through the phone: request, ack, stop, session shown on the watch.", "notes": "All four routes alive per S2861 14.2; verdict ticket S2531." },
-    { "id": "F1", "slug": "phone-camera-on-watch", "group": "F", "channels": ["/fms/watch/camera_view_start", "/fms/watch/camera_view_switch", "/fms/watch/camera_view_stop", "/fms/phone/camera_view_ack"], "logMarker": "/fms/phone/camera_view_ack", "requiresPair": true, "expectation": "Phone camera viewed on the watch: start, lens switch, stop.", "notes": "Expected N/A, not a failure: the phone side always refuses (answerServing has zero call sites) until S2551 lands (S2861 14.2)." },
-    { "id": "F2", "slug": "watch-mic-listened-on-phone", "group": "F", "channels": ["/fms/phone/listen_start", "/fms/phone/listen_stop", "/fms/watch/listen_ack"], "logMarker": "/fms/watch/listen_ack", "requiresPair": true, "expectation": "The watch microphone is listened to on the phone: start, address in the ack, stop. Sound travels the LAN, not the Data Layer.", "notes": "Needs a shared network; the only F scenario the pair is needed for." },
-    { "id": "F3", "slug": "listen-refusal-not-silence", "group": "F", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "With the permission denied, the answer is a refusal with a reason, not silence.", "notes": "" },
-    { "id": "F4", "slug": "broadcast-indicator-and-timer", "group": "F", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "The running-broadcast indicator, its timer and the session title show on the viewing side.", "notes": "Not a Data Layer route (S2861 14.2); human judgement of the picture." },
-    { "id": "F5", "slug": "watch-broadcast-qr-receiver", "group": "F", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Watch broadcast received on the phone via QR: code repeats after an app restart, rescanning does not duplicate catalog rows, a network change revives the old row with its pin kept.", "notes": "Parallel non-GMS subsystem; physical network change, not scriptable. Verdict ticket S2813." },
-    { "id": "G1", "slug": "background-image-cropped-and-delivered", "group": "G", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "An image picked on the phone is cropped to the watch square and delivered; the companion window reports the outcome.", "notes": "Rides the background frame transfer under the reserved name; human judgement. Delivered-and-drawn confirmed in run 1." },
-    { "id": "G2", "slug": "background-modes-persist", "group": "G", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "All four navigation-background modes switch and survive a watch app restart.", "notes": "Human judgement of the picture." },
-    { "id": "G3", "slug": "background-dim-keeps-label-readable", "group": "G", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "A second dimming pass does not eat label readability.", "notes": "Human judgement; contrast loss over light photos parked as S2864." },
-    { "id": "G4", "slug": "regular-file-send-keeps-background", "group": "G", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "A regular file sent under its own name does not touch the background; only the reserved frame name overwrites it.", "notes": "" },
-    { "id": "H1", "slug": "watch-to-phone-file-send", "group": "H", "channels": ["/fms/transfer_file", "/fms/transfer_file_meta", "/fms/watch/transfer_file_ack", "/fms/phone/receive_file_ack", "/fms/phone/receive_file_upload_outcome"], "logMarker": "/fms/watch/transfer_file_ack", "requiresPair": true, "expectation": "A file sent watch-to-phone: immediate ack, deferred upload outcome.", "notes": "" },
-    { "id": "H2", "slug": "phone-to-watch-file-send", "group": "H", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "A file sent phone-to-watch arrives and opens.", "notes": "Same channel family as H1, either direction." },
-    { "id": "H3", "slug": "oversized-file-refused-by-metadata", "group": "H", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "A too-large file is refused on the metadata, before the first byte.", "notes": "" },
-    { "id": "H4", "slug": "send-to-receivers-replaced-whole", "group": "H", "channels": ["/fms/phone/send_to_receivers"], "logMarker": "/fms/phone/send_to_receivers", "requiresPair": true, "expectation": "The receiver set is replaced whole: a receiver switched off on the phone disappears from the watch.", "notes": "" },
-    { "id": "I1", "slug": "stream-sent-to-watch-survives-refresh", "group": "I", "channels": ["/fms/phone/stream_transfer", "/fms/watch/stream_transfer_ack"], "logMarker": "/fms/watch/stream_transfer_ack", "requiresPair": true, "expectation": "A stream sent from the phone is stored on the watch and survives a catalog refresh.", "notes": "" },
-    { "id": "I2", "slug": "pins-replaced-and-unpinned-removed", "group": "I", "channels": ["/fms/phone/stream_pins"], "logMarker": "/fms/phone/stream_pins", "requiresPair": true, "expectation": "The pinned set arrives whole; unpinning on the phone removes the channel from the watch's top group.", "notes": "" },
-    { "id": "I3", "slug": "watch-pin-delta-reaches-phone", "group": "I", "channels": ["/fms/watch/stream_pins_delta"], "logMarker": "/fms/watch/stream_pins_delta", "requiresPair": true, "expectation": "Pinning on the watch reaches the phone.", "notes": "" },
-    { "id": "I4", "slug": "group-order-pins-first", "group": "I", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Order: watch-pinned, then phone-only-pinned, then the rest by the chosen sort; a channel pinned on both shows once.", "notes": "" },
-    { "id": "I5", "slug": "unknown-pin-skipped-quietly", "group": "I", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "A phone pin for a channel the watch catalog lacks is skipped without an error.", "notes": "" },
-    { "id": "J1", "slug": "show-on-phone-three-outcomes", "group": "J", "channels": ["/fms/watch/open_on_phone", "/fms/phone/open_on_phone_ack"], "logMarker": "/fms/phone/open_on_phone_ack", "requiresPair": true, "expectation": "Show on phone: three outcomes - shown, notified, refused.", "notes": "" },
-    { "id": "J2", "slug": "watch-log-report-via-phone", "group": "J", "channels": ["/fms/watch/log_report", "/fms/phone/log_report_ack"], "logMarker": "/fms/phone/log_report_ack", "requiresPair": true, "expectation": "The watch log report lands next to the phone logs and reaches both export paths.", "notes": "" },
-    { "id": "J3", "slug": "favorites-delta-to-phone", "group": "J", "channels": ["/fms/watch/favorites_delta"], "logMarker": "/fms/watch/favorites_delta", "requiresPair": true, "expectation": "A favorites change on the watch reaches the phone as a delta.", "notes": "" },
-    { "id": "J4", "slug": "watch-as-single-resource", "group": "J", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "First companion button press creates the watch resource row, later presses open it; no second row appears.", "notes": "Naming unified by S2868." },
-    { "id": "J5", "slug": "tiles-and-complications-live", "group": "J", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Watch tiles and complications show phone-sent data and open what they promise.", "notes": "Human judgement of the picture." },
-    { "id": "J6", "slug": "portal-link-hands-off-to-phone", "group": "J", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "The About-screen portal link on the watch is handed to the phone and opens there.", "notes": "" },
-    { "id": "K1", "slug": "companion-off-mid-scenario", "group": "K", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Switching the companion off mid-scenario: both sides report it, neither hangs.", "notes": "Toggle is a system-settings change on the personal phone - forbidden by Rule 35, not scriptable." },
-    { "id": "K2", "slug": "phone-leaves-mid-transfer", "group": "K", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "The phone leaving range mid-file-transfer ends the transfer with a stated error.", "notes": "Physical action, not scriptable." },
-    { "id": "K3", "slug": "power-saving-keeps-stream", "group": "K", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Power saving and the dimmed watch mode do not kill a running stream.", "notes": "Physical action, not scriptable." },
-    { "id": "K4", "slug": "payload-vocabulary-understood", "group": "K", "channels": [], "logMarker": "", "requiresPair": true, "expectation": "Deliberately pick a value introduced later than the peer's build (playback mode, media type, units) and confirm the other side understands it instead of dropping it silently.", "notes": "Wire vocabulary is judged by assert-wear-wire-vocabulary-parity.ps1, not by path names." }
+    {
+      "id": "A1",
+      "slug": "companion-toggle-node-visibility",
+      "group": "A",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Companion enabled on the phone - the watch shows up as a node; disabled - no nodes, and the watch side says so instead of failing silently.",
+      "notes": "Precondition for every other group."
+    },
+    {
+      "id": "A2",
+      "slug": "pairing-visible-both-ways",
+      "group": "A",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Within the same minute the watch sees the phone and the phone sees the watch; on Samsung watches the bond reads via secure device_paired (clockwork_* keys are always empty there; global space has no such key).",
+      "notes": ""
+    },
+    {
+      "id": "A3",
+      "slug": "link-break-and-recover",
+      "group": "A",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Carry the phone out of range - the watch reports the phone unavailable; bring it back - the exchange recovers on its own, no app restart.",
+      "notes": "Physical action, not scriptable by adb (S2861 research item 3)."
+    },
+    {
+      "id": "A4",
+      "slug": "same-build-stamp-both-sides",
+      "group": "A",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "versionName matches on both devices before the first scenario; a mismatch voids every compatibility verdict.",
+      "notes": "Run first, before everything else."
+    },
+    {
+      "id": "B1",
+      "slug": "phone-setting-reaches-watch",
+      "group": "B",
+      "channels": [
+        "/fms/wear/settings"
+      ],
+      "logMarker": "/fms/wear/settings",
+      "requiresPair": true,
+      "expectation": "A setting changed on the phone lands on the watch.",
+      "notes": ""
+    },
+    {
+      "id": "B2",
+      "slug": "watch-setting-reaches-phone",
+      "group": "B",
+      "channels": [
+        "/fms/watch/settings_report"
+      ],
+      "logMarker": "/fms/watch/settings_report",
+      "requiresPair": true,
+      "expectation": "The same setting changed on the watch lands on the phone; the companion window shows the watch's values.",
+      "notes": "Verdict ticket S2799."
+    },
+    {
+      "id": "B3",
+      "slug": "unit-system-applies-on-watch",
+      "group": "B",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Unit system switched on the phone takes effect on every watch screen that shows a measured value.",
+      "notes": "Verdict ticket S2731 (wear half confirmed in run 1)."
+    },
+    {
+      "id": "B4",
+      "slug": "conflicting-settings-merge",
+      "group": "B",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Change the same setting on both devices while the link is down, restore the link, describe which side won.",
+      "notes": "The known merge weak point; physical disconnect, not scriptable. Verdict ticket S2799."
+    },
+    {
+      "id": "B5",
+      "slug": "unknown-setting-does-not-break-apply",
+      "group": "B",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "A setting the watch build does not have is dropped without breaking the application of the rest.",
+      "notes": ""
+    },
+    {
+      "id": "C1",
+      "slug": "resource-selection-syncs",
+      "group": "C",
+      "channels": [
+        "/fms/network_sources/request",
+        "/fms/network_sources/push",
+        "/fms/network_sources/ack"
+      ],
+      "logMarker": "/fms/network_sources/ack",
+      "requiresPair": true,
+      "expectation": "Picking resources in the companion window syncs them; the confirmation reports added and updated counts.",
+      "notes": "Run 2 starts at group C."
+    },
+    {
+      "id": "C2",
+      "slug": "empty-selection-sends-nothing",
+      "group": "C",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "An empty selection sends nothing and says so, instead of pushing the whole registry.",
+      "notes": ""
+    },
+    {
+      "id": "C3",
+      "slug": "deselected-resource-removed-on-watch",
+      "group": "C",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Deselecting a resource on the phone removes it on the watch, leaving no orphan.",
+      "notes": ""
+    },
+    {
+      "id": "C4",
+      "slug": "watch-sources-export",
+      "group": "C",
+      "channels": [
+        "/fms/watch/sources_export"
+      ],
+      "logMarker": "/fms/watch/sources_export",
+      "requiresPair": true,
+      "expectation": "Sources exported from the watch land on the phone.",
+      "notes": ""
+    },
+    {
+      "id": "D1",
+      "slug": "phone-file-list-no-duplicates",
+      "group": "D",
+      "channels": [
+        "/fms/watch/phone_resource/browse",
+        "/fms/phone/phone_resource/page"
+      ],
+      "logMarker": "/fms/phone/phone_resource/page",
+      "requiresPair": true,
+      "expectation": "The phone file list on the watch shows every file exactly once; the verdict reads from the page channel in the log, not from the screen.",
+      "notes": "Currently failing - S2860; duplication seen in the drawing itself, two probe lines per label."
+    },
+    {
+      "id": "D2",
+      "slug": "previews-load",
+      "group": "D",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Previews load.",
+      "notes": "Currently failing - secondary observation of S2860. For the phone-folder source this is also S2801's verdict."
+    },
+    {
+      "id": "D3",
+      "slug": "media-filter-and-favorites",
+      "group": "D",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Media-type filter and local favorites work on the watch.",
+      "notes": ""
+    },
+    {
+      "id": "D4",
+      "slug": "large-folder-paginates-cleanly",
+      "group": "D",
+      "channels": [
+        "/fms/watch/phone_resource/browse",
+        "/fms/phone/phone_resource/page"
+      ],
+      "logMarker": "/fms/phone/phone_resource/page",
+      "requiresPair": true,
+      "expectation": "A folder that cannot fit one page: pages arrive in order, nothing lost or duplicated; the verdict reads the page counter in the response. Data item cap 25 KB - exceeding it reads on the watch as phone unavailable.",
+      "notes": ""
+    },
+    {
+      "id": "D5",
+      "slug": "single-file-open-transfer",
+      "group": "D",
+      "channels": [
+        "/fms/watch/phone_resource/open",
+        "/fms/phone/phone_resource/transfer"
+      ],
+      "logMarker": "/fms/phone/phone_resource/transfer",
+      "requiresPair": true,
+      "expectation": "Opening one file transfers its bytes over the channel and the file opens on the watch.",
+      "notes": ""
+    },
+    {
+      "id": "E1",
+      "slug": "phone-photo-on-watch",
+      "group": "E",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "A phone photo plays on the watch.",
+      "notes": "Human judgement of the picture."
+    },
+    {
+      "id": "E2",
+      "slug": "phone-video-on-watch",
+      "group": "E",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "A phone video plays on the watch.",
+      "notes": "Human judgement of the picture."
+    },
+    {
+      "id": "E3",
+      "slug": "phone-audio-on-watch",
+      "group": "E",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Phone audio plays on the watch.",
+      "notes": "Human judgement of the sound."
+    },
+    {
+      "id": "E4",
+      "slug": "watch-controls-phone-playback",
+      "group": "E",
+      "channels": [
+        "/fms/phone/playback_cmd"
+      ],
+      "logMarker": "/fms/phone/playback_cmd",
+      "requiresPair": true,
+      "expectation": "The watch drives the phone player: play, pause, next, volume.",
+      "notes": ""
+    },
+    {
+      "id": "E5",
+      "slug": "playback-state-visible-on-watch",
+      "group": "E",
+      "channels": [
+        "/fms/watch/playback_state"
+      ],
+      "logMarker": "/fms/watch/playback_state",
+      "requiresPair": true,
+      "expectation": "The phone player state is visible on the watch and updates when changed from the phone.",
+      "notes": ""
+    },
+    {
+      "id": "E6",
+      "slug": "media-takeover-suppression",
+      "group": "E",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "With the suppression setting on, the watch does not take over media control; off - it does. Needs simultaneous playback on both devices.",
+      "notes": "Verdict ticket S2810."
+    },
+    {
+      "id": "E7",
+      "slug": "cast-from-watch-via-phone",
+      "group": "E",
+      "channels": [
+        "/fms/watch/cast_request",
+        "/fms/watch/cast_stop",
+        "/fms/phone/cast_ack",
+        "/fms/phone/cast_state"
+      ],
+      "logMarker": "/fms/phone/cast_ack",
+      "requiresPair": true,
+      "expectation": "Cast from the watch through the phone: request, ack, stop, session shown on the watch.",
+      "notes": "All four routes alive per S2861 14.2; verdict ticket S2531."
+    },
+    {
+      "id": "F1",
+      "slug": "phone-camera-on-watch",
+      "group": "F",
+      "channels": [
+        "/fms/watch/camera_view_start",
+        "/fms/watch/camera_view_switch",
+        "/fms/watch/camera_view_stop",
+        "/fms/phone/camera_view_ack"
+      ],
+      "logMarker": "/fms/phone/camera_view_ack",
+      "requiresPair": true,
+      "expectation": "Phone camera viewed on the watch: start, lens switch, stop.",
+      "notes": "Expected N/A, not a failure: the phone side always refuses (answerServing has zero call sites) until S2551 lands (S2861 14.2)."
+    },
+    {
+      "id": "F2",
+      "slug": "watch-mic-listened-on-phone",
+      "group": "F",
+      "channels": [
+        "/fms/phone/listen_start",
+        "/fms/phone/listen_stop",
+        "/fms/watch/listen_ack"
+      ],
+      "logMarker": "/fms/watch/listen_ack",
+      "requiresPair": true,
+      "expectation": "The watch microphone is listened to on the phone: start, address in the ack, stop. Sound travels the LAN, not the Data Layer.",
+      "notes": "Needs a shared network; the only F scenario the pair is needed for."
+    },
+    {
+      "id": "F3",
+      "slug": "listen-refusal-not-silence",
+      "group": "F",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "With the permission denied, the answer is a refusal with a reason, not silence.",
+      "notes": ""
+    },
+    {
+      "id": "F4",
+      "slug": "broadcast-indicator-and-timer",
+      "group": "F",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "The running-broadcast indicator, its timer and the session title show on the viewing side.",
+      "notes": "Not a Data Layer route (S2861 14.2); human judgement of the picture."
+    },
+    {
+      "id": "F5",
+      "slug": "watch-broadcast-qr-receiver",
+      "group": "F",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Watch broadcast received on the phone via QR: code repeats after an app restart, rescanning does not duplicate catalog rows, a network change revives the old row with its pin kept.",
+      "notes": "Parallel non-GMS subsystem; physical network change, not scriptable. Verdict ticket S2813."
+    },
+    {
+      "id": "G1",
+      "slug": "background-image-cropped-and-delivered",
+      "group": "G",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "An image picked on the phone is cropped to the watch square and delivered; the companion window reports the outcome.",
+      "notes": "Rides the background frame transfer under the reserved name; human judgement. Delivered-and-drawn confirmed in run 1."
+    },
+    {
+      "id": "G2",
+      "slug": "background-modes-persist",
+      "group": "G",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "All four navigation-background modes switch and survive a watch app restart.",
+      "notes": "Human judgement of the picture."
+    },
+    {
+      "id": "G3",
+      "slug": "background-dim-keeps-label-readable",
+      "group": "G",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "A second dimming pass does not eat label readability.",
+      "notes": "Human judgement; contrast loss over light photos parked as S2864."
+    },
+    {
+      "id": "G4",
+      "slug": "regular-file-send-keeps-background",
+      "group": "G",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "A regular file sent under its own name does not touch the background; only the reserved frame name overwrites it.",
+      "notes": ""
+    },
+    {
+      "id": "H1",
+      "slug": "watch-to-phone-file-send",
+      "group": "H",
+      "channels": [
+        "/fms/transfer_file",
+        "/fms/transfer_file_meta",
+        "/fms/watch/transfer_file_ack",
+        "/fms/phone/receive_file_ack",
+        "/fms/phone/receive_file_upload_outcome"
+      ],
+      "logMarker": "/fms/watch/transfer_file_ack",
+      "requiresPair": true,
+      "expectation": "A file sent watch-to-phone: immediate ack, deferred upload outcome.",
+      "notes": ""
+    },
+    {
+      "id": "H2",
+      "slug": "phone-to-watch-file-send",
+      "group": "H",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "A file sent phone-to-watch arrives and opens.",
+      "notes": "Same channel family as H1, either direction."
+    },
+    {
+      "id": "H3",
+      "slug": "oversized-file-refused-by-metadata",
+      "group": "H",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "A too-large file is refused on the metadata, before the first byte.",
+      "notes": ""
+    },
+    {
+      "id": "H4",
+      "slug": "send-to-receivers-replaced-whole",
+      "group": "H",
+      "channels": [
+        "/fms/phone/send_to_receivers"
+      ],
+      "logMarker": "/fms/phone/send_to_receivers",
+      "requiresPair": true,
+      "expectation": "The receiver set is replaced whole: a receiver switched off on the phone disappears from the watch.",
+      "notes": ""
+    },
+    {
+      "id": "I1",
+      "slug": "stream-sent-to-watch-survives-refresh",
+      "group": "I",
+      "channels": [
+        "/fms/phone/stream_transfer",
+        "/fms/watch/stream_transfer_ack"
+      ],
+      "logMarker": "/fms/watch/stream_transfer_ack",
+      "requiresPair": true,
+      "expectation": "A stream sent from the phone is stored on the watch and survives a catalog refresh.",
+      "notes": ""
+    },
+    {
+      "id": "I2",
+      "slug": "pins-replaced-and-unpinned-removed",
+      "group": "I",
+      "channels": [
+        "/fms/phone/stream_pins"
+      ],
+      "logMarker": "/fms/phone/stream_pins",
+      "requiresPair": true,
+      "expectation": "The pinned set arrives whole; unpinning on the phone removes the channel from the watch's top group.",
+      "notes": ""
+    },
+    {
+      "id": "I3",
+      "slug": "watch-pin-delta-reaches-phone",
+      "group": "I",
+      "channels": [
+        "/fms/watch/stream_pins_delta"
+      ],
+      "logMarker": "/fms/watch/stream_pins_delta",
+      "requiresPair": true,
+      "expectation": "Pinning on the watch reaches the phone.",
+      "notes": ""
+    },
+    {
+      "id": "I4",
+      "slug": "group-order-pins-first",
+      "group": "I",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Order: watch-pinned, then phone-only-pinned, then the rest by the chosen sort; a channel pinned on both shows once.",
+      "notes": ""
+    },
+    {
+      "id": "I5",
+      "slug": "unknown-pin-skipped-quietly",
+      "group": "I",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "A phone pin for a channel the watch catalog lacks is skipped without an error.",
+      "notes": ""
+    },
+    {
+      "id": "J1",
+      "slug": "show-on-phone-three-outcomes",
+      "group": "J",
+      "channels": [
+        "/fms/watch/open_on_phone",
+        "/fms/phone/open_on_phone_ack"
+      ],
+      "logMarker": "/fms/phone/open_on_phone_ack",
+      "requiresPair": true,
+      "expectation": "Show on phone: three outcomes - shown, notified, refused.",
+      "notes": ""
+    },
+    {
+      "id": "J2",
+      "slug": "watch-log-report-via-phone",
+      "group": "J",
+      "channels": [
+        "/fms/watch/log_report",
+        "/fms/phone/log_report_ack"
+      ],
+      "logMarker": "/fms/phone/log_report_ack",
+      "requiresPair": true,
+      "expectation": "The watch log report lands next to the phone logs and reaches both export paths.",
+      "notes": ""
+    },
+    {
+      "id": "J7",
+      "slug": "watch-system-info-report-via-phone",
+      "group": "J",
+      "channels": [
+        "/fms/watch/system_info_report",
+        "/fms/phone/system_info_report_ack"
+      ],
+      "logMarker": "/fms/phone/system_info_report_ack",
+      "requiresPair": true,
+      "expectation": "Send to phone on the watch's System Information screen: the phone stores the report as a text file beside its logs, announces it, and the watch states the outcome in words - delivered, no phone, no answer, or refused.",
+      "notes": "S3108. With phone notifications off the watch must read the refusal as 'notifications are off', not as a generic failure."
+    },
+    {
+      "id": "J3",
+      "slug": "favorites-delta-to-phone",
+      "group": "J",
+      "channels": [
+        "/fms/watch/favorites_delta"
+      ],
+      "logMarker": "/fms/watch/favorites_delta",
+      "requiresPair": true,
+      "expectation": "A favorites change on the watch reaches the phone as a delta.",
+      "notes": ""
+    },
+    {
+      "id": "J4",
+      "slug": "watch-as-single-resource",
+      "group": "J",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "First companion button press creates the watch resource row, later presses open it; no second row appears.",
+      "notes": "Naming unified by S2868."
+    },
+    {
+      "id": "J5",
+      "slug": "tiles-and-complications-live",
+      "group": "J",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Watch tiles and complications show phone-sent data and open what they promise.",
+      "notes": "Human judgement of the picture."
+    },
+    {
+      "id": "J6",
+      "slug": "portal-link-hands-off-to-phone",
+      "group": "J",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "The About-screen portal link on the watch is handed to the phone and opens there.",
+      "notes": ""
+    },
+    {
+      "id": "J8",
+      "slug": "watch-clipboard-to-phone",
+      "group": "J",
+      "channels": [
+        "/fms/watch/clipboard_text",
+        "/fms/phone/clipboard_text_ack"
+      ],
+      "logMarker": "/fms/phone/clipboard_text_ack",
+      "requiresPair": true,
+      "expectation": "Send to phone on the watch's Clipboard program: the phone puts the text on its own clipboard, announces the arrival with a notification, and the watch states the outcome in words - taken, no phone, no answer, or refused with the reason.",
+      "notes": "S3109. The refusal reasons the phone can answer with are malformed, unsupported_version, too_long, empty_text and clipboard_unavailable; an oversized text is refused by the watch before it is sent."
+    },
+    {
+      "id": "J9",
+      "slug": "phone-clipboard-to-watch",
+      "group": "J",
+      "channels": [
+        "/fms/phone/clipboard_text",
+        "/fms/watch/clipboard_text_ack"
+      ],
+      "logMarker": "/fms/watch/clipboard_text_ack",
+      "requiresPair": true,
+      "expectation": "Send clipboard to the watch on the phone's Wear companion screen: the watch puts the text on its own clipboard, confirms it with a toast, and the phone states the outcome in words under the action - taken, no watch, no answer, or refused with the reason.",
+      "notes": "S3109. There is deliberately no 'fetch the phone clipboard from the watch' counterpart: since Android 10 only the foreground app may read its own clipboard, so the phone cannot answer such a request (strategic ADR-1)."
+    },
+    {
+      "id": "J10",
+      "slug": "phone-asks-watch-for-a-screenshot",
+      "group": "J",
+      "channels": [
+        "/fms/phone/screenshot_request",
+        "/fms/watch/screenshot_request_ack"
+      ],
+      "logMarker": "/fms/watch/screenshot_request_ack",
+      "requiresPair": true,
+      "expectation": "Request a watch screenshot on the phone's Wear companion screen while the watch app is open: the picture of the watch screen arrives on the phone as a watch file with its usual notification, and the phone states the outcome in words - requested, no watch, the watch app is closed, or refused with the reason.",
+      "notes": "S3110. Only the watch app's own window is captured, never the whole display - MediaProjection would need a consent tap on the watch for every request and would defeat the phone's initiative (strategic ADR-1). The image itself does not ride these two paths: it travels on /fms/transfer_file, so a run that watches only this marker sees the outcome and not the bytes. Refusal reasons: malformed, unsupported_version, no_foreground_screen, capture_failed, send_failed."
+    },
+    {
+      "id": "K1",
+      "slug": "companion-off-mid-scenario",
+      "group": "K",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Switching the companion off mid-scenario: both sides report it, neither hangs.",
+      "notes": "The toggle is the app's own enableWearCompanion setting (rowEnableWearCompanion), not a device system setting - drivable on the personal phone. Measured S2993 2026-09-16."
+    },
+    {
+      "id": "K2",
+      "slug": "phone-leaves-mid-transfer",
+      "group": "K",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "The phone leaving range mid-file-transfer ends the transfer with a stated error.",
+      "notes": "Physical action, not scriptable."
+    },
+    {
+      "id": "K3",
+      "slug": "power-saving-keeps-stream",
+      "group": "K",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Power saving and the dimmed watch mode do not kill a running stream.",
+      "notes": "Drivable on the watch: battery saver is `settings put global low_power 1`, the dimmed state is `keyevent 223` (mWakefulness=Dozing). Measured S2993 2026-09-16."
+    },
+    {
+      "id": "K4",
+      "slug": "payload-vocabulary-understood",
+      "group": "K",
+      "channels": [],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Deliberately pick a value introduced later than the peer's build (playback mode, media type, units) and confirm the other side understands it instead of dropping it silently.",
+      "notes": "Wire vocabulary is judged by assert-wear-wire-vocabulary-parity.ps1, not by path names."
+    }
   ],
   "excluded": []
 }

@@ -85,6 +85,7 @@
     <string name="settings_profile_title">Profil de l\'appareil</string>
     <plurals name="settings_profile_warning_count">
         <item quantity="one">Passer à ce profil remplace %1$d paramètre par la valeur que ce profil définit. Continuer ?</item>
+        <item quantity="many">Passer à ce profil remplace %1$d de paramètres par les valeurs que ce profil définit. Continuer ?</item>
         <item quantity="other">Passer à ce profil remplace %1$d paramètres par les valeurs que ce profil définit. Continuer ?</item>
     </plurals>
     <string name="settings_all_files_create_resource">Créer la source \"Tous les fichiers\"</string>

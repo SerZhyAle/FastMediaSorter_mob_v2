@@ -3457,6 +3457,21 @@ scripts/quality/assert-script-described.ps1
   Exit: 0 - both counts at or below their ceilings, or -Report was given; 1 - either count rose above its ceiling; 2 - cannot verify: a script root or a baseline file is missing or unreadable
 ```
 
+### assert-script-file-size.ps1
+S3150: a repository PowerShell script must stay under the CLAUDE.md Rule 2 file-size ceiling.
+
+```
+scripts/quality/assert-script-file-size.ps1
+  S3150: a repository PowerShell script must stay under the CLAUDE.md Rule 2 file-size ceiling.
+  Params:
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String]
+    -MaxLines             [Int32] = 2000
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 every judged script is within the ceiling (or a finding stands without -Gate).; 1 a judged script is above the ceiling, with -Gate.; 2 could not verify - the repository root or every discovery root is unreadable.
+```
+
 ### assert-script-parses.ps1
 Refuses a .ps1 in the scanned roots that the PowerShell parser cannot read at all.
 
@@ -3986,10 +4001,11 @@ Attribute a Codex session rollout transcript: context growth, tool-output size, 
 scripts/quality/measure-codex-transcript.ps1
   Attribute a Codex session rollout transcript: context growth, tool-output size, and the S3141 hygiene flags (oversized inline reads, truncated output, sleep-polling, cross-ticket reads) for one call sequence.
   Params:
-    -Id           [String]
-    -Path         [String]
-    -Json         [SwitchParameter]
-  Exit: 0 - ran to completion, whatever the outcome (including `found: false`).; 2 - cannot verify: an explicit -Path does not exist, or a found file does not parse as
+    -Id                 [String]
+    -Path               [String]
+    -Json               [SwitchParameter]
+    -StageCheck         [SwitchParameter]
+  Exit: 0 - ran to completion, whatever the outcome (including `found: false`); with -StageCheck,
 ```
 
 ### measure-file-touch-frequency.ps1
@@ -4849,6 +4865,25 @@ One definition of "this path belongs to another agent's checkout, not to this tr
 scripts/quality/lib/nested-worktrees.ps1
   One definition of "this path belongs to another agent's checkout, not to this tree", shared by every repository-wide file walk.
   (no param block)
+```
+
+### post-change-changed-set.ps1
+S3150: the changed-set half of scripts/post-change.ps1 - the normalized path set, the predicates
+
+```
+scripts/quality/lib/post-change-changed-set.ps1
+  S3150: the changed-set half of scripts/post-change.ps1 - the normalized path set, the predicates
+  (no param block)
+```
+
+### post-change-step-runners.ps1
+S3150: the step and gate execution surface of scripts/post-change.ps1 - run state, the protocol
+
+```
+scripts/quality/lib/post-change-step-runners.ps1
+  S3150: the step and gate execution surface of scripts/post-change.ps1 - run state, the protocol
+  (no param block)
+  Exit: 215 failed runs in the week of 2026-08-05, median 8 turns from a failed run to
 ```
 
 ### room-databases.ps1
@@ -7585,7 +7620,7 @@ scripts/utils/write-codex-handoff.ps1
     -GateVerdict              [String] = 'not recorded'
     -AuditManualState         [String] = 'not recorded'
     -NextAction               [String] = 'not stated'
-  Exit: 0 - handoff file written.; 2 - invalid arguments, or -Id does not resolve in the spec catalog.; 4 - no LEASE-HANDOFF file found for -Id under temp/LEASE-HANDOFF/.
+  Exit: 0 - handoff file written.; 2 - invalid arguments, or -Id does not resolve in the spec catalog.
 ```
 
 ## scripts\utils\agent-chat.tests

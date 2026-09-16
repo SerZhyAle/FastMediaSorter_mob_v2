@@ -211,7 +211,26 @@ $evidenceFile = Join-Path $evidenceDir "${nn}__${slug}.txt"
 Set-Content -LiteralPath $evidenceFile -Value $text -NoNewline
 
 $excerpt = if ($pathMode) {
-    ($text -split "`r?`n" | Select-Object -First $ContextLines) -join "`n"
+    # S3176: the first lines alone left the caller blind, so it spent a second turn grepping the
+    # evidence file for headings before a third turn fetched the section - measured 2-3 turns per
+    # document in the S3103 Codex session, each resending a context of 100-200k tokens. The
+    # outline lets the very next call be `-Pattern '<heading>' -SearchPath <evidence path>`.
+    $allLines = $text -split "`r?`n"
+    $head = ($allLines | Select-Object -First $ContextLines) -join "`n"
+    $outlinePattern = '^(#{1,4} \S|\s{0,4}(private |internal |public |override )*(fun|class|object|interface|enum class|data class|sealed class) \S|function \S)'
+    $outline = for ($i = 0; $i -lt $allLines.Count; $i++) {
+        if ($allLines[$i] -match $outlinePattern) {
+            $entry = $allLines[$i].Trim()
+            if ($entry.Length -gt 120) { $entry = $entry.Substring(0, 120) + '..' }
+            "outline: $($i + 1): $entry"
+        }
+    }
+    $outlineText = (@($outline) -join "`n")
+    $outlineBudget = [Math]::Max(0, $maxInlineChars - $head.Length)
+    if ($outlineText.Length -gt $outlineBudget) {
+        $outlineText = $outlineText.Substring(0, $outlineBudget) + "`n.. (outline cut at $maxInlineChars chars; the evidence file holds the rest)"
+    }
+    if ($outlineText) { "$head`n$outlineText" } else { $head }
 } else {
     # One line per hit, never the context blocks: printing $text here put the whole over-threshold
     # result back inline (27,087 and 25,324 chars in the S3142/S3090 after-transcripts), so the

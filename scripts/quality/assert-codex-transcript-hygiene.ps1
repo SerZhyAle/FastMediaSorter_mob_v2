@@ -12,7 +12,8 @@
       - a rollout was found - any call flagged `oversized` (its output exceeded
         codexContext.maxInlineChars inline, per Phase 01), `truncated` (a truncation marker
         followed by output the model then used), `chainedRead` (two or more reads chained
-        into one exec call, so the per-call offload threshold never applied), `crossTicketId` (a call named another
+        into one exec call, so the per-call offload threshold never applied), `uncapped` (an exec call
+        requesting no `max_output_tokens` or more than codexContext.maxOutputTokens), `crossTicketId` (a call named another
         ticket's id with no link), or a `sleepStreak` of 2 or more (a wait spread across
         several model turns instead of one blocking call) is a finding.
       - zero findings - PASS, exit 0.
@@ -49,10 +50,9 @@ if ($env:CLAUDECODE -or $env:CLAUDE_CODE_SESSION_ID) {
     Write-Host "assert-codex-transcript-hygiene: not applicable - this is a Claude Code process (inherited FMS_AGENT_RUNTIME='$($env:FMS_AGENT_RUNTIME)' ignored)."
     exit 0
 }
-if ($env:FMS_AGENT_RUNTIME -ne 'Codex') {
-    Write-Host "assert-codex-transcript-hygiene: not applicable - runtime is '$($env:FMS_AGENT_RUNTIME)', not Codex."
-    exit 0
-}
+# S3177: no FMS_AGENT_RUNTIME test. Codex never sets it - the S3103 session closed without it, so
+# the gate answered "not applicable" to a 25M-token transcript. A rollout whose first user message
+# names the ticket is the authorship evidence; no rollout -> not applicable below.
 
 $measureScript = Join-Path $PSScriptRoot 'measure-codex-transcript.ps1'
 # Invoked as a real child process, not dot-sourced or `&`-called in-process: the measured
@@ -75,7 +75,7 @@ if (-not $parsed.found) {
 
 $calls = @($parsed.calls)
 $findings = @($calls | Where-Object {
-    $_.oversized -or $_.truncated -or $_.chainedRead -or $_.crossTicketId -or ($_.sleepPoll -and $_.sleepStreak -ge 2)
+    $_.uncapped -or $_.oversized -or $_.truncated -or $_.chainedRead -or $_.crossTicketId -or ($_.sleepPoll -and $_.sleepStreak -ge 2)
 })
 
 if ($findings.Count -eq 0) {
@@ -86,6 +86,7 @@ if ($findings.Count -eq 0) {
 Write-Host "assert-codex-transcript-hygiene: $($findings.Count) finding(s) in $($parsed.path):" -ForegroundColor Yellow
 foreach ($f in $findings) {
     $tags = [System.Collections.Generic.List[string]]::new()
+    if ($f.uncapped) { $tags.Add("uncapped (max_output_tokens $($f.maxOutputTokens))") }
     if ($f.oversized) { $tags.Add("oversized ($($f.chars) chars)") }
     if ($f.truncated) { $tags.Add('truncated-output-used-as-fact') }
     if ($f.chainedRead) { $tags.Add("chained-read: $($f.readOps) reads in one call") }

@@ -19,7 +19,9 @@ import com.sza.fastmediasorter.wear.ui.browse.FileActionsDialog
 import com.sza.fastmediasorter.wear.ui.browse.FileActionsDialogState
 import com.sza.fastmediasorter.wear.ui.browse.FileDeleteConfirmDialog
 import com.sza.fastmediasorter.wear.ui.browse.OperationRunDialog
+import com.sza.fastmediasorter.wear.ui.browse.fileOperationActions
 import com.sza.fastmediasorter.wear.ui.common.ReceiverListDialog
+import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
 
 /**
@@ -38,6 +40,67 @@ data class PlayerDialogVisibilities(
     val onReceiversVisibilityChange: (Boolean) -> Unit
 )
 
+/**
+ * What the player's file operations do when picked, wherever they are picked from.
+ *
+ * S3118: the video player draws these operations as entries of its own menu while the other players
+ * open the file-action dialog, and both paths run the same callbacks - a second copy of "rename asks
+ * for a name, delete asks for a confirmation" is how the two surfaces would answer differently.
+ */
+@Composable
+private fun rememberPlayerFileActionCallbacks(
+    operations: PlayerFileOperationsManager,
+    visibilities: PlayerDialogVisibilities,
+    currentFileName: String?
+): FileActionsCallbacks {
+    val requestRename = rememberWearRenameInput { newName ->
+        operations.runOperation(WearFileOperation.Rename(newName))
+    }
+    return FileActionsCallbacks(
+        onSelectAllRequested = {},
+        onSendToRequested = {
+            visibilities.onActionsVisibilityChange(false)
+            visibilities.onReceiversVisibilityChange(true)
+        },
+        onSendToPhone = {
+            visibilities.onActionsVisibilityChange(false)
+            operations.runOperation(WearFileOperation.SendToPhone)
+        },
+        onMoveToPhone = {
+            visibilities.onActionsVisibilityChange(false)
+            operations.runOperation(WearFileOperation.MoveToPhone)
+        },
+        onRenameRequested = {
+            visibilities.onActionsVisibilityChange(false)
+            requestRename(currentFileName)
+        },
+        onDeleteRequested = {
+            visibilities.onActionsVisibilityChange(false)
+            visibilities.onDeleteVisibilityChange(true)
+        },
+        onDismiss = { visibilities.onActionsVisibilityChange(false) }
+    )
+}
+
+/**
+ * The file operations as menu entries, in the dialog's own order and with its labels and icons.
+ *
+ * The set comes from [PlayerFileOperationsManager.allowedOperations], which is the file capability
+ * policy's answer to "what may this file be asked to do" - a caller that filtered the list itself
+ * would be offering work the policy refuses. Destructive last, as in the dialog: on a round screen
+ * the outer rows are the easiest to hit by accident.
+ */
+@Composable
+fun rememberPlayerFileActionEntries(
+    operations: PlayerFileOperationsManager,
+    visibilities: PlayerDialogVisibilities,
+    currentFileName: String?
+): List<WearAction> {
+    val allowedOperations by operations.allowedOperations.collectAsStateWithLifecycle()
+    val callbacks = rememberPlayerFileActionCallbacks(operations, visibilities, currentFileName)
+    return fileOperationActions(allowedOperations, callbacks)
+}
+
 @Composable
 fun PlayerDialogsHost(
     operations: PlayerFileOperationsManager,
@@ -47,16 +110,13 @@ fun PlayerDialogsHost(
     val showActions = visibilities.showActions
     val showDeleteConfirm = visibilities.showDeleteConfirm
     val showReceivers = visibilities.showReceivers
-    val onActionsVisibilityChange = visibilities.onActionsVisibilityChange
     val onDeleteVisibilityChange = visibilities.onDeleteVisibilityChange
     val onReceiversVisibilityChange = visibilities.onReceiversVisibilityChange
     val allowedOperations by operations.allowedOperations.collectAsStateWithLifecycle()
     val receivers by operations.sendToReceivers.collectAsStateWithLifecycle()
     val run by operations.operationRun.collectAsStateWithLifecycle()
 
-    val requestRename = rememberWearRenameInput { newName ->
-        operations.runOperation(WearFileOperation.Rename(newName))
-    }
+    val callbacks = rememberPlayerFileActionCallbacks(operations, visibilities, currentFileName)
 
     if (showActions) {
         FileActionsDialog(
@@ -65,30 +125,7 @@ fun PlayerDialogsHost(
                 totalCount = 1,
                 allowedOperations = allowedOperations
             ),
-            callbacks = FileActionsCallbacks(
-                onSelectAllRequested = {},
-                onSendToRequested = {
-                    onActionsVisibilityChange(false)
-                    onReceiversVisibilityChange(true)
-                },
-                onSendToPhone = {
-                    onActionsVisibilityChange(false)
-                    operations.runOperation(WearFileOperation.SendToPhone)
-                },
-                onMoveToPhone = {
-                    onActionsVisibilityChange(false)
-                    operations.runOperation(WearFileOperation.MoveToPhone)
-                },
-                onRenameRequested = {
-                    onActionsVisibilityChange(false)
-                    requestRename(currentFileName)
-                },
-                onDeleteRequested = {
-                    onActionsVisibilityChange(false)
-                    onDeleteVisibilityChange(true)
-                },
-                onDismiss = { onActionsVisibilityChange(false) }
-            )
+            callbacks = callbacks
         )
     }
 

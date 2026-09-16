@@ -28,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -58,12 +60,10 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearGeometryMode
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
-import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceSize
 import com.sza.fastmediasorter.wear.ui.common.WearFitText
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearChordInset
-import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.common.wearScrollViewportInset
 import com.sza.fastmediasorter.wear.util.GridColumnFit
@@ -80,19 +80,13 @@ private val KEY_HEIGHT = 25.dp
 private val KEY_GAP = 2.dp
 
 /**
- * S2273: the gap under the value row, which together with the keypad column's `top = KEY_GAP` is the
- * whole separation between the value and the first key.
+ * S3104: how much of the value glyph's own height the row drops by, as a divisor of that height
+ * (owner ruling 2026-09-14).
  *
- * It replaces the flat `KEYPAD_SIDE_PADDING = 6.dp` that used to inset this screen sideways. That
- * constant assumed the full diameter was usable, which is true on no circle at all: Play rejected the
- * watch on `WO-V16 Watch shapes` and the 192 dp measurement of 2026-09-04 found the value and the
- * operation element 233 and 240 px from the centre of a 192 px circle. Side insets now come from the
- * module's shape helpers, so nothing on this screen carries a width of its own any more.
+ * Stated against the type rather than as a dp literal, so the drop follows the value's size if the
+ * watch palette or the type scale is ever restated.
  */
-private val VALUE_ROW_BOTTOM_GAP = 4.dp
-
-/** The back control starts two thirds of its touch target into the free half below `=`. */
-private const val BACK_BUTTON_START_OFFSET_FRACTION = 2f / 3f
+private const val VALUE_ROW_DROP_DIVISOR = 2
 
 /** A low-contrast alternate plate makes the odd digits form a readable checkerboard. */
 private const val ODD_DIGIT_TINT_ALPHA = 0.12f
@@ -113,7 +107,11 @@ private const val EVEN_DIVISOR = 2
  * Both children of the value row therefore carry this size in the dimension where they fall short of
  * it: the row is at least this tall so the inflation has nowhere to grow upwards, and the operation
  * element is exactly this wide so it has nowhere to grow sideways. What is judged is then the row's
- * real box, which [wearMaxSquareSide] and [wearRingInset] already keep whole.
+ * real box, which [wearChordInset] and [wearRingInset] already keep whole.
+ *
+ * S3104 aligns those children to the bottom of the row, which leaves this argument intact: a child
+ * shorter than the target inflates about its own centre, and a child resting on the row's bottom edge
+ * inflates upwards into the row's own free height rather than past its top edge.
  */
 private val TOUCH_TARGET = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 
@@ -188,11 +186,27 @@ private data class CalculatorShape(
 )
 
 /**
+ * S3104: half the height of a digit in the value row, which is how far the row drops (owner ruling
+ * 2026-09-14).
+ *
+ * Read off the style the value is drawn in rather than off a literal, because the whole point of the
+ * drop is that the row clears its own glyph by a stated fraction of it.
+ */
+@Composable
+private fun valueRowDrop(): Dp {
+    val valueFontSize = MaterialTheme.typography.title1.fontSize
+    return with(LocalDensity.current) { valueFontSize.toDp() } / VALUE_ROW_DROP_DIVISOR
+}
+
+/**
  * S2273: where the round glass lets this screen put things.
  *
- * The value row takes [wearMaxSquareSide] and sits at [wearRingInset], which is the module's own
- * answer for a box that must be whole at the TOP of a circle - the band where the chord is shortest
- * and where every node Play's reviewer rejected was standing.
+ * S3104: the value row no longer takes the inscribed square's side. That side is one number for the
+ * whole glass, so it answers for the worst band of the circle wherever the row actually stands - and
+ * once the row is lowered it stands where the chord is wider, which is exactly what the owner asked
+ * the drop to buy (two more digits on a 480 px round watch). The width now comes from the chord over
+ * the row's own TOP edge, which is the worst edge for anything standing above the centre of the
+ * glass, through the same [wearChordInset] the keypad below it already uses.
  *
  * S2770: the keypad no longer takes the ordinary `wearScreenInsets`. That inset is uniform, so it
  * inscribes a RECTANGLE in a round display - the middle of a row gets clearance to spare while the
@@ -210,9 +224,11 @@ private fun calculatorShape(): CalculatorShape {
     val isOriginal = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
     val viewportBottom = wearScrollViewportInset()
     val sideInset = wearChordInset(viewportBottom)
+    val valueRowTop = (if (isOriginal) 0.dp else wearRingInset()) + valueRowDrop()
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val shape = CalculatorShape(
-        valueRowWidth = wearMaxSquareSide(),
-        valueRowTop = if (isOriginal) 0.dp else wearRingInset(),
+        valueRowWidth = screenWidth - wearChordInset(valueRowTop) * 2,
+        valueRowTop = valueRowTop,
         keypadPadding = PaddingValues(
             start = sideInset,
             top = KEY_GAP,
@@ -306,6 +322,7 @@ fun CalculatorScreen(
     val historyListState = rememberWearListState()
     var copyConfirmationShown by remember { mutableStateOf(false) }
     val shape = calculatorShape()
+    Timber.d("S3104: calculator shape top=${shape.valueRowTop} valueWidth=${shape.valueRowWidth}")
     // S2007: no `scrollState` is handed to the scaffold. That parameter exists only to scroll
     // `TimeText` away, and the value row is fixed below the clock while the keypad scrolls beneath
     // the value row - so nothing that moves here ever reaches the clock to obscure it.
@@ -456,8 +473,6 @@ private fun CalculatorDisplay(
     onOperation: (String) -> Unit,
     onCopy: (String) -> Unit
 ) {
-    val isOriginal = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
-    val bottomGap = if (isOriginal) 2.dp else VALUE_ROW_BOTTOM_GAP
     val text = if (uiState.isError) stringResource(R.string.wear_calc_error) else uiState.display
     val copyableValue = uiState.copyableValue
     // The spoken description names the tap only where the tap does something, so the error state is
@@ -468,8 +483,12 @@ private fun CalculatorDisplay(
         text
     }
     Row(
-        // This bottom padding and the keypad column's `top = KEY_GAP` are together the gap between the
-        // value row and the first keypad row.
+        // S3104: the keypad column's `top = KEY_GAP` is now the WHOLE gap between the value row and
+        // the first keypad row, which is the owner's ruling of 2026-09-14 - the digits stand off the
+        // keys by exactly what the keys stand off each other. The row keeps its [TOUCH_TARGET]
+        // minimum height below, so the free height that minimum leaves has to go somewhere: aligning
+        // the children to the BOTTOM spends it above the digits, into the empty band under the clock,
+        // instead of below them where the owner measured it as lost space.
         //
         // S2273: the row is sized and placed by the glass, not by the frame. It does not scroll, so
         // `clip-check` judges it OFF-GLASS the moment a corner leaves the circle - there is no scroll
@@ -483,10 +502,10 @@ private fun CalculatorDisplay(
         // 28.8 dp came to be reported starting at 21.5 dp.
         modifier = Modifier
             .width(shape.valueRowWidth)
-            .padding(top = shape.valueRowTop, bottom = bottomGap)
+            .padding(top = shape.valueRowTop)
             .heightIn(min = TOUCH_TARGET),
         horizontalArrangement = Arrangement.spacedBy(KEY_GAP),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Bottom
     ) {
         Text(
             text = text,
@@ -557,16 +576,18 @@ private fun ClearKeyRow(
             Spacer(modifier = Modifier.height(KEY_HEIGHT * CLEAR_ROW_GAP_FRACTION))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(KEY_GAP, Alignment.CenterHorizontally)
+                // S3104: the one row on this screen that is NOT centred (owner ruling 2026-09-14).
+                // Centring the row and then offsetting the affordance by two thirds of its own size
+                // were the two things holding the back control against the right rim; both are gone,
+                // so the row starts at the keypad's start edge and the affordance follows the clear
+                // key across the ordinary key gap. That is short of the full affordance width the
+                // owner asked for, and the clear key is why: the free space between the two controls
+                // is less than one affordance, so a wider move would put the arrow under `C`.
+                horizontalArrangement = Arrangement.spacedBy(KEY_GAP)
             ) {
                 ClearKey(
                     modifier = Modifier.width(clearWidth),
                     onClick = { onKey(CalculatorKey.Clear) }
-                )
-                Spacer(
-                    modifier = Modifier.width(
-                        WearBackAffordanceSize * BACK_BUTTON_START_OFFSET_FRACTION
-                    )
                 )
                 WearBackAffordance(
                     role = WearBackAffordanceRole.Back,

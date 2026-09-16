@@ -31,10 +31,11 @@ object LauncherStarterLayoutRules {
      * Every key is read from [LauncherCellCommand]; this file declares no key string of its own, because
      * a second spelling of a section key is a section that silently stops matching its own header.
      *
-     * [APP_FUNCTIONS] and [LAUNCHER_ACTIONS] share a key and are one section on screen: they are two
-     * groups only so that a budget can shorten the feature tiles without ever reaching the launcher's
-     * own actions, which have no meaning as a subset (an "exit launcher mode" the budget cut leaves the
-     * user inside a launcher they cannot leave).
+     * [APP_FUNCTIONS] and [LAUNCHER_ACTIONS] share a key and are one section on screen. They stay two
+     * groups because the emitted order is the order of this list and the launcher's own actions close the
+     * section: the feature tiles are composed from the sub-program registry and the actions from the
+     * action catalogue, so one group cannot produce both runs in that sequence. S3162 removed the budget
+     * that used to be the other half of this reason.
      *
      * S2321: [CORE_RESOURCES] and [RESOURCES] are the same pairing for content. The aggregates are the
      * only entry point the desktop offers to a whole content type, so a budget that drops "All documents"
@@ -99,18 +100,15 @@ object LauncherStarterLayoutRules {
     private const val BUDGET_GADGETS = 6
     private const val BUDGET_RESOURCES = 8
 
-    // Covers every launcher-shortcut entry in the registry on a medium screen. Compact screens retain
-    // their existing proportional limit because the section is an open list.
-    private const val BUDGET_APP_FUNCTIONS = 22
     // S2717: the owner's ceiling is 25 app cells on the roomiest grid. The size scaling below turns
     // this base into 11 compact / 18 medium / 25 expanded, so the number is stated once and the screen
     // class still decides how much of it a device gets.
     private const val BUDGET_ANDROID_APPS = 18
+
     // S2735: the leading entries of OsShortcutCatalog on a medium screen. The catalog is already ordered
     // by how often a phone user reaches for the target, so the cut is where the common ones end rather
     // than an arbitrary count - and the size scaling below shortens it to five on a compact screen.
     private const val BUDGET_SYSTEM_SETTINGS = 8
-    private const val BUDGET_GOOGLE_APPS = 10
     private const val BUDGET_UTILITY_WIDGETS = 4
     private const val BUDGET_MEDIA_WINDOWS = 3
     private const val BUDGET_STREAMS = 2
@@ -284,14 +282,20 @@ object LauncherStarterLayoutRules {
      *
      * S2735: [StarterSectionGroup.SETTINGS_ENTRIES] joins them. The section's whole purpose is to be
      * where the settings are found, and a compact screen is not a reason to seed it without them.
+     *
+     * S3162: [StarterSectionGroup.APP_FUNCTIONS] and [StarterSectionGroup.GOOGLE_APPS] join them last,
+     * because each is a closed catalogue - the launcher-shortcut surface of the sub-program registry and
+     * `LauncherStarterSets.GOOGLE_APP_PACKAGES` - and its size is therefore already bounded by its
+     * source. A budget on such a group does not shorten an open list, it deletes a cell: nothing else
+     * seeds the sub-programs the cut drops, and the Android-apps section subtracts the whole installed
+     * Google catalogue rather than the part a budget admitted, so a cut Google app left the desktop
+     * altogether. Both numbers had silently stopped covering their catalogue as it grew.
      */
     private fun defaultBudget(): Map<StarterSectionGroup, Int> = mapOf(
         StarterSectionGroup.PROFILE_GADGETS to BUDGET_GADGETS,
         StarterSectionGroup.RESOURCES to BUDGET_RESOURCES,
-        StarterSectionGroup.APP_FUNCTIONS to BUDGET_APP_FUNCTIONS,
         StarterSectionGroup.SYSTEM_SETTINGS to BUDGET_SYSTEM_SETTINGS,
         StarterSectionGroup.ANDROID_APPS to BUDGET_ANDROID_APPS,
-        StarterSectionGroup.GOOGLE_APPS to BUDGET_GOOGLE_APPS,
         StarterSectionGroup.UTILITY_WIDGETS to BUDGET_UTILITY_WIDGETS,
         StarterSectionGroup.MEDIA_WINDOWS to BUDGET_MEDIA_WINDOWS,
         StarterSectionGroup.STREAMS to BUDGET_STREAMS,

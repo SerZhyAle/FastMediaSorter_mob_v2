@@ -80,7 +80,15 @@ enum class WearAppId(val canonicalKey: String) {
     /**
      * S3007: the watch's Tourist telemetry and navigation dashboard, sharing the phone's `tourist_info` route key.
      */
-    TOURIST("tourist_info")
+    TOURIST("tourist_info"),
+
+    /**
+     * S3109: the watch's text clipboard and the one action that hands it to the paired phone. Watch-only
+     * by boundary decision - the phone sends its own clipboard from the Wear companion screen rather than
+     * as a launcher program, so there is no `InternalRouteCatalog` key for this one to match. Recorded
+     * with that reason in `scripts/quality/wear-canonical-key-watch-only-baseline.txt`.
+     */
+    CLIPBOARD("clipboard")
 }
 
 /**

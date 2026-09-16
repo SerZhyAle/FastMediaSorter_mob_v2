@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.wear.data.preferences.WearSettingsDataStore
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.model.LastUsedKind
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
+import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearComplicationKind
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
@@ -122,5 +123,20 @@ class WearBrowsePreferencesImpl @Inject constructor(
             prefs.remove(WearPreferenceKeys.LAST_USED_RESOURCE)
         }
         requestWearComplicationRefreshUseCase.invoke(WearComplicationKind.LAST_RESOURCE)
+    }
+
+    // S3116: a plain edit rather than stampedEdit, for the reason browseContentTypes states above -
+    // which program this wrist opened last is local behaviour, not a setting to replicate to the
+    // phone. A name this build no longer knows is dropped on the way out, so the home row falls back
+    // to Broadcast instead of addressing a screen that no longer exists.
+    override val lastUsedApp: Flow<WearAppId?> = store.data.map { prefs ->
+        prefs[WearPreferenceKeys.LAST_USED_APP]
+            ?.let { name -> runCatching { WearAppId.valueOf(name) }.getOrNull() }
+    }
+
+    override suspend fun setLastUsedApp(id: WearAppId) {
+        store.edit { prefs ->
+            prefs[WearPreferenceKeys.LAST_USED_APP] = id.name
+        }
     }
 }

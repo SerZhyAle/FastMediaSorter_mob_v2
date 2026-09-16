@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.UnitSystem
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
+import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
@@ -728,6 +729,15 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun clearLastUsedResource() {
         lastUsedResourcesValue = emptyList()
+    }
+
+    // S3116: local behaviour, never part of the settings exchange this fake serves - it is held here
+    // only so the fake satisfies the repository contract.
+    var lastUsedAppValue: WearAppId? = null
+    override val lastUsedApp: Flow<WearAppId?> = MutableStateFlow(lastUsedAppValue)
+
+    override suspend fun setLastUsedApp(id: WearAppId) {
+        lastUsedAppValue = id
     }
 
     override suspend fun setStreamsSectionEnabled(enabled: Boolean) {

@@ -22,7 +22,11 @@
           chained-read - the command text holds 2+ reads (read-window.ps1 or
                         Get-Content -Raw), which the per-call threshold cannot see;
           cross-ticket:<id> - the command text names a ticket id other than -Id that -Id's own
-                        strategic spec does not mention.
+                        strategic spec does not mention;
+          uncapped    - an exec_command call that requested no `max_output_tokens`, or more than
+                        codexContext.maxOutputTokens (S3177: the S3103 session asked for
+                        10000-50000 on every call, so a wide `rg` landed 15-22 KB inline and was
+                        then resent on every later request).
 
     -Json emits one object (schema below) for scripts/quality/assert-codex-transcript-hygiene.ps1
     to consume; the default renders a human table. `found` is false, with everything else
@@ -31,13 +35,22 @@
 
     JSON schema (-Json):
       { found, path, turns, totalInput, cachedInput, output, reasoning,
-        contextFirst, contextLast, calls: [ { n, chars, maxOutputTokens, oversized,
+        contextFirst, contextLast, calls: [ { n, chars, maxOutputTokens, uncapped, oversized,
         truncated, sleepPoll, sleepStreak, readOps, chainedRead, crossTicketId } ] }
 
+    -StageCheck is the in-session half (S3177). A non-Claude runtime cannot compact its own
+    context, and every read stays in it until the session ends: S3103 reached 207k tokens and
+    25.45M cumulative input for a two-file edit. Run at a stage boundary, it compares the
+    newest rollout's last context against codexContext.stageContextBudget; over budget means
+    write the handoff (scripts/utils/write-codex-handoff.ps1) and end the session, so the next
+    stage starts from the handoff instead of paying for this stage's reading again.
+
     Exit codes (S1070):
-      0 - ran to completion, whatever the outcome (including `found: false`).
+      0 - ran to completion, whatever the outcome (including `found: false`); with -StageCheck,
+          the context is within budget or no rollout names -Id.
       2 - cannot verify: an explicit -Path does not exist, or a found file does not parse as
           the expected rollout schema (named in the error).
+      3 - -StageCheck only: the session's last context exceeds codexContext.stageContextBudget.
 
 .PARAMETER Id
     Ticket id (Sxxxx). Used to search for the rollout when -Path is omitted, and as the
@@ -49,6 +62,10 @@
 .PARAMETER Json
     Emit the machine-readable object instead of the human table.
 
+.PARAMETER StageCheck
+    Print one budget line and exit 3 when the newest rollout's last context is over
+    codexContext.stageContextBudget. Run it at every stage boundary of a non-Claude session.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/measure-codex-transcript.ps1 -Id S3137
     pwsh -NoProfile -File scripts/quality/measure-codex-transcript.ps1 -Id S3137 -Json
@@ -57,7 +74,8 @@
 param(
     [string]$Id,
     [string]$Path,
-    [switch]$Json
+    [switch]$Json,
+    [switch]$StageCheck
 )
 
 Set-StrictMode -Version Latest
@@ -123,6 +141,10 @@ if (-not [string]::IsNullOrWhiteSpace($Path)) {
 }
 
 if (-not $resolvedPath) {
+    if ($StageCheck) {
+        Write-Host "measure-codex-transcript: stage check not applicable - no rollout names $Id."
+        exit 0
+    }
     if ($Json) {
         [pscustomobject]@{ found = $false } | ConvertTo-Json -Compress
     } else {
@@ -172,6 +194,9 @@ if ($tokenCounts.Count -eq 0 -and $callOrder.Count -eq 0) {
 
 $szaProfile = Get-Content -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Raw | ConvertFrom-Json
 $maxInlineChars = [int]$szaProfile.codexContext.maxInlineChars
+$codexContextProps = $szaProfile.codexContext.PSObject.Properties.Name
+$maxOutputTokens = if ($codexContextProps -contains 'maxOutputTokens') { [int]$szaProfile.codexContext.maxOutputTokens } else { 2000 }
+$stageContextBudget = if ($codexContextProps -contains 'stageContextBudget') { [int]$szaProfile.codexContext.stageContextBudget } else { 120000 }
 
 $total = if ($tokenCounts.Count -gt 0) { $tokenCounts[-1].payload.info.total_token_usage } else { $null }
 $contextFirst = if ($tokenCounts.Count -gt 0) { $tokenCounts[0].payload.info.last_token_usage.input_tokens } else { $null }
@@ -202,6 +227,9 @@ $callRows = for ($i = 0; $i -lt $callOrder.Count; $i++) {
     $chars = $out.Length
     $maxOut = if ($cmd -match '"max_output_tokens"\s*:\s*(\d+)') { [int]$Matches[1] } else { $null }
     $oversized = $chars -gt $maxInlineChars
+    # Only a shell call carries the parameter; apply_patch and other tools are never uncapped.
+    $isExecCall = $cmd -match 'exec_command|"cmd"\s*:'
+    $uncapped = $isExecCall -and ($null -eq $maxOut -or $maxOut -gt $maxOutputTokens)
     $truncated = ($out -match '(?i)truncat|omitted')
     # A timed wait of any cmdlet, not only Start-Sleep: after S3141 first landed, polling moved to
     # `Wait-Process -Id N -Timeout 55` loops (S3142: ten turns) that a Start-Sleep match never saw.
@@ -231,6 +259,7 @@ $callRows = for ($i = 0; $i -lt $callOrder.Count; $i++) {
         n = $i + 1
         chars = $chars
         maxOutputTokens = $maxOut
+        uncapped = [bool]$uncapped
         oversized = [bool]$oversized
         truncated = [bool]$truncated
         sleepPoll = [bool]$sleepPoll
@@ -241,6 +270,19 @@ $callRows = for ($i = 0; $i -lt $callOrder.Count; $i++) {
     }
 }
 $callRows = @($callRows)
+
+if ($StageCheck) {
+    if ($null -eq $contextLast) {
+        Write-Host "measure-codex-transcript: stage check not applicable - $resolvedPath has no token_count event yet."
+        exit 0
+    }
+    if ([int]$contextLast -gt $stageContextBudget) {
+        Write-Host "measure-codex-transcript: OVER stage budget - context $contextLast > $stageContextBudget after $($tokenCounts.Count) requests. Write the handoff (scripts/utils/write-codex-handoff.ps1) and end this session; the next stage starts in a new one." -ForegroundColor Yellow
+        exit 3
+    }
+    Write-Host "measure-codex-transcript: within stage budget - context $contextLast <= $stageContextBudget after $($tokenCounts.Count) requests."
+    exit 0
+}
 
 if ($Json) {
     $result = [pscustomobject]@{
@@ -265,6 +307,6 @@ if ($Json) {
     }
     $flagged = @($callRows | Where-Object { $_.oversized -or $_.truncated -or $_.chainedRead -or ($_.sleepPoll -and $_.sleepStreak -ge 2) -or $_.crossTicketId })
     Write-Host "flagged calls: $($flagged.Count) of $($callOrder.Count)"
-    $flagged | Format-Table n, chars, maxOutputTokens, oversized, truncated, readOps, sleepStreak, crossTicketId -AutoSize
+    $flagged | Format-Table n, chars, maxOutputTokens, uncapped, oversized, truncated, readOps, sleepStreak, crossTicketId -AutoSize
 }
 exit 0

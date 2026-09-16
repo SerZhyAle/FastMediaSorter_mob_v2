@@ -12,7 +12,33 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
 $facadePath = Join-Path $repoRoot 'scripts/post-change.ps1'
 $hintsPath = Join-Path $repoRoot 'scripts/quality/gate-recovery-hints.psd1'
-$facade = Get-Content -LiteralPath $facadePath -Raw
+
+# S3150: the closure is one surface spread over three files - the facade plus the two libraries it
+# dot-sources, extracted when the facade passed the 2000-line ceiling of CLAUDE.md Rule 2. Every
+# assertion below is about that surface, so a block moving between the files must not change a
+# verdict here; only the two assertions immediately after this one are about the facade FILE, where
+# the gate dispatch has to stay, because scripts/quality/assert-gate-placement.ps1 reads it there.
+$closureLibraryPaths = @(
+    (Join-Path $repoRoot 'scripts/quality/lib/post-change-step-runners.ps1'),
+    (Join-Path $repoRoot 'scripts/quality/lib/post-change-changed-set.ps1')
+)
+foreach ($libraryPath in $closureLibraryPaths) {
+    if (-not (Test-Path -LiteralPath $libraryPath)) {
+        throw "Closure library '$libraryPath' is absent; the facade cannot parse without it."
+    }
+}
+$facadeFile = Get-Content -LiteralPath $facadePath -Raw
+foreach ($libraryPath in $closureLibraryPaths) {
+    $libraryName = Split-Path -Leaf $libraryPath
+    if ($facadeFile -notmatch [regex]::Escape($libraryName)) {
+        throw "The facade does not dot-source '$libraryName', so the library is orphaned."
+    }
+}
+$facadeFileLines = (Get-Content -LiteralPath $facadePath).Count
+if ($facadeFileLines -gt 2000) {
+    throw "The facade measures $facadeFileLines lines, above the 2000-line ceiling of CLAUDE.md Rule 2."
+}
+$facade = (@($facadeFile) + @($closureLibraryPaths | ForEach-Object { Get-Content -LiteralPath $_ -Raw })) -join [Environment]::NewLine
 
 foreach ($removedLabel in @(
     'flavor-flag-gate',
@@ -160,15 +186,28 @@ if ($facade -notmatch "gradle-modules\.ps1") {
 
 # Behaviour of the variant selector, run from the facade's own function text so a rename or a logic
 # change fails here rather than silently selecting the wrong variant.
-$facadeAst = [System.Management.Automation.Language.Parser]::ParseFile($facadePath, [ref]$null, [ref]$null)
-$selectorAst = $facadeAst.FindAll(
-    {
-        param($node)
-        $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
-        $node.Name -eq 'Get-ResourceLinkFlavors'
-    }, $true) | Select-Object -First 1
+# S3150: parsed across the facade and its libraries for the same reason the text above is joined -
+# a function lives wherever the extraction put it, and the behaviour asserted below is unchanged by
+# that. A name defined in none of the three is still a failure.
+$closureAsts = @(@($facadePath) + $closureLibraryPaths | ForEach-Object {
+        [System.Management.Automation.Language.Parser]::ParseFile($_, [ref]$null, [ref]$null)
+    })
+function Get-ClosureFunctionAst {
+    param([string] $Name)
+    foreach ($closureAst in $closureAsts) {
+        $found = $closureAst.FindAll(
+            {
+                param($node)
+                $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+                $node.Name -eq $Name
+            }, $true) | Select-Object -First 1
+        if ($found) { return $found }
+    }
+    return $null
+}
+$selectorAst = Get-ClosureFunctionAst 'Get-ResourceLinkFlavors'
 if (-not $selectorAst) {
-    throw 'Get-ResourceLinkFlavors is not defined in the facade.'
+    throw 'Get-ResourceLinkFlavors is not defined in the facade or its libraries.'
 }
 
 # S2121: the harness loads the real registry instead of stubbing a flavor list. The stub it replaced
@@ -245,13 +284,8 @@ Assert-FlavorSelection -Case 'foreign flavor path does not leak in' -TargetModul
 $roomRegistryPath = Join-Path $repoRoot 'scripts/quality/lib/room-databases.ps1'
 function Get-FacadeFunctionText {
     param([string] $Name)
-    $ast = $facadeAst.FindAll(
-        {
-            param($node)
-            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
-            $node.Name -eq $Name
-        }, $true) | Select-Object -First 1
-    if (-not $ast) { throw "$Name is not defined in the facade." }
+    $ast = Get-ClosureFunctionAst $Name
+    if (-not $ast) { throw "$Name is not defined in the facade or its libraries." }
     return $ast.Extent.Text
 }
 

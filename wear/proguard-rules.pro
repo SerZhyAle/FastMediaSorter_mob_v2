@@ -152,6 +152,9 @@
 -keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy {
     <fields>;
 }
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearAppId {
+    <fields>;
+}
 -keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode {
     <fields>;
 }

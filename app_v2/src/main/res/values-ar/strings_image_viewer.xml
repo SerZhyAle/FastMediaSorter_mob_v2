@@ -38,7 +38,7 @@
     <string name="gif_edit_speed">سرعة الرسوم المتحركة</string>
     <string name="gif_edit_speed_help">اضبط التأخير بين الإطارات لتسريع الرسوم المتحركة أو إبطائها. سيُستبدل الملف الأصلي بالسرعة الجديدة. النطاق: 0.25x (أبطأ 4×) إلى 4x (أسرع 4×).</string>
     <string name="gif_edit_speed_normal">السرعة: عادية (1.0x)</string>
-    <string name="gif_edit_speed_value">السرعة: 0.1fx</string>
+    <string name="gif_edit_speed_value">السرعة: %1$.1fx</string>
     <string name="gif_edit_title">محرر صور GIF</string>
     <string name="gif_editing_only_for_gif_files">تعديل ملفات GIF فقط</string>
     <string name="gif_frames_label">الإطارات: %1$d</string>

@@ -33,6 +33,10 @@ class FavoritesRepositoryImpl @Inject constructor(
         return favoritesDao.getFileFavorites().distinctUntilChanged()
     }
 
+    override suspend fun getFileFavoritesSync(): List<FavoritesEntity> = withContext(Dispatchers.IO) {
+        favoritesDao.getFileFavoritesSync()
+    }
+
     override fun isFavorite(uri: String): Flow<Boolean> {
         return favoritesDao.isFavorite(uri).distinctUntilChanged()
     }
