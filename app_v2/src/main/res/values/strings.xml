@@ -4125,4 +4125,5 @@
     <string name="wear_screenshot_refused">The watch declined: %1$s</string>
     <string name="wear_screenshot_captured">The watch sent its screenshot</string>
     <string name="wear_screenshot_no_answer">The watch did not answer</string>
+    <string name="wear_companion_group_operations">Watch operations</string>
 </resources>

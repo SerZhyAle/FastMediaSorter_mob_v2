@@ -10,9 +10,10 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import java.util.UUID
 import javax.inject.Inject
 
-private const val STAGED_PREFIX = "wear-staged-"
+private const val STAGED_DIR = "wear-staged"
 
 /**
  * Gives an operation a real [File] to hand to the transfer channel.
@@ -62,19 +63,31 @@ class WearMediaFileStager @Inject constructor(
         if (!staged.delete()) {
             Timber.w("Could not remove staged copy %s", staged.absolutePath)
         }
+        // Only a directory this class created is removed with the copy, never a folder it merely sits in.
+        staged.parentFile?.takeIf { it.parentFile?.name == STAGED_DIR }?.delete()
     }
 
     private fun copyIntoCache(file: WearMediaFile): File? {
-        val target = File(context.cacheDir, "$STAGED_PREFIX${file.name}")
+        // The copy keeps the original name because the sender ships the staged file's own name: a
+        // prefixed copy arrived on the phone as a file the watch never showed. A directory per copy
+        // is what lets two stagings of the same name coexist without renaming either.
+        val holder = File(File(context.cacheDir, STAGED_DIR), UUID.randomUUID().toString())
+        if (!holder.mkdirs()) {
+            Timber.w("Could not create a staging directory for %s", file.name)
+            return null
+        }
+        val target = File(holder, file.name)
+        Timber.d("S3183: staging %s as %s", file.name, target.absolutePath)
         return try {
             context.contentResolver.openInputStream(file.uri)?.use { input ->
                 target.outputStream().use { output -> input.copyTo(output) }
                 target
-            }
+            } ?: null.also { holder.delete() }
         } catch (e: IOException) {
             // A half-written copy is worse than none: the sender would ship a truncated file under
             // the original's name and the phone would accept it.
             target.delete()
+            holder.delete()
             Timber.w(e, "Could not stage %s", file.name)
             null
         }

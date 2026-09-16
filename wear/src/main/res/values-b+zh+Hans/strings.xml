@@ -684,7 +684,6 @@
     <string name="wear_phone_camera_failed_busy">手机已在推流</string>
     <string name="wear_phone_camera_failed_not_supported">此手机版本无法发送视频</string>
     <string name="wear_phone_camera_failed_unknown">手机拒绝，未说明原因</string>
-    <string name="wear_player_file_actions">文件操作</string>
     <string name="wear_tile_shortcut_more">更多</string>
     <string name="wear_streams_filter_collections_header">合集</string>
     <string name="wear_streams_filter_collections_all">所有合集</string>

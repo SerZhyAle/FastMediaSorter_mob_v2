@@ -684,7 +684,6 @@
     <string name="wear_phone_camera_failed_busy">O telefone já está transmitindo</string>
     <string name="wear_phone_camera_failed_not_supported">Esta versão do telefone não pode enviar vídeo</string>
     <string name="wear_phone_camera_failed_unknown">O telefone recusou, sem dizer o motivo</string>
-    <string name="wear_player_file_actions">Ações do arquivo</string>
     <string name="wear_tile_shortcut_more">Mais</string>
     <string name="wear_streams_filter_collections_header">Coleções</string>
     <string name="wear_streams_filter_collections_all">Todas as coleções</string>

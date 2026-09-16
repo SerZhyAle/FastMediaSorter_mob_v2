@@ -21,6 +21,8 @@ import com.sza.fastmediasorter.ui.settings.WearWatchResourceEvent
 import com.sza.fastmediasorter.ui.settings.helpers.BeamAnimationDialog
 import com.sza.fastmediasorter.ui.wear.companion.WearCompanionScreen
 import com.sza.fastmediasorter.ui.wear.companion.WearDocLink
+import com.sza.fastmediasorter.ui.wear.helpers.WearCompanionHeaderHost
+import com.sza.fastmediasorter.ui.wear.helpers.WearCompanionHeaderSyncManager
 import com.sza.fastmediasorter.ui.wearresources.WearResourceSelectionActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,6 +48,9 @@ class WearSyncSettingsFragment : Fragment() {
     @Inject
     lateinit var mediaCapabilities: MediaCapabilities
 
+    @Inject
+    lateinit var headerSyncManager: WearCompanionHeaderSyncManager
+
     // The island reads its colours off its own context, so it is built on the inflater's context
     // rather than the plain activity one - otherwise the window and the content inside it can
     // resolve different surfaces.
@@ -70,6 +75,7 @@ class WearSyncSettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        bindHeaderSync()
         // The browser is started from here rather than from the island: an Activity launch is the
         // host's business, and the island must stay a pure function of the view model's state.
         collectOnLifecycle(viewModel.watchResourceEvents) { event ->
@@ -106,6 +112,14 @@ class WearSyncSettingsFragment : Fragment() {
             Timber.w(e, "No browser to open the Wear documentation")
             toast(getString(R.string.settings_no_browser_for_docs))
         }
+    }
+
+    // S3185: the sync button lives in the host window's toolbar, but the view model it drives is this
+    // fragment's - BeamAnimationDialog resolves the same instance through its parent fragment, so the
+    // view model cannot move up to the activity. A host without that toolbar has no header sync.
+    private fun bindHeaderSync() {
+        val host = activity as? WearCompanionHeaderHost ?: return
+        headerSyncManager.bind(viewLifecycleOwner, viewModel, host.headerSyncButton, host.headerSyncCaption)
     }
 
     private fun toast(message: String) {

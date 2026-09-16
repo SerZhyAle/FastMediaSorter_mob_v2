@@ -7,6 +7,8 @@ permalink: /docs/howto/scenario-watch-tv.html
 
 > **Level:** Beginner &bull; **Time:** ~10 minutes &bull; **Device:** Wear OS smartwatch
 
+> **Full version only** - this guide is not implemented in the version distributed through Google Play. It applies to the full version, a direct APK download from [Downloads](../DOWNLOADS.md).
+
 [Русский](scenario-watch-tv-ru.md) | [Українська](scenario-watch-tv-uk.md)
 
 FastMedia Wear plays live TV and radio channels straight on your wrist. The watch opens the stream over its own Wi-Fi, so once a channel is on the list you can watch it with the phone in another room, in a bag, or switched off entirely.

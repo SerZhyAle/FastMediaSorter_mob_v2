@@ -4067,4 +4067,5 @@
     <string name="wear_screenshot_refused">Часы отказали: %1$s</string>
     <string name="wear_screenshot_captured">Часы прислали снимок экрана</string>
     <string name="wear_screenshot_no_answer">Часы не ответили</string>
+    <string name="wear_companion_group_operations">Операции с часами</string>
 </resources>

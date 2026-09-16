@@ -15,7 +15,19 @@ Welcome to the **FastMedia Wear OS Web Portal** - your complete guide to the sta
 
 FastMedia Wear turns your smartwatch into a full-featured standalone media hub and phone companion. Designed from the ground up for round and square smartwatches with Wear OS 2.0+, it offers fluid media playback, independent Wi-Fi network streaming, and phone resource integration.
 
+### 🏷️ Google Play version and full version
+
+FastMedia Wear comes in two versions, and they do not offer the same features.
+
+- **Google Play version** - a small first release: Calculator, Stopwatch, Mini-game, Water flashlight, Clipboard, Settings and the Programs tile.
+- **Full version** - direct APK download from [Downloads](../DOWNLOADS.md). It contains everything described on this page.
+
+A section marked **"Full version only"** is not implemented in the version distributed through Google Play. Features will return to the Google Play version gradually, one at a time.
+
 ### 🎵 Audio Player
+
+> **Full version only** - not implemented in the version distributed through Google Play.
+
 - **Full Media Playback:** Play local audio files, cloud tracks, and network streams directly from your wrist.
 - **Rotary Bezel Volume Control:** Easily adjust system media volume using the rotating watch crown or bezel with real-time visual feedback.
 - **Album Art & Visualizer:** Displays high-resolution album covers or dynamic brand wave-and-particle backgrounds when art is unavailable.
@@ -24,6 +36,9 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 - **Background Audio Playback:** Turn on the Background playback switch to keep local audio and streams playing after you minimize the app, with controls in the media notification. When you reopen the app, the home screen carries a row naming what is playing: tap it to return to that track where it left off, or tap the stop button beside it to end playback without opening anything else. Video and slideshows still stop when the app leaves the screen.
 
 ### 🎥 Photo & Video Viewer
+
+> **Full version only** - not implemented in the version distributed through Google Play.
+
 - **Round-Safe Video Player:** Watch videos scaled for smartwatch displays with automatic advancing in slideshow mode.
 - **One Menu in the Video Player:** The command row shows the fit-or-fill button itself, so there is only one "more" button to find, and its menu is a single list - the player commands the row has no place for, followed by what you may do with the file: rename, delete, send to the phone. A tap past the buttons closes the menu, and its first entry is Back.
 - **Photo Slideshows:** Browse images and photo galleries with smooth paging and grid view options.
@@ -31,6 +46,9 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 - **Text Documents on the Watch:** Tap a text file - a note, a log, a Markdown or CSV file - and it opens on the watch instead of telling you to reach for your phone. Scroll it with your finger or the rotary bezel, pick one of three text sizes right on the reading screen, and come back later to the same place in the same file. A very large file is shown up to a safe size with a notice where it stops. PDF, EPUB and office documents still open on your phone, and the watch now names the format it cannot show.
 
 ### 🌐 Network & Cloud Access (SMB / FTP / SFTP)
+
+> **Full version only** - not implemented in the version distributed through Google Play.
+
 - **Direct Wi-Fi Streaming:** Connect your watch directly to home NAS, PC shared folders (SMB), and remote FTP/SFTP servers over Wi-Fi.
 - **Host Key Pinning & Security:** Enforces SFTP host key pins configured on your phone to protect credentials.
 - **Connection Testing:** In-app connection probe to test network share availability directly from the watch.
@@ -38,10 +56,13 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 - **Endpoint Resolution & Clear Errors:** A network resource sent from your phone stays accessible when the host computer moves to another address, as the watch automatically tries all known endpoints. When a connection cannot be established, the watch states the exact cause (connection refused, timeout, invalid credentials, unknown host) instead of a generic failure.
 
 ### 📲 Paired Phone Integration
+
+> **Full version only** - not implemented in the version distributed through Google Play.
+
 - **Phone Media Browsing:** Recents, Videos, Audio, Images, Documents, All and Browse - the same categories, under the same names and colours, that your watch's own storage and your network shares offer. **All** is a flat list of media files, newest first and without folders; **Browse** walks the folders of your smartphone and shows everything in them. If no resource on your phone is set up to hold a category, opening it says so instead of showing an empty list.
 - **Selective Resource Transfer:** Choose specific NAS/cloud resources on your phone to make available on your watch.
 - **Remote Log Diagnostics:** Send watch diagnostic logs to the developer via the paired phone app.
-- **Listen to the Watch from Your Phone:** Ask your paired watch to turn on its microphone from the phone, then confirm with one tap on the watch. The phone hears what is happening nearby over the shared local Wi-Fi network while the watch keeps its microphone indicator visible for the whole session.
+- **Listen to the Watch from Your Phone:** Ask your paired watch to turn on its microphone from the phone, and the watch opens its listening screen and starts the microphone on its own - nothing to confirm on the wrist. The phone hears what is happening nearby over the shared local Wi-Fi network while the watch keeps its microphone indicator visible for the whole session.
 - **Open on the Watch from the Phone:** Pick your watch in the phone's "Send to.." menu and the photo, GIF, video or track you have open there opens on the watch. A file kept on a network or cloud source is fetched first, with progress you can cancel. The watch app has to be open at the time - if it is closed, the phone says so instead of leaving you guessing. The phone also tells you apart the watch being unreachable, the watch staying silent, a type the watch cannot show, and a file above the 32 MB limit. Documents, text and EPUB do not offer the watch at all.
 - **File Actions on the Watch:** Long press a file to start selecting, tap other files to add them, or use Select all. The selection can then be sent to your paired phone, moved there, deleted, or renamed. Deleting and renaming also work on a photo you took on the watch or a voice note you recorded there, not only on files the app itself keeps - the watch asks the system to confirm each such change first, since those files belong to the watch's own storage, and nothing happens if you decline. Your recorded notes also have their own entry in the local group now, and the same long press works right there in the note list - where renaming asks for no confirmation at all, the recording being the watch's own, so you can give a note a name you will recognise instead of leaving it named after the second it was made. Anything you browse over SMB, FTP or SFTP is read-only, and the phone decides where a sent file lands. Sending a file to the phone confirms whether it landed in a local folder or was queued for remote upload, naming the destination, and if a background upload fails later, the watch receives a notification.
 - **Send to.. from the Watch:** The same "Send to.." list your phone offers - email, messengers, printing, the clipboard, the system share - is now the first entry of the watch's file menu, and it opens over the menu instead of taking you to another screen. The list is the one you already curated on the phone: a receiver you switched off there is simply not on the watch, and one you add later shows up without any second list to maintain. A receiver the watch can handle by itself works with no phone nearby. One it cannot is marked "via phone" and stays in the same place in the list even when the phone is out of reach - the watch tells you the phone is away before it starts, not after a wait. When the phone handles it, the file travels over and the phone raises a notification you tap to finish the send, and the watch says exactly that rather than pretending the message is already gone. A receiver that does not exist on your watch is not shown at all.
@@ -49,6 +70,9 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 - **Show on TV from the Watch:** What is on the watch screen can go straight to the television your phone is already casting to. Open the player menu on a stream, a photo or a video and pick "Show on TV" - the watch names the content, the phone puts it on the big screen. While a broadcast is running the same entry reads "Stop showing on TV", so ending it takes one tap and no reaching for the phone. If no television has been chosen yet, the watch says so in plain words and the choice waits for you on the phone, where the list of televisions lives. Only things your phone can reach travel this way: streams, and pictures and videos from the network sources your phone shares with the watch. Something recorded or saved on the watch itself stays on the watch, and the watch tells you that instead of failing quietly.
 
 ### 🧮 Mini-Programs Suite
+
+> **Google Play version:** Calculator, Stopwatch, Mini-game, Water flashlight and Clipboard. The other programs below are in the full version only.
+
 - **Watch Calculator:** Grid-based math calculator with on-screen operation history.
 - **Watch Stopwatch:** Times one, two or four things at once, each on its own part of the screen and each with its own two buttons - one starts it and then records laps, the other stops it and then clears it. A menu holds start all, stop all and reset all, the choice of how many you are timing, and the result page listing every lap with its split and its running total. The count you chose is remembered for next time. The reading stays right when the screen goes dark or you walk away to another screen and come back - nothing has to stay in front of you for the time to keep counting.
 - **Network Monitor:** Opens on a summary of the active link with your local and external address, and a button panel where every section shows a live fact. Each section is its own screen you tap into and leave with the usual edge swipe: Wi-Fi frequency, standard and a restartable signal trend; satellites by constellation with coordinates, accuracy and fix time; traffic rates with resettable counters; an on-demand reachability check. Addresses copy to the clipboard, and each section opens its own system settings screen.
@@ -59,6 +83,9 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 - **Broadcast:** Turns the watch into the source instead of the listener. Start it from the Programs grid, or from the home-screen row under Programs whenever the broadcast is the last program you opened, and the watch opens its microphone and serves the sound over Wi-Fi to anyone you share the address with - several listeners at once. Tap Show QR code and the address appears as a code the other device scans; the listener adds it exactly as they would a broadcast from a phone. The listener has to be on the same Wi-Fi as the watch, and if the watch has no Wi-Fi up it says so instead of starting a broadcast nobody could reach. It keeps running with the screen off and after you go back to the home screen, and it is always visible while it does: the screen shows it is on air and the ongoing notification carries a Stop broadcast button. One tap ends it and gives the microphone and the network back. A second button, the moon, blanks the watch screen while the broadcast keeps running - a double tap, a press and hold, or the watch button brings the controls back - and the QR code sizes itself to the dial, so it always fits the round display whole.
 
 ### 🧩 Wear OS Tiles
+
+> **Google Play version:** the Programs tile only. The other tiles are in the full version only.
+
 - **Five Dedicated Tiles:** Add Network Resource, Stream, Favourites, Programs, and Sections tiles to your Wear OS tile carousel.
 - **Shortcut Grids:** The Programs tile opens the mini-programs of the Apps section in one tap; the Sections tile does the same for the app's own sections. Neither needs assigning - adding it to the carousel is all there is to it. A grid holds seven cells: when there is more to show than that, the last cell opens the app itself, where the rest are listed.
 - **Quick Assignment:** Point an unassigned Resource or Stream tile to your target directly from the watch.

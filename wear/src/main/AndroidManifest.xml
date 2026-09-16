@@ -1,92 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.type.watch" />
-    
-    <!-- Network permissions -->
-    <uses-permission android:name="android.permission.INTERNET" />
+
     <!--
-        S1728: asks the platform for a wide-band transport while a stream plays, and gives it back when
-        the stream ends. Only the request needs this; reading the current link needs nothing beyond
-        ACCESS_NETWORK_STATE, which already reaches this app through the merged manifest.
+        S3178: what is left here is the whole permission surface of the Google Play variant.
+
+        Every other permission this module used to declare - network, radios, media, microphone,
+        foreground services, notifications - moved to wear/src/noLegal/AndroidManifest.xml, where
+        the sideload artifact keeps it. The boundary is wear/config/store-boundary-policy.json and
+        it names the category each one left under; assert-wear-store-boundary.ps1 reads the two
+        MERGED manifests back, so a permission re-entering standard through a dependency is caught
+        even though no file here declares it.
+
+        Adding a permission to this file puts it in the store artifact. That is a policy decision,
+        not a manifest edit: name it in standardAllowlist first, or the gate refuses the build.
     -->
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
-
-    <!--
-        S1710: the Network Monitor mini-program reads THIS watch's own radios. Only what the sampling
-        actually calls is declared (Rule 13). READ_PHONE_STATE is deliberately absent (owner ruling
-        2026-08-21): the operator name comes from TelephonyManager.networkOperatorName, which needs no
-        permission, and the per-SIM detail that does need it is not carried to the watch at all.
-    -->
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-
-    <!--
-        Wi-Fi section: the visible-network list on API 33+. `neverForLocation` is what lets the scan
-        run without ACCESS_FINE_LOCATION, which S2013 removed - Play reviews location against the
-        store description, and a radio monitor is not what this app is listed as.
-    -->
-    <uses-permission
-        android:name="android.permission.NEARBY_WIFI_DEVICES"
-        android:usesPermissionFlags="neverForLocation"
-        android:minSdkVersion="33" />
-
-    <!-- Bluetooth section on API 30 and below; API 31+ routes through BLUETOOTH_CONNECT instead. -->
-    <uses-permission
-        android:name="android.permission.BLUETOOTH"
-        android:maxSdkVersion="30" />
-    <uses-permission
-        android:name="android.permission.BLUETOOTH_ADMIN"
-        android:maxSdkVersion="30" />
-
-    <!-- Bluetooth section: adapter state on API 31+. -->
-    <uses-permission
-        android:name="android.permission.BLUETOOTH_CONNECT"
-        android:minSdkVersion="31" />
-    
-    <!-- Storage permissions -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
-        android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
-    <!--
-        S1862: the voice recorder. The microphone session belongs to a foreground service rather than
-        to the screen (ADR-4) - a watch screen goes dark when the wrist drops, and a screen-bound
-        session would end exactly while the user is speaking. FOREGROUND_SERVICE_MICROPHONE is the
-        API 34 split of FOREGROUND_SERVICE and is requested only there; below 34 the untyped
-        permission alone is what the platform checks.
-    -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission
-        android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"
-        android:minSdkVersion="34" />
-    <!--
-        S2166: background playback. FOREGROUND_SERVICE_MEDIA_PLAYBACK is the API 34 split of
-        FOREGROUND_SERVICE and is requested only there; below 34 the untyped permission alone is
-        what the platform checks.
-    -->
-    <uses-permission
-        android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
-        android:minSdkVersion="34" />
-    <!--
-        S1862: on API 33+ a foreground service notification is NOT exempt from POST_NOTIFICATIONS -
-        without it the recording notification is silently never shown, so the watch listens with
-        nothing on screen to say so. The service keeps running when it is denied, which is why the
-        recorder screen asks for it beside RECORD_AUDIO but never gates recording on the answer.
-    -->
-    <uses-permission
-        android:name="android.permission.POST_NOTIFICATIONS"
-        android:minSdkVersion="33" />
-
-    <!--
-        S2941: lets the listen-request notification open ListenRequestActivity automatically via
-        setFullScreenIntent, putting the app in the foreground so the microphone FGS can start without
-        a tap. CATEGORY_CALL on the notification qualifies for this permission on Android 14+.
-    -->
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
 
    <application
@@ -120,119 +50,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- S2550 ADR-6 / S2941: the window the listening-request notification opens, now also
-             automatically via setFullScreenIntent. Not exported - only this process may raise it, and
-             only the notification (full-screen intent or tap) reaches it. Starting the microphone
-             service from a window the user opened or that full-screen intent brought to the foreground
-             is the one platform exemption that lifts both the API 31 and the API 34 background-start
-             barriers (strategic §6.1). -->
-        <activity
-            android:name=".ui.listen.ListenRequestActivity"
-            android:exported="false"
-            android:launchMode="singleTop"
-            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
-            android:theme="@style/Theme.FastMediaSorterWear" />
-
-        <!-- Wearable Data Layer - receives resource push from the phone companion -->
-        <service
-            android:name=".data.wear.WatchWearListenerService"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
-                <!-- S1697: the mirror of the phone-side filter. onMessageReceived handled the phone's
-                     playback command and onDataChanged the settings push, but neither action nor path
-                     was declared, so GMS delivered only the network-sources data item. -->
-                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-                <!-- S1861: without CHANNEL_EVENT and the /fms/transfer_file prefix GMS never starts
-                     this service for an incoming file channel, so onChannelOpened was dead code. -->
-                <action android:name="com.google.android.gms.wearable.CHANNEL_EVENT" />
-                <data
-                    android:host="*"
-                    android:pathPrefix="/fms/network_sources"
-                    android:scheme="wear" />
-                <data
-                    android:host="*"
-                    android:pathPrefix="/fms/transfer_file"
-                    android:scheme="wear" />
-                <data
-                    android:host="*"
-                    android:pathPrefix="/fms/phone"
-                    android:scheme="wear" />
-                <data
-                    android:host="*"
-                    android:pathPrefix="/fms/wear"
-                    android:scheme="wear" />
-            </intent-filter>
-            <!-- S1862: a filter of its own rather than one more action on the block above - an intent
-                 filter matches the union of its actions against the union of its data, and the
-                 capability path is not a /fms/ path. The name must equal PHONE_COMPANION_CAPABILITY
-                 in WatchWearListenerService.kt and the capability the phone declares for itself. -->
-            <intent-filter>
-                <action android:name="com.google.android.gms.wearable.CAPABILITY_CHANGED" />
-                <data
-                    android:host="*"
-                    android:path="/fms_phone_companion"
-                    android:scheme="wear" />
-            </intent-filter>
-        </service>
-        <!-- S1862: owner of the microphone session; started by the recorder screen, never bound to it. -->
-        <service
-            android:name=".service.VoiceRecordingService"
-            android:exported="false"
-            android:foregroundServiceType="microphone" />
-
-        <!-- S2166: owner of the playback session; started by the player screen, never bound to it. -->
-        <service
-            android:name=".service.WearPlaybackService"
-            android:exported="false"
-            android:foregroundServiceType="mediaPlayback">
-            <intent-filter>
-                <action android:name="androidx.media3.session.MediaSessionService" />
-            </intent-filter>
-        </service>
-
-        <!-- S1955: Wear OS Tile Service for Network Resource tile -->
-        <service
-            android:name=".tile.WearResourceTileService"
-            android:exported="true"
-            android:label="@string/wear_tile_resource_label"
-            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
-            <intent-filter>
-                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
-            </intent-filter>
-            <meta-data
-                android:name="androidx.wear.tiles.PREVIEW"
-                android:resource="@drawable/tile_preview_resource" />
-        </service>
-
-        <!-- S1955: Wear OS Tile Service for Stream tile -->
-        <service
-            android:name=".tile.WearStreamTileService"
-            android:exported="true"
-            android:label="@string/wear_tile_stream_label"
-            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
-            <intent-filter>
-                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
-            </intent-filter>
-            <meta-data
-                android:name="androidx.wear.tiles.PREVIEW"
-                android:resource="@drawable/tile_preview_stream" />
-        </service>
-
-        <!-- S1955: Wear OS Tile Service for Favourites tile -->
-        <service
-            android:name=".tile.WearFavouritesTileService"
-            android:exported="true"
-            android:label="@string/wear_tile_favourites_label"
-            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
-            <intent-filter>
-                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
-            </intent-filter>
-            <meta-data
-                android:name="androidx.wear.tiles.PREVIEW"
-                android:resource="@drawable/tile_preview_favourites" />
-        </service>
-
+        <!--
+            S3178: MainActivity and the mini-programs tile are the only components the Google Play
+            variant declares. The listen window, the Data Layer listener, both foreground services,
+            the resource/stream/favourites/sections tiles, all three complications and the file
+            provider moved to wear/src/noLegal/AndroidManifest.xml - each one is an entry point into
+            a category wear/config/store-boundary-policy.json excludes, and an entry point survives
+            hiding its screen. Their classes stay in this source set; what the store build loses is
+            the platform's permission to start them.
+        -->
         <!-- S2511: Wear OS Tile Service for the mini-programs shortcut grid -->
         <service
             android:name=".tile.WearProgramsTileService"
@@ -247,89 +73,5 @@
                 android:resource="@drawable/tile_preview_programs" />
         </service>
 
-        <!-- S2511: Wear OS Tile Service for the home-sections shortcut grid -->
-        <service
-            android:name=".tile.WearSectionsTileService"
-            android:exported="true"
-            android:label="@string/wear_tile_sections_label"
-            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
-            <intent-filter>
-                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
-            </intent-filter>
-            <meta-data
-                android:name="androidx.wear.tiles.PREVIEW"
-                android:resource="@drawable/tile_preview_sections" />
-        </service>
-
-        <!-- S2047: Wear OS Complication Provider for Last Used Resource -->
-        <service
-            android:name=".complication.WearLastResourceComplicationService"
-            android:exported="true"
-            android:icon="@drawable/ic_complication_last_resource"
-            android:label="@string/wear_complication_last_resource_label"
-            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
-            <intent-filter>
-                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
-            </intent-filter>
-            <meta-data
-                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
-                android:value="SHORT_TEXT,LONG_TEXT" />
-            <meta-data
-                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
-                android:value="0" />
-        </service>
-
-        <!-- S2047: Wear OS Complication Provider for Favourites Count -->
-        <service
-            android:name=".complication.WearFavouritesComplicationService"
-            android:exported="true"
-            android:icon="@drawable/ic_complication_favourites"
-            android:label="@string/wear_complication_favourites_label"
-            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
-            <intent-filter>
-                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
-            </intent-filter>
-            <meta-data
-                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
-                android:value="SHORT_TEXT,MONOCHROMATIC_IMAGE" />
-            <meta-data
-                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
-                android:value="0" />
-        </service>
-
-        <!-- S2047: Wear OS Complication Provider for Now Playing -->
-        <service
-            android:name=".complication.WearNowPlayingComplicationService"
-            android:exported="true"
-            android:icon="@drawable/ic_complication_now_playing"
-            android:label="@string/wear_complication_now_playing_label"
-            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
-            <intent-filter>
-                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
-            </intent-filter>
-            <meta-data
-                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
-                android:value="SHORT_TEXT,LONG_TEXT" />
-            <meta-data
-                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
-                android:value="300" />
-        </service>
-
-        <!--
-            S2142: hands one file to a «Send to..» receiver this watch serves itself.
-
-            A receiver is another application, so it is given a content URI it can read rather than a
-            path it cannot. The watch had no provider at all before this ticket - nothing here ever
-            handed a file to a third party, only to the paired phone over the data layer.
-        -->
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/send_to_paths" />
-        </provider>
     </application>
 </manifest>

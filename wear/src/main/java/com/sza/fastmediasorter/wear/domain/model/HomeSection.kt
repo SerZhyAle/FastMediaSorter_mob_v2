@@ -89,5 +89,19 @@ data class HomeSectionVisibility(
      * the record the Apps screen already drew is also what filters it - a program this flavor does not
      * offer is not in that catalog, so it can never arrive here.
      */
-    val lastUsedApp: WearApp? = null
+    val lastUsedApp: WearApp? = null,
+
+    /**
+     * S3178: the distribution answers the catalog filters its rows by, read from
+     * `WearRestrictedCapabilities` at the call site rather than from a flavor check here.
+     *
+     * Four booleans rather than the contract itself: this is a domain model that a test builds by
+     * hand, and every existing caller predates the store boundary. They default to the full product
+     * for that reason - the two production call sites both pass the real answers, and a default of
+     * `false` would silently empty the home screen of any future caller that forgot one.
+     */
+    val offersMediaAccess: Boolean = true,
+    val offersRemoteSources: Boolean = true,
+    val offersContentTransfer: Boolean = true,
+    val offersVoiceRecording: Boolean = true
 )

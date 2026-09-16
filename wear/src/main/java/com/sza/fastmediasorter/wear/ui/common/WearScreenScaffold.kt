@@ -441,6 +441,42 @@ fun wearCenteredSquareSide(): Dp {
 }
 
 /**
+ * Where a band stands beneath the centred [wearCenteredSquareSide] panel, and how wide it may be.
+ *
+ * @property bottomOffset distance from the bottom edge of the display to the bottom of the band.
+ * @property maxWidth widest the band may be at that height; [Dp.Infinity] where nothing bounds it.
+ */
+data class WearBandPlacement(val bottomOffset: Dp, val maxWidth: Dp)
+
+/**
+ * Placement of a band of [bandHeight] directly beneath the centred square panel.
+ *
+ * The module's eighth statement about screen shape. A row pinned to the bottom edge of a round display
+ * stands where the chord is shortest, so its ends leave the glass however short the row is - S3189
+ * measured the game counters 242 px from the centre of a 240 px radius. In the STORE view the band
+ * rises until its top meets the panel, and its width is the chord at its bottom edge less
+ * [SQUARE_INSET] on each side, so a band at the arc is not scored as touching it. The ORIGINAL view and
+ * a square screen answer a zero offset and no width bound, which is the row the owner's layout keeps.
+ *
+ * @param bandHeight height of the band, its own padding included.
+ */
+@Composable
+fun wearBelowSquareBand(bandHeight: Dp): WearBandPlacement {
+    val configuration = LocalConfiguration.current
+    val original = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
+    if (!configuration.isScreenRound || original) {
+        return WearBandPlacement(bottomOffset = 0.dp, maxWidth = Dp.Infinity)
+    }
+    val shorterEdge = minOf(configuration.screenWidthDp, configuration.screenHeightDp).dp
+    val bottomOffset = ((shorterEdge - wearCenteredSquareSide()) / 2 - bandHeight).coerceAtLeast(0.dp)
+    val sideClearance = wearChordInset(bottomOffset) + SQUARE_INSET
+    return WearBandPlacement(
+        bottomOffset = bottomOffset,
+        maxWidth = (shorterEdge - sideClearance * 2).coerceAtLeast(0.dp)
+    )
+}
+
+/**
  * Side of the largest square that stays whole when a block of [extraHeight] stands beneath it in
  * the same centered column.
  *

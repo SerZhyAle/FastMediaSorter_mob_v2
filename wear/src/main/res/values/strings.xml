@@ -721,7 +721,6 @@
     <string name="wear_phone_camera_failed_busy">The phone is already streaming</string>
     <string name="wear_phone_camera_failed_not_supported">This phone build cannot send video</string>
     <string name="wear_phone_camera_failed_unknown">The phone refused, without saying why</string>
-    <string name="wear_player_file_actions">File actions</string>
     <string name="wear_tile_shortcut_more">More</string>
     <string name="wear_streams_filter_collections_header">Collections</string>
     <string name="wear_streams_filter_collections_all">All collections</string>
@@ -863,4 +862,24 @@
     <string name="wear_tourist_press_button_to_unlock">Press a watch button to unlock</string>
     <string name="wear_tourist_metric_body_temperature">Body temperature</string>
     <string name="wear_tourist_unit_celsius">°C</string>
+    <string name="wear_onboarding_welcome_title">Welcome</string>
+    <string name="wear_onboarding_welcome_body">Browse, play and sort your media right on your wrist.</string>
+    <string name="wear_onboarding_next">Next</string>
+    <string name="wear_onboarding_intro_title">A few questions</string>
+    <string name="wear_onboarding_intro_body">The watch will now ask for access, one thing at a time. Each screen says why. Tap Allow, then Allow again in the system request. You can refuse anything - that feature will ask again when you open it.</string>
+    <string name="wear_onboarding_start">Start</string>
+    <string name="wear_onboarding_allow">Allow</string>
+    <string name="wear_onboarding_skip">Skip</string>
+    <string name="wear_onboarding_media_title">Media files</string>
+    <string name="wear_onboarding_media_reason">To show and play the music, videos and photos stored on the watch.</string>
+    <string name="wear_onboarding_microphone_title">Microphone</string>
+    <string name="wear_onboarding_microphone_reason">To record voice notes and send sound to your phone.</string>
+    <string name="wear_onboarding_notifications_title">Notifications</string>
+    <string name="wear_onboarding_notifications_reason">To show that recording is running and to bring up what your phone sends.</string>
+    <string name="wear_onboarding_heart_rate_title">Heart rate</string>
+    <string name="wear_onboarding_heart_rate_reason">To measure your pulse while the measuring screen is open.</string>
+    <string name="wear_onboarding_activity_title">Physical activity</string>
+    <string name="wear_onboarding_activity_reason">To count steps in the motion monitor.</string>
+    <string name="wear_onboarding_nearby_title">Nearby devices</string>
+    <string name="wear_onboarding_nearby_reason">To show Bluetooth and Wi-Fi state in the network monitor.</string>
 </resources>

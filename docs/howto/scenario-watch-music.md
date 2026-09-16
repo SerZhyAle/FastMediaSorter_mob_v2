@@ -7,6 +7,8 @@ permalink: /docs/howto/scenario-watch-music.html
 
 > **Level:** Beginner &bull; **Time:** ~5 minutes &bull; **Device:** Wear OS smartwatch (paired with Android phone)
 
+> **Full version only** - this guide is not implemented in the version distributed through Google Play. It applies to the full version, a direct APK download from [Downloads](../DOWNLOADS.md).
+
 [Русский](scenario-watch-music-ru.md) | [Українська](scenario-watch-music-uk.md)
 
 FastMediaSorter lets you browse and play your music collection directly from your Wear OS smartwatch. You can stream tracks shared from your paired phone or play local audio files stored on the watch, with cover artwork, shuffle, rotary bezel volume control, background playback that survives leaving the app, and a screen-off mode that keeps the music going with the display dark.

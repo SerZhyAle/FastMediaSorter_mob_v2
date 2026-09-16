@@ -137,7 +137,13 @@ class HomeViewModel @Inject constructor(
             sections = HomeSectionCatalog.sectionsFor(
                 HomeSectionVisibility(
                     streamsEnabled = sources.streamsEnabled,
-                    lastUsedApp = sources.lastUsedApp
+                    lastUsedApp = sources.lastUsedApp,
+                    // S3178: the store variant's home screen is the boundary made visible - an origin
+                    // whose permissions this artifact does not declare gets no row at all.
+                    offersMediaAccess = capabilities.offersMediaAccess,
+                    offersRemoteSources = capabilities.offersRemoteSources,
+                    offersContentTransfer = capabilities.offersContentTransfer,
+                    offersVoiceRecording = capabilities.offersVoiceRecording
                 )
             ),
             viewMode = sources.viewMode

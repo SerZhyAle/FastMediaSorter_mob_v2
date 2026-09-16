@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.tile
 
 import androidx.lifecycle.SavedStateHandle
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearSourceTombstonePayload
@@ -72,7 +73,8 @@ class TileTargetPickerViewModelTest {
             networkSourceRepository = networkSourceRepository,
             wearStreamChannelRepository = wearStreamChannelRepository,
             wearTileAssignmentRepository = tileAssignmentRepository,
-            requestWearTileRefreshUseCase = refreshUseCase
+            requestWearTileRefreshUseCase = refreshUseCase,
+            capabilities = PickerFakeCapabilities()
         )
 
         testDispatcher.scheduler.advanceUntilIdle()
@@ -105,7 +107,8 @@ class TileTargetPickerViewModelTest {
             networkSourceRepository = networkSourceRepository,
             wearStreamChannelRepository = wearStreamChannelRepository,
             wearTileAssignmentRepository = tileAssignmentRepository,
-            requestWearTileRefreshUseCase = refreshUseCase
+            requestWearTileRefreshUseCase = refreshUseCase,
+            capabilities = PickerFakeCapabilities()
         )
 
         testDispatcher.scheduler.advanceUntilIdle()
@@ -130,7 +133,8 @@ class TileTargetPickerViewModelTest {
             networkSourceRepository = networkSourceRepository,
             wearStreamChannelRepository = wearStreamChannelRepository,
             wearTileAssignmentRepository = tileAssignmentRepository,
-            requestWearTileRefreshUseCase = refreshUseCase
+            requestWearTileRefreshUseCase = refreshUseCase,
+            capabilities = PickerFakeCapabilities()
         )
 
         assertEquals(WearTileKind.FAVOURITES, viewModel.kind)
@@ -170,4 +174,23 @@ private class PickerFakeWearStreamChannelRepository : WearStreamChannelRepositor
     override suspend fun saveChannels(channels: List<WearStreamChannel>) {}
     override suspend fun clear() {}
     override suspend fun upsertChannel(channel: WearStreamChannel): Boolean = true
+}
+
+/**
+ * S3178: the offering build, so these tests keep exercising the picker rather than its new early exit.
+ * The store variant's answer is asserted in wear/src/testStandard/, beside the flavor that gives it.
+ */
+private class PickerFakeCapabilities : WearRestrictedCapabilities {
+    override val offersCredentialEntry: Boolean = true
+    override val offersBodySensorDiagnostics: Boolean = true
+    override val locksSystemShade: Boolean = true
+    override val offersHealthFeatures: Boolean = true
+    override val offersMediaAccess: Boolean = true
+    override val offersVoiceRecording: Boolean = true
+    override val offersRemoteSources: Boolean = true
+    override val offersDeviceDiagnostics: Boolean = true
+    override val offersNearbyDeviceState: Boolean = true
+    override val offersScreenCapture: Boolean = true
+    override val offersContentTransfer: Boolean = true
+    override val offersExternalEntryPoints: Boolean = true
 }

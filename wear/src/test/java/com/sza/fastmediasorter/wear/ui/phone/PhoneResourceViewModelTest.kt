@@ -541,6 +541,40 @@ class PhoneResourceViewModelTest {
         assertEquals(WearThumbnail.Unavailable, viewModel.thumbnails.value["1:photo.jpg"])
     }
 
+    @Test
+    fun `a thumbnail request that timed out is asked again instead of pinned as unavailable`() = runTest {
+        coEvery { client.requestThumbnail("1:photo.jpg") } returns PhoneResourceOutcome.PhoneUnavailable
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.requestThumbnail("1:photo.jpg")
+        advanceUntilIdle()
+        assertNull(
+            "A failed exchange is not an answer, so the cell must be free to ask again",
+            viewModel.thumbnails.value["1:photo.jpg"]
+        )
+
+        viewModel.requestThumbnail("1:photo.jpg")
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { client.requestThumbnail("1:photo.jpg") }
+    }
+
+    @Test
+    fun `a phone that never answers is asked a bounded number of times`() = runTest {
+        coEvery { client.requestThumbnail("1:photo.jpg") } returns PhoneResourceOutcome.PhoneUnavailable
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        repeat(MAX_THUMBNAIL_ATTEMPTS + 2) {
+            viewModel.requestThumbnail("1:photo.jpg")
+            advanceUntilIdle()
+        }
+
+        coVerify(exactly = MAX_THUMBNAIL_ATTEMPTS) { client.requestThumbnail("1:photo.jpg") }
+        assertEquals(WearThumbnail.Unavailable, viewModel.thumbnails.value["1:photo.jpg"])
+    }
+
     /** A file outside the three renderable families: the phone sends it with no type at all. */
     private fun documentItem(name: String) = WearPhoneResourceItem(
         token = "1:$name",

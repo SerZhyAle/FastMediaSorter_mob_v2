@@ -42,3 +42,4 @@
 {"kind":"refusal","at":"2026-09-13T20:22:53+02:00","session":"9c840439-232e-4445-abc7-2f789b1cc3a5","tool":"Grep","pattern":"Timber\\.d\\(\"S306[345]:","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}
 {"kind":"refusal","at":"2026-09-15T15:31:46+02:00","session":"fb90914c-58ce-4caa-a0af-b2b2158bc7d1","tool":"Grep","pattern":"allWarningsAsErrors|suppressWarnings|freeCompilerArgs|-Xsuppress|-nowarn|Xlint","glob":"*.kts","path":"","type":"","markerPresent":false,"classification":""}
 {"kind":"refusal","at":"2026-09-16T09:34:17+02:00","session":"8dc5642d-e100-4eb2-8393-6f66cde8339d","tool":"Grep","pattern":"taskbarRows","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}
+{"kind":"refusal","at":"2026-09-16T20:16:28+02:00","session":"2033e851-c91d-4bb9-af63-806eaa33e81c","tool":"Grep","pattern":"WearSettingsDivergence|appLanguage|unitSystem","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}

@@ -37,6 +37,7 @@ import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSettingsDivergence
 import com.sza.fastmediasorter.domain.model.WearSettingsFieldIssue
 import com.sza.fastmediasorter.domain.model.WearSettingsPayloadDecoder
+import com.sza.fastmediasorter.domain.model.WearSettingsRegistry
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
@@ -403,7 +404,12 @@ class PhoneWearListenerService : WearableListenerService() {
      * key this build does not know are the normal shape of two devices on different versions, so they
      * stay at debug rather than crying wolf on every exchange with an older watch.
      */
-    private fun logSettingsDivergences(divergences: List<WearSettingsDivergence>) {
+    private fun logSettingsDivergences(reported: List<WearSettingsDivergence>) {
+        // S3184: the watch inherits PHONE_ONLY fields and never reports them back, so their absence is
+        // the contract working, not a skew - counting it logged a false two-field divergence every sync.
+        val divergences = reported.filterNot {
+            it.issue == WearSettingsFieldIssue.MISSING && it.field in WearSettingsRegistry.phoneOnlyFields
+        }
         if (divergences.isEmpty()) return
         val mistyped = divergences.filter { it.issue == WearSettingsFieldIssue.WRONG_TYPE }
         if (mistyped.isNotEmpty()) {

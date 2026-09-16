@@ -684,7 +684,6 @@
     <string name="wear_phone_camera_failed_busy">الهاتف يبث بالفعل</string>
     <string name="wear_phone_camera_failed_not_supported">هذا الإصدار من الهاتف لا يمكنه إرسال فيديو</string>
     <string name="wear_phone_camera_failed_unknown">رفض الهاتف دون إبداء السبب</string>
-    <string name="wear_player_file_actions">إجراءات الملف</string>
     <string name="wear_tile_shortcut_more">المزيد</string>
     <string name="wear_streams_filter_collections_header">المجموعات</string>
     <string name="wear_streams_filter_collections_all">كل المجموعات</string>

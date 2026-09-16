@@ -298,7 +298,9 @@ if ($WalkResults) {
     # other number on this line comes from. Two counters of one quantity drift (the S1621 rule), and
     # a walk.json written before S2782 carries no `shapeUnchecked` in `counts` at all while its rows
     # still carry the exit codes to derive it from.
-    $shapeClasses = @($walkScreens | ForEach-Object { Get-ClipShapeClass $_.shapeExit })
+    # S3189: Get-WalkRowShapeClass, so a finding the walk accepted for the installed flavor stays out
+    # of `offGlass` exactly as it stayed out of the walk's own exit code.
+    $shapeClasses = @($walkScreens | ForEach-Object { Get-WalkRowShapeClass $_ })
     $shapeUncheckedOpen = @($shapeClasses | Where-Object { $_ -eq 'unchecked' }).Count
 
     $walkBreakdown = [ordered]@{
@@ -318,7 +320,7 @@ if ($WalkResults) {
         shapeUnchecked = $shapeUncheckedOpen
         coverage    = $walk.coverage
         screens     = @($walkScreens | ForEach-Object {
-            [ordered]@{ id = $_.id; outcome = $_.outcome; shape = (Get-ClipShapeClass $_.shapeExit); detail = $_.detail }
+            [ordered]@{ id = $_.id; outcome = $_.outcome; shape = (Get-WalkRowShapeClass $_); detail = $_.detail }
         })
     }
 }

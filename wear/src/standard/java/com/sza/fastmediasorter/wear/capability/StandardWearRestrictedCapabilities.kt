@@ -35,6 +35,29 @@ class StandardWearRestrictedCapabilities @Inject constructor() : WearRestrictedC
     /**
      * S2995: health features (Blood Pressure log, Motion Monitor) are withheld from the store build.
      */
-    override val offersHealthFeatures: Boolean = false.also {
-    }
+    override val offersHealthFeatures: Boolean = false
+
+    /**
+     * S3178: the first Google Play publication is an allowlist artifact, and none of the eight answers
+     * below is on the list. Each one is `false` for the same reason and it is stated once here rather
+     * than eight times: the permissions and components behind them are declared only in the sideload
+     * manifest, so in this flavor the capability has no path at all - offering the way in could only
+     * produce a refusal on the user's screen. Returning any one of them is a separate ticket that edits
+     * wear/config/store-boundary-policy.json first.
+     */
+    override val offersMediaAccess: Boolean = false
+
+    override val offersVoiceRecording: Boolean = false
+
+    override val offersRemoteSources: Boolean = false
+
+    override val offersDeviceDiagnostics: Boolean = false
+
+    override val offersNearbyDeviceState: Boolean = false
+
+    override val offersScreenCapture: Boolean = false
+
+    override val offersContentTransfer: Boolean = false
+
+    override val offersExternalEntryPoints: Boolean = false
 }

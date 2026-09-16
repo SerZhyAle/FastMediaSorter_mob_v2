@@ -66,6 +66,15 @@ $MEDIA_PERMISSION_SDK = 33
 # The watch release publishes under the unsuffixed id; the debug build adds `.debug` and is a
 # different app on the same device.
 $RELEASE_PACKAGE = 'com.sza.fastmediasorter'
+# S3186: WearTestTags.WEAR_ONBOARDING_FORWARD. The walk has at most eight forward chips (welcome,
+# intro, six groups); the looks allow for that, a scroll per page and the brand frame, and three empty looks in a row
+# before the first tap mean the install was not fresh and there is no walk.
+$ONBOARDING_FORWARD_ID = 'wear_onboarding_forward'
+$ONBOARDING_MAX_LOOKS = 24
+$ONBOARDING_SWIPE_MS = 300
+$WEAR_FALLBACK_SIDE_PX = 454
+$ONBOARDING_EMPTY_LOOKS = 3
+$ONBOARDING_SETTLE_MS = 1500
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . "$PSScriptRoot\..\utils\find-build-artifact.ps1"
@@ -282,6 +291,37 @@ if ($clear.Exit -ne 0) { Stop-Run 1 "logcat-clear failed: $($clear.Output)" }
 $launch = Invoke-AdbVerb -Arguments @('launch', '-Module', 'wear', '-Release', '-DeviceId', $id)
 if ($launch.Exit -ne 0) { Stop-Run 1 "launch failed: $($launch.Output)" }
 $result.launchedPackage = 'com.sza.fastmediasorter'
+
+# S3186: a fresh install opens on the first-run walk, not on Home, and the walk this script hands over
+# to judges the app behind it. Every forward chip (Next, Start, Skip) shares one resource-id, so it is
+# tapped until it is gone; an install that is not fresh never shows it, which the first empty looks
+# answer. Skip, never Allow: the permissions the walk needs are the ones hard-granted above, and a
+# system dialog raised here would be a platform screen the walk cannot leave.
+# A permission page is taller than the round glass, so its Skip chip starts below the edge and the
+# first miss on a page is answered with one upward swipe before the walk is taken as finished.
+$onboardingTaps = 0
+$scrolledSinceTap = $false
+$screen = Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'wm size', '-DeviceId', $id)
+$side = if ($screen.Output -match '(\d+)x(\d+)') { [int]$Matches[1] } else { $WEAR_FALLBACK_SIDE_PX }
+for ($look = 0; $look -lt $ONBOARDING_MAX_LOOKS; $look++) {
+    Start-Sleep -Milliseconds $ONBOARDING_SETTLE_MS
+    $tap = Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', $ONBOARDING_FORWARD_ID, '-DeviceId', $id)
+    if ($tap.Exit -eq 0) { $onboardingTaps++; $scrolledSinceTap = $false; continue }
+    if ($tap.Exit -ne 8) { Stop-Run 1 "tap on the first-run walk failed: $($tap.Output)" }
+    if ($onboardingTaps -gt 0 -and -not $scrolledSinceTap) {
+        $half = [int]($side / 2)
+        $swipe = Invoke-AdbVerb -Arguments @(
+            'swipe', '-X', $half, '-Y', [int]($side * 0.8), '-X2', $half, '-Y2', [int]($side * 0.3),
+            '-Duration', $ONBOARDING_SWIPE_MS, '-DeviceId', $id
+        )
+        if ($swipe.Exit -ne 0) { Stop-Run 1 "swipe on the first-run walk failed: $($swipe.Output)" }
+        $scrolledSinceTap = $true
+        continue
+    }
+    if ($onboardingTaps -gt 0 -or $look -ge $ONBOARDING_EMPTY_LOOKS) { break }
+}
+$result.onboardingTaps = $onboardingTaps
+if (-not $Json) { Write-Host "wear-prerelease-prepare: first-run walk passed with $onboardingTaps tap(s)" -ForegroundColor Green }
 
 $result.ok = $true
 $result.exitCode = 0

@@ -15,6 +15,16 @@ private data class FakeCapabilities(
     override val offersBodySensorDiagnostics: Boolean = true,
     override val locksSystemShade: Boolean = true,
     override val offersHealthFeatures: Boolean = true,
+    // S3178: the eight store-boundary answers. Defaulted to the offering build so every test written
+    // before the boundary keeps asserting the full product; a test about the store variant pins them.
+    override val offersMediaAccess: Boolean = true,
+    override val offersVoiceRecording: Boolean = true,
+    override val offersRemoteSources: Boolean = true,
+    override val offersDeviceDiagnostics: Boolean = true,
+    override val offersNearbyDeviceState: Boolean = true,
+    override val offersScreenCapture: Boolean = true,
+    override val offersContentTransfer: Boolean = true,
+    override val offersExternalEntryPoints: Boolean = true,
 ) : WearRestrictedCapabilities
 
 class WearAppCatalogTest {

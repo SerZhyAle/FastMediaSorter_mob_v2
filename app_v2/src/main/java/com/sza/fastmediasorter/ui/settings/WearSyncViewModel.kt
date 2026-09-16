@@ -348,6 +348,16 @@ class WearSyncViewModel @Inject constructor(
     private val _settingsPushEvent = MutableSharedFlow<SettingsPushEvent>(extraBufferCapacity = 1)
     val settingsPushEvent: SharedFlow<SettingsPushEvent> = _settingsPushEvent.asSharedFlow()
 
+    // S3185: the sync button sits in the window's toolbar, which cannot build the payload - the edited
+    // copy of the settings lives in the Compose island. The toolbar asks here and the island answers
+    // with pushSettings, so the payload is still assembled in exactly one place.
+    private val _settingsPushRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val settingsPushRequests: SharedFlow<Unit> = _settingsPushRequests.asSharedFlow()
+
+    fun requestSettingsPush() {
+        _settingsPushRequests.tryEmit(Unit)
+    }
+
     /**
      * S2034: the companion window's add-or-open button - strategic 2 goals 1-3.
      *

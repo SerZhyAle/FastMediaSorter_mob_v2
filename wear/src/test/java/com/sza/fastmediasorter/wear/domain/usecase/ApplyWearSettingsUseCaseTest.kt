@@ -527,6 +527,7 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     var gameStateValue: String? = null
     var voiceNoteSendPolicyValue = VoiceNoteSendPolicy.AUTOMATIC
     var notificationPermissionAskedValue = false
+    var onboardingCompletedValue = false
     var settingTimestampsValue: Map<String, Long> = emptyMap()
     var lastSettingsSyncAtValue = 0L
     var browseContentTypesValue: Set<WearContentType> = emptySet()
@@ -566,6 +567,7 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val voiceNoteSendPolicy: Flow<VoiceNoteSendPolicy> = MutableStateFlow(voiceNoteSendPolicyValue)
     override val notificationPermissionAsked: Flow<Boolean> =
         MutableStateFlow(notificationPermissionAskedValue)
+    override val onboardingCompleted: Flow<Boolean> = MutableStateFlow(onboardingCompletedValue)
 
     // Like the refine state below: part of the contract, never read by ApplyWearSettingsUseCase.
     override val isAnimationsDisabled: Flow<Boolean> = MutableStateFlow(animationsDisabledValue)
@@ -630,6 +632,10 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setNotificationPermissionAsked(asked: Boolean) {
         notificationPermissionAskedValue = asked
+    }
+
+    override suspend fun setOnboardingCompleted(completed: Boolean) {
+        onboardingCompletedValue = completed
     }
 
     override suspend fun setGameState(value: String?) {

@@ -35,6 +35,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -93,7 +94,6 @@ import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 
@@ -603,12 +603,21 @@ private fun PhoneResourceList(
     // the geometry question exactly as the general file list does.
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(presentation.viewMode, maxWidth.value.toInt())
+        val screenInsets = wearScreenInsets()
         // Decided here, for the whole loaded page, rather than per row: a picture that lands mid-scroll
         // must not re-size the glyph under the reading finger (strategic ADR-3). Only the cell path
         // ever swaps a glyph for a thumbnail, so the column count is what answers that question.
         WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState
+            state = listState,
+            // S3190: the refine header is laid over this list, exactly as on the device browser
+            // (S2136), so the list gives back the height it covers or the first row sits under it.
+            contentPadding = PaddingValues(
+                start = screenInsets.calculateLeftPadding(LayoutDirection.Ltr),
+                top = screenInsets.calculateTopPadding() + WearRefineHeaderHeight,
+                end = screenInsets.calculateRightPadding(LayoutDirection.Ltr),
+                bottom = screenInsets.calculateBottomPadding() + GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
+            )
         ) {
             item {
                 val titleText = when (presentation.title) {

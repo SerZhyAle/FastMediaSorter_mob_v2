@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.ui.tile
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
@@ -44,7 +45,8 @@ class TileTargetPickerViewModel @Inject constructor(
     private val networkSourceRepository: NetworkSourceRepository,
     private val wearStreamChannelRepository: WearStreamChannelRepository,
     private val wearTileAssignmentRepository: WearTileAssignmentRepository,
-    private val requestWearTileRefreshUseCase: RequestWearTileRefreshUseCase
+    private val requestWearTileRefreshUseCase: RequestWearTileRefreshUseCase,
+    private val capabilities: WearRestrictedCapabilities
 ) : ViewModel() {
 
     private val kindString: String? = savedStateHandle.get<String>(WearRoutes.ARG_TILE_KIND)
@@ -61,7 +63,9 @@ class TileTargetPickerViewModel @Inject constructor(
     init {
         // S2511: keyed on the kind's own answer rather than on a list of kinds, so a kind added later is
         // classified once, beside the enum, instead of in every screen that branches on it.
-        if (!kind.carriesAssignableTarget) {
+        // S3178: every assignable target is a network resource or a stream channel, so where remote
+        // sources have no path the picker leaves immediately - the same exit an unassignable kind takes.
+        if (!kind.carriesAssignableTarget || !capabilities.offersRemoteSources) {
             viewModelScope.launch {
                 _doneEvent.emit(Unit)
             }

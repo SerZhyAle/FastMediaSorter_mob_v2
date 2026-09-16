@@ -4052,4 +4052,5 @@
     <string name="wear_screenshot_refused">Годинник відмовив: %1$s</string>
     <string name="wear_screenshot_captured">Годинник надіслав знімок екрана</string>
     <string name="wear_screenshot_no_answer">Годинник не відповів</string>
+    <string name="wear_companion_group_operations">Операції з годинником</string>
 </resources>

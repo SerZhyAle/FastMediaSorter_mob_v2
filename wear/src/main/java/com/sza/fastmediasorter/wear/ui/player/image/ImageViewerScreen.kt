@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.Cast
@@ -76,11 +75,16 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearIsCompactScreen
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.player.common.PRIMARY_ROW_COLUMNS
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastMessage
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogVisibilities
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogsHost
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerOverflowMenu
+import com.sza.fastmediasorter.wear.ui.player.common.closingWith
 import com.sza.fastmediasorter.wear.ui.player.common.playerMenuAction
 import com.sza.fastmediasorter.wear.ui.player.common.playerPrimaryRowColumns
+import com.sza.fastmediasorter.wear.ui.player.common.rememberPlayerFileActionEntries
 import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
 import timber.log.Timber
 
@@ -122,9 +126,26 @@ fun ImageViewerScreen(
     val castState by viewModel.castManager.castState.collectAsStateWithLifecycle()
     val isCasting = castState.isCasting
 
+    // S3121: this screen draws the file operations as entries of its own menu, so the file-action
+    // dialog never opens here and the flag only ever reads false. It is still passed to the shared
+    // host, which owns the rename, delete and receiver dialogs the entries do open.
     var showActions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showReceivers by remember { mutableStateOf(false) }
+
+    val dialogVisibilities = PlayerDialogVisibilities(
+        showActions = showActions,
+        showDeleteConfirm = showDeleteConfirm,
+        showReceivers = showReceivers,
+        onActionsVisibilityChange = { showActions = it },
+        onDeleteVisibilityChange = { showDeleteConfirm = it },
+        onReceiversVisibilityChange = { showReceivers = it }
+    )
+    val fileActions = rememberPlayerFileActionEntries(
+        operations = viewModel.fileOperations,
+        visibilities = dialogVisibilities,
+        currentFileName = uiState.mediaFile?.name
+    )
 
     LaunchedEffect(uiState.closeScreen) {
         if (uiState.closeScreen) {
@@ -162,7 +183,7 @@ fun ImageViewerScreen(
                         onTogglePlaybackMode = viewModel::togglePlaybackMode,
                         onToggleScaleMode = viewModel::toggleScaleMode,
                         onScreenTap = viewModel::onScreenTap,
-                        onFileOperations = { showActions = true },
+                        fileActions = fileActions,
                         onToggleCast = viewModel::toggleCast,
                         isCasting = isCasting
                     )
@@ -171,20 +192,13 @@ fun ImageViewerScreen(
         }
     }
 
-    com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogsHost(
+    PlayerDialogsHost(
         operations = viewModel.fileOperations,
-        visibilities = com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogVisibilities(
-            showActions = showActions,
-            showDeleteConfirm = showDeleteConfirm,
-            showReceivers = showReceivers,
-            onActionsVisibilityChange = { showActions = it },
-            onDeleteVisibilityChange = { showDeleteConfirm = it },
-            onReceiversVisibilityChange = { showReceivers = it }
-        ),
+        visibilities = dialogVisibilities,
         currentFileName = uiState.mediaFile?.name
     )
 
-    com.sza.fastmediasorter.wear.ui.player.common.PlayerCastMessage(viewModel.castManager)
+    PlayerCastMessage(viewModel.castManager)
 }
 
 /** The image viewer's callbacks, bundled the way the audio and video players already bundle theirs. */
@@ -197,7 +211,11 @@ private data class ImageViewerActions(
     val onTogglePlaybackMode: () -> Unit,
     val onToggleScaleMode: () -> Unit,
     val onScreenTap: () -> Unit,
-    val onFileOperations: () -> Unit,
+    /**
+     * S3121: the file operations as menu entries, the capability policy's own answer read through
+     * `rememberPlayerFileActionEntries` - never a list this screen composed.
+     */
+    val fileActions: List<WearAction>,
     val onToggleCast: () -> Unit,
     /** The phone's reported session, which decides only the wording of the one cast entry (S2531). */
     val isCasting: Boolean
@@ -294,7 +312,10 @@ private fun ImageViewerContent(
                 uiState = uiState,
                 isFavorite = isFavorite,
                 actions = actions,
-                onOpenMenu = { showMenu = true },
+                onOpenMenu = {
+                    Timber.d("S3121: image player menu opened as one list with the file operations")
+                    showMenu = true
+                },
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
@@ -454,10 +475,9 @@ private fun ImageBottomPanel(
         )
 
         ImageSecondaryRow(
+            uiState = uiState,
             isFavorite = isFavorite,
-            onBack = actions.onBack,
-            onToggleFavorite = actions.onToggleFavorite,
-            onFileOperations = actions.onFileOperations,
+            actions = actions,
             onOpenMenu = onOpenMenu
         )
 
@@ -547,38 +567,57 @@ private fun ImageCommandRow(
 }
 
 /**
- * Row 2: back, the favourite where a third slot exists, and the menu button.
+ * The restored (ORIGINAL) geometry, which is the only view whose rows have a slot to spare.
  *
- * S2766: the same two-or-three composition the other players draw. The scale mode left the row for
- * the menu. This screen shows no playing position, so it takes no progress ring.
+ * S2803 named it by the primary row's column count; S3121 reads it from one place, because the row
+ * and the menu now have to agree on it command by command - a slot the row draws is a menu entry the
+ * menu must not.
+ */
+@Composable
+private fun imageRestoredView(): Boolean = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
+
+/** The secondary row draws the favourite above the compact breakpoint, and in the restored view. */
+@Composable
+private fun imageFavoriteOnPanel(): Boolean = imageRestoredView() || !wearIsCompactScreen()
+
+/** The glyph carries the mode the command will leave, matching the video player's scale button. */
+private fun imageScaleIcon(scaleMode: VideoScaleMode) = if (scaleMode == VideoScaleMode.CROP_PAN) {
+    Icons.Filled.AspectRatio
+} else {
+    Icons.Filled.CropFree
+}
+
+/**
+ * Row 2: back, the favourite where a slot exists, the scale mode where one is spare, and the menu.
  *
- * S2803: the ORIGINAL view restores back, favourite and file operations. S2531: the cast entry lives
- * in the overflow menu, so the restored row keeps a menu button where it held scale mode - scale mode
- * moved to the menu.
+ * S2766: the same two-or-three composition the other players draw. This screen shows no playing
+ * position, so it takes no progress ring.
+ *
+ * S3121: the second three-dot button is gone - the file operations end the menu instead (ADR-3), and
+ * the slot it freed in the restored view goes to the scale mode the owner asked for (ADR-1).
  */
 @Composable
 private fun ImageSecondaryRow(
+    uiState: ImageViewerUiState,
     isFavorite: Boolean,
-    onBack: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    onFileOperations: () -> Unit,
+    actions: ImageViewerActions,
     onOpenMenu: () -> Unit
 ) {
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
     val menuDesc = stringResource(R.string.wear_file_op_actions)
-    val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
+    val scaleDesc = stringResource(R.string.wear_scale_mode)
 
     PlayerCommandGrid(columns = secondaryRowColumns()) { targetSize ->
         PlayerCommandButton(
-            onClick = onBack,
+            onClick = actions.onBack,
             icon = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = stringResource(R.string.wear_navigate_back),
             size = targetSize
         )
 
-        if (restored || !wearIsCompactScreen()) {
+        if (imageFavoriteOnPanel()) {
             PlayerCommandButton(
-                onClick = onToggleFavorite,
+                onClick = actions.onToggleFavorite,
                 icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                 contentDescription = favoriteDesc,
                 size = targetSize,
@@ -586,12 +625,13 @@ private fun ImageSecondaryRow(
             )
         }
 
-        if (restored) {
+        if (imageRestoredView()) {
             PlayerCommandButton(
-                onClick = onFileOperations,
-                icon = Icons.Default.MoreVert,
-                contentDescription = menuDesc,
-                size = targetSize
+                onClick = actions.onToggleScaleMode,
+                icon = imageScaleIcon(uiState.scaleMode),
+                contentDescription = scaleDesc,
+                size = targetSize,
+                checked = uiState.scaleMode == VideoScaleMode.CROP_PAN
             )
         }
 
@@ -608,7 +648,12 @@ private fun ImageSecondaryRow(
  * Everything the image viewer's rows shed, in one list.
  *
  * S2766: the traversal mode and the scale mode, plus the favourite below the breakpoint where the
- * row has no slot for it, and the file operations as their own entry opening the existing dialog.
+ * row has no slot for it.
+ *
+ * S3121 (ADR-2, ADR-3): a command drawn on the panel is not repeated here - a command reachable
+ * twice is the extra menu trip this ticket removes - and the file operations end the list as entries
+ * rather than opening a second dialog behind one. The set is still the capability policy's answer,
+ * read through `rememberPlayerFileActionEntries`, never a list this screen composed.
  */
 @Composable
 private fun imageMenuActions(
@@ -631,42 +676,38 @@ private fun imageMenuActions(
     )
     val favoriteLabel = stringResource(R.string.wear_toggle_favorite)
     val scaleLabel = stringResource(R.string.wear_scale_mode)
-    val fileActionsLabel = stringResource(R.string.wear_player_file_actions)
     // S2531: the wording carries the state, not a colour - strategic §3.2 accessibility.
     val castLabel = stringResource(
         if (actions.isCasting) R.string.wear_cast_stop else R.string.wear_cast_send
     )
     val castIcon = if (actions.isCasting) Icons.Filled.CastConnected else Icons.Filled.Cast
-    val scaleIcon = if (uiState.scaleMode == VideoScaleMode.CROP_PAN) {
-        Icons.Filled.AspectRatio
-    } else {
-        Icons.Filled.CropFree
-    }
-    val showFavorite = wearIsCompactScreen()
+    // S3121: the primary row draws the traversal mode and the secondary row the scale mode in the
+    // restored view only, and that is exactly where these entries would be the second way in.
+    val panelDrawsRestoredCommands = imageRestoredView()
 
     return buildList {
-        add(
-            playerMenuAction(
-                playbackModeLabel,
-                playbackModeIcon,
-                onDismiss,
-                actions.onTogglePlaybackMode
+        if (!panelDrawsRestoredCommands) {
+            add(
+                playerMenuAction(
+                    playbackModeLabel,
+                    playbackModeIcon,
+                    onDismiss,
+                    actions.onTogglePlaybackMode
+                )
             )
-        )
-        if (showFavorite) {
+        }
+        if (!imageFavoriteOnPanel()) {
             val icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
             add(playerMenuAction(favoriteLabel, icon, onDismiss, actions.onToggleFavorite))
         }
-        add(playerMenuAction(scaleLabel, scaleIcon, onDismiss, actions.onToggleScaleMode))
+        if (!panelDrawsRestoredCommands) {
+            val scaleIcon = imageScaleIcon(uiState.scaleMode)
+            add(playerMenuAction(scaleLabel, scaleIcon, onDismiss, actions.onToggleScaleMode))
+        }
         add(playerMenuAction(castLabel, castIcon, onDismiss, actions.onToggleCast))
-        add(
-            playerMenuAction(
-                fileActionsLabel,
-                Icons.AutoMirrored.Filled.List,
-                onDismiss,
-                actions.onFileOperations
-            )
-        )
+        // S3121: last, and last for the same reason the file-action dialog puts them last - delete
+        // closes the list, and the outer rows of a round screen are the easiest to reach by accident.
+        addAll(actions.fileActions.map { entry -> entry.closingWith(onDismiss) })
     }
 }
 

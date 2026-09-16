@@ -721,7 +721,6 @@
     <string name="wear_phone_camera_failed_busy">Телефон уже ведёт трансляцию</string>
     <string name="wear_phone_camera_failed_not_supported">Эта сборка телефона не умеет передавать видео</string>
     <string name="wear_phone_camera_failed_unknown">Телефон отказал без объяснения</string>
-    <string name="wear_player_file_actions">Действия с файлом</string>
     <string name="wear_tile_shortcut_more">Ещё</string>
     <string name="wear_streams_filter_collections_header">Подборки</string>
     <string name="wear_streams_filter_collections_all">Все подборки</string>
@@ -863,4 +862,24 @@
     <string name="wear_tourist_press_button_to_unlock">Нажмите кнопку часов, чтобы разблокировать</string>
     <string name="wear_tourist_metric_body_temperature">Температура тела</string>
     <string name="wear_tourist_unit_celsius">°C</string>
+    <string name="wear_onboarding_welcome_title">Добро пожаловать</string>
+    <string name="wear_onboarding_welcome_body">Смотрите, слушайте и сортируйте медиа прямо на запястье.</string>
+    <string name="wear_onboarding_next">Далее</string>
+    <string name="wear_onboarding_intro_title">Несколько вопросов</string>
+    <string name="wear_onboarding_intro_body">Сейчас часы попросят доступ - по одному вопросу за раз. На каждом экране сказано, зачем он нужен. Нажмите «Разрешить», затем ещё раз «Разрешить» в запросе системы. От любого пункта можно отказаться - эта функция спросит снова, когда вы её откроете.</string>
+    <string name="wear_onboarding_start">Начать</string>
+    <string name="wear_onboarding_allow">Разрешить</string>
+    <string name="wear_onboarding_skip">Пропустить</string>
+    <string name="wear_onboarding_media_title">Медиафайлы</string>
+    <string name="wear_onboarding_media_reason">Чтобы показывать и воспроизводить музыку, видео и фото, сохранённые на часах.</string>
+    <string name="wear_onboarding_microphone_title">Микрофон</string>
+    <string name="wear_onboarding_microphone_reason">Чтобы записывать голосовые заметки и передавать звук на телефон.</string>
+    <string name="wear_onboarding_notifications_title">Уведомления</string>
+    <string name="wear_onboarding_notifications_reason">Чтобы показывать, что идёт запись, и открывать то, что прислал телефон.</string>
+    <string name="wear_onboarding_heart_rate_title">Пульс</string>
+    <string name="wear_onboarding_heart_rate_reason">Чтобы измерять пульс, пока открыт экран измерения.</string>
+    <string name="wear_onboarding_activity_title">Физическая активность</string>
+    <string name="wear_onboarding_activity_reason">Чтобы считать шаги в мониторе движения.</string>
+    <string name="wear_onboarding_nearby_title">Устройства поблизости</string>
+    <string name="wear_onboarding_nearby_reason">Чтобы показывать состояние Bluetooth и Wi-Fi в мониторе сети.</string>
 </resources>

@@ -29,25 +29,36 @@ import com.sza.fastmediasorter.wear.domain.model.WearAppId
 object HomeSectionCatalog {
 
     fun sectionsFor(visibility: HomeSectionVisibility): List<HomeSection> = buildList {
-        add(
-            HomeSection(
-                id = HomeSectionId.RESOURCES,
-                labelRes = R.string.wear_section_resources
+        // S3178: each origin row is drawn only where its capability has a path. The store variant
+        // declares no network, media or Data Layer permission at all, so a row kept here would open a
+        // screen that can only report emptiness - and the owner asked for a dry first publication,
+        // not a tour of what is missing. The answers arrive from WearRestrictedCapabilities through
+        // [HomeSectionVisibility]; no flavor is named anywhere on this path.
+        if (visibility.offersRemoteSources) {
+            add(
+                HomeSection(
+                    id = HomeSectionId.RESOURCES,
+                    labelRes = R.string.wear_section_resources
+                )
             )
-        )
-        add(
-            HomeSection(
-                id = HomeSectionId.PHONE,
-                labelRes = R.string.wear_section_phone
+        }
+        if (visibility.offersContentTransfer) {
+            add(
+                HomeSection(
+                    id = HomeSectionId.PHONE,
+                    labelRes = R.string.wear_section_phone
+                )
             )
-        )
-        add(
-            HomeSection(
-                id = HomeSectionId.LOCAL,
-                labelRes = R.string.wear_section_local
+        }
+        if (visibility.offersMediaAccess) {
+            add(
+                HomeSection(
+                    id = HomeSectionId.LOCAL,
+                    labelRes = R.string.wear_section_local
+                )
             )
-        )
-        if (visibility.streamsEnabled) {
+        }
+        if (visibility.streamsEnabled && visibility.offersRemoteSources) {
             add(
                 HomeSection(
                     id = HomeSectionId.STREAMS,
@@ -61,22 +72,32 @@ object HomeSectionCatalog {
                 labelRes = R.string.wear_section_apps
             )
         )
-        add(lastUsedAppSection(visibility.lastUsedApp))
+        // S3178: the slot falls back to the Broadcast entrance when no program was opened last, and
+        // the broadcast opens the microphone - so where voice recording has no path the slot is
+        // dropped entirely rather than allowed to fall back into it.
+        if (visibility.offersVoiceRecording || visibility.lastUsedApp != null) {
+            add(lastUsedAppSection(visibility.lastUsedApp))
+        }
         // S2551: the opposite direction of the row above - the phone's camera watched here, rather
-        // than this watch's microphone heard there. Unconditional for the same reason: both Wear
-        // flavors carry it, and the phone half answers NOT_SUPPORTED where its own build cannot.
-        add(
-            HomeSection(
-                id = HomeSectionId.PHONE_CAMERA,
-                labelRes = R.string.wear_section_phone_camera
+        // than this watch's microphone heard there. Both Wear flavors carried it and the phone half
+        // answered NOT_SUPPORTED where its own build could not; S3178 narrowed that to the artifact
+        // that still has a Data Layer listener to answer through.
+        if (visibility.offersContentTransfer) {
+            add(
+                HomeSection(
+                    id = HomeSectionId.PHONE_CAMERA,
+                    labelRes = R.string.wear_section_phone_camera
+                )
             )
-        )
-        add(
-            HomeSection(
-                id = HomeSectionId.FAVOURITES,
-                labelRes = R.string.wear_section_favourites
+        }
+        if (visibility.offersMediaAccess) {
+            add(
+                HomeSection(
+                    id = HomeSectionId.FAVOURITES,
+                    labelRes = R.string.wear_section_favourites
+                )
             )
-        )
+        }
     }
 
     /**

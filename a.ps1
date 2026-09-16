@@ -33,7 +33,8 @@
     fwn  - Fast Kotlin compile check, wear module (noLegal flavor)
     fwr  - Fast resources/manifest check, wear module (standard flavor)
     fwrn - Fast resources/manifest check, wear module (noLegal flavor)
-    fwu  - Fast unit-test suite, wear module
+    fwu  - Fast unit-test suite, wear module (standard flavor)
+    fwun - Fast unit-test suite, wear module (noLegal flavor)
            fk/fkn/fr/fc/fu all check app_v2. A change under wear/ needs fw/fwr/fwu -
            the phone target exits 0 without looking at the watch module at all.
            fw covers only the flavor the module declares first, standard. Since S2486 the
@@ -258,6 +259,7 @@ $scripts = @{
     'fwr'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear' } }  # S1807: fast resources/manifest check for the wear module
     'fwrn'      = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear'; Flavor = 'NoLegal' } }  # S2458: fwr resolves to standard, and since wear/src/noLegal/AndroidManifest.xml exists the two flavors merge different manifests - fwr cannot see the one that carries a permission
     'fwu'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit'; Module = 'wear' } }  # S1807: fast unit-test suite for the wear module
+    'fwun'      = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit'; Module = 'wear'; Flavor = 'NoLegal' } }  # S3178: fwu resolves to standard, and since this ticket the two flavors carry different test sets - wear/src/testStandard and wear/src/testNoLegal assert opposite halves of the store boundary, so fwu alone never runs the sideload half at all
     # S2355: compile the WATCH instrumented set. `fa` compiles app_v2 only, so quoting it under a
     # wear change records a verdict about the other module - the miss S1807 measured five times.
     # The flavor is named rather than defaulted: S2090 gave the watch a standard/noLegal dimension.

@@ -9,10 +9,17 @@
 
   No landscape counterpart exists on purpose: the shell is a toolbar plus one scrolling container,
   identical in both orientations, and the content is Compose and lays itself out per width.
+
+  S3185: the settings sync action and its last-synced caption live in the toolbar, so the one control
+  that sends edits to the watch stays reachable whichever group is collapsed. The toolbar grows past
+  actionBarSize to fit the caption under the button. The views are bound by WearSyncSettingsFragment
+  through WearCompanionHeaderSyncManager, because the edited settings and the view model are the
+  fragment's.
 -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
@@ -24,13 +31,49 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="wrap_content"
+            android:minHeight="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             android:elevation="@dimen/toolbar_elevation"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="?attr/colorOnPrimary"
             app:title="@string/wear_companion"
-            app:titleTextColor="?attr/colorOnPrimary" />
+            app:titleTextColor="?attr/colorOnPrimary">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="@dimen/margin_normal"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingVertical="@dimen/padding_small">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/wearPushSettings"
+                    style="@style/Widget.Material3.Button.Icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="?attr/colorOnPrimary"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="@string/wear_settings_sync_button"
+                    android:textColor="?attr/colorPrimary"
+                    app:icon="@drawable/ic_watch"
+                    app:iconTint="?attr/colorPrimary" />
+
+                <TextView
+                    android:id="@+id/wearSyncSettingsStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_tiny"
+                    android:gravity="center_horizontal"
+                    android:maxLines="2"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnPrimary"
+                    tools:text="@string/wear_settings_sync_never" />
+            </LinearLayout>
+        </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.fragment.app.FragmentContainerView

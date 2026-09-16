@@ -67,7 +67,6 @@ import com.sza.fastmediasorter.wear.ui.common.wearChordInset
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.common.wearScrollViewportInset
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 // S2007, owner ruling 2026-08-26: half the interactive minimum, deliberately. S1965 had raised this
 // to 48.dp because the KDoc and docs/WEAR_OS_STATUS.md both said 48 and the constant alone stood out
@@ -322,7 +321,6 @@ fun CalculatorScreen(
     val historyListState = rememberWearListState()
     var copyConfirmationShown by remember { mutableStateOf(false) }
     val shape = calculatorShape()
-    Timber.d("S3104: calculator shape top=${shape.valueRowTop} valueWidth=${shape.valueRowWidth}")
     // S2007: no `scrollState` is handed to the scaffold. That parameter exists only to scroll
     // `TimeText` away, and the value row is fixed below the clock while the keypad scrolls beneath
     // the value row - so nothing that moves here ever reaches the clock to obscure it.

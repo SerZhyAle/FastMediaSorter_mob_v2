@@ -77,6 +77,15 @@ private const val MAX_IN_FLIGHT_THUMBNAILS = 3
 /** S2129: maximum thumbnail cache size on watch. */
 private const val MAX_CACHED_THUMBNAILS = 50
 
+/**
+ * S3190: how many times one token may ask the phone before a failed exchange is taken as final.
+ *
+ * The first rows are asked for while the Bluetooth link is still cold, and a single timeout there
+ * used to pin the newest files to their type glyph for the whole visit. A bound is still needed: a
+ * phone that stays silent would otherwise be asked again on every recomposition.
+ */
+internal const val MAX_THUMBNAIL_ATTEMPTS = 3
+
 /** S1846: what came of the last tap on a phone file. */
 sealed interface PhoneFileOpenOutcome {
 
@@ -272,11 +281,17 @@ class PhoneResourceViewModel @Inject constructor(
 
     private val inFlightThumbnails = mutableSetOf<String>()
 
+    private val thumbnailAttempts = mutableMapOf<String, Int>()
+
     /**
      * S2129: requests one item's thumbnail on-demand from the phone.
      *
-     * A token already requested or in flight is never requested again.
+     * A token already answered or in flight is never requested again.
      * Bounded by [MAX_IN_FLIGHT_THUMBNAILS] to avoid bridge decoder congestion.
+     *
+     * S3190: only a page the phone sent is an answer - it carries the picture or its definite
+     * absence. A timeout or refusal leaves the token without an entry, so the cell asks again on its
+     * next recomposition, until [MAX_THUMBNAIL_ATTEMPTS] exchanges have failed.
      */
     fun requestThumbnail(itemToken: String) {
         if (itemToken.isEmpty() || _thumbnails.value.containsKey(itemToken) || inFlightThumbnails.contains(itemToken)) {
@@ -290,16 +305,23 @@ class PhoneResourceViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val outcome = phoneResourceClient.requestThumbnail(itemToken)
-                val thumbnail = if (outcome is PhoneResourceOutcome.Page) {
-                    outcome.page.items.orEmpty().firstOrNull()?.toWearThumbnail()
-                        ?: WearThumbnail.Unavailable
-                } else {
-                    WearThumbnail.Unavailable
+                val attempts = (thumbnailAttempts[itemToken] ?: 0) + 1
+                thumbnailAttempts[itemToken] = attempts
+                Timber.d("S3190: thumb %s -> %s, attempt %d", itemToken, outcome::class.simpleName, attempts)
+                val thumbnail = when {
+                    outcome is PhoneResourceOutcome.Page ->
+                        outcome.page.items.orEmpty().firstOrNull()?.toWearThumbnail() ?: WearThumbnail.Unavailable
+                    attempts >= MAX_THUMBNAIL_ATTEMPTS -> WearThumbnail.Unavailable
+                    else -> null
                 }
                 _thumbnails.update { current ->
-                    val next = current + (itemToken to thumbnail)
-                    val excess = next.size - MAX_CACHED_THUMBNAILS
-                    if (excess <= 0) next else next.entries.drop(excess).associate { it.key to it.value }
+                    if (thumbnail == null) {
+                        current - itemToken
+                    } else {
+                        val next = current + (itemToken to thumbnail)
+                        val excess = next.size - MAX_CACHED_THUMBNAILS
+                        if (excess <= 0) next else next.entries.drop(excess).associate { it.key to it.value }
+                    }
                 }
             } finally {
                 inFlightThumbnails.remove(itemToken)
@@ -558,6 +580,7 @@ class PhoneResourceViewModel @Inject constructor(
         // Tokens are per folder, so keeping the previous page's pictures would only hold bitmaps
         // no cell can ask for again.
         inFlightThumbnails.clear()
+        thumbnailAttempts.clear()
         _thumbnails.value = emptyMap()
         // S2984: a new folder or retry starts from the first page; a late next-page response would
         // otherwise append rows of the folder just left to the folder now shown.

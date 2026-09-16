@@ -49,3 +49,60 @@ function Get-ClipShapeClass {
     if ($code -eq 9 -or $code -eq 10) { return 'finding' }
     return 'unchecked'
 }
+
+function Get-WearFlavorFromVersionName {
+    <#
+    .SYNOPSIS
+      S3189 - 'noLegal' or 'standard' for the installed watch build's versionName.
+
+    .DESCRIPTION
+      Both flavors publish under one application id (wear/build.gradle.kts, S1681), so the package
+      name cannot tell them apart; the `-NoLegal` versionNameSuffix can. Anything else - an empty or
+      unreadable name included - answers 'standard', the flavor Play reviews, so a failed probe can
+      never grant an acceptance that only the sideload build carries.
+    #>
+    param([string]$VersionName)
+
+    if ($VersionName -and $VersionName -match '-NoLegal') { return 'noLegal' }
+    return 'standard'
+}
+
+function Test-WalkShapeAccepted {
+    <#
+    .SYNOPSIS
+      S3189 - whether a screen entry accepts a shape finding on the given flavor.
+
+    .DESCRIPTION
+      An entry accepts only when it declares `acceptedOffGlass.flavors` and that list names the
+      flavor exactly. The owner ruled the noLegal mini-game layout intentional (2026-09-16); the
+      standard build is still held to WO-V16 on the same screen.
+    #>
+    param($Screen, [string]$Flavor)
+
+    if ($null -eq $Screen -or -not $Flavor) { return $false }
+    $accept = $Screen.PSObject.Properties['acceptedOffGlass']
+    if ($null -eq $accept -or $null -eq $accept.Value) { return $false }
+    $flavors = $accept.Value.PSObject.Properties['flavors']
+    if ($null -eq $flavors -or $null -eq $flavors.Value) { return $false }
+    return (@($flavors.Value) -ccontains $Flavor)
+}
+
+function Get-WalkRowShapeClass {
+    <#
+    .SYNOPSIS
+      S3189 - the shape class of one walk.json row: Get-ClipShapeClass, plus 'accepted'.
+
+    .DESCRIPTION
+      'accepted' is a 'finding' on a row the walk marked `shapeAccepted`. It is counted by neither the
+      walk's nor the verdict's shape failures, and only a finding can be accepted: an unchecked shape
+      stays unchecked, because nothing was measured to accept.
+    #>
+    param($Row)
+
+    if ($null -eq $Row) { return 'clean' }
+    $exitProp = $Row.PSObject.Properties['shapeExit']
+    $class = Get-ClipShapeClass $(if ($null -ne $exitProp) { $exitProp.Value } else { $null })
+    $acceptedProp = $Row.PSObject.Properties['shapeAccepted']
+    if ($class -eq 'finding' -and $null -ne $acceptedProp -and $acceptedProp.Value) { return 'accepted' }
+    return $class
+}

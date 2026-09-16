@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.wear.companion
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -32,10 +33,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -44,8 +49,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
-import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
@@ -53,7 +56,7 @@ import com.sza.fastmediasorter.service.WearListenState
 import com.sza.fastmediasorter.ui.settings.ClipboardSendOutcomeText
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
-import dagger.hilt.android.EntryPointAccessors
+import timber.log.Timber
 
 internal val SPACING_TINY = 4.dp
 internal val SPACING_SMALL = 8.dp
@@ -64,16 +67,16 @@ internal val SPACING_SECTION = 16.dp
 private val LISTEN_PROGRESS_SIZE = 24.dp
 
 /**
- * S2000: the companion window's frame - an action area that is always visible, then the groups.
+ * S2000: the companion window's frame - the operations group, then the settings groups.
  *
  * The frame holds no setting of its own. Every setting belongs to a group, and a group is one call
  * here plus one file, which is what makes "add the next watch setting" an addition rather than a
  * rebuild (strategic §2.4, §5.1 pillar A).
  *
- * The actions stay outside every group on purpose: a push button hidden inside a collapsed group
- * means edits silently never leave the phone (strategic §3.3.4). Each group owns its own expansion
- * state and starts collapsed, so opening the window shows headings rather than one group's contents
- * pushing the rest off the screen (strategic §3.3.3).
+ * S3185: the settings sync action is not in the island - it sits in the window's toolbar, which keeps
+ * S2000's rule that the button sending edits never hides inside a collapsed group. The toolbar only
+ * asks; the island answers here, because the edited copy of the settings is owned here and the
+ * payload is built in one place.
  *
  * S2091: every control below carries a `testTag`, which reaches `uiautomator` as a `resource-id` only
  * because `FastMediaSorterComposeTheme` sets `testTagsAsResourceId` for every island (S2096). Do not
@@ -88,23 +91,21 @@ fun WearCompanionScreen(
     onWatchResourceClick: () -> Unit,
     onOpenDocLink: (WearDocLink) -> Unit
 ) {
-    val state by viewModel.uiState.collectAsState()
     val watchSettings by viewModel.watchSettingsState.collectAsState()
-    // The edited copy of the watch's settings is owned here rather than inside the collapsible group,
-    // because the sync action that sends it sits outside that group (S2460).
     val context = LocalContext.current
     val watchSettingsState = remember(watchSettings) { WatchSettingsState(watchSettings) }
     // S2731: no companion-window row edits this - it rides the phone's current setting, same as appLanguage.
     val unitSystem by viewModel.unitSystem.collectAsState()
-    // collectAsState, matching the sibling groups on this island: app_v2 does not carry
-    // lifecycle-runtime-compose, and the island is torn down with the screen that hosts it.
-    val lastSyncedAt by viewModel.lastSyncedAt.collectAsState()
-    val watchAppVersion by viewModel.watchAppVersion.collectAsState()
-    val pendingWatchSources by viewModel.pendingWatchSources.collectAsState()
-    val watchPlaybackState by viewModel.watchPlaybackState.collectAsState()
-    val listenState by viewModel.listenState.collectAsState()
-    val clipboardSending by viewModel.clipboardSendInFlight.collectAsState()
-    val clipboardOutcome by viewModel.clipboardSendOutcome.collectAsState()
+
+    // Read at the moment of the request rather than captured by the effect, so an edit does not
+    // restart the collector and drop a press that lands during the restart.
+    val currentPayload by rememberUpdatedState { watchSettingsState.payload(context, unitSystem) }
+    LaunchedEffect(viewModel) {
+        viewModel.settingsPushRequests.collect {
+            Timber.d("S3185: island answers header sync request")
+            viewModel.pushSettings(currentPayload())
+        }
+    }
 
     // The content is taller than the window on a short phone, and before this the slideshow slider
     // and the push button were the parts that fell past the fold (S1730).
@@ -117,63 +118,14 @@ fun WearCompanionScreen(
             .verticalScroll(rememberScrollState())
             .padding(SPACING_SECTION)
     ) {
-        // The window's toolbar carries the title now (S2460); what is left here is the lead paragraph.
-        Text(
-            text = stringResource(R.string.wear_sync_description),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(SPACING_SECTION))
-
-        Button(
-            onClick = onPushClick,
-            enabled = state !is WearSyncUiState.Sending,
-            modifier = Modifier.testTag("wearPushToWatch")
-        ) {
-            Text(stringResource(R.string.wear_push_to_watch))
-        }
-
-        if (showResourceSelection) {
-            ResourceActionButtons(
+        WearOperationsGroup(
+            viewModel = viewModel,
+            actions = OperationsActions(
+                onPushClick = onPushClick,
+                showResourceSelection = showResourceSelection,
                 onSelectResourcesClick = onSelectResourcesClick,
                 onWatchResourceClick = onWatchResourceClick
             )
-        }
-
-        pendingWatchSources?.let { pending ->
-            Spacer(Modifier.height(SPACING_CARD))
-            PendingImportCard(
-                pending = pending,
-                onAccept = { viewModel.acceptWatchImport() },
-                onDismiss = { viewModel.dismissWatchImport() }
-            )
-        }
-
-        watchPlaybackState?.let { playing ->
-            Spacer(Modifier.height(SPACING_CARD))
-            NowPlayingCard(playing = playing, onCommand = viewModel::sendPlaybackCommand)
-        }
-
-        Spacer(Modifier.height(SPACING_CARD))
-        ListenToWatchCard(
-            state = listenState,
-            onStart = viewModel::startListening,
-            onStop = viewModel::stopListening
-        )
-
-        SendClipboardRow(clipboardSending, clipboardOutcome, viewModel::sendClipboardToWatch)
-
-        RequestScreenshotRow(viewModel)
-
-        Spacer(Modifier.height(SPACING_SECTION))
-
-        SyncSettingsRow(
-            lastSyncedAtEpochMillis = lastSyncedAt,
-            watchAppVersionName = watchAppVersion,
-            pushEnabled = state !is WearSyncUiState.Sending,
-            onPush = {
-                viewModel.pushSettings(watchSettingsState.payload(context, unitSystem))
-            }
         )
 
         Spacer(Modifier.height(SPACING_SECTION))
@@ -192,6 +144,116 @@ fun WearCompanionScreen(
     }
 }
 
+/** The host's callbacks for the operations group, bundled so the group's signature stays readable. */
+private class OperationsActions(
+    val onPushClick: () -> Unit,
+    val showResourceSelection: Boolean,
+    val onSelectResourcesClick: () -> Unit,
+    val onWatchResourceClick: () -> Unit
+)
+
+/**
+ * S3185: everything the window showed above the settings groups, gathered into one collapsible group.
+ *
+ * It starts expanded, unlike the settings groups: it carries live cards - the watch's offer to hand
+ * sources back, what the watch is playing, listening - and a collapsed group would hide an offer the
+ * owner has to answer.
+ */
+@Composable
+private fun WearOperationsGroup(viewModel: WearSyncViewModel, actions: OperationsActions) {
+    var expanded by rememberSaveable { mutableStateOf(true) }
+    WearCompanionGroup(
+        title = stringResource(R.string.wear_companion_group_operations),
+        summary = null,
+        expanded = expanded,
+        tag = "wearGroupOperations",
+        onExpandedChange = { expanded = it }
+    ) {
+        WearCompanionTwoColumnArranger {
+            WearOperationsItems(viewModel = viewModel, actions = actions)
+        }
+    }
+}
+
+/**
+ * Each item is exactly one layout node: the arranger places nodes into cells, so a stray spacer would
+ * take a cell of its own and shift every item after it into the other column.
+ */
+@Composable
+private fun WearOperationsItems(viewModel: WearSyncViewModel, actions: OperationsActions) {
+    val state by viewModel.uiState.collectAsState()
+    // collectAsState, matching the sibling groups on this island: app_v2 does not carry
+    // lifecycle-runtime-compose, and the island is torn down with the screen that hosts it.
+    val lastSyncedAt by viewModel.lastSyncedAt.collectAsState()
+    val watchAppVersion by viewModel.watchAppVersion.collectAsState()
+    val pendingWatchSources by viewModel.pendingWatchSources.collectAsState()
+    val watchPlaybackState by viewModel.watchPlaybackState.collectAsState()
+    val listenState by viewModel.listenState.collectAsState()
+    val clipboardSending by viewModel.clipboardSendInFlight.collectAsState()
+    val clipboardOutcome by viewModel.clipboardSendOutcome.collectAsState()
+
+    OperationCell {
+        Text(
+            text = stringResource(R.string.wear_sync_description),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+    OperationCell {
+        Button(
+            onClick = actions.onPushClick,
+            enabled = state !is WearSyncUiState.Sending,
+            modifier = Modifier.testTag("wearPushToWatch")
+        ) {
+            Text(stringResource(R.string.wear_push_to_watch))
+        }
+    }
+    if (actions.showResourceSelection) {
+        ResourceActionButtons(
+            onSelectResourcesClick = actions.onSelectResourcesClick,
+            onWatchResourceClick = actions.onWatchResourceClick
+        )
+    }
+    pendingWatchSources?.let { pending ->
+        OperationCell {
+            PendingImportCard(
+                pending = pending,
+                onAccept = { viewModel.acceptWatchImport() },
+                onDismiss = { viewModel.dismissWatchImport() }
+            )
+        }
+    }
+    watchPlaybackState?.let { playing ->
+        OperationCell { NowPlayingCard(playing = playing, onCommand = viewModel::sendPlaybackCommand) }
+    }
+    OperationCell {
+        ListenToWatchCard(
+            state = listenState,
+            onStart = viewModel::startListening,
+            onStop = viewModel::stopListening
+        )
+    }
+    OperationCell { SendClipboardRow(clipboardSending, clipboardOutcome, viewModel::sendClipboardToWatch) }
+    OperationCell { RequestScreenshotRow(viewModel) }
+    // S2461: shown only after an exchange has completed - before the first one there is no version
+    // to be unknown about, and an "unknown" line on a never-synced pair reads as a fault rather than
+    // as the absence of an answer (strategic 2.5).
+    if (lastSyncedAt > 0L) {
+        OperationCell { WatchVersionCaption(watchAppVersionName = watchAppVersion) }
+    }
+}
+
+@Composable
+private fun OperationCell(content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(SPACING_TINY)
+    ) {
+        content()
+    }
+}
+
 /**
  * S3109: hands this phone's text clipboard to the watch, and says underneath what came of it.
  *
@@ -206,7 +268,6 @@ private fun SendClipboardRow(
     outcome: ClipboardSendOutcomeText?,
     onSend: () -> Unit
 ) {
-    Spacer(Modifier.height(SPACING_CARD))
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedButton(
             onClick = onSend,
@@ -246,7 +307,6 @@ private fun RequestScreenshotRow(viewModel: WearSyncViewModel) {
     val outcome by viewModel.screenshotRequestOutcome.collectAsState()
     val onRequest = viewModel::requestWatchScreenshot
 
-    Spacer(Modifier.height(SPACING_CARD))
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedButton(
             onClick = onRequest,
@@ -277,22 +337,24 @@ private fun ResourceActionButtons(
     onSelectResourcesClick: () -> Unit,
     onWatchResourceClick: () -> Unit
 ) {
-    Spacer(Modifier.height(SPACING_SMALL))
-    OutlinedButton(
-        onClick = onSelectResourcesClick,
-        modifier = Modifier.testTag("wearSelectResources")
-    ) {
-        Text(stringResource(R.string.wear_resource_selection_title))
+    OperationCell {
+        OutlinedButton(
+            onClick = onSelectResourcesClick,
+            modifier = Modifier.testTag("wearSelectResources")
+        ) {
+            Text(stringResource(R.string.wear_resource_selection_title))
+        }
     }
 
     // S2034: the watch's own storage as a resource, added on the first tap and opened on every
     // later one - the label says both because the button is one entry point, not two.
-    Spacer(Modifier.height(SPACING_SMALL))
-    OutlinedButton(
-        onClick = onWatchResourceClick,
-        modifier = Modifier.testTag("wearWatchResource")
-    ) {
-        Text(stringResource(R.string.wear_companion_add_open_resource))
+    OperationCell {
+        OutlinedButton(
+            onClick = onWatchResourceClick,
+            modifier = Modifier.testTag("wearWatchResource")
+        ) {
+            Text(stringResource(R.string.wear_companion_add_open_resource))
+        }
     }
 }
 
@@ -335,97 +397,6 @@ private fun DocLinkButton(
         )
         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
         Text(stringResource(labelRes))
-    }
-}
-
-/**
- * S2460: the sync action belongs to the whole screen, so it sits above the collapsible group rather
- * than inside it - collapsing the watch settings no longer hides the button that sends them.
- *
- * The ids stay `wearPushSettings` and `wearSyncSettingsStatus`: S2091 is parked at BlockNeedUserTest
- * with a device note naming both nodes, and renaming them would fail a check a human is holding.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun SyncSettingsRow(
-    lastSyncedAtEpochMillis: Long,
-    watchAppVersionName: String?,
-    pushEnabled: Boolean,
-    onPush: () -> Unit
-) {
-    // FlowRow, not Row: on a narrow screen or in a long locale the status drops onto its own line
-    // under the button instead of being squeezed or clipped (strategic §3.1.2).
-    FlowRow(verticalArrangement = Arrangement.Center) {
-        // S2093 / ADR-1: one button per side, not two. This is the phone half of the symmetric pair -
-        // the press sends this set, the watch answers with its own, and each field keeps whichever
-        // edit is later.
-        Button(
-            onClick = onPush,
-            enabled = pushEnabled,
-            modifier = Modifier.testTag("wearPushSettings")
-        ) {
-            // The app's own watch mark, decorative: the label beside it already names the action, so
-            // announcing the icon too would read it twice (strategic 2.6).
-            Icon(
-                painter = painterResource(R.drawable.ic_watch),
-                contentDescription = null,
-                modifier = Modifier.size(ButtonDefaults.IconSize)
-            )
-            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text(stringResource(R.string.wear_settings_sync_button))
-        }
-        Spacer(Modifier.width(SPACING_SMALL))
-        LastSyncedCaption(
-            lastSyncedAtEpochMillis = lastSyncedAtEpochMillis,
-            watchAppVersionName = watchAppVersionName,
-            modifier = Modifier.align(Alignment.CenterVertically)
-        )
-    }
-}
-
-/**
- * S2093: when the two sides last agreed, read from the stored sync time rather than from the press.
- *
- * The time is written by the merge that consumed the watch's answering report, so a press that reached
- * nothing leaves the previous time standing instead of reading as a successful sync.
- */
-@Composable
-private fun LastSyncedCaption(
-    lastSyncedAtEpochMillis: Long,
-    watchAppVersionName: String?,
-    modifier: Modifier = Modifier
-) {
-    val synced = lastSyncedAtEpochMillis > 0L
-    // S2795: this island is outside the injection graph, so the format seam is resolved from the
-    // context. The system is read as state rather than once, so flipping the setting behind this
-    // window recomposes the caption instead of leaving the previous clock length standing.
-    val context = LocalContext.current
-    val formatSeam = remember(context) {
-        EntryPointAccessors.fromApplication(context.applicationContext, UnitSystemEntryPoint::class.java)
-    }
-    val unitSystem by formatSeam.unitSystemProvider().current.collectAsState()
-    val caption = if (!synced) {
-        stringResource(R.string.wear_settings_sync_never)
-    } else {
-        stringResource(
-            R.string.wear_settings_last_synced,
-            formatSeam.quantityFormatter()
-                .format(Quantity.DateTime(lastSyncedAtEpochMillis), unitSystem)
-        )
-    }
-    Column(modifier = modifier) {
-        Text(
-            text = caption,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.testTag("wearSyncSettingsStatus")
-        )
-        // S2461: shown only after an exchange has completed - before the first one there is no version
-        // to be unknown about, and an "unknown" line on a never-synced pair reads as a fault rather than
-        // as the absence of an answer (strategic 2.5).
-        if (synced) {
-            WatchVersionCaption(watchAppVersionName = watchAppVersionName)
-        }
     }
 }
 

@@ -684,7 +684,6 @@
     <string name="wear_phone_camera_failed_busy">फोन पहले से स्ट्रीम कर रहा है</string>
     <string name="wear_phone_camera_failed_not_supported">यह फोन वर्शन वीडियो नहीं भेज सकता</string>
     <string name="wear_phone_camera_failed_unknown">फोन ने बिना कारण बताए मना कर दिया</string>
-    <string name="wear_player_file_actions">फ़ाइल क्रियाएँ</string>
     <string name="wear_tile_shortcut_more">और</string>
     <string name="wear_streams_filter_collections_header">कलेक्शन</string>
     <string name="wear_streams_filter_collections_all">सभी कलेक्शन</string>

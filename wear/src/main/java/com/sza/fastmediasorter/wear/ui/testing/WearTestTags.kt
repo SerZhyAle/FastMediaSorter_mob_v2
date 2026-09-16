@@ -26,6 +26,12 @@ object WearTestTags {
     const val WEAR_ABOUT_WEB_PORTAL_ON_PHONE = "wear_about_web_portal_on_phone"
     const val WEAR_ABOUT_SEND_LOGS = "wear_about_send_logs"
 
+    /**
+     * S3186: the chip that moves the first-run walk on WITHOUT raising a system request - Next, Start or
+     * Skip. One address for all three lets a sweep on a fresh install tap it until the walk is gone.
+     */
+    const val WEAR_ONBOARDING_FORWARD = "wear_onboarding_forward"
+
     private const val HOME_SECTION_PREFIX = "wear_home_section_"
     private const val SETTINGS_ROW_PREFIX = "wear_settings_row_"
     private const val BROWSE_CATEGORY_PREFIX = "wear_category_"

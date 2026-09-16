@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.CastConnected
@@ -102,12 +101,15 @@ import com.sza.fastmediasorter.wear.ui.player.common.PlayerOverflowMenu
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerProgressRing
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
 import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorSideBar
+import com.sza.fastmediasorter.wear.ui.player.common.closingWith
 import com.sza.fastmediasorter.wear.ui.player.common.playerCommandBandWidth
 import com.sza.fastmediasorter.wear.ui.player.common.playerMenuAction
 import com.sza.fastmediasorter.wear.ui.player.common.playerMenuCycleAction
 import com.sza.fastmediasorter.wear.ui.player.common.playerPrimaryRowColumns
+import com.sza.fastmediasorter.wear.ui.player.common.rememberPlayerFileActionEntries
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
+import timber.log.Timber
 import java.util.Locale
 
 /** Keeps white text readable over the animation, made 33% more visible per S1866. */
@@ -198,9 +200,26 @@ fun AudioPlayerScreen(
 
     AudioPlayerLifecycleEffects(viewModel)
 
+    // S3120: this player draws the file operations as entries of its own menu, so the file-action
+    // dialog never opens here and the flag only ever reads false. It is still passed to the shared
+    // host, which owns the rename, delete and receiver dialogs the entries do open.
     var showActions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showReceivers by remember { mutableStateOf(false) }
+
+    val dialogVisibilities = PlayerDialogVisibilities(
+        showActions = showActions,
+        showDeleteConfirm = showDeleteConfirm,
+        showReceivers = showReceivers,
+        onActionsVisibilityChange = { showActions = it },
+        onDeleteVisibilityChange = { showDeleteConfirm = it },
+        onReceiversVisibilityChange = { showReceivers = it }
+    )
+    val fileActions = rememberPlayerFileActionEntries(
+        operations = viewModel.fileOperations,
+        visibilities = dialogVisibilities,
+        currentFileName = uiState.mediaFile?.name
+    )
 
     LaunchedEffect(uiState.closeScreen) {
         if (uiState.closeScreen) {
@@ -213,7 +232,7 @@ fun AudioPlayerScreen(
     val actions = rememberAudioPlayerActions(
         viewModel = viewModel,
         onBack = onBack,
-        onShowActions = { showActions = true }
+        fileActions = fileActions
     )
 
     WearScreenScaffold(
@@ -259,14 +278,7 @@ fun AudioPlayerScreen(
 
     PlayerDialogsHost(
         operations = viewModel.fileOperations,
-        visibilities = PlayerDialogVisibilities(
-            showActions = showActions,
-            showDeleteConfirm = showDeleteConfirm,
-            showReceivers = showReceivers,
-            onActionsVisibilityChange = { showActions = it },
-            onDeleteVisibilityChange = { showDeleteConfirm = it },
-            onReceiversVisibilityChange = { showReceivers = it }
-        ),
+        visibilities = dialogVisibilities,
         currentFileName = uiState.mediaFile?.name
     )
 
@@ -277,8 +289,8 @@ fun AudioPlayerScreen(
 private fun rememberAudioPlayerActions(
     viewModel: AudioPlayerViewModel,
     onBack: () -> Unit,
-    onShowActions: () -> Unit
-): AudioPlayerActions = remember(viewModel, onBack, onShowActions) {
+    fileActions: List<WearAction>
+): AudioPlayerActions = remember(viewModel, onBack, fileActions) {
     AudioPlayerActions(
         onBack = onBack,
         onPlayPause = viewModel::togglePlayPause,
@@ -288,7 +300,7 @@ private fun rememberAudioPlayerActions(
         onSkipPrevious = viewModel::skipToPrevious,
         onToggleDimmed = viewModel::toggleDimmed,
         onTogglePlaybackMode = viewModel::togglePlaybackMode,
-        onFileOperations = onShowActions,
+        fileActions = fileActions,
         onToggleCast = viewModel::toggleCast,
         seek = PlayerSeekActions(
             onSeekTo = viewModel::seekTo,
@@ -307,7 +319,7 @@ private data class AudioPlayerActions(
     val onSkipPrevious: () -> Unit,
     val onToggleDimmed: () -> Unit,
     val onTogglePlaybackMode: () -> Unit,
-    val onFileOperations: () -> Unit,
+    val fileActions: List<WearAction>,
     val seek: PlayerSeekActions,
     val onToggleCast: () -> Unit
 )
@@ -378,7 +390,10 @@ private fun AudioPlayerContent(
                 isPinned = isPinned,
                 actions = actions,
                 paddings = PlayerColumnPaddings(trackInfoPadding, commandRowPadding),
-                onOpenMenu = { showMenu = true }
+                onOpenMenu = {
+                    Timber.d("S3120: audio player menu opened as one list with the file operations")
+                    showMenu = true
+                }
             )
         }
 
@@ -474,7 +489,7 @@ private fun ColumnScope.PlayerColumnContent(
         onOpenMenu = onOpenMenu
     )
 
-    if (playerShowsDimRow()) {
+    if (playerShowsDimRow(uiState.isStream)) {
         DisplayControls(
             onToggleDimmed = actions.onToggleDimmed,
             horizontalPadding = paddings.commandRow
@@ -500,8 +515,10 @@ private fun ColumnScope.PlayerColumnContent(
  * disappeared. The favourite appears here only below the breakpoint, because above it the secondary
  * row still has the slot.
  *
- * The file operations stay their own entry rather than being merged in: that dialog answers what the
- * file capability policy allows (ADR-4), and a playback mode inside it would make that answer wrong.
+ * S3120 (ADR-2, ADR-3): a command drawn on the panel is not repeated here - a command reachable twice
+ * is the extra menu trip this ticket removes - and the file operations end the list as entries rather
+ * than opening a second dialog behind one. The set is still the capability policy's answer, read
+ * through [rememberPlayerFileActionEntries], never a list this screen composed.
  */
 @Composable
 private fun playerMenuActions(
@@ -529,22 +546,26 @@ private fun playerMenuActions(
         if (isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
     )
     val screenOffLabel = stringResource(R.string.wear_screen_off)
-    val fileActionsLabel = stringResource(R.string.wear_player_file_actions)
     // S2531: the wording carries the state, not a colour - strategic 3.2 accessibility.
     val castLabel = stringResource(
         if (isCasting) R.string.wear_cast_stop else R.string.wear_cast_send
     )
     val castIcon = if (isCasting) Icons.Filled.CastConnected else Icons.Filled.Cast
     val showFavorite = wearIsCompactScreen()
+    // S3120: the playback mode is a button of the primary row in the restored view only, and that is
+    // exactly where this entry would be the second way to reach it.
+    val playbackModeOnPanel = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
 
     return buildList {
-        add(
-            playerMenuCycleAction(
-                playbackModeLabel,
-                playbackModeIcon,
-                actions.onTogglePlaybackMode
+        if (!playbackModeOnPanel) {
+            add(
+                playerMenuCycleAction(
+                    playbackModeLabel,
+                    playbackModeIcon,
+                    actions.onTogglePlaybackMode
+                )
             )
-        )
+        }
         if (showFavorite) {
             val icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
             add(playerMenuAction(favoriteLabel, icon, onDismiss, actions.onToggleFavorite))
@@ -556,8 +577,8 @@ private fun playerMenuActions(
         add(playerMenuAction(castLabel, castIcon, onDismiss, actions.onToggleCast))
         // S3097: the entry and the third row are alternatives, never both - a command reachable twice
         // leaves the menu trip the owner asked to remove, and a command removed from the menu where no
-        // row is drawn is unreachable.
-        if (!playerShowsDimRow()) {
+        // row is drawn is unreachable. S3120 added the secondary-row slot as a third alternative.
+        if (!playerShowsDimRow(uiState.isStream) && !playerShowsDimCommand(uiState.isStream)) {
             add(
                 playerMenuAction(
                     screenOffLabel,
@@ -567,16 +588,9 @@ private fun playerMenuActions(
                 )
             )
         }
-        if (!uiState.isStream) {
-            add(
-                playerMenuAction(
-                    fileActionsLabel,
-                    Icons.AutoMirrored.Filled.List,
-                    onDismiss,
-                    actions.onFileOperations
-                )
-            )
-        }
+        // S3120: last, and last for the same reason the file-action dialog puts them last - delete
+        // closes the list, and the outer rows of a round screen are the easiest to reach by accident.
+        addAll(actions.fileActions.map { entry -> entry.closingWith(onDismiss) })
     }
 }
 
@@ -969,6 +983,7 @@ private fun SecondaryControls(
 ) {
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
     val menuDesc = stringResource(R.string.wear_file_op_actions)
+    val screenOffDesc = stringResource(R.string.wear_screen_off)
     val pinDesc = stringResource(
         if (isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
     )
@@ -1008,10 +1023,13 @@ private fun SecondaryControls(
                     checked = isPinned
                 )
             } else {
+                // S3120: the slot held a second three-dot button whose glyph was the menu's own, so the
+                // wearer could not tell which list a tap would open. The file operations moved into that
+                // menu as entries, and the freed slot took screen off - the owner's placement.
                 PlayerCommandButton(
-                    onClick = actions.onFileOperations,
-                    icon = Icons.Default.MoreVert,
-                    contentDescription = menuDesc,
+                    onClick = actions.onToggleDimmed,
+                    icon = Icons.Filled.DarkMode,
+                    contentDescription = screenOffDesc,
                     size = targetSize
                 )
             }
@@ -1057,9 +1075,24 @@ private fun DisplayControls(onToggleDimmed: () -> Unit, horizontalPadding: Dp) {
  * S3097 (ADR-1): the compact glass already gave up its time row to fit the column (S2766), so another
  * 48 dp row there rebuilds the overflowing composition Google's review photographed. Below the
  * breakpoint the command stays where it was, in the menu; above it the row replaces that entry.
+ *
+ * S3120: a row of its own is the second choice now. Where the secondary row has the slot the file
+ * operations vacated, the command stands there and this row is not drawn at all - a 48 dp row that
+ * repeats a button beside it costs the column height for nothing.
  */
 @Composable
-private fun playerShowsDimRow(): Boolean = !wearIsCompactScreen()
+private fun playerShowsDimRow(isStream: Boolean): Boolean =
+    !wearIsCompactScreen() && !playerShowsDimCommand(isStream)
+
+/**
+ * S3120: whether screen off stands in the secondary row.
+ *
+ * Only the restored view has a third slot there, and only for a file - a stream keeps the pin in it
+ * (ADR-1). Everywhere else the command is the third row's or the menu's, as before this ticket.
+ */
+@Composable
+private fun playerShowsDimCommand(isStream: Boolean): Boolean =
+    !isStream && playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
 
 @Composable
 private fun ErrorContent(message: String) {

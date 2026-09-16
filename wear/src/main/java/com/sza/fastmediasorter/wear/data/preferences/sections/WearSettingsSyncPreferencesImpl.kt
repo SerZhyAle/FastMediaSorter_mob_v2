@@ -40,6 +40,17 @@ class WearSettingsSyncPreferencesImpl @Inject constructor(
         }
     }
 
+    // S3186: absent reads as "not finished", which is what a fresh install is.
+    override val onboardingCompleted: Flow<Boolean> = store.data.map { prefs ->
+        prefs[WearPreferenceKeys.ONBOARDING_COMPLETED] ?: false
+    }
+
+    override suspend fun setOnboardingCompleted(completed: Boolean) {
+        store.edit { prefs ->
+            prefs[WearPreferenceKeys.ONBOARDING_COMPLETED] = completed
+        }
+    }
+
     override val settingTimestamps: Flow<Map<String, Long>> = store.data.map { prefs ->
         SettingTimestampsCodec.decode(prefs[WearPreferenceKeys.SETTING_TIMESTAMPS])
     }

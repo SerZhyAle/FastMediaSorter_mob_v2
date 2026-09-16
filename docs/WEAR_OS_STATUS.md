@@ -21,6 +21,51 @@ The watch app layout is declared and verified against three watch screen shape p
 
 ---
 
+## 🏪 Two distributions: Google Play and noLegal (S3178)
+
+The watch app is built in two variants, and they do not offer the same features.
+
+- **Google Play** (`standard`) is a deliberately small, dry first publication. It contains only what is
+  listed below and nothing else - no permission, no screen and no background entry point outside that list.
+- **noLegal** is the sideload build. It keeps every capability described in this document.
+
+The boundary is one file, `wear/config/store-boundary-policy.json`, and it is judged against both merged
+manifests by `scripts/quality/assert-wear-store-boundary.ps1`. A capability returns to Google Play only
+through a separate ticket that edits that file, never through a manifest edit alone.
+
+### What the Google Play variant offers (the only source for the Wear listing)
+
+The Wear part of any Play listing text names these and nothing else:
+
+- **Calculator** - the keypad calculator with its history and memory value.
+- **Stopwatch**.
+- **Game** - the mini-game and its rules page.
+- **Water flashlight**.
+- **Clipboard** - moving text between the watch and the paired phone.
+- **Programs tile** - a tile with shortcuts to the programs above.
+- **Settings** - screen settings, other settings and About.
+
+### What is available in noLegal only
+
+Everything below is described elsewhere in this document and is **not available in the version distributed
+through Google Play**:
+
+- **Media access** - browsing the watch's own media and favourites, the audio, video and image players, the
+  document viewer, slideshow and media-type settings, the playback service and the three complications.
+- **Microphone and voice notes** - the voice recorder, quick voice note, the voice-note list and the audio
+  broadcast.
+- **Remote sources and credentials** - SMB, FTP and SFTP connections, streams, and the resource, stream and
+  favourites tiles with their target picker.
+- **Network and device diagnostics** - the network monitor, system information and the Tourist dashboard.
+- **Nearby device state** - visible Wi-Fi networks and Bluetooth adapter state.
+- **Health, body and motion data** - heart rate, blood pressure and the motion monitor with their histories.
+- **Screen capture** - the phone asking the watch for a picture of its screen.
+- **File sharing and transfer** - sending files and streams between the phone and the watch, opening phone
+  resources, the phone home and the phone camera.
+- **Other entry points** - the Data Layer listener service and the sections tile.
+
+---
+
 ## 📊 Implementation Summary
 
 | Phase | Name                    | Completion | Status                                          |
@@ -138,6 +183,11 @@ narrowing itself is a pure function in `domain/browse/BrowseListProjection`, cov
   - ✅ Permission check at startup
   - ✅ Shows PermissionsScreen if not granted
   - ✅ Navigation to HomeScreen after granting
+- **First-run walk** (`ui/onboarding/`, S3186):
+  - ✅ `WearOnboardingScreen` - on the first launch after a fresh install: welcome page, then a "what happens next" page, then one page per permission group with its reason and its own system request
+  - ✅ Groups (media, microphone, notifications, heart rate, physical activity, nearby devices) are chosen from the merged manifest and the API level by `BuildWearOnboardingStepsUseCase`, so the Google Play build shows the welcome page only
+  - ✅ A refused group does not block the walk; its mini-program asks again when opened
+  - ✅ Completion is a watch-local flag, not synced with the phone; an update over an existing install skips the walk
   - ✅ Settings screen navigation added
 
 - **Build**: Compiles without errors (no compile errors detected)
@@ -495,7 +545,8 @@ The watch home screen carries an **Apps** section holding eleven self-contained 
 with the phone out of range: a **calculator**, a **network monitor**, a **mini-game**, a **voice
 recorder**, **system information**, a **water flashlight**, a **motion monitor**, a **heart-rate
 check**, **blood pressure** (S2809), an audio **broadcast** (S2509) and a **stopwatch** (S2825). Ten of
-them appear in every edition; the heart-rate check appears in `noLegal` alone.
+them appear in `noLegal`; the Google Play variant lists only the calculator, the game, the water
+flashlight, the stopwatch and the clipboard - every other program is `noLegal` only (S3178).
 
 - The list is data, not navigation: `ui/apps/WearAppCatalog.kt` is what a program is added to. A new
   program registers a catalog record and its own route; the Apps screen itself does not change. **Four**
@@ -624,7 +675,8 @@ them appear in every edition; the heart-rate check appears in `noLegal` alone.
 
 ## 🧩 Wear OS Tiles (S1955, S2511)
 
-The `:wear` module exposes these external components to the Wear OS platform:
+The `:wear` module exposes these external components to the Wear OS platform. In the Google Play variant
+only `MainActivity` and `WearProgramsTileService` exist; every other component below is `noLegal` only (S3178).
 1. `MainActivity` (launcher & addressable entry point)
 2. `WatchWearListenerService` (Data Layer phone companion listener)
 3. `VoiceRecordingService` (microphone session service)
@@ -643,7 +695,8 @@ A grid button names a `WearDestinationId`, never a navigation route: `MainActivi
 
 ## ⌚ Wear OS Complications (S2047)
 
-The `:wear` module exposes three complication data sources to watch face slots:
+The `:wear` module exposes three complication data sources to watch face slots, all of them `noLegal` only
+and not available in the version distributed through Google Play (S3178):
 1. `WearLastResourceComplicationService` (Last Used Resource - `SHORT_TEXT`, `LONG_TEXT`)
 2. `WearFavouritesComplicationService` (Favourites Count - `SHORT_TEXT`, `MONOCHROMATIC_IMAGE`)
 3. `WearNowPlayingComplicationService` (Now Playing / Last Played track - `SHORT_TEXT`, `LONG_TEXT`)
@@ -773,7 +826,7 @@ single sync button both legs run in one action, and which leg ran first decided 
 - **Network Storage**: SMB, FTP, SFTP streaming and browsing.
 - **Companion Sync**: Network source and configuration sync over the Wearable Data Layer (S1681), settings in both directions since S2093.
 - **Watch Microphone Listening**: The phone can ask its paired watch to serve live microphone audio over the local Wi-Fi network after the wearer confirms on the watch; the watch keeps its microphone indicator visible throughout the session (S2550).
-- **Play Store Compliance**: Credential entry hidden on store release builds (WO-P6 / S1707), listing text localized in EN/RU/UK with Wear OS keyword.
+- **Play Store Compliance**: the Google Play variant (`standard`) is the allowlist described in "Two distributions" above (S3178); local playback, network storage, companion sync and microphone listening are available in `noLegal` only. Credential entry had already been withheld from store builds (WO-P6 / S1707).
 
 ---
 

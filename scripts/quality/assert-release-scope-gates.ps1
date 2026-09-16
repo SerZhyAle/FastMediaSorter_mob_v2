@@ -47,6 +47,7 @@
       - assert-dotsource-tracked       (S2616 every dot-sourced script target is in the git index)
       - assert-document-registry-coverage (S2618 every directory holding documents is registered or excused)
       - assert-temp-root-inventory     (S3030 every top-level entry of temp/ is declared or ticket-bound)
+      - assert-wear-store-boundary     (S3178 both Wear merged manifests vs the store boundary policy)
 
     Where every gate belongs, and who decided it: scripts/quality/gate-placement.jsonl (S2870).
     That registry replaced the two paragraphs that used to stand here naming the gate deliberately
@@ -277,6 +278,17 @@ $gates = [ordered]@{
     # neighbour's lock file or queue marker - which is how S2998's blacklist and then S3025's suite
     # assertion were each broken by a process that was not under test.
     'assert-temp-root-inventory.ps1'   = @('-Quiet')
+    # S3178. The two Wear merged manifests against wear/config/store-boundary-policy.json. Release
+    # scope on all four Rule 33 criteria: a sensitive permission in the store variant reaches a user
+    # only when the Wear bundle is published; its subject is a built artifact rather than a changed
+    # file, because a dependency manifest can reintroduce a permission no source file here declares;
+    # every finding prints its own permission or component and the category that excludes it; and
+    # moving a batch of declarations costs one edit whenever it is done.
+    # Not passed -Quiet: which declaration crossed the boundary is the whole content of the report.
+    # It answers an unbuilt wear module with exit 0 and a printed advisory rather than 2 - see its
+    # -RequireArtifacts note; the loop below collapses every non-zero code to FAIL, and a phone
+    # release is not the moment to refuse over a watch artifact this checkout never built.
+    'assert-wear-store-boundary.ps1'   = @()
 }
 
 # S3010. Which fingerprint input groups each gate reads, for -OnlyGroups. Deliberately PARTIAL: a
@@ -297,6 +309,7 @@ $gateInputGroups = @{
     'run-script-suites.ps1'                       = @('scripts')
     'assert-suite-tracked.ps1'                    = @('scripts')
     'assert-dotsource-tracked.ps1'                = @('scripts')
+    'assert-wear-store-boundary.ps1'              = @('wear-src')
 }
 
 # S3010 follow-up: a value that names no group selects nothing but the unmapped gates, and the batch

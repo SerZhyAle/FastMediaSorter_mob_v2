@@ -65,7 +65,8 @@
     Exit codes:
       0  every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing
       1  at least one screen failed or was unreachable, an OFF-GLASS finding was recorded, or the
-         log audit reported a finding
+         log audit reported a finding. A finding on an entry whose `acceptedOffGlass.flavors` names
+         the installed flavor is recorded `shapeAccepted` and does not set this code (S3189)
       2  could not verify: the watch display could not be woken (S2547 - every reading under a
          sleeping display describes the watch face, not this app), the battery is below -MinBatteryPct
          (S2794 - a dying battery triggers a system panel that takes the display, and every screen
@@ -139,6 +140,7 @@ $result = [ordered]@{
     device        = $null
     outDir        = $null
     screenSize    = $null
+    flavor        = $null
     batteryPct    = $null
     screens       = @()
     counts        = $null
@@ -281,6 +283,16 @@ $swipe = @{
     Y2 = [int]($screenH * 0.35)
 }
 $result.screenSize = "${screenW}x${screenH}"
+
+# S3189 - which flavor is installed, read once. Both flavors share the application id, so only the
+# versionName suffix separates them, and an entry may accept a shape finding for one flavor alone.
+$versionProbe = Invoke-AdbVerb -Arguments @('shell', '-Cmd', "dumpsys package $APP_PACKAGE")
+$versionName = $null
+if ($versionProbe.Exit -eq 0) {
+    $versionMatch = [regex]::Match([string]$versionProbe.Output, 'versionName=(\S+)')
+    if ($versionMatch.Success) { $versionName = $versionMatch.Groups[1].Value }
+}
+$result.flavor = Get-WearFlavorFromVersionName $versionName
 
 # The reverse swipe. A list keeps its scroll position while the walk is away inside one of its rows,
 # so an entry that had to scroll down to be reached leaves every entry ABOVE it out of view for good -
@@ -473,7 +485,7 @@ function Get-ForeignWindowPackage {
     $dump = Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'dumpsys window')
     if ($dump.Exit -ne 0) { return $null }
     $pkg = Get-TopWindowPackage $dump.Output
-    if ($null -eq $pkg -or $pkg -eq $APP_PACKAGE) { return $null }
+    if ($null -eq $pkg -or (Test-IsAppWindowPackage -Package $pkg -AppPackage $APP_PACKAGE)) { return $null }
     return $pkg
 }
 
@@ -685,6 +697,10 @@ foreach ($screen in $screens) {
             $row['shapeExit'] = $clip.Exit
             $shapeClass = Get-ClipShapeClass $clip.Exit
             if ($shapeClass -ne 'clean') { $row['shapeDetail'] = $clip.Output }
+            if ($shapeClass -eq 'finding' -and (Test-WalkShapeAccepted -Screen $screen -Flavor $result.flavor)) {
+                $row['shapeAccepted'] = [string]$screen.acceptedOffGlass.reason
+                $shapeClass = 'accepted'
+            }
         }
     }
     else {
@@ -717,9 +733,9 @@ foreach ($screen in $screens) {
 
     $rows += [pscustomobject]$row
     if (-not $Json) {
-        $shapeColour = switch ($shapeClass) { 'finding' { 'Red' } 'unchecked' { 'Yellow' } default { 'Green' } }
+        $shapeColour = switch ($shapeClass) { 'finding' { 'Red' } 'unchecked' { 'Yellow' } 'accepted' { 'Yellow' } default { 'Green' } }
         $colour = switch ($row.outcome) { 'observed' { $shapeColour } 'failed' { 'Red' } default { 'Yellow' } }
-        $shapeNote = switch ($shapeClass) { 'finding' { ' (OFF-GLASS)' } 'unchecked' { ' (shape unchecked)' } default { '' } }
+        $shapeNote = switch ($shapeClass) { 'finding' { ' (OFF-GLASS)' } 'unchecked' { ' (shape unchecked)' } 'accepted' { " (OFF-GLASS accepted on $($result.flavor))" } default { '' } }
         Write-Host "walk: $($screen.id) -> $($row.outcome)$shapeNote" -ForegroundColor $colour
     }
 
@@ -746,8 +762,10 @@ $result['coverage'] = [ordered]@{
 
 # S2782: both counts come from Get-ClipShapeClass, the same classifier the verdict reads the rows
 # with, so the two halves of the sweep cannot disagree about what a given exit code meant.
-$shapeFailuresCount  = @($rows | Where-Object { (Get-ClipShapeClass $_.shapeExit) -eq 'finding' }).Count
-$shapeUncheckedCount = @($rows | Where-Object { (Get-ClipShapeClass $_.shapeExit) -eq 'unchecked' }).Count
+# S3189: through Get-WalkRowShapeClass, so a finding the entry accepts for this flavor is not a failure.
+$shapeFailuresCount  = @($rows | Where-Object { (Get-WalkRowShapeClass $_) -eq 'finding' }).Count
+$shapeUncheckedCount = @($rows | Where-Object { (Get-WalkRowShapeClass $_) -eq 'unchecked' }).Count
+$shapeAcceptedCount  = @($rows | Where-Object { (Get-WalkRowShapeClass $_) -eq 'accepted' }).Count
 $result.counts = [ordered]@{
     observed       = @($rows | Where-Object { $_.outcome -eq 'observed' }).Count
     failed         = @($rows | Where-Object { $_.outcome -eq 'failed' }).Count
@@ -755,6 +773,7 @@ $result.counts = [ordered]@{
     manual         = @($rows | Where-Object { $_.outcome -eq 'manual' }).Count
     shapeFailures  = $shapeFailuresCount
     shapeUnchecked = $shapeUncheckedCount
+    shapeAccepted  = $shapeAcceptedCount
     # S2779: reported, never scored. A re-home says the walk recovered a position it had lost, which
     # is the sweep working rather than the app failing - the screens it recovered are judged by their
     # own outcomes above, and adding a count of recoveries to the arithmetic would fail a run for
@@ -809,6 +828,6 @@ $result.ok = ($verdict -eq 0)
 if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 8 -Compress }
 else {
     $batteryNote = if ($null -ne $result.batteryPct) { "battery $($result.batteryPct)%; " } else { '' }
-    Write-Host ("wear-prerelease-walk: ${batteryNote}observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), shapeFailures $shapeFailuresCount, shapeUnchecked $shapeUncheckedCount, rehomes $rehomeCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
+    Write-Host ("wear-prerelease-walk: ${batteryNote}observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), shapeFailures $shapeFailuresCount, shapeUnchecked $shapeUncheckedCount, shapeAccepted $shapeAcceptedCount ($($result.flavor)), rehomes $rehomeCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
 }
 exit $verdict

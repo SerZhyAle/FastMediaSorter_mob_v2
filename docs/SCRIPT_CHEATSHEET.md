@@ -3721,11 +3721,12 @@ S3151: refuse a Trivial ticket whose changed set outgrew the Trivial checklist.
 scripts/quality/assert-trivial-scope.ps1
   S3151: refuse a Trivial ticket whose changed set outgrew the Trivial checklist.
   Params:
-    -Id               [String] = ''
-    -Files            [String] = ''
-    -Deleted          [String] = ''
-    -RepoRoot         [String] = ''
-  Exit: 0 trivial-scope: PASS - the set fits the checklist.; 1 trivial-scope: ESCALATE - the set outgrew it; the ticket continues on the Simple path.; 2 bad invocation - no -Files, no readable `trivial` profile key, or not a git work tree.
+    -Id                     [String] = ''
+    -Files                  [String] = ''
+    -Deleted                [String] = ''
+    -RepoRoot               [String] = ''
+    -RecordBaseline         [SwitchParameter]
+  Exit: 0 trivial-scope: PASS - the set fits the checklist, or the baseline was recorded.; 1 trivial-scope: ESCALATE - the set outgrew it; the ticket continues on the Simple path.; 2 bad invocation - no -Files, -RecordBaseline without -Id, no readable `trivial` profile
 ```
 
 ### assert-ui-sweep-catalog.ps1
@@ -3846,6 +3847,22 @@ scripts/quality/assert-wear-settings-parity.ps1
     -Quiet                [SwitchParameter]
     -ChangedFiles         [String[]]
   Exit: 0 - parity holds; or a divergence was reported without -Gate, matching the advisory shape of; 1 - a divergence was found and -Gate was passed.; 2 - a source file could not be read (a registry, a payload, the watch preferences, the doc
+```
+
+### assert-wear-store-boundary.ps1
+S3178: judge the two Wear merged manifests against wear/config/store-boundary-policy.json.
+
+```
+scripts/quality/assert-wear-store-boundary.ps1
+  S3178: judge the two Wear merged manifests against wear/config/store-boundary-policy.json.
+  Params:
+    -PolicyPath               [String]
+    -StandardManifest         [String]
+    -NoLegalManifest          [String]
+    -RequireArtifacts         [SwitchParameter]
+    -Quiet                    [SwitchParameter]
+    -Help                     [SwitchParameter]
+  Exit: 0 both artifacts agree with the policy.; 1 at least one boundary violation. The Wear release does not ship until it is fixed.; 2 cannot verify - the policy file is missing or unreadable, or a merged manifest is absent
 ```
 
 ### assert-wear-walk-contract.ps1

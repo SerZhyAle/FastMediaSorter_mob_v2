@@ -7,6 +7,10 @@ permalink: /docs/WEAR_OS_SMB_SETUP.html
 
 > **Step-by-step guides:** See our visual walk-throughs: [Connect Smartwatch to NAS & PC Shares](howto/scenario-watch-network.md) and [Listen to Music on Your Watch](howto/scenario-watch-music.md).
 
+> **Available in noLegal only.** Network storage on the watch - SMB connections, browsing them and playing
+> from them - is **not available in the version distributed through Google Play**. That variant has no
+> network sources at all (S3178). Everything on this page applies to the `noLegal` build.
+
 ## What is SMB in Wear OS?
 
 SMB allows your Wear OS watch to access files from:
@@ -18,7 +22,7 @@ SMB allows your Wear OS watch to access files from:
 ## How to add a connection: use your phone
 
 **Add network connections in the phone app. They sync to your watch automatically.** This is the normal
-way, and on a watch installed from Google Play it is the only way.
+way to create one in the `noLegal` build.
 
 1. **On your phone**, open FastMediaSorter.
 2. Go to **Resources**.
@@ -43,8 +47,8 @@ status and remove it. Only *creating* one belongs to the phone.
 
 ## Adding a connection on the watch (development builds only)
 
-> **This section does not apply to the app from Google Play.** The **+ Add SMB Connection** button is
-> present only in development builds. If you are looking for that button and cannot find it, that is
+> **This section does not apply to the app from Google Play**, which has no network sources at all. The
+> **+ Add SMB Connection** button is present only in `noLegal` development builds. If you are looking for that button and cannot find it, that is
 > expected - use the phone instead, as described above.
 
 ### UI steps, development builds
@@ -270,7 +274,7 @@ This is the primary route, described in full at the top of this page. In short:
    - Connection automatically syncs
    - Just browse and use!
 
-On a Google Play build this is the only way to create a connection; on the watch you browse and use it.
+In the `noLegal` build this is the normal way to create a connection; on the watch you browse and use it. The version distributed through Google Play does not offer network connections.
 
 ---
 
