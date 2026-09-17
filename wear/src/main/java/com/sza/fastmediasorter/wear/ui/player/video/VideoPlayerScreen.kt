@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -126,6 +127,7 @@ private data class VideoPlayerActions(
     val onBack: () -> Unit,
     val onScreenTap: () -> Unit,
     val onPlayPause: () -> Unit,
+    val onJumpToLive: () -> Unit,
     val onSkipNext: () -> Unit,
     val onSkipPrevious: () -> Unit,
     val seek: PlayerSeekActions,
@@ -152,6 +154,7 @@ private fun videoPlayerActions(
     onBack = onBack,
     onScreenTap = viewModel::onScreenTap,
     onPlayPause = viewModel::togglePlayPause,
+    onJumpToLive = viewModel::jumpToLive,
     onSkipNext = viewModel::skipToNext,
     onSkipPrevious = viewModel::skipToPrevious,
     seek = PlayerSeekActions(
@@ -450,6 +453,9 @@ private fun PlayPauseButton(
  * play/pause and next are what Google names primary, and three 48 dp cells are what the small round
  * glass holds. The playback mode moved to the player menu. Below the breakpoint the position rides a
  * ring around the play button, because the compact panel has no time row for it.
+ *
+ * S3217: a stream puts Jump to live right after play/pause. STORE drops next for it, which a stream
+ * never pages anyway; ORIGINAL gives it the cell the playback mode leaves empty and keeps next last.
  */
 @Composable
 private fun VideoActionButtons(
@@ -464,6 +470,7 @@ private fun VideoActionButtons(
     val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
     val seekBackwardDesc = stringResource(R.string.wear_seek_backward)
     val seekForwardDesc = stringResource(R.string.wear_seek_forward)
+    val jumpToLiveDesc = stringResource(R.string.wear_jump_to_live)
     val ringed = wearIsCompactScreen()
     // S2803: the ORIGINAL view restores the row of four - previous, play/pause, playback mode, next,
     // the composition the pre-S2766 tree drew - with the bare play button. STORE keeps the ring.
@@ -505,7 +512,14 @@ private fun VideoActionButtons(
             playPause()
         }
 
-        if (restored && !isStream) {
+        if (isStream) {
+            PlayerCommandButton(
+                onClick = actions.onJumpToLive,
+                icon = Icons.Filled.Sensors,
+                contentDescription = jumpToLiveDesc,
+                size = targetSize
+            )
+        } else if (restored) {
             PlayerCommandButton(
                 onClick = actions.onTogglePlaybackMode,
                 icon = playbackModeIcon,
@@ -515,14 +529,16 @@ private fun VideoActionButtons(
             )
         }
 
-        PlayerCommandButton(
-            onClick = actions.onSkipNext,
-            icon = Icons.Filled.SkipNext,
-            contentDescription = nextDesc,
-            size = targetSize,
-            onLongClick = actions.seek.onSeekForward,
-            onLongClickLabel = seekForwardDesc
-        )
+        if (restored || !isStream) {
+            PlayerCommandButton(
+                onClick = actions.onSkipNext,
+                icon = Icons.Filled.SkipNext,
+                contentDescription = nextDesc,
+                size = targetSize,
+                onLongClick = actions.seek.onSeekForward,
+                onLongClickLabel = seekForwardDesc
+            )
+        }
     }
 }
 

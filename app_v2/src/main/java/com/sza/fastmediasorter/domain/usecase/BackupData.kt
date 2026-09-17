@@ -350,7 +350,11 @@ data class BackupSettings(
         val wallpaperParticleDensity: Float? = null,
         // S2730: nullable for the same S2632 reason as the three above - an existing backup file predates
         // the switch, and a non-null default would turn the badge off for a user who had turned it on.
-        val showScreenNumber: Boolean? = null
+        val showScreenNumber: Boolean? = null,
+        // S3224: nullable for the same reason - a file written before S3131 carries no key, and a
+        // non-null default would flatten a taller bar the user chose. Restored through the same
+        // MIN_LAUNCHER_TASKBAR_ROWS..MAX_LAUNCHER_TASKBAR_ROWS clamp the store reads with.
+        val taskbarRows: Int? = null
     )
 
     /**
@@ -408,7 +412,13 @@ data class BackupSettings(
         val showBlackScreenButton: Boolean = false,
         // S2843: nullable for the S2730 reason - an older backup file carries no key here, and a
         // non-null default would silently turn the shade shortcut's notification back off.
-        val flashlightShortcutNotificationEnabled: Boolean? = null
+        val flashlightShortcutNotificationEnabled: Boolean? = null,
+        // S3224: the distress signal and the halves it engages, both nullable for the S2843 reason -
+        // a file written before S3216 carries neither key, and a non-null default would switch the
+        // program off for a user who had asked for it. `sosMode` travels as the enum member name, the
+        // same wire shape the watch and the preset CSV already use.
+        val enableSos: Boolean? = null,
+        val sosMode: String? = null
     )
 
     /** S2648: the streams feature and the streaming cache that serves it. */

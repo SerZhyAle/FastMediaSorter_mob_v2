@@ -106,7 +106,13 @@ class SyncInstalledAppShortcutUseCaseTest {
             columns: Int,
         ) = false
         override suspend fun normalizeSectionSpans() = Unit
-        override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int, columns: Int) = false
+        override suspend fun moveCell(
+            id: Long,
+            rowIndex: Int,
+            colIndex: Int,
+            columns: Int,
+            targetScreenIndex: Int?,
+        ) = false
         override suspend fun resizeCell(id: Long, spanW: Int, spanH: Int, columns: Int) = false
         override suspend fun updateCellTarget(id: Long, target: String) = false
         override suspend fun updateCellLabel(id: Long, labelOverride: String?) = false
@@ -114,6 +120,11 @@ class SyncInstalledAppShortcutUseCaseTest {
             orientation: LauncherOrientation,
             sectionCellId: Long,
             moveUp: Boolean,
+        ) = false
+        override suspend fun relocateSectionBlock(
+            orientation: LauncherOrientation,
+            sectionCellId: Long,
+            targetRow: Int,
         ) = false
         override suspend fun removeSection(orientation: LauncherOrientation, sectionCellId: Long) =
             emptyList<String>()

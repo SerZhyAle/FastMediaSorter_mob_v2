@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.core.launcher
 
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.launcher.LauncherPrimaryWindow
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,7 +32,6 @@ class LauncherPrimaryWindowManager @Inject constructor(
 
     fun applyChoice(choice: LauncherPrimaryWindow) {
         if (!contract.isAvailableInBuild) return
-        Timber.d("S3024: apply choice $choice")
         when (choice) {
             LauncherPrimaryWindow.HOME_SCREEN -> {
                 startWindowManager.setEnabled(true)

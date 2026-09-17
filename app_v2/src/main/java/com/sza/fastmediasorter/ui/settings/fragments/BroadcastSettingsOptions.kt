@@ -50,14 +50,15 @@ object BroadcastSettingsOptions {
     }
 
     fun bitRateIndex(settings: AppSettings): Int =
-        bitRatesBps.indexOf(settings.broadcastBitRateBps).coerceAtLeast(0)
+        bitRatesBps.indexOf(settings.broadcast.bitRateBps).coerceAtLeast(0)
 
     fun micGainIndex(settings: AppSettings): Int =
-        micGainPercents.indexOf(settings.broadcastMicGainPercent).coerceAtLeast(DEFAULT_GAIN_INDEX)
+        micGainPercents.indexOf(settings.broadcast.micGainPercent).coerceAtLeast(DEFAULT_GAIN_INDEX)
 
     fun audioFormatIndex(settings: AppSettings): Int =
         audioFormats.indexOfFirst { (sampleRate, channels) ->
-            sampleRate == settings.broadcastSampleRateHz && channels == settings.broadcastChannelCount
+            sampleRate == settings.broadcast.sampleRateHz &&
+                channels == settings.broadcast.channelCount
         }.coerceAtLeast(0)
 
     fun isValidPort(port: Int): Boolean = port in PORT_MIN..PORT_MAX

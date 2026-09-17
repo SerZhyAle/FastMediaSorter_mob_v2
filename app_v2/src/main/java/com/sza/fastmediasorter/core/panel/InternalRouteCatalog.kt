@@ -52,6 +52,11 @@ object InternalRouteCatalog {
     // S2516: torch and screen lit together behind a lock only a hardware key opens.
     const val KEY_WATER_FLASHLIGHT = "water_flashlight"
 
+    // S3216: siren and strobe on the Morse SOS cadence, and the same signal on the paired watch. The
+    // key is spelled to match `WearAppId.SOS.canonicalKey`, which is what lets one saved key address
+    // the program on either device.
+    const val KEY_SOS = "sos"
+
     // S2211: black screen as an autonomous sub-program.
     const val KEY_BLACK_SCREEN = "black_screen"
 
@@ -235,6 +240,16 @@ object InternalRouteCatalog {
             labelRes = R.string.water_flashlight_title,
             iconRes = R.drawable.ic_water_flashlight,
             intent = AppLaunchPanelRouteIntents::waterFlashlight,
+            settingsIntent = AppLaunchPanelRouteIntents::frontFlashlightSettings,
+        ),
+        // S3216: label reused from the screen's own title, the way the water flashlight reuses its own -
+        // two wordings for one program drift apart. Its switch is on the Operations tab beside the
+        // lights, so a disabled route opens that tab exactly as the calculator's does.
+        Route(
+            key = KEY_SOS,
+            labelRes = R.string.sos_title,
+            iconRes = R.drawable.ic_sos,
+            intent = AppLaunchPanelRouteIntents::sos,
             settingsIntent = AppLaunchPanelRouteIntents::frontFlashlightSettings,
         ),
         Route(

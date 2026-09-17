@@ -304,6 +304,7 @@
     <string name="wear_voice_note_policy_manual">Remarques : restez aux aguets</string>
     <string name="wear_voice_recorder_notification_sending_title">Envoi d\'une note vocale</string>
     <string name="wear_brand_wordmark">Trieur de médias rapide</string>
+    <string name="wear_brand_slogan">Tout est à moi, ici !</string>
     <string name="wear_select_all">Tout sélectionner</string>
     <string name="wear_file_selected">Choisi</string>
     <string name="wear_state_back">Dos</string>

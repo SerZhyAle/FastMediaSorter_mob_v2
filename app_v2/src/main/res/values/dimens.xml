@@ -917,6 +917,12 @@
     <dimen name="water_flashlight_clock_text_size">36sp</dimen>
     <dimen name="water_flashlight_hint_text_size">28sp</dimen>
 
+    <!-- S3216: the distress signal is operated in the dark, in a hurry, possibly with wet or gloved
+         hands, so its glyph and its stop control carry their own sizes rather than the shared button
+         scale - the same reason the two flashlights above have theirs. -->
+    <dimen name="sos_glyph_size">96dp</dimen>
+    <dimen name="sos_stop_button_height">88dp</dimen>
+
     <!-- S2777: the front flashlight is operated at arm's length with the screen glaring, so its
          controls carry their own sizes instead of borrowing the shared button and text scales. The
          five bar heights rise in one step each and are what makes the chosen level readable without

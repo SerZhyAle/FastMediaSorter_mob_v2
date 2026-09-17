@@ -73,6 +73,19 @@ class LauncherTaskbarManager(
         },
     )
 
+    // S3208: adapter for upper recents slots located directly above Start and All Apps buttons when rows > 1.
+    private val upperRecentsAdapter = LauncherTaskbarIconAdapter(
+        onIconClick = { icon -> LauncherCellCommand.decode(icon.id)?.let(callbacks.onCommand) },
+        onIconLongClick = { anchor, icon ->
+            val command = LauncherCellCommand.decode(icon.id)
+            if (command == null) {
+                false
+            } else {
+                recentMenuManager.show(anchor, command)
+            }
+        },
+    )
+
     private val pinnedAppMenuManager = LauncherTaskbarPinnedAppMenuManager(
         launchCommand = callbacks.onCommand,
         unpin = callbacks.onRemovePin,
@@ -101,6 +114,7 @@ class LauncherTaskbarManager(
         // Qualified, because the flow parameter of this function shadows the field it is collected into.
         applyRows(this.composition.rows)
         binding.taskbarRecents.adapter = recentsAdapter
+        binding.taskbarUpperRecents.adapter = upperRecentsAdapter
         binding.taskbarPinned.adapter = pinnedAdapter
         binding.taskbarRecents.addOnLayoutChangeListener(recentsLayoutListener)
 
@@ -116,16 +130,45 @@ class LauncherTaskbarManager(
      * strip is reversed here rather than upstream - "newest first" is the order every other reader of
      * the journal expects, and which end of a row a launch lands on is a rendering decision.
      *
-     * Reversing alone is not enough: RecyclerView keeps the anchor the user was looking at, so on a
-     * row narrower than the list the fresh end stays off screen until something scrolls to it. The
-     * scroll waits for the commit callback because the diff is asynchronous - `itemCount` is still the
-     * previous list's until then.
+     * S3208: when rows > 1 and total recents exceed the main strip capacity, the older entries
+     * spill over into the upper recents slots located above Start & All Apps buttons.
      */
     private fun submitRecents(icons: List<LauncherTaskbarIcon>) {
-        recentsAdapter.submitIcons(icons.reversed()) {
-            val last = recentsAdapter.itemCount - 1
-            if (last >= 0) {
-                binding.taskbarRecents.scrollToPosition(last)
+        val reversed = icons.reversed()
+        val extraSlots = if (appliedRows > 1) (appliedRows - 1) * 2 else 0
+        val mainWidth = binding.taskbarRecents.width
+        val mainCapacity = if (mainWidth > 0 && recentsItemWidth > 0) {
+            (mainWidth / recentsItemWidth) * appliedRows
+        } else {
+            reversed.size
+        }
+
+        val overflowCount = if (extraSlots > 0 && reversed.size > mainCapacity) {
+            (reversed.size - mainCapacity).coerceIn(0, extraSlots)
+        } else {
+            0
+        }
+        upperRecentsFilled = overflowCount > 0
+        Timber.d("S3208: recents ${reversed.size}, main capacity $mainCapacity, above actions $overflowCount")
+        updateActionsFocusUp()
+
+        if (overflowCount > 0) {
+            val upperIcons = reversed.take(overflowCount)
+            val mainIcons = reversed.drop(overflowCount)
+            upperRecentsAdapter.submitIcons(upperIcons)
+            recentsAdapter.submitIcons(mainIcons) {
+                val last = recentsAdapter.itemCount - 1
+                if (last >= 0) {
+                    binding.taskbarRecents.scrollToPosition(last)
+                }
+            }
+        } else {
+            upperRecentsAdapter.submitIcons(emptyList())
+            recentsAdapter.submitIcons(reversed) {
+                val last = recentsAdapter.itemCount - 1
+                if (last >= 0) {
+                    binding.taskbarRecents.scrollToPosition(last)
+                }
             }
         }
     }
@@ -147,6 +190,25 @@ class LauncherTaskbarManager(
 
     /** S2022: true while the desktop is being edited - the render step below reads it beside [composition]. */
     private var editing = false
+
+    /** S3208: whether the last recents submission spilled any icon into the cells above the action buttons. */
+    private var upperRecentsFilled = false
+
+    /**
+     * S3208: Up from Start / All Apps lands on the recents icon above them when one is drawn there. The
+     * static `nextFocusUp` in the layout cannot express that, because the cells above are empty at one row,
+     * with recents off, while editing, or when the journal is short.
+     */
+    private fun updateActionsFocusUp() {
+        val target = if (binding.taskbarUpperRecents.isVisible && upperRecentsFilled) {
+            R.id.taskbarUpperRecents
+        } else {
+            R.id.launcherDesktop
+        }
+        binding.btnStart.nextFocusUpId = target
+        binding.btnAllApps.nextFocusUpId = target
+        Timber.d("S3208: action buttons focus up -> ${binding.root.resources.getResourceEntryName(target)}")
+    }
 
     /**
      * S2022: recents and pinned add an unpin "X" / trailing "+" while editing (pinned only - it is the
@@ -174,6 +236,8 @@ class LauncherTaskbarManager(
     private fun render() {
         applyRows(composition.rows)
         binding.taskbarRecents.isVisible = composition.showRecents && !editing
+        binding.taskbarUpperRecents.isVisible = composition.showRecents && !editing && composition.rows > 1
+        updateActionsFocusUp()
         binding.taskbarPinned.isVisible = composition.showPinned
         // S1431 ADR-5: the mode subordinates the tray rather than competing with it. The stored switch is
         // never written here, so turning the mode off restores whatever the user last chose.
@@ -200,6 +264,8 @@ class LauncherTaskbarManager(
         Timber.d("S3131: taskbar applying $rows row(s), height ${rowHeight * rows}px")
         binding.root.updateLayoutParams { height = rowHeight * rows }
         binding.taskbarRecents.layoutManager = stripLayoutManager(rows)
+        binding.taskbarUpperRecents.layoutManager =
+            if (rows > 1) stripLayoutManager(rows - 1) else null
         binding.taskbarPinned.layoutManager = stripLayoutManager(rows)
         // The tray is the one block whose children are laid out by the container itself, so stacking is
         // an orientation flip rather than a track count (strategic §2.4).
@@ -225,7 +291,9 @@ class LauncherTaskbarManager(
         }
         // S3131: every row holds a full strip's worth of icons, so the taller bar must ask the journal for
         // that many more entries - otherwise the new rows stay blank (strategic §5.1).
-        val capacity = width / recentsItemWidth * appliedRows
+        // S3208: add (appliedRows - 1) * 2 extra slots for the space above Start & All Apps buttons.
+        val extraSlots = if (appliedRows > 1 && composition.showRecents) (appliedRows - 1) * 2 else 0
+        val capacity = (width / recentsItemWidth * appliedRows) + extraSlots
         if (capacity == reportedRecentsCapacity) {
             return
         }

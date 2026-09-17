@@ -169,20 +169,32 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Action Bar -->
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layoutActionButtons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal"
                 android:paddingTop="@dimen/padding_small">
+
+                <androidx.constraintlayout.helper.widget.Flow
+                    android:id="@+id/flowActionButtons"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:constraint_referenced_ids="btnOpenMap,btnShareLocation,btnResetTrip,btnSos"
+                    app:flow_wrapMode="chain"
+                    app:flow_horizontalStyle="packed"
+                    app:flow_horizontalBias="0.5"
+                    app:flow_horizontalGap="@dimen/margin_small"
+                    app:flow_verticalGap="@dimen/margin_small"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnOpenMap"
                     style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/margin_small"
                     app:icon="@drawable/ic_map"
                     android:text="@string/tourist_action_open_map" />
 
@@ -191,8 +203,6 @@
                     style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/margin_small"
-                    android:layout_marginEnd="@dimen/margin_small"
                     app:icon="@drawable/ic_share"
                     android:text="@string/tourist_action_share_location" />
 
@@ -201,10 +211,20 @@
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/margin_small"
                     app:icon="@drawable/ic_refresh"
                     android:text="@string/tourist_action_reset_trip" />
-            </LinearLayout>
+
+                <!-- S3216: last in the row and the only filled button among the four - the other three
+                     act on a location and this one calls for help, so it must not read as one more of
+                     them. Its accent is the red the programs list already gives the program. -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/color_program_accent_red"
+                    android:text="@string/tourist_action_sos"
+                    app:icon="@drawable/ic_sos" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
 
         <!-- Right Side: Secondary Tiles Grid -->

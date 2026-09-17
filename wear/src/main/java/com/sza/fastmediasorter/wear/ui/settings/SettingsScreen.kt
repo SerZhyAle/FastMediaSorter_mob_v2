@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PermMedia
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Slideshow
 import androidx.compose.runtime.Composable
@@ -66,9 +67,13 @@ private val STALE_THRESHOLD_MS = TimeUnit.DAYS.toMillis(STALE_THRESHOLD_DAYS)
 fun SettingsScreen(
     navController: NavController,
     listState: ScalingLazyListState = rememberWearListState(positionKey = WearRoutes.SETTINGS),
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    permissionsViewModel: PermissionsSettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // S3226: an edition that declares no sensitive permission has nothing to show on that screen, so
+    // the entry goes with its content rather than opening an empty list (same rule as S3178).
+    val permissionRows by permissionsViewModel.rows.collectAsStateWithLifecycle()
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
@@ -76,14 +81,17 @@ fun SettingsScreen(
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
-            val destinations = listOf(
-                SettingsRoutes.MEDIA_TYPES to stringResource(R.string.media_types),
-                SettingsRoutes.SLIDESHOW to stringResource(R.string.slideshow_settings),
-                SettingsRoutes.SCREEN to stringResource(R.string.screen_settings_title),
-                SettingsRoutes.OTHER to stringResource(R.string.settings_group_other),
-                SettingsRoutes.TILE_TARGETS to stringResource(R.string.wear_tile_targets_title),
-                SettingsRoutes.ABOUT to stringResource(R.string.about)
-            )
+            val destinations = buildList {
+                add(SettingsRoutes.MEDIA_TYPES to stringResource(R.string.media_types))
+                add(SettingsRoutes.SLIDESHOW to stringResource(R.string.slideshow_settings))
+                add(SettingsRoutes.SCREEN to stringResource(R.string.screen_settings_title))
+                add(SettingsRoutes.OTHER to stringResource(R.string.settings_group_other))
+                add(SettingsRoutes.TILE_TARGETS to stringResource(R.string.wear_tile_targets_title))
+                if (permissionRows.isNotEmpty()) {
+                    add(SettingsRoutes.PERMISSIONS to stringResource(R.string.wear_settings_permissions_title))
+                }
+                add(SettingsRoutes.ABOUT to stringResource(R.string.about))
+            }
             WearListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
@@ -258,6 +266,7 @@ private fun iconFor(route: String) = when (route) {
     SettingsRoutes.SCREEN -> Icons.Filled.Settings
     SettingsRoutes.OTHER -> Icons.Filled.MoreHoriz
     SettingsRoutes.TILE_TARGETS -> Icons.Filled.Dashboard
+    SettingsRoutes.PERMISSIONS -> Icons.Filled.Security
     SettingsRoutes.ABOUT -> Icons.Filled.Info
     else -> Icons.Filled.Settings
 }

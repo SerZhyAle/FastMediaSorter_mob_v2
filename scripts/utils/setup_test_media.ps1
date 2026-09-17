@@ -44,7 +44,13 @@ $ErrorActionPreference = "Stop"
 
 # The corpus is hand-assembled and machine-local, so it gets its own override rather than a
 # sink row; without one it falls inside the tree, where CLAUDE.md Rule 1 puts scratch data.
-$LocalMediaDir = if ($env:FMS_TEST_MEDIA) { $env:FMS_TEST_MEDIA } else { Get-ProjectPath -Relative 'temp/test_media' }
+$LocalMediaDir = if ($env:FMS_TEST_MEDIA -and (Test-Path $env:FMS_TEST_MEDIA)) {
+    $env:FMS_TEST_MEDIA
+} elseif (Test-Path (Get-ProjectPath -Relative 'test_media')) {
+    Get-ProjectPath -Relative 'test_media'
+} else {
+    Get-ProjectPath -Relative 'temp/test_media'
+}
 $DeviceDestDir = "/sdcard/Download/FastMediaSorter_Test"
 $AndroidMediaDir = "/sdcard/Android/media/com.test.prerelease"
 
@@ -78,24 +84,45 @@ if (@($serials).Count -eq 0) {
     Write-Error "No active ADB device. Connect a device/emulator with USB debugging enabled."
 }
 Write-Host "Found $($serials.Count) device(s): $($serials -join ', ')" -ForegroundColor Green
+Write-Host "Using test media source: $LocalMediaDir" -ForegroundColor Green
 
 # ── Source check ──────────────────────────────────────────────────────────────
 if (-not (Test-Path $LocalMediaDir)) {
     Write-Error "test_media directory not found: $LocalMediaDir"
 }
 
+$script:PushedFiles = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
 # ── Per-device helpers ────────────────────────────────────────────────────────
 # $script:CurrentSerial is set at the top of the per-device loop below.
 
 function Push-File {
-    param([string]$Local, [string]$Remote, [string]$Label)
-    $src = Join-Path $LocalMediaDir $Local
-    if (-not (Test-Path $src)) {
-        Write-Warning "  SKIP (not found): $Local"
+    param([string[]]$Local, [string]$Remote, [string]$Label)
+    $found = $null
+    foreach ($cand in $Local) {
+        $src = Join-Path $LocalMediaDir $cand
+        if (Test-Path $src) {
+            $found = $cand
+            break
+        }
+    }
+    if (-not $found -and $Local.Count -gt 0) {
+        $ext = [System.IO.Path]::GetExtension($Local[0])
+        if ($ext) {
+            $matched = Get-ChildItem -Path $LocalMediaDir -Filter "*$ext" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($matched) {
+                $found = $matched.Name
+            }
+        }
+    }
+    if (-not $found) {
+        Write-Warning "  SKIP (not found): $($Local -join ' | ')"
         return
     }
-    Write-Host "  [$Label] $Local -> $Remote" -ForegroundColor DarkGray
-    & $AdbExe -s $script:CurrentSerial push $src $Remote | Out-Null
+    $srcPath = Join-Path $LocalMediaDir $found
+    Write-Host "  [$Label] $found -> $Remote" -ForegroundColor DarkGray
+    & $AdbExe -s $script:CurrentSerial push $srcPath $Remote | Out-Null
+    [void]$script:PushedFiles.Add($found)
 }
 
 function New-DeviceDir {
@@ -250,6 +277,25 @@ printf 'This file has no extension. FastMediaSorter should display it without cr
     Push-File "test.flac"     "$DeviceDestDir/S0048/test.flac"     "S0048 flac"
     Push-File "test_cbr.mp3"  "$DeviceDestDir/S0048/test_cbr.mp3"  "S0048 cbr"
     Push-File "test_vbr.mp3"  "$DeviceDestDir/S0048/test_vbr.mp3"  "S0048 vbr"
+
+    # ── 10b. Push any remaining files from $LocalMediaDir ───────────────────
+    Write-Host "[10b/11] Pushing remaining files from test media directory..." -ForegroundColor Yellow
+    $allLocalFiles = Get-ChildItem -Path $LocalMediaDir -File -ErrorAction SilentlyContinue
+    foreach ($localItem in $allLocalFiles) {
+        if ($script:PushedFiles.Contains($localItem.Name)) { continue }
+        $ext = $localItem.Extension.ToLowerInvariant()
+        $subDir = switch ($ext) {
+            { $_ -in '.pdf', '.epub', '.txt', '.doc', '.docx' } { 'Docs' }
+            { $_ -in '.mp3', '.flac', '.ogg', '.wav', '.m4a', '.lrc' } { 'Audio' }
+            { $_ -in '.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.bmp' } { 'DCIM' }
+            { $_ -in '.mp4', '.mkv', '.webm', '.mov', '.3gp', '.avi' } { 'DCIM' }
+            default { 'DCIM' }
+        }
+        $destPath = "$DeviceDestDir/$subDir/$($localItem.Name)"
+        Write-Host "  [extra $subDir] $($localItem.Name) -> $destPath" -ForegroundColor DarkGray
+        & $AdbExe -s $script:CurrentSerial push $localItem.FullName $destPath | Out-Null
+        [void]$script:PushedFiles.Add($localItem.Name)
+    }
 
     # ── 11. Media Store scan ─────────────────────────────────────────────────
     Write-Host "[11/11] Triggering Media Store scan..." -ForegroundColor Yellow

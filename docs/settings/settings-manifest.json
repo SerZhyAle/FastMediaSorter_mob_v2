@@ -791,6 +791,16 @@
       "titleUk": "Використовувати операції за розкладом"
     },
     {
+      "key": "rowEnableSos",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "SOS emergency signal",
+      "titleRu": "Аварийный сигнал SOS",
+      "titleUk": "Аварійний сигнал SOS"
+    },
+    {
       "key": "rowEnableStopwatch",
       "sectionId": "destinations",
       "destination": "OPERATIONS",

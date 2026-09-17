@@ -304,6 +304,7 @@
     <string name="wear_voice_note_policy_manual">注意事项：持续关注</string>
     <string name="wear_voice_recorder_notification_sending_title">发送语音留言</string>
     <string name="wear_brand_wordmark">快速媒体分类器</string>
+    <string name="wear_brand_slogan">都在这里，是我的！</string>
     <string name="wear_select_all">选择全部</string>
     <string name="wear_file_selected">已选择</string>
     <string name="wear_state_back">后退</string>

@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import com.sza.fastmediasorter.ui.networkmonitor.putNetworkMonitorLauncherOrigin
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.ui.sos.SosActivity
 import com.sza.fastmediasorter.ui.stopwatch.StopwatchActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
@@ -175,6 +176,11 @@ object AppLaunchPanelRouteIntents {
     // is that one - both switches live in the same operations section.
     fun waterFlashlight(context: Context): Intent =
         WaterFlashlightActivity.createIntent(context).withPanelFlags()
+
+    // S3216: the distress signal is our own Activity, like the flashlights above - no widget
+    // trampoline is reused, because the program had no entry point before this ticket.
+    fun sos(context: Context): Intent =
+        SosActivity.createIntent(context).withPanelFlags()
 
     // S2211: black screen as an autonomous sub-program.
     fun blackScreen(context: Context): Intent =

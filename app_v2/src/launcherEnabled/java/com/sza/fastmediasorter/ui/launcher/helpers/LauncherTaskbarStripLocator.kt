@@ -21,6 +21,7 @@ class LauncherTaskbarStripLocator(private val binding: LauncherTaskbarBinding) {
 
     fun isTouchOnScrollingStrip(rawX: Float, rawY: Float): Boolean =
         containsScreenPoint(binding.taskbarRecents, rawX, rawY) ||
+            containsScreenPoint(binding.taskbarUpperRecents, rawX, rawY) ||
             containsScreenPoint(binding.taskbarPinned, rawX, rawY)
 
     private fun containsScreenPoint(view: View, rawX: Float, rawY: Float): Boolean =

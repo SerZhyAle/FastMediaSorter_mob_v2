@@ -53,7 +53,7 @@ class MainBroadcastManager(
 
     fun bind(lifecycleOwner: LifecycleOwner) {
         lifecycleOwner.collectOnLifecycle(settingsRepository.getSettings()) { settings ->
-            autoOpenShare = settings.broadcastAutoOpenShare
+            autoOpenShare = settings.broadcast.autoOpenShare
         }
         lifecycleOwner.collectOnLifecycle(controller.state) { state ->
             when (state) {
@@ -61,7 +61,6 @@ class MainBroadcastManager(
                     showIndicator(state)
                     if (autoOpenShare && !autoOpenedForSession) {
                         autoOpenedForSession = true
-                        Timber.d("S3060: broadcast screen auto-opened once for this live session")
                         BroadcastControlActivity.launch(activity)
                     }
                 }

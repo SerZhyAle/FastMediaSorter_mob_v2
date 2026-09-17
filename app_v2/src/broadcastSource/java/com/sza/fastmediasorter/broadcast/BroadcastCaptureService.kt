@@ -163,19 +163,22 @@ class BroadcastCaptureService : Service() {
 
     private suspend fun readSessionConfig(): BroadcastSessionConfig {
         val settings = settingsRepository.getSettings().first()
-        val sourceDeviceId = settings.broadcastSourceDeviceId ?: run {
+        val broadcast = settings.broadcast
+        val sourceDeviceId = broadcast.sourceDeviceId ?: run {
             val id = UUID.randomUUID().toString()
-            settingsRepository.updateSettings(settings.copy(broadcastSourceDeviceId = id))
+            settingsRepository.updateSettings(
+                settings.copy(broadcast = broadcast.copy(sourceDeviceId = id))
+            )
             id
         }
         return BroadcastSessionConfig(
-            streamTitle = settings.broadcastStreamTitle.ifBlank { BroadcastSessionConfig.DEFAULT.streamTitle },
-            bitRateBps = settings.broadcastBitRateBps,
-            port = settings.broadcastPort,
-            sampleRateHz = settings.broadcastSampleRateHz,
-            channelCount = settings.broadcastChannelCount,
+            streamTitle = broadcast.streamTitle.ifBlank { BroadcastSessionConfig.DEFAULT.streamTitle },
+            bitRateBps = broadcast.bitRateBps,
+            port = broadcast.port,
+            sampleRateHz = broadcast.sampleRateHz,
+            channelCount = broadcast.channelCount,
             sourceDeviceId = sourceDeviceId,
-            micGainPercent = settings.broadcastMicGainPercent,
+            micGainPercent = broadcast.micGainPercent,
         )
     }
 

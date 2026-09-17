@@ -12,6 +12,8 @@ import org.junit.Test
 import java.net.HttpURLConnection
 import java.net.ServerSocket
 import java.net.URL
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 
 /**
@@ -169,6 +171,54 @@ class BroadcastHttpServerTest {
     }
 
     @Test
+    fun `writeFrame does not block while one client stops reading`() {
+        val port = findFreePort()
+        val config = BroadcastSessionConfig.DEFAULT.copy(port = port)
+        val srv = createServer(config)
+        server = srv
+        assertEquals(port, srv.start())
+
+        val stalled = openStream(port)
+        val reading = openStream(port)
+        val readBytes = AtomicLong(0)
+        val readerRunning = AtomicBoolean(true)
+        val readerThread = thread {
+            val sink = ByteArray(STALL_FRAME_BYTES)
+            try {
+                while (readerRunning.get()) {
+                    val read = reading.inputStream.read(sink)
+                    if (read <= 0) {
+                        break
+                    }
+                    readBytes.addAndGet(read.toLong())
+                }
+            } catch (_: Exception) {
+                // The connection is torn down below while this thread is inside read().
+            }
+        }
+        awaitListeners(srv, expected = 2)
+
+        val frame = ByteArray(STALL_FRAME_BYTES) { it.toByte() }
+        val startedAt = System.currentTimeMillis()
+        repeat(STALL_FRAME_COUNT) {
+            srv.writeFrame(frame, 0, frame.size)
+        }
+        val elapsedMs = System.currentTimeMillis() - startedAt
+
+        readerRunning.set(false)
+        reading.disconnect()
+        stalled.disconnect()
+        readerThread.join(2000)
+
+        assertTrue(
+            "writeFrame blocked for $elapsedMs ms with a stalled client attached",
+            elapsedMs < STALL_BUDGET_MS
+        )
+        assertTrue("the reading client received nothing", readBytes.get() > 0)
+        assertEquals(2, srv.listenerCount.value)
+    }
+
+    @Test
     fun `start returns minus one when port is occupied`() {
         val socket = ServerSocket(0)
         val occupiedPort = socket.localPort
@@ -208,7 +258,30 @@ class BroadcastHttpServerTest {
         assertNull(srv.getBroadcastUrl())
     }
 
+    private fun openStream(port: Int): HttpURLConnection {
+        val connection = (URL("http://127.0.0.1:$port$ENDPOINT").openConnection() as HttpURLConnection).apply {
+            connectTimeout = 2000
+            readTimeout = 5000
+        }
+        assertEquals(200, connection.responseCode)
+        return connection
+    }
+
+    private fun awaitListeners(srv: BroadcastHttpServer, expected: Int) {
+        val deadline = System.currentTimeMillis() + 3000
+        while (srv.listenerCount.value < expected && System.currentTimeMillis() < deadline) {
+            Thread.sleep(20)
+        }
+        assertEquals(expected, srv.listenerCount.value)
+    }
+
     companion object {
         private const val TEST_SERVER_ADDRESS = "127.0.0.1"
+        private const val ENDPOINT = BroadcastHttpServer.ENDPOINT
+
+        /** Far more than one client queue plus one pipe can hold, so a blocking write would park here. */
+        private const val STALL_FRAME_COUNT = 4000
+        private const val STALL_FRAME_BYTES = 1024
+        private const val STALL_BUDGET_MS = 5000L
     }
 }

@@ -2,11 +2,13 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BroadcastSettings
 import com.sza.fastmediasorter.domain.model.BrowseSwipeAction
 import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeAction
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.StreamDefaultSort
+import com.sza.fastmediasorter.domain.model.sos.SosMode
 import com.sza.fastmediasorter.domain.repository.RawAuthSession
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -173,6 +175,53 @@ class BackupMapperRoundTripTest {
 
         assertTrue(restored.launcherTrayShowSpeed)
         assertEquals(AppSettings.ANIMATION_PALETTE_PINK, restored.launcherAnimationPalette)
+    }
+
+    /**
+     * S3224: the three fields this ticket carried. The coverage ratchet reads the DTO alone, so a field
+     * written into the backup and never read back would leave it green while losing the value anyway -
+     * this is the test that pins the READING half for all three.
+     */
+    @Test
+    fun sosAndTaskbarRows_surviveTheRoundTrip() {
+        val configured = AppSettings().let {
+            it.copy(
+                enableSos = true,
+                sosMode = SosMode.LIGHT_ONLY,
+                launcher = it.launcher.copy(taskbarRows = AppSettings.MAX_LAUNCHER_TASKBAR_ROWS)
+            )
+        }
+
+        val restored = BackupMapper.toAppSettings(
+            BackupMapper.toBackupSettings(configured),
+            AppSettings(),
+            BackupPayload.CURRENT_VERSION
+        )
+
+        assertTrue(restored.enableSos)
+        assertEquals(SosMode.LIGHT_ONLY, restored.sosMode)
+        assertEquals(AppSettings.MAX_LAUNCHER_TASKBAR_ROWS, restored.launcherTaskbarRows)
+    }
+
+    /**
+     * S3224: a file written before S3216 and S3131 carries none of the three keys, so all three arrive
+     * null and the restore keeps what the device already has - the S2730 reason the fields are nullable.
+     */
+    @Test
+    fun backupWrittenBeforeSosAndTaskbarRows_keepsCurrentSettings() {
+        val current = AppSettings().let {
+            it.copy(
+                enableSos = true,
+                sosMode = SosMode.SOUND_ONLY,
+                launcher = it.launcher.copy(taskbarRows = AppSettings.MAX_LAUNCHER_TASKBAR_ROWS)
+            )
+        }
+
+        val restored = BackupMapper.toAppSettings(BackupSettings(), current, BackupPayload.CURRENT_VERSION)
+
+        assertTrue(restored.enableSos)
+        assertEquals(SosMode.SOUND_ONLY, restored.sosMode)
+        assertEquals(AppSettings.MAX_LAUNCHER_TASKBAR_ROWS, restored.launcherTaskbarRows)
     }
 
     /**
@@ -375,12 +424,14 @@ class BackupMapperRoundTripTest {
     fun s2843_nineCarriedSettings_surviveTheRoundTrip() {
         val configured = AppSettings().copy(
             streamsVisualizeAsMusic = true,
-            broadcastStreamTitle = "My Stream",
-            broadcastBitRateBps = 256_000,
-            broadcastPort = 5000,
-            broadcastSampleRateHz = 48_000,
-            broadcastChannelCount = 2,
-            broadcastAutoOpenShare = false,
+            broadcast = BroadcastSettings(
+                streamTitle = "My Stream",
+                bitRateBps = 256_000,
+                port = 5000,
+                sampleRateHz = 48_000,
+                channelCount = 2,
+                autoOpenShare = false,
+            ),
             flashlightShortcutNotificationEnabled = true,
             suppressWearMediaTakeover = true
         )
@@ -392,12 +443,12 @@ class BackupMapperRoundTripTest {
         )
 
         assertTrue(restored.streamsVisualizeAsMusic)
-        assertEquals("My Stream", restored.broadcastStreamTitle)
-        assertEquals(256_000, restored.broadcastBitRateBps)
-        assertEquals(5000, restored.broadcastPort)
-        assertEquals(48_000, restored.broadcastSampleRateHz)
-        assertEquals(2, restored.broadcastChannelCount)
-        assertFalse(restored.broadcastAutoOpenShare)
+        assertEquals("My Stream", restored.broadcast.streamTitle)
+        assertEquals(256_000, restored.broadcast.bitRateBps)
+        assertEquals(5000, restored.broadcast.port)
+        assertEquals(48_000, restored.broadcast.sampleRateHz)
+        assertEquals(2, restored.broadcast.channelCount)
+        assertFalse(restored.broadcast.autoOpenShare)
         assertTrue(restored.flashlightShortcutNotificationEnabled)
         assertTrue(restored.suppressWearMediaTakeover)
     }
@@ -412,12 +463,14 @@ class BackupMapperRoundTripTest {
     fun s2843_backupWrittenBeforeTheFieldsExisted_keepsCurrentSettings() {
         val current = AppSettings().copy(
             streamsVisualizeAsMusic = true,
-            broadcastStreamTitle = "My Stream",
-            broadcastBitRateBps = 256_000,
-            broadcastPort = 5000,
-            broadcastSampleRateHz = 48_000,
-            broadcastChannelCount = 2,
-            broadcastAutoOpenShare = false,
+            broadcast = BroadcastSettings(
+                streamTitle = "My Stream",
+                bitRateBps = 256_000,
+                port = 5000,
+                sampleRateHz = 48_000,
+                channelCount = 2,
+                autoOpenShare = false,
+            ),
             flashlightShortcutNotificationEnabled = true,
             suppressWearMediaTakeover = true
         )
@@ -430,12 +483,12 @@ class BackupMapperRoundTripTest {
         val restored = BackupMapper.toAppSettings(legacyBackup, current, BackupPayload.CURRENT_VERSION)
 
         assertTrue(restored.streamsVisualizeAsMusic)
-        assertEquals("My Stream", restored.broadcastStreamTitle)
-        assertEquals(256_000, restored.broadcastBitRateBps)
-        assertEquals(5000, restored.broadcastPort)
-        assertEquals(48_000, restored.broadcastSampleRateHz)
-        assertEquals(2, restored.broadcastChannelCount)
-        assertFalse(restored.broadcastAutoOpenShare)
+        assertEquals("My Stream", restored.broadcast.streamTitle)
+        assertEquals(256_000, restored.broadcast.bitRateBps)
+        assertEquals(5000, restored.broadcast.port)
+        assertEquals(48_000, restored.broadcast.sampleRateHz)
+        assertEquals(2, restored.broadcast.channelCount)
+        assertFalse(restored.broadcast.autoOpenShare)
         assertTrue(restored.flashlightShortcutNotificationEnabled)
         assertTrue(restored.suppressWearMediaTakeover)
     }
@@ -450,13 +503,15 @@ class BackupMapperRoundTripTest {
     fun s3163_eightBroadcastSettings_surviveTheRoundTrip() {
         val configured = AppSettings().copy(
             enableBroadcasting = true,
-            broadcastCameraEnabled = true,
-            broadcastMicrophoneEnabled = false,
-            broadcastMicGainPercent = 250,
-            broadcastVideoWidth = 1920,
-            broadcastVideoHeight = 1080,
-            broadcastVideoFps = 60,
-            broadcastVideoBitrateBps = 6_000_000
+            broadcast = BroadcastSettings(
+                cameraEnabled = true,
+                microphoneEnabled = false,
+                micGainPercent = 250,
+                videoWidth = 1920,
+                videoHeight = 1080,
+                videoFps = 60,
+                videoBitrateBps = 6_000_000,
+            )
         )
 
         val restored = BackupMapper.toAppSettings(
@@ -466,13 +521,13 @@ class BackupMapperRoundTripTest {
         )
 
         assertTrue(restored.enableBroadcasting)
-        assertTrue(restored.broadcastCameraEnabled)
-        assertFalse(restored.broadcastMicrophoneEnabled)
-        assertEquals(250, restored.broadcastMicGainPercent)
-        assertEquals(1920, restored.broadcastVideoWidth)
-        assertEquals(1080, restored.broadcastVideoHeight)
-        assertEquals(60, restored.broadcastVideoFps)
-        assertEquals(6_000_000, restored.broadcastVideoBitrateBps)
+        assertTrue(restored.broadcast.cameraEnabled)
+        assertFalse(restored.broadcast.microphoneEnabled)
+        assertEquals(250, restored.broadcast.micGainPercent)
+        assertEquals(1920, restored.broadcast.videoWidth)
+        assertEquals(1080, restored.broadcast.videoHeight)
+        assertEquals(60, restored.broadcast.videoFps)
+        assertEquals(6_000_000, restored.broadcast.videoBitrateBps)
     }
 
     /**
@@ -484,13 +539,15 @@ class BackupMapperRoundTripTest {
     fun s3163_backupWrittenBeforeTheBroadcastFieldsExisted_keepsCurrentSettings() {
         val current = AppSettings().copy(
             enableBroadcasting = true,
-            broadcastCameraEnabled = true,
-            broadcastMicrophoneEnabled = false,
-            broadcastMicGainPercent = 250,
-            broadcastVideoWidth = 1920,
-            broadcastVideoHeight = 1080,
-            broadcastVideoFps = 60,
-            broadcastVideoBitrateBps = 6_000_000
+            broadcast = BroadcastSettings(
+                cameraEnabled = true,
+                microphoneEnabled = false,
+                micGainPercent = 250,
+                videoWidth = 1920,
+                videoHeight = 1080,
+                videoFps = 60,
+                videoBitrateBps = 6_000_000,
+            )
         )
         val legacyBackup = BackupSettings(
             streams = BackupSettings.Streams(),
@@ -501,12 +558,12 @@ class BackupMapperRoundTripTest {
         val restored = BackupMapper.toAppSettings(legacyBackup, current, BackupPayload.CURRENT_VERSION)
 
         assertTrue(restored.enableBroadcasting)
-        assertTrue(restored.broadcastCameraEnabled)
-        assertFalse(restored.broadcastMicrophoneEnabled)
-        assertEquals(250, restored.broadcastMicGainPercent)
-        assertEquals(1920, restored.broadcastVideoWidth)
-        assertEquals(1080, restored.broadcastVideoHeight)
-        assertEquals(60, restored.broadcastVideoFps)
-        assertEquals(6_000_000, restored.broadcastVideoBitrateBps)
+        assertTrue(restored.broadcast.cameraEnabled)
+        assertFalse(restored.broadcast.microphoneEnabled)
+        assertEquals(250, restored.broadcast.micGainPercent)
+        assertEquals(1920, restored.broadcast.videoWidth)
+        assertEquals(1080, restored.broadcast.videoHeight)
+        assertEquals(60, restored.broadcast.videoFps)
+        assertEquals(6_000_000, restored.broadcast.videoBitrateBps)
     }
 }

@@ -289,6 +289,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     // S3004: deduplicate probes in hot settings flow to prevent log flooding
     @Volatile private var lastEmittedS2571Language: String? = null
+
     @Volatile private var lastEmittedS2603VideoSizeMin: Long? = null
 
     override fun getSettings(): Flow<AppSettings> {
@@ -342,7 +343,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 }
                 val remoteSource = RemoteSourceSettingsStore.read(preferences)
                 val streams = StreamsSettingsStore.read(preferences)
-                val broadcast = BroadcastSettingsStore.read(preferences, context)
+                val broadcastStored = BroadcastSettingsStore.read(preferences, context)
                 val programs = ProgramsSettingsStore.read(preferences)
                 val stopwatch = StopwatchSettingsStore.read(preferences)
                 val launcher = LauncherSettingsStore.read(preferences)
@@ -436,14 +437,11 @@ class SettingsRepositoryImpl @Inject constructor(
                     streamsVisualizeAsMusic = streams.streamsVisualizeAsMusic,
                     streamsDefaultAudioLanguage = streams.streamsDefaultAudioLanguage,
                     streamsDefaultSubtitleLanguage = streams.streamsDefaultSubtitleLanguage,
-                    enableBroadcasting = broadcast.enableBroadcasting,
-                    broadcastStreamTitle = broadcast.streamTitle,
-                    broadcastBitRateBps = broadcast.bitRateBps,
-                    broadcastPort = broadcast.port,
-                    broadcastSampleRateHz = broadcast.sampleRateHz,
-                    broadcastChannelCount = broadcast.channelCount,
-                    broadcastAutoOpenShare = broadcast.autoOpenShare,
-                    broadcastSourceDeviceId = broadcast.sourceDeviceId,
+                    enableBroadcasting = broadcastStored.enableBroadcasting,
+                    // S3222: the whole group is restored at once. Before the fold this line carried the
+                    // eight session fields by hand and the six of S3038/S3049 were written to DataStore
+                    // but never read back, so a restored backup could not reach the capture services.
+                    broadcast = broadcastStored.broadcast,
                     translationSourceLanguage = textRec.translationSourceLanguage,
                     translationTargetLanguage = textRec.translationTargetLanguage,
                     translationLensStyle = textRec.translationLensStyle,

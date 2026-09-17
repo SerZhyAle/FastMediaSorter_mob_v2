@@ -363,6 +363,15 @@
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode {
     <fields>;
 }
+# S3040: both constants travel inside manifest.json in Google Drive AppData and are read back by
+# name on ANOTHER device, which may run a build with a different R8 mapping - the strictest case of
+# the rule above, since the two ends are not even the same installation.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.transfer.CrossDevicePayloadKind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketStatus {
+    <fields>;
+}
 # S2364: both of the rules below named a class that does not exist. The enums are nested, so their
 # real R8 names carry `$`, and R8 ignores a rule matching nothing in silence - each protected
 # nothing from the day it was written while the gate reported it as a satisfied contract.

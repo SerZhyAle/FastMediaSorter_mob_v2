@@ -59,6 +59,9 @@ import timber.log.Timber
  *
  * Every answer advances, a refusal included: the feature behind a refused group asks again when it is
  * opened, so refusing here costs nothing and must not trap the user on the page (strategic §2).
+ *
+ * "Skip all" ends the whole walk at once and marks it done, for the same reason: nothing asked here is
+ * final, so a user who wants the app now loses nothing by leaving every group unanswered (S3225).
  */
 @Composable
 fun WearOnboardingScreen(
@@ -81,6 +84,7 @@ fun WearOnboardingScreen(
         advance()
     }
     val step = if (page >= introPages) steps.getOrNull(page - introPages) else null
+    Timber.d("S3225: onboarding page %d of %d, step=%s", page, pageCount, step?.step)
 
     // A group granted earlier - a reinstall that kept runtime grants - is not asked again.
     LaunchedEffect(page) {
@@ -91,11 +95,14 @@ fun WearOnboardingScreen(
         OnboardingPage {
             when {
                 page == 0 -> welcomeItems(onNext = advance)
-                step == null -> introItems(onStart = advance)
+                step == null -> introItems(onStart = advance, onSkipAll = onFinished)
                 else -> stepItems(
                     step = step.step,
+                    stepNumber = page - introPages + 1,
+                    stepCount = steps.size,
                     onAllow = { launcher.launch(step.permissions.toTypedArray()) },
-                    onSkip = advance
+                    onSkip = advance,
+                    onSkipAll = onFinished
                 )
             }
         }
@@ -133,20 +140,42 @@ private fun ScalingLazyListScope.welcomeItems(onNext: () -> Unit) {
         )
     }
     titleAndBody(R.string.wear_onboarding_welcome_title, R.string.wear_onboarding_welcome_body)
+    item {
+        Text(
+            text = stringResource(R.string.wear_onboarding_slogan),
+            style = MaterialTheme.typography.caption1,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colors.primary,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
     actionChip(R.string.wear_onboarding_next, primary = true, forward = true, onClick = onNext)
 }
 
-private fun ScalingLazyListScope.introItems(onStart: () -> Unit) {
+private fun ScalingLazyListScope.introItems(onStart: () -> Unit, onSkipAll: () -> Unit) {
     titleAndBody(R.string.wear_onboarding_intro_title, R.string.wear_onboarding_intro_body)
     actionChip(R.string.wear_onboarding_start, primary = true, forward = true, onClick = onStart)
+    actionChip(R.string.wear_onboarding_skip_all, primary = false, forward = false, onClick = onSkipAll)
 }
 
 private fun ScalingLazyListScope.stepItems(
     step: WearOnboardingPermissionStep,
+    stepNumber: Int,
+    stepCount: Int,
     onAllow: () -> Unit,
     onSkip: () -> Unit,
+    onSkipAll: () -> Unit,
 ) {
     val look = step.look()
+    item {
+        Text(
+            text = stringResource(R.string.wear_onboarding_page_indicator, stepNumber, stepCount),
+            style = MaterialTheme.typography.caption2,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colors.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
     item {
         Icon(
             imageVector = look.icon,
@@ -158,6 +187,7 @@ private fun ScalingLazyListScope.stepItems(
     titleAndBody(look.title, look.reason)
     actionChip(R.string.wear_onboarding_allow, primary = true, forward = false, onClick = onAllow)
     actionChip(R.string.wear_onboarding_skip, primary = false, forward = true, onClick = onSkip)
+    actionChip(R.string.wear_onboarding_skip_all, primary = false, forward = false, onClick = onSkipAll)
 }
 
 private fun ScalingLazyListScope.titleAndBody(@StringRes title: Int, @StringRes body: Int) {

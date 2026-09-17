@@ -101,6 +101,7 @@ class PhoneCameraViewModelTest {
 
         holder.markLive(
             PhoneCameraSessionState.Live(
+                requestId = "request-1",
                 url = CAMERA_URL,
                 lenses = listOf(CameraLensDto(id = "0", labelKey = "lens_back", facing = "BACK")),
                 activeLensId = "0"

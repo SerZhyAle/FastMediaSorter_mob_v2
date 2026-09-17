@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.model
 
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
+import com.sza.fastmediasorter.domain.model.sos.SosMode
 import kotlin.math.abs
 
 /**
@@ -72,6 +73,13 @@ data class AppSettings(
     val frontFlashlightColor: Int = FRONT_FLASHLIGHT_DEFAULT_COLOR,
     // S2516: the water flashlight is its own program beside the one above, off until asked for.
     val waterFlashlightEnabled: Boolean = false,
+    // S3216: the distress signal is a program like its neighbours - off until the user asks for it, so
+    // an update never puts a siren one tap away from a pocket.
+    val enableSos: Boolean = false,
+    // S3216: which halves of the signal the SOS screen starts with, and what the paired device is asked
+    // for. Written by the screen's own mode chips rather than by a settings row, so the last choice is
+    // the next start - the mode is a decision taken in the emergency, not in advance.
+    val sosMode: SosMode = SosMode.ALL,
     // S2776: the camera flashlight has no switch of its own - it is offered wherever the device has a
     // flash - so its shade shortcut needs one here, and a permanent notification nobody asked for is
     // a defect rather than a service.
@@ -196,25 +204,10 @@ data class AppSettings(
 
     // S2817: an absent preference preserves the broadcast session defaults used before settings existed.
     val enableBroadcasting: Boolean = false,
-    val broadcastStreamTitle: String = DEFAULT_BROADCAST_STREAM_TITLE,
-    val broadcastBitRateBps: Int = 128_000,
-    val broadcastPort: Int = 8768,
-    val broadcastSampleRateHz: Int = 44_100,
-    val broadcastChannelCount: Int = 1,
-    val broadcastAutoOpenShare: Boolean = true,
-    // S2814: stable identity of this phone as a broadcast source. Null until the first broadcast
-    // generates a UUID and persists it; a receiver that scanned this phone before recognises it
-    // across address changes instead of adding a second catalog entry.
-    val broadcastSourceDeviceId: String? = null,
-    // S3038: camera and microphone defaults for broadcast mode selection, plus video quality.
-    val broadcastCameraEnabled: Boolean = false,
-    val broadcastMicrophoneEnabled: Boolean = true,
-    val broadcastVideoWidth: Int = 1280,
-    val broadcastVideoHeight: Int = 720,
-    val broadcastVideoFps: Int = 30,
-    val broadcastVideoBitrateBps: Int = 2_000_000,
-    // S3049: digital PCM microphone gain percentage for broadcasts (50% - 400%, default 100%).
-    val broadcastMicGainPercent: Int = 100,
+    // S3222: the session parameters themselves are a nested group - see [BroadcastSettings] for why the
+    // constructor cannot hold them inline. The switch above stays flat: it is a program toggle beside
+    // enableCalculator and enableStopwatch, not a parameter of the session.
+    val broadcast: BroadcastSettings = BroadcastSettings(),
 
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = false, // S0386: default OFF - translation engine delivered on demand

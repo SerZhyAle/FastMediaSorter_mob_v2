@@ -41,7 +41,9 @@ private class SdpSessionNameSocket(
     private val delegate: Socket,
 ) : Socket() {
 
-    private val normalizedInputStream by lazy { SdpSessionNameNormalizingInputStream(delegate.inputStream) }
+    private val normalizedInputStream by lazy {
+        SdpSessionNameNormalizingInputStream(RtpInfoZeroTimestampStrippingInputStream(delegate.inputStream))
+    }
 
     override fun bind(bindpoint: SocketAddress) = delegate.bind(bindpoint)
 

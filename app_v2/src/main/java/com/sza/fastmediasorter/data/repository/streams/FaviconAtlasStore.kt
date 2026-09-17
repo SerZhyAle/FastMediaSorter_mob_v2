@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.repository.streams
 
+import androidx.annotation.WorkerThread
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -57,7 +58,11 @@ class FaviconAtlasStore @Inject constructor(
     }
 
     /** The persisted atlas PNG, or null when no atlas is present (an OLD catalog, or never imported). */
+    @WorkerThread
     fun atlasFile(): File? = atlas.takeIf { it.isFile }
+
+    /** S3230: main-safe "is the atlas present" probe for callers on the UI thread. */
+    suspend fun isInstalled(): Boolean = withContext(Dispatchers.IO) { atlas.isFile }
 
     /**
      * The persisted `url -> favicon_index` map. An absent or corrupt sidecar yields an empty map

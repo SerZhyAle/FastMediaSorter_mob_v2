@@ -3,8 +3,10 @@ package com.sza.fastmediasorter.domain.usecase.launcher
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.ResolveInfo
+import com.sza.fastmediasorter.core.AppShortcutsManager
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -37,6 +39,8 @@ class ExecuteLauncherCommandTaskFlagsTest {
         journal = mockk(relaxed = true),
         appShortcutDataSource = mockk(relaxed = true),
         toggleRadioTarget = mockk(relaxed = true),
+        // A relaxed mock of the generic Lazy answers get() with a bare Object, so the manager is stubbed explicitly.
+        appShortcuts = mockk { every { get() } returns mockk<AppShortcutsManager>(relaxed = true) },
     )
 
     @Test

@@ -192,9 +192,9 @@ foreach ($flavor in $spectrum.Keys) {
     if (-not (Test-Path -LiteralPath $dir)) {
         throw "$flavor APK directory missing: $dir. Run the appropriate builder first (a.ps1 r / a.ps1 vr)."
     }
-    # No -Abi: the release path stays universal until strategic §6.1 is answered, and asking for
-    # nothing is what makes a split release directory throw here rather than publish one slice under
-    # the architecture-free asset name IzzyOnDroid globs (S0215).
+    # No -Abi: policy settled by S2067 - one unsliced APK per flavor. Asking for nothing is what
+    # makes a split release directory throw here rather than silently publish one slice under the
+    # architecture-free asset name IzzyOnDroid globs (S0215).
     $apk = Find-BuildArtifact -Dir $dir
     if (-not $apk) {
         throw "$flavor APK not found in $dir. Run the appropriate builder first."

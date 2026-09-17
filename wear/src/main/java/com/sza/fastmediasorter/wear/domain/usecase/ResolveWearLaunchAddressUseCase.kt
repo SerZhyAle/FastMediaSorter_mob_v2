@@ -102,6 +102,9 @@ class ResolveWearLaunchAddressUseCase @Inject constructor(
         WearDestinationId.WATER_FLASHLIGHT,
         WearDestinationId.STOPWATCH,
         WearDestinationId.CLIPBOARD,
+        // S3216: the siren goes out on the alarm channel and the strobe is the display itself, so the
+        // distress signal belongs to this group - it declares no permission and reads no user content.
+        WearDestinationId.SOS,
         WearDestinationId.HOME -> true
     }
 

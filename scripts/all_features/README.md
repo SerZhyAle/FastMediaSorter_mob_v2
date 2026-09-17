@@ -102,6 +102,27 @@ and a set often equals several rows at once - `[legacy, noLegal, standard, vr]` 
 `ENABLE_TRANSLATION` and `SUPPORT_MIC_RECORDING` together - so no rule can derive which flag produced
 a set. Closing the class needs `gate` on the write path, which is the canon change above.
 
+## A closure that lands on an existing record strips its gate (S3209)
+
+The paragraph above says the closure path cannot **write** a gate. Measured 2026-09-17, it also
+**destroys** one. `add.ps1` upserts the whole record - it rebuilds an `[ordered]` from the parameters
+it was given and replaces the line with the matching `id` - so an absent `-Gate` means "a record with
+no gate", not "leave the gate alone". Closing S3208 with `-FuncOp CHANGE -FeatName "Start panel rows"`
+matched `launcher.start-panel-rows`, written by S3131, and dropped `"gate":"SUPPORT_LAUNCHER"` from it.
+
+Nothing refused. `validate.ps1` returned PASS both before and after: the schema does not require the
+field, and the `flavors` set was untouched, so check 4 saw a correct reach too. The loss was found by
+a human comparing the record against its previous text, and repaired with
+`patch.ps1 -Id launcher.start-panel-rows -Gate SUPPORT_LAUNCHER -Description ..`.
+
+Check 5 of `scripts/quality/assert-allfeatures-sync.ps1` now holds the field. Its baseline,
+`scripts/quality/allfeatures-gate-baseline.txt`, is one `<id> <gate>` row per gated record - 141 of
+1177 when it landed - and a record that lost its flag, carries a different one, or has left the ledger
+fails the check inside the same closure that did it. The refusal prints the `patch.ps1` repair line;
+an intentional re-gate is `-UpdateBaseline`, which rewrites this baseline and the count baseline
+together. Unlike check 4 this one reads the `gate` field directly, which it can afford to: it never
+demands the field be present, only that a field already there stays there.
+
 ## The author's own session judges the record now (S2927)
 
 `scripts/quality/assert-allfeatures-sync.ps1 -Gate` is declared in `hooks.postClose` in

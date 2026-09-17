@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.AppLaunchPanelRouteIntents
 import java.util.Locale
 
 /**
@@ -60,6 +61,16 @@ class TouristActionsManager(
             clipboard?.setPrimaryClip(clip)
             Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /**
+     * S3216: opens the distress signal from the Tourist dashboard.
+     *
+     * The route's own intent builder rather than a hand-built one, so the dashboard button, the programs
+     * menu and a launcher cell all land on the same window with the same flags.
+     */
+    fun launchSos() {
+        tryStartActivity(AppLaunchPanelRouteIntents.sos(context))
     }
 
     private fun tryStartActivity(intent: Intent, onFallback: (() -> Unit)? = null) {

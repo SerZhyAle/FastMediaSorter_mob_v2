@@ -129,6 +129,31 @@ object WearDataLayerPaths {
      */
     const val SCREENSHOT_REQUEST_ACK = "/fms/watch/screenshot_request_ack"
 
+    /**
+     * Message, watch → phone. Starts this phone's distress signal in the mode the watch chose (S3216).
+     *
+     * The payload is the `SosMode` member name and nothing else: the two modules share no source, so the
+     * enum's member names are the whole wire contract and an unknown token resolves to `ALL` rather than
+     * dropping the command. Under the `/fms/watch` prefix `src/wearGms/AndroidManifest.xml` already
+     * declares for PhoneWearListenerService, so it needs no filter of its own - a path outside a declared
+     * prefix is dropped by GMS in silence (S1697).
+     */
+    const val SOS_START_FROM_WATCH = "/fms/watch/sos/start"
+
+    /** Message, watch → phone. Ends this phone's distress signal, whichever device started it (S3216). */
+    const val SOS_STOP_FROM_WATCH = "/fms/watch/sos/stop"
+
+    /**
+     * Message, phone → watch. Starts the watch's distress signal in the mode this phone chose (S3216).
+     *
+     * Under the `/fms/phone` prefix `wear/src/main/AndroidManifest.xml` already declares for the watch
+     * listener, so neither side needs a manifest edit.
+     */
+    const val SOS_START_FROM_PHONE = "/fms/phone/sos/start"
+
+    /** Message, phone → watch. Ends the watch's distress signal, whichever device started it (S3216). */
+    const val SOS_STOP_FROM_PHONE = "/fms/phone/sos/stop"
+
     /** Message, phone → watch. Carries one stream channel description to store on the watch. */
     const val STREAM_TRANSFER = "/fms/phone/stream_transfer"
 

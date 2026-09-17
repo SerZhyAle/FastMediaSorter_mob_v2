@@ -650,6 +650,9 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 addItemAtSlot = { row, col -> addFlowManager.openContentPicker(row, col) },
                 wallpaper = { showWallpaperSettings() },
                 launcherSettings = { showLauncherSettings() },
+                pagePrevious = { pagingManager.previous() },
+                pageNext = { pagingManager.next() },
+                screenCount = { viewModel.launcherDesktopSettings.value.launcherScreenCount },
             ),
         )
         editModeManager.attach()

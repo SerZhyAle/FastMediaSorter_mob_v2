@@ -465,6 +465,11 @@ if (Assert-Envelope $r 'rotary' $true 0) {
     Assert-Equal 2   $r.json.data.repeat 'rotary -Json: data.repeat'
 }
 
+$r = Invoke-Verb @('rotary', '-Axis', '-2.0', '-Repeat', '1') -Stub $watchStub
+if (Assert-Envelope $r 'rotary' $true 0) {
+    Assert-Equal -2 $r.json.data.axis    'rotary -Json: negative axis preserved (S3233)'
+}
+
 $r = Invoke-Verb @('rotary', '-Axis', '1.0')
 Assert-Equal 12 $r.exit 'rotary on a device that is not a watch: process exit 12'
 Assert-Equal $false $r.json.ok 'rotary on a device that is not a watch: ok is false'

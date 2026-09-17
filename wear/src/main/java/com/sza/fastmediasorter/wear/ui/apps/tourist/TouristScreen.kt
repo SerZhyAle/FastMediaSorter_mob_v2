@@ -47,6 +47,7 @@ private val TILE_SPACING = 4.dp
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun TouristScreen(
+    onLaunchSos: () -> Unit,
     viewModel: TouristViewModel = hiltViewModel(),
     listState: ScalingLazyListState = rememberWearListState(positionKey = WearRoutes.TOURIST),
 ) {
@@ -59,7 +60,16 @@ fun TouristScreen(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
         ),
+        onPermissionsResult = {
+            viewModel.refreshPermissionState()
+        },
     )
+
+    LaunchedEffect(Unit) {
+        if (!telemetry.hasLocationPermission && !permissionsState.allPermissionsGranted) {
+            permissionsState.launchMultiplePermissionRequest()
+        }
+    }
 
     // The telemetry source binds its location listeners when it is subscribed, so a permission granted
     // afterwards only takes effect once the source is re-subscribed.
@@ -77,7 +87,7 @@ fun TouristScreen(
         }
     }
 
-    Timber.d("S3115: tourist screen locked=${state.isScreenLocked} temp=${telemetry.hasBodyTemperatureSensor}")
+    Timber.d("S3227: tourist screen location permission=${telemetry.hasLocationPermission}")
 
     val promoteMetric: (TouristMetricType) -> Unit = { metricType ->
         viewModel.selectMetric(metricType)
@@ -107,6 +117,7 @@ fun TouristScreen(
                 onResetSteps = { viewModel.resetSteps() },
                 onToggleAthleteMode = { viewModel.toggleAthleteMode() },
                 onLockScreen = { viewModel.setScreenLocked(true) },
+                onLaunchSos = onLaunchSos,
             )
         }
 
@@ -133,6 +144,7 @@ private fun TouristDashboardContent(
     onResetSteps: () -> Unit,
     onToggleAthleteMode: () -> Unit,
     onLockScreen: () -> Unit,
+    onLaunchSos: () -> Unit,
 ) {
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -185,6 +197,9 @@ private fun TouristDashboardContent(
                         onResetTrip = onResetTrip,
                         onResetSteps = onResetSteps,
                         onToggleAthleteMode = onToggleAthleteMode,
+                        onLaunchSos = {
+                            onLaunchSos()
+                        },
                         modifier = Modifier.padding(vertical = TILE_SPACING),
                     )
                 }

@@ -267,6 +267,7 @@ _Available in: Standard, Legacy, VR_
 | Network Monitor | Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
 | Use scheduled operations | Activates the scheduler so configured operations run automatically at their set times. |
+| SOS emergency signal | Adds the SOS distress signal to the programs list: a loud Morse siren on the alarm channel, the rear flash and the screen strobing with it, and the same signal on the paired watch. |
 | Stopwatch | Enables a stopwatch within the app, for one run or several in a row. |
 | System information | Adds System information to the app's program menus and launcher surfaces, so the report is reachable without opening Settings. It is off by default and changes nothing about what the report contains. |
 | Tourist | Adds the Tourist dashboard to the app's program menus and launcher surfaces, so the navigation and telemetry panel is reachable without opening Settings. It is off by default. |

@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.domain.model.StreamTrackLanguage
 import com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode
 import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
 import com.sza.fastmediasorter.domain.model.UnitSystem
+import com.sza.fastmediasorter.domain.model.sos.SosMode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -69,6 +70,10 @@ class DeviceProfilePresetApplier @Inject constructor(
             "embeddedGameEnabled" -> settings.copy(embeddedGameEnabled = raw.toBool())
             "frontFlashlightEnabled" -> settings.copy(frontFlashlightEnabled = raw.toBool())
             "waterFlashlightEnabled" -> settings.copy(waterFlashlightEnabled = raw.toBool())
+            "enableSos" -> settings.copy(enableSos = raw.toBool())
+            "sosMode" ->
+                runCatching { SosMode.valueOf(raw.trim()) }.getOrNull()
+                    ?.let { settings.copy(sosMode = it) } ?: skip(field, raw, settings)
             "mirrorEnabled" -> settings.copy(mirrorEnabled = raw.toBool())
             "enableNetworkMonitor" -> settings.copy(enableNetworkMonitor = raw.toBool())
             "enableSystemInfo" -> settings.copy(enableSystemInfo = raw.toBool())
@@ -377,6 +382,11 @@ class DeviceProfilePresetApplier @Inject constructor(
             "launcherTaskbarPlacement" -> applyLauncherField(field, raw, settings) { s ->
                 raw.trim().takeIf { it in AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS }
                     ?.let { s.withLauncher { copy(taskbarPlacement = it) } }
+            }
+            "launcherTaskbarRows" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().toIntOrNull()
+                    ?.coerceIn(AppSettings.MIN_LAUNCHER_TASKBAR_ROWS, AppSettings.MAX_LAUNCHER_TASKBAR_ROWS)
+                    ?.let { rows -> s.withLauncher { copy(taskbarRows = rows) } }
             }
             "launcherTaskbarShowRecents" -> applyLauncherField(field, raw, settings) { s ->
                 s.withLauncher { copy(taskbarShowRecents = raw.toBool()) }

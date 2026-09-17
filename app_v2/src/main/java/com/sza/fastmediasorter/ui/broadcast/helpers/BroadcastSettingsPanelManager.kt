@@ -40,14 +40,14 @@ class BroadcastSettingsPanelManager @Inject constructor(
         panel.rowStreamTitle.setOnCommitListener { value ->
             val title = value.toString().trim()
             if (title.isNotEmpty()) {
-                update(activity) { it.copy(broadcastStreamTitle = title) }
+                update(activity) { it.copy(broadcast = it.broadcast.copy(streamTitle = title)) }
             }
         }
 
         panel.rowPort.setOnCommitListener { value ->
             val port = value.toString().trim().toIntOrNull()
             if (port != null && BroadcastSettingsOptions.isValidPort(port)) {
-                update(activity) { it.copy(broadcastPort = port) }
+                update(activity) { it.copy(broadcast = it.broadcast.copy(port = port)) }
             } else {
                 renderPort(panel, currentPort)
             }
@@ -55,19 +55,24 @@ class BroadcastSettingsPanelManager @Inject constructor(
 
         bindDropdown(panel.rowBitRate) { index ->
             val bitRate = BroadcastSettingsOptions.bitRatesBps.getOrNull(index) ?: return@bindDropdown
-            update(activity) { it.copy(broadcastBitRateBps = bitRate) }
+            update(activity) { it.copy(broadcast = it.broadcast.copy(bitRateBps = bitRate)) }
         }
 
         bindDropdown(panel.rowAudioFormat) { index ->
             val format = BroadcastSettingsOptions.audioFormats.getOrNull(index) ?: return@bindDropdown
             update(activity) {
-                it.copy(broadcastSampleRateHz = format.first, broadcastChannelCount = format.second)
+                it.copy(
+                    broadcast = it.broadcast.copy(
+                        sampleRateHz = format.first,
+                        channelCount = format.second
+                    )
+                )
             }
         }
 
         bindDropdown(panel.rowMicGain) { index ->
             val gain = BroadcastSettingsOptions.micGainPercents.getOrNull(index) ?: return@bindDropdown
-            update(activity) { it.copy(broadcastMicGainPercent = gain) }
+            update(activity) { it.copy(broadcast = it.broadcast.copy(micGainPercent = gain)) }
         }
 
         panel.rowEnableBroadcasting.setOnCheckedChangeListener { checked ->
@@ -75,7 +80,9 @@ class BroadcastSettingsPanelManager @Inject constructor(
         }
 
         panel.rowAutoOpenShare.setOnCheckedChangeListener { checked ->
-            if (!renderingFromSettings) update(activity) { it.copy(broadcastAutoOpenShare = checked) }
+            if (!renderingFromSettings) {
+                update(activity) { it.copy(broadcast = it.broadcast.copy(autoOpenShare = checked)) }
+            }
         }
 
         activity.collectOnLifecycle(settingsRepository.getSettings()) { settings ->
@@ -84,20 +91,20 @@ class BroadcastSettingsPanelManager @Inject constructor(
     }
 
     private fun render(panel: FragmentSettingsBroadcastBinding, settings: AppSettings) {
-        currentPort = settings.broadcastPort
+        currentPort = settings.broadcast.port
         renderingFromSettings = true
         panel.rowStreamTitle.isVisible = settings.enableBroadcasting
         panel.broadcastConfigGroup.isVisible = settings.enableBroadcasting
         panel.rowAutoOpenShare.isVisible = settings.enableBroadcasting
-        if (panel.rowStreamTitle.text.toString() != settings.broadcastStreamTitle) {
-            panel.rowStreamTitle.text = settings.broadcastStreamTitle
+        if (panel.rowStreamTitle.text.toString() != settings.broadcast.streamTitle) {
+            panel.rowStreamTitle.text = settings.broadcast.streamTitle
         }
-        renderPort(panel, settings.broadcastPort)
+        renderPort(panel, settings.broadcast.port)
         if (panel.rowEnableBroadcasting.isChecked != settings.enableBroadcasting) {
             panel.rowEnableBroadcasting.setCheckedSilently(settings.enableBroadcasting)
         }
-        if (panel.rowAutoOpenShare.isChecked != settings.broadcastAutoOpenShare) {
-            panel.rowAutoOpenShare.setCheckedSilently(settings.broadcastAutoOpenShare)
+        if (panel.rowAutoOpenShare.isChecked != settings.broadcast.autoOpenShare) {
+            panel.rowAutoOpenShare.setCheckedSilently(settings.broadcast.autoOpenShare)
         }
         setSelection(panel.rowBitRate, BroadcastSettingsOptions.bitRateIndex(settings))
         setSelection(panel.rowAudioFormat, BroadcastSettingsOptions.audioFormatIndex(settings))

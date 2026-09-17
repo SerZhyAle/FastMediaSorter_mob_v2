@@ -99,6 +99,7 @@ import com.sza.fastmediasorter.wear.ui.apps.motionmonitor.MotionMonitorScreen
 import com.sza.fastmediasorter.wear.ui.apps.motionmonitor.history.MotionHistoryScreen
 import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorDetailScreen
 import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorScreen
+import com.sza.fastmediasorter.wear.ui.apps.sos.SosScreen
 import com.sza.fastmediasorter.wear.ui.apps.stopwatch.WearStopwatchScreen
 import com.sza.fastmediasorter.wear.ui.apps.systeminfo.SystemInfoScreen
 import com.sza.fastmediasorter.wear.ui.apps.tourist.TouristScreen
@@ -154,6 +155,7 @@ import com.sza.fastmediasorter.wear.ui.player.video.VideoPlayerScreen
 import com.sza.fastmediasorter.wear.ui.settings.AboutSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.MediaTypesSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.OtherSettingsScreen
+import com.sza.fastmediasorter.wear.ui.settings.PermissionsSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.ScreenSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.SettingsRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsScreen
@@ -232,6 +234,7 @@ private val SETTINGS_ROUTES = setOf(
     SettingsRoutes.SCREEN,
     SettingsRoutes.OTHER,
     SettingsRoutes.TILE_TARGETS,
+    SettingsRoutes.PERMISSIONS,
     SettingsRoutes.ABOUT
 )
 
@@ -801,7 +804,6 @@ private fun BoxScope.WearNavScreenOffHost(
     }
     WearScreenOffAffordance(
         onClick = {
-            Timber.d("S3196: screen-off control selected")
             onDim()
         },
         modifier = Modifier
@@ -827,7 +829,10 @@ private fun showsNavBackAffordance(route: String?): Boolean =
         route != WearRoutes.STOPWATCH &&
         // S2516: the back arrow is a touch target, and this screen exists to have none - drawing it
         // would hand a wet wrist the exit the program is built to withhold.
-        route != WearRoutes.WATER_FLASHLIGHT
+        route != WearRoutes.WATER_FLASHLIGHT &&
+        // S3216: the same reason, and for the same half of the program - while the signal runs this
+        // screen has no touch target at all, so an arrow drawn over it would be the one exception.
+        route != WearRoutes.SOS
 
 private fun showsWallpaper(route: String?): Boolean =
     route != null && route !in SETTINGS_ROUTES && route !in PLAYER_ROUTES
@@ -1011,6 +1016,13 @@ private fun NavGraphBuilder.settingsRoutes(
         }
     }
 
+    // S3226: registered in every edition. The screen decides for itself what it can ask for, and the
+    // menu entry above it is hidden where that answer is nothing, so a build without permissions has
+    // no way in rather than a route that crashes when one is reached from elsewhere.
+    composable(SettingsRoutes.PERMISSIONS) {
+        PermissionsSettingsScreen()
+    }
+
     composable(SettingsRoutes.ABOUT) {
         AboutSettingsScreen()
     }
@@ -1040,7 +1052,7 @@ private fun OpenStreamOnWatchEffect(
                 } else {
                     WearRoutes.audioPlayer(target.fileId)
                 }
-                navController.navigate(route)
+                navigateReplacingContent(navController, route)
                 // Confirm only after navigating, so the phone's "playing" is a report, not a promise.
                 WatchStreamOpenEvents.openedFlow.emit(channel.url)
             }
@@ -1066,7 +1078,10 @@ private fun OpenFileOnWatchEffect(
             WatchFileOpenEvents.requestFlow.collect { request ->
 
                 val target = prepareFilePlayback(request)
-                navController.navigate(playerRouteFor(target.fileId, target.mimeType, fileName = request.path))
+                navigateReplacingContent(
+                    navController,
+                    playerRouteFor(target.fileId, target.mimeType, fileName = request.path)
+                )
                 // Confirm only after navigating, so the phone's "opened" is a report, not a promise.
                 WatchFileOpenEvents.openedFlow.emit(request.path)
             }
@@ -1135,9 +1150,31 @@ private fun OpenLaunchTargetEffect(
  */
 private fun navigateGuarded(navController: NavHostController, route: String) {
     try {
-        navController.navigate(route)
+        navigateReplacingContent(navController, route)
     } catch (e: IllegalArgumentException) {
         Timber.w(e, "Launch route is not in the navigation graph: %s", route)
+    }
+}
+
+/**
+ * S3213: opens [route], replacing the content destination the watch is already standing on.
+ *
+ * Every caller here is an entrance that can fire while a player is open - the phone's stream, the
+ * phone's file, a launch intent, a second Start on the phone-camera screen - and each of them used to
+ * push unconditionally. Two players then stood next to each other on the back stack and BACK from the
+ * upper one resumed the older one instead of leaving the flow (observed on the S2551 device run).
+ *
+ * Only the destination the user can see is replaced, so a browse screen or a control screen under the
+ * player survives and BACK still lands where the flow was entered. `launchSingleTop` covers the
+ * narrower case of the very same address arriving twice.
+ */
+private fun navigateReplacingContent(navController: NavHostController, route: String) {
+    val replaced = navController.currentBackStackEntry?.destination
+        ?.takeIf { WearRoutes.isContentRoute(it.route) }
+    Timber.d("S3213: opening content route %s, replacing %s", route, replaced?.route)
+    navController.navigate(route) {
+        replaced?.let { popUpTo(it.id) { inclusive = true } }
+        launchSingleTop = true
     }
 }
 
@@ -1224,14 +1261,23 @@ private fun NavGraphBuilder.miniAppRoutes(
         }
 
         // S3007: Tourist telemetry and navigation dashboard
+        // S3216: the dashboard names the destination it wants and the host performs the jump, the way
+        // every other screen here does - the screen holds no navigation controller of its own.
         composable(WearRoutes.TOURIST) {
-            TouristScreen()
+            TouristScreen(onLaunchSos = { navController.navigate(WearRoutes.SOS) })
         }
     }
 
     // S3109: the watch's text clipboard, and the action that hands it to the paired phone.
     composable(WearRoutes.CLIPBOARD) {
         ClipboardScreen()
+    }
+
+    // S3216: leaving is the host's word here too, the way the water flashlight already has it - the
+    // screen knows only that some hardware input arrived, never what to navigate to. Registered in
+    // both flavors: the siren declares no permission a store review could withhold.
+    composable(WearRoutes.SOS) {
+        SosScreen(onLeave = { navController.popBackStack() })
     }
 
     healthAndHardwareAppRoutes(navController, capabilities)
@@ -1308,7 +1354,9 @@ private fun NavGraphBuilder.healthAndHardwareAppRoutes(
     if (capabilities.offersContentTransfer) {
         composable(WearRoutes.PHONE_CAMERA) {
             PhoneCameraScreen(
-                onWatch = { target -> navController.navigate(WearRoutes.videoPlayer(target.fileId)) }
+                onWatch = { target ->
+                    navigateReplacingContent(navController, WearRoutes.videoPlayer(target.fileId))
+                }
             )
         }
     }

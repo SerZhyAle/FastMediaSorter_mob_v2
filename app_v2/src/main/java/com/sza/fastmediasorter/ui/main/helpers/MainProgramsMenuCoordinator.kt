@@ -205,6 +205,8 @@ class MainProgramsMenuCoordinator(
         // S2673: the three registry entries the hand-written menu never drew.
         MENU_ITEM_PHYSICAL_FLASHLIGHT -> AppLaunchPanelRouteIntents.physicalFlashlight(activity)
         MENU_ITEM_MIRROR -> AppLaunchPanelRouteIntents.mirror(activity)
+        // S3216: manager-less like the two watch-listen rows above, so its launch lives here.
+        MENU_ITEM_SOS -> AppLaunchPanelRouteIntents.sos(activity)
         MENU_ITEM_BLACK_SCREEN -> AppLaunchPanelRouteIntents.blackScreen(activity)
         // S2881: the two watch-listen programs are manager-less, so their launch lives here beside
         // the other registry rows - found on device, where a row without a branch here tapped dead.
@@ -299,6 +301,11 @@ class MainProgramsMenuCoordinator(
         const val MENU_ITEM_WATCH_LISTEN_RECORD = 29
         const val MENU_ITEM_TOURIST = 30
 
+        // S3216: 31 is the next free id. The distress signal has no manager of its own, so its launch
+        // sits in launchIntentFor beside the other registry rows - a row without a branch there taps
+        // dead, which is the S2881 finding.
+        const val MENU_ITEM_SOS = 31
+
         /**
          * S2673: label, icon and menu item id per sub-program - the three things ADR-1 keeps out of the
          * registry.
@@ -386,6 +393,11 @@ class MainProgramsMenuCoordinator(
                 MENU_ITEM_WATER_FLASHLIGHT,
                 R.string.water_flashlight_title,
                 R.drawable.ic_water_flashlight,
+            ),
+            InternalRouteCatalog.KEY_SOS to MenuPresentation(
+                MENU_ITEM_SOS,
+                R.string.sos_title,
+                R.drawable.ic_sos,
             ),
             InternalRouteCatalog.KEY_MIRROR to MenuPresentation(
                 MENU_ITEM_MIRROR,

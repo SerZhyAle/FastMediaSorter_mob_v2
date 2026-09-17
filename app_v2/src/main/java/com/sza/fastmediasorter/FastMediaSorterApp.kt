@@ -171,6 +171,12 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var pushWearSendToReceivers: dagger.Lazy<PushWearSendToReceiversUseCase>
 
+    // S3220: names the end of a camera session served to the watch. Field-injected beside the two
+    // publishers above for the S2149 reason - AppStartupInitializer's constructor is at detekt's ceiling.
+    @Inject
+    lateinit var announceWatchCameraSessionEnd:
+        dagger.Lazy<com.sza.fastmediasorter.broadcast.AnnounceWatchCameraSessionEndUseCase>
+
     // S2745: package installs and updates reach a runtime receiver only, so this registration is what
     // keeps the all-apps list, the quick-launch panel and the desktop from going stale. Field-injected
     // here for the S2149 reason above - AppStartupInitializer's constructor sits at detekt's ceiling.
@@ -364,6 +370,15 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         applicationScope.launch {
             runCatching { pushWearSendToReceivers.get().observeAndPush(applicationScope) }
                 .onFailure { Timber.e(it, "Wear send-to receivers publisher not started") }
+        }
+
+        // S3220: a broadcast can end while no screen is alive - the owner stops it from the tile, or the
+        // capture dies - so the process is the only owner this collector can have. Dereferenced inside
+        // the coroutine for the reason above: a flavor with no watch must not build the Data Layer graph
+        // on the main thread at startup.
+        applicationScope.launch {
+            runCatching { announceWatchCameraSessionEnd.get().observe() }
+                .onFailure { Timber.e(it, "Watch camera session-end announcer not started") }
         }
 
         // S1650: build Glide off the main thread. Deliberately NOT gated on firstFrameSignal, unlike

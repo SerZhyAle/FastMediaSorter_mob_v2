@@ -37,6 +37,7 @@ object WearTestTags {
     private const val BROWSE_CATEGORY_PREFIX = "wear_category_"
     private const val MEDIA_TYPE_PREFIX = "wear_media_type_"
     private const val MEDIA_FILE_PREFIX = "wear_media_file_"
+    private const val PERMISSION_ROW_PREFIX = "wear_permission_row_"
 
     private val NON_TAG_CHARS = Regex("[^a-z0-9]+")
 
@@ -65,4 +66,7 @@ object WearTestTags {
      */
     fun settingsRow(route: String): String =
         SETTINGS_ROW_PREFIX + NON_TAG_CHARS.replace(route.lowercase(), "_").trim('_')
+
+    /** S3226: a row of the permissions settings screen, addressed by its permission group. */
+    fun permissionRow(group: String): String = PERMISSION_ROW_PREFIX + group.lowercase()
 }

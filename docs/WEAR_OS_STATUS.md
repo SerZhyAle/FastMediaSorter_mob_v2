@@ -188,6 +188,9 @@ narrowing itself is a pure function in `domain/browse/BrowseListProjection`, cov
   - ✅ Groups (media, microphone, notifications, heart rate, physical activity, nearby devices) are chosen from the merged manifest and the API level by `BuildWearOnboardingStepsUseCase`, so the Google Play build shows the welcome page only
   - ✅ A refused group does not block the walk; its mini-program asks again when opened
   - ✅ Completion is a watch-local flag, not synced with the phone; an update over an existing install skips the walk
+  - ✅ Welcome page carries the brand slogan under the title, in the accent colour (S3225)
+  - ✅ Each permission page opens with a `Step N of M` indicator, so the length of the walk is visible from the first one (S3225)
+  - ✅ `Skip all` ends the whole walk in one tap, from the intro page and from every permission page; the skipped groups ask again when their mini-program is opened (S3225)
   - ✅ Settings screen navigation added
 
 - **Build**: Compiles without errors (no compile errors detected)

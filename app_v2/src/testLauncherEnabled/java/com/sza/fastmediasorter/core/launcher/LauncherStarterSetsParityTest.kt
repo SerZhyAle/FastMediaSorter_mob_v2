@@ -183,24 +183,31 @@ class LauncherStarterSetsParityTest {
     }
 
     /**
-     * S2682: the two keys the ticket ruled seedable, and the profiles it ruled them onto.
+     * S2682 ruled the translator and the storage readout seedable and named their profiles; S3206
+     * revised the translator's half - its floor rose to 4x3 and the smartphone paid the tile out of
+     * its widgets budget.
      *
      * The coverage case below proves only that a seeded key reaches SOME profile, so it would pass on a
      * membership set that had drifted onto the wrong ones - and which profiles get the tile is the whole
      * content of the ruling.
      */
     @Test
-    fun `the translator and storage tiles land on the profiles S2682 named`() {
+    fun `the translator and storage tiles land on the profiles S2682 and S3206 named`() {
         fun targetsFor(profile: DeviceProfileType) = LauncherStarterSets
             .itemsFor(profile, StarterResources(), emptyMap(), emptySet(), screenClass = mediumWide)
             .map { it.target }
             .toSet()
 
+        // S3206: the 4x3 translator no longer fits the phone's widgets budget; the storage readout stays.
         val phone = targetsFor(DeviceProfileType.PERSONAL_SMARTPHONE)
-        assertTrue(LauncherGadgetRegistry.KEY_TRANSLATOR in phone)
+        assertEquals(false, LauncherGadgetRegistry.KEY_TRANSLATOR in phone)
         assertTrue(LauncherGadgetRegistry.KEY_STORAGE in phone)
 
-        // The reader translates a word but does no sorting, so it earns one of the two, not both.
+        // S3206 left the tablet and the reader holding the tile S2682 gave them. The reader still
+        // translates a word but does no sorting, so it earns one of the two, not both.
+        val tablet = targetsFor(DeviceProfileType.HOME_TABLET)
+        assertTrue(LauncherGadgetRegistry.KEY_TRANSLATOR in tablet)
+
         val reader = targetsFor(DeviceProfileType.EBOOK_READER)
         assertTrue(LauncherGadgetRegistry.KEY_TRANSLATOR in reader)
         assertEquals(false, LauncherGadgetRegistry.KEY_STORAGE in reader)

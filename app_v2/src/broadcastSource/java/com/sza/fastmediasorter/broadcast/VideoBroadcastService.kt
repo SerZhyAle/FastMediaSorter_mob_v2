@@ -210,7 +210,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                 targetLatencyMs = 200L
             )
 
-            Timber.d("S3173: video descriptor title='${dto.title}' mode=${dto.mode}")
             currentMicEnabled = currentMode != BroadcastMode.VIDEO_ONLY
             _state.value = BroadcastState.Live(
                 descriptor = dto,
@@ -260,23 +259,26 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     private suspend fun readSessionConfig(): BroadcastSessionConfig {
         val settings = settingsRepository.getSettings().first()
-        val sourceDeviceId = settings.broadcastSourceDeviceId ?: run {
+        val broadcast = settings.broadcast
+        val sourceDeviceId = broadcast.sourceDeviceId ?: run {
             val id = UUID.randomUUID().toString()
-            settingsRepository.updateSettings(settings.copy(broadcastSourceDeviceId = id))
+            settingsRepository.updateSettings(
+                settings.copy(broadcast = broadcast.copy(sourceDeviceId = id))
+            )
             id
         }
         return BroadcastSessionConfig(
-            streamTitle = settings.broadcastStreamTitle.ifBlank { BroadcastSessionConfig.DEFAULT.streamTitle },
-            bitRateBps = settings.broadcastBitRateBps,
-            port = settings.broadcastPort,
-            sampleRateHz = settings.broadcastSampleRateHz,
-            channelCount = settings.broadcastChannelCount,
+            streamTitle = broadcast.streamTitle.ifBlank { BroadcastSessionConfig.DEFAULT.streamTitle },
+            bitRateBps = broadcast.bitRateBps,
+            port = broadcast.port,
+            sampleRateHz = broadcast.sampleRateHz,
+            channelCount = broadcast.channelCount,
             sourceDeviceId = sourceDeviceId,
-            micGainPercent = settings.broadcastMicGainPercent,
-            videoWidth = settings.broadcastVideoWidth,
-            videoHeight = settings.broadcastVideoHeight,
-            videoFps = settings.broadcastVideoFps,
-            videoBitrateBps = settings.broadcastVideoBitrateBps,
+            micGainPercent = broadcast.micGainPercent,
+            videoWidth = broadcast.videoWidth,
+            videoHeight = broadcast.videoHeight,
+            videoFps = broadcast.videoFps,
+            videoBitrateBps = broadcast.videoBitrateBps,
         )
     }
 

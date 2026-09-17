@@ -319,8 +319,9 @@ class LauncherStarterSetsTest {
         assertEquals(
             listOf(
                 "clock", "search", "weather",
-                // S2682: the phone's widgets group gained the translator and the storage readout.
-                "sec:widgets", "compass", "translator", "storage",
+                // S2682 gave the phone the translator and the storage readout; S3206 sized the
+                // translator 4x3 and took it back off the phone - the footprint no longer fits here.
+                "sec:widgets", "compass", "storage",
                 "sec:resources",
                 "res:1:BROWSE", "res:2:BROWSE", "res:3:BROWSE",
                 "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
@@ -352,7 +353,7 @@ class LauncherStarterSetsTest {
         assertEquals(
             listOf(
                 "clock", "search", "weather",
-                "sec:widgets", "compass", "translator", "storage",
+                "sec:widgets", "compass", "storage",
                 "sec:resources", "res:1:BROWSE",
                 "sec:app_functions", "fn:calculator",
             ) +

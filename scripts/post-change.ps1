@@ -1865,9 +1865,43 @@ Invoke-Step "dev-log" {
 if ($Target -match '^S\d{4}$') {
     # Silent by contract: the ledger is read later through the recorder's Summary verb, and printing
     # it here would add to the agent context it measures. A recorder failure never changes the verdict.
-    & $pwsh -NoProfile -File (Join-Path $root "scripts/metrics/ticket-cost.ps1") -Verb Record -Id $Target *> $null
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "post-change: ticket-cost record exited $LASTEXITCODE for $Target (verdict unaffected)" -ForegroundColor Yellow
+    #
+    # S3219: and neither may a recorder that never finishes. On 2026-09-17 a closure reached
+    # "[dev-log] PASS (991 ms)" and stopped there for ~20 minutes on 5.22 CPU-seconds - every gate
+    # green, every mutating step already done, two live pwsh processes on near-zero CPU. This call is
+    # the only thing that runs between that line and the verdict, and it was awaited with no bound, so
+    # a stall inside it (or inside the python extractor it launches over the runtime transcript tree)
+    # cost the whole session its result. Bounded now: -NonInteractive turns an unexpected mandatory-
+    # parameter prompt into a failure instead of a blocking read (S2610's failure mode), the streams go
+    # to the run's protocol directory instead of being discarded, and the child is killed at the cap.
+    $recorderTimeoutMs = 120000
+    $recorderLog = "$($script:ProtocolPath).ticket-cost.log"
+    try {
+        $recorderDir = Split-Path -Parent $recorderLog
+        if (-not (Test-Path -LiteralPath $recorderDir)) { New-Item -ItemType Directory -Force -Path $recorderDir | Out-Null }
+        $recorder = Start-Process -FilePath $pwsh -PassThru -NoNewWindow -RedirectStandardOutput $recorderLog `
+            -RedirectStandardError "$recorderLog.err" `
+            -ArgumentList @('-NoProfile', '-NonInteractive', '-File',
+                (Join-Path $root "scripts/metrics/ticket-cost.ps1"), '-Verb', 'Record', '-Id', $Target)
+        # Touching Handle before the child exits is what keeps ExitCode readable afterwards.
+        $null = $recorder.Handle
+        if (-not $recorder.WaitForExit($recorderTimeoutMs)) {
+            try { $recorder.Kill($true) } catch { }
+            $null = $recorder.WaitForExit(3000)
+            Write-Host ("post-change: ticket-cost record for $Target did not finish in " +
+                "$([int]($recorderTimeoutMs / 1000))s - killed (verdict unaffected, see $recorderLog)") -ForegroundColor Yellow
+        }
+        elseif ($recorder.ExitCode -ne 0) {
+            Write-Host "post-change: ticket-cost record exited $($recorder.ExitCode) for $Target (verdict unaffected)" -ForegroundColor Yellow
+        }
+        else {
+            # A clean recorder has nothing to say (silent by contract), so its two capture files are
+            # pure clutter - kept only when the run went wrong and someone will read them.
+            Remove-Item -LiteralPath $recorderLog, "$recorderLog.err" -Force -ErrorAction SilentlyContinue
+        }
+    }
+    catch {
+        Write-Host "post-change: ticket-cost record could not run for $Target - $($_.Exception.Message) (verdict unaffected)" -ForegroundColor Yellow
     }
 }
 

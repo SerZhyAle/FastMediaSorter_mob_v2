@@ -68,4 +68,35 @@ class WearRoutesTest {
 
         assertTrue(route.contains("sourceId=a%26b"))
     }
+
+    /** S3213: the five patterns a second player must never be stacked on top of. */
+    @Test
+    fun `every content pattern is recognised as a content route`() {
+        val patterns = listOf(
+            WearRoutes.AUDIO_PLAYER_PATTERN,
+            WearRoutes.VIDEO_PLAYER_PATTERN,
+            WearRoutes.IMAGE_VIEWER_PATTERN,
+            WearRoutes.DOCUMENT_VIEWER_PATTERN,
+            WearRoutes.UNSUPPORTED_FILE,
+        )
+
+        patterns.forEach { pattern -> assertTrue(pattern, WearRoutes.isContentRoute(pattern)) }
+    }
+
+    @Test
+    fun `a screen that is not content is not a content route`() {
+        listOf(WearRoutes.HOME, WearRoutes.PHONE_CAMERA, WearRoutes.BROWSE_PATTERN, WearRoutes.FAVOURITES)
+            .forEach { route -> assertTrue(route, !WearRoutes.isContentRoute(route)) }
+    }
+
+    @Test
+    fun `no current destination is not a content route`() {
+        assertTrue(!WearRoutes.isContentRoute(null))
+    }
+
+    /** A filled address is not what the navigation graph reports, so it must not be accepted blindly. */
+    @Test
+    fun `a filled player address is not the graph route`() {
+        assertTrue(!WearRoutes.isContentRoute(WearRoutes.videoPlayer(42L)))
+    }
 }

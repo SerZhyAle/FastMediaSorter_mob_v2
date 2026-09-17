@@ -165,7 +165,6 @@ class VoiceRecordingService : Service() {
                 START_NOT_STICKY
             }
             ACTION_START_BROADCAST -> {
-                Timber.d("S3197: broadcast start intent received; flags=%d", flags)
                 handleStartBroadcast()
                 START_REDELIVER_INTENT
             }

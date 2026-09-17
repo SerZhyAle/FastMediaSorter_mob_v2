@@ -225,6 +225,19 @@
       "note2": "Inserted before the water flashlight rather than after it, so the entry that leaves the Apps list for Settings keeps the exit path it was measured with."
     },
     {
+      "id": "apps-sos",
+      "name": "Apps - SOS",
+      "label": "SOS",
+      "expect": "Pick what to signal with",
+      "screen": "SosScreen",
+      "expectRes": "wear_sos_arming_hint",
+      "backAfter": 1,
+      "note": "S3216. Walked rather than excluded, and the arming state is why: the screen opens with its three mode chips and NOTHING running, so the walk sees a static surface and starts no siren. Tapping a chip is what raises the signal, and the walk never taps inside a screen. Compare WearBroadcastQrScreen, excluded because it has nothing to render until a live session exists - here the entrance itself is the renderable state.",
+      "note2": "The marker is the arming hint, not the title: this screen repeats its Apps chip label SOS as its heading, so the title appears on the parent too and would match before the screen ever opened. The same trap the clipboard entry above records.",
+      "note3": "backAfter 1 rather than the water flashlight's measured overshoot below: the key handler that also calls onLeave() lives only in the SIGNALLING half of this screen, so in the arming state a hardware key reaches the activity's back dispatcher alone and leaves exactly one level. Placed before the water flashlight for the reason the clipboard entry states - that entry is last on purpose because its exit lands on Home.",
+      "note4": "Nothing gates this screen: no permission, no sensor, no flavor flag, so it is present in the store artifact too (StoreBoundaryTest pins it)."
+    },
+    {
       "id": "apps-water-flashlight",
       "name": "Water flashlight",
       "label": "Water flashlight",
@@ -304,6 +317,11 @@
     }
   ],
   "excluded": [
+    {
+      "screen": "PermissionsSettingsScreen",
+      "reason": "absent-from-this-flavor",
+      "note": "S3226 shows the Permissions entry only where the merged manifest declares a runtime permission, which it reads through BuildWearPermissionGroupsUseCase rather than through a flavor check (S3186 ADR-1). The standard store manifest removes every one of them, so the settings list carries no chip for it in the build this sweep judges and a walk entry could only ever report unreachable."
+    },
     {
       "screen": "AddNetworkSourceScreen",
       "reason": "absent-from-this-flavor",

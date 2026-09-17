@@ -283,6 +283,9 @@ class SettingsInputRow @JvmOverloads constructor(
         inlineTailSpacer.updateLayoutParams<LayoutParams> {
             width = 0
             weight = 1f
+            // S3229: a bare View reports the whole AT_MOST spec back, so an unbounded height here grew
+            // the row to the full height of the card it sits in and pushed the screen's actions out.
+            height = 0
         }
     }
 

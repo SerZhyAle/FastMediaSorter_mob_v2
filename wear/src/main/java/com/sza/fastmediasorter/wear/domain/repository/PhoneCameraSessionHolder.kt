@@ -33,6 +33,16 @@ class PhoneCameraSessionHolder @Inject constructor() {
     val awaitingRequestId: String?
         get() = (_state.value as? PhoneCameraSessionState.Requested)?.requestId
 
+    /**
+     * S3223: the id of the session being served right now, or null when none is.
+     *
+     * The phone names this id when it announces on its own that the broadcast is over, and the
+     * listener has nothing else to tie that announcement to: [awaitingRequestId] is null the moment
+     * the session goes live.
+     */
+    val liveRequestId: String?
+        get() = (_state.value as? PhoneCameraSessionState.Live)?.requestId
+
     fun markRequested(requestId: String) {
         _state.value = PhoneCameraSessionState.Requested(requestId)
     }

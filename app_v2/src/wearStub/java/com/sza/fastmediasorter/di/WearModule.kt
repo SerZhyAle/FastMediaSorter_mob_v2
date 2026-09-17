@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.di
 
+import com.sza.fastmediasorter.broadcast.NoOpWatchCameraSessionAnnouncer
+import com.sza.fastmediasorter.broadcast.WatchCameraSessionAnnouncer
 import com.sza.fastmediasorter.data.wear.NoOpWearFileTransferRepository
 import com.sza.fastmediasorter.data.wear.NoOpWearWatchMediaScanner
 import com.sza.fastmediasorter.data.wear.NoOpWearableDataLayerRepository
@@ -44,4 +46,10 @@ abstract class WearModule {
     abstract fun bindWearFileTransferRepository(
         impl: NoOpWearFileTransferRepository
     ): WearFileTransferRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWatchCameraSessionAnnouncer(
+        impl: NoOpWatchCameraSessionAnnouncer
+    ): WatchCameraSessionAnnouncer
 }

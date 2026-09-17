@@ -43,5 +43,7 @@ object WearAppIconCatalog {
         WearAppId.TOURIST -> R.drawable.ic_tourist
         // S3109: the copy glyph this module already carries for tap-to-copy - one act, one symbol.
         WearAppId.CLIPBOARD -> R.drawable.ic_copy
+        // S3216: the phone's own SOS glyph, copied name-for-name - one program on two devices.
+        WearAppId.SOS -> R.drawable.ic_sos
     }
 }

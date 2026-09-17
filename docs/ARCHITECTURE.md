@@ -244,6 +244,8 @@ rework whenever the debt is merely noticed.
 
 ## Button Taxonomy (MANDATORY)
 
+The taxonomy below owns the button role and nothing else. Every other phone UI role - the dialog and bottom-sheet construction seam, the list and grid row, the toolbar and action bar, the floating panel, and the design tokens all four inherit - is `docs/ui/PHONE_UI_COMPONENT_PATTERNS.md`, which extends this section and never contradicts it (S3231). A conflict found between the two is a finding against that catalogue.
+
 One named Material3 style per semantic role, defined in `values/themes.xml`. The same role must look identical everywhere - do NOT introduce a plain `<Button>`, a raw `Widget.MaterialComponents.*`/`Widget.Material3.*` reference, or a one-off per-screen style for a role already covered below. Pick by the button's role, not by how it should look.
 
 | Role | Style | When to use |

@@ -30,6 +30,20 @@
         app:icon="@drawable/ic_share"
         app:iconGravity="start" />
 
+    <!-- S3040: hidden until BrowseSendToDeviceMenuAction binds it, so a build without the
+         cross-device queue never shows a row that cannot act. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSendToDevice"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:text="@string/cross_device_transfer_send_to_device"
+        android:textAlignment="viewStart"
+        android:visibility="gone"
+        app:icon="@drawable/ic_share"
+        app:iconGravity="start" />
+
     <!-- Open With Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnOpenWith"

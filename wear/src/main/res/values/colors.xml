@@ -78,4 +78,10 @@
          rather than another blue - the Motion Monitor holds blue and the accent test forbids a repeat
          because the whole list fits one watch screen at once. -->
     <color name="color_program_accent_slate">#FF6B7A8C</color>
+    <!-- S3216: the fourteenth name, for the distress signal. The phone gives that program its plain
+         red, but the red above is already the Voice Recorder's here and the accent test forbids a
+         repeat - so this is the second tone whose value the two devices disagree on by necessity.
+         Scarlet: hotter and more saturated than the red beside it, which is the one row in this list
+         that should read as an alarm at a glance. -->
+    <color name="color_program_accent_scarlet">#FFB5503F</color>
 </resources>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S3216: the distress signal screen. The whole window is the second lamp - the root background is driven
+  from the activity on the Morse beat, so no colour is fixed here beyond the dark resting state.
+
+  One orientation-agnostic file on purpose, the reason recorded in activity_water_flashlight.xml: the
+  content is a centred column that reads the same in portrait and landscape, and a landscape twin of it
+  would be a second copy to keep in step for no visible difference.
+
+  The stop control is deliberately the largest target on the screen: it is pressed by someone who is
+  cold, wet or injured, and the siren behind it is loud enough that hunting for a small button is its
+  own small emergency (strategic §7).
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/sosRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/margin_large"
+            android:paddingVertical="@dimen/margin_large">
+
+            <ImageView
+                android:id="@+id/ivSosGlyph"
+                android:layout_width="@dimen/sos_glyph_size"
+                android:layout_height="@dimen/sos_glyph_size"
+                android:contentDescription="@string/sos_title"
+                android:src="@drawable/ic_sos"
+                app:tint="@color/color_program_accent_red" />
+
+            <TextView
+                android:id="@+id/tvSosTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:gravity="center"
+                android:text="@string/sos_title"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textColor="?attr/colorOnSurface" />
+
+            <TextView
+                android:id="@+id/tvSosHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:gravity="center"
+                android:text="@string/sos_hint"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <!-- Single selection: the three modes are alternatives, and the group is what makes that
+                 mechanical rather than a rule the click handlers have to keep. -->
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/groupSosMode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_large"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSosModeAll"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sos_mode_all" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSosModeSoundOnly"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sos_mode_sound_only" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSosModeLightOnly"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sos_mode_light_only" />
+
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSosStop"
+                style="@style/Widget.FastMediaSorter.Button.DialogDestructive"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/sos_stop_button_height"
+                android:layout_marginTop="@dimen/margin_large"
+                android:text="@string/sos_stop_action"
+                android:textAppearance="?attr/textAppearanceHeadline6" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- The strobe is drawn OVER the content rather than as the root's background: a white root would
+         need the two labels recoloured on every beat, and text taken from the theme is near-white in the
+         dark theme and would vanish on the flash. Declares no touch attribute, so an ACTION_DOWN during
+         a lit span is not consumed here and still reaches the stop button underneath. -->
+    <View
+        android:id="@+id/viewSosFlash"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white"
+        android:visibility="gone" />
+
+</FrameLayout>

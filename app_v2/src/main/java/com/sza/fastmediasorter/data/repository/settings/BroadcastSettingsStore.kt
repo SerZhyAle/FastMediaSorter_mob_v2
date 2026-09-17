@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BroadcastSettings
 import com.sza.fastmediasorter.domain.model.DEFAULT_BROADCAST_STREAM_TITLE
 import com.sza.fastmediasorter.domain.model.LEGACY_BROADCAST_STREAM_TITLE
 import timber.log.Timber
@@ -46,22 +47,14 @@ object BroadcastSettingsStore {
     // S3049: microphone digital PCM gain percentage (50% - 400%, default 100%).
     private val keyMicGainPercent = intPreferencesKey("broadcast_mic_gain_percent")
 
+    /**
+     * S3222: the session parameters are the domain group itself, so this store no longer restates the
+     * same fourteen names. `enableBroadcasting` rides beside it rather than inside it - it is a program
+     * toggle in [AppSettings], not a parameter of the session.
+     */
     data class Values(
         val enableBroadcasting: Boolean,
-        val streamTitle: String,
-        val bitRateBps: Int,
-        val port: Int,
-        val sampleRateHz: Int,
-        val channelCount: Int,
-        val autoOpenShare: Boolean,
-        val sourceDeviceId: String?,
-        val cameraEnabled: Boolean,
-        val microphoneEnabled: Boolean,
-        val videoWidth: Int,
-        val videoHeight: Int,
-        val videoFps: Int,
-        val videoBitrateBps: Int,
-        val micGainPercent: Int,
+        val broadcast: BroadcastSettings,
     )
 
     fun defaultDeviceTitle(context: Context? = null): String {
@@ -86,41 +79,44 @@ object BroadcastSettingsStore {
 
     fun read(preferences: Preferences, context: Context? = null): Values = Values(
         enableBroadcasting = preferences[keyEnableBroadcasting] ?: false,
-        // S3173: the legacy default was persisted verbatim by every settings write, so an
-        // installation holding it never chose a title - resolve it like an absent key.
-        streamTitle = preferences[keyStreamTitle]
-            ?.takeUnless { it == LEGACY_BROADCAST_STREAM_TITLE }
-            ?: defaultDeviceTitle(context),
-        bitRateBps = preferences[keyBitRateBps] ?: DEFAULT_BIT_RATE_BPS,
-        port = preferences[keyPort] ?: DEFAULT_PORT,
-        sampleRateHz = preferences[keySampleRateHz] ?: DEFAULT_SAMPLE_RATE_HZ,
-        channelCount = preferences[keyChannelCount] ?: DEFAULT_CHANNEL_COUNT,
-        autoOpenShare = preferences[keyAutoOpenShare] ?: true,
-        sourceDeviceId = preferences[keySourceDeviceId],
-        cameraEnabled = preferences[keyCameraEnabled] ?: false,
-        microphoneEnabled = preferences[keyMicrophoneEnabled] ?: true,
-        videoWidth = preferences[keyVideoWidth] ?: 1280,
-        videoHeight = preferences[keyVideoHeight] ?: 720,
-        videoFps = preferences[keyVideoFps] ?: 30,
-        videoBitrateBps = preferences[keyVideoBitrateBps] ?: 2_000_000,
-        micGainPercent = preferences[keyMicGainPercent] ?: 100,
+        broadcast = BroadcastSettings(
+            // S3173: the legacy default was persisted verbatim by every settings write, so an
+            // installation holding it never chose a title - resolve it like an absent key.
+            streamTitle = preferences[keyStreamTitle]
+                ?.takeUnless { it == LEGACY_BROADCAST_STREAM_TITLE }
+                ?: defaultDeviceTitle(context),
+            bitRateBps = preferences[keyBitRateBps] ?: DEFAULT_BIT_RATE_BPS,
+            port = preferences[keyPort] ?: DEFAULT_PORT,
+            sampleRateHz = preferences[keySampleRateHz] ?: DEFAULT_SAMPLE_RATE_HZ,
+            channelCount = preferences[keyChannelCount] ?: DEFAULT_CHANNEL_COUNT,
+            autoOpenShare = preferences[keyAutoOpenShare] ?: true,
+            sourceDeviceId = preferences[keySourceDeviceId],
+            cameraEnabled = preferences[keyCameraEnabled] ?: false,
+            microphoneEnabled = preferences[keyMicrophoneEnabled] ?: true,
+            videoWidth = preferences[keyVideoWidth] ?: 1280,
+            videoHeight = preferences[keyVideoHeight] ?: 720,
+            videoFps = preferences[keyVideoFps] ?: 30,
+            videoBitrateBps = preferences[keyVideoBitrateBps] ?: 2_000_000,
+            micGainPercent = preferences[keyMicGainPercent] ?: 100,
+        ),
     )
 
     fun write(preferences: MutablePreferences, settings: AppSettings) {
+        val broadcast = settings.broadcast
         preferences[keyEnableBroadcasting] = settings.enableBroadcasting
-        preferences[keyStreamTitle] = settings.broadcastStreamTitle
-        preferences[keyBitRateBps] = settings.broadcastBitRateBps
-        preferences[keyPort] = settings.broadcastPort
-        preferences[keySampleRateHz] = settings.broadcastSampleRateHz
-        preferences[keyChannelCount] = settings.broadcastChannelCount
-        preferences[keyAutoOpenShare] = settings.broadcastAutoOpenShare
-        settings.broadcastSourceDeviceId?.let { preferences[keySourceDeviceId] = it }
-        preferences[keyCameraEnabled] = settings.broadcastCameraEnabled
-        preferences[keyMicrophoneEnabled] = settings.broadcastMicrophoneEnabled
-        preferences[keyVideoWidth] = settings.broadcastVideoWidth
-        preferences[keyVideoHeight] = settings.broadcastVideoHeight
-        preferences[keyVideoFps] = settings.broadcastVideoFps
-        preferences[keyVideoBitrateBps] = settings.broadcastVideoBitrateBps
-        preferences[keyMicGainPercent] = settings.broadcastMicGainPercent
+        preferences[keyStreamTitle] = broadcast.streamTitle
+        preferences[keyBitRateBps] = broadcast.bitRateBps
+        preferences[keyPort] = broadcast.port
+        preferences[keySampleRateHz] = broadcast.sampleRateHz
+        preferences[keyChannelCount] = broadcast.channelCount
+        preferences[keyAutoOpenShare] = broadcast.autoOpenShare
+        broadcast.sourceDeviceId?.let { preferences[keySourceDeviceId] = it }
+        preferences[keyCameraEnabled] = broadcast.cameraEnabled
+        preferences[keyMicrophoneEnabled] = broadcast.microphoneEnabled
+        preferences[keyVideoWidth] = broadcast.videoWidth
+        preferences[keyVideoHeight] = broadcast.videoHeight
+        preferences[keyVideoFps] = broadcast.videoFps
+        preferences[keyVideoBitrateBps] = broadcast.videoBitrateBps
+        preferences[keyMicGainPercent] = broadcast.micGainPercent
     }
 }

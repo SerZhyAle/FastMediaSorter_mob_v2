@@ -157,9 +157,12 @@ object LauncherStarterSets {
         DeviceProfileType.PERSONAL_SMARTPHONE,
     )
 
-    /** S2682: the three profiles where a person reads text off the screen and may need a word rendered. */
+    /**
+     * S2682 ruled the tile onto the three profiles where a person reads text off the screen; S3206
+     * raised its floor to 4x3 and took the smartphone back out - the footprint no longer fits the
+     * phone's widgets budget. The tile stays addable by hand everywhere.
+     */
     private val TRANSLATOR_PROFILES = setOf(
-        DeviceProfileType.PERSONAL_SMARTPHONE,
         DeviceProfileType.HOME_TABLET,
         DeviceProfileType.EBOOK_READER,
     )
@@ -178,6 +181,11 @@ object LauncherStarterSets {
     // S1094: the clock seeds big (its resize floor stays 2x1, declared on the gadget itself).
     private const val CLOCK_SEED_W = 4
     private const val CLOCK_SEED_H = 2
+
+    // S3206: the translator seeds at the 4x3 floor its gadget declares, so a fresh desktop never
+    // opens a cell the user is forbidden to shrink below.
+    private const val TRANSLATOR_SEED_W = 4
+    private const val TRANSLATOR_SEED_H = 3
 
     // Wide stride so packed (row, col) keys never collide across rows for any realistic column count.
     private const val KEY_STRIDE = 100_000L
@@ -432,7 +440,17 @@ object LauncherStarterSets {
             add(gadget(GADGET_AUDIO_NOW_PLAYING))
         }
         if (profile in TRANSLATOR_PROFILES) {
-            add(gadget(GADGET_TRANSLATOR))
+            Timber.d("S3206: seeding translator at the 4x3 floor, profile=$profile")
+            // S3206: the tile's own form factor, not the generic 2x1 sensor tile - the gadget's 4x3
+            // floor is the smallest footprint the owner allows, so the seed places exactly that.
+            add(
+                StarterItem(
+                    LauncherCellKind.GADGET,
+                    GADGET_TRANSLATOR,
+                    spanW = TRANSLATOR_SEED_W,
+                    spanH = TRANSLATOR_SEED_H,
+                )
+            )
         }
         if (profile in STORAGE_PROFILES) {
             add(gadget(GADGET_STORAGE))

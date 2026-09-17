@@ -542,9 +542,42 @@ class LauncherHomeViewModel @Inject constructor(
      * S2599: the column count comes from the surface rendering the desktop, because it decides how far
      * right a cell of this width can be seated - the drop point alone does not say.
      */
-    fun moveCell(id: Long, rowIndex: Int, colIndex: Int, columns: Int) {
+    fun moveCell(
+        id: Long,
+        rowIndex: Int,
+        colIndex: Int,
+        columns: Int,
+        targetScreenIndex: Int? = null,
+    ) {
         viewModelScope.launch {
-            desktopDependencies.desktopRepository.moveCell(id, rowIndex, colIndex, columns)
+            desktopDependencies.desktopRepository.moveCell(
+                id = id,
+                rowIndex = rowIndex,
+                colIndex = colIndex,
+                columns = columns,
+                targetScreenIndex = targetScreenIndex,
+            )
+        }
+    }
+
+    /**
+     * S3204: moves an entire section block to [targetRow] in the active layout orientation.
+     */
+    fun moveSectionBlock(id: Long, targetRow: Int) {
+        timber.log.Timber.d("S3204: section drag drop id=$id targetRow=$targetRow orientation=${_orientation.value}")
+        viewModelScope.launch {
+            desktopDependencies.desktopRepository.relocateSectionBlock(_orientation.value, id, targetRow)
+        }
+    }
+
+    /**
+     * S3204: the non-pointer twin of [moveSectionBlock]. A keyboard, D-pad or screen-reader user cannot
+     * aim a drop, so the section trades places with its neighbour block instead - one step per action.
+     */
+    fun swapSectionWithNeighbour(id: Long, moveUp: Boolean) {
+        timber.log.Timber.d("S3204: section menu move id=$id moveUp=$moveUp orientation=${_orientation.value}")
+        viewModelScope.launch {
+            desktopDependencies.desktopRepository.swapSectionBlock(_orientation.value, id, moveUp)
         }
     }
 

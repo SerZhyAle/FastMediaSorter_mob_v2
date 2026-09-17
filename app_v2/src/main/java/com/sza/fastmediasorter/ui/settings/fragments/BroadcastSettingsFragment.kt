@@ -8,6 +8,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.sza.fastmediasorter.databinding.FragmentSettingsBroadcastBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BroadcastSettings
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -47,37 +48,32 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
         binding.rowStreamTitle.setOnCommitListener { value ->
             val title = value.toString().trim()
             if (title.isNotEmpty()) {
-                viewModel.updateSettings(viewModel.settings.value.copy(broadcastStreamTitle = title))
+                updateBroadcast { copy(streamTitle = title) }
             }
         }
 
         binding.rowPort.setOnCommitListener { value ->
             val port = value.toString().trim().toIntOrNull()
             if (port != null && BroadcastSettingsOptions.isValidPort(port)) {
-                viewModel.updateSettings(viewModel.settings.value.copy(broadcastPort = port))
+                updateBroadcast { copy(port = port) }
             } else {
-                binding.rowPort.text = viewModel.settings.value.broadcastPort.toString()
+                binding.rowPort.text = viewModel.settings.value.broadcast.port.toString()
             }
         }
 
         bindDropdown(binding.rowBitRate) { index ->
             val bitRate = BroadcastSettingsOptions.bitRatesBps.getOrNull(index) ?: return@bindDropdown
-            viewModel.updateSettings(viewModel.settings.value.copy(broadcastBitRateBps = bitRate))
+            updateBroadcast { copy(bitRateBps = bitRate) }
         }
 
         bindDropdown(binding.rowAudioFormat) { index ->
             val format = BroadcastSettingsOptions.audioFormats.getOrNull(index) ?: return@bindDropdown
-            viewModel.updateSettings(
-                viewModel.settings.value.copy(
-                    broadcastSampleRateHz = format.first,
-                    broadcastChannelCount = format.second,
-                )
-            )
+            updateBroadcast { copy(sampleRateHz = format.first, channelCount = format.second) }
         }
 
         bindDropdown(binding.rowMicGain) { index ->
             val gain = BroadcastSettingsOptions.micGainPercents.getOrNull(index) ?: return@bindDropdown
-            viewModel.updateSettings(viewModel.settings.value.copy(broadcastMicGainPercent = gain))
+            updateBroadcast { copy(micGainPercent = gain) }
         }
 
         bindSwitch(binding.rowEnableBroadcasting) { isChecked ->
@@ -86,16 +82,16 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
         }
 
         bindSwitch(binding.rowAutoOpenShare) { isChecked ->
-            viewModel.updateSettings(viewModel.settings.value.copy(broadcastAutoOpenShare = isChecked))
+            updateBroadcast { copy(autoOpenShare = isChecked) }
         }
 
         collectOnLifecycle(viewModel.settings) { settings: AppSettings ->
             updateBroadcastOptionsVisibility(settings.enableBroadcasting)
-            if (binding.rowStreamTitle.text.toString() != settings.broadcastStreamTitle) {
-                binding.rowStreamTitle.text = settings.broadcastStreamTitle
+            if (binding.rowStreamTitle.text.toString() != settings.broadcast.streamTitle) {
+                binding.rowStreamTitle.text = settings.broadcast.streamTitle
             }
-            if (binding.rowPort.text.toString() != settings.broadcastPort.toString()) {
-                binding.rowPort.text = settings.broadcastPort.toString()
+            if (binding.rowPort.text.toString() != settings.broadcast.port.toString()) {
+                binding.rowPort.text = settings.broadcast.port.toString()
             }
             withSettingsUpdate {
                 setSwitchChecked(binding.rowEnableBroadcasting, settings.enableBroadcasting)
@@ -105,9 +101,15 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
                     BroadcastSettingsOptions.audioFormatIndex(settings)
                 )
                 setDropdownSelection(binding.rowMicGain, BroadcastSettingsOptions.micGainIndex(settings))
-                setSwitchChecked(binding.rowAutoOpenShare, settings.broadcastAutoOpenShare)
+                setSwitchChecked(binding.rowAutoOpenShare, settings.broadcast.autoOpenShare)
             }
         }
+    }
+
+    private fun updateBroadcast(transform: BroadcastSettings.() -> BroadcastSettings) {
+        val current = viewModel.settings.value
+        val updated = current.broadcast.transform()
+        viewModel.updateSettings(current.copy(broadcast = updated))
     }
 
     private fun updateBroadcastOptionsVisibility(enabled: Boolean) {

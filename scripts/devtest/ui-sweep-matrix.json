@@ -1,0 +1,90 @@
+{
+  "_comment": [
+    "S2380 - the run matrix of the automated phone UI sweep, as data rather than as code.",
+    "Strategic 5.1: orientation, screen profile, colour theme and language are each a dimension that",
+    "expands by editing this file; the walker reads it and never hardcodes a value.",
+    "",
+    "The walker nests the dimensions outermost-first IN THE ORDER DECLARED under `dimensions`, which",
+    "is the order of switching cost (step 04.1): the profile is outermost because switching it means",
+    "booting a different emulator; the language is next because a per-app locale switch recreates the",
+    "activity; theme and orientation are cheap - the debug hook applies a theme inside the running",
+    "process and a rotation is one settings write - so they change most often. Expensive dimensions",
+    "thus change least often (strategic 5.1).",
+    "",
+    "profile values are ids from ui-sweep-profiles.json - the same declaration the bench asserts",
+    "against, so the walker and the bench cannot disagree about what `small-phone` means.",
+    "",
+    "language values carry the per-app locale tag fed to `cmd locale set-app-locales` (the API 33+",
+    "shell path strategic 3.2 pins) and the resource folder whose strings.xml the walker resolves",
+    "@string/ labels and expectRes markers from. `values` is the default (English) folder.",
+    "",
+    "theme values are the nine raw spellings ThemeTestHooks accepts; anything else is answered with",
+    "ACK_REJECTED and the walker refuses the combination rather than photographing the wrong theme.",
+    "",
+    "orientation values carry the `settings put system user_rotation` value. Accelerometer rotation is",
+    "switched off for the run so the value actually holds.",
+    "",
+    "subsets declare a shortened run (strategic 3.1): a key missing from a subset means ALL values of",
+    "that dimension. `quick` is one language, one theme, one bench - the fast check the owner asked",
+    "for; `ru-dark` is the middle slice that exercises the second language and a dark theme on both",
+    "benches without paying for nine themes.",
+    "",
+    "seedRoot is the device directory ui-sweep-seed.ps1 filled; setup-add-local-resource in",
+    "ui-sweep-screens.json picks it through the system folder picker. `package` is the debug id the",
+    "sweep drives and that the theme hook answers on.",
+    "",
+    "Consumed by scripts/devtest/ui-sweep-walk.ps1."
+  ],
+  "ticket": "S2380",
+  "package": "com.sza.fastmediasorter.debug",
+  "seedRoot": "/storage/emulated/0/Download/FastMediaSorter_UiSweep",
+  "dimensions": [
+    {
+      "id": "profile",
+      "switchCost": "a different emulator must boot - outermost",
+      "values": ["small-phone", "large-phone"]
+    },
+    {
+      "id": "language",
+      "switchCost": "a per-app locale switch recreates the activity",
+      "values": [
+        { "id": "en", "appLocale": "en-US", "resFolder": "values" },
+        { "id": "ru", "appLocale": "ru-RU", "resFolder": "values-ru" }
+      ]
+    },
+    {
+      "id": "theme",
+      "switchCost": "the debug hook applies it inside the running process",
+      "values": [
+        "AUTO",
+        "LIGHT",
+        "DARK",
+        "DARK_GREEN",
+        "DARK_BLUE",
+        "DARK_RED",
+        "LIGHT_GREEN",
+        "LIGHT_BLUE",
+        "LIGHT_RED"
+      ]
+    },
+    {
+      "id": "orientation",
+      "switchCost": "one rotation setting on the live display - innermost",
+      "values": [
+        { "id": "portrait", "userRotation": 0 },
+        { "id": "landscape", "userRotation": 1 }
+      ]
+    }
+  ],
+  "subsets": {
+    "quick": {
+      "profile": ["small-phone"],
+      "language": ["en"],
+      "theme": ["AUTO"]
+    },
+    "ru-dark": {
+      "language": ["ru"],
+      "theme": ["DARK"]
+    }
+  }
+}

@@ -221,7 +221,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         if (uri == null) return@registerForActivityResult
         // S3167: the document read is IO the picker callback must not do on the main thread.
         lifecycleScope.launch {
-            Timber.d("S3167: picked descriptor read off the main thread")
             val payload = broadcastImportManager.readDescriptorFile(uri)
             if (payload == null) {
                 Toast.makeText(
@@ -770,27 +769,21 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * is on disk and how many channels each index actually covers. Without it, an empty map and a
      * missing file look the same from outside.
      */
-    private fun logStreamArtworkState() {
+    private suspend fun logStreamArtworkState() {
+        Timber.d("S3230: logStreamArtworkState entered - atlas payload probes about to run on IO")
+        // S3230: the three payload probes each stat a file, so they run on IO before the line is built.
+        val faviconInstalled = faviconAtlasStore.isInstalled()
+        val previewKind = channelPreviewAtlasStore.payloadKind()
+        val logoKind = streamLogoAtlasStore.payloadKind()
         Timber.i(
             "Streams artwork: favicon=%b/%d, preview=%s/%d, logo=%s/%d (payload on disk / channels covered)",
-            faviconAtlasStore.atlasFile() != null,
+            faviconInstalled,
             faviconCoords.size,
-            payloadKind(channelPreviewAtlasStore.tilePackFile(), channelPreviewAtlasStore.atlasFile()),
+            previewKind,
             atlasPreviewCoords.size,
-            payloadKind(streamLogoAtlasStore.tilePackFile(), streamLogoAtlasStore.atlasFile()),
+            logoKind,
             logoAtlasCoords.size
         )
-    }
-
-    /**
-     * Which container an artwork payload is being served from. A pack and a sheet render identical
-     * pictures at wildly different speed, so a log that says only "installed" cannot explain a slow
-     * grid on a user's device.
-     */
-    private fun payloadKind(pack: java.io.File?, sheet: java.io.File?): String = when {
-        pack != null -> "pack"
-        sheet != null -> "sheet"
-        else -> "none"
     }
 
     /**
@@ -1127,7 +1120,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // S3167: the descriptor may sit behind a slow SAF provider, so the read never runs on
             // the main thread that onCreate/onNewIntent hand us.
             lifecycleScope.launch {
-                Timber.d("S3167: intent descriptor read off the main thread")
                 broadcastImportManager.readDescriptorFile(uri)?.let { payload ->
                     viewModel.onImportBroadcastDescriptor(payload)
                 }
@@ -1537,16 +1529,16 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // S1154: the atlas may have been installed from the Extensions Manager while this screen sat in
         // the background - pick it up on return instead of waiting for the next catalog import.
         // S1445: either container counts as installed - a fresh install carries the pack and no sheet.
-        val previewInstalled = channelPreviewAtlasStore.tilePackFile() != null ||
-            channelPreviewAtlasStore.atlasFile() != null
-        if (atlasPreviewCoords.isEmpty() && previewInstalled) {
-            lifecycleScope.launch { reloadAtlasPreviews() }
-        }
-        // S1201: same for the logo atlas - the two payloads install independently.
-        val logoInstalled = streamLogoAtlasStore.tilePackFile() != null ||
-            streamLogoAtlasStore.atlasFile() != null
-        if (logoAtlasCoords.isEmpty() && logoInstalled) {
-            lifecycleScope.launch { reloadLogoTiles() }
+        // S3230: isInstalled() stats the payload on IO, so the probe never lands on the resume frame.
+        lifecycleScope.launch {
+            Timber.d("S3230: onStart atlas install probe running off the main thread")
+            if (atlasPreviewCoords.isEmpty() && channelPreviewAtlasStore.isInstalled()) {
+                reloadAtlasPreviews()
+            }
+            // S1201: same for the logo atlas - the two payloads install independently.
+            if (logoAtlasCoords.isEmpty() && streamLogoAtlasStore.isInstalled()) {
+                reloadLogoTiles()
+            }
         }
     }
 

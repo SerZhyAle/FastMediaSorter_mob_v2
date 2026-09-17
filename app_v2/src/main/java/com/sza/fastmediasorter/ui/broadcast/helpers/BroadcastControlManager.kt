@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.broadcast.helpers
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -31,6 +32,7 @@ import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
+import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.Lazy
@@ -71,6 +73,7 @@ class BroadcastControlManager @Inject constructor(
         activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding
     ) {
+        Timber.d("S3215: broadcast control unified screen setup")
         blankScreenManager.attach(activity, binding.root)
         cameraPermissionAsked = false
         cameraPermissionLauncher = activity.registerForActivityResult(
@@ -130,12 +133,6 @@ class BroadcastControlManager @Inject constructor(
         }
 
         settingsPanelManager.bind(activity, binding.layoutBroadcastSettings)
-        binding.btnBroadcastSettings.setOnClickListener {
-            val shown = binding.containerBroadcastSettings.visibility == View.VISIBLE
-            Timber.d("S3060: broadcast settings panel toggled on the broadcast screen")
-            binding.containerBroadcastSettings.visibility = if (shown) View.GONE else View.VISIBLE
-        }
-
         updateLensSelectionVisibility(activity, binding)
     }
 
@@ -285,12 +282,17 @@ class BroadcastControlManager @Inject constructor(
             if (uri != null) writeBroadcastDescriptor(activity, uri)
         }
 
-        binding.btnShareLink.setOnClickListener {
-            val isVisible = binding.layoutSharePanel.visibility == View.VISIBLE
-            binding.layoutSharePanel.visibility = if (isVisible) View.GONE else View.VISIBLE
-            if (!isVisible) {
-                renderShareData(activity, binding)
-            }
+        binding.btnBroadcastHelp.setOnClickListener { openViewerGuide(activity) }
+    }
+
+    /** S3175: the guide the broadcaster forwards to whoever receives the link, QR or file. */
+    private fun openViewerGuide(activity: AppCompatActivity) {
+        val url = SupportIntentFactory.broadcastGuideUrl(activity)
+        try {
+            activity.startActivity(SupportIntentFactory.openUrl(url))
+        } catch (e: ActivityNotFoundException) {
+            Timber.w(e, "No browser to open the broadcast viewer guide")
+            Toast.makeText(activity, R.string.settings_no_browser_for_docs, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -397,12 +399,14 @@ class BroadcastControlManager @Inject constructor(
         when (state) {
             is BroadcastState.Live -> {
                 preStreamPreview.stop()
-                binding.layoutPreStream.visibility = View.GONE
+                binding.btnStartBroadcast.visibility = View.GONE
                 binding.layoutLiveControls.visibility = View.VISIBLE
-                hideSettingsPanel(binding)
+                binding.layoutSharePanel.visibility = View.VISIBLE
+                setModeControlsEnabled(binding, false)
                 renderModeControls(binding, state.descriptor.mode)
                 renderToggles(binding, state)
                 renderSendToWatch(binding, state)
+                renderShareData(activity, binding)
                 previewBinder.attach(binding.previewContainer)
             }
             is BroadcastState.Idle -> renderPreStream(activity, binding)
@@ -418,15 +422,22 @@ class BroadcastControlManager @Inject constructor(
         binding: ActivityBroadcastControlBinding
     ) {
         previewBinder.detach()
-        binding.layoutPreStream.visibility = View.VISIBLE
+        binding.btnStartBroadcast.visibility = View.VISIBLE
         binding.layoutLiveControls.visibility = View.GONE
         binding.layoutSharePanel.visibility = View.GONE
+        setModeControlsEnabled(binding, true)
         refreshPreStreamPreview(activity, binding)
     }
 
-    /** Going live leaves no pre-stream block to configure, so the panel closes with it. */
-    private fun hideSettingsPanel(binding: ActivityBroadcastControlBinding) {
-        binding.containerBroadcastSettings.visibility = View.GONE
+    private fun setModeControlsEnabled(binding: ActivityBroadcastControlBinding, enabled: Boolean) {
+        binding.cgBroadcastMode.isEnabled = enabled
+        for (i in 0 until binding.cgBroadcastMode.childCount) {
+            binding.cgBroadcastMode.getChildAt(i).isEnabled = enabled
+        }
+        binding.cgLensSelection.isEnabled = enabled
+        for (i in 0 until binding.cgLensSelection.childCount) {
+            binding.cgLensSelection.getChildAt(i).isEnabled = enabled
+        }
     }
 
     /**

@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.EndPhoneCameraSessionOnStreamErrorUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import com.sza.fastmediasorter.wear.ui.player.common.PlaybackProgressTicker
@@ -43,6 +44,7 @@ import com.sza.fastmediasorter.wear.ui.player.common.PlayerVolumeController
 import com.sza.fastmediasorter.wear.ui.player.common.awaitPanelHide
 import com.sza.fastmediasorter.wear.ui.player.common.backwardSeekTarget
 import com.sza.fastmediasorter.wear.ui.player.common.forwardSeekTarget
+import com.sza.fastmediasorter.wear.ui.player.common.jumpToLive
 import com.sza.fastmediasorter.wear.ui.player.common.pauseForHostStop
 import com.sza.fastmediasorter.wear.ui.player.common.resolveFavoriteIdentity
 import com.sza.fastmediasorter.wear.ui.player.common.togglePlayPause
@@ -80,6 +82,7 @@ class VideoPlayerViewModel @Inject constructor(
     private val playbackSetManager: PlaybackSetManager,
     private val preferencesRepository: WearPreferencesRepository,
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
+    private val endPhoneCameraSessionOnStreamError: EndPhoneCameraSessionOnStreamErrorUseCase,
     private val exoPlayer: ExoPlayer,
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
     private val streamPlaybackSessionFactory: StreamPlaybackSessionFactory,
@@ -130,6 +133,13 @@ class VideoPlayerViewModel @Inject constructor(
      * re-enters the download path with the same source id instead of a bare uri.
      */
     private var networkSelection: SelectedMedia? = null
+
+    /**
+     * S3212: the address the open direct stream is being pulled from, or null when a file is playing.
+     * A player error carries no address of its own, and it is the address that says whether the
+     * session that just died was the phone's camera.
+     */
+    private var directStreamUri: String? = null
 
     /**
      * S1838: the slideshow flag decides whether a finished video opens the next file. Held as a field
@@ -254,6 +264,16 @@ class VideoPlayerViewModel @Inject constructor(
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
             streamPlaybackSession.stop()
             Timber.e(error, "ExoPlayer error: ${error.errorCodeName}")
+            // S3212: the phone's camera session ends without a word from the phone, so a dead stream
+            // on its address is the end of it. The screen it was started from states the reason and
+            // offers a fresh start, which a raw error line here could do neither of.
+            if (endPhoneCameraSessionOnStreamError(directStreamUri)) {
+                Timber.d("S3212: phone camera stream died, leaving the player")
+                _uiState.update {
+                    it.copy(isLoading = false, isPlaying = false, closeScreen = true)
+                }
+                return
+            }
             _uiState.update {
                 it.copy(
                     isLoading = false,
@@ -428,6 +448,7 @@ class VideoPlayerViewModel @Inject constructor(
      */
     private fun playFile(file: WearMediaFile) {
         streamPlaybackSession.clear()
+        directStreamUri = null
         streamSessionStartRealtime = 0L
         streamAccumulatedMs = 0L
         exoPlayer.stop()
@@ -518,6 +539,7 @@ class VideoPlayerViewModel @Inject constructor(
             }
             streamSessionStartRealtime = 0L
             streamAccumulatedMs = 0L
+            directStreamUri = selected.streamUri
             _uiState.update {
                 it.copy(
                     isLoading = true,
@@ -592,6 +614,13 @@ class VideoPlayerViewModel @Inject constructor(
     fun getPlayer(): ExoPlayer = exoPlayer
 
     fun togglePlayPause() = streamPlaybackSession.togglePlayPause(exoPlayer)
+
+    /** S3217: a file has no live edge, so only a direct stream is re-prepared. */
+    fun jumpToLive() {
+        if (!_uiState.value.isStream) return
+        Timber.d("S3217: video player jump to live tapped")
+        streamPlaybackSession.jumpToLive(exoPlayer)
+    }
 
     /**
      * S2166 (ADR-1): this pause stays unconditional while the audio twin of it became conditional.

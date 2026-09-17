@@ -68,7 +68,6 @@ fun MotionMonitorScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val requestable = remember { requestableActivityPermissions() }
     val permissionsState = rememberMultiplePermissionsState(permissions = requestable)
-    Timber.d("S3111: motion monitor opened, canRequestPermission=${state.canRequestPermission}")
 
     LaunchedEffect(state.snapshotSaved) {
         if (state.snapshotSaved) {

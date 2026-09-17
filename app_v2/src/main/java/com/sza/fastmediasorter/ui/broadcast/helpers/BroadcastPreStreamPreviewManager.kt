@@ -114,7 +114,6 @@ class BroadcastPreStreamPreviewManager {
             val camera = provider.bindToLifecycle(activity, selectorFor(provider, lensId), preview)
             previewView = view
             boundCameraInfo = camera.cameraInfo
-            Timber.d("S3174: pre-start preview bound to camera %s", cameraIdOf(camera.cameraInfo))
         }.onFailure { error ->
             container.removeView(view)
             Timber.w(error, "Broadcast pre-stream preview: bind failed, the area stays empty")

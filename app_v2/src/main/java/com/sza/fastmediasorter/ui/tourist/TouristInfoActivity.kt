@@ -86,6 +86,10 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
             }
         }
 
+        // S3216: the dashboard is where the owner already is when something goes wrong outdoors, so
+        // the distress signal is one tap from it rather than back through the programs menu.
+        binding.btnSos.setOnClickListener { actionsManager.launchSos() }
+
         binding.cardHeroTile.setOnClickListener {
             val state = viewModel.state.value
             if (state.focusedTile == TouristTileType.COORDINATES) {

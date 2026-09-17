@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S3040: landscape counterpart of layout/dialog_cross_device_packets.xml - same ids, one ViewBinding.
+     The list is capped shorter and the whole dialog scrolls, because a landscape dialog has far less
+     vertical room and the two actions must stay reachable without scrolling past them. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:maxHeight="@dimen/dialog_landscape_max_height">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_normal">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:text="@string/cross_device_transfer_pending_title"
+            android:textSize="@dimen/text_size_title_dialog"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvCrossDevicePacketsEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:text="@string/cross_device_transfer_empty"
+            android:textColor="@color/text_color_secondary"
+            android:textSize="@dimen/text_size_small"
+            android:visibility="gone" />
+
+        <ListView
+            android:id="@+id/listCrossDevicePackets"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dialog_landscape_list_max_height"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:choiceMode="none"
+            android:nextFocusDown="@+id/btnCrossDeviceClearQueue" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCrossDeviceClearQueue"
+                style="@style/Widget.FastMediaSorter.Button.DialogDestructive"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_small"
+                android:nextFocusRight="@+id/btnCrossDevicePacketsClose"
+                android:text="@string/cross_device_transfer_clear_queue" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCrossDevicePacketsClose"
+                style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:nextFocusLeft="@+id/btnCrossDeviceClearQueue"
+                android:text="@string/close" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

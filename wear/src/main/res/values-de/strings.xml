@@ -836,4 +836,5 @@
     <string name="wear_onboarding_activity_reason">Um im Bewegungsmonitor Schritte zu zählen.</string>
     <string name="wear_onboarding_nearby_title">Geräte in der Nähe</string>
     <string name="wear_onboarding_nearby_reason">Um den Bluetooth- und WLAN-Status im Netzwerkmonitor anzuzeigen.</string>
+    <string name="wear_brand_slogan">Alles meins, hier!</string>
 </resources>

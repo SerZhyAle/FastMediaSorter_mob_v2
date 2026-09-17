@@ -304,6 +304,7 @@
     <string name="wear_voice_note_policy_manual">নোট: সতর্ক থাকুন</string>
     <string name="wear_voice_recorder_notification_sending_title">একটি ভয়েস নোট পাঠানো হচ্ছে</string>
     <string name="wear_brand_wordmark">ফাস্ট মিডিয়া বাছাইকারী</string>
+    <string name="wear_brand_slogan">সব আমার, এখানে!</string>
     <string name="wear_select_all">সব নির্বাচন করুন</string>
     <string name="wear_file_selected">নির্বাচিত</string>
     <string name="wear_state_back">ব্যাক</string>

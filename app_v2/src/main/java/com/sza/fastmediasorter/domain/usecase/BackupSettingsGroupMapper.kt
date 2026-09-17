@@ -80,7 +80,8 @@ internal object BackupSettingsGroupMapper {
             wallpaperIntensity = launcher.wallpaperIntensity,
             wallpaperAnimationSpeed = launcher.wallpaperAnimationSpeed,
             wallpaperParticleDensity = launcher.wallpaperParticleDensity,
-            showScreenNumber = launcher.showScreenNumber
+            showScreenNumber = launcher.showScreenNumber,
+            taskbarRows = launcher.taskbarRows
         )
     }
 
@@ -123,7 +124,9 @@ internal object BackupSettingsGroupMapper {
         showProgramsPanelInMainWindow = settings.showProgramsPanelInMainWindow,
         programsPanelCollapsed = settings.programsPanelCollapsed,
         showBlackScreenButton = settings.showBlackScreenButton,
-        flashlightShortcutNotificationEnabled = settings.flashlightShortcutNotificationEnabled
+        flashlightShortcutNotificationEnabled = settings.flashlightShortcutNotificationEnabled,
+        enableSos = settings.enableSos,
+        sosMode = settings.sosMode.name
     )
 
     fun toStreams(settings: AppSettings): BackupSettings.Streams = BackupSettings.Streams(
@@ -140,20 +143,22 @@ internal object BackupSettingsGroupMapper {
         streamingCacheTtlDays = settings.streamingCacheTtlDays,
         prefetchCacheMultiplier = settings.prefetchCacheMultiplier.name,
         streamsVisualizeAsMusic = settings.streamsVisualizeAsMusic,
-        broadcastStreamTitle = settings.broadcastStreamTitle,
-        broadcastBitRateBps = settings.broadcastBitRateBps,
-        broadcastPort = settings.broadcastPort,
-        broadcastSampleRateHz = settings.broadcastSampleRateHz,
-        broadcastChannelCount = settings.broadcastChannelCount,
-        broadcastAutoOpenShare = settings.broadcastAutoOpenShare,
+        // S3222: the backup DTO keeps the flat names it was written with - the fold happened in the
+        // settings model, and a restore must still read a file produced by an older build.
+        broadcastStreamTitle = settings.broadcast.streamTitle,
+        broadcastBitRateBps = settings.broadcast.bitRateBps,
+        broadcastPort = settings.broadcast.port,
+        broadcastSampleRateHz = settings.broadcast.sampleRateHz,
+        broadcastChannelCount = settings.broadcast.channelCount,
+        broadcastAutoOpenShare = settings.broadcast.autoOpenShare,
         enableBroadcasting = settings.enableBroadcasting,
-        broadcastCameraEnabled = settings.broadcastCameraEnabled,
-        broadcastMicrophoneEnabled = settings.broadcastMicrophoneEnabled,
-        broadcastMicGainPercent = settings.broadcastMicGainPercent,
-        broadcastVideoWidth = settings.broadcastVideoWidth,
-        broadcastVideoHeight = settings.broadcastVideoHeight,
-        broadcastVideoFps = settings.broadcastVideoFps,
-        broadcastVideoBitrateBps = settings.broadcastVideoBitrateBps
+        broadcastCameraEnabled = settings.broadcast.cameraEnabled,
+        broadcastMicrophoneEnabled = settings.broadcast.microphoneEnabled,
+        broadcastMicGainPercent = settings.broadcast.micGainPercent,
+        broadcastVideoWidth = settings.broadcast.videoWidth,
+        broadcastVideoHeight = settings.broadcast.videoHeight,
+        broadcastVideoFps = settings.broadcast.videoFps,
+        broadcastVideoBitrateBps = settings.broadcast.videoBitrateBps
     )
 
     fun toAppearance(settings: AppSettings): BackupSettings.Appearance = BackupSettings.Appearance(
@@ -294,7 +299,15 @@ internal object BackupSettingsGroupMapper {
                 wallpaperParticleDensity = backup.wallpaperParticleDensity
                     ?.let(AppSettings::coerceLauncherWallpaperParticleDensity)
                     ?: current.wallpaperParticleDensity,
-                showScreenNumber = backup.showScreenNumber ?: current.showScreenNumber
+                showScreenNumber = backup.showScreenNumber ?: current.showScreenNumber,
+                // S3224: clamped on read for the S2320 reason the store's own read carries - a value
+                // from a build with a wider range must paint what the settings row can select.
+                taskbarRows = backup.taskbarRows
+                    ?.coerceIn(
+                        AppSettings.MIN_LAUNCHER_TASKBAR_ROWS,
+                        AppSettings.MAX_LAUNCHER_TASKBAR_ROWS
+                    )
+                    ?: current.taskbarRows
             )
         )
     }
@@ -344,7 +357,9 @@ internal object BackupSettingsGroupMapper {
             programsPanelCollapsed = backup.programsPanelCollapsed,
             showBlackScreenButton = backup.showBlackScreenButton,
             flashlightShortcutNotificationEnabled = backup.flashlightShortcutNotificationEnabled
-                ?: flashlightShortcutNotificationEnabled
+                ?: flashlightShortcutNotificationEnabled,
+            enableSos = backup.enableSos ?: enableSos,
+            sosMode = backup.sosMode.toEnumOr(sosMode)
         )
     }
 
@@ -369,20 +384,22 @@ internal object BackupSettingsGroupMapper {
             streamingCacheTtlDays = backup.streamingCacheTtlDays,
             prefetchCacheMultiplier = backup.prefetchCacheMultiplier.toEnumOr(prefetchCacheMultiplier),
             streamsVisualizeAsMusic = backup.streamsVisualizeAsMusic ?: streamsVisualizeAsMusic,
-            broadcastStreamTitle = backup.broadcastStreamTitle ?: broadcastStreamTitle,
-            broadcastBitRateBps = backup.broadcastBitRateBps ?: broadcastBitRateBps,
-            broadcastPort = backup.broadcastPort ?: broadcastPort,
-            broadcastSampleRateHz = backup.broadcastSampleRateHz ?: broadcastSampleRateHz,
-            broadcastChannelCount = backup.broadcastChannelCount ?: broadcastChannelCount,
-            broadcastAutoOpenShare = backup.broadcastAutoOpenShare ?: broadcastAutoOpenShare,
             enableBroadcasting = backup.enableBroadcasting ?: enableBroadcasting,
-            broadcastCameraEnabled = backup.broadcastCameraEnabled ?: broadcastCameraEnabled,
-            broadcastMicrophoneEnabled = backup.broadcastMicrophoneEnabled ?: broadcastMicrophoneEnabled,
-            broadcastMicGainPercent = backup.broadcastMicGainPercent ?: broadcastMicGainPercent,
-            broadcastVideoWidth = backup.broadcastVideoWidth ?: broadcastVideoWidth,
-            broadcastVideoHeight = backup.broadcastVideoHeight ?: broadcastVideoHeight,
-            broadcastVideoFps = backup.broadcastVideoFps ?: broadcastVideoFps,
-            broadcastVideoBitrateBps = backup.broadcastVideoBitrateBps ?: broadcastVideoBitrateBps
+            broadcast = broadcast.copy(
+                streamTitle = backup.broadcastStreamTitle ?: broadcast.streamTitle,
+                bitRateBps = backup.broadcastBitRateBps ?: broadcast.bitRateBps,
+                port = backup.broadcastPort ?: broadcast.port,
+                sampleRateHz = backup.broadcastSampleRateHz ?: broadcast.sampleRateHz,
+                channelCount = backup.broadcastChannelCount ?: broadcast.channelCount,
+                autoOpenShare = backup.broadcastAutoOpenShare ?: broadcast.autoOpenShare,
+                cameraEnabled = backup.broadcastCameraEnabled ?: broadcast.cameraEnabled,
+                microphoneEnabled = backup.broadcastMicrophoneEnabled ?: broadcast.microphoneEnabled,
+                micGainPercent = backup.broadcastMicGainPercent ?: broadcast.micGainPercent,
+                videoWidth = backup.broadcastVideoWidth ?: broadcast.videoWidth,
+                videoHeight = backup.broadcastVideoHeight ?: broadcast.videoHeight,
+                videoFps = backup.broadcastVideoFps ?: broadcast.videoFps,
+                videoBitrateBps = backup.broadcastVideoBitrateBps ?: broadcast.videoBitrateBps,
+            )
         )
     }
 

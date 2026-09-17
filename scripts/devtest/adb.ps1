@@ -1217,7 +1217,8 @@ switch ($Verb.ToLowerInvariant()) {
         }
         $written = $Axis.ToString([System.Globalization.CultureInfo]::InvariantCulture)
         for ($turn = 0; $turn -lt $Repeat; $turn++) {
-            Invoke-Adb $id @('shell', 'input', 'rotaryencoder', 'scroll', $written) | Out-Null
+            # S3233: emit --axis SCROLL,<val> so negative values (e.g. -2) are not parsed by platform input as unsupported option flag
+            Invoke-Adb $id @('shell', 'input', 'rotaryencoder', 'scroll', '--axis', "SCROLL,$written") | Out-Null
         }
         if ($Json) { Emit-Ok @{ id = $id; axis = $Axis; repeat = $Repeat } }
         Write-Host "ROTARY axis $written x$Repeat on $id" -ForegroundColor Green

@@ -47,7 +47,8 @@ class WearAppCatalogTest {
                 WearAppId.BROADCAST,
                 WearAppId.STOPWATCH,
                 WearAppId.TOURIST,
-                WearAppId.CLIPBOARD
+                WearAppId.CLIPBOARD,
+                WearAppId.SOS
             ),
             ids
         )

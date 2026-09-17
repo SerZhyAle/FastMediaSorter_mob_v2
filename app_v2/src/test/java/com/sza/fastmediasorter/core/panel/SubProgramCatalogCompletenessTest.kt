@@ -112,6 +112,22 @@ class SubProgramCatalogCompletenessTest {
         assertEveryRouteIsOpenable(SubProgramSurface.LAUNCHER_SHORTCUT)
     }
 
+    @Test
+    fun `every OS_APP_SHORTCUT entry has a route that can be opened`() {
+        assertEveryRouteIsOpenable(SubProgramSurface.OS_APP_SHORTCUT)
+    }
+
+    @Test
+    fun `every sub-program is eligible once for OS app shortcuts`() {
+        val expectedRouteKeys = SubProgramCatalog.all().map { it.routeKey }
+        val shortcutRouteKeys = SubProgramCatalog
+            .forSurface(SubProgramSurface.OS_APP_SHORTCUT)
+            .map { it.routeKey }
+
+        assertEquals(expectedRouteKeys, shortcutRouteKeys)
+        assertEquals(shortcutRouteKeys.size, shortcutRouteKeys.toSet().size)
+    }
+
     /**
      * S2673: the programs menu draws an entry from the registry plus a presentation row holding the
      * label, the icon and the menu item id the registry deliberately does not store (ADR-1). An entry

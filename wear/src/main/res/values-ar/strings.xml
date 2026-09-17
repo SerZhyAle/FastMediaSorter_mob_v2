@@ -836,4 +836,5 @@
     <string name="wear_onboarding_activity_reason">لعدّ الخطوات في مراقب الحركة.</string>
     <string name="wear_onboarding_nearby_title">الأجهزة القريبة</string>
     <string name="wear_onboarding_nearby_reason">لعرض حالة البلوتوث والواي فاي في مراقب الشبكة.</string>
+    <string name="wear_brand_slogan">كل هذا لي، هنا!</string>
 </resources>

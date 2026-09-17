@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -294,6 +295,7 @@ private fun rememberAudioPlayerActions(
     AudioPlayerActions(
         onBack = onBack,
         onPlayPause = viewModel::togglePlayPause,
+        onJumpToLive = viewModel::jumpToLive,
         onToggleFavorite = viewModel::toggleFavorite,
         onTogglePin = viewModel::togglePin,
         onSkipNext = viewModel::skipToNext,
@@ -313,6 +315,7 @@ private fun rememberAudioPlayerActions(
 private data class AudioPlayerActions(
     val onBack: () -> Unit,
     val onPlayPause: () -> Unit,
+    val onJumpToLive: () -> Unit,
     val onToggleFavorite: () -> Unit,
     val onTogglePin: () -> Unit,
     val onSkipNext: () -> Unit,
@@ -474,6 +477,7 @@ private fun ColumnScope.PlayerColumnContent(
     PlaybackControls(
         uiState = uiState,
         onPlayPause = actions.onPlayPause,
+        onJumpToLive = actions.onJumpToLive,
         onTogglePlaybackMode = actions.onTogglePlaybackMode,
         onSkipNext = actions.onSkipNext,
         onSkipPrevious = actions.onSkipPrevious,
@@ -856,17 +860,23 @@ private fun RowScope.SeekBar(
  *
  * Below the breakpoint the position rides a ring around the play button, because the compact
  * composition has no separate time row for it to live on.
+ *
+ * S3217: a stream puts Jump to live right after play/pause, in the playback-mode cell a single live
+ * stream has no use for. STORE drops previous rather than next for it, because next keeps paging
+ * stations and the owner kept forward switching.
  */
 @Composable
 private fun PlaybackControls(
     uiState: AudioPlayerUiState,
     onPlayPause: () -> Unit,
+    onJumpToLive: () -> Unit,
     onTogglePlaybackMode: () -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
     seek: PlayerSeekActions
 ) {
     val isPlaying = uiState.isPlaying
+    val isStream = uiState.isStream
     val playbackMode = uiState.playbackMode
     val progress = uiState.progress
     val previousDesc = stringResource(R.string.wear_previous_file)
@@ -874,6 +884,7 @@ private fun PlaybackControls(
     val seekBackwardDesc = stringResource(R.string.wear_seek_backward)
     val seekForwardDesc = stringResource(R.string.wear_seek_forward)
     val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
+    val jumpToLiveDesc = stringResource(R.string.wear_jump_to_live)
     val ringed = wearIsCompactScreen()
     // S2803: the ORIGINAL view restores the row of four, the composition S1701's owner ruling drew -
     // previous, play/pause, playback mode, next - and the bare play button that stood before S2766
@@ -893,14 +904,16 @@ private fun PlaybackControls(
     )
 
     PlayerCommandGrid(columns = playerPrimaryRowColumns()) { targetSize ->
-        PlayerCommandButton(
-            onClick = onSkipPrevious,
-            icon = Icons.Filled.SkipPrevious,
-            contentDescription = previousDesc,
-            size = targetSize,
-            onLongClick = seek.onSeekBackward,
-            onLongClickLabel = seekBackwardDesc
-        )
+        if (restored || !isStream) {
+            PlayerCommandButton(
+                onClick = onSkipPrevious,
+                icon = Icons.Filled.SkipPrevious,
+                contentDescription = previousDesc,
+                size = targetSize,
+                onLongClick = seek.onSeekBackward,
+                onLongClickLabel = seekBackwardDesc
+            )
+        }
 
         PlayPauseCommand(
             isPlaying = isPlaying,
@@ -910,7 +923,14 @@ private fun PlaybackControls(
             onPlayPause = onPlayPause
         )
 
-        if (restored) {
+        if (isStream) {
+            PlayerCommandButton(
+                onClick = onJumpToLive,
+                icon = Icons.Filled.Sensors,
+                contentDescription = jumpToLiveDesc,
+                size = targetSize
+            )
+        } else if (restored) {
             PlayerCommandButton(
                 onClick = onTogglePlaybackMode,
                 icon = playbackModeIcon,

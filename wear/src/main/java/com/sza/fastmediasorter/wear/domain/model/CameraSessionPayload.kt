@@ -49,6 +49,15 @@ enum class CameraRefusal {
     @SerializedName("NOT_ASKED")
     NOT_ASKED,
 
+    /**
+     * Nothing is armed on the phone, so there was no standing consent to serve against.
+     *
+     * Separate from [NOT_ASKED] because the two call for opposite remedies and this watch cannot tell
+     * them apart on its own: it never learns which flavor the paired phone runs.
+     */
+    @SerializedName("NOT_ARMED")
+    NOT_ARMED,
+
     /** The owner saw the request and refused it. */
     @SerializedName("DECLINED")
     DECLINED,

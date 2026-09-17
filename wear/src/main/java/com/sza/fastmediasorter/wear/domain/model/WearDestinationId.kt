@@ -44,6 +44,9 @@ enum class WearDestinationId {
     /** S3109: the watch clipboard and its send action, addressable as a shortcut like every program above. */
     CLIPBOARD,
 
+    /** S3216: the distress signal, addressable as a shortcut - the fastest entrance an emergency has. */
+    SOS,
+
     /** S2551: the paired phone's camera, watched here. Addressable as a shortcut like the rest. */
     PHONE_CAMERA,
 
@@ -79,6 +82,7 @@ fun destinationFor(id: WearAppId): WearDestinationId = when (id) {
     WearAppId.STOPWATCH -> WearDestinationId.STOPWATCH
     WearAppId.TOURIST -> WearDestinationId.TOURIST
     WearAppId.CLIPBOARD -> WearDestinationId.CLIPBOARD
+    WearAppId.SOS -> WearDestinationId.SOS
 }
 
 /**

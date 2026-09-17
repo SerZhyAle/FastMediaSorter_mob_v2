@@ -614,6 +614,32 @@
       "notes": "S3110. Only the watch app's own window is captured, never the whole display - MediaProjection would need a consent tap on the watch for every request and would defeat the phone's initiative (strategic ADR-1). The image itself does not ride these two paths: it travels on /fms/transfer_file, so a run that watches only this marker sees the outcome and not the bytes. Refusal reasons: malformed, unsupported_version, no_foreground_screen, capture_failed, send_failed."
     },
     {
+      "id": "J11",
+      "slug": "watch-sos-raises-phone",
+      "group": "J",
+      "channels": [
+        "/fms/watch/sos/start",
+        "/fms/watch/sos/stop"
+      ],
+      "logMarker": "/fms/watch/sos/start",
+      "requiresPair": true,
+      "expectation": "Pick a mode on the watch's SOS screen: the phone raises the same mode - siren on the alarm channel, torch strobe, flashing window - and the SOS window comes up even over a locked screen. Stopping on the watch drops the phone's signal too.",
+      "notes": "S3216. The payload is the SosMode member name and nothing else, so the two modules' enums are the whole contract; an unknown token resolves to ALL rather than dropping the command. The phone REFUSES a start while enableSos is off and the watch then signals alone - run that case as well, because a silent phone there is the correct outcome and reads identically to a lost message. A stop is never refused."
+    },
+    {
+      "id": "J12",
+      "slug": "phone-sos-raises-watch",
+      "group": "J",
+      "channels": [
+        "/fms/phone/sos/start",
+        "/fms/phone/sos/stop"
+      ],
+      "logMarker": "/fms/phone/sos/start",
+      "requiresPair": true,
+      "expectation": "Pick a mode on the phone's SOS screen: the watch opens its SOS screen already signalling in that mode, skipping its arming step, and stopping on the phone leaves the watch screen. Stopping on the watch drops the phone's signal too.",
+      "notes": "S3216. The command reaches the watch screen through SosSyncBus rather than as a route argument: a stop arrives while the screen is already open, and navigating to a route again is not a way to say leave. The start is state and the stop is an event, because the command can land before MainActivity has drawn the destination it asked for. Neither device waits for an ack - an unreachable companion is the designed autonomous case (ADR-2), so measure the out-of-range run too and expect no delay at the local start."
+    },
+    {
       "id": "K1",
       "slug": "companion-off-mid-scenario",
       "group": "K",

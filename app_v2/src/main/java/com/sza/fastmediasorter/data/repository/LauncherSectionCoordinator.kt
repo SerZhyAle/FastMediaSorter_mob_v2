@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.LauncherCellDao
 import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import kotlinx.coroutines.Dispatchers
@@ -77,6 +78,113 @@ internal class LauncherSectionCoordinator(
             }
             true
         }
+    }
+
+    suspend fun relocateSectionBlock(
+        orientation: LauncherOrientation,
+        sectionCellId: Long,
+        targetRow: Int,
+    ): Boolean = withContext(Dispatchers.IO) {
+        if (targetRow < 0) return@withContext false
+        db.withTransaction {
+            val sourceEntity = cellDao.getById(sectionCellId)?.takeIf {
+                it.orientation == orientation.name && it.kind == LauncherCellKind.SECTION.name
+            } ?: return@withTransaction false
+            val entities = cellsOfScreen(orientation, sourceEntity.screenIndex)
+            val sections = LauncherSectionMembership.sectionsInOrder(entities.mapNotNull { it.toDomainOrNull() })
+            val moved = sections.firstOrNull { it.id == sectionCellId }
+            val blocks = blocksBySection(entities, sections)
+            if (moved == null || blocks[moved].isNullOrEmpty()) return@withTransaction false
+            relocateWithinScreen(entities, sections, blocks, moved, targetRow)
+        }
+    }
+
+    /** S3204: the owned rows of every section, keyed by header - the unit a relocation moves whole. */
+    private fun blocksBySection(
+        entities: List<LauncherCellEntity>,
+        sections: List<LauncherCell>,
+    ): Map<LauncherCell, List<LauncherCellEntity>> = sections.associateWith { section ->
+        entities.filter { entity ->
+            val domain = entity.toDomainOrNull() ?: return@filter false
+            LauncherSectionMembership.ownerOf(domain, sections)?.id == section.id
+        }
+    }
+
+    private suspend fun relocateWithinScreen(
+        entities: List<LauncherCellEntity>,
+        sections: List<LauncherCell>,
+        blocks: Map<LauncherCell, List<LauncherCellEntity>>,
+        moved: LauncherCell,
+        targetRow: Int,
+    ): Boolean {
+        val remaining = sections.filter { it.id != moved.id }
+        if (remaining.isEmpty()) {
+            // A lone section has no neighbour to be ordered against, so the drop row is taken literally.
+            val rowDelta = targetRow - moved.rowIndex
+            blocks.getValue(moved).takeIf { rowDelta != 0 }?.forEach { entity ->
+                cellDao.update(entity.copy(rowIndex = entity.rowIndex + rowDelta))
+            }
+            return rowDelta != 0
+        }
+        val order = sectionOrderAfterDrop(remaining, blocks, moved, targetRow)
+        val unchanged = order.map { it.id } == sections.map { it.id } && moved.rowIndex == targetRow
+        return !unchanged && repackBlocks(entities, sections, blocks, order)
+    }
+
+    /**
+     * S3204: a drop moving down lands after the last section whose header is at or above the drop row; a
+     * drop moving up lands before the first section whose block has not ended by the drop row. Either way
+     * a drop anywhere inside a neighbour's block names that neighbour, never a split of it.
+     */
+    private fun sectionOrderAfterDrop(
+        remaining: List<LauncherCell>,
+        blocks: Map<LauncherCell, List<LauncherCellEntity>>,
+        moved: LauncherCell,
+        targetRow: Int,
+    ): List<LauncherCell> {
+        val order = remaining.toMutableList()
+        if (targetRow > moved.rowIndex) {
+            order.add(remaining.indexOfLast { it.rowIndex <= targetRow } + 1, moved)
+        } else {
+            val before = remaining.indexOfFirst { targetRow < blockEndRow(it, blocks) }
+            if (before == -1) order.add(moved) else order.add(before, moved)
+        }
+        return order
+    }
+
+    private fun blockEndRow(section: LauncherCell, blocks: Map<LauncherCell, List<LauncherCellEntity>>): Int =
+        blocks[section].orEmpty().maxOfOrNull { it.rowIndex + it.spanH } ?: (section.rowIndex + section.spanH)
+
+    /**
+     * S3204: lays the blocks out in [order] from the first row below the unowned cells, keeping each
+     * member's offset from its header, so a relocation also closes the rows its block vacated.
+     */
+    private suspend fun repackBlocks(
+        entities: List<LauncherCellEntity>,
+        sections: List<LauncherCell>,
+        blocks: Map<LauncherCell, List<LauncherCellEntity>>,
+        order: List<LauncherCell>,
+    ): Boolean {
+        val unowned = entities.filter { entity ->
+            val domain = entity.toDomainOrNull() ?: return@filter false
+            LauncherSectionMembership.ownerOf(domain, sections) == null
+        }
+        var currentRow = unowned.maxOfOrNull { it.rowIndex + it.spanH } ?: 0
+        var anyChanged = false
+        for (section in order) {
+            val block = blocks[section].orEmpty()
+            if (block.isEmpty()) continue
+            val headerRow = section.rowIndex.coerceAtLeast(0)
+            for (entity in block) {
+                val newRow = currentRow + (entity.rowIndex - headerRow)
+                if (newRow != entity.rowIndex) {
+                    cellDao.update(entity.copy(rowIndex = newRow))
+                    anyChanged = true
+                }
+            }
+            currentRow += (block.maxOf { it.rowIndex + it.spanH } - headerRow).coerceAtLeast(1)
+        }
+        return anyChanged
     }
 
     suspend fun removeSection(

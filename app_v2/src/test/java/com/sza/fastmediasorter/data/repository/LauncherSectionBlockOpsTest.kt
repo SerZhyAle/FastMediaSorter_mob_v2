@@ -115,6 +115,119 @@ class LauncherSectionBlockOpsTest {
     }
 
     @Test
+    fun `relocating a section down places its whole block after the target section`() = runTest {
+        val secA = add(section(row = 0).copy(target = "sec:alpha"))!!
+        val scA1 = add(cell(row = 0, col = 2, target = "app:a1"))!!
+        val scA2 = add(cell(row = 1, col = 0, target = "app:a2"))!!
+
+        val secB = add(section(row = 2).copy(target = "sec:beta"))!!
+        val scB1 = add(cell(row = 2, col = 2, target = "app:b1"))!!
+        val scB2 = add(cell(row = 3, col = 1, target = "app:b2"))!!
+
+        val secC = add(section(row = 4).copy(target = "sec:gamma"))!!
+        val scC1 = add(cell(row = 4, col = 2, target = "app:c1"))!!
+
+        val result = repository.relocateSectionBlock(LauncherOrientation.PORTRAIT, secA, targetRow = 3)
+        assertTrue(result)
+
+        // SecB should now be at row 0
+        assertEquals(0, storedCell(secB)?.rowIndex)
+        assertEquals(0, storedCell(scB1)?.rowIndex)
+        assertEquals(2, storedCell(scB1)?.colIndex)
+        assertEquals(1, storedCell(scB2)?.rowIndex)
+        assertEquals(1, storedCell(scB2)?.colIndex)
+
+        // SecA should now be at row 2
+        assertEquals(2, storedCell(secA)?.rowIndex)
+        assertEquals(2, storedCell(scA1)?.rowIndex)
+        assertEquals(2, storedCell(scA1)?.colIndex)
+        assertEquals(3, storedCell(scA2)?.rowIndex)
+        assertEquals(0, storedCell(scA2)?.colIndex)
+
+        // SecC should remain at row 4
+        assertEquals(4, storedCell(secC)?.rowIndex)
+        assertEquals(4, storedCell(scC1)?.rowIndex)
+        assertEquals(2, storedCell(scC1)?.colIndex)
+    }
+
+    @Test
+    fun `relocating a section up places its whole block before the target section`() = runTest {
+        val secA = add(section(row = 0).copy(target = "sec:alpha"))!!
+        val scA1 = add(cell(row = 0, col = 2, target = "app:a1"))!!
+
+        val secB = add(section(row = 1).copy(target = "sec:beta"))!!
+        val scB1 = add(cell(row = 1, col = 2, target = "app:b1"))!!
+
+        val secC = add(section(row = 2).copy(target = "sec:gamma"))!!
+        val scC1 = add(cell(row = 2, col = 2, target = "app:c1"))!!
+        val scC2 = add(cell(row = 3, col = 0, target = "app:c2"))!!
+
+        // Move SecC up to row 0 (before SecA)
+        val result = repository.relocateSectionBlock(LauncherOrientation.PORTRAIT, secC, targetRow = 0)
+        assertTrue(result)
+
+        // SecC should now be at row 0 (height 2)
+        assertEquals(0, storedCell(secC)?.rowIndex)
+        assertEquals(0, storedCell(scC1)?.rowIndex)
+        assertEquals(2, storedCell(scC1)?.colIndex)
+        assertEquals(1, storedCell(scC2)?.rowIndex)
+        assertEquals(0, storedCell(scC2)?.colIndex)
+
+        // SecA should now be at row 2
+        assertEquals(2, storedCell(secA)?.rowIndex)
+        assertEquals(2, storedCell(scA1)?.rowIndex)
+        assertEquals(2, storedCell(scA1)?.colIndex)
+
+        // SecB should now be at row 3
+        assertEquals(3, storedCell(secB)?.rowIndex)
+        assertEquals(3, storedCell(scB1)?.rowIndex)
+        assertEquals(2, storedCell(scB1)?.colIndex)
+    }
+
+    @Test
+    fun `relocating section block preserves independence between portrait and landscape`() = runTest {
+        val dao = dbRule.db.launcherCellDao()
+        val portSecA = dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:port_a", row = 0))
+        val portSecB = dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:port_b", row = 1))
+
+        val landSecA = dao.upsert(
+            entity(LauncherOrientation.LANDSCAPE, LauncherCellKind.SECTION, "sec:land_a", row = 0)
+        )
+        val landSecB = dao.upsert(
+            entity(LauncherOrientation.LANDSCAPE, LauncherCellKind.SECTION, "sec:land_b", row = 1)
+        )
+
+        assertTrue(repository.relocateSectionBlock(LauncherOrientation.PORTRAIT, portSecA, targetRow = 1))
+
+        assertEquals(1, storedCell(portSecA)?.rowIndex)
+        assertEquals(0, storedCell(portSecB)?.rowIndex)
+
+        // Landscape remains untouched
+        assertEquals(0, storedCell(landSecA)?.rowIndex)
+        assertEquals(1, storedCell(landSecB)?.rowIndex)
+    }
+
+    @Test
+    fun `relocating to an invalid row or unknown id changes nothing`() = runTest {
+        val secA = add(section(row = 0).copy(target = "sec:alpha"))!!
+        val scA1 = add(cell(row = 0, col = 2, target = "app:a1"))!!
+        val secB = add(section(row = 1).copy(target = "sec:beta"))!!
+
+        // Negative target row
+        assertFalse(repository.relocateSectionBlock(LauncherOrientation.PORTRAIT, secA, targetRow = -1))
+        // Unknown id
+        assertFalse(repository.relocateSectionBlock(LauncherOrientation.PORTRAIT, Long.MAX_VALUE, targetRow = 1))
+        // Non-section id
+        assertFalse(repository.relocateSectionBlock(LauncherOrientation.PORTRAIT, scA1, targetRow = 1))
+        // Unchanged target row
+        assertFalse(repository.relocateSectionBlock(LauncherOrientation.PORTRAIT, secA, targetRow = 0))
+
+        assertEquals(0, storedCell(secA)?.rowIndex)
+        assertEquals(0, storedCell(scA1)?.rowIndex)
+        assertEquals(1, storedCell(secB)?.rowIndex)
+    }
+
+    @Test
     fun `deleting a section removes its header and content and returns their targets`() = runTest {
         val dao = dbRule.db.launcherCellDao()
         val header = dao.upsert(entity(LauncherOrientation.PORTRAIT, LauncherCellKind.SECTION, "sec:alpha", spanW = 2))

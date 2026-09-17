@@ -1385,6 +1385,28 @@ scripts/devtest/ui-sweep-seed.ps1
   Exit: 0 - corpus generated (unless skipped), pushed, handed to MediaStore, and the three media-read
 ```
 
+### ui-sweep-walk.ps1
+S2380 - walk the declared phone screen catalog across the run matrix, capture a frame plus a node tree for every screen in every combination, and journal an explicit outcome for each row.
+
+```
+scripts/devtest/ui-sweep-walk.ps1
+  S2380 - walk the declared phone screen catalog across the run matrix, capture a frame plus a node tree for every screen in every combination, and journal an explicit outcome for each row.
+  Params:
+    -DeviceId                       [String]
+    -DeviceMap                      [String]
+    -Subset                         [String]
+    -Only                           [String]
+    -OutDir                         [String] = 'temp/S2380/sweep'
+    -Matrix                         [String]
+    -Profiles                       [String]
+    -Screens                        [String]
+    -SettleMs                       [Int32] = 1200
+    -MaxScrolls                     [Int32] = 12
+    -RehomeAfterUnreachable         [Int32] = 2
+    -Json                           [SwitchParameter]
+  Exit: 0 - every declared combination walked: every row observed or legitimately skipped; 1 - at least one product defect observed - a screen opened and its expected token was absent; 2 - could not verify: at least one row is unreachable, manual or a run-level refusal
+```
+
 ### wear-ink-clip.ps1
 S2757 - judge a captured frame the way a Play reviewer does: is anything DRAWN outside the glass.
 

@@ -68,6 +68,7 @@ internal object WearLaunchRoutes {
         WearAppId.STOPWATCH -> WearRoutes.STOPWATCH
         WearAppId.TOURIST -> WearRoutes.TOURIST
         WearAppId.CLIPBOARD -> WearRoutes.CLIPBOARD
+        WearAppId.SOS -> WearRoutes.SOS
     }
 
     /**

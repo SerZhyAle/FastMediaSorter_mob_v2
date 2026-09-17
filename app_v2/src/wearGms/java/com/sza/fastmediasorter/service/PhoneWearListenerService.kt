@@ -51,6 +51,7 @@ import com.sza.fastmediasorter.domain.usecase.ReceiveWatchFileUseCase
 import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
 import com.sza.fastmediasorter.service.helpers.WearCastRequestHandler
 import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
+import com.sza.fastmediasorter.ui.sos.SosCommandFromWatchHandler
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -110,6 +111,10 @@ class PhoneWearListenerService : WearableListenerService() {
     @Inject lateinit var phoneCameraSessionCommandManager: PhoneCameraSessionCommandManager
 
     @Inject lateinit var wearCastRequestHandler: WearCastRequestHandler
+
+    // S3216: starting a siren is a decision with a precondition - the owner's switch - so it lives in a
+    // collaborator like the cast and camera handlers above rather than in this class's dispatch.
+    @Inject lateinit var sosCommandFromWatchHandler: SosCommandFromWatchHandler
 
     // S2462: built from the injected Gson rather than injected itself - it carries no state and no
     // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
@@ -189,6 +194,14 @@ class PhoneWearListenerService : WearableListenerService() {
                 phoneCameraSessionCommandManager.handleStop(event.sourceNodeId, event.data)
             WearDataLayerPaths.CAMERA_VIEW_SWITCH ->
                 phoneCameraSessionCommandManager.handleSwitch(event.sourceNodeId, event.data)
+            // S3216: the distress-signal routes are matched by the handler rather than by two branches
+            // here. This class is AT detekt's 40-function ceiling, so a third dispatch half of its own
+            // would not compile clean, and the handler is what a branch would delegate to anyway. An
+            // unrecognised route still ends quietly, because the handler answers false and nothing reads
+            // the answer.
+            else -> applicationScope.launch {
+                sosCommandFromWatchHandler.handle(event.path, event.data)
+            }
         }
     }
 

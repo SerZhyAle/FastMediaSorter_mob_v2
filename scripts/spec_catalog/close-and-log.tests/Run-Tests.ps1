@@ -177,9 +177,9 @@ if (Test-Path $changelog) {
 # -FeatArea + -FeatName; D states one outright. A change to that derivation fails I2 before
 # it could orphan a record here, so this list cannot silently drift out of date.
 $probeFeatureIds = @(
-    'spec-tooling.sandbox-capability-two', # case B, derived from "Sandbox capability two"
-    'spec-tooling.sandbox_probe',          # case D, passed verbatim as -FeatId
-    'spec-tooling.stated-name-wins'        # case I, derived from "Stated name wins"
+    'diagnostics.sandbox-capability-two', # case B, derived from "Sandbox capability two"
+    'diagnostics.sandbox_probe',          # case D, passed verbatim as -FeatId
+    'diagnostics.stated-name-wins'        # case I, derived from "Stated name wins"
 )
 
 function New-DevLogJson([string]$file, [string]$desc) {
@@ -223,7 +223,7 @@ try {
     $clBefore = Get-ProbeLineCount $changelog
     $outB = & $pwshExe -NoProfile -File $facade -Id $SubjectId -Status $subjectStatus -StatusOnly -SkipCatalogSync `
         -DevLogs "[$j1,$j2]" -FuncOp ADD -FuncDesc "sandbox capability two" `
-        -FeatArea "Spec Tooling" -FeatName "Sandbox capability two" -FeatFlavors "standard" 2>&1 | Out-String
+        -FeatArea "Diagnostics" -FeatName "Sandbox capability two" -FeatFlavors "standard" 2>&1 | Out-String
     $exitB = $LASTEXITCODE
     Assert-That "B1 exit 0" ($exitB -eq 0) "exit=$exitB out=$($outB.Trim())"
     Assert-That "B2 both dev-logs written" ((Get-ProbeLineCount $changelog) -eq ($clBefore + 2)) "delta=$((Get-ProbeLineCount $changelog) - $clBefore)"
@@ -242,11 +242,11 @@ try {
     # --- D: an explicit well-formed -FeatId still overrides the derived id. ---
     Write-Host "D: valid kebab -FeatId is honoured" -ForegroundColor Yellow
     $outD = & $pwshExe -NoProfile -File $facade -Id $SubjectId -Status $subjectStatus -StatusOnly -SkipCatalogSync `
-        -FuncOp FIX -FuncDesc "sandbox explicit id" -FeatId "spec-tooling.sandbox_probe" `
-        -FeatArea "Spec Tooling" -FeatName "Sandbox probe" -FeatFlavors "standard" 2>&1 | Out-String
+        -FuncOp FIX -FuncDesc "sandbox explicit id" -FeatId "diagnostics.sandbox_probe" `
+        -FeatArea "Diagnostics" -FeatName "Sandbox probe" -FeatFlavors "standard" 2>&1 | Out-String
     $exitD = $LASTEXITCODE
     Assert-That "D1 exit 0" ($exitD -eq 0) "exit=$exitD out=$($outD.Trim())"
-    $recD = @(Get-Content -LiteralPath $features | Where-Object { $_ -match '"id":"spec-tooling\.sandbox_probe"' })
+    $recD = @(Get-Content -LiteralPath $features | Where-Object { $_ -match '"id":"diagnostics\.sandbox_probe"' })
     Assert-That "D2 explicit id used verbatim" ($recD.Count -eq 1) "records=$($recD.Count)"
 
     # --- E: a malformed -FeatId dies in pre-flight, not three mutations later. ---
@@ -309,15 +309,15 @@ try {
     'Substring(0,80) derivation would visibly slice it mid-word and land in the name field.'
     $outI = & $pwshExe -NoProfile -File $facade -Id $SubjectId -Status $subjectStatus -StatusOnly -SkipCatalogSync `
         -FuncOp ADD -FuncDesc $longDesc `
-        -FeatArea "Spec Tooling" -FeatName "Stated name wins" -FeatFlavors "standard,legacy,vr" 2>&1 | Out-String
+        -FeatArea "Diagnostics" -FeatName "Stated name wins" -FeatFlavors "standard,legacy,vr" 2>&1 | Out-String
     $exitI = $LASTEXITCODE
     Assert-That "I1 exit 0" ($exitI -eq 0) "exit=$exitI out=$($outI.Trim())"
-    $recI = @(Get-Content -LiteralPath $features | Where-Object { $_ -match '"id":"spec-tooling\.stated-name-wins"' })
+    $recI = @(Get-Content -LiteralPath $features | Where-Object { $_ -match '"id":"diagnostics\.stated-name-wins"' })
     Assert-That "I2 id derived from area + stated name" ($recI.Count -eq 1) "records=$($recI.Count)"
     if ($recI.Count -eq 1) {
         $objI = $recI[0] | ConvertFrom-Json
         Assert-That "I3 name is verbatim, not a cut of the description" ($objI.name -eq 'Stated name wins') "name=$($objI.name)"
-        Assert-That "I4 area is verbatim, not 'General'" ($objI.area -eq 'Spec Tooling') "area=$($objI.area)"
+        Assert-That "I4 area is verbatim, not 'General'" ($objI.area -eq 'Diagnostics') "area=$($objI.area)"
         Assert-That "I5 flavors are verbatim, not ['standard']" (($objI.flavors -join ',') -eq 'standard,legacy,vr') "flavors=$($objI.flavors -join ',')"
     }
 

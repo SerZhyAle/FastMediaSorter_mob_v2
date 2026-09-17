@@ -71,7 +71,10 @@ class StoreBoundaryTest {
                 WearAppId.GAME,
                 WearAppId.WATER_FLASHLIGHT,
                 WearAppId.STOPWATCH,
-                WearAppId.CLIPBOARD
+                WearAppId.CLIPBOARD,
+                // S3216: the siren goes out on the alarm channel and the strobe is the display itself,
+                // so the distress signal declares no permission the store artifact withholds.
+                WearAppId.SOS
             ),
             apps
         )

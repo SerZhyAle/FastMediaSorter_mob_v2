@@ -4065,4 +4065,18 @@
     <string name="setting_launcher_primary_window_title">Основне стартове вікно</string>
     <string name="setting_launcher_primary_window_desc">Вибір режиму: домашній екран пристрою, робочий стіл усередині програми або Менеджер ресурсів</string>
     <string name="broadcast_default_stream_title">Потік з телефона</string>
+    <string name="broadcast_share_help">Як це дивитися</string>
+    <string name="sos_title">Аварійний сигнал SOS</string>
+    <string name="sos_hint">Сирена та стробоскоп повторюють сигнал SOS за Морзе. Парний годинник теж подає сигнал, якщо він на зв\'язку.</string>
+    <string name="sos_stop_action">Зупинити сигнал</string>
+    <string name="sos_mode_all">Звук і світло</string>
+    <string name="sos_mode_sound_only">Тільки звук</string>
+    <string name="sos_mode_light_only">Тільки світло</string>
+    <string name="sos_notification_text">Сигнал активний: %1$s</string>
+    <string name="sos_notification_channel">Сигнал SOS</string>
+    <string name="sos_settings_toggle_title">Аварійний сигнал SOS</string>
+    <string name="sos_settings_toggle_subtitle">Гучна сирена Морзе, стробоскоп спалахом і такий самий сигнал на годиннику</string>
+    <string name="sos_help_title">Аварійний сигнал SOS</string>
+    <string name="sos_help_message">Повторює сигнал SOS за Морзе: гучна сирена на каналі будильника, задній спалах і мигтючий екран. Можна вибрати звук, світло або і те й інше. Запуск тут вмикає сигнал і на парному годиннику, а зупинка на будь-якому пристрої гасить обидва. Через 30 хвилин сигнал вимикається сам, щоб зберегти батарею та спалах.</string>
+    <string name="tourist_action_sos">Сигнал SOS</string>
 </resources>

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.launcher.helpers
 
 import android.content.ClipData
 import android.view.DragEvent
+import android.view.HapticFeedbackConstants
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -9,6 +10,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
@@ -156,19 +158,32 @@ class LauncherEditModeManager(
             // row past the bottom edge stayed unreachable for the whole drag (strategic §1).
             DragEvent.ACTION_DRAG_LOCATION -> {
                 updateAutoScroll(event.y)
+                updateEdgePaging(event.x)
                 true
             }
             DragEvent.ACTION_DROP -> {
                 stopAutoScroll()
+                stopEdgePaging()
                 val id = event.localState as? Long ?: return@OnDragListener false
                 val target = desktop.cellAt(event.x, event.y)
-                viewModel.moveCell(id, target.row, target.col, desktop.columns)
+                val screenIndex = activeScreenIndex()
+                val dragged = viewModel.cells.value.firstOrNull { it.cell.id == id }?.cell
+                // S3205: S3204's row relocation works inside one screen only; a section carried to
+                // another screen travels as a whole block through the cross-screen move.
+                val sameScreenSection = dragged?.kind == LauncherCellKind.SECTION && dragged.screenIndex == screenIndex
+                if (sameScreenSection) {
+                    viewModel.moveSectionBlock(id, target.row)
+                } else {
+                    Timber.d("S3205: drag drop id=$id screen=$screenIndex from=${dragged?.screenIndex}")
+                    viewModel.moveCell(id, target.row, target.col, desktop.columns, targetScreenIndex = screenIndex)
+                }
                 true
             }
             // ENDED fires even when the drag was cancelled or released outside the container, so it is
             // the one edge guaranteed to arrive - without it a scroll could outlive the gesture.
             DragEvent.ACTION_DRAG_ENDED -> {
                 stopAutoScroll()
+                stopEdgePaging()
                 true
             }
             // Every other drag event must be accepted, or the framework stops routing DROP to us.
@@ -239,8 +254,63 @@ class LauncherEditModeManager(
         desktop.removeCallbacks(autoScroller)
     }
 
+    /**
+     * S3205: -1 while the drag point holds the left paging band, +1 the right one, 0 otherwise. Main thread
+     * only, like [autoScrollStepPx].
+     */
+    private var edgePagingDirection = NO_EDGE
+
+    private val edgePager = object : Runnable {
+        override fun run() {
+            val direction = edgePagingDirection
+            // Same leak guard as the auto-scroller: a delayed page turn must not act on a dead view tree.
+            if (direction == NO_EDGE || !desktop.isAttachedToWindow || !canPage(direction)) return
+            Timber.d("S3205: edge paging direction=$direction from screen=${activeScreenIndex()}")
+            if (direction < NO_EDGE) actions.pagePrevious() else actions.pageNext()
+            desktop.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+            // A finger still held in the band keeps turning pages, one dwell per screen.
+            if (canPage(direction)) desktop.postDelayed(this, EDGE_PAGING_DWELL_MS)
+        }
+    }
+
+    /**
+     * The dwell is what separates a page turn from a drag that merely passes the outermost column on its
+     * way to a drop there (strategic §2 goal 2). Vertical auto-scroll wins in the corners, where both
+     * bands overlap: a turn fired while the desktop is scrolling would land the row under the finger on
+     * another screen. An edge with no screen behind it arms nothing (strategic §2 goal 5).
+     */
+    private fun updateEdgePaging(desktopX: Float) {
+        val band = desktop.resources.getDimensionPixelSize(R.dimen.launcher_drag_edge_paging_band)
+        val width = desktop.width
+        val direction = when {
+            autoScrollStepPx != 0 || band <= 0 || width <= 0 -> NO_EDGE
+            desktopX < band -> BACKWARD
+            desktopX > width - band -> FORWARD
+            else -> NO_EDGE
+        }.takeIf { canPage(it) } ?: NO_EDGE
+        if (direction == edgePagingDirection) return
+        stopEdgePaging()
+        edgePagingDirection = direction
+        if (direction != NO_EDGE) desktop.postDelayed(edgePager, EDGE_PAGING_DWELL_MS)
+    }
+
+    private fun canPage(direction: Int): Boolean =
+        direction != NO_EDGE && activeScreenIndex() + direction in 0 until actions.screenCount()
+
+    private fun stopEdgePaging() {
+        edgePagingDirection = NO_EDGE
+        desktop.removeCallbacks(edgePager)
+    }
+
     private companion object {
         const val DRAG_LABEL = "launcher_cell"
+
+        const val NO_EDGE = 0
+        const val BACKWARD = -1
+        const val FORWARD = 1
+
+        /** Owner's range is 500-600 ms (strategic §3.3); the middle keeps both ends of it honest. */
+        const val EDGE_PAGING_DWELL_MS = 550L
 
         /**
          * Share of the depth inside the band covered per frame. At the deep edge of a 48dp band that is

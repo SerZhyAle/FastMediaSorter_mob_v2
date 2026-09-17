@@ -4144,4 +4144,18 @@
         <item>@string/launcher_primary_window_resource_manager_title</item>
     </string-array>
     <string name="broadcast_default_stream_title">Phone Stream</string>
+    <string name="broadcast_share_help">How to watch this</string>
+    <string name="sos_title">SOS emergency signal</string>
+    <string name="sos_hint">Siren and strobe repeat the Morse SOS pattern. The paired watch signals too when it is in range.</string>
+    <string name="sos_stop_action">Stop signal</string>
+    <string name="sos_mode_all">Sound and light</string>
+    <string name="sos_mode_sound_only">Sound only</string>
+    <string name="sos_mode_light_only">Light only</string>
+    <string name="sos_notification_text">Signal active: %1$s</string>
+    <string name="sos_notification_channel">SOS signal</string>
+    <string name="sos_settings_toggle_title">SOS emergency signal</string>
+    <string name="sos_settings_toggle_subtitle">Loud Morse siren, strobe flashlight, and a matching signal on the watch</string>
+    <string name="sos_help_title">SOS emergency signal</string>
+    <string name="sos_help_message">Repeats the Morse SOS pattern with a loud siren on the alarm channel, the rear flash, and a flashing screen. Pick sound, light, or both. Starting it here also starts it on the paired watch, and stopping either one stops both. The signal ends itself after 30 minutes so the battery and the flash survive it.</string>
+    <string name="tourist_action_sos">SOS signal</string>
 </resources>

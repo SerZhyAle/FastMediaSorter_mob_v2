@@ -55,9 +55,13 @@ class GoogleDriveAuthPlugin @Inject constructor(
     companion object {
         // Initial Drive scope set per strategic §3.1 - DRIVE + readonly + identity for the
         // Settings card email / avatar surface.
+        // S3040 adds DRIVE_APPDATA so one consent covers the cross-device transfer queue too; a
+        // second consent prompt at the moment of sending a file would land on a screen the user
+        // reached from a file menu, not from the Settings sign-in card.
         val DRIVE_SIGN_IN_SCOPES: Set<GoogleScope> = setOf(
             GoogleScope.DRIVE,
             GoogleScope.DRIVE_READONLY,
+            GoogleScope.DRIVE_APPDATA,
             GoogleScope.EMAIL,
             GoogleScope.PROFILE,
             GoogleScope.OPENID

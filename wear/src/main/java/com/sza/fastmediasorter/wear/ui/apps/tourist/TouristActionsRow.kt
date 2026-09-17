@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,6 +33,7 @@ fun TouristActionsRow(
     onResetTrip: () -> Unit,
     onResetSteps: () -> Unit,
     onToggleAthleteMode: () -> Unit,
+    onLaunchSos: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -79,6 +81,31 @@ fun TouristActionsRow(
                     )
                 },
                 colors = ChipDefaults.primaryChipColors(),
+                contentPadding = PaddingValues(
+                    horizontal = ATHLETE_H_PADDING,
+                    vertical = ATHLETE_V_PADDING,
+                ),
+            )
+        }
+        // S3216: a row of its own rather than a fourth chip beside the two resets. The dashboard is
+        // where the owner already is when something goes wrong outdoors, so the distress signal has to
+        // be found without reading - and it must not be the neighbour of a button that zeroes a metric.
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(ROW_SPACING, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CompactChip(
+                onClick = onLaunchSos,
+                label = {
+                    Text(
+                        text = "🚨 " + stringResource(R.string.wear_tourist_action_sos),
+                        fontSize = ATHLETE_LABEL_SIZE_SP,
+                    )
+                },
+                colors = ChipDefaults.primaryChipColors(
+                    backgroundColor = colorResource(R.color.color_program_accent_scarlet),
+                ),
                 contentPadding = PaddingValues(
                     horizontal = ATHLETE_H_PADDING,
                     vertical = ATHLETE_V_PADDING,

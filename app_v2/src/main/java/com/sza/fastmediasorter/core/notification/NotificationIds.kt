@@ -53,6 +53,9 @@ object NotificationIds {
     /** S3109: the paired watch sent its text clipboard and it now sits on this phone's clipboard. */
     const val WEAR_CLIPBOARD_TEXT = 4211
 
+    /** S3216: the running distress signal - siren, torch strobe, and the action that ends both. */
+    const val SOS_SIGNAL = 4212
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 

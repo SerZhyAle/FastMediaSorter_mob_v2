@@ -139,6 +139,12 @@ object WearRoutes {
      */
     const val CLIPBOARD = "clipboard"
 
+    /**
+     * S3216: the distress signal. Carries its `canonicalKey` like the programs above, and that key is
+     * the phone's route key too - one program on two devices.
+     */
+    const val SOS = "sos"
+
     const val ARG_MEDIA_TYPE = "mediaType"
     const val ARG_SOURCE_ID = "sourceId"
     const val ARG_SOURCE_NAME = "sourceName"
@@ -241,6 +247,18 @@ object WearRoutes {
     /** The refusal, told which format it is refusing. Enum names need no encoding. */
     fun unsupportedFile(format: WearDocumentFormat): String = "unsupported_file/${format.name}"
 
+    /**
+     * S3213: whether [route] is one of the content destinations - the screens that render a file and
+     * hold the watch while it plays.
+     *
+     * Asked of a graph route, so the argument is the declared `*_PATTERN` rather than a filled address.
+     * Two content destinations must never stand next to each other on the back stack: an entrance that
+     * fires while a player is already open - the phone's stream, the phone's file, a launch intent, a
+     * second Start on the phone-camera screen - used to push a second player, and BACK from it resumed
+     * the older one instead of leaving the flow.
+     */
+    fun isContentRoute(route: String?): Boolean = route != null && route in CONTENT_PATTERNS
+
     fun tileTargetPicker(kind: String): String = "tile_target_picker/${encodeArg(kind)}"
 
     /**
@@ -301,6 +319,14 @@ object WearRoutes {
             }
         }
     }
+
+    private val CONTENT_PATTERNS = setOf(
+        AUDIO_PLAYER_PATTERN,
+        VIDEO_PLAYER_PATTERN,
+        IMAGE_VIEWER_PATTERN,
+        DOCUMENT_VIEWER_PATTERN,
+        UNSUPPORTED_FILE,
+    )
 
     private const val CHAR_LIMIT_ASCII = 128
     private const val UNRESERVED_PUNCTUATION = "-_.~"

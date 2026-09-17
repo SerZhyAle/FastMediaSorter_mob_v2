@@ -5,7 +5,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.sos.SosMode
 
 /**
  * Owns persistence of the sub-program switches: which of our own programs the user has turned on,
@@ -38,6 +40,11 @@ object ProgramsSettingsStore {
     private val KEY_FRONT_FLASHLIGHT_ENABLED = booleanPreferencesKey("front_flashlight_enabled")
     private val KEY_FRONT_FLASHLIGHT_COLOR = intPreferencesKey("front_flashlight_color")
     private val KEY_WATER_FLASHLIGHT_ENABLED = booleanPreferencesKey("water_flashlight_enabled")
+
+    // S3216: the distress-signal program and the mode it last ran in. The mode persists as the enum's
+    // member name, which is also what travels to the paired device - one vocabulary, not two.
+    private val KEY_ENABLE_SOS = booleanPreferencesKey("enable_sos")
+    private val KEY_SOS_MODE = stringPreferencesKey("sos_mode")
     private val KEY_FLASHLIGHT_SHORTCUT_NOTIFICATION =
         booleanPreferencesKey("flashlight_shortcut_notification_enabled")
     private val KEY_MIRROR_ENABLED = booleanPreferencesKey("mirror_enabled")
@@ -61,6 +68,8 @@ object ProgramsSettingsStore {
         val frontFlashlightEnabled: Boolean,
         val frontFlashlightColor: Int,
         val waterFlashlightEnabled: Boolean,
+        val enableSos: Boolean,
+        val sosMode: SosMode,
         val flashlightShortcutNotificationEnabled: Boolean,
         val mirrorEnabled: Boolean,
         val mirrorZoomRatio: Float,
@@ -86,6 +95,10 @@ object ProgramsSettingsStore {
         frontFlashlightColor = preferences[KEY_FRONT_FLASHLIGHT_COLOR]
             ?: AppSettings.FRONT_FLASHLIGHT_DEFAULT_COLOR,
         waterFlashlightEnabled = preferences[KEY_WATER_FLASHLIGHT_ENABLED] ?: false,
+        enableSos = preferences[KEY_ENABLE_SOS] ?: false,
+        // An unknown token resolves to ALL rather than refusing to read: the stored name is the same
+        // vocabulary the paired device sends, so a build that dropped a member must still start a siren.
+        sosMode = SosMode.fromNameOrDefault(preferences[KEY_SOS_MODE]),
         flashlightShortcutNotificationEnabled =
         preferences[KEY_FLASHLIGHT_SHORTCUT_NOTIFICATION] ?: false,
         // S1924 ADR-3: the mirror starts on where the flashlight starts off, so the fallback here is
@@ -116,6 +129,8 @@ object ProgramsSettingsStore {
         frontFlashlightEnabled = values.frontFlashlightEnabled,
         frontFlashlightColor = values.frontFlashlightColor,
         waterFlashlightEnabled = values.waterFlashlightEnabled,
+        enableSos = values.enableSos,
+        sosMode = values.sosMode,
         flashlightShortcutNotificationEnabled = values.flashlightShortcutNotificationEnabled,
         mirrorEnabled = values.mirrorEnabled,
         mirrorZoomRatio = values.mirrorZoomRatio,
@@ -138,6 +153,8 @@ object ProgramsSettingsStore {
         preferences[KEY_FRONT_FLASHLIGHT_ENABLED] = settings.frontFlashlightEnabled
         preferences[KEY_FRONT_FLASHLIGHT_COLOR] = settings.frontFlashlightColor
         preferences[KEY_WATER_FLASHLIGHT_ENABLED] = settings.waterFlashlightEnabled
+        preferences[KEY_ENABLE_SOS] = settings.enableSos
+        preferences[KEY_SOS_MODE] = settings.sosMode.name
         preferences[KEY_FLASHLIGHT_SHORTCUT_NOTIFICATION] =
             settings.flashlightShortcutNotificationEnabled
         preferences[KEY_MIRROR_ENABLED] = settings.mirrorEnabled

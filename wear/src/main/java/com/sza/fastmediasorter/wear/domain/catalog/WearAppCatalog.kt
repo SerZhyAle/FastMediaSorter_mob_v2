@@ -104,6 +104,14 @@ object WearAppCatalog {
             WearApp(
                 id = WearAppId.CLIPBOARD,
                 labelRes = R.string.wear_app_clipboard
+            ),
+            // S3216: listed in both flavors - the siren goes out on the alarm channel and the strobe is
+            // the display itself, so the program declares no permission for a store review to withhold.
+            // Appended rather than placed beside the water flashlight it resembles: the order of this
+            // list is the owner's, and moving an existing program is not this ticket's to decide.
+            WearApp(
+                id = WearAppId.SOS,
+                labelRes = R.string.wear_app_sos
             )
         ).filter { it.isAvailable }
     }

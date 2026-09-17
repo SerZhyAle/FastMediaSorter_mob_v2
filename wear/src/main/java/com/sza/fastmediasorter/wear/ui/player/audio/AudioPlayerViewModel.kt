@@ -49,6 +49,7 @@ import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastManager
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerVolumeController
 import com.sza.fastmediasorter.wear.ui.player.common.backwardSeekTarget
 import com.sza.fastmediasorter.wear.ui.player.common.forwardSeekTarget
+import com.sza.fastmediasorter.wear.ui.player.common.jumpToLive
 import com.sza.fastmediasorter.wear.ui.player.common.resolveFavoriteIdentity
 import com.sza.fastmediasorter.wear.ui.player.common.togglePlayPause
 import com.sza.fastmediasorter.wear.ui.player.common.wearPlaybackStatePayload
@@ -657,6 +658,13 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     fun togglePlayPause() = streamPlaybackSession.togglePlayPause(exoPlayer)
+
+    /** S3217: a file has no live edge, so only a direct stream is re-prepared. */
+    fun jumpToLive() {
+        if (!_uiState.value.isStream) return
+        Timber.d("S3217: audio player jump to live tapped")
+        streamPlaybackSession.jumpToLive(exoPlayer)
+    }
 
     /**
      * S1701: writes the new order to settings and lets the collector above publish it back, so the
