@@ -3458,7 +3458,6 @@
     <string name="settings_suppress_wear_media_takeover">Suprimir o controlo de multimédia no relógio</string>
     <string name="settings_suppress_wear_media_takeover_summary">Impede o sistema Wear OS de mostrar o leitor do telemóvel como ecrã de controlo de multimédia no relógio</string>
     <string name="broadcast_import_refreshed">Transmissão atualizada com o novo endereço</string>
-    <string name="settings_broadcast_stream_title_hint">Difusão de áudio do telemóvel</string>
     <string name="settings_broadcast_auto_share_summary">Abrir automaticamente o ecrã de partilha quando uma difusão é iniciada</string>
     <string name="settings_broadcast_section">Difusão</string>
     <string name="settings_broadcast_bit_rate">Taxa de bits</string>

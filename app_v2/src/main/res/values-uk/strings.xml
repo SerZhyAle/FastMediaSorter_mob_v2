@@ -3876,7 +3876,6 @@
     <string name="broadcast_import_refreshed">Трансляцію оновлено: нова адреса</string>
     <string name="settings_broadcast_bit_rate">Бітрейт</string>
     <string name="settings_broadcast_section">Мовлення</string>
-    <string name="settings_broadcast_stream_title_hint">Мовлення з телефона</string>
     <string name="settings_broadcast_auto_share">Автовідкриття екрана надсилання</string>
     <string name="settings_broadcast_auto_share_summary">Відкривати екран надсилання автоматично при запуску мовлення</string>
     <string name="settings_broadcast_port">Порт</string>
@@ -4065,4 +4064,5 @@
     <string name="launcher_primary_window_resource_manager_desc">Відкривати керування файлами та ресурсами напряму</string>
     <string name="setting_launcher_primary_window_title">Основне стартове вікно</string>
     <string name="setting_launcher_primary_window_desc">Вибір режиму: домашній екран пристрою, робочий стіл усередині програми або Менеджер ресурсів</string>
+    <string name="broadcast_default_stream_title">Потік з телефона</string>
 </resources>

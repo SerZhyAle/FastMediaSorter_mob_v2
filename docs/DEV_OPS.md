@@ -567,6 +567,19 @@ The record carries the mark (package, module, flavor, build type, version pair, 
 
 **Marks are facts, never permissions.** `docs/DEVICE_FLEET.md` stays the only authority for what a device permits; the registry records what happened. Read-only verbs never create the store directory, so a probe or the monitor can look without leaving artifacts. The monitor page renders the park in a devices section fed by the page writer, which reads both device stores itself - the snapshot collector and the terminal renderer are canon-harness forwarders (S2402), so the section is page-only by design. `device-ready.ps1 -WithRegistry` attaches the mark to a ready answer behind the same opt-in discipline as `-ClaimFree`.
 
+#### Device state journal - S3201
+
+The registry records what was installed; the state journal records what a test **changed** and must put back. One file per device under `temp/DEVICE.STATE/<serial>.json` (same declaration, `scripts/devtest/lib/device-store-paths.ps1`), keyed by `ro.serialno` because the watch's wireless adb id changes every session. It holds the original `wm density` and `wm size` overrides, `font_scale`, any `settings` key a run wrote, and the app's `files/datastore/` files as hashes with a byte copy beside the journal.
+
+```powershell
+# Open a device run: restore leftovers of an unclosed run, then snapshot
+pwsh -NoProfile -File scripts/devtest/adb.ps1 state-begin -DeviceId <id>
+# Close it: put every drifted value back, one RESTORED line each; exit 13 = a value did not come back
+pwsh -NoProfile -File scripts/devtest/adb.ps1 state-check -DeviceId <id>
+```
+
+`adb.ps1 font-scale -Scale` and `adb.ps1 shell -Cmd` with `wm density|wm size|settings put|delete` record the original before they run, so a change made outside an open run is still put back by the next `state-begin`. `/spec-test-device` and `wear-prerelease-walk.ps1` open and close the journal themselves. A DataStore file goes back after a force-stop, through `/data/local/tmp` and `run-as cp`; that route needs a debuggable build.
+
 #### Agent chat - S2372
 
 The fourth coordination layer, and the only one with no rights: it grants nothing, forbids nothing and owns nothing - it tells. The locks, queues and leases answer "busy or free"; the chat answers "busy with what, since when, and is the holder still talking".

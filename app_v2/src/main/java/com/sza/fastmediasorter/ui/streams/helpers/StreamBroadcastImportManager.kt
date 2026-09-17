@@ -5,6 +5,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.util.showBoundTo
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 
@@ -38,10 +41,13 @@ class StreamBroadcastImportManager(
     /**
      * Returns null when the document cannot be read or is far larger than any descriptor, so the
      * caller reports a malformed payload instead of pushing an arbitrary file through the parser.
+     *
+     * S3167: a SAF document can live on a cloud or SMB provider, so the whole read is confined to
+     * the IO dispatcher and only the decided result crosses back to the caller's thread.
      */
     @Suppress("TooGenericExceptionCaught")
-    fun readDescriptorFile(uri: Uri): String? {
-        return try {
+    suspend fun readDescriptorFile(uri: Uri): String? = withContext(Dispatchers.IO) {
+        try {
             activity.contentResolver.openInputStream(uri)?.use { stream ->
                 // Bounded manually rather than through readNBytes, which is a Java 9 API this
                 // module's minSdk cannot rely on.
@@ -61,6 +67,8 @@ class StreamBroadcastImportManager(
                     String(sink.toByteArray(), Charsets.UTF_8)
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.d(e, "StreamBroadcastImportManager: failed to read the descriptor file")
             null

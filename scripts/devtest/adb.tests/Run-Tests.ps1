@@ -388,6 +388,58 @@ if (Assert-Envelope $r 'font-scale' $false 11) {
 $r = Invoke-Verb @('font-scale', '-Scale', '1.3', '-Yes') -Stub @{ FMS_STUB_DEVICES = 'RFCR110NBQJ' }
 Assert-Envelope $r 'font-scale' $true 0 | Out-Null
 
+# ---- device state journal (S3201): record, detect, put back ----
+# The incident in miniature: a run opens the journal, a passthrough sets `wm density 380`, and the
+# close must find it and run the reset. The journal root is redirected into the run directory so the
+# suite never writes the live temp/DEVICE.STATE/ store.
+$env:FMS_DEVICE_STATE_ROOT = Join-Path $runDir 'state-root'
+$densityMarker = Join-Path $runDir 'wm-density-override.txt'
+try {
+    $r = Invoke-Verb @('state-begin')
+    if (Assert-Envelope $r 'state-begin' $true 0) {
+        Assert-DataFields $r 'state-begin' @('id', 'journal', 'keys', 'dataStoreFiles', 'restoredLeftovers')
+        Assert-Equal 1 $r.json.data.dataStoreFiles 'state-begin -Json: the app DataStore file is snapshotted'
+        Assert-True ("$($r.json.data.journal)" -like '*DEVICE.STATE*EMULATOR35X1.json') 'state-begin: the journal is keyed by ro.serialno, not the adb id' "$($r.json.data.journal)"
+    }
+
+    $r = Invoke-Verb @('shell', '-Cmd', 'wm density 380')
+    Assert-Envelope $r 'shell' $true 0 | Out-Null
+    Assert-True (Test-Path -LiteralPath $densityMarker) 'the stub now reports a density override'
+
+    $r = Invoke-Verb @('state-check', '-NoRestore')
+    Assert-Envelope $r 'state-check' $false 13 | Out-Null
+    Assert-True (Test-Path -LiteralPath $densityMarker) 'state-check -NoRestore put nothing back'
+
+    $r = Invoke-Verb @('state-check')
+    if (Assert-Envelope $r 'state-check' $true 0) {
+        Assert-Equal 'wm.density' (@($r.json.data.restored)[0].key) 'state-check -Json: the drifted density is reported as restored'
+        Assert-True (-not (Test-Path -LiteralPath $densityMarker)) 'state-check ran `wm density reset` for a value that had no override'
+        Assert-True (-not (Test-Path -LiteralPath "$($r.json.data.journal)")) 'state-check cleared the journal after a clean restore'
+    }
+
+    # A mutation with no open run still records its original, so the next run's state-begin restores it.
+    $r = Invoke-Verb @('shell', '-Cmd', 'wm density 380')
+    Assert-Envelope $r 'shell' $true 0 | Out-Null
+    $r = Invoke-Verb @('state-begin')
+    if (Assert-Envelope $r 'state-begin' $true 0) {
+        Assert-Equal 'wm.density' (@($r.json.data.restoredLeftovers)[0].key) 'state-begin puts back what a run without a journal left'
+    }
+    Invoke-Verb @('state-check') | Out-Null
+}
+finally {
+    Remove-Item Env:FMS_DEVICE_STATE_ROOT -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $densityMarker -ErrorAction SilentlyContinue
+}
+
+# ---- launch with watch test parameters (S3201) ----
+$r = Invoke-Verb @('launch', '-GeometryMode', 'STORE', '-ScreenDp', '192') -Stub @{ FMS_STUB_WATCH = '1' }
+if (Assert-Envelope $r 'launch' $true 0) {
+    Assert-Equal 'STORE' $r.json.data.geometryMode 'launch -Json: the geometry parameter is reported'
+    Assert-Equal 192 $r.json.data.screenDp 'launch -Json: the screen parameter is reported'
+}
+$r = Invoke-Verb @('launch', '-ScreenDp', '192')
+Assert-Envelope $r 'launch' $false 1 | Out-Null
+
 # ---- clip-check -Strict: the frame criterion, separate from the off-glass one ----
 
 # The recorded dump was named "clean" under the off-glass criterion, and it carries two CLIPPED

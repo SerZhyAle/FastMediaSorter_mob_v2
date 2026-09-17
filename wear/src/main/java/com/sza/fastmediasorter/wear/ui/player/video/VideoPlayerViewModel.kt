@@ -2,11 +2,14 @@ package com.sza.fastmediasorter.wear.ui.player.video
 
 import android.content.Context
 import android.net.Uri
+import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
+import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
@@ -23,6 +26,7 @@ import com.sza.fastmediasorter.wear.domain.model.displayName
 import com.sza.fastmediasorter.wear.domain.playback.WEAR_PLAYBACK_STALL_TIMEOUT_MS
 import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallPolicy
 import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallWatchdog
+import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -61,6 +65,7 @@ private const val PREFS_NAME = "wear_video_prefs"
 private const val KEY_BATTERY_WARNING_SHOWN = "battery_warning_shown"
 private const val MAX_AUTO_HIDE_SECONDS = 600
 private const val MILLIS_PER_SECOND = 1000L
+private const val BITS_PER_KILOBIT = 1000
 
 /**
  * ViewModel for the video player screen.
@@ -94,8 +99,21 @@ class VideoPlayerViewModel @Inject constructor(
 
     private var controlsHideJob: Job? = null
 
+    private var streamSessionStartRealtime: Long = 0L
+    private var streamAccumulatedMs: Long = 0L
+
     private val progressTicker = PlaybackProgressTicker(viewModelScope, exoPlayer) { position ->
-        _uiState.update { it.copy(currentPositionMs = position) }
+        if (_uiState.value.isStream) {
+            val now = SystemClock.elapsedRealtime()
+            val currentElapsed = if (_uiState.value.isPlaying && streamSessionStartRealtime > 0L) {
+                streamAccumulatedMs + (now - streamSessionStartRealtime).coerceAtLeast(0L)
+            } else {
+                streamAccumulatedMs
+            }
+            _uiState.update { it.copy(currentPositionMs = currentElapsed) }
+        } else {
+            _uiState.update { it.copy(currentPositionMs = position) }
+        }
     }
 
     private val volumeController = PlayerVolumeController(
@@ -130,6 +148,17 @@ class VideoPlayerViewModel @Inject constructor(
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             Timber.d("onIsPlayingChanged: $isPlaying")
+            if (_uiState.value.isStream) {
+                val now = SystemClock.elapsedRealtime()
+                if (isPlaying) {
+                    streamSessionStartRealtime = now
+                } else {
+                    if (streamSessionStartRealtime > 0L) {
+                        streamAccumulatedMs += (now - streamSessionStartRealtime).coerceAtLeast(0L)
+                        streamSessionStartRealtime = 0L
+                    }
+                }
+            }
             _uiState.update { it.copy(isPlaying = isPlaying) }
             if (isPlaying) {
                 progressTicker.start()
@@ -161,9 +190,10 @@ class VideoPlayerViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            durationMs = exoPlayer.duration.coerceAtLeast(0)
+                            durationMs = if (it.isStream) 0L else exoPlayer.duration.coerceAtLeast(0)
                         )
                     }
+                    refreshStationFormat()
                     publishPlaybackState()
                 }
                 Player.STATE_ENDED -> {
@@ -201,6 +231,24 @@ class VideoPlayerViewModel @Inject constructor(
                 }
             }
             updateStallWatch()
+        }
+
+        override fun onTracksChanged(tracks: Tracks) {
+            refreshStationFormat()
+        }
+
+        override fun onVideoSizeChanged(videoSize: VideoSize) {
+            if (videoSize.width > 0 && videoSize.height > 0) {
+                val res = "${videoSize.width}x${videoSize.height}"
+                _uiState.update { state ->
+                    if (state.isStream) {
+                        val current = state.station ?: WearStationInfo()
+                        state.copy(station = current.copy(resolution = res))
+                    } else {
+                        state
+                    }
+                }
+            }
         }
 
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
@@ -321,6 +369,8 @@ class VideoPlayerViewModel @Inject constructor(
                     WearPlaybackCommand.STOP -> {
                         exoPlayer.stop()
                         streamPlaybackSession.stop()
+                        streamSessionStartRealtime = 0L
+                        streamAccumulatedMs = 0L
                     }
                 }
             }
@@ -359,11 +409,13 @@ class VideoPlayerViewModel @Inject constructor(
      * A set that cannot answer leaves the current file playing rather than stopping on nothing.
      */
     fun skipToNext() {
+        if (_uiState.value.isStream) return
         val next = playbackSetManager.next() ?: return
         playFile(next)
     }
 
     fun skipToPrevious() {
+        if (_uiState.value.isStream) return
         val previous = playbackSetManager.previous() ?: return
         playFile(previous)
     }
@@ -376,10 +428,18 @@ class VideoPlayerViewModel @Inject constructor(
      */
     private fun playFile(file: WearMediaFile) {
         streamPlaybackSession.clear()
+        streamSessionStartRealtime = 0L
+        streamAccumulatedMs = 0L
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
         _uiState.update {
-            it.copy(mediaFile = file, currentPositionMs = 0, durationMs = 0, error = null)
+            it.copy(
+                mediaFile = file,
+                currentPositionMs = 0,
+                durationMs = 0,
+                station = null,
+                error = null
+            )
         }
         val selection = networkSelection
         if (selection != null) {
@@ -456,10 +516,21 @@ class VideoPlayerViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = false) }
                 return
             }
-            _uiState.update { it.copy(isLoading = true) }
+            streamSessionStartRealtime = 0L
+            streamAccumulatedMs = 0L
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    isStream = true,
+                    durationMs = 0L,
+                    currentPositionMs = 0L,
+                    station = null
+                )
+            }
             val mediaItem = MediaItem.fromUri(Uri.parse(selected.streamUri))
             exoPlayer.setMediaItem(mediaItem)
             exoPlayer.prepare()
+            Timber.d("S3202: direct video stream prepared uri=%s", selected.streamUri)
             _uiState.update { it.copy(isLoading = false) }
             if (!_uiState.value.showBatteryWarning) {
                 exoPlayer.playWhenReady = true
@@ -486,6 +557,36 @@ class VideoPlayerViewModel @Inject constructor(
                 }
             }
         )
+    }
+
+    /**
+     * S3202: format and codec metadata for the active stream.
+     * Video format provides video codec/resolution/bitrate; audio format provides audio fallback codec/bitrate.
+     */
+    private fun refreshStationFormat() {
+        if (!_uiState.value.isStream) return
+        val vFormat = exoPlayer.videoFormat
+        val aFormat = exoPlayer.audioFormat
+        val videoCodec = WearStationInfo.codecLabel(vFormat?.sampleMimeType)
+        val audioCodec = WearStationInfo.codecLabel(aFormat?.sampleMimeType)
+        val codec = videoCodec ?: audioCodec
+        val res = if (vFormat != null && vFormat.width > 0 && vFormat.height > 0) {
+            "${vFormat.width}x${vFormat.height}"
+        } else {
+            null
+        }
+        val bitrate = (vFormat?.bitrate?.takeIf { it > 0 } ?: aFormat?.bitrate?.takeIf { it > 0 })
+            ?.div(BITS_PER_KILOBIT)
+        _uiState.update { state ->
+            val current = state.station ?: WearStationInfo()
+            state.copy(
+                station = current.copy(
+                    codec = codec ?: current.codec,
+                    resolution = res ?: current.resolution,
+                    bitrateKbps = bitrate ?: current.bitrateKbps
+                )
+            )
+        }
     }
 
     fun getPlayer(): ExoPlayer = exoPlayer
@@ -542,13 +643,20 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun seekTo(positionMs: Long) {
+        if (_uiState.value.isStream) return
         exoPlayer.seekTo(positionMs)
         _uiState.update { it.copy(currentPositionMs = positionMs) }
     }
 
-    fun seekForward() = seekTo(forwardSeekTarget(exoPlayer))
+    fun seekForward() {
+        if (_uiState.value.isStream) return
+        seekTo(forwardSeekTarget(exoPlayer))
+    }
 
-    fun seekBackward() = seekTo(backwardSeekTarget(exoPlayer))
+    fun seekBackward() {
+        if (_uiState.value.isStream) return
+        seekTo(backwardSeekTarget(exoPlayer))
+    }
 
     fun toggleScaleMode() {
         scaleModeChosen = true
@@ -597,6 +705,7 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun togglePlaybackMode() {
+        if (_uiState.value.isStream) return
         val nextMode = _uiState.value.playbackMode.next()
         val isShuffle = nextMode == WearPlaybackMode.SHUFFLE
         _uiState.update { it.copy(playbackMode = nextMode, isShuffleEnabled = isShuffle) }
@@ -696,6 +805,7 @@ class VideoPlayerViewModel @Inject constructor(
         )
         exoPlayer.pause()
         streamPlaybackSession.stop()
+        streamSessionStartRealtime = 0L
         _uiState.update {
             it.copy(
                 isLoading = false,

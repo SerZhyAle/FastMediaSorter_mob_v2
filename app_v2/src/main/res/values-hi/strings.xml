@@ -3450,7 +3450,6 @@
     <string name="settings_suppress_wear_media_takeover">वॉच पर मीडिया कंट्रोल न दिखाएं</string>
     <string name="settings_suppress_wear_media_takeover_summary">Wear OS सिस्टम को फोन प्लेयर को वॉच पर मीडिया-कंट्रोल स्क्रीन के रूप में दिखाने से रोकें</string>
     <string name="broadcast_import_refreshed">ब्रॉडकास्ट को नए पते के साथ अपडेट किया गया</string>
-    <string name="settings_broadcast_stream_title_hint">फोन ऑडियो स्ट्रीम</string>
     <string name="settings_broadcast_auto_share_summary">ब्रॉडकास्ट शुरू होने पर शेयर स्क्रीन अपने आप खोलें</string>
     <string name="settings_broadcast_section">ब्रॉडकास्ट</string>
     <string name="settings_broadcast_bit_rate">बिट रेट</string>

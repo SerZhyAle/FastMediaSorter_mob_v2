@@ -523,6 +523,8 @@ scripts/builders/build-debug-device.ps1
   Build, install, and launch debug build on connected device
   Params:
     -AutoVersion         [SwitchParameter] = $true
+    -DeviceId            [String] = $env:ANDROID_SERIAL
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-debug.PS1
@@ -589,7 +591,9 @@ Build Legacy Debug APK and Install on Device
 ```
 scripts/builders/build-legacy-device.ps1
   Build Legacy Debug APK and Install on Device
-  (no param block)
+  Params:
+    -DeviceId         [String] = $env:ANDROID_SERIAL
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-legacy-release.ps1
@@ -616,7 +620,9 @@ Build Lite Debug APK and Install on Device
 ```
 scripts/builders/build-lite-device.ps1
   Build Lite Debug APK and Install on Device
-  (no param block)
+  Params:
+    -DeviceId         [String] = $env:ANDROID_SERIAL
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-lite-release.ps1
@@ -645,7 +651,9 @@ Build NoLegal Debug APK and Install on Device (phone or Quest via ADB)
 ```
 scripts/builders/build-nolegal-device.ps1
   Build NoLegal Debug APK and Install on Device (phone or Quest via ADB)
-  (no param block)
+  Params:
+    -DeviceId         [String] = $env:ANDROID_SERIAL
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-nolegal-release.ps1
@@ -681,7 +689,9 @@ Build Photos Debug APK and Install on Device
 ```
 scripts/builders/build-photos-device.ps1
   Build Photos Debug APK and Install on Device
-  (no param block)
+  Params:
+    -DeviceId         [String] = $env:ANDROID_SERIAL
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-photos-release.ps1
@@ -726,7 +736,9 @@ Build Standard Debug APK and Install on Device
 ```
 scripts/builders/build-standard-device.ps1
   Build Standard Debug APK and Install on Device
-  (no param block)
+  Params:
+    -DeviceId         [String] = $env:ANDROID_SERIAL
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-standard-release.ps1
@@ -1067,38 +1079,41 @@ Generic ad-hoc adb swiss-army for fast manual work with connected emulators / de
 scripts/devtest/adb.ps1
   Generic ad-hoc adb swiss-army for fast manual work with connected emulators / devices.
   Params:
-    -Verb               [String] = 'help'
-    -DeviceId           [String]
-    -Package            [String]
-    -Release            [SwitchParameter]
-    -Tail               [Int32] = 200
-    -Grep               [String]
-    -Apk                [String]
-    -Flavor             [String] = 'standard'  {standard|lite|photos|legacy|noLegal}
-    -Module             [String] = 'app_v2'  {app_v2|wear}
-    -X                  [Int32]
-    -Y                  [Int32]
-    -X2                 [Int32]
-    -Y2                 [Int32]
-    -Duration           [Int32] = 300
-    -Text               [String]
-    -Key                [String]
-    -Cmd                [String]
-    -Remote             [String]
-    -Local              [String]
-    -Latest             [SwitchParameter]
-    -Label              [String]
-    -Exact              [SwitchParameter]
-    -ResourceId         [String]
-    -Ids                [SwitchParameter]
-    -Index              [Int32] = 1
-    -OutDir             [String]
-    -Json               [SwitchParameter]
-    -Strict             [SwitchParameter]
-    -Scale              [Double]
-    -Axis               [Double]
-    -Repeat             [Int32] = 1
-    -Yes                [SwitchParameter]
+    -Verb                 [String] = 'help'
+    -DeviceId             [String]
+    -Package              [String]
+    -Release              [SwitchParameter]
+    -Tail                 [Int32] = 200
+    -Grep                 [String]
+    -Apk                  [String]
+    -Flavor               [String] = 'standard'  {standard|lite|photos|legacy|noLegal}
+    -Module               [String] = 'app_v2'  {app_v2|wear}
+    -X                    [Int32]
+    -Y                    [Int32]
+    -X2                   [Int32]
+    -Y2                   [Int32]
+    -Duration             [Int32] = 300
+    -Text                 [String]
+    -Key                  [String]
+    -Cmd                  [String]
+    -Remote               [String]
+    -Local                [String]
+    -Latest               [SwitchParameter]
+    -Label                [String]
+    -Exact                [SwitchParameter]
+    -ResourceId           [String]
+    -Ids                  [SwitchParameter]
+    -Index                [Int32] = 1
+    -OutDir               [String]
+    -Json                 [SwitchParameter]
+    -Strict               [SwitchParameter]
+    -Scale                [Double]
+    -Axis                 [Double]
+    -Repeat               [Int32] = 1
+    -Yes                  [SwitchParameter]
+    -GeometryMode         [String]  {ORIGINAL|STORE}
+    -ScreenDp             [Int32]
+    -NoRestore            [SwitchParameter]
   Exit: 0 - OK; 1 - adb not found, or bad arguments; 2 - no online device; 3 - multiple online devices and -DeviceId not supplied (for verbs needing a device); 4 - target package not installed (for app verbs); 5 - a destructive verb was refused: `clear` (removed), or `wipe-data`/`uninstall` without -Yes.
 ```
 
@@ -1593,12 +1608,21 @@ scripts/devtest/lib/device-form-factor.ps1
   (no param block)
 ```
 
+### device-state-journal.ps1
+The device state journal: what a test changed on a device, and what it was before (S3201).
+
+```
+scripts/devtest/lib/device-state-journal.ps1
+  The device state journal: what a test changed on a device, and what it was before (S3201).
+  (no param block)
+```
+
 ### device-store-paths.ps1
-Declares WHERE the two device stores live and HOW a serial becomes a file name (S3036).
+Declares WHERE the device stores live and HOW a serial becomes a file name (S3036).
 
 ```
 scripts/devtest/lib/device-store-paths.ps1
-  Declares WHERE the two device stores live and HOW a serial becomes a file name (S3036).
+  Declares WHERE the device stores live and HOW a serial becomes a file name (S3036).
   (no param block)
 ```
 
@@ -1617,6 +1641,15 @@ S2709 - decide whether `pm list packages` reported an exact package as installed
 ```
 scripts/devtest/lib/prerelease-package-guard.ps1
   S2709 - decide whether `pm list packages` reported an exact package as installed.
+  (no param block)
+```
+
+### target-device.ps1
+Shared target-device resolver for the builders that install what they just built (S3169).
+
+```
+scripts/devtest/lib/target-device.ps1
+  Shared target-device resolver for the builders that install what they just built (S3169).
   (no param block)
 ```
 
@@ -1665,6 +1698,18 @@ scripts/devtest/lib/wear-walk-position.ps1
   (no param block)
 ```
 
+## scripts\devtest\lib\device-state-journal.tests
+
+### Run-Tests.ps1
+Contract suite for scripts/devtest/lib/device-state-journal.ps1 (S3201).
+
+```
+scripts/devtest/lib/device-state-journal.tests/Run-Tests.ps1
+  Contract suite for scripts/devtest/lib/device-state-journal.ps1 (S3201).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
 ## scripts\devtest\lib\device-store-paths.tests
 
 ### Run-Tests.ps1
@@ -1673,6 +1718,18 @@ Contract tests for scripts/devtest/lib/device-store-paths.ps1 (S3036).
 ```
 scripts/devtest/lib/device-store-paths.tests/Run-Tests.ps1
   Contract tests for scripts/devtest/lib/device-store-paths.ps1 (S3036).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\devtest\lib\target-device.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/devtest/lib/target-device.ps1 (S3169).
+
+```
+scripts/devtest/lib/target-device.tests/Run-Tests.ps1
+  Contract tests for scripts/devtest/lib/target-device.ps1 (S3169).
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```

@@ -111,7 +111,20 @@ Build + install to connected device:
 .\scripts\builders\build-lite-device.ps1
 .\scripts\builders\build-photos-device.ps1
 .\scripts\builders\build-legacy-device.ps1
+.\scripts\builders\build-nolegal-device.ps1
 ```
+
+Every one of them takes `-DeviceId <serial>`, defaulting to `ANDROID_SERIAL`:
+
+```powershell
+.\scripts\builders\build-standard-device.ps1 -DeviceId RFCR110NBQJ
+```
+
+- With several devices online and no serial given, a watch is ignored and the single remaining
+  phone-class device is used; anything less clear-cut refuses and names every online id.
+- A failed install or launch ends the script with that `adb` call's exit code. Before S3169 the
+  builders called `adb` with no serial, so a paired watch made every step fail while the script
+  still printed its success line and exited 0.
 
 VR has no build+install script - see the VR section above.
 

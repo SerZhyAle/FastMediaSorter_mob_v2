@@ -3458,7 +3458,6 @@
     <string name="settings_suppress_wear_media_takeover">Ocultar el control multimedia en el reloj</string>
     <string name="settings_suppress_wear_media_takeover_summary">Evita que el sistema Wear OS muestre el reproductor del teléfono como pantalla de control multimedia en el reloj</string>
     <string name="broadcast_import_refreshed">Transmisión actualizada con su nueva dirección</string>
-    <string name="settings_broadcast_stream_title_hint">Difusión de audio del teléfono</string>
     <string name="settings_broadcast_auto_share_summary">Abrir la pantalla para compartir automáticamente al iniciar una difusión</string>
     <string name="settings_broadcast_section">Difusión</string>
     <string name="settings_broadcast_bit_rate">Tasa de bits</string>

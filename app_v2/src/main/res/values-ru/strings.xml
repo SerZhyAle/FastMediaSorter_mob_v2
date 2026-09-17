@@ -3891,7 +3891,6 @@
     <string name="broadcast_import_refreshed">Трансляция обновлена: новый адрес</string>
     <string name="settings_broadcast_bit_rate">Битрейт</string>
     <string name="settings_broadcast_section">Вещание</string>
-    <string name="settings_broadcast_stream_title_hint">Вещание с телефона</string>
     <string name="settings_broadcast_port">Порт</string>
     <string name="settings_broadcast_auto_share_summary">Открывать экран отправки автоматически при запуске вещания</string>
     <string name="settings_broadcast_audio_format">Формат аудио</string>
@@ -4080,4 +4079,5 @@
     <string name="launcher_primary_window_resource_manager_desc">Открывать управление файлами и ресурсами напрямую</string>
     <string name="setting_launcher_primary_window_title">Основное стартовое окно</string>
     <string name="setting_launcher_primary_window_desc">Выбор режима: домашний экран устройства, рабочий стол внутри программы или Менеджер ресурсов</string>
+    <string name="broadcast_default_stream_title">Поток с телефона</string>
 </resources>

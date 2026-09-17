@@ -3947,7 +3947,6 @@
     <string name="settings_suppress_wear_media_takeover">Suppress media control on watch</string>
     <string name="settings_suppress_wear_media_takeover_summary">Stop the Wear OS system from showing the phone player as a media-control screen on the watch</string>
     <string name="broadcast_import_refreshed">Broadcast updated with its new address</string>
-    <string name="settings_broadcast_stream_title_hint">Phone Audio Stream</string>
     <string name="settings_broadcast_auto_share_summary">Open the share screen automatically when a broadcast starts</string>
     <string name="settings_broadcast_section">Broadcast</string>
     <string name="settings_broadcast_bit_rate">Bit rate</string>
@@ -4144,4 +4143,5 @@
         <item>@string/launcher_primary_window_desktop_title</item>
         <item>@string/launcher_primary_window_resource_manager_title</item>
     </string-array>
+    <string name="broadcast_default_stream_title">Phone Stream</string>
 </resources>

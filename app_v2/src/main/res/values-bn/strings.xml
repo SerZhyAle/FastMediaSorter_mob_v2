@@ -3452,7 +3452,6 @@
     <string name="settings_suppress_wear_media_takeover">ঘড়িতে মিডিয়া কন্ট্রোল বন্ধ রাখুন</string>
     <string name="settings_suppress_wear_media_takeover_summary">Wear OS সিস্টেমকে ঘড়িতে ফোন প্লেয়ারকে মিডিয়া-কন্ট্রোল স্ক্রিন হিসেবে দেখানো থেকে আটকান</string>
     <string name="broadcast_import_refreshed">ব্রডকাস্ট নতুন ঠিকানাসহ আপডেট হয়েছে</string>
-    <string name="settings_broadcast_stream_title_hint">ফোন অডিও স্ট্রিম</string>
     <string name="settings_broadcast_auto_share_summary">ব্রডকাস্ট শুরু হলে শেয়ার স্ক্রিন স্বয়ংক্রিয়ভাবে খুলুন</string>
     <string name="settings_broadcast_section">ব্রডকাস্ট</string>
     <string name="settings_broadcast_bit_rate">বিট রেট</string>

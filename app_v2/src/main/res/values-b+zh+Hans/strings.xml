@@ -3449,7 +3449,6 @@
     <string name="settings_suppress_wear_media_takeover">在手表上隐藏媒体控制</string>
     <string name="settings_suppress_wear_media_takeover_summary">阻止 Wear OS 系统在手表上将手机播放器显示为媒体控制界面</string>
     <string name="broadcast_import_refreshed">直播地址已更新</string>
-    <string name="settings_broadcast_stream_title_hint">手机音频流</string>
     <string name="settings_broadcast_auto_share_summary">直播开始时自动打开分享界面</string>
     <string name="settings_broadcast_section">直播</string>
     <string name="settings_broadcast_bit_rate">比特率</string>

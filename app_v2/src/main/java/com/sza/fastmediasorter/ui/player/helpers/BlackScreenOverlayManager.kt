@@ -1,12 +1,12 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
-import android.graphics.Color
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import com.sza.fastmediasorter.ui.common.widget.DimOverlayView
 import timber.log.Timber
 import java.lang.ref.WeakReference
 
@@ -37,27 +37,21 @@ class BlackScreenOverlayManager(
         wasFullscreenBeforeOverlay = systemBarsManager.isInFullscreenMode()
         isChangingSystemBars = true
         systemBarsManager.enterFullscreenMode()
-        val view = View(activity).apply {
-            setBackgroundColor(Color.BLACK)
+        val view = DimOverlayView(activity).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            isClickable = true
-            isFocusable = true
-            isFocusableInTouchMode = true
-            fitsSystemWindows = false
-            setOnTouchListener { _, event ->
-                if (event.action == MotionEvent.ACTION_DOWN) hide()
-                true
-            }
+            onExit = { hide() }
             setOnKeyListener { _, _, event ->
-                if (event.action == KeyEvent.ACTION_DOWN) hide()
-                true
-            }
-            setOnGenericMotionListener { _, _ ->
-                hide()
-                true
+                if (event.action == KeyEvent.ACTION_DOWN &&
+                    (event.keyCode == KeyEvent.KEYCODE_BACK || event.keyCode == KeyEvent.KEYCODE_ESCAPE)
+                ) {
+                    hide()
+                    true
+                } else {
+                    false
+                }
             }
             requestFocus()
         }
@@ -65,7 +59,19 @@ class BlackScreenOverlayManager(
         overlayView = view
         isVisible = true
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
-        Timber.d("BlackScreenOverlayManager: overlay shown (fullscreen=true, wasFullscreen=$wasFullscreenBeforeOverlay)")
+        Timber.d(
+            "BlackScreenOverlayManager: overlay shown (fullscreen=true, wasFullscreen=$wasFullscreenBeforeOverlay)"
+        )
+    }
+
+    fun onTouchEvent(event: MotionEvent): Boolean {
+        val view = overlayView as? DimOverlayView
+        return if (isVisible && view != null) {
+            view.dispatchTouchEvent(event)
+            true
+        } else {
+            false
+        }
     }
 
     fun hide() {

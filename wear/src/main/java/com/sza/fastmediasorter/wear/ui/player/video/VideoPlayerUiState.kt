@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
 import com.sza.fastmediasorter.wear.util.formatWearDuration
 
 /**
@@ -52,6 +53,11 @@ data class VideoPlayerUiState(
      */
     val channelReason: StreamChannelReason? = null,
     /**
+     * S3202: what the live stream says about itself, filled only while [isStream] is true.
+     * Mirrors S3099 audio stream station metadata.
+     */
+    val station: WearStationInfo? = null,
+    /**
      * S2140: the system media volume, read back after each change rather than counted here - same
      * invariant the audio player already keeps (S1701). The player owns no scale of its own: anything
      * else on the watch may move the same stream, and a private copy would drift from what is heard.
@@ -67,14 +73,14 @@ data class VideoPlayerUiState(
     val animationsDisabled: Boolean = false
 ) {
     val positionText: String
-        get() = if (setSize > 0) "${setIndex + 1}/$setSize" else ""
+        get() = if (!isStream && setSize > 0) "${setIndex + 1}/$setSize" else ""
 
     /** A single file is a set of one - there is nowhere to page, so no paging control is offered. */
     val hasSet: Boolean
-        get() = setSize > 1
+        get() = !isStream && setSize > 1
 
     val progress: Float
-        get() = if (durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f
+        get() = if (!isStream && durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f
 
     val currentPositionFormatted: String
         get() = formatWearDuration(currentPositionMs)

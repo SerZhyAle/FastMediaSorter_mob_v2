@@ -8,7 +8,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.DEFAULT_BROADCAST_STREAM_TITLE
+import com.sza.fastmediasorter.domain.model.LEGACY_BROADCAST_STREAM_TITLE
 import timber.log.Timber
 
 /**
@@ -17,7 +20,7 @@ import timber.log.Timber
  */
 object BroadcastSettingsStore {
 
-    private const val DEFAULT_TITLE = "Phone Audio Stream"
+    private const val UNKNOWN_MODEL = "unknown"
     private const val DEFAULT_BIT_RATE_BPS = 128_000
     private const val DEFAULT_PORT = 8768
     private const val DEFAULT_SAMPLE_RATE_HZ = 44_100
@@ -39,6 +42,7 @@ object BroadcastSettingsStore {
     private val keyVideoHeight = intPreferencesKey("broadcast_video_height")
     private val keyVideoFps = intPreferencesKey("broadcast_video_fps")
     private val keyVideoBitrateBps = intPreferencesKey("broadcast_video_bitrate_bps")
+
     // S3049: microphone digital PCM gain percentage (50% - 400%, default 100%).
     private val keyMicGainPercent = intPreferencesKey("broadcast_mic_gain_percent")
 
@@ -61,23 +65,32 @@ object BroadcastSettingsStore {
     )
 
     fun defaultDeviceTitle(context: Context? = null): String {
-        if (context != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+        val deviceName = if (context != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             try {
-                val name = Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME)
-                if (!name.isNullOrBlank()) {
-                    return name
-                }
+                Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME)
             } catch (e: SecurityException) {
                 Timber.w(e, "BroadcastSettingsStore: failed to read device name")
+                null
             }
+        } else {
+            null
         }
         val model = try { Build.MODEL } catch (_: Throwable) { null }
-        return if (!model.isNullOrBlank() && model != "unknown") model else DEFAULT_TITLE
+        // S3173: the last fallback is a translated resource wherever a Context exists, so a phone
+        // reporting no name and no model still broadcasts under a localized neutral title.
+        return deviceName?.takeUnless { it.isBlank() }
+            ?: model?.takeUnless { it.isBlank() || it == UNKNOWN_MODEL }
+            ?: context?.getString(R.string.broadcast_default_stream_title)
+            ?: DEFAULT_BROADCAST_STREAM_TITLE
     }
 
     fun read(preferences: Preferences, context: Context? = null): Values = Values(
         enableBroadcasting = preferences[keyEnableBroadcasting] ?: false,
-        streamTitle = preferences[keyStreamTitle] ?: defaultDeviceTitle(context),
+        // S3173: the legacy default was persisted verbatim by every settings write, so an
+        // installation holding it never chose a title - resolve it like an absent key.
+        streamTitle = preferences[keyStreamTitle]
+            ?.takeUnless { it == LEGACY_BROADCAST_STREAM_TITLE }
+            ?: defaultDeviceTitle(context),
         bitRateBps = preferences[keyBitRateBps] ?: DEFAULT_BIT_RATE_BPS,
         port = preferences[keyPort] ?: DEFAULT_PORT,
         sampleRateHz = preferences[keySampleRateHz] ?: DEFAULT_SAMPLE_RATE_HZ,

@@ -59,6 +59,7 @@ switch -Regex ($sig) {
 
     # ---- getprop ----
     '^shell getprop ro\.product\.model$'          { Write-Output 'Pixel 7'; exit 0 }
+    '^shell getprop ro\.serialno$'                { Write-Output 'EMULATOR35X1'; exit 0 }
     '^shell getprop ro\.build\.version\.release$' { Write-Output '14'; exit 0 }
     '^shell getprop ro\.build\.version\.sdk$'     { Write-Output '34'; exit 0 }
     '^shell getprop ro\.build\.characteristics$'  {
@@ -69,7 +70,16 @@ switch -Regex ($sig) {
     '^shell getprop ro\.product\.cpu\.abi$'       { Write-Output 'x86_64'; exit 0 }
 
     # ---- window manager ----
-    '^shell wm density$' { Write-Output 'Physical density: 420'; exit 0 }
+    # S3201: density is stateful so a case can change it and watch the journal put it back. The marker
+    # file under FMS_STUB_HOME is the override; `wm density <n>` writes it and `wm density reset` removes it.
+    '^shell wm density$' {
+        Write-Output 'Physical density: 420'
+        $marker = Join-Path $home_ 'wm-density-override.txt'
+        if (Test-Path -LiteralPath $marker) { Write-Output "Override density: $((Get-Content -LiteralPath $marker -Raw).Trim())" }
+        exit 0
+    }
+    '^shell wm density reset$' { Remove-Item -LiteralPath (Join-Path $home_ 'wm-density-override.txt') -ErrorAction SilentlyContinue; exit 0 }
+    '^shell wm density (?<d>\d+)$' { Set-Content -LiteralPath (Join-Path $home_ 'wm-density-override.txt') -Value $Matches['d']; exit 0 }
     '^shell wm size$'    { Write-Output "Physical size: $wmSize"; exit 0 }
 
     # ---- dumpsys ----
@@ -119,6 +129,11 @@ switch -Regex ($sig) {
 
     # ---- app lifecycle ----
     '^shell am start -n \S+$'    { Write-Output 'Starting: Intent { cmp=com.sza.fastmediasorter.debug/.ui.main.MainActivity }'; exit 0 }
+    # S3201: the watch test parameters ride on the same start, after the component.
+    '^shell am start -n \S+( --es fms_test_geometry (ORIGINAL|STORE))?( --ei fms_test_screen_dp \d+)?$' {
+        Write-Output 'Starting: Intent { cmp=com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity (has extras) }'
+        exit 0
+    }
     '^shell am force-stop \S+$'  { exit 0 }
     '^logcat -c$'                { exit 0 }
     '^install -r -d .+$'         { Write-Output 'Success'; exit 0 }
@@ -147,6 +162,11 @@ switch -Regex ($sig) {
         Write-Output $v; exit 0
     }
     '^shell settings put system font_scale \S+$' { exit 0 }
+    '^shell settings delete system font_scale$' { exit 0 }
+
+    # ---- run-as DataStore (S3201 state journal) ----
+    '^shell run-as \S+ ls files/datastore$' { Write-Output 'wear_settings.preferences_pb'; exit 0 }
+    '^shell run-as \S+ base64 files/datastore/[\w.\-]+$' { Write-Output 'AAECAwQ='; exit 0 }
 
     # ---- run-as (prefs) ----
     '^shell run-as \S+ base64 .+settings\.preferences_pb$' { Write-Output 'c2V0dGluZ3MtcHJlZnMtZml4dHVyZQ=='; exit 0 }

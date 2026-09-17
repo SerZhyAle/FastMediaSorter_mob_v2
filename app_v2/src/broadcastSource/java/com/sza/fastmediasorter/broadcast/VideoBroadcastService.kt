@@ -210,6 +210,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                 targetLatencyMs = 200L
             )
 
+            Timber.d("S3173: video descriptor title='${dto.title}' mode=${dto.mode}")
             currentMicEnabled = currentMode != BroadcastMode.VIDEO_ONLY
             _state.value = BroadcastState.Live(
                 descriptor = dto,

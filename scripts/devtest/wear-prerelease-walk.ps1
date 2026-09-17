@@ -154,6 +154,7 @@ $result = [ordered]@{
 
 function Stop-Run {
     param([int]$Code, [string]$Reason)
+    Close-DeviceStateJournal
     $result.exitCode = $Code
     $result.ok = ($Code -eq 0)
     $result.reason = $Reason
@@ -180,6 +181,29 @@ function Invoke-AdbVerb {
     $output = & pwsh -NoProfile -File $adbWrapper @callArgs 2>&1
     return [pscustomobject]@{ Exit = $LASTEXITCODE; Output = ($output -join "`n") }
 }
+
+# --- Device state journal (S3201) ---------------------------------------------------------------
+# The walk opens the journal before its first change to the watch and closes it on every exit path,
+# so whatever the run changed - the ambient setting below included - is put back mechanically, and a
+# restore is reported in walk.json rather than left to whoever reads the recipe.
+
+$script:stateJournalOpen = $false
+
+function Open-DeviceStateJournal {
+    $begin = Invoke-AdbVerb -Arguments @('state-begin')
+    $script:stateJournalOpen = ($begin.Exit -eq 0)
+    $result.stateBegin = $begin.Output
+}
+
+function Close-DeviceStateJournal {
+    if (-not $script:stateJournalOpen) { return }
+    $script:stateJournalOpen = $false
+    $check = Invoke-AdbVerb -Arguments @('state-check')
+    $result.stateCheckExit = $check.Exit
+    $result.stateRestored = @($check.Output -split "`r?`n" | Where-Object { $_ -like 'RESTORED *' })
+}
+
+Open-DeviceStateJournal
 
 # --- Wakefulness (S2547) -------------------------------------------------------------------------
 
@@ -807,6 +831,7 @@ if (-not $SkipLogAudit) {
 }
 
 Restore-AmbientSetting
+Close-DeviceStateJournal
 
 $walkPath = Join-Path $outPath 'walk.json'
 [pscustomobject]$result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $walkPath -Encoding UTF8

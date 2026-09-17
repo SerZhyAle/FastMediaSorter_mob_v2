@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.ui.broadcast.helpers
 
+import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.view.View
 import android.widget.Toast
@@ -10,6 +12,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -51,17 +54,30 @@ class BroadcastControlManager @Inject constructor(
     private val sendStreamToWatch: Lazy<SendStreamToWatchUseCase>,
     private val settingsPanelManager: BroadcastSettingsPanelManager,
 ) {
+    /** Takes no dependencies of its own, so it is constructed here instead of going through Hilt. */
+    private val preStreamPreview = BroadcastPreStreamPreviewManager()
+
     private var selectedMode: BroadcastMode = BroadcastMode.AUDIO_ONLY
     private var selectedLensId: String? = null
     private var wearSendAvailable = false
     private var wearSendInProgress = false
     private lateinit var exportFileLauncher: ActivityResultLauncher<String>
+    private lateinit var cameraPermissionLauncher: ActivityResultLauncher<String>
+
+    /** One prompt per screen: a refused camera leaves the preview area empty instead of asking again. */
+    private var cameraPermissionAsked = false
 
     fun setup(
         activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding
     ) {
         blankScreenManager.attach(activity, binding.root)
+        cameraPermissionAsked = false
+        cameraPermissionLauncher = activity.registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            if (granted) refreshPreStreamPreview(activity, binding)
+        }
         setupPreStreamControls(activity, binding)
         setupLiveControls(activity, binding)
         setupSharePanel(activity, binding)
@@ -70,7 +86,7 @@ class BroadcastControlManager @Inject constructor(
             activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     controller.state.collect { state ->
-                        renderState(binding, state)
+                        renderState(activity, binding, state)
                     }
                 }
                 launch {
@@ -103,8 +119,14 @@ class BroadcastControlManager @Inject constructor(
             updateLensSelectionVisibility(activity, binding)
         }
 
+        // The pre-start preview owns the camera the broadcast is about to open, so the service starts from
+        // the close callback rather than from the tap (S3174).
         binding.btnStartBroadcast.setOnClickListener {
-            controller.start(selectedMode, selectedLensId)
+            binding.btnStartBroadcast.isEnabled = false
+            preStreamPreview.stop {
+                binding.btnStartBroadcast.isEnabled = true
+                controller.start(selectedMode, selectedLensId)
+            }
         }
 
         settingsPanelManager.bind(activity, binding.layoutBroadcastSettings)
@@ -131,7 +153,10 @@ class BroadcastControlManager @Inject constructor(
                 val lensChips = BroadcastLensChipsRenderer(
                     label = binding.tvLensHeader,
                     group = binding.cgLensSelection,
-                    onLensSelected = { lensId -> selectedLensId = lensId }
+                    onLensSelected = { lensId ->
+                        selectedLensId = lensId
+                        refreshPreStreamPreview(activity, binding)
+                    }
                 )
                 lensChips.render(
                     BroadcastEntryUi.LensUi(
@@ -140,11 +165,44 @@ class BroadcastControlManager @Inject constructor(
                         visible = choice.options.isNotEmpty()
                     )
                 )
+                refreshPreStreamPreview(activity, binding)
             }
         } else {
             binding.tvLensHeader.visibility = View.GONE
             binding.cgLensSelection.visibility = View.GONE
             selectedLensId = null
+            refreshPreStreamPreview(activity, binding)
+        }
+    }
+
+    /**
+     * S3174: the picture the user picks a lens by. It exists only while the screen is idle - a live
+     * session's own camera belongs to the service, and its preview arrives through [previewBinder].
+     */
+    private fun refreshPreStreamPreview(
+        activity: AppCompatActivity,
+        binding: ActivityBroadcastControlBinding
+    ) {
+        val wantsCamera = selectedMode != BroadcastMode.AUDIO_ONLY
+        val granted = ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        when {
+            controller.state.value is BroadcastState.Live -> Unit
+            !wantsCamera -> {
+                preStreamPreview.stop()
+                binding.previewContainer.visibility = View.GONE
+            }
+            !granted -> {
+                binding.previewContainer.visibility = View.GONE
+                if (!cameraPermissionAsked) {
+                    cameraPermissionAsked = true
+                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                }
+            }
+            else -> {
+                binding.previewContainer.visibility = View.VISIBLE
+                preStreamPreview.start(activity, binding.previewContainer, selectedLensId)
+            }
         }
     }
 
@@ -242,9 +300,9 @@ class BroadcastControlManager @Inject constructor(
         binding: ActivityBroadcastControlBinding
     ) {
         val liveState = controller.state.value as? BroadcastState.Live ?: return
-        val url = liveState.descriptor.url
-        val title = liveState.descriptor.title
-        val mode = liveState.descriptor.mode
+        val descriptor = liveState.descriptor
+        val url = descriptor.url
+        Timber.d("S3172: share panel endpoints=${descriptor.endpoints?.size} src=${descriptor.sourceId}")
 
         binding.tvShareUrl.text = url
 
@@ -256,7 +314,7 @@ class BroadcastControlManager @Inject constructor(
         }
 
         binding.btnShareSend.setOnClickListener {
-            val link = shareManager.generateShareLink(url, title, mode)
+            val link = shareManager.generateShareLink(liveState)
             SystemShareInvoker.invoke(
                 activity,
                 SharePayload.Text(link),
@@ -268,7 +326,7 @@ class BroadcastControlManager @Inject constructor(
             exportFileLauncher.launch("broadcast_${url.hashCode()}$BROADCAST_DESCRIPTOR_EXTENSION")
         }
 
-        val payload = shareManager.generateQrPayload(url, title, mode)
+        val payload = shareManager.generateQrPayload(liveState)
         val metrics = activity.resources.displayMetrics
         val size = (min(metrics.widthPixels, metrics.heightPixels) * QR_SIZE_FRACTION)
             .toInt()
@@ -285,11 +343,8 @@ class BroadcastControlManager @Inject constructor(
     private fun writeBroadcastDescriptor(activity: AppCompatActivity, uri: Uri) {
         val liveState = controller.state.value as? BroadcastState.Live ?: return
         val descriptor = liveState.descriptor
-        val json = shareManager.generateJsonPayload(
-            descriptor.url,
-            descriptor.title,
-            descriptor.mode,
-        )
+        val json = shareManager.generateJsonPayload(liveState)
+        Timber.d("S3172: exported descriptor json length=${json.length} isLive=${descriptor.isLive}")
         activity.lifecycleScope.launch {
             val saved = withContext(Dispatchers.IO) {
                 runCatching {
@@ -335,11 +390,13 @@ class BroadcastControlManager @Inject constructor(
     }
 
     private fun renderState(
+        activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding,
         state: BroadcastState
     ) {
         when (state) {
             is BroadcastState.Live -> {
+                preStreamPreview.stop()
                 binding.layoutPreStream.visibility = View.GONE
                 binding.layoutLiveControls.visibility = View.VISIBLE
                 hideSettingsPanel(binding)
@@ -348,20 +405,23 @@ class BroadcastControlManager @Inject constructor(
                 renderSendToWatch(binding, state)
                 previewBinder.attach(binding.previewContainer)
             }
-            is BroadcastState.Idle -> renderPreStream(binding)
+            is BroadcastState.Idle -> renderPreStream(activity, binding)
             is BroadcastState.Failed -> {
-                renderPreStream(binding)
+                renderPreStream(activity, binding)
                 showFailure(binding, state)
             }
         }
     }
 
-    private fun renderPreStream(binding: ActivityBroadcastControlBinding) {
+    private fun renderPreStream(
+        activity: AppCompatActivity,
+        binding: ActivityBroadcastControlBinding
+    ) {
         previewBinder.detach()
         binding.layoutPreStream.visibility = View.VISIBLE
         binding.layoutLiveControls.visibility = View.GONE
-        binding.previewContainer.visibility = View.GONE
         binding.layoutSharePanel.visibility = View.GONE
+        refreshPreStreamPreview(activity, binding)
     }
 
     /** Going live leaves no pre-stream block to configure, so the panel closes with it. */
@@ -442,6 +502,7 @@ class BroadcastControlManager @Inject constructor(
     }
 
     fun onDetach() {
+        preStreamPreview.stop()
         previewBinder.detach()
         blankScreenManager.detach()
     }

@@ -4,26 +4,14 @@ import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorSerializer
 import javax.inject.Inject
 
+/**
+ * S3172: encodes the descriptor the broadcast service built, whole. Rebuilding it here from
+ * url/title/mode dropped the endpoint list, the live markers and the source id on every channel.
+ */
 class EncodeBroadcastDescriptorUseCase @Inject constructor(
     private val serializer: BroadcastDescriptorSerializer
 ) {
-    fun compress(url: String, title: String? = null, mode: String = "AUDIO_ONLY"): String {
-        val dto = BroadcastDescriptorDto(
-            schemaVersion = 1,
-            url = url,
-            title = title,
-            mode = mode
-        )
-        return serializer.serializeCompressed(dto)
-    }
+    fun compress(descriptor: BroadcastDescriptorDto): String = serializer.serializeCompressed(descriptor)
 
-    fun serializeJson(url: String, title: String? = null, mode: String = "AUDIO_ONLY"): String {
-        val dto = BroadcastDescriptorDto(
-            schemaVersion = 1,
-            url = url,
-            title = title,
-            mode = mode
-        )
-        return serializer.serialize(dto)
-    }
+    fun serializeJson(descriptor: BroadcastDescriptorDto): String = serializer.serialize(descriptor)
 }

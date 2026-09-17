@@ -4,6 +4,20 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import kotlin.math.abs
 
 /**
+ * S3173: neutral default broadcast title. It must not name the carrier - one setting serves audio,
+ * camera and camera+audio sessions, and the descriptor already carries `mode` for the receiver to
+ * tell them apart. Resource-backed wherever a Context is available; this constant is the fallback
+ * for the layers that have none.
+ */
+const val DEFAULT_BROADCAST_STREAM_TITLE = "Phone Stream"
+
+/**
+ * S3173: the pre-fix default, persisted verbatim into DataStore by every settings write. An
+ * installation carrying it never chose it, so it is read as absent rather than broadcast.
+ */
+const val LEGACY_BROADCAST_STREAM_TITLE = "Phone Audio Stream"
+
+/**
  * Application settings model
  * Based on V2 Specification: Settings Screen
  *
@@ -182,7 +196,7 @@ data class AppSettings(
 
     // S2817: an absent preference preserves the broadcast session defaults used before settings existed.
     val enableBroadcasting: Boolean = false,
-    val broadcastStreamTitle: String = "Phone Audio Stream",
+    val broadcastStreamTitle: String = DEFAULT_BROADCAST_STREAM_TITLE,
     val broadcastBitRateBps: Int = 128_000,
     val broadcastPort: Int = 8768,
     val broadcastSampleRateHz: Int = 44_100,

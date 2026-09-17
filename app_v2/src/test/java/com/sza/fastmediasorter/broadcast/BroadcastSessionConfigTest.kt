@@ -16,7 +16,8 @@ class BroadcastSessionConfigTest {
     fun `default config preserves the pre-S2817 hard-coded session values`() {
         val config = BroadcastSessionConfig.DEFAULT
 
-        assertEquals("Phone Audio Stream", config.streamTitle)
+        // S3173: the default no longer names the carrier - one title serves every broadcast mode.
+        assertEquals("Phone Stream", config.streamTitle)
         assertEquals(128_000, config.bitRateBps)
         assertEquals(8768, config.port)
         assertEquals(44_100, config.sampleRateHz)

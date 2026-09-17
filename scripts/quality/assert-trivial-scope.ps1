@@ -25,6 +25,11 @@
     Limitation: `git stash create` does not record untracked files, so a sibling's brand-new file
     still reads as new to this ticket.
 
+    S3166: a path git IGNORES is exempt from forbidNewFiles. A whole tree can be untracked by
+    design - `.claude/` is here - and no commit ever holds it, so "absent from the base" cannot
+    tell an edit from a creation there. The rule exists to catch new types, layouts and navigation
+    graphs; applying it to an ignored tree escalated every edit under it instead.
+
 .PARAMETER Id
     Ticket id, echoed in the verdict; also names the snapshot under temp/<Id>/.
 
@@ -145,6 +150,11 @@ $patterns = @($trivial.forbiddenPatterns)
 foreach ($path in $judgedChanged) {
     & git -C $RepoRoot cat-file -e "${base}:$path" 2> $null
     if ($LASTEXITCODE -ne 0) {
+        & git -C $RepoRoot check-ignore -q -- $path 2> $null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "trivial-scope: ${label}$path is gitignored - no commit holds it, so it is not judged as new."
+            continue
+        }
         if ($trivial.forbidNewFiles) { Stop-Escalate "$path is a new file" }
         continue
     }

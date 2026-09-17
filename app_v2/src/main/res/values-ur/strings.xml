@@ -3454,7 +3454,6 @@
     <string name="settings_suppress_wear_media_takeover">واچ پر میڈیا کنٹرول بند رکھیں</string>
     <string name="settings_suppress_wear_media_takeover_summary">Wear OS سسٹم کو واچ پر فون پلیئر کو میڈیا کنٹرول اسکرین کے طور پر دکھانے سے روکیں</string>
     <string name="broadcast_import_refreshed">براڈکاسٹ نئے پتے کے ساتھ اپ ڈیٹ ہو گیا</string>
-    <string name="settings_broadcast_stream_title_hint">فون آڈیو اسٹریم</string>
     <string name="settings_broadcast_auto_share_summary">براڈکاسٹ شروع ہوتے ہی شیئر اسکرین خودکار طور پر کھولیں</string>
     <string name="settings_broadcast_section">براڈکاسٹ</string>
     <string name="settings_broadcast_bit_rate">بٹ ریٹ</string>

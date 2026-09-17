@@ -85,7 +85,6 @@ import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
@@ -1042,10 +1041,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     private fun consumeTouchForBlackScreen(ev: MotionEvent): Boolean {
         if (!blackScreenOverlayManager.isVisible) return false
-        if (ev.action == MotionEvent.ACTION_DOWN) {
-            blackScreenOverlayManager.hide()
-        }
-        return true
+        return blackScreenOverlayManager.onTouchEvent(ev)
     }
 
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {

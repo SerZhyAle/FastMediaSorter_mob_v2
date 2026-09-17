@@ -218,13 +218,20 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private val broadcastDescriptorPickerLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
     ) { uri ->
-        val payload = uri?.let { broadcastImportManager.readDescriptorFile(it) }
-        if (payload == null) {
-            if (uri != null) {
-                Toast.makeText(this, R.string.broadcast_import_malformed, Toast.LENGTH_LONG).show()
+        if (uri == null) return@registerForActivityResult
+        // S3167: the document read is IO the picker callback must not do on the main thread.
+        lifecycleScope.launch {
+            Timber.d("S3167: picked descriptor read off the main thread")
+            val payload = broadcastImportManager.readDescriptorFile(uri)
+            if (payload == null) {
+                Toast.makeText(
+                    this@StreamsActivity,
+                    R.string.broadcast_import_malformed,
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                viewModel.onImportBroadcastDescriptor(payload)
             }
-        } else {
-            viewModel.onImportBroadcastDescriptor(payload)
         }
     }
 
@@ -1117,9 +1124,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             return
         }
         if (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND) {
-            val payload = broadcastImportManager.readDescriptorFile(uri)
-            if (payload != null) {
-                viewModel.onImportBroadcastDescriptor(payload)
+            // S3167: the descriptor may sit behind a slow SAF provider, so the read never runs on
+            // the main thread that onCreate/onNewIntent hand us.
+            lifecycleScope.launch {
+                Timber.d("S3167: intent descriptor read off the main thread")
+                broadcastImportManager.readDescriptorFile(uri)?.let { payload ->
+                    viewModel.onImportBroadcastDescriptor(payload)
+                }
             }
         }
     }

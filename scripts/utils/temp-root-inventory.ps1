@@ -127,7 +127,7 @@ function Get-TempRootInventory {
     # reach it. Contract: scripts/devtest/lib/device-store-paths.tests/ case E7 fails if a rename
     # reaches the declaration but not this protection.
     . (Join-Path $RepoRoot 'scripts/devtest/lib/device-store-paths.ps1')
-    $fixedDirs.AddRange([string[]]@(@('Lease', 'Registry') | ForEach-Object { Get-DeviceStoreDirName -Store $_ }))
+    $fixedDirs.AddRange([string[]]@(@('Lease', 'Registry', 'State') | ForEach-Object { Get-DeviceStoreDirName -Store $_ }))
     $fixedDirs.AddRange([string[]]@(
         'archive'                          # archive-temp.ps1's own destination - it moves stale entries here.
         'scratch'                          # Rule 10's home for work with no active ticket.

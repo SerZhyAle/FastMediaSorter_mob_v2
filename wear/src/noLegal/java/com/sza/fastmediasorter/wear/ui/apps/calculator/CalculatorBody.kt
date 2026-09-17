@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -24,7 +23,6 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearGeometryMode
 import com.sza.fastmediasorter.wear.ui.common.wearChordInset
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.common.wearScrollViewportInset
-import timber.log.Timber
 
 // S3192: the noLegal calculator placement. It is the S3104 layout moved here unchanged - the owner's
 // own calculator (ruling 2026-09-16), which the standard build replaces with its own placement.
@@ -172,9 +170,6 @@ internal fun CalculatorBody(
     onLeave: () -> Unit
 ) {
     val shape = calculatorShape()
-    LaunchedEffect(shape) {
-        Timber.d("S3192: noLegal calculator body valueRowWidth=${shape.valueRowWidth} valueRowTop=${shape.valueRowTop}")
-    }
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally

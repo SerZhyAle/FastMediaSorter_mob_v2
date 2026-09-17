@@ -3459,7 +3459,6 @@
     <string name="settings_suppress_wear_media_takeover">Masquer le contrôle média sur la montre</string>
     <string name="settings_suppress_wear_media_takeover_summary">Empêche le système Wear OS d\'afficher le lecteur du téléphone comme écran de contrôle média sur la montre</string>
     <string name="broadcast_import_refreshed">Diffusion mise à jour avec sa nouvelle adresse</string>
-    <string name="settings_broadcast_stream_title_hint">Flux audio du téléphone</string>
     <string name="settings_broadcast_auto_share_summary">Ouvrir automatiquement l\'écran de partage au démarrage d\'une diffusion</string>
     <string name="settings_broadcast_section">Diffusion</string>
     <string name="settings_broadcast_bit_rate">Débit binaire</string>

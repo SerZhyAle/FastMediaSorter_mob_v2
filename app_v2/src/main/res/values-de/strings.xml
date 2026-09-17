@@ -3453,7 +3453,6 @@
     <string name="settings_suppress_wear_media_takeover">Medien-Steuerung auf der Uhr unterdrücken</string>
     <string name="settings_suppress_wear_media_takeover_summary">Verhindert, dass Wear OS den Player des Telefons als Medien-Steuerungsbildschirm auf der Uhr anzeigt</string>
     <string name="broadcast_import_refreshed">Übertragung mit neuer Adresse aktualisiert</string>
-    <string name="settings_broadcast_stream_title_hint">Telefon-Audiostream</string>
     <string name="settings_broadcast_auto_share_summary">Freigabebildschirm automatisch öffnen, wenn eine Übertragung startet</string>
     <string name="settings_broadcast_section">Übertragung</string>
     <string name="settings_broadcast_bit_rate">Bitrate</string>

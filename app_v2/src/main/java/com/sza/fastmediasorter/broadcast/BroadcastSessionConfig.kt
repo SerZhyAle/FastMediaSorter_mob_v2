@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.broadcast
 
+import com.sza.fastmediasorter.domain.model.DEFAULT_BROADCAST_STREAM_TITLE
+
 /**
  * Immutable snapshot of broadcast preferences read at session start. The capture service builds this
  * from [com.sza.fastmediasorter.domain.model.AppSettings] before opening the HTTP server or the
@@ -27,7 +29,7 @@ data class BroadcastSessionConfig(
 ) {
     companion object {
         val DEFAULT = BroadcastSessionConfig(
-            streamTitle = "Phone Audio Stream",
+            streamTitle = DEFAULT_BROADCAST_STREAM_TITLE,
             bitRateBps = 128_000,
             port = 8768,
             sampleRateHz = 44_100,

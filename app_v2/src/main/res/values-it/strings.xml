@@ -3459,7 +3459,6 @@
     <string name="settings_suppress_wear_media_takeover">Disattiva il controllo multimediale sull\'orologio</string>
     <string name="settings_suppress_wear_media_takeover_summary">Impedisce al sistema Wear OS di mostrare il player del telefono come schermata di controllo multimediale sull\'orologio</string>
     <string name="broadcast_import_refreshed">Trasmissione aggiornata con il nuovo indirizzo</string>
-    <string name="settings_broadcast_stream_title_hint">Flusso audio del telefono</string>
     <string name="settings_broadcast_auto_share_summary">Apri automaticamente la schermata di condivisione quando inizia una trasmissione</string>
     <string name="settings_broadcast_section">Trasmissione</string>
     <string name="settings_broadcast_bit_rate">Bitrate</string>

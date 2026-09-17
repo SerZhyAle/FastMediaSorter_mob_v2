@@ -65,7 +65,10 @@ private class WearSchemeAwareMediaSourceFactory(
     private val default: MediaSource.Factory,
 ) : MediaSource.Factory {
 
-    private val rtsp = RtspMediaSource.Factory().setForceUseRtpTcp(true)
+    private val rtsp = RtspMediaSource.Factory()
+        .setForceUseRtpTcp(true)
+        .setSocketFactory(SdpSessionNameSocketFactory())
+        .setDebugLoggingEnabled(true)
 
     /** Applied to both, because the caller cannot know which one will serve the next item. */
     override fun setDrmSessionManagerProvider(

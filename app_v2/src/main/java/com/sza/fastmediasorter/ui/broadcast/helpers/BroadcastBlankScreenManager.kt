@@ -5,11 +5,11 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
+import com.sza.fastmediasorter.ui.common.widget.DimOverlayView
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
 import timber.log.Timber
 import java.lang.ref.WeakReference
@@ -80,12 +80,9 @@ class BroadcastBlankScreenManager @Inject constructor(
         val content = hostRoot?.get()?.parent as? ViewGroup ?: return
         // Added above the screen's root rather than inside either orientation layout: the overlay must cover
         // the inset padding those layouts apply, and both orientations then need no duplicate view.
-        val view = View(activity).apply {
-            setBackgroundColor(ContextCompat.getColor(activity, R.color.black))
-            isClickable = true
-            isFocusable = true
+        val view = DimOverlayView(activity).apply {
             contentDescription = activity.getString(R.string.broadcast_control_blank_screen_cd)
-            setOnClickListener { hide(activity) }
+            onExit = { hide(activity) }
         }
         content.addView(
             view,

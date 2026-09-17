@@ -20,7 +20,7 @@ class BroadcastSettingsStoreTest {
 
         // Pinned as literals - reading the constant the store itself reads would compare it with
         // itself and pin nothing.
-        assertEquals("Phone Audio Stream", values.streamTitle)
+        assertEquals("Phone Stream", values.streamTitle)
         assertEquals(128_000, values.bitRateBps)
         assertEquals(8768, values.port)
         assertEquals(44_100, values.sampleRateHz)
@@ -49,6 +49,21 @@ class BroadcastSettingsStoreTest {
         assertEquals(settings.broadcastSampleRateHz, values.sampleRateHz)
         assertEquals(settings.broadcastChannelCount, values.channelCount)
         assertEquals(settings.broadcastAutoOpenShare, values.autoOpenShare)
+    }
+
+    @Test
+    fun `a stored legacy title resolves like an absent key`() {
+        val prefs = mutablePreferencesOf()
+        BroadcastSettingsStore.write(
+            prefs,
+            AppSettings(broadcastStreamTitle = "Phone Audio Stream"),
+        )
+
+        val values = BroadcastSettingsStore.read(prefs)
+
+        // S3173: every settings write persisted the old default, so an installation holding it never
+        // chose that title - it must not survive the fix as a user value.
+        assertEquals("Phone Stream", values.streamTitle)
     }
 
     @Test

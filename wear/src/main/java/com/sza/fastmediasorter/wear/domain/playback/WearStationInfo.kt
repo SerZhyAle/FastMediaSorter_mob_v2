@@ -11,11 +11,13 @@ data class WearStationInfo(
     val name: String? = null,
     val genre: String? = null,
     val bitrateKbps: Int? = null,
-    val codec: String? = null
+    val codec: String? = null,
+    val resolution: String? = null
 ) {
 
     val isEmpty: Boolean
-        get() = name.isNullOrBlank() && genre.isNullOrBlank() && bitrateKbps == null && codec.isNullOrBlank()
+        get() = name.isNullOrBlank() && genre.isNullOrBlank() && bitrateKbps == null &&
+            codec.isNullOrBlank() && resolution.isNullOrBlank()
 
     /**
      * The non-empty fields in display order.
@@ -26,6 +28,7 @@ data class WearStationInfo(
     fun textParts(bitrateLabel: (Int) -> String): List<String> = listOfNotNull(
         name?.takeIf { it.isNotBlank() },
         genre?.takeIf { it.isNotBlank() },
+        resolution?.takeIf { it.isNotBlank() },
         codec?.takeIf { it.isNotBlank() },
         bitrateKbps?.takeIf { it > 0 }?.let(bitrateLabel)
     )
@@ -33,6 +36,7 @@ data class WearStationInfo(
     companion object {
 
         private val CODEC_LABELS = mapOf(
+            // Audio codecs
             "audio/mpeg" to "MP3",
             "audio/mpeg-l1" to "MP3",
             "audio/mpeg-l2" to "MP3",
@@ -41,7 +45,15 @@ data class WearStationInfo(
             "audio/opus" to "Opus",
             "audio/ogg" to "Vorbis",
             "audio/vorbis" to "Vorbis",
-            "audio/flac" to "FLAC"
+            "audio/flac" to "FLAC",
+            // Video codecs
+            "video/avc" to "H.264",
+            "video/mp4v-es" to "MPEG-4",
+            "video/hevc" to "H.265",
+            "video/x-vnd.on2.vp8" to "VP8",
+            "video/x-vnd.on2.vp9" to "VP9",
+            "video/av01" to "AV1",
+            "video/3gpp" to "H.263"
         )
 
         /** A codec name a listener recognises, or null rather than a raw MIME type on the glass. */

@@ -36,7 +36,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
@@ -122,6 +124,9 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenOffAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearSectionExpansionStore
 import com.sza.fastmediasorter.wear.ui.common.WearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
+import com.sza.fastmediasorter.wear.ui.common.testlaunch.WearTestLaunchOverride
+import com.sza.fastmediasorter.wear.ui.common.testlaunch.WearTestLaunchOverrideReader
+import com.sza.fastmediasorter.wear.ui.common.testlaunch.rememberWearTestScreenMetrics
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
 import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
 import com.sza.fastmediasorter.wear.ui.folder.WearFolderWalkScreen
@@ -203,6 +208,8 @@ data class WearLaunchEntry(
     val pendingTarget: StateFlow<WearLaunchTarget?>,
     /** Takes the target it handled, so a newer one that arrived mid-resolution is not cleared unhandled. */
     val onHandled: (WearLaunchTarget) -> Unit,
+    /** S3201: the test parameters of this launch; null on every launch that carried none. */
+    val testOverride: StateFlow<WearTestLaunchOverride?>,
 )
 
 /** S2201: the sentinel the player view models already treat as "no file was named". */
@@ -295,6 +302,9 @@ class MainActivity : ComponentActivity() {
     // that shows a time needs it, and the pattern cache is worth nothing if each screen builds its own.
     @Inject lateinit var dateTimeFormatter: WearUnitDateTimeFormatter
 
+    // S3201: one-launch test parameters. The release binding always answers null.
+    @Inject lateinit var testLaunchOverrideReader: WearTestLaunchOverrideReader
+
     /**
      * S1955: what this launch asked to open, until the navigation host has opened it.
      *
@@ -303,6 +313,12 @@ class MainActivity : ComponentActivity() {
      * is exactly the start a tile tap produces.
      */
     private val pendingLaunchTarget = MutableStateFlow<WearLaunchTarget?>(null)
+
+    /**
+     * S3201: what the current launch asked to draw instead of the stored settings. Held in memory only,
+     * so a process death or a launch without parameters is the owner's own view again.
+     */
+    private val testLaunchOverride = MutableStateFlow<WearTestLaunchOverride?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -318,6 +334,9 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) {
             pendingLaunchTarget.value = launchTargetFrom(intent)
         }
+        // Unlike the target, re-reading on a recreation is right: it is the same launch, and a rotation
+        // must not drop the geometry the test is looking at.
+        testLaunchOverride.value = testLaunchOverrideReader.read(intent)
 
         setContent {
             // S2763: one rotary stack for the whole watch UI. It has to span the screen and everything
@@ -328,7 +347,12 @@ class MainActivity : ComponentActivity() {
             // flashlight's clock. A push from the phone lands here and recomposes all of them.
             val units by preferencesRepository.unitSystem
                 .collectAsStateWithLifecycle(initialValue = UnitSystem.DEFAULT)
+            // S3201: above everything, so the brand frame and the permission screen scale with the rest.
+            val testOverride by testLaunchOverride.collectAsStateWithLifecycle()
+            val testScreen = rememberWearTestScreenMetrics(testOverride?.screenDp)
             CompositionLocalProvider(
+                LocalDensity provides testScreen.density,
+                LocalConfiguration provides testScreen.configuration,
                 LocalWearUnitSystem provides units,
                 LocalWearListPositions provides listPositions,
                 LocalWearSectionExpansion provides sectionExpansion,
@@ -371,7 +395,8 @@ class MainActivity : ComponentActivity() {
                     launchEntry = WearLaunchEntry(
                         resolveAddress = resolveLaunchAddress,
                         pendingTarget = pendingLaunchTarget,
-                        onHandled = { handled -> pendingLaunchTarget.compareAndSet(handled, null) }
+                        onHandled = { handled -> pendingLaunchTarget.compareAndSet(handled, null) },
+                        testOverride = testLaunchOverride
                     )
                 )
             }
@@ -403,6 +428,9 @@ class MainActivity : ComponentActivity() {
         // Only overwrite with a real target: tapping the launcher icon while a tile's target is still
         // waiting behind the permission screen delivers a bare MAIN intent, and that must not erase it.
         launchTargetFrom(intent)?.let { pendingLaunchTarget.value = it }
+        // Always overwritten: a launch without parameters is the owner's view again, which is the
+        // "only this launch" promise the test parameters make.
+        testLaunchOverride.value = testLaunchOverrideReader.read(intent)
     }
 
     /**
@@ -662,9 +690,12 @@ fun MainNavigation(
     // S2773: the geometry in force, published beside the wallpaper state because the shape helpers
     // every screen already calls read it from here. The initial value is the reviewed view, so the one
     // frame drawn before DataStore answers is never the shape Play rejected.
-    val geometryMode by hostUseCases.observeGeometryMode().collectAsStateWithLifecycle(
+    val storedGeometryMode by hostUseCases.observeGeometryMode().collectAsStateWithLifecycle(
         initialValue = WearGeometryMode.STORE
     )
+    // S3201: a test launch draws the other view without writing the owner's choice.
+    val testOverride by launchEntry.testOverride.collectAsStateWithLifecycle()
+    val geometryMode = testOverride?.geometryMode ?: storedGeometryMode
 
     // S3098: the screen-off command reaches about thirty screens, so it belongs to none of them. The
     // three screens that dimmed before this ticket keep their own state and are not in the route set

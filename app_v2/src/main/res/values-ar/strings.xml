@@ -3471,7 +3471,6 @@
     <string name="settings_suppress_wear_media_takeover">إخفاء عناصر تحكم الوسائط على الساعة</string>
     <string name="settings_suppress_wear_media_takeover_summary">منع نظام Wear OS من عرض مشغّل الهاتف كشاشة تحكم بالوسائط على الساعة</string>
     <string name="broadcast_import_refreshed">تحديث البث بعنوانه الجديد</string>
-    <string name="settings_broadcast_stream_title_hint">إذاعة صوت الهاتف</string>
     <string name="settings_broadcast_auto_share_summary">فتح شاشة المشاركة تلقائيًا عند بدء الإذاعة</string>
     <string name="settings_broadcast_section">الإذاعة</string>
     <string name="settings_broadcast_bit_rate">معدل البت</string>

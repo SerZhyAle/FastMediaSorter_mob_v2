@@ -65,6 +65,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -84,6 +85,7 @@ import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -105,6 +107,7 @@ import com.sza.fastmediasorter.wear.ui.player.common.rememberPlayerFileActionEnt
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
 import timber.log.Timber
+import java.util.Locale
 
 /** Wear's minimum comfortable touch target - the same 48 dp the transport buttons use. */
 /** The play/pause control is the one command drawn larger than the shared default. */
@@ -117,6 +120,7 @@ private val PROGRESS_BAR_HEIGHT = 4.dp
 private val PROGRESS_BAR_TOUCH_HEIGHT = 24.dp
 private val PROGRESS_BAR_SPACING = 4.dp
 private const val PROGRESS_BAR_CORNER_PERCENT = 50
+private const val STATION_PART_SEPARATOR = " · "
 
 private data class VideoPlayerActions(
     val onBack: () -> Unit,
@@ -347,7 +351,7 @@ private fun VideoPlayerContent(
     val playerView = remember {
         PlayerView(context).apply {
             useController = false
-            setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
+            setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
         }
     }
     // Held here rather than inside the controls panel: the panel comes and goes on a tap, and a menu
@@ -451,6 +455,7 @@ private fun PlayPauseButton(
 private fun VideoActionButtons(
     isPlaying: Boolean,
     playbackMode: WearPlaybackMode,
+    isStream: Boolean,
     progress: Float,
     actions: VideoPlayerActions
 ) {
@@ -494,13 +499,13 @@ private fun VideoActionButtons(
                 size = targetSize
             )
         }
-        if (ringed && !restored) {
+        if (ringed && !restored && !isStream) {
             PlayerProgressRing(progress = progress, content = playPause)
         } else {
             playPause()
         }
 
-        if (restored) {
+        if (restored && !isStream) {
             PlayerCommandButton(
                 onClick = actions.onTogglePlaybackMode,
                 icon = playbackModeIcon,
@@ -595,13 +600,20 @@ private fun VideoControls(
         // S2766: below the breakpoint the panel cannot afford this row - it is what closes the
         // column's deficit at 192 dp - so the position moves onto the ring around the play button.
         if (!wearIsCompactScreen()) {
-            PlaybackTimeRow(
-                currentPosition = uiState.currentPositionFormatted,
-                duration = uiState.durationFormatted,
-                progress = uiState.progress,
-                durationMs = uiState.durationMs,
-                onSeekTo = actions.seek.onSeekTo
-            )
+            if (uiState.isStream) {
+                StreamStationRow(
+                    elapsed = uiState.currentPositionFormatted,
+                    station = uiState.station
+                )
+            } else {
+                PlaybackTimeRow(
+                    currentPosition = uiState.currentPositionFormatted,
+                    duration = uiState.durationFormatted,
+                    progress = uiState.progress,
+                    durationMs = uiState.durationMs,
+                    onSeekTo = actions.seek.onSeekTo
+                )
+            }
 
             Spacer(modifier = Modifier.height(TIME_ROW_SPACING))
         }
@@ -609,6 +621,7 @@ private fun VideoControls(
         VideoActionButtons(
             isPlaying = uiState.isPlaying,
             playbackMode = uiState.playbackMode,
+            isStream = uiState.isStream,
             progress = uiState.progress,
             actions = actions
         )
@@ -704,7 +717,7 @@ private fun videoMenuActions(
     val onPanel = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
 
     return buildList {
-        if (!onPanel) {
+        if (!onPanel && !uiState.isStream) {
             add(
                 playerMenuAction(
                     playbackModeLabel,
@@ -733,9 +746,12 @@ private fun videoMenuActions(
             )
         }
         add(playerMenuAction(castLabel, castIcon, onDismiss, actions.onToggleCast))
-        // Last, and last for the same reason the file-action dialog puts them last: delete closes
-        // the list, and the outer rows of a round screen are the easiest to reach by accident.
-        addAll(actions.fileActions.map { entry -> entry.closingWith(onDismiss) })
+        // S3202: file operations are only relevant for files, not live streams
+        if (!uiState.isStream) {
+            // Last, and last for the same reason the file-action dialog puts them last: delete closes
+            // the list, and the outer rows of a round screen are the easiest to reach by accident.
+            addAll(actions.fileActions.map { entry -> entry.closingWith(onDismiss) })
+        }
     }
 }
 
@@ -833,6 +849,44 @@ private fun StreamChannelReason.toMessageRes(): Int? = when (this) {
     // S2550: only the serving entry produces this, and this screen never calls it. Named rather than
     // folded into an `else` so the next reason added still has to be answered here on purpose.
     StreamChannelReason.NOT_ON_WIFI -> R.string.wear_stream_channel_offline
+}
+
+/**
+ * S3202: the stream's own row - how long this station has been playing, and what it says it is.
+ * Mirrors S3099 audio StreamStationRow.
+ */
+@Composable
+private fun StreamStationRow(
+    elapsed: String,
+    station: WearStationInfo?
+) {
+    val bitrateFormat = stringResource(R.string.wear_stream_station_bitrate)
+    val stationText = station
+        ?.textParts { kbps -> String.format(Locale.US, bitrateFormat, kbps) }
+        ?.joinToString(STATION_PART_SEPARATOR)
+        .orEmpty()
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(PROGRESS_BAR_SPACING),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = elapsed,
+            style = MaterialTheme.typography.caption3,
+            color = Color.Gray
+        )
+        if (stationText.isNotEmpty()) {
+            Text(
+                text = stationText,
+                style = MaterialTheme.typography.caption3,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
 }
 
 @Composable

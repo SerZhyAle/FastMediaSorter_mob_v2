@@ -9,12 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
-import timber.log.Timber
 
 /**
  * S3192: the standard calculator placement - the whole calculator stands inside the largest square
@@ -43,9 +41,6 @@ internal fun CalculatorBody(
 ) {
     val squareSide = wearMaxSquareSide()
     val squareInset = wearRingInset()
-    LaunchedEffect(squareSide) {
-        Timber.d("S3192: standard calculator body squareSide=$squareSide squareInset=$squareInset")
-    }
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
