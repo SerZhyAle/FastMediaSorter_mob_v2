@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import java.util.Locale
 
 private val MENU_BUTTON_HEIGHT = 26.dp
@@ -76,6 +77,10 @@ fun WearStopwatchScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                // Nothing here scrolls, so the crown has no work - but the screen still claims the
+                // focus stack, or the turn reaches whichever list was focused before this program
+                // opened and scrolls it out of sight behind the stopwatch.
+                .rotaryActionSwallow()
                 .padding(top = wearRingInset(), bottom = wearRingInset()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

@@ -26,7 +26,6 @@ class PruneWatchLocalFavoritesUseCase @Inject constructor(
     /** Returns how many rows were removed. */
     suspend operator fun invoke(): Int {
         val candidates = favoritesRepository.getFileFavoritesSync().filter(::isWatchDeltaFavoriteShape)
-        Timber.d("S3161: watch-written favourite prune, ${candidates.size} candidate row(s)")
         if (candidates.isEmpty()) return 0
 
         var removed = 0

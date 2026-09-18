@@ -47,6 +47,7 @@ _Generated from the app. Do not edit by hand._
 | Sync Now | Triggers an immediate manual sync with configured remote resources. |
 | About system | Displays device and app version information useful for troubleshooting. |
 | Screenshot test | Takes a screenshot of the app right away using the built-in capture flow. |
+| Cancel | Closes the action list and returns to the list of data kinds. |
 | Unused credentials | Shows how many saved network passwords and keys no resource uses any more, and removes them after a confirmation that lists them. The row is hidden while there are none. |
 | User Guide | Opens the full user guide for the app. |
 | Icon size for grid (pixels) | Sets the thumbnail icon size in pixels for grid view. |
@@ -63,6 +64,7 @@ _Generated from the app. Do not edit by hand._
 | Swipe left action | Sets the action executed when swiping left on a file in the file browser. |
 | Swipe right action | Sets the action executed when swiping right on a file in the file browser. |
 | Compact elements | Reduces the padding and size of all list elements globally, fitting more items on screen. |
+| Import and export data | Opens the import and export menu for settings, favorites, pinned streams and resources. |
 | Mirror log to opened folder | Copies the debug log into the folder currently open in the viewer, so a reproduction can be picked up without digging into the app sandbox. Off by default; debug builds only. |
 | Open browse in grid view | Opens the file browser in grid view by default instead of list view. |
 | Device profile | Selects the device profile that adapts the interface and controls to your device type. |
@@ -73,6 +75,10 @@ _Generated from the app. Do not edit by hand._
 | Preload thumbnails | Preloads thumbnails for files ahead of scrolling so the grid loads faster. |
 | File operations in overflow menu | Moves file operations (copy, move, delete) into the overflow menu instead of showing them as buttons. |
 | Hide quick action buttons on thumbnails | Hides the quick action buttons overlaid on thumbnails in grid view. |
+| Favorites | Chooses favorites as the data set to export or import. |
+| Resources | Chooses resources as the data set to export or import. |
+| Settings | Chooses app settings as the data set to export or import. |
+| Pinned streams | Chooses the pinned stream list as the data set to export or import. |
 | Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. |
 | Primary startup window | Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or Resource Manager. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |

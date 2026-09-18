@@ -2255,7 +2255,7 @@
     <string name="launcher_edit_unpin_named">%1$s lösen</string>
     <string name="launcher_settings_enable_title">Diese App als Startbildschirm festlegen</string>
     <string name="launcher_start_window_title">Beim App-Start den Desktop öffnen</string>
-    <string name="launcher_start_window_desc">Öffnet deinen Desktop statt des Dateibrowsers. Der Startbildschirm des Geräts bleibt unverändert.</string>
+    <string name="launcher_start_window_desc">Öffnet Ihren Desktop anstelle des Ressourcen-Managers. Der Startbildschirm des Geräts ändert sich dadurch nicht.</string>
     <string name="launcher_settings_enable_desc">Die Home-Taste öffnet deinen eigenen Desktop mit Verknüpfungen und Widgets. Schalte dies jederzeit aus, um zu deinem vorherigen Startbildschirm zurückzukehren.</string>
     <string name="launcher_settings_enable_help_title">Startbildschirm-Modus</string>
     <string name="launcher_settings_enable_help_message">Wenn du dies aktivierst, fragt Android, welcher Startbildschirm verwendet werden soll - wähle diese App und tippe auf Immer (oder Nur diesmal zum Ausprobieren). Um zurückzukehren, schalte dies aus, und Android stellt deinen vorherigen Startbildschirm wieder her.</string>
@@ -3618,4 +3618,36 @@
     <string name="wear_screenshot_captured">Die Uhr hat ihren Screenshot gesendet</string>
     <string name="wear_screenshot_no_answer">Die Uhr hat nicht geantwortet</string>
     <string name="wear_companion_group_operations">Uhr-Aktionen</string>
+    <string name="resource_manager_title">Ressourcen-Manager</string>
+    <string name="welcome_primary_window_title">Hauptfenster</string>
+    <string name="welcome_primary_window_subtitle">Wählen Sie, was sich beim Start von FastMediaSorter öffnet</string>
+    <string name="launcher_primary_window_recommended">Empfohlen</string>
+    <string name="launcher_primary_window_home_title">Startbildschirm des Geräts</string>
+    <string name="launcher_primary_window_home_desc">Die App wird zum Startbildschirm Ihres Geräts</string>
+    <string name="launcher_primary_window_desktop_title">Desktop als Hauptfenster</string>
+    <string name="launcher_primary_window_desktop_desc">Desktop in der App öffnen, ohne den Startbildschirm des Geräts zu ändern</string>
+    <string name="launcher_primary_window_resource_manager_title">Ressourcen-Manager</string>
+    <string name="launcher_primary_window_resource_manager_desc">Datei- und Medienverwaltung direkt öffnen</string>
+    <string name="setting_launcher_primary_window_title">Startfenster</string>
+    <string name="setting_launcher_primary_window_desc">Wählen Sie, ob die App als Startbildschirm des Geräts, als In-App-Desktop oder als Ressourcen-Manager öffnet</string>
+    <string-array name="launcher_primary_window_options">
+        <item>@string/launcher_primary_window_home_title</item>
+        <item>@string/launcher_primary_window_desktop_title</item>
+        <item>@string/launcher_primary_window_resource_manager_title</item>
+    </string-array>
+    <string name="broadcast_default_stream_title">Telefon-Stream</string>
+    <string name="broadcast_share_help">So schauen Sie zu</string>
+    <string name="sos_title">SOS-Notsignal</string>
+    <string name="sos_hint">Sirene und Blitzlicht wiederholen das Morse-SOS-Muster. Die gekoppelte Uhr signalisiert ebenfalls, wenn sie in Reichweite ist.</string>
+    <string name="sos_stop_action">Signal stoppen</string>
+    <string name="sos_mode_all">Ton und Licht</string>
+    <string name="sos_mode_sound_only">Nur Ton</string>
+    <string name="sos_mode_light_only">Nur Licht</string>
+    <string name="sos_notification_text">Signal aktiv: %1$s</string>
+    <string name="sos_notification_channel">SOS-Signal</string>
+    <string name="sos_settings_toggle_title">SOS-Notsignal</string>
+    <string name="sos_settings_toggle_subtitle">Laute Morse-Sirene, Blitzlicht und ein passendes Signal auf der Uhr</string>
+    <string name="sos_help_title">SOS-Notsignal</string>
+    <string name="sos_help_message">Wiederholt das Morse-SOS-Muster mit einer lauten Sirene auf dem Alarmkanal, dem hinteren Blitz und einem blinkenden Bildschirm. Wählen Sie Ton, Licht oder beides. Ein Start hier startet es auch auf der gekoppelten Uhr, und ein Stopp auf einer Seite stoppt beide. Das Signal endet nach 30 Minuten von selbst, damit Akku und Blitz es überstehen.</string>
+    <string name="tourist_action_sos">SOS-Signal</string>
 </resources>

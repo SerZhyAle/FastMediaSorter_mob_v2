@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,14 +29,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState
@@ -44,6 +43,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
 import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.LongPressChip
+import com.sza.fastmediasorter.wear.ui.common.StandardWearAlertDialog
 import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -75,6 +75,9 @@ fun VoiceNoteListScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberWearListState(positionKey = WearRoutes.VOICE_NOTES)
     var deleteFor by remember { mutableStateOf<VoiceNote?>(null) }
+    LaunchedEffect(Unit) {
+        Timber.d("S3259: voice note list shown - dialog OK rows are the standard alert action chip")
+    }
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -244,64 +247,33 @@ private fun NoteRow(
  */
 @Composable
 private fun RenameFailedDialog(onDismiss: () -> Unit) {
-    Alert(
-        title = {
-            Text(
-                text = stringResource(R.string.wear_voice_note_rename_failed),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.body2
-            )
-        }
-    ) {
-        item {
-            DialogChip(labelRes = android.R.string.ok, onClick = onDismiss, primary = true)
-        }
-    }
+    StandardWearAlertDialog(
+        show = true,
+        title = stringResource(R.string.wear_voice_note_rename_failed),
+        onConfirm = onDismiss,
+        onDismissRequest = onDismiss,
+        confirmLabel = stringResource(android.R.string.ok),
+        cancelLabel = null
+    )
 }
 
 /**
  * The title states what deletion costs rather than asking "are you sure", and the confirming button
- * carries the word "delete" - so the destructive choice is told apart by its words, not by a colour.
+ * carries the word "delete" beside the error colour every deletion in the module now asks in.
  */
 @Composable
 private fun DeleteNoteDialog(
     onCancel: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    Alert(
-        title = {
-            Text(
-                text = stringResource(R.string.wear_voice_note_delete_confirm),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.title3
-            )
-        },
-        negativeButton = {
-            Chip(
-                onClick = onCancel,
-                label = {
-                    Text(
-                        text = stringResource(R.string.cancel),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                colors = ChipDefaults.secondaryChipColors()
-            )
-        },
-        positiveButton = {
-            Chip(
-                onClick = onConfirm,
-                label = {
-                    Text(
-                        text = stringResource(R.string.delete),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                colors = ChipDefaults.primaryChipColors()
-            )
-        }
+    StandardWearAlertDialog(
+        show = true,
+        title = stringResource(R.string.wear_voice_note_delete_confirm),
+        onConfirm = onConfirm,
+        onDismissRequest = onCancel,
+        confirmLabel = stringResource(R.string.delete),
+        cancelLabel = stringResource(R.string.cancel),
+        isDestructive = true
     )
 }
 
@@ -311,19 +283,14 @@ private fun SendResultDialog(
     result: VoiceNoteSendResult,
     onDismiss: () -> Unit
 ) {
-    Alert(
-        title = {
-            Text(
-                text = stringResource(sendResultLabelOf(result)),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.body2
-            )
-        }
-    ) {
-        item {
-            DialogChip(labelRes = android.R.string.ok, onClick = onDismiss, primary = true)
-        }
-    }
+    StandardWearAlertDialog(
+        show = true,
+        title = stringResource(sendResultLabelOf(result)),
+        onConfirm = onDismiss,
+        onDismissRequest = onDismiss,
+        confirmLabel = stringResource(android.R.string.ok),
+        cancelLabel = null
+    )
 }
 
 /**
@@ -338,38 +305,13 @@ private fun ResetNoticeDialog(
     recoveredNotes: Int,
     onDismiss: () -> Unit
 ) {
-    Alert(
-        title = {
-            Text(
-                text = stringResource(R.string.wear_database_reset_notice, recoveredNotes),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.body2
-            )
-        }
-    ) {
-        item {
-            DialogChip(labelRes = android.R.string.ok, onClick = onDismiss, primary = true)
-        }
-    }
-}
-
-@Composable
-private fun DialogChip(
-    @StringRes labelRes: Int,
-    onClick: () -> Unit,
-    primary: Boolean
-) {
-    Chip(
-        onClick = onClick,
-        label = {
-            Text(
-                text = stringResource(labelRes),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        modifier = Modifier.fillMaxWidth(),
-        colors = if (primary) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
+    StandardWearAlertDialog(
+        show = true,
+        title = stringResource(R.string.wear_database_reset_notice, recoveredNotes),
+        onConfirm = onDismiss,
+        onDismissRequest = onDismiss,
+        confirmLabel = stringResource(android.R.string.ok),
+        cancelLabel = null
     )
 }
 

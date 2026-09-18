@@ -11,14 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CompactChip
+import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 
-private val ACTION_LABEL_SIZE_SP = 10.sp
-private val ATHLETE_LABEL_SIZE_SP = 13.sp
 private val ATHLETE_H_PADDING = 14.dp
 private val ATHLETE_V_PADDING = 6.dp
 private val ROW_SPACING = 6.dp
@@ -51,7 +49,7 @@ fun TouristActionsRow(
                 label = {
                     Text(
                         text = stringResource(R.string.wear_tourist_action_reset_trip),
-                        fontSize = ACTION_LABEL_SIZE_SP,
+                        style = MaterialTheme.typography.caption3,
                     )
                 },
                 colors = ChipDefaults.secondaryChipColors(),
@@ -61,7 +59,7 @@ fun TouristActionsRow(
                 label = {
                     Text(
                         text = stringResource(R.string.wear_tourist_action_reset_steps),
-                        fontSize = ACTION_LABEL_SIZE_SP,
+                        style = MaterialTheme.typography.caption3,
                     )
                 },
                 colors = ChipDefaults.secondaryChipColors(),
@@ -77,7 +75,7 @@ fun TouristActionsRow(
                 label = {
                     Text(
                         text = "🏃 " + stringResource(R.string.wear_tourist_athlete_mode),
-                        fontSize = ATHLETE_LABEL_SIZE_SP,
+                        style = MaterialTheme.typography.caption2,
                     )
                 },
                 colors = ChipDefaults.primaryChipColors(),
@@ -100,7 +98,7 @@ fun TouristActionsRow(
                 label = {
                     Text(
                         text = "🚨 " + stringResource(R.string.wear_tourist_action_sos),
-                        fontSize = ATHLETE_LABEL_SIZE_SP,
+                        style = MaterialTheme.typography.caption2,
                     )
                 },
                 colors = ChipDefaults.primaryChipColors(

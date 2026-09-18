@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -48,7 +47,6 @@ class BuildBackupPayloadUseCase @Inject constructor(
 
         // S3130: the whole settings store, looped rather than listed field by field.
         val rawSettings = rawSettingsRepository.exportAll()
-        Timber.d("S3130: export carries %d raw settings", rawSettings.size)
 
         return BackupMapper.toBackupPayload(
             settings = settings,

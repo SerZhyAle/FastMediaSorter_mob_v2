@@ -37,14 +37,18 @@ import com.sza.fastmediasorter.wear.domain.bodysensor.heartRatePermission
 import com.sza.fastmediasorter.wear.domain.model.HeartRateHistoryEntry
 import com.sza.fastmediasorter.wear.domain.model.HeartRateZone
 import com.sza.fastmediasorter.wear.ui.apps.bodysensor.history.HeartRateTrendChart
+import com.sza.fastmediasorter.wear.ui.common.StandardWearCard
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 6.dp
 private val VALUE_VERTICAL_PADDING = 4.dp
-private val CARD_CORNER_RADIUS = 8.dp
+private val CARD_HORIZONTAL_INSET = 8.dp
+private val ZONE_LABEL_TOP_PADDING = 2.dp
+private val ZONE_BADGE_CORNER = 12.dp
 private const val ZONE_BADGE_ALPHA = 0.2f
 
 /** S3112: one point draws no trend, so the chart appears with the second saved measurement. */
@@ -132,26 +136,26 @@ private fun ScreenTitle() {
 @Composable
 private fun LastReadingCard(last: HeartRateHistoryEntry) {
     val zone = HeartRateZone.classify(last.bpm)
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = VALUE_VERTICAL_PADDING)
-            .clip(RoundedCornerShape(CARD_CORNER_RADIUS))
-            .background(MaterialTheme.colors.surface)
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Timber.d("S3261: body sensor last reading drawn as StandardWearCard")
+    StandardWearCard(
+        modifier = Modifier.padding(horizontal = CARD_HORIZONTAL_INSET, vertical = VALUE_VERTICAL_PADDING)
     ) {
-        Text(
-            text = "${stringResource(R.string.body_sensor_bpm, last.bpm)}",
-            style = MaterialTheme.typography.caption1.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colors.onSurface
-        )
-        Text(
-            text = stringResource(zone.labelRes),
-            style = MaterialTheme.typography.caption2.copy(fontWeight = FontWeight.SemiBold),
-            color = zone.color,
-            modifier = Modifier.padding(top = 2.dp)
-        )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "${stringResource(R.string.body_sensor_bpm, last.bpm)}",
+                style = MaterialTheme.typography.caption1.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colors.onSurface
+            )
+            Text(
+                text = stringResource(zone.labelRes),
+                style = MaterialTheme.typography.caption2.copy(fontWeight = FontWeight.SemiBold),
+                color = zone.color,
+                modifier = Modifier.padding(top = ZONE_LABEL_TOP_PADDING)
+            )
+        }
     }
 }
 
@@ -160,7 +164,7 @@ private fun ZoneBadge(zone: HeartRateZone) {
     Box(
         modifier = Modifier
             .padding(vertical = 2.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(ZONE_BADGE_CORNER))
             .background(zone.color.copy(alpha = ZONE_BADGE_ALPHA))
             .padding(horizontal = 12.dp, vertical = 3.dp),
         contentAlignment = Alignment.Center

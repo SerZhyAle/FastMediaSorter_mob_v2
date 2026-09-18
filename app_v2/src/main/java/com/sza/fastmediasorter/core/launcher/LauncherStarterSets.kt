@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
-import timber.log.Timber
 
 /**
  * S0404: profile -> starter desktop, as pure data + a pure row-major packer (strategic §5.3: adding a
@@ -290,7 +289,6 @@ object LauncherStarterSets {
             resolvableOsShortcuts = resolvableOsShortcuts,
         )
         val seeded = unsectionedTop(profile) + emitGroups(groups, rule)
-        Timber.d("S3162: seed $profile fn=${seeded.count { it.target.startsWith("fn:") }} cells=${seeded.size}")
         return seeded
     }
 
@@ -440,7 +438,6 @@ object LauncherStarterSets {
             add(gadget(GADGET_AUDIO_NOW_PLAYING))
         }
         if (profile in TRANSLATOR_PROFILES) {
-            Timber.d("S3206: seeding translator at the 4x3 floor, profile=$profile")
             // S3206: the tile's own form factor, not the generic 2x1 sensor tile - the gadget's 4x3
             // floor is the smallest footprint the owner allows, so the seed places exactly that.
             add(

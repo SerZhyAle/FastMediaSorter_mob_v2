@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.databinding.LauncherTaskbarBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.Flow
-import timber.log.Timber
 
 /**
  * S0404: owns the taskbar's two icon strips and the visibility of its three configurable blocks.
@@ -149,7 +148,6 @@ class LauncherTaskbarManager(
             0
         }
         upperRecentsFilled = overflowCount > 0
-        Timber.d("S3208: recents ${reversed.size}, main capacity $mainCapacity, above actions $overflowCount")
         updateActionsFocusUp()
 
         if (overflowCount > 0) {
@@ -207,7 +205,6 @@ class LauncherTaskbarManager(
         }
         binding.btnStart.nextFocusUpId = target
         binding.btnAllApps.nextFocusUpId = target
-        Timber.d("S3208: action buttons focus up -> ${binding.root.resources.getResourceEntryName(target)}")
     }
 
     /**
@@ -261,7 +258,6 @@ class LauncherTaskbarManager(
             return
         }
         appliedRows = rows
-        Timber.d("S3131: taskbar applying $rows row(s), height ${rowHeight * rows}px")
         binding.root.updateLayoutParams { height = rowHeight * rows }
         binding.taskbarRecents.layoutManager = stripLayoutManager(rows)
         binding.taskbarUpperRecents.layoutManager =

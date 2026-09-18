@@ -452,7 +452,6 @@ class WatchWearListenerService : WearableListenerService() {
      * tell a refusal from a lost link, and it can tolerate an id that matches nothing it sent.
      */
     private fun handleScreenshotRequest(nodeId: String, data: ByteArray) {
-        Timber.d("S3110: screenshot request received on the watch")
         applicationScope.launch {
             val ack = when (val parsed = WearScreenshotRequestCodec.parse(data, gson)) {
                 is WearScreenshotRequestParseResult.Malformed -> WearScreenshotRequestAck(

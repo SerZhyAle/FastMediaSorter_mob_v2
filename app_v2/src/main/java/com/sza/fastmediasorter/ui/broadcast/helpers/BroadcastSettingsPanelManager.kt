@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
 import com.sza.fastmediasorter.ui.settings.fragments.BroadcastSettingsOptions
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,6 +32,9 @@ class BroadcastSettingsPanelManager @Inject constructor(
 
     // The last committed port, so a rejected edit can be put back without reading the Flow again.
     private var currentPort: Int = BroadcastSettingsOptions.PORT_MIN
+
+    // The most recent settings write, joined by awaitPendingWrites before an action reads the store.
+    private var pendingWrite: Job? = null
 
     fun bind(activity: AppCompatActivity, panel: FragmentSettingsBroadcastBinding) {
         panel.rowBitRate.setEntries(BroadcastSettingsOptions.bitRateLabels(activity))
@@ -90,6 +94,25 @@ class BroadcastSettingsPanelManager @Inject constructor(
         }
     }
 
+    /**
+     * Commits the text rows the user may still be editing. A tap on a screen action leaves the field
+     * focused, so without this the action reads the stored value while the panel shows the typed one
+     * (S3234). The dropdown and switch rows commit on selection and need nothing here.
+     */
+    fun flushPending(panel: FragmentSettingsBroadcastBinding) {
+        panel.rowPort.commitPending()
+        panel.rowStreamTitle.commitPending()
+    }
+
+    /**
+     * Waits for the write a commit started. Committing only hands the value to a coroutine, so a caller
+     * that reads the stored settings right after [flushPending] still reads the previous port - measured
+     * on a device, where the process died between the two and the typed port was lost (S3234).
+     */
+    suspend fun awaitPendingWrites() {
+        pendingWrite?.join()
+    }
+
     private fun render(panel: FragmentSettingsBroadcastBinding, settings: AppSettings) {
         currentPort = settings.broadcast.port
         renderingFromSettings = true
@@ -133,7 +156,7 @@ class BroadcastSettingsPanelManager @Inject constructor(
     }
 
     private fun update(activity: AppCompatActivity, transform: (AppSettings) -> AppSettings) {
-        activity.lifecycleScope.launch {
+        pendingWrite = activity.lifecycleScope.launch {
             settingsRepository.updateSettings { current -> transform(current) }
         }
     }

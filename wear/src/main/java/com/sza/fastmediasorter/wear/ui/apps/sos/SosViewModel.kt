@@ -66,7 +66,6 @@ class SosViewModel @Inject constructor(
      * phone, which is already signalling in that mode and does not need to be told so (§06.4).
      */
     fun start(mode: SosMode, echoToPhone: Boolean = true) {
-        Timber.d("S3216: watch signal starting in mode $mode, echo = $echoToPhone")
         syncBus.consumeStart()
         runningMode.value = mode
         if (mode.engagesSound) soundGenerator.start(appContext) else soundGenerator.stop(appContext)

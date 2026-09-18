@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BroadcastSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -96,6 +97,31 @@ class BroadcastSettingsStoreTest {
 
         assertEquals("Title Only", values.streamTitle)
         assertTrue(values.autoOpenShare)
+    }
+
+    @Test
+    fun `the camera lens id round-trips and is absent until a lens is chosen`() {
+        // S3237: the broadcast screen reset its lens choice on every Activity recreation because the
+        // chosen lens lived in the screen alone.
+        val prefs = mutablePreferencesOf()
+        BroadcastSettingsStore.write(prefs, settingsOf(BroadcastSettings()))
+        assertNull(BroadcastSettingsStore.read(prefs).broadcast.cameraLensId)
+
+        BroadcastSettingsStore.write(prefs, settingsOf(BroadcastSettings(cameraLensId = "1/3")))
+
+        assertEquals("1/3", BroadcastSettingsStore.read(prefs).broadcast.cameraLensId)
+    }
+
+    @Test
+    fun `clearing the camera lens id removes the stored one`() {
+        // S3237: a stored lens the phone no longer enumerates is dropped, so the next write must not
+        // leave the old id behind for the screen to restore again.
+        val prefs = mutablePreferencesOf()
+        BroadcastSettingsStore.write(prefs, settingsOf(BroadcastSettings(cameraLensId = "1/3")))
+
+        BroadcastSettingsStore.write(prefs, settingsOf(BroadcastSettings(cameraLensId = null)))
+
+        assertNull(BroadcastSettingsStore.read(prefs).broadcast.cameraLensId)
     }
 
     @Test

@@ -18,9 +18,16 @@ import timber.log.Timber
 internal class VideoPlaybackControlsHelper(
     private val manager: VideoPlayerManager,
     private val context: Context,
-    private val playbackControlPrefs: SharedPreferences,
+    private val playbackControlPrefsProvider: () -> SharedPreferences,
     private val trackSelectionManager: VideoTrackSelectionManager
 ) {
+    // S3268: resolved per use, never at construction. Passing the preferences in as a value opened the
+    // file the moment the helper was built - which applyStereoEffect does on a thread carrying the
+    // StrictMode policy. The only uses below are slider writes, long after the manager's background
+    // load has already opened the same file.
+    private val playbackControlPrefs: SharedPreferences
+        get() = playbackControlPrefsProvider()
+
     fun applyStereoEffect(mode: StereoMode) {
         val resolved = when (mode) {
             StereoMode.AUTO, StereoMode.UNKNOWN -> {

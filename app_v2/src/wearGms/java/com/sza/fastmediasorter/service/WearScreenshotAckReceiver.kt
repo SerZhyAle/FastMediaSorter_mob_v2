@@ -24,7 +24,6 @@ class WearScreenshotAckReceiver @Inject constructor(
      * it would leave that screen waiting out the whole timeout.
      */
     suspend fun publishAck(data: ByteArray) {
-        Timber.d("S3110: watch screenshot verdict received on the phone")
         when (val parsed = WearScreenshotRequestCodec.parseAck(data, gson)) {
             is WearScreenshotAckParseResult.Malformed ->
                 Timber.w("Watch screenshot: could not parse the watch's answer")

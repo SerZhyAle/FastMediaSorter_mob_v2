@@ -179,7 +179,7 @@ private fun ScalingLazyListScope.settingsItems(
                     }
                     Text(
                         // Wrap over ellipsis: strategic S2042, same rule S1949 already applied
-                        // to the settings screens themselves via WearSettingsToggleCell. S2755 keeps
+                        // to the settings screens themselves via StandardWearToggleChip. S2755 keeps
                         // the wrap and only names what happens once both lines are spent - the label
                         // still wraps first, and a font scale that outgrows two lines now ends the
                         // second one with an ellipsis instead of cutting a glyph in half.

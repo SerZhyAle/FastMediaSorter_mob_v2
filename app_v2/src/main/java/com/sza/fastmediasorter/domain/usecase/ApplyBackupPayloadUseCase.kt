@@ -80,7 +80,6 @@ class ApplyBackupPayloadUseCase @Inject constructor(
         // carries the trust rules for older payloads; the raw section exists only in payloads this
         // build's own format produced, where it is an exact superset of the typed fields.
         payload.rawSettings?.takeIf { it.isNotEmpty() }?.let { rawSettings ->
-            Timber.d("S3130: restore applies %d raw settings", rawSettings.size)
             rawSettingsRepository.importAll(rawSettings)
             settingsRestored = true
         }

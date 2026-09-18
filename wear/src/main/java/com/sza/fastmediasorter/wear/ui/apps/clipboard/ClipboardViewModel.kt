@@ -63,7 +63,6 @@ class ClipboardViewModel @Inject constructor(
             state.update { shown -> shown.copy(outcomeRes = R.string.wear_clipboard_empty, outcomeArg = null) }
             return
         }
-        Timber.d("S3109: watch clipboard send to phone requested")
         state.update { shown -> shown.copy(sending = true, outcomeRes = null, outcomeArg = null) }
         viewModelScope.launch {
             val outcome = sendWearClipboardText(text)

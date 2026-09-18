@@ -6,7 +6,7 @@ package com.sza.fastmediasorter.domain.model
  *
  * They live here rather than inline in [AppSettings] because a JVM method descriptor may carry at most
  * 255 slots including `this`, and Kotlin's synthetic default-argument constructor spends one slot per
- * parameter plus one bitmask int per 32 parameters plus a marker. With these fourteen inline the
+ * parameter plus one bitmask int per 32 parameters plus a marker. With the fourteen it then held inline the
  * descriptor reached 257 slots, which kotlinc emits without complaint and ART rejects at
  * class-verification time - every `AppSettings()` and every `AppSettings.copy(..)` in the process.
  * Grouping a domain into a nested class costs one slot instead of one per field; [LauncherSettings] was
@@ -39,4 +39,9 @@ data class BroadcastSettings(
     val videoBitrateBps: Int = 2_000_000,
     // S3049: digital PCM microphone gain percentage for broadcasts (50% - 400%, default 100%).
     val micGainPercent: Int = 100,
+    // S3237: the lens the broadcast screen last opened, in the capture screen's `logical`
+    // or `logical/physical` form. Null until the user picks one; a stored id that names no lens of
+    // this phone is discarded in favour of the device's initial lens, so a restored backup or a
+    // camera the OS stopped enumerating cannot pin the screen to a lens that will not open.
+    val cameraLensId: String? = null,
 )

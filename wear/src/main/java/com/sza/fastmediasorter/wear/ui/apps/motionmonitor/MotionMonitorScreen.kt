@@ -20,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +43,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
@@ -82,7 +82,7 @@ fun MotionMonitorScreen(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) },
-        background = Color.Black
+        background = WearAppTheme.colors.canvasBlack
     ) {
         WearListColumn(
             modifier = Modifier.fillMaxSize(),

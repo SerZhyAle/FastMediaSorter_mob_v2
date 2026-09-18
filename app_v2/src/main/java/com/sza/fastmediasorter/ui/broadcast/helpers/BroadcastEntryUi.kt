@@ -34,4 +34,17 @@ object BroadcastEntryUi {
         state is BroadcastState.Live -> UiState.Live
         else -> UiState.Confirm
     }
+
+    /**
+     * S3235: the settings card configures a session that has not started yet. While one runs its
+     * parameters are fixed, and the card sat in the middle of the screen pushing the live controls
+     * and the sharing block below the fold.
+     */
+    fun showsSettingsCard(state: BroadcastState): Boolean = state !is BroadcastState.Live
+
+    /**
+     * S3235: a listener count outside a live session can only say "0 listeners", which costs a row
+     * of vertical space and tells the user nothing.
+     */
+    fun showsListenerCount(state: BroadcastState): Boolean = state is BroadcastState.Live
 }

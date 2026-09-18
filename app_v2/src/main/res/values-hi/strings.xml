@@ -2253,7 +2253,7 @@
     <string name="launcher_edit_unpin_named">%1$s अनपिन करें</string>
     <string name="launcher_settings_enable_title">इस ऐप को होम स्क्रीन बनाएं</string>
     <string name="launcher_start_window_title">ऐप शुरू होने पर डेस्कटॉप खोलें</string>
-    <string name="launcher_start_window_desc">फ़ाइल ब्राउज़र के बजाय आपका डेस्कटॉप खोलता है। इससे डिवाइस की होम स्क्रीन नहीं बदलती।</string>
+    <string name="launcher_start_window_desc">रिसोर्स मैनेजर के बजाय आपका डेस्कटॉप खोलता है। इससे डिवाइस की होम स्क्रीन नहीं बदलती।</string>
     <string name="launcher_settings_enable_desc">होम बटन शॉर्टकट और गैजेट के साथ आपका अपना डेस्कटॉप खोलता है. अपनी पिछली होम स्क्रीन वापस लाने के लिए इसे किसी भी समय बंद करें.</string>
     <string name="launcher_settings_enable_help_title">होम स्क्रीन मोड</string>
     <string name="launcher_settings_enable_help_message">जब आप इसे चालू करते हैं, तो Android पूछता है कि कौन सी होम स्क्रीन इस्तेमाल करनी है - इस ऐप को चुनें और हमेशा पर टैप करें (या आज़माने के लिए केवल एक बार). वापस जाने के लिए, इसे बंद करें और Android आपकी पिछली होम स्क्रीन बहाल कर देगा.</string>
@@ -3615,4 +3615,36 @@
     <string name="wear_screenshot_captured">घड़ी ने अपना स्क्रीनशॉट भेजा</string>
     <string name="wear_screenshot_no_answer">घड़ी ने जवाब नहीं दिया</string>
     <string name="wear_companion_group_operations">घड़ी के ऑपरेशन</string>
+    <string name="resource_manager_title">रिसोर्स मैनेजर</string>
+    <string name="welcome_primary_window_title">मुख्य विंडो</string>
+    <string name="welcome_primary_window_subtitle">चुनें कि FastMediaSorter शुरू करने पर क्या खुले</string>
+    <string name="launcher_primary_window_recommended">अनुशंसित</string>
+    <string name="launcher_primary_window_home_title">डिवाइस की होम स्क्रीन</string>
+    <string name="launcher_primary_window_home_desc">ऐप आपके डिवाइस की होम स्क्रीन बन जाता है</string>
+    <string name="launcher_primary_window_desktop_title">डेस्कटॉप मुख्य विंडो के रूप में</string>
+    <string name="launcher_primary_window_desktop_desc">डिवाइस की होम स्क्रीन बदले बिना ऐप के भीतर डेस्कटॉप खोलता है</string>
+    <string name="launcher_primary_window_resource_manager_title">रिसोर्स मैनेजर</string>
+    <string name="launcher_primary_window_resource_manager_desc">फ़ाइल और मीडिया संसाधन प्रबंधन सीधे खोलता है</string>
+    <string name="setting_launcher_primary_window_title">मुख्य स्टार्टअप विंडो</string>
+    <string name="setting_launcher_primary_window_desc">चुनें कि ऐप डिवाइस की होम स्क्रीन, ऐप के भीतर डेस्कटॉप या रिसोर्स मैनेजर के रूप में खुले</string>
+    <string-array name="launcher_primary_window_options">
+        <item>@string/launcher_primary_window_home_title</item>
+        <item>@string/launcher_primary_window_desktop_title</item>
+        <item>@string/launcher_primary_window_resource_manager_title</item>
+    </string-array>
+    <string name="broadcast_default_stream_title">फ़ोन स्ट्रीम</string>
+    <string name="broadcast_share_help">इसे कैसे देखें</string>
+    <string name="sos_title">SOS आपातकालीन संकेत</string>
+    <string name="sos_hint">सायरन और स्ट्रोब मोर्स SOS पैटर्न दोहराते हैं। सीमा के भीतर होने पर युग्मित घड़ी भी संकेत देती है।</string>
+    <string name="sos_stop_action">संकेत रोकें</string>
+    <string name="sos_mode_all">ध्वनि और प्रकाश</string>
+    <string name="sos_mode_sound_only">केवल ध्वनि</string>
+    <string name="sos_mode_light_only">केवल प्रकाश</string>
+    <string name="sos_notification_text">संकेत सक्रिय: %1$s</string>
+    <string name="sos_notification_channel">SOS संकेत</string>
+    <string name="sos_settings_toggle_title">SOS आपातकालीन संकेत</string>
+    <string name="sos_settings_toggle_subtitle">तेज़ मोर्स सायरन, स्ट्रोब फ़्लैशलाइट और घड़ी पर वैसा ही संकेत</string>
+    <string name="sos_help_title">SOS आपातकालीन संकेत</string>
+    <string name="sos_help_message">अलार्म चैनल पर तेज़ सायरन, पिछली फ़्लैश और झिलमिलाती स्क्रीन के साथ मोर्स SOS पैटर्न दोहराता है। ध्वनि, प्रकाश या दोनों चुनें। इसे यहां शुरू करने पर युग्मित घड़ी पर भी शुरू होता है, और किसी एक को रोकने पर दोनों रुक जाते हैं। संकेत 30 मिनट बाद स्वयं समाप्त हो जाता है ताकि बैटरी और फ़्लैश सुरक्षित रहें।</string>
+    <string name="tourist_action_sos">SOS संकेत</string>
 </resources>

@@ -78,7 +78,11 @@ function Invoke-GateChild {
             $global:LASTEXITCODE = 2
             return
         }
-        $r = Receive-Job -Job $job -AutoRemoveJob -Wait
+        # S3266: the receive carries no -Wait, for the reason the ceiling above exists at all - Wait-Job
+        # has already proved a terminal state, and a second join would be unbounded, undoing the ceiling
+        # one line below it. -AutoRemoveJob is legal only beside -Wait, so the removal is explicit.
+        $r = Receive-Job -Job $job
+        try { Remove-Job -Job $job -Force -ErrorAction SilentlyContinue } catch { }
         if ($r -and -not [string]::IsNullOrWhiteSpace($r.Output)) { Write-Host ($r.Output.TrimEnd()) }
         # A caller's own stopwatch would record how long the WAIT took, not what the gate cost, and
         # scripts/quality/measure-gate-frequency.ps1 reads that number to rank the gates. The child

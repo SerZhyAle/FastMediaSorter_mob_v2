@@ -84,7 +84,6 @@ class Media3WatchListenPlayback @Inject constructor(
 
     /** Runs [block] on the next message of the player's looper - never inside the event being handled. */
     private fun afterDispatch(block: () -> Unit) {
-        Timber.d("S3164: the listening session teardown is handed to the next message of the player's looper")
         val handler = dispatchHandler ?: Handler(Looper.getMainLooper())
         handler.post(block)
     }

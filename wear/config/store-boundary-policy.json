@@ -100,7 +100,8 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.FOREGROUND_SERVICE_MICROPHONE",
         "android.permission.POST_NOTIFICATIONS",
-        "android.permission.USE_FULL_SCREEN_INTENT"
+        "android.permission.USE_FULL_SCREEN_INTENT",
+        "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
       ],
       "components": [
         ".service.VoiceRecordingService",
@@ -148,6 +149,17 @@
         "system_info",
         "tourist_info"
       ]
+    },
+    {
+      "category": "device location",
+      "$comment": "The GPS fix the Tourist dashboard is built on - speed, altitude, coordinates, satellites, trip distance and sun times. Its own category rather than a line under diagnostics because Play reviews location against the store description on its own (S2013), and the route it serves is already noLegal-only, so permission and capability leave the store artifact together (S3115).",
+      "capability": "offersDeviceDiagnostics",
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ],
+      "components": [],
+      "routes": []
     },
     {
       "category": "nearby device state",

@@ -69,6 +69,8 @@ class BackupSettingsCoverageTest {
             // Deliberately excluded - the value is real, but it belongs to one device or one person.
             // Opaque per-lens capture memory; lens ids address one device's hardware.
             "cameraLensSettings",
+            // Camera lens selected for video broadcast; lens ids address one device's hardware.
+            "cameraLensId",
             // Screen-capture consent, given on a device by the person holding it. A restored "already
             // accepted" would suppress a warning that person never saw.
             "screenCaptureDisclosureAccepted",

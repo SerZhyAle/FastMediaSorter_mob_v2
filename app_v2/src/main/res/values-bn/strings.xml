@@ -2254,7 +2254,7 @@
     <string name="launcher_edit_unpin_named">%1$s আনপিন করুন</string>
     <string name="launcher_settings_enable_title">এই অ্যাপকে হোম স্ক্রিন করুন</string>
     <string name="launcher_start_window_title">অ্যাপ চালু হলে ডেস্কটপ খুলুন</string>
-    <string name="launcher_start_window_desc">ফাইল ব্রাউজারের বদলে আপনার ডেস্কটপ খোলে। এতে ডিভাইসের হোম স্ক্রিন বদলায় না।</string>
+    <string name="launcher_start_window_desc">রিসোর্স ম্যানেজারের বদলে আপনার ডেস্কটপ খোলে। এতে ডিভাইসের হোম স্ক্রিন বদলায় না।</string>
     <string name="launcher_settings_enable_desc">হোম বোতাম শর্টকাট ও গ্যাজেট সহ আপনার নিজস্ব ডেস্কটপ খুলবে। আগের হোম স্ক্রিনে ফিরে যেতে যেকোনো সময় এটি বন্ধ করুন।</string>
     <string name="launcher_settings_enable_help_title">হোম স্ক্রিন মোড</string>
     <string name="launcher_settings_enable_help_message">আপনি এটি চালু করলে, Android কোন হোম স্ক্রিন ব্যবহার করবেন তা জিজ্ঞাসা করবে - এই অ্যাপটি বেছে নিয়ে সব সময়-এ ট্যাপ করুন (অথবা চেষ্টা করতে শুধু একবার)। ফিরে যেতে এটি বন্ধ করুন, তখন Android আপনার আগের হোম স্ক্রিন ফিরিয়ে দেবে।</string>
@@ -3617,4 +3617,36 @@
     <string name="wear_screenshot_captured">ঘড়ি তার স্ক্রিনশট পাঠিয়েছে</string>
     <string name="wear_screenshot_no_answer">ঘড়ি সাড়া দেয়নি</string>
     <string name="wear_companion_group_operations">ঘড়ির অপারেশন</string>
+    <string name="resource_manager_title">রিসোর্স ম্যানেজার</string>
+    <string name="welcome_primary_window_title">প্রধান উইন্ডো</string>
+    <string name="welcome_primary_window_subtitle">FastMediaSorter চালু করলে কী খুলবে তা বেছে নিন</string>
+    <string name="launcher_primary_window_recommended">প্রস্তাবিত</string>
+    <string name="launcher_primary_window_home_title">ডিভাইসের হোম স্ক্রিন</string>
+    <string name="launcher_primary_window_home_desc">অ্যাপটি আপনার ডিভাইসের হোম স্ক্রিন হয়ে যায়</string>
+    <string name="launcher_primary_window_desktop_title">প্রধান উইন্ডো হিসেবে ডেস্কটপ</string>
+    <string name="launcher_primary_window_desktop_desc">ডিভাইসের হোম স্ক্রিন না বদলে অ্যাপের ভেতরে ডেস্কটপ খোলে</string>
+    <string name="launcher_primary_window_resource_manager_title">রিসোর্স ম্যানেজার</string>
+    <string name="launcher_primary_window_resource_manager_desc">ফাইল ও মিডিয়া রিসোর্স ব্যবস্থাপনা সরাসরি খোলে</string>
+    <string name="setting_launcher_primary_window_title">প্রধান সূচনা উইন্ডো</string>
+    <string name="setting_launcher_primary_window_desc">অ্যাপটি ডিভাইসের হোম স্ক্রিন, অ্যাপের ভেতরের ডেস্কটপ, নাকি রিসোর্স ম্যানেজার হিসেবে খুলবে তা বেছে নিন</string>
+    <string-array name="launcher_primary_window_options">
+        <item>@string/launcher_primary_window_home_title</item>
+        <item>@string/launcher_primary_window_desktop_title</item>
+        <item>@string/launcher_primary_window_resource_manager_title</item>
+    </string-array>
+    <string name="broadcast_default_stream_title">ফোন স্ট্রিম</string>
+    <string name="broadcast_share_help">এটি কীভাবে দেখবেন</string>
+    <string name="sos_title">SOS জরুরি সংকেত</string>
+    <string name="sos_hint">সাইরেন ও স্ট্রোব মোর্স SOS প্যাটার্ন পুনরাবৃত্তি করে। নাগালের মধ্যে থাকলে যুক্ত ঘড়িও সংকেত দেয়।</string>
+    <string name="sos_stop_action">সংকেত বন্ধ করুন</string>
+    <string name="sos_mode_all">শব্দ এবং আলো</string>
+    <string name="sos_mode_sound_only">শুধু শব্দ</string>
+    <string name="sos_mode_light_only">শুধু আলো</string>
+    <string name="sos_notification_text">সংকেত সক্রিয়: %1$s</string>
+    <string name="sos_notification_channel">SOS সংকেত</string>
+    <string name="sos_settings_toggle_title">SOS জরুরি সংকেত</string>
+    <string name="sos_settings_toggle_subtitle">জোরালো মোর্স সাইরেন, স্ট্রোব ফ্ল্যাশলাইট এবং ঘড়িতে অনুরূপ সংকেত</string>
+    <string name="sos_help_title">SOS জরুরি সংকেত</string>
+    <string name="sos_help_message">অ্যালার্ম চ্যানেলে জোরালো সাইরেন, পিছনের ফ্ল্যাশ এবং ঝলকানো স্ক্রিন দিয়ে মোর্স SOS প্যাটার্ন পুনরাবৃত্তি করে। শব্দ, আলো বা দুটোই বেছে নিন। এখানে চালু করলে যুক্ত ঘড়িতেও চালু হয়, আর যেকোনো একটি বন্ধ করলে দুটোই বন্ধ হয়। ব্যাটারি ও ফ্ল্যাশ যাতে টিকে থাকে সেজন্য সংকেত ৩০ মিনিট পর নিজেই শেষ হয়।</string>
+    <string name="tourist_action_sos">SOS সংকেত</string>
 </resources>

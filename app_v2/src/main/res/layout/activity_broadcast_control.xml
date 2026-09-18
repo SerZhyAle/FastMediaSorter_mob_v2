@@ -35,7 +35,7 @@
         <FrameLayout
             android:id="@+id/previewContainer"
             android:layout_width="match_parent"
-            android:layout_height="220dp"
+            android:layout_height="@dimen/broadcast_control_preview_height"
             android:background="@android:color/black"
             android:layout_marginBottom="@dimen/margin_normal" />
 
@@ -278,6 +278,13 @@
                     android:clickable="true"
                     android:gravity="center"
                     android:maxLines="2"
+                    android:breakStrategy="simple"
+                    android:hyphenationFrequency="none"
+                    android:paddingStart="@dimen/padding_tiny"
+                    android:paddingEnd="@dimen/padding_tiny"
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="@dimen/broadcast_share_button_text_size_min"
+                    app:autoSizeMaxTextSize="@dimen/broadcast_share_button_text_size_max"
                     android:nextFocusRight="@id/btnExportFile"
                     android:text="@string/broadcast_share_copy" />
 
@@ -292,6 +299,13 @@
                     android:clickable="true"
                     android:gravity="center"
                     android:maxLines="2"
+                    android:breakStrategy="simple"
+                    android:hyphenationFrequency="none"
+                    android:paddingStart="@dimen/padding_tiny"
+                    android:paddingEnd="@dimen/padding_tiny"
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="@dimen/broadcast_share_button_text_size_min"
+                    app:autoSizeMaxTextSize="@dimen/broadcast_share_button_text_size_max"
                     android:nextFocusLeft="@id/btnCopyUrl"
                     android:nextFocusRight="@id/btnShareSend"
                     android:text="@string/broadcast_share_export_file" />
@@ -306,6 +320,13 @@
                     android:clickable="true"
                     android:gravity="center"
                     android:maxLines="2"
+                    android:breakStrategy="simple"
+                    android:hyphenationFrequency="none"
+                    android:paddingStart="@dimen/padding_tiny"
+                    android:paddingEnd="@dimen/padding_tiny"
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="@dimen/broadcast_share_button_text_size_min"
+                    app:autoSizeMaxTextSize="@dimen/broadcast_share_button_text_size_max"
                     android:nextFocusLeft="@id/btnExportFile"
                     android:text="@string/broadcast_share_send_link" />
             </LinearLayout>

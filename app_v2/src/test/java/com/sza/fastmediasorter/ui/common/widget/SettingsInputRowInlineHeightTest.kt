@@ -60,6 +60,43 @@ class SettingsInputRowInlineHeightTest {
         assertTrue("tail spacer must still absorb the row's trailing slack", spacer.width > 0)
     }
 
+    /**
+     * S3235: the inline port row is a [LabelColumnRow], so its caption shares the column its dropdown
+     * siblings already share instead of starting at an offset of its own.
+     */
+    @Test
+    fun `inline port row answers the label column contract`() {
+        val root = inflateBroadcastControl()
+        val portRow = root.findViewById<SettingsInputRow>(R.id.rowPort)
+        val titleLine = portRow.findViewById<View>(R.id.sir_titleLine)
+
+        assertTrue("an inline row must report a label width", portRow.measureLabelNaturalWidth() > 0)
+        assertTrue("an inline row must report a trailing width", portRow.measureTrailingNaturalWidth() > 0)
+
+        portRow.applyLabelColumnWidth(COLUMN_PROBE_PX)
+        assertEquals(COLUMN_PROBE_PX, (titleLine.layoutParams as LinearLayout.LayoutParams).width)
+
+        portRow.applyLabelColumnWidth(0)
+        assertEquals(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            (titleLine.layoutParams as LinearLayout.LayoutParams).width,
+        )
+    }
+
+    @Test
+    fun `port row caption shares one column with its dropdown siblings`() {
+        val root = inflateBroadcastControl()
+        val portLabel = root.findViewById<View>(R.id.rowPort).findViewById<View>(R.id.sir_titleLine)
+        val bitRateLabel = root.findViewById<View>(R.id.rowBitRate).findViewById<View>(R.id.sdr_titleCluster)
+
+        assertTrue("label column must be laid out", bitRateLabel.width > 0)
+        assertEquals(
+            "port caption column ${portLabel.width}px must match the dropdown column ${bitRateLabel.width}px",
+            bitRateLabel.width,
+            portLabel.width,
+        )
+    }
+
     @Test
     fun `start broadcast button keeps a real height on the portrait screen`() {
         val root = inflateBroadcastControl()
@@ -70,5 +107,9 @@ class SettingsInputRowInlineHeightTest {
             "start button bottom ${startButton.bottom}px must fit the scrollable content",
             startButton.bottom <= (startButton.parent as View).height,
         )
+    }
+
+    private companion object {
+        const val COLUMN_PROBE_PX = 321
     }
 }

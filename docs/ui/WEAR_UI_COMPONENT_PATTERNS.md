@@ -26,6 +26,18 @@ WearAppTheme (WearColorScheme)
    - `toggleOn` (`0xFF4A90E2`): Dedicated blue tone for active toggle states (S2468 / ADR-1).
    - `toggleOff` (`0xFF8D6E63`): Dedicated brown tone for inactive toggle states (S2468).
    - `guideArrow` (`0xFFFFA000`): Amber guidance tone for visual walkthrough hints and game guidance arrows (S2494).
+   - `heartRate` (`0xFFFF5252`): Heart-rate identity tone, shared by the tourist hero card label and the athlete card accent - scheme-independent (S3258).
+   - `touristAccent` (`0xFF00BFA5`): Tourist dashboard metric-label accent, and the speed metric's identity tone on the athlete card - scheme-independent (S3258).
+   - `steps` (`0xFFFFAB00`): Step-count identity tone on the athlete card - scheme-independent (S3258).
+   - `distance` (`0xFF448AFF`): Trip-distance identity tone on the athlete card - scheme-independent (S3258).
+   - `gpsFix` (`0xFF00E676`): Satellite count while a GNSS fix is held - scheme-independent (S3258).
+   - `sunrise` (`0xFFFFFF00`): Sunrise caption on the tourist sun-time card - scheme-independent (S3258).
+   - `sunset` (`0xFFFF8A80`): Sunset caption on the tourist sun-time card - scheme-independent (S3258).
+   - `compassNorth` (`0xFFE53935`): North half of the compass needle - scheme-independent (S3258).
+   - `compassSouth` (`0xFF9E9E9E`): South half of the compass needle - scheme-independent (S3258).
+   - `unlockHint` (`0xFFFFCC00`): Tourist lock hint, which rides on the black athlete canvas - scheme-independent (S3258).
+   - `canvasBlack` (`0xFF000000`): The deliberate true-black canvas of the athlete card and of the calculator, game and motion-monitor scaffolds - scheme-independent (S3258).
+   - `athleteOnCanvas` (`0xFFFFFFFF`): Athlete card focal digits. Dedicated rather than `onSurface` because that canvas stays black under every scheme while `onSurface` follows the scheme (S3258).
    - `isLight` (`Boolean`): Flag indicating whether the active palette is light or dark (S2522).
 
 ### 1.2 Color Attributes vs Hardcoded Literals
@@ -40,6 +52,9 @@ A Composable must never declare inline `fontSize = ...sp`. Text styling must res
 
 | Typography Token | Role & Semantic Purpose | Canonical Sizing / Font Weight |
 |---|---|---|
+| `typography.display1` | The single focal reading of a screen drawn to be read at arm's length while moving (`TouristAthleteCard`) | 48sp, ExtraBold - **re-sized by the app**, see below |
+| `typography.display2` | Large focal metric beside other content: hero telemetry, body-sensor reading, stopwatch lap, player overlay | 34sp, Medium |
+| `typography.display3` | Secondary large reading (`BloodPressureEstimateContent`, `SyncResultScreen`) | 30sp, Medium |
 | `typography.title1` | Top-level screen title on wide round displays | 24sp, Bold |
 | `typography.title2` | Subtitle or category header | 20sp, Bold |
 | `typography.title3` | Modal dialog titles and file action headers | 16sp, Medium |
@@ -49,6 +64,10 @@ A Composable must never declare inline `fontSize = ...sp`. Text styling must res
 | `typography.caption1` | Chip titles and primary status labels | 14sp, Medium |
 | `typography.caption2` | Subtitles in chips, toggle captions, and timestamp rows | 12sp, Normal |
 | `typography.caption3` | Fine metadata, time stamps, and badge labels | 10sp, Normal |
+
+**Where the scale itself lives.** Every token above is the Wear Material default except `display1`, which `wear/ui/theme/WearTypography.kt` re-sizes from 40sp to 48sp/52sp ExtraBold and `WearAppTheme` passes to `MaterialTheme`. That is the only sanctioned way to introduce a size the table has no name for: change the token, in that one file, with the reason written beside it - never the call site. `display2` and `display3` stay at their library values precisely because several screens already take them, so moving one to suit a single screen would re-size the others silently.
+
+**The gate.** `wear-inline-font-size` (a dimension of `scripts/quality/assert-source-gates.ps1`, baseline `scripts/quality/wear-inline-font-size-baseline.txt`) refuses a new literal `NN.sp` anywhere in `wear/src/main`. It judges digits before `.sp`, so three constructions that apply `.sp` to a computed value remain legal and are the only exceptions: `WearCaptionText` stepping its own shrink scale, `ThumbnailCell` converting that scale's floor into dp, and `CalculatorHistoryPage` applying the owner's stored history size. `WearTypography.kt` is excluded by name, being the seam the rule routes callers towards.
 
 ### 1.4 Corner Shapes and Radii
 
@@ -120,7 +139,7 @@ fun StandardWearChip(
 For list items requiring long-press action menus (file lists, voice notes), `LongPressChip` (`ui/common/LongPressChip.kt`) is mandatory to prevent touch event swallowing (S1953).
 
 #### Standard Toggle Chip (`StandardWearToggleChip`)
-Replaces ad-hoc toggle rows (`WearSettingsToggleCell`) with standard `ToggleChip` architecture while preserving project toggle state colors:
+The module's one toggle row, shipped in S3260 - it replaced the hand-rolled `WearSettingsToggleCell`, which is deleted. Standard `ToggleChip` architecture, project toggle state colors:
 
 ```kotlin
 @Composable
@@ -129,9 +148,9 @@ fun StandardWearToggleChip(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    secondaryLabel: String? = null,
     radio: Boolean = false,
-    enabled: Boolean = true
+    accessibilityLabel: String = label,
+    narrow: Boolean = false
 ) {
     val toggleIcon = if (radio) {
         ToggleChipDefaults.radioIcon(checked)
@@ -141,7 +160,6 @@ fun StandardWearToggleChip(
     ToggleChip(
         checked = checked,
         onCheckedChange = onCheckedChange,
-        enabled = enabled,
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 52.dp),
@@ -149,19 +167,9 @@ fun StandardWearToggleChip(
             Text(
                 text = label,
                 style = MaterialTheme.typography.caption1,
-                maxLines = 1,
+                maxLines = if (narrow) 2 else 1,
                 overflow = TextOverflow.Ellipsis
             )
-        },
-        secondaryLabel = secondaryLabel?.let { sec ->
-            {
-                Text(
-                    text = sec,
-                    style = MaterialTheme.typography.caption2,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
         },
         toggleControl = {
             Icon(
@@ -178,7 +186,7 @@ fun StandardWearToggleChip(
 
 ### 2.2 Cards and Containers
 
-Replaces hand-rolled `Box + clip(RoundedCornerShape) + background` pseudo-cards with unified card containers parenting `androidx.wear.compose.material.Card`:
+The module's one card container, shipped in S3261 (`ui/common/StandardWearCard.kt`) - it replaced the hand-rolled `Box + clip(RoundedCornerShape) + background` pseudo-cards of the tourist hero panel and both health last-reading panels, and parents `androidx.wear.compose.material.Card`. The radius tokens of section 1.4 live beside it as `WearCardShape` / `WearHeroShape`. Two panels stay outside it by owner ruling: `TouristSecondaryCard`, a compact tile that must not stretch inside the `FlowRow` cloud, and `TouristAthleteCard`, whose full-screen black canvas is the running-mode contrast:
 
 ```kotlin
 @Composable
@@ -187,12 +195,13 @@ fun StandardWearCard(
     modifier: Modifier = Modifier,
     title: (@Composable () -> Unit)? = null,
     timeOrBadge: (@Composable () -> Unit)? = null,
-    cornerShape: Shape = RoundedCornerShape(12.dp),
+    cornerShape: Shape = WearCardShape,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
         onClick = onClick ?: {},
         enabled = onClick != null,
+        contentColor = MaterialTheme.colors.onSurface,
         modifier = modifier.fillMaxWidth(),
         shape = cornerShape,
         backgroundPainter = CardDefaults.cardBackgroundPainter(
@@ -229,81 +238,28 @@ fun StandardWearCard(
 ### 2.3 Dialogs and Alerts
 
 #### Standard Alert Dialog (`StandardWearAlertDialog`)
-Full-screen alert adhering to Wear OS design guidelines with standardized confirm, cancel, and destructive button styling:
+Full-screen alert adhering to Wear OS design guidelines with standardized confirm, cancel, and destructive button styling. Shipped by S3262 in `wear/ui/common/StandardWearAlertDialog.kt`; the contract below is the one in the tree:
 
 ```kotlin
 @Composable
 fun StandardWearAlertDialog(
     show: Boolean,
     title: String,
+    onConfirm: () -> Unit,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     message: String? = null,
-    icon: (@Composable () -> Unit)? = null,
     confirmLabel: String = stringResource(android.R.string.ok),
-    onConfirm: () -> Unit,
     cancelLabel: String? = stringResource(android.R.string.cancel),
-    onCancel: (() -> Unit)? = onDismissRequest,
-    isDestructive: Boolean = false
-) {
-    if (!show) return
-    Alert(
-        modifier = modifier,
-        icon = icon,
-        title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.title3,
-                textAlign = TextAlign.Center
-            )
-        },
-        message = message?.let { msg ->
-            {
-                Text(
-                    text = msg,
-                    style = MaterialTheme.typography.body2,
-                    textAlign = TextAlign.Center
-                )
-            }
-        },
-        positiveButton = {
-            Chip(
-                onClick = onConfirm,
-                label = {
-                    Text(
-                        text = confirmLabel,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                colors = if (isDestructive) {
-                    ChipDefaults.chipColors(
-                        backgroundColor = MaterialTheme.colors.error,
-                        contentColor = MaterialTheme.colors.onError
-                    )
-                } else {
-                    ChipDefaults.primaryChipColors()
-                }
-            )
-        },
-        negativeButton = cancelLabel?.let { cancelText ->
-            {
-                Chip(
-                    onClick = { onCancel?.invoke() },
-                    label = {
-                        Text(
-                            text = cancelText,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    },
-                    colors = ChipDefaults.secondaryChipColors()
-                )
-            }
-        }
-    )
-}
+    isDestructive: Boolean = false,
+    content: (@Composable ColumnScope.() -> Unit)? = null
+)
 ```
+
+- `isDestructive = true` colours the confirming chip `MaterialTheme.colors.error` on `onError`; every deletion in the module asks this way.
+- `cancelLabel = null` is the acknowledgement form: one full-width action chip and no negative button. It is drawn by the chip overload of `Alert`, because the two-button overload cannot omit its negative slot and would push the remaining button off centre.
+- `content` is the slot for progress indicators, result rows and extra action chips. With a cancel label the message is rendered as the first content row, since the two-button overload of `Alert` carries no `message` parameter.
+- `icon` and a separate `onCancel` are deliberately not part of the contract: no call site needs either, and with them the parameter list crosses detekt's `LongParameterList` threshold.
 
 ### 2.4 Player Transport and Command Controls
 
@@ -330,8 +286,10 @@ Wear OS delivers rotary events only to the focused node. Multiple composables on
 
 - **Continuous Lists (`ScalingLazyColumn`):** Use `Modifier.rotaryActionScroll(listState)`. Automatically applied in `WearListColumn`.
 - **Continuous Scroll Containers (`ScrollState`):** Use `Modifier.rotaryActionScroll(scrollState)`.
-- **Stepped Detents (Volume, Pages, Scrubbing):** Use `Modifier.rotaryActionSteps(onStep: (Int) -> Unit)` with `RotaryStepAccumulator(stepPixels = 48f)`. Provides tactile, discrete step emissions.
-- **Haptic Feedback:** Discrete rotary steps must trigger subtle haptic feedback ticks on supported hardware bezels.
+- **Stepped Detents (Volume, Pages, Scrubbing, Zoom):** Use `Modifier.rotaryActionSteps(onStep: (Int) -> Unit)`. `RotaryStepAccumulator` defaults to `stepPixels = 48f`, so a call site states what a step does and nothing else.
+- **Haptic Feedback:** `rotaryActionSteps` performs `HapticFeedbackType.TextHandleMove` on every emitted step. A call site whose own action already vibrates passes `hapticFeedbackEnabled = false` rather than re-implementing the tick.
+- **Non-scrolling Full-screen Surfaces (overlays, viewers, splash, safety screens):** Use `Modifier.rotaryActionSwallow()`. It claims the focus stack and consumes the turn, which is what stops the crown reaching the screen underneath; the old inline `focusRequester(..) + focusable() + onRotaryScrollEvent { true }` triple is not written by hand any more.
+- **A list-backed screen is already standard:** `WearListColumn` and `WearStateBlock` apply `rotaryActionScroll` themselves. Adding a second rotary modifier over one of them pushes a competing focus-stack entry and kills the crown scrolling it was meant to fix.
 
 ---
 

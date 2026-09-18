@@ -799,7 +799,6 @@ class WearSyncViewModel @Inject constructor(
             _clipboardSendOutcome.value = ClipboardSendOutcomeText(R.string.wear_clipboard_send_empty)
             return
         }
-        Timber.d("S3109: phone clipboard send to watch requested")
         _clipboardSendInFlight.value = true
         _clipboardSendOutcome.value = null
         viewModelScope.launch {
@@ -820,7 +819,6 @@ class WearSyncViewModel @Inject constructor(
         if (_screenshotRequestInFlight.value) {
             return
         }
-        Timber.d("S3110: watch screenshot requested from the companion screen")
         _screenshotRequestInFlight.value = true
         _screenshotRequestOutcome.value = null
         viewModelScope.launch {

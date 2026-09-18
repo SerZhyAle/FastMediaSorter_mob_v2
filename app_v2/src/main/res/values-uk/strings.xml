@@ -4079,4 +4079,26 @@
     <string name="sos_help_title">Аварійний сигнал SOS</string>
     <string name="sos_help_message">Повторює сигнал SOS за Морзе: гучна сирена на каналі будильника, задній спалах і мигтючий екран. Можна вибрати звук, світло або і те й інше. Запуск тут вмикає сигнал і на парному годиннику, а зупинка на будь-якому пристрої гасить обидва. Через 30 хвилин сигнал вимикається сам, щоб зберегти батарею та спалах.</string>
     <string name="tourist_action_sos">Сигнал SOS</string>
+    <string name="data_transfer_row_title">Імпорт та експорт даних</string>
+    <string name="data_transfer_row_subtitle">Налаштування, вибране, закріплені трансляції та ресурси - у файл або в Google Drive</string>
+    <string name="data_transfer_dialog_title">Імпорт та експорт даних</string>
+    <string name="data_transfer_kind_settings">Налаштування</string>
+    <string name="data_transfer_kind_favorites">Вибране</string>
+    <string name="data_transfer_kind_streams">Закріплені трансляції</string>
+    <string name="data_transfer_kind_resources">Ресурси</string>
+    <string name="data_transfer_direction_export">Вивантажити</string>
+    <string name="data_transfer_direction_import">Завантажити</string>
+    <string name="data_transfer_medium_file">Файл пристрою</string>
+    <string name="data_transfer_medium_drive">Google Drive</string>
+    <string name="data_transfer_medium_file_desc">Вибрати файл на цьому пристрої</string>
+    <string name="data_transfer_medium_drive_desc">Використати файл у підключеному акаунті Google Drive</string>
+    <string name="data_transfer_progress">Переносимо %1$s..</string>
+    <string name="data_transfer_export_done">%1$s вивантажено.</string>
+    <string name="data_transfer_import_done">Готово. Додано %1$d, оновлено %2$d, пропущено %3$d.</string>
+    <string name="data_transfer_error_drive">Не вдалося звернутися до Google Drive. Перевірте з\'єднання та чи підключено акаунт Google у налаштуваннях, потім повторіть.</string>
+    <string name="data_transfer_error_no_file">У Google Drive поки немає файлу «%1$s». Спочатку вивантажте його з іншого пристрою.</string>
+    <string name="data_transfer_error_incompatible">Цей файл містить інший тип даних або створений новішою версією програми. Нічого не змінилося.</string>
+    <string name="data_transfer_error_empty">У розділі «%1$s» поки нічого вивантажувати.</string>
+    <string name="data_transfer_error_unreadable">Не вдалося прочитати файл. Виберіть його знову або інший.</string>
+    <string name="data_transfer_error_unwritable">Не вдалося записати в це місце. Виберіть інший файл і повторіть.</string>
 </resources>

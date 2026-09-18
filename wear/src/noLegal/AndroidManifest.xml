@@ -91,6 +91,22 @@
         android:usesPermissionFlags="neverForLocation"
         android:minSdkVersion="33" />
 
+    <!--
+        S3115: the Tourist dashboard is a GPS instrument - speed, altitude, coordinates, satellites,
+        trip distance and sunrise/sunset all come from a location fix, and without these two the screen
+        shows "Searching GPS.." for ever while the system closes the permission dialog in 0.1 s because
+        nothing is declared to grant (measured on Galaxy Watch 7, 2026-09-17).
+
+        S2013 removed location from wear/src/main because Play judges it against the store description,
+        and that removal stands: the store variant still declares neither. What makes the declaration
+        legitimate HERE is that the route it serves - tourist_info - is itself noLegal-only under the
+        store-boundary policy, so the permission and the capability leave the Play artifact together.
+        Coarse is declared beside fine because the system offers the approximate choice on API 31+ and
+        the dashboard is usable on it; the repository reads whichever fix it is given.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <!-- Bluetooth section on API 30 and below; API 31+ routes through BLUETOOTH_CONNECT instead. -->
     <uses-permission
         android:name="android.permission.BLUETOOTH"
@@ -141,6 +157,17 @@
     <uses-permission
         android:name="android.permission.POST_NOTIFICATIONS"
         android:minSdkVersion="33" />
+
+    <!--
+        S3265: a microphone foreground service did not survive an undisturbed doze window on a Galaxy
+        Watch 7 - a Samsung background-management daemon force-stopped the whole package while the
+        broadcast was on air, and a force-stopped package is never restarted. This permission is what
+        lets the watch ask for the exemption that stops it; the ask is on demand from the broadcast
+        screen, never at startup. It stays out of the store artifact for the reason the whole block
+        above does: Play reviews this permission against a short list of admitted use cases, and the
+        capability it defends - broadcast - is itself noLegal-only.
+    -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!--
         S2941: lets the listen-request notification open ListenRequestActivity automatically via

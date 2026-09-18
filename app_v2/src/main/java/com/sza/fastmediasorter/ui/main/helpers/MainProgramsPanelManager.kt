@@ -20,7 +20,6 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 /**
  * S0755: renders the main-window programs panel as a visual mirror of the three-dots programs menu.
  * Rather than re-declare the item set, it populates a throwaway [PopupMenu] through the same
@@ -307,7 +306,6 @@ class MainProgramsPanelManager(
     private fun showOverflowPopup() {
         if (overflowItems.isEmpty()) return
         overflowPopup?.dismiss()
-        Timber.d("S3214: programs overflow popup opens as bounded 2-column grid, items=${overflowItems.size}")
         val anchor = panel.btnProgramsPanelOverflow
         val context = anchor.context
         val inflater = LayoutInflater.from(context)

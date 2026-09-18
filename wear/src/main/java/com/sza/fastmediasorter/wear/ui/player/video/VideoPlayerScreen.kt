@@ -366,7 +366,7 @@ private fun VideoPlayerContent(
             .fillMaxSize()
             // The rotary binding is a separate input from the tap: rotation moves the position and
             // leaves the overlay alone, so the bezel does not have to reveal controls to be useful.
-            .rotaryActionSteps(actions.onRotaryStep)
+            .rotaryActionSteps(onStep = actions.onRotaryStep)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,

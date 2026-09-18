@@ -2256,7 +2256,7 @@
     <string name="launcher_edit_unpin_named">%1$s ان پن کریں</string>
     <string name="launcher_settings_enable_title">اس ایپ کو ہوم اسکرین بنائیں</string>
     <string name="launcher_start_window_title">ایپ شروع ہونے پر ڈیسک ٹاپ کھولیں</string>
-    <string name="launcher_start_window_desc">فائل براؤزر کے بجائے آپ کا ڈیسک ٹاپ کھولتا ہے۔ اس سے ڈیوائس کی ہوم اسکرین نہیں بدلتی۔</string>
+    <string name="launcher_start_window_desc">ریسورس مینیجر کے بجائے آپ کا ڈیسک ٹاپ کھولتا ہے۔ اس سے آلے کی ہوم اسکرین تبدیل نہیں ہوتی۔</string>
     <string name="launcher_settings_enable_desc">ہوم بٹن آپ کا اپنا ڈیسک ٹاپ کھولتا ہے جس میں شارٹ کٹس اور گیجٹس ہوتے ہیں۔ اپنی پچھلی ہوم اسکرین واپس لانے کے لیے اسے کسی بھی وقت بند کر دیں۔</string>
     <string name="launcher_settings_enable_help_title">ہوم اسکرین موڈ</string>
     <string name="launcher_settings_enable_help_message">جب آپ اسے آن کرتے ہیں، تو اینڈرائیڈ پوچھتا ہے کہ کون سی ہوم اسکرین استعمال کی جائے - اس ایپ کو منتخب کریں اور ہمیشہ پر تھپتھپائیں (یا آزمانے کے لیے صرف ایک بار)۔ واپس جانے کے لیے، اسے بند کر دیں اور اینڈرائیڈ آپ کی پچھلی ہوم اسکرین بحال کر دے گا۔</string>
@@ -3619,4 +3619,36 @@
     <string name="wear_screenshot_captured">گھڑی نے اپنا اسکرین شاٹ بھیجا</string>
     <string name="wear_screenshot_no_answer">گھڑی نے جواب نہیں دیا</string>
     <string name="wear_companion_group_operations">گھڑی کے آپریشنز</string>
+    <string name="resource_manager_title">ریسورس مینیجر</string>
+    <string name="welcome_primary_window_title">بنیادی ونڈو</string>
+    <string name="welcome_primary_window_subtitle">منتخب کریں کہ FastMediaSorter شروع کرنے پر کیا کھلے</string>
+    <string name="launcher_primary_window_recommended">تجویز کردہ</string>
+    <string name="launcher_primary_window_home_title">آلے کی ہوم اسکرین</string>
+    <string name="launcher_primary_window_home_desc">ایپ آپ کے آلے کی ہوم اسکرین بن جاتی ہے</string>
+    <string name="launcher_primary_window_desktop_title">ڈیسک ٹاپ بطور بنیادی ونڈو</string>
+    <string name="launcher_primary_window_desktop_desc">آلے کی ہوم اسکرین تبدیل کیے بغیر ایپ کے اندر ڈیسک ٹاپ کھولتا ہے</string>
+    <string name="launcher_primary_window_resource_manager_title">ریسورس مینیجر</string>
+    <string name="launcher_primary_window_resource_manager_desc">فائل اور میڈیا وسائل کا انتظام براہ راست کھولتا ہے</string>
+    <string name="setting_launcher_primary_window_title">بنیادی آغاز ونڈو</string>
+    <string name="setting_launcher_primary_window_desc">منتخب کریں کہ ایپ آلے کی ہوم اسکرین، ایپ کے اندر ڈیسک ٹاپ، یا ریسورس مینیجر کے طور پر کھلے</string>
+    <string-array name="launcher_primary_window_options">
+        <item>@string/launcher_primary_window_home_title</item>
+        <item>@string/launcher_primary_window_desktop_title</item>
+        <item>@string/launcher_primary_window_resource_manager_title</item>
+    </string-array>
+    <string name="broadcast_default_stream_title">فون اسٹریم</string>
+    <string name="broadcast_share_help">اسے کیسے دیکھیں</string>
+    <string name="sos_title">SOS ہنگامی اشارہ</string>
+    <string name="sos_hint">سائرن اور اسٹروب مورس SOS پیٹرن دہراتے ہیں۔ رینج میں ہونے پر منسلک گھڑی بھی اشارہ دیتی ہے۔</string>
+    <string name="sos_stop_action">اشارہ روکیں</string>
+    <string name="sos_mode_all">آواز اور روشنی</string>
+    <string name="sos_mode_sound_only">صرف آواز</string>
+    <string name="sos_mode_light_only">صرف روشنی</string>
+    <string name="sos_notification_text">اشارہ فعال: %1$s</string>
+    <string name="sos_notification_channel">SOS اشارہ</string>
+    <string name="sos_settings_toggle_title">SOS ہنگامی اشارہ</string>
+    <string name="sos_settings_toggle_subtitle">بلند مورس سائرن، اسٹروب فلیش لائٹ، اور گھڑی پر ویسا ہی اشارہ</string>
+    <string name="sos_help_title">SOS ہنگامی اشارہ</string>
+    <string name="sos_help_message">الارم چینل پر بلند سائرن، پچھلی فلیش، اور جھلملاتی اسکرین کے ساتھ مورس SOS پیٹرن دہراتا ہے۔ آواز، روشنی، یا دونوں منتخب کریں۔ اسے یہاں شروع کرنے سے منسلک گھڑی پر بھی شروع ہو جاتا ہے، اور کسی ایک کو روکنے سے دونوں رک جاتے ہیں۔ اشارہ 30 منٹ بعد خود ختم ہو جاتا ہے تاکہ بیٹری اور فلیش محفوظ رہیں۔</string>
+    <string name="tourist_action_sos">SOS اشارہ</string>
 </resources>

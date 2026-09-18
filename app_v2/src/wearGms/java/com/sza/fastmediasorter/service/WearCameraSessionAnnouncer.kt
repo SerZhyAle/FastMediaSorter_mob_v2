@@ -26,7 +26,6 @@ class WearCameraSessionAnnouncer @Inject constructor(
 
     override suspend fun announceSessionEnded() {
         val session = sessions.current() ?: return
-        Timber.d("S3220: broadcast ended, forgetting the watch camera session")
         sessions.clear()
         Timber.i("Telling the watch the camera session ended")
         ackSender.answerRefusal(session.nodeId, session.requestId, WearCameraRefusal.STOPPED)

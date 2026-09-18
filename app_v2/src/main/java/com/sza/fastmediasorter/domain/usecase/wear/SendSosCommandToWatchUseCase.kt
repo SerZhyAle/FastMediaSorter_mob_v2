@@ -32,7 +32,6 @@ class SendSosCommandToWatchUseCase @Inject constructor(
     }
 
     private suspend fun send(path: String, payload: ByteArray) {
-        Timber.d("S3216: sending $path to the watch")
         val nodes = runCatching { dataLayerRepository.getConnectedNodes() }
             .onFailure { Timber.w(it, "SOS: could not list connected watches, signalling alone") }
             .getOrDefault(emptyList())

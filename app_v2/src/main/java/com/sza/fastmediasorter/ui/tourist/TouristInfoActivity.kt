@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.ui.tourist.helpers.TouristTileValueFormatter
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -111,7 +110,6 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
 
     private fun renderDashboard() {
         val state = viewModel.state.value
-        Timber.d("S3101: tourist dashboard rendering under ${unitSystemProvider.value}")
         heroTileManager.bind(state, this)
         secondaryTilesAdapter.updateState(state)
     }

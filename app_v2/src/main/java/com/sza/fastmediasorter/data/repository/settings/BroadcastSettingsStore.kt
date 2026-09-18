@@ -47,6 +47,10 @@ object BroadcastSettingsStore {
     // S3049: microphone digital PCM gain percentage (50% - 400%, default 100%).
     private val keyMicGainPercent = intPreferencesKey("broadcast_mic_gain_percent")
 
+    // S3237: the lens the broadcast screen last opened, so the choice survives an Activity recreation
+    // and the next launch.
+    private val keyCameraLensId = stringPreferencesKey("broadcast_camera_lens_id")
+
     /**
      * S3222: the session parameters are the domain group itself, so this store no longer restates the
      * same fourteen names. `enableBroadcasting` rides beside it rather than inside it - it is a program
@@ -98,6 +102,7 @@ object BroadcastSettingsStore {
             videoFps = preferences[keyVideoFps] ?: 30,
             videoBitrateBps = preferences[keyVideoBitrateBps] ?: 2_000_000,
             micGainPercent = preferences[keyMicGainPercent] ?: 100,
+            cameraLensId = preferences[keyCameraLensId],
         ),
     )
 
@@ -118,5 +123,9 @@ object BroadcastSettingsStore {
         preferences[keyVideoFps] = broadcast.videoFps
         preferences[keyVideoBitrateBps] = broadcast.videoBitrateBps
         preferences[keyMicGainPercent] = broadcast.micGainPercent
+        // S3237: unlike the device id above, a null here is a real value - the user cleared the choice
+        // or the stored lens no longer exists - so it removes the key instead of leaving a stale id.
+        val lensId = broadcast.cameraLensId
+        if (lensId != null) preferences[keyCameraLensId] = lensId else preferences.remove(keyCameraLensId)
     }
 }

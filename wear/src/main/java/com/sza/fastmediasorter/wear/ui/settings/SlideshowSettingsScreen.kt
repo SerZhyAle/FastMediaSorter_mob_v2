@@ -20,15 +20,16 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.StandardWearToggleChip
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsStepperCell
-import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private const val THREE_SECONDS = 3
 private const val FIVE_SECONDS = 5
@@ -53,6 +54,7 @@ fun SlideshowSettingsScreen(
     listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.SLIDESHOW)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    Timber.d("S3260: slideshow settings shown - the enable row is StandardWearToggleChip")
 
     // S1949: both controls declare full width - `enable_slideshow` measures 35 characters in
     // Portuguese, past the 32-character threshold, and the stepper carries its value on the same
@@ -60,10 +62,10 @@ fun SlideshowSettingsScreen(
     // rather than by omission, and a narrow setting added here joins rows without further work.
     val items = listOf(
         WearSettingsItem(fullWidth = true) { _ ->
-            WearSettingsToggleCell(
+            StandardWearToggleChip(
                 label = stringResource(R.string.enable_slideshow),
                 checked = uiState.isSlideshowEnabled,
-                onToggle = viewModel::toggleSlideshow
+                onCheckedChange = { viewModel.toggleSlideshow() }
             )
         },
         WearSettingsItem(fullWidth = true) { _ ->

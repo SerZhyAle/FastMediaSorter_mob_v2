@@ -35,7 +35,6 @@ class SosCommandFromWatchHandler @Inject constructor(
      * caller that needs to know whether the route was consumed - and this one's caller does not read it.
      */
     suspend fun handle(path: String, payload: ByteArray): Boolean = run {
-        Timber.d("S3216: command from the watch on path $path")
         handleRoute(path, payload)
     }
 

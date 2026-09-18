@@ -47,7 +47,6 @@ class WearSystemInfoReportReceiver @Inject constructor(
 ) {
 
     suspend fun handle(nodeId: String, data: ByteArray) {
-        Timber.d("S3108: watch system info report received")
         when (val parsed = WearSystemInfoReportCodec.parse(data, gson)) {
             is WearSystemInfoReportParseResult.Malformed -> {
                 Timber.w("Wear system info report: payload could not be parsed")

@@ -4158,4 +4158,26 @@
     <string name="sos_help_title">SOS emergency signal</string>
     <string name="sos_help_message">Repeats the Morse SOS pattern with a loud siren on the alarm channel, the rear flash, and a flashing screen. Pick sound, light, or both. Starting it here also starts it on the paired watch, and stopping either one stops both. The signal ends itself after 30 minutes so the battery and the flash survive it.</string>
     <string name="tourist_action_sos">SOS signal</string>
+    <string name="data_transfer_row_title">Import and export data</string>
+    <string name="data_transfer_row_subtitle">Settings, favorites, pinned streams and resources - to a file or to Google Drive</string>
+    <string name="data_transfer_dialog_title">Import and export data</string>
+    <string name="data_transfer_kind_settings">Settings</string>
+    <string name="data_transfer_kind_favorites">Favorites</string>
+    <string name="data_transfer_kind_streams">Pinned streams</string>
+    <string name="data_transfer_kind_resources">Resources</string>
+    <string name="data_transfer_direction_export">Export</string>
+    <string name="data_transfer_direction_import">Import</string>
+    <string name="data_transfer_medium_file">Device file</string>
+    <string name="data_transfer_medium_drive">Google Drive</string>
+    <string name="data_transfer_medium_file_desc">Pick a file on this device</string>
+    <string name="data_transfer_medium_drive_desc">Use the file in the connected Google Drive account</string>
+    <string name="data_transfer_progress">Transferring %1$s..</string>
+    <string name="data_transfer_export_done">%1$s exported.</string>
+    <string name="data_transfer_import_done">Done. Added %1$d, updated %2$d, skipped %3$d.</string>
+    <string name="data_transfer_error_drive">Couldn\'t reach Google Drive. Check the connection and that a Google account is connected in Settings, then try again.</string>
+    <string name="data_transfer_error_no_file">There is no %1$s file in Google Drive yet. Export it from the other device first.</string>
+    <string name="data_transfer_error_incompatible">This file holds another kind of data, or comes from a newer version of the app. Nothing was changed.</string>
+    <string name="data_transfer_error_empty">There is nothing to export in %1$s yet.</string>
+    <string name="data_transfer_error_unreadable">Couldn\'t read that file. Pick it again, or choose another one.</string>
+    <string name="data_transfer_error_unwritable">Couldn\'t write to that location. Choose another file and try again.</string>
 </resources>

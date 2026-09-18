@@ -663,6 +663,18 @@
 
                     </FrameLayout>
 
+                    <!-- S1565: the compact import/export entry. It sits beside the settings, favorites and
+                         resource button pairs rather than adding a seventh pair - owner ruling 2026-09-08. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowDataTransfer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:ssr_navMode="true"
+                        app:ssr_title="@string/data_transfer_row_title"
+                        app:ssr_subtitle="@string/data_transfer_row_subtitle" />
+
                     <!-- Reset All Settings - destructive action, placed at the very end of the Backup & Export section. -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 

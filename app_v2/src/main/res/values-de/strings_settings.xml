@@ -263,4 +263,16 @@
     <string name="settings_wear_install_guide_button">So installieren Sie es auf einer Uhr</string>
     <string name="settings_wear_web_portal_button">Alles über die Uhr</string>
     <string name="setting_stopwatch_desc">Stoppuhr im Hauptmenü und im Launcher-Widget anzeigen</string>
+    <string name="cross_device_transfer_send_to_device">An mein Gerät senden (Drive)</string>
+    <string name="cross_device_transfer_pending_title">Ausstehende Geräteübertragungen</string>
+    <string name="cross_device_transfer_receive_and_delete">Empfangen und aus der Cloud löschen</string>
+    <string name="cross_device_transfer_receive_and_keep">Empfangen und in der Cloud behalten</string>
+    <string name="cross_device_transfer_clear_queue">Warteschlange leeren</string>
+    <string name="cross_device_transfer_empty">Für dieses Gerät wartet nichts. Senden Sie eine Datei oder Einstellungen von einem anderen Gerät, um sie hier zu sehen.</string>
+    <string name="cross_device_transfer_sending">Wird in Ihre Drive-Warteschlange hochgeladen..</string>
+    <string name="cross_device_transfer_sent">Hochgeladen. Öffnen Sie diesen Bildschirm auf Ihrem anderen Gerät, um es abzuholen.</string>
+    <string name="cross_device_transfer_received_files">Im Eingangsordner der App gespeichert</string>
+    <string name="cross_device_transfer_received_settings">Die Einstellungen vom anderen Gerät wurden übernommen</string>
+    <string name="cross_device_transfer_failed">Die Übertragung wurde nicht abgeschlossen. Prüfen Sie die Drive-Anmeldung und die Verbindung und versuchen Sie es erneut.</string>
+    <string name="cross_device_transfer_queue_cleared">Warteschlange geleert: %1$d Paket(e) entfernt</string>
 </resources>

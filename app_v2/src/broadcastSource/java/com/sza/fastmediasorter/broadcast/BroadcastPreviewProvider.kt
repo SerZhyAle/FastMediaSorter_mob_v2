@@ -102,7 +102,6 @@ class BroadcastPreviewProvider @Inject constructor(
         try {
             liveCamera.replaceView(view)
             boundView = WeakReference(view)
-            Timber.d("S3157: preview bound to the camera through the weakly held OpenGlView")
         } catch (e: Throwable) {
             Timber.w(e, "Broadcast preview: renderer not ready, the stream stays headless")
             try {

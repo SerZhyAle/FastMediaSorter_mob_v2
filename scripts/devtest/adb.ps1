@@ -43,7 +43,10 @@
     uidump               dump the uiautomator node tree, save the XML, and print every node that
                          carries text or a content-description with its resource-id, its bounds and
                          its tap point. -Grep <regex> filters by label OR resource-id; -Ids also
-                         lists the nodes named by an id alone (-Json: file, nodes[])
+                         lists the nodes named by an id alone (-Json: file, nodes[]). A refused
+                         dump is retried and the read repeats until two consecutive trees agree,
+                         so the listing describes the current screen even where the accessibility
+                         tree lags it by seconds (S3238; tap-id and tap-label read the same way)
     tap-id               locate a node by its resource-id and tap the centre of its bounds:
                          -ResourceId <short-or-full> [-Exact] [-Index N]. PREFER THIS over tap-label:
                          a label is translated and an id is not, so a label-aimed call passes on the
@@ -737,23 +740,68 @@ function Remove-StateJournal {
 # Dump the node tree and bring it back as parsed XML. The remote path never crosses bash, which is
 # the same reason pull/push live in this script at all (S1578) - MSYS rewrites /sdcard/x into a path
 # inside the Git installation, and adb then reports a missing remote object.
+# S3238: on the Samsung fleet one dump is not a verdict. `uiautomator dump` refuses while it cannot
+# reach an idle UI ('could not get idle state' - One UI accessibility traffic never settles under a
+# sweep's call cadence), and the tree it does produce can lag the glass by seconds, so a tap aimed
+# from a stale tree hits a screen that is gone. The dump call is therefore retried a bounded number
+# of times, and -Stable re-dumps until two consecutive reads agree, which is what makes a single
+# uidump / tap-id / tap-label answer describe the screen the caller is looking at.
 function Get-UiTree {
-    param([string]$Id, [string]$Destination)
+    param([string]$Id, [string]$Destination, [int]$Attempts = 3, [switch]$Stable)
     $remote = '/sdcard/_fms_tree.xml'
+    $retryDelayMs = 800
+    $stableDelayMs = 900
     # Remove it FIRST. uiautomator refuses while the window is animating and writes nothing at all,
     # and `shot` uses this same remote path - so without this line a refused dump silently pulls the
     # previous screen's tree and every verb above reports confidently about a frame that is gone.
-    Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
-    Invoke-Adb $Id @('shell', 'uiautomator', 'dump', $remote) -AllowFail | Out-Null
+    $lastOut = ''
+    for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+        Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
+        $lastOut = (Invoke-Adb $Id @('shell', 'uiautomator', 'dump', $remote) -AllowFail) -join ' '
+        if ($lastOut -match 'dumped to') { break }
+        if ($attempt -lt $Attempts) { Start-Sleep -Milliseconds ($retryDelayMs * $attempt) }
+    }
+    if ($lastOut -notmatch 'dumped to') {
+        Fail 7 ("uiautomator produced no tree in $Attempts attempt(s); last answer was: $($lastOut.Trim()). It " +
+            "refuses while the window is still animating or its accessibility traffic never idles ('could not " +
+            "get idle state') - let the screen settle and re-run")
+    }
     Invoke-Adb $Id @('pull', $remote, $Destination) -AllowFail | Out-Null
     Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
     if (-not (Test-Path -LiteralPath $Destination -PathType Leaf)) {
-        Fail 7 "uiautomator produced no tree. It refuses while the window is still animating ('could not get idle state') - let the screen settle and re-run"
+        Fail 7 "uiautomator reported a dump but the pull produced no file at $Destination - re-run"
     }
     # Explicit UTF8: uiautomator writes UTF-8 and the tree is the only place a non-Latin label
     # survives, so a default-encoding read turns every Cyrillic label into a row of question marks.
-    $raw = Get-Content -LiteralPath $Destination -Raw -Encoding UTF8
-    try { return [xml]$raw } catch { Fail 7 "the node tree at $Destination is not valid XML: $($_.Exception.Message)" }
+    $previous = Get-Content -LiteralPath $Destination -Raw -Encoding UTF8
+    if (-not $Stable) {
+        try { return [xml]$previous } catch { Fail 7 "the node tree at $Destination is not valid XML: $($_.Exception.Message)" }
+    }
+    # Stable read: re-dump until two consecutive trees agree. A lagging tree stays self-consistent
+    # only until the accessibility layer catches up, so agreement across a pause is the cheapest
+    # signal that the read now describes the glass. The newest read always wins - the file on disk
+    # is the audit artifact and must match what this function returns - and a read that never
+    # settles is reported, not silently passed off as current.
+    $settled = $false
+    for ($read = 2; $read -le $Attempts; $read++) {
+        Start-Sleep -Milliseconds $stableDelayMs
+        Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
+        $dumpOut = (Invoke-Adb $Id @('shell', 'uiautomator', 'dump', $remote) -AllowFail) -join ' '
+        if ($dumpOut -notmatch 'dumped to') { continue }
+        $nextFile = "$Destination.next"
+        Invoke-Adb $Id @('pull', $remote, $nextFile) -AllowFail | Out-Null
+        Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
+        if (-not (Test-Path -LiteralPath $nextFile -PathType Leaf)) { continue }
+        $current = Get-Content -LiteralPath $nextFile -Raw -Encoding UTF8
+        Remove-Item -LiteralPath $nextFile -Force
+        if ($current -eq $previous) { $settled = $true; break }
+        $previous = $current
+    }
+    Set-Content -LiteralPath $Destination -Value $previous -NoNewline -Encoding UTF8
+    if (-not $settled) {
+        Write-Host "NOTE the tree did not settle after $Attempts reads on $Id - the listing may lag the screen" -ForegroundColor Yellow
+    }
+    try { return [xml]$previous } catch { Fail 7 "the node tree at $Destination is not valid XML: $($_.Exception.Message)" }
 }
 
 # Flatten the tree in document order, carrying down whether an ANCESTOR is scrollable. That flag is
@@ -1229,7 +1277,7 @@ switch ($Verb.ToLowerInvariant()) {
         $id = Select-Device
         $script:result.device = $id
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
-        $nodes = @(Get-UiNodes (Get-UiTree $id $file))
+        $nodes = @(Get-UiNodes (Get-UiTree $id $file -Stable))
         if (-not $Ids) { $nodes = @($nodes | Where-Object { $_.labelled }) }
         # -Grep spans the identifier too, so the same regex serves both ways of naming a target.
         if ($Grep) { $nodes = @($nodes | Where-Object { $_.label -match $Grep -or $_.resId -match $Grep }) }
@@ -1257,7 +1305,7 @@ switch ($Verb.ToLowerInvariant()) {
         $id = Select-Device
         $script:result.device = $id
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
-        $nodes = @(Get-UiNodes (Get-UiTree $id $file))
+        $nodes = @(Get-UiNodes (Get-UiTree $id $file -Stable))
         $hits  = @(Select-UiNodesById $nodes $ResourceId -Exact:$Exact)
         if ($hits.Count -eq 0) {
             Fail 8 "no visible node carries the resource-id '$ResourceId' - nothing was tapped. The tree is at $file; run 'uidump -Ids' and match an id from ITS output. Causes, commonest first: this node carries no resource-id at all (TabLayout tabs carry none - reach those with tap-label), the list needs scrolling, the screen is still animating"
@@ -1280,7 +1328,7 @@ switch ($Verb.ToLowerInvariant()) {
         $script:result.device = $id
         if (-not $Label) { Fail 1 "tap-label needs -Label <text-or-content-desc> (add -Exact for a whole-value match)" }
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
-        $nodes = @(Get-UiNodes (Get-UiTree $id $file))
+        $nodes = @(Get-UiNodes (Get-UiTree $id $file -Stable))
         $hits  = @($nodes | Where-Object {
             if ($Exact) { $_.text -eq $Label -or $_.desc -eq $Label }
             else { $_.text -like "*$Label*" -or $_.desc -like "*$Label*" }

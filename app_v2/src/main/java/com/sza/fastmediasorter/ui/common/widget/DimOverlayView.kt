@@ -13,7 +13,6 @@ import android.view.View
 import android.view.animation.PathInterpolator
 import androidx.annotation.VisibleForTesting
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * Fullscreen black overlay view with Wear-dimming inspired wake gestures (S3203, S3097, S3200).
@@ -59,13 +58,11 @@ class DimOverlayView @JvmOverloads constructor(
         }
 
         override fun onDoubleTap(e: MotionEvent): Boolean {
-            Timber.d("S3203: DimOverlayView double tap wake")
             onExit?.invoke()
             return true
         }
 
         override fun onLongPress(e: MotionEvent) {
-            Timber.d("S3203: DimOverlayView long press wake")
             onExit?.invoke()
         }
     }
@@ -83,7 +80,6 @@ class DimOverlayView @JvmOverloads constructor(
     }
 
     fun startRippleAnimation(x: Float, y: Float) {
-        Timber.d("S3203: DimOverlayView single tap ripple started at (%f, %f)", x, y)
         tapX = x
         tapY = y
         animStartTime = SystemClock.uptimeMillis()

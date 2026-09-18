@@ -35,7 +35,6 @@ class SendSosCommandToPhoneUseCase @Inject constructor(
     }
 
     private suspend fun send(path: String, payload: ByteArray) {
-        Timber.d("S3216: sending $path to the phone")
         val nodes = runCatching { Wearable.getNodeClient(context).connectedNodes.await() }
             .onFailure { Timber.w(it, "SOS: could not list connected phones, signalling alone") }
             .getOrDefault(emptyList())

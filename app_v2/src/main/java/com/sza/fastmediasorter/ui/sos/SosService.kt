@@ -78,7 +78,6 @@ class SosService : Service() {
     }
 
     private fun startSignal(mode: SosMode) {
-        Timber.d("S3216: phone signal starting in mode $mode")
         createChannel()
         activeMode.value = mode
         startForegroundCompat(mode)

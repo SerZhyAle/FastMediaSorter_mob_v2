@@ -564,7 +564,6 @@ class LauncherHomeViewModel @Inject constructor(
      * S3204: moves an entire section block to [targetRow] in the active layout orientation.
      */
     fun moveSectionBlock(id: Long, targetRow: Int) {
-        timber.log.Timber.d("S3204: section drag drop id=$id targetRow=$targetRow orientation=${_orientation.value}")
         viewModelScope.launch {
             desktopDependencies.desktopRepository.relocateSectionBlock(_orientation.value, id, targetRow)
         }
@@ -575,7 +574,6 @@ class LauncherHomeViewModel @Inject constructor(
      * aim a drop, so the section trades places with its neighbour block instead - one step per action.
      */
     fun swapSectionWithNeighbour(id: Long, moveUp: Boolean) {
-        timber.log.Timber.d("S3204: section menu move id=$id moveUp=$moveUp orientation=${_orientation.value}")
         viewModelScope.launch {
             desktopDependencies.desktopRepository.swapSectionBlock(_orientation.value, id, moveUp)
         }

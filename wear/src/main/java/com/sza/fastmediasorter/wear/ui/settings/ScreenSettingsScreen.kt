@@ -23,14 +23,15 @@ import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.StandardWearToggleChip
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
-import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 
@@ -40,6 +41,7 @@ fun ScreenSettingsScreen(
     listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.SCREEN)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    Timber.d("S3260: screen settings shown - mode, scheme, geometry and keep-awake rows are StandardWearToggleChip")
     val displayModeLabel = stringResource(R.string.screen_settings_view_mode)
     val fileListLabel = stringResource(R.string.screen_settings_file_list_view)
 
@@ -139,10 +141,10 @@ private fun geometryModeItems(
     val summary = stringResource(R.string.wear_setting_original_layout_summary)
     return listOf(
         WearSettingsItem(fullWidth = true) { _ ->
-            WearSettingsToggleCell(
+            StandardWearToggleChip(
                 label = summary,
                 checked = uiState.geometryMode == WearGeometryMode.ORIGINAL,
-                onToggle = { viewModel.toggleGeometryMode() }
+                onCheckedChange = { viewModel.toggleGeometryMode() }
             )
         }
     )
@@ -161,10 +163,10 @@ private fun keepAwakeItem(
     val keepAwakeLabel = stringResource(R.string.screen_settings_keep_awake)
     return listOf(
         WearSettingsItem { narrow ->
-            WearSettingsToggleCell(
+            StandardWearToggleChip(
                 label = keepAwakeLabel,
                 checked = uiState.keepScreenAwakeOutsidePlayers,
-                onToggle = { viewModel.toggleKeepScreenAwakeOutsidePlayers() },
+                onCheckedChange = { viewModel.toggleKeepScreenAwakeOutsidePlayers() },
                 narrow = narrow
             )
         }
@@ -204,12 +206,12 @@ private fun ViewModeRow(
     onSelect: () -> Unit
 ) {
     val label = stringResource(labelResFor(mode))
-    WearSettingsToggleCell(
+    StandardWearToggleChip(
         label = label,
         checked = selected,
         // A radio row reports the choice it makes, so re-tapping the active mode is a no-op rather
         // than a way to end up with no view mode at all.
-        onToggle = { if (!selected) onSelect() },
+        onCheckedChange = { if (!selected) onSelect() },
         radio = true,
         // Both groups offer the same three mode names, so the row is read out with the setting it
         // belongs to - otherwise the two settings are indistinguishable to a screen reader, which is
@@ -232,10 +234,10 @@ private fun BackgroundModeRow(
     onSelect: () -> Unit
 ) {
     val label = stringResource(backgroundLabelResFor(mode))
-    WearSettingsToggleCell(
+    StandardWearToggleChip(
         label = label,
         checked = selected,
-        onToggle = { if (!selected) onSelect() },
+        onCheckedChange = { if (!selected) onSelect() },
         radio = true,
         accessibilityLabel = "$groupLabel: $label"
     )
@@ -257,10 +259,10 @@ private fun ColorSchemeRow(
     narrow: Boolean = false
 ) {
     val label = stringResource(colorSchemeLabelResFor(scheme))
-    WearSettingsToggleCell(
+    StandardWearToggleChip(
         label = label,
         checked = selected,
-        onToggle = { if (!selected) onSelect() },
+        onCheckedChange = { if (!selected) onSelect() },
         radio = true,
         accessibilityLabel = "$groupLabel: $label",
         narrow = narrow

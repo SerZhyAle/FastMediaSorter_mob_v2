@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearGeometryMode
 import com.sza.fastmediasorter.wear.ui.common.wearChordInset
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.common.wearScrollViewportInset
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
 
 // S3192: the noLegal calculator placement. It is the S3104 layout moved here unchanged - the owner's
 // own calculator (ruling 2026-09-16), which the standard build replaces with its own placement.
@@ -148,6 +149,9 @@ private fun ColumnScope.CalculatorKeypad(
             // of the content. A row scrolled to the bottom of a full-height viewport stands where the
             // chord is shortest, which no content padding can undo.
             .padding(bottom = shape.keypadViewportBottom)
+            // Bound to the same condition as the touch scroll below: the ORIGINAL geometry fits the
+            // keypad whole, and the crown must not move a column the layout holds still.
+            .then(if (isOriginal) Modifier else Modifier.rotaryActionScroll(scrollState))
             .verticalScroll(scrollState, enabled = !isOriginal)
             .padding(shape.keypadPadding),
         verticalArrangement = Arrangement.spacedBy(KEY_GAP)

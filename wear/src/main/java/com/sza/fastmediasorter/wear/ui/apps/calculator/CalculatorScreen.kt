@@ -23,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -55,6 +54,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.WearFitText
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
@@ -171,6 +171,7 @@ fun CalculatorScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
         Timber.d("S3192: calculator screen displayed")
+        Timber.d("S3258: calculator canvas painted from WearAppTheme.colors.canvasBlack")
     }
     val keypadScrollState = rememberScrollState()
     val clipboard = LocalClipboardManager.current
@@ -196,7 +197,7 @@ fun CalculatorScreen(
                 else -> PositionIndicator(keypadScrollState)
             }
         },
-        background = Color.Black
+        background = WearAppTheme.colors.canvasBlack
     ) {
         // S3192: where the value row and the keypad stand is the flavor's decision (owner ruling
         // 2026-09-16) - noLegal keeps the S3104 layout, standard keeps every node inside the glass.

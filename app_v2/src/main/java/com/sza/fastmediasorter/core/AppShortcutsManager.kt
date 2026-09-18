@@ -58,7 +58,6 @@ class AppShortcutsManager @Inject constructor(
         val fromRecentResources = resourceDao.getRecentResourcesSync(slots).map { resourceCandidate(it) }
         val ranked = DynamicShortcutBudget.rankWithinBudget(fromJournal, fromRecentResources, slots) { it.id }
         val shortcuts = ranked.mapIndexed { rank, candidate -> candidate.toShortcut(rank) }
-        Timber.d("S1925: publishing %d dynamic shortcuts, slots=%d: %s", shortcuts.size, slots, ranked.map { it.id })
         try {
             ShortcutManagerCompat.setDynamicShortcuts(context, shortcuts)
         } catch (e: IllegalArgumentException) {

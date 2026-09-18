@@ -117,10 +117,16 @@ class DataTransferViewModel @Inject constructor(
     ) {
         // Strategic §3.2 forbids a second operation on a data set already in flight.
         if (!inFlight.add(kind)) return
+        Timber.d("S1565: transfer started for one kind and medium")
         _state.value = DataTransferUiState.InProgress(kind, medium)
         viewModelScope.launch {
-            val outcome = withContext(Dispatchers.IO) { block() }
-            inFlight.remove(kind)
+            // The kind is released in `finally` so an escape nothing modelled as a Result - and a
+            // cancellation - cannot leave it permanently in flight, which would refuse every retry.
+            val outcome = try {
+                withContext(Dispatchers.IO) { block() }
+            } finally {
+                inFlight.remove(kind)
+            }
             _state.value = outcome
         }
     }

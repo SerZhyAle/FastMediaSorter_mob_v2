@@ -64,7 +64,6 @@ class ListenRequestViewModel @Inject constructor(
             is ListenSessionState.Live -> ListenRequestUiState.Live
             is ListenSessionState.Failed -> ListenRequestUiState.Failed
             is ListenSessionState.Idle -> if (startRequested) {
-                Timber.d("S3164: the listening session ended; the screen offers a close action")
                 ListenRequestUiState.Ended
             } else {
                 ListenRequestUiState.Requesting

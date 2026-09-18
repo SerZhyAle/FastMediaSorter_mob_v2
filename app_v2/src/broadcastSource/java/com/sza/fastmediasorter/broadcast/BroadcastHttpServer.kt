@@ -103,7 +103,6 @@ class BroadcastHttpServer(
         val client = ClientSink(CLIENT_QUEUE_FRAMES, BUFFER_SIZE_BYTES)
         clients.add(client)
         _listenerCount.value = clients.size
-        Timber.d("S3218: listener attached with its own frame queue, listeners=${clients.size}")
         return client.input
     }
 

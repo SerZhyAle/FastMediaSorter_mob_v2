@@ -40,7 +40,6 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         // S3160: a token this build does not know is refused, never widened. Answering it with every
         // media kind produces a list the wearer did not ask for and looks exactly like a success.
         val requestedFilter = request.mediaType
-        Timber.d("S3160: watch browse request mediaType='$requestedFilter' kind=${request.kind}")
         if (requestedFilter != null && requestedFilter !in KNOWN_MEDIA_TYPE_FILTERS) {
             Timber.w("Watch asked for unknown mediaType '%s' - refusing the page", requestedFilter)
             return failure(request, WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA)

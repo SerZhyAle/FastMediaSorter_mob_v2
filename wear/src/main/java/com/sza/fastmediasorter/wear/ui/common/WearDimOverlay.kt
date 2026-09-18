@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -83,6 +84,10 @@ internal fun WearDimOverlay(onExit: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
+            // The sheet is modal, so it takes the top of the focus stack for as long as it is up:
+            // without it a crown turn still reaches the screen dimmed underneath and scrolls or seeks
+            // something the wearer cannot see, and focus returns to that screen when this one leaves.
+            .rotaryActionSwallow()
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { point ->

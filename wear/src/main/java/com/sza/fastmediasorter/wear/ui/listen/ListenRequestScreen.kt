@@ -32,19 +32,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.StandardWearChip
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
+import timber.log.Timber
 
 private val SECTION_GAP = 6.dp
 private val STATUS_ICON_SIZE = 32.dp
@@ -73,6 +73,7 @@ fun ListenRequestScreen(
     val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
 
     LaunchedEffect(Unit) {
+        Timber.d("S3259: listen request screen shown - actions are StandardWearChip")
         if (state is ListenRequestUiState.Requesting) {
             viewModel.confirm()
         }
@@ -167,53 +168,38 @@ private fun ListenActions(
     ) {
         when (state) {
             is ListenRequestUiState.Live -> {
-                ActionChip(
-                    labelRes = R.string.wear_listen_dim_screen,
-                    icon = Icons.Default.BrightnessLow,
-                    primary = false,
-                    onClick = onDimScreen
+                StandardWearChip(
+                    label = stringResource(R.string.wear_listen_dim_screen),
+                    onClick = onDimScreen,
+                    icon = { ActionIcon(Icons.Default.BrightnessLow) },
+                    primary = false
                 )
-                ActionChip(
-                    labelRes = R.string.wear_listen_stop,
-                    icon = Icons.Default.Stop,
-                    primary = true,
-                    onClick = onStop
+                StandardWearChip(
+                    label = stringResource(R.string.wear_listen_stop),
+                    onClick = onStop,
+                    icon = { ActionIcon(Icons.Default.Stop) }
                 )
             }
             is ListenRequestUiState.Starting -> Unit
             is ListenRequestUiState.Requesting -> Unit
             is ListenRequestUiState.Failed,
-            is ListenRequestUiState.Ended -> ActionChip(
-                labelRes = R.string.wear_listen_request_decline,
-                icon = Icons.Default.Close,
-                primary = false,
-                onClick = onFinished
+            is ListenRequestUiState.Ended -> StandardWearChip(
+                label = stringResource(R.string.wear_listen_request_decline),
+                onClick = onFinished,
+                icon = { ActionIcon(Icons.Default.Close) },
+                primary = false
             )
         }
     }
 }
 
+/** The chip's own label names the action; the glyph repeats it for the eye only. */
 @Composable
-private fun ActionChip(
-    @StringRes labelRes: Int,
-    icon: ImageVector,
-    primary: Boolean,
-    onClick: () -> Unit
-) {
-    Chip(
-        onClick = onClick,
-        label = { Text(text = stringResource(labelRes)) },
-        icon = {
-            Icon(
-                imageVector = icon,
-                // The chip's own label names the action; the glyph repeats it for the eye only.
-                contentDescription = null,
-                modifier = Modifier.size(ACTION_ICON_SIZE)
-            )
-        },
-        // Fills the intrinsic-width column above, so every chip ends up the width of the widest.
-        modifier = Modifier.fillMaxWidth(),
-        colors = if (primary) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
+private fun ActionIcon(imageVector: ImageVector) {
+    Icon(
+        imageVector = imageVector,
+        contentDescription = null,
+        modifier = Modifier.size(ACTION_ICON_SIZE)
     )
 }
 

@@ -314,7 +314,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         binding.rowLauncherTaskbarRows.setOnItemSelectedListener { index ->
             if (isUpdatingFromSettings) return@setOnItemSelectedListener
             val rows = index + AppSettings.MIN_LAUNCHER_TASKBAR_ROWS
-            Timber.d("S3131: taskbar rows row picked $rows")
             viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(taskbarRows = rows) })
         }
     }

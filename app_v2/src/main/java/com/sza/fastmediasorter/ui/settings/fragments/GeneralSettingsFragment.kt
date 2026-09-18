@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -23,6 +24,7 @@ import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.DeviceStorageState
+import com.sza.fastmediasorter.domain.model.transfer.TransferDataKind
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
 import com.sza.fastmediasorter.domain.usecase.CredentialAuditor
@@ -33,6 +35,7 @@ import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
+import com.sza.fastmediasorter.ui.settings.DataTransferDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.auth.AuthSessionsActivity
@@ -54,6 +57,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.UnusedCredentialsHelper
 import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoDialogManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 // S1161: extends BaseSettingsFragment so the two-column grid for collapsed groups is installed here too.
@@ -303,6 +307,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         super.onViewCreated(view, savedInstanceState)
         setupGmsBanner()
         setupSavedAuthorizationsRow()
+        setupDataTransferRow()
         logHelper.setupVersionInfo()
         // S0200 Phase 06: bind the new Google Account card after the layout is inflated.
         // S1693: stays findViewById - the card is included TWICE in this layout (bare includes, no
@@ -384,6 +389,39 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         observersHelper.dismissManualSyncProgressDialog()
         super.onDestroyView()
         _binding = null
+    }
+
+    // S1565: one call, and nothing more. Which kinds and which media the menu offers is
+    // DataTransferMenuManager's decision, made inside the dialog.
+    private fun setupDataTransferRow() {
+        binding.rowDataTransfer.setOnRowClickListener {
+            Timber.d("S1565: data transfer row tapped, opening the transfer menu")
+            DataTransferDialogFragment().show(
+                parentFragmentManager,
+                DataTransferDialogFragment.TAG
+            )
+        }
+        observeStagedTransferDocument()
+    }
+
+    /**
+     * S1565: favorites and resources are applied through a preview the user answers, so the menu
+     * stages those bytes as a document and hands it here. Strategic 5.1 requires the Drive path to
+     * reach the same preview as a device file, which is what these two calls are.
+     */
+    private fun observeStagedTransferDocument() {
+        parentFragmentManager.setFragmentResultListener(
+            DataTransferDialogFragment.RESULT_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val raw = bundle.getString(DataTransferDialogFragment.RESULT_URI)
+            val uri = raw?.toUri() ?: return@setFragmentResultListener
+            when (bundle.getString(DataTransferDialogFragment.RESULT_KIND)) {
+                TransferDataKind.FAVORITES.name -> backupViewModel.previewFavoritesImport(uri)
+                TransferDataKind.RESOURCES.name -> backupViewModel.previewResourceImport(uri)
+                else -> Timber.w("Staged transfer document arrived for a kind that has no preview flow")
+            }
+        }
     }
 
     // S0255: Wire the saved-authorizations row inside the new "Authorization" group.

@@ -2261,7 +2261,7 @@
     <string name="launcher_edit_unpin_named">Sblocca %1$s</string>
     <string name="launcher_settings_enable_title">Imposta questa app come schermata Home</string>
     <string name="launcher_start_window_title">Apri il desktop all’avvio dell’app</string>
-    <string name="launcher_start_window_desc">Apre il tuo desktop invece del browser dei file. La schermata home del dispositivo non cambia.</string>
+    <string name="launcher_start_window_desc">Apre la tua scrivania invece del Gestore risorse. Questo non cambia la schermata Home del dispositivo.</string>
     <string name="launcher_settings_enable_desc">Il pulsante Home apre il tuo desktop personale con collegamenti e widget. Disattiva in qualsiasi momento per ripristinare la schermata Home precedente.</string>
     <string name="launcher_settings_enable_help_title">Modalità schermata Home</string>
     <string name="launcher_settings_enable_help_message">Quando la attivi, Android chiede quale schermata Home usare - scegli questa app e tocca Sempre (oppure Solo questa volta per provarla). Per tornare indietro, disattivala e Android ripristinerà la schermata Home precedente.</string>
@@ -3624,4 +3624,36 @@
     <string name="wear_screenshot_captured">L\'orologio ha inviato il suo screenshot</string>
     <string name="wear_screenshot_no_answer">L\'orologio non ha risposto</string>
     <string name="wear_companion_group_operations">Operazioni dell\'orologio</string>
+    <string name="resource_manager_title">Gestore risorse</string>
+    <string name="welcome_primary_window_title">Finestra principale</string>
+    <string name="welcome_primary_window_subtitle">Scegli cosa si apre all\'avvio di FastMediaSorter</string>
+    <string name="launcher_primary_window_recommended">Consigliato</string>
+    <string name="launcher_primary_window_home_title">Schermata Home del dispositivo</string>
+    <string name="launcher_primary_window_home_desc">L\'app diventa la schermata Home del tuo dispositivo</string>
+    <string name="launcher_primary_window_desktop_title">Scrivania come finestra principale</string>
+    <string name="launcher_primary_window_desktop_desc">Apre la scrivania dentro l\'app senza cambiare la schermata Home del dispositivo</string>
+    <string name="launcher_primary_window_resource_manager_title">Gestore risorse</string>
+    <string name="launcher_primary_window_resource_manager_desc">Apre direttamente la gestione di file e risorse multimediali</string>
+    <string name="setting_launcher_primary_window_title">Finestra di avvio principale</string>
+    <string name="setting_launcher_primary_window_desc">Scegli se l\'app si apre come schermata Home del dispositivo, scrivania interna o Gestore risorse</string>
+    <string-array name="launcher_primary_window_options">
+        <item>@string/launcher_primary_window_home_title</item>
+        <item>@string/launcher_primary_window_desktop_title</item>
+        <item>@string/launcher_primary_window_resource_manager_title</item>
+    </string-array>
+    <string name="broadcast_default_stream_title">Streaming del telefono</string>
+    <string name="broadcast_share_help">Come guardarlo</string>
+    <string name="sos_title">Segnale di emergenza SOS</string>
+    <string name="sos_hint">La sirena e lo stroboscopio ripetono il segnale SOS in morse. Anche l\'orologio associato segnala quando è nel raggio d\'azione.</string>
+    <string name="sos_stop_action">Ferma il segnale</string>
+    <string name="sos_mode_all">Suono e luce</string>
+    <string name="sos_mode_sound_only">Solo suono</string>
+    <string name="sos_mode_light_only">Solo luce</string>
+    <string name="sos_notification_text">Segnale attivo: %1$s</string>
+    <string name="sos_notification_channel">Segnale SOS</string>
+    <string name="sos_settings_toggle_title">Segnale di emergenza SOS</string>
+    <string name="sos_settings_toggle_subtitle">Sirena morse ad alto volume, flash stroboscopico e un segnale corrispondente sull\'orologio</string>
+    <string name="sos_help_title">Segnale di emergenza SOS</string>
+    <string name="sos_help_message">Ripete il segnale SOS in morse con una sirena ad alto volume sul canale di allarme, il flash posteriore e lo schermo lampeggiante. Scegli suono, luce o entrambi. Avviarlo qui lo avvia anche sull\'orologio associato, e fermarne uno ferma entrambi. Il segnale si interrompe da solo dopo 30 minuti perché la batteria e il flash lo superino.</string>
+    <string name="tourist_action_sos">Segnale SOS</string>
 </resources>

@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.combine
-import timber.log.Timber
 import javax.inject.Inject
 
 /** S3185: a window whose toolbar carries the companion's settings sync button and its caption. */
@@ -37,7 +36,6 @@ class WearCompanionHeaderSyncManager @Inject constructor(
 
     fun bind(owner: LifecycleOwner, viewModel: WearSyncViewModel, button: Button, caption: TextView) {
         button.setOnClickListener {
-            Timber.d("S3185: header sync button pressed")
             viewModel.requestSettingsPush()
         }
         owner.collectOnLifecycle(viewModel.uiState) { state ->

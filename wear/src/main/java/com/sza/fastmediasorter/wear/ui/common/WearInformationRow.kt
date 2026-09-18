@@ -23,7 +23,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
-import timber.log.Timber
 
 private val INFORMATION_ROW_VERTICAL_PADDING = 2.dp
 
@@ -89,7 +88,6 @@ fun WearInformationRow(
     val haptic = LocalHapticFeedback.current
 
     val copy = {
-        Timber.d("S3108: information row copied to clipboard")
         clipboard.setText(AnnotatedString(gestures.copyText ?: pair))
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
     }

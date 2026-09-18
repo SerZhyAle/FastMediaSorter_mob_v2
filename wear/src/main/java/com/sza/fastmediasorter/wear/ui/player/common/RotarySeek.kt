@@ -12,10 +12,13 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import com.sza.fastmediasorter.wear.ui.common.LocalWearRotaryFocusStack
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * S1683: the bezel's action arrives as a lambda and this file never learns what it does. The owner
@@ -61,6 +64,7 @@ fun rememberRotaryFocus(): FocusRequester {
     val owned = stack == null || stack.isTop(token)
     LaunchedEffect(owned) {
         if (owned) {
+            Timber.d("S3263: rotary focus claimed by the top consumer")
             focusRequester.requestFocus()
         }
     }
@@ -70,15 +74,41 @@ fun rememberRotaryFocus(): FocusRequester {
 /**
  * Ready-made binding for a screen that wants whole steps rather than a stream of pixels: it owns the
  * focus request and the accumulator, so a player screen states what a step does and nothing else.
+ *
+ * Each emitted step also ticks the haptic engine, which is what makes a bezel turn feel like detents
+ * rather than a silent slide; a caller whose action already produces its own feedback passes
+ * [hapticFeedbackEnabled] = false to avoid a double tick.
  */
 @Composable
-fun Modifier.rotaryActionSteps(onStep: (Int) -> Unit): Modifier {
+fun Modifier.rotaryActionSteps(
+    hapticFeedbackEnabled: Boolean = true,
+    onStep: (Int) -> Unit
+): Modifier {
     val focusRequester = rememberRotaryFocus()
     val accumulator = remember { RotaryStepAccumulator() }
+    val haptic = LocalHapticFeedback.current
     return this.rotaryAction(focusRequester) { delta ->
-        accumulator.add(delta, onStep)
+        accumulator.add(delta) { step ->
+            Timber.d("S3263: rotary detent emitted at 48f with haptics=$hapticFeedbackEnabled")
+            if (hapticFeedbackEnabled) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            }
+            onStep(step)
+        }
     }
 }
+
+/**
+ * Claims rotary focus and eats every crown turn that reaches it.
+ *
+ * A non-scrolling full-screen surface still has to register in [LocalWearRotaryFocusStack]: without a
+ * focused node the crown keeps driving whatever scrollable was focused before, so an overlay that only
+ * looks modal is not. This replaces the inline `focusRequester(..) + focusable() + onRotaryScrollEvent`
+ * triple that each such screen used to spell out for itself.
+ */
+@Composable
+fun Modifier.rotaryActionSwallow(focusRequester: FocusRequester = rememberRotaryFocus()): Modifier =
+    this.rotaryAction(focusRequester) { }
 
 /**
  * S2049: this pinned Wear Compose Foundation build wires no rotary input into `ScalingLazyColumn` at
@@ -140,10 +170,11 @@ class RotaryStepAccumulator(private val stepPixels: Float = DEFAULT_STEP_PIXELS)
 
     private companion object {
         /**
-         * Starting value, to be confirmed on a real bezel and adjusted there: a rotary event reports
-         * pixels scaled by `ViewConfiguration.getScaledVerticalScrollFactor`, which is a device
-         * property, so the pixels per detent cannot be derived here.
+         * A rotary event reports pixels scaled by `ViewConfiguration.getScaledVerticalScrollFactor`,
+         * a device property, so the pixels per physical detent cannot be derived here. 48f is the
+         * value `docs/ui/WEAR_UI_COMPONENT_PATTERNS.md` section 3.2 fixes for the whole module, chosen
+         * for a responsive detent feel rather than measured off one watch.
          */
-        const val DEFAULT_STEP_PIXELS = 120f
+        const val DEFAULT_STEP_PIXELS = 48f
     }
 }

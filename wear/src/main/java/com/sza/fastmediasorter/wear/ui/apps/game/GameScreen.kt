@@ -25,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -51,6 +50,8 @@ import com.sza.fastmediasorter.wear.ui.common.wearCenteredSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
+import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import kotlinx.coroutines.delay
 import kotlin.math.abs
 
@@ -131,11 +132,13 @@ fun GameScreen(
         } else {
             null
         },
-        background = Color.Black
+        background = WearAppTheme.colors.canvasBlack
     ) {
         // One box for both shapes since S2553: the two side affordances stand in the same place on
         // either display, so keeping a box per branch would only duplicate their placement.
-        Box(modifier = Modifier.fillMaxSize()) {
+        // The board does not scroll, and the crown is claimed rather than ignored: an unclaimed turn
+        // goes to the list that was focused before the game opened and scrolls it behind the board.
+        Box(modifier = Modifier.fillMaxSize().rotaryActionSwallow()) {
             if (isRound) {
                 RoundScreenLayout(
                     uiState = uiState,

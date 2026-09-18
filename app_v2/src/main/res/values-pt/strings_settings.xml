@@ -264,4 +264,16 @@
     <string name="settings_wear_install_guide_button">Como instalar num relógio</string>
     <string name="settings_wear_web_portal_button">Tudo sobre o relógio</string>
     <string name="setting_stopwatch_desc">Mostrar o Cronómetro no menu principal e no widget do launcher</string>
+    <string name="cross_device_transfer_send_to_device">Enviar para o meu dispositivo (Drive)</string>
+    <string name="cross_device_transfer_pending_title">Transferências de dispositivo pendentes</string>
+    <string name="cross_device_transfer_receive_and_delete">Receber e eliminar da nuvem</string>
+    <string name="cross_device_transfer_receive_and_keep">Receber e manter na nuvem</string>
+    <string name="cross_device_transfer_clear_queue">Limpar a fila pendente</string>
+    <string name="cross_device_transfer_empty">Não há nada à espera para este dispositivo. Envie um ficheiro ou as definições a partir de outro dispositivo para os ver aqui.</string>
+    <string name="cross_device_transfer_sending">A carregar para a sua fila do Drive..</string>
+    <string name="cross_device_transfer_sent">Carregado. Abra este ecrã no seu outro dispositivo para o recolher.</string>
+    <string name="cross_device_transfer_received_files">Guardado na pasta de entrada da aplicação</string>
+    <string name="cross_device_transfer_received_settings">As definições do outro dispositivo foram aplicadas</string>
+    <string name="cross_device_transfer_failed">A transferência não terminou. Verifique o início de sessão no Drive e a ligação e tente novamente.</string>
+    <string name="cross_device_transfer_queue_cleared">Fila limpa: %1$d pacote(s) removido(s)</string>
 </resources>

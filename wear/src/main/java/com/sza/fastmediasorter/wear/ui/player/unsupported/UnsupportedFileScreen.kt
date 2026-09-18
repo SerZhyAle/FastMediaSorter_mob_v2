@@ -19,6 +19,7 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 
 private val REFUSAL_GLYPH_SIZE = 32.dp
 private val TEXT_TOP_PADDING = 8.dp
@@ -45,6 +46,7 @@ fun UnsupportedFileScreen(format: WearDocumentFormat) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .rotaryActionSwallow()
                 .padding(horizontal = TEXT_TOP_PADDING),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center

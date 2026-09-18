@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.apps.tourist
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -8,12 +10,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material.Card
-import androidx.wear.compose.material.CardDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
@@ -42,34 +42,31 @@ fun TouristSecondaryCard(
 ) {
     // Sized to its own content, label beside value: the tiles wrap across the screen as a cloud, and a
     // reading whose caption sits at the far edge of a full-width row has to be followed with the eye.
-    Card(
-        onClick = onClick,
-        modifier = modifier.wrapContentWidth(),
-        shape = RoundedCornerShape(CARD_CORNER),
-        backgroundPainter = CardDefaults.cardBackgroundPainter(
-            startBackgroundColor = MaterialTheme.colors.surface,
-            endBackgroundColor = MaterialTheme.colors.surface,
-        ),
+    // Drawn as a plain clipped Row rather than a wear.compose.material Card: that Card stretches to the
+    // full width of its parent whatever width modifier it is given, so inside a FlowRow every tile took
+    // a row of its own and nothing ever wrapped (measured on Galaxy Watch 7, 2026-09-17 - all five tiles
+    // at x=57..423).
+    Row(
+        modifier = modifier
+            .wrapContentWidth()
+            .clip(RoundedCornerShape(CARD_CORNER))
+            .background(MaterialTheme.colors.surface)
+            .clickable(onClick = onClick)
+            .padding(vertical = CARD_V_PADDING, horizontal = CARD_H_PADDING),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(LABEL_VALUE_GAP),
     ) {
-        Row(
-            modifier = Modifier
-                .wrapContentWidth()
-                .padding(vertical = CARD_V_PADDING, horizontal = CARD_H_PADDING),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(LABEL_VALUE_GAP),
-        ) {
-            Text(
-                text = resolveMetricLabel(metricType),
-                style = MaterialTheme.typography.caption2,
-                color = Color.LightGray,
-            )
-            Text(
-                text = resolveMetricValue(metricType, state, isMetric),
-                style = MaterialTheme.typography.body2,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-            )
-        }
+        Text(
+            text = resolveMetricLabel(metricType),
+            style = MaterialTheme.typography.caption2,
+            color = MaterialTheme.colors.onSurfaceVariant,
+        )
+        Text(
+            text = resolveMetricValue(metricType, state, isMetric),
+            style = MaterialTheme.typography.body2,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colors.onSurface,
+        )
     }
 }
 

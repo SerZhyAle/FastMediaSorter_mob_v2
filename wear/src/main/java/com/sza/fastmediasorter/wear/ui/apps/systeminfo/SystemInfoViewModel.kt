@@ -58,7 +58,6 @@ class SystemInfoViewModel @Inject constructor(
         if (current.sending || current.sections.isEmpty()) {
             return
         }
-        Timber.d("S3108: system info send to phone requested")
         state.update { shown -> shown.copy(sending = true, sendOutcomeRes = null) }
         viewModelScope.launch {
             val outcome = sendWearSystemInfoReport(current.sections)

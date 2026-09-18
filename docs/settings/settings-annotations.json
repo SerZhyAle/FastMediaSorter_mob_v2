@@ -344,6 +344,11 @@
     "ru": "Сразу делает скриншот приложения через встроенный механизм захвата.",
     "uk": "Одразу робить знімок екрана застосунку через вбудований механізм захоплення."
   },
+  "btnTransferBack": {
+    "en": "Closes the action list and returns to the list of data kinds.",
+    "ru": "Закрывает список действий и возвращает к списку типов данных.",
+    "uk": "Закриває список дій і повертає до списку типів даних."
+  },
   "btnTranslationPrewarmRetry": {
     "en": "Retries initializing the translation engine if the previous attempt failed.",
     "ru": "Повторяет попытку инициализации движка перевода после предыдущего сбоя.",
@@ -754,6 +759,11 @@
     "ru": "Обрезает изображения для заполнения всего экрана в полноэкранном режиме, убирая чёрные полосы.",
     "uk": "Обрізає зображення для заповнення всього екрана в повноекранному режимі, прибираючи чорні смуги."
   },
+  "rowDataTransfer": {
+    "en": "Opens the import and export menu for settings, favorites, pinned streams and resources.",
+    "ru": "Открывает меню импорта и экспорта настроек, избранного, закреплённых трансляций и ресурсов.",
+    "uk": "Відкриває меню імпорту та експорту налаштувань, вибраного, закріплених трансляцій і ресурсів."
+  },
   "rowDebugLogMirror": {
     "en": "Copies the debug log into the folder currently open in the viewer, so a reproduction can be picked up without digging into the app sandbox. Off by default; debug builds only.",
     "ru": "Копирует отладочный лог в папку, открытую сейчас в просмотрщике, чтобы забрать воспроизведение проблемы, не копаясь в песочнице приложения. По умолчанию выключено, только в отладочных сборках.",
@@ -1093,6 +1103,26 @@
     "en": "Prevents the screen from turning off while the media player is active.",
     "ru": "Не даёт экрану отключаться во время работы медиаплеера.",
     "uk": "Не дає екрану вимкнутися під час роботи медіаплеєра."
+  },
+  "rowKindFavorites": {
+    "en": "Chooses favorites as the data set to export or import.",
+    "ru": "Выбирает избранное как набор данных для выгрузки или загрузки.",
+    "uk": "Вибирає вибране як набір даних для вивантаження або завантаження."
+  },
+  "rowKindResources": {
+    "en": "Chooses resources as the data set to export or import.",
+    "ru": "Выбирает ресурсы как набор данных для выгрузки или загрузки.",
+    "uk": "Вибирає ресурси як набір даних для вивантаження або завантаження."
+  },
+  "rowKindSettings": {
+    "en": "Chooses app settings as the data set to export or import.",
+    "ru": "Выбирает настройки приложения как набор данных для выгрузки или загрузки.",
+    "uk": "Вибирає налаштування застосунку як набір даних для вивантаження або завантаження."
+  },
+  "rowKindStreams": {
+    "en": "Chooses the pinned stream list as the data set to export or import.",
+    "ru": "Выбирает список закреплённых трансляций как набор данных для выгрузки или загрузки.",
+    "uk": "Вибирає список закріплених трансляцій як набір даних для вивантаження або завантаження."
   },
   "rowLanguage": {
     "en": "Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using.",

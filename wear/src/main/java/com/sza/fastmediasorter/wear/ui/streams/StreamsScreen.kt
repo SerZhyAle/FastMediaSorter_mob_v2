@@ -67,13 +67,14 @@ import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
+import com.sza.fastmediasorter.wear.ui.common.StandardWearChip
+import com.sza.fastmediasorter.wear.ui.common.StandardWearToggleChip
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_UNTITLED_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
 import com.sza.fastmediasorter.wear.ui.common.WearDialogListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
@@ -174,6 +175,7 @@ fun StreamsScreen(
     viewModel: StreamsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    Timber.d("S3259: streams screen shown - refresh footer is StandardWearChip, rows are StreamTileRow")
     // The channel rows are the first items on this screen, so the second row is item 1 (S2466). The
     // counter row S2568 moved into the list is conditional, so a fixed titled anchor would be wrong
     // whenever it is absent - it opens one row higher when it is there, which is where it is read.
@@ -405,7 +407,7 @@ private fun StreamsMainContent(
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                     item {
-                        RefreshFooterChip(
+                        StreamsRefreshFooter(
                             isRefreshing = uiState.isRefreshing,
                             onRefresh = actions.onRefresh
                         )
@@ -565,8 +567,9 @@ private fun ScalingLazyListScope.streamsLoading() {
     }
 }
 
+/** While a refresh runs the footer is a spinner, so the list never offers a second refresh over it. */
 @Composable
-private fun RefreshFooterChip(
+private fun StreamsRefreshFooter(
     isRefreshing: Boolean,
     onRefresh: () -> Unit
 ) {
@@ -575,12 +578,12 @@ private fun RefreshFooterChip(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            CircularProgressIndicator(modifier = Modifier.size(CELL_ICON_SIZE))
         }
     } else {
-        Chip(
+        StandardWearChip(
+            label = stringResource(R.string.wear_streams_refresh),
             onClick = onRefresh,
-            label = { Text(stringResource(R.string.wear_streams_refresh)) },
             icon = {
                 Icon(
                     imageVector = Icons.Filled.Refresh,
@@ -588,8 +591,7 @@ private fun RefreshFooterChip(
                     modifier = Modifier.size(CELL_ICON_SIZE)
                 )
             },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ChipDefaults.secondaryChipColors()
+            primary = false
         )
     }
 }
@@ -787,6 +789,7 @@ private fun StreamFilterDialog(
     actions: StreamsFilterDialogActions,
     onDismiss: () -> Unit
 ) {
+    Timber.d("S3260: stream filter dialog shown - the kind rows are StandardWearToggleChip")
     Dialog(
         showDialog = true,
         onDismissRequest = onDismiss
@@ -824,10 +827,10 @@ private fun StreamFilterDialog(
                                 stringResource(R.string.wear_streams_filter_kind_video)
                             StreamFilterKind.OWN -> stringResource(R.string.wear_streams_filter_kind_own)
                         }
-                        WearSettingsToggleCell(
+                        StandardWearToggleChip(
                             label = label,
                             checked = state.selectedFilter == filter,
-                            onToggle = {
+                            onCheckedChange = {
                                 if (state.selectedFilter != filter) {
                                     Timber.d("S3102: selected stream filter type $filter")
                                     actions.onFilterSelected(filter)
@@ -1056,7 +1059,7 @@ private fun ScalingLazyListScope.streamItems(
 ) {
     if (columns == SINGLE_COLUMN) {
         items(channels, key = { it.url }) { channel ->
-            StreamChip(
+            StreamTileRow(
                 channel = channel,
                 getFaviconTile = getFaviconTile,
                 onClick = { onChannelClick(channel) }
@@ -1077,8 +1080,13 @@ private fun ScalingLazyListScope.streamItems(
     }
 }
 
+/**
+ * S3259: a favicon tile row, never a chip - it draws the station's icon through the module's shared
+ * `SingleColumnTileCell`, which a label-and-icon chip has no slot for. Only the old name said chip,
+ * and that name is what put it on this ticket's migration list.
+ */
 @Composable
-private fun StreamChip(
+private fun StreamTileRow(
     channel: WearStreamChannel,
     getFaviconTile: suspend (Int?) -> Bitmap?,
     onClick: () -> Unit

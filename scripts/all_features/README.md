@@ -44,6 +44,33 @@ only in its `noLegal` variant (S2090).
   exclusion that does not exist
 - `wearFlavors` = the one variant. Naming both is refused: it claims exactly what absence claims.
 
+## Shape 1 and shape 3 combine when the store watch build lacks the watch half (S3264)
+
+The three shapes above split on "does the phone participate". They do not answer a fourth case the
+Wear store boundary created: a phone-bridge capability whose **watch** half sits on a route,
+component or permission `wear/config/store-boundary-policy.json` confines to the sideload artifact.
+Every phone-watch exchange runs through `.data.wear.WatchWearListenerService`, which the store watch
+build does not carry, so a capability like "watch colour scheme set from the phone" does not exist
+end to end there whatever the phone build offers.
+
+Such a record keeps its `SUPPORT_WEAR_COMPANION` gate **and** declares `wearFlavors: ["noLegal"]`.
+The two fields answer about different modules and `validate.ps1` accepts both at once - what it
+refuses is `wearFlavors` naming every watch variant, which is what absence already says. Which
+records are in this position is declared in `scripts/quality/allfeatures-wear-boundary-map.json` and
+held by check 6 of `scripts/quality/assert-allfeatures-sync.ps1`.
+
+## `wearFlavors` has its own writer, because the sanctioned ones destroy it (S3264)
+
+`add.ps1` has no parameter for the field, and `patch.ps1` rebuilds the record from an `[ordered]` of
+the parameters it was given - so patching any field of a record that carried `wearFlavors` drops the
+key, exactly as S3209 measured for `gate` one field over. Both are canon forwarders whose bodies
+this repository does not own (S2402).
+
+Write it with `scripts/all_features/set-wear-flavors.ps1 -Ids <id[,id..]> -WearFlavors noLegal`,
+which rebuilds from the record's own property order rather than from a known field list, and
+`-Clear` to go back to "every watch build". A strip by some later `patch.ps1` call is caught by
+check 6 inside the closure that did it, for any record the boundary map names.
+
 ## Never hardcode the companion row
 
 Shape 1's `flavors` value is not a constant. As of 2026-08-23 (S1951) the `SUPPORT_WEAR_COMPANION`

@@ -4,8 +4,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -14,6 +12,7 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
+import com.sza.fastmediasorter.core.playback.MediaControllerRelease
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.model.MediaItemWithMeta
@@ -77,7 +76,7 @@ class AudioServiceController(
                 val controller = future.get()
                 when (storeResolvedController(future, controller)) {
                     ControllerStoreResult.Stale -> {
-                        controller.release()
+                        MediaControllerRelease.release(controller)
                         onFailed?.invoke()
                         return@addListener
                     }
@@ -125,7 +124,7 @@ class AudioServiceController(
                 val controller = future.get()
                 when (storeResolvedController(future, controller)) {
                     ControllerStoreResult.Stale -> {
-                        controller.release()
+                        MediaControllerRelease.release(controller)
                         onResult(null)
                         return@addListener
                     }
@@ -334,6 +333,11 @@ class AudioServiceController(
     /**
      * Disconnect from the service and release resources.
      * Must be called when the Activity is destroyed.
+     *
+     * S3270: the media3 teardown itself is always deferred by one looper message
+     * ([MediaControllerRelease]), so this is safe to call from inside a [Player.Listener] callback -
+     * which is where S3164's crash came from. The fields are cleared synchronously, so this
+     * controller reads as disconnected the moment the call returns.
      */
     fun release() {
         if (ownsEnduranceScenario) {
@@ -343,26 +347,10 @@ class AudioServiceController(
         }
         Timber.d("AudioServiceController: releasing")
         synchronized(controllerLock) {
-            controllerFuture?.let { MediaController.releaseFuture(it) }
+            MediaControllerRelease.releaseFuture(controllerFuture, mediaController?.applicationLooper)
             controllerFuture = null
             mediaController = null
         }
-    }
-
-    /**
-     * S3164: [release] for a caller that is inside a [Player.Listener] callback.
-     *
-     * The session and its controller share this process and this looper, so `onPlayerInfoChanged`
-     * reaches a listener synchronously and a release taken from there removes the controller's record
-     * on the session side in the middle of `MediaSessionImpl.dispatchOnPlayerInfoChanged`. The next
-     * statement of that loop is `updateLastSentTimelineAndTracks`, whose `checkNotNull` on the record
-     * just removed threw a fatal NPE on the main thread every time a watch-listening session ended.
-     * Sending the release as a message lets the library's own loop finish first.
-     */
-    fun releaseAfterDispatch() {
-        val looper = synchronized(controllerLock) { mediaController?.applicationLooper }
-            ?: Looper.getMainLooper()
-        Handler(looper).post { release() }
     }
 
     private fun getConnectedController(): MediaController? = synchronized(controllerLock) {
@@ -383,7 +371,7 @@ class AudioServiceController(
 
             existingFuture?.let {
                 Timber.d("AudioServiceController: %s - releasing stale controller future", reason)
-                MediaController.releaseFuture(it)
+                MediaControllerRelease.releaseFuture(it, mediaController?.applicationLooper)
                 controllerFuture = null
                 mediaController = null
             }

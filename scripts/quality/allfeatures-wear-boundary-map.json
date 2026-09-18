@@ -1,0 +1,196 @@
+{
+  "$comment": [
+    "S3264: which ALL_FEATURES records the Wear store boundary confines to the sideload watch build.",
+    "wear/config/store-boundary-policy.json (S3178) answers the question for ROUTES, COMPONENTS and",
+    "PERMISSIONS; a ledger record names none of the three, so the join between the two files cannot be",
+    "derived and is declared here instead. Read by scripts/quality/assert-allfeatures-sync.ps1 check 6,",
+    "which requires every id below to carry wearFlavors ['noLegal'] and fails when a category named",
+    "here has left the policy's noLegalOnly set - that is the moment a capability came back to the",
+    "store artifact and its records have to be re-read rather than silently kept narrow.",
+    "",
+    "The rule the classification applies: a record is listed when the capability's WATCH half is",
+    "carried by a route, component or permission the policy confines to noLegal. A record describing",
+    "only phone-side rendering or phone-side robustness is not listed, even when its subject is the",
+    "watch - the phone build is what 'flavors' already answers for. A phone-bridge record IS listed",
+    "when the watch must participate for the capability to exist at all: every phone-watch exchange",
+    "runs through .data.wear.WatchWearListenerService, which the store watch artifact does not carry,",
+    "so the end-to-end capability is absent there whatever the phone build offers. Such a record keeps",
+    "its SUPPORT_WEAR_COMPANION gate and carries wearFlavors beside it: the two fields answer about",
+    "different modules and validate.ps1 accepts both at once.",
+    "",
+    "Not listed, on purpose - a capability the policy splits rather than excludes. wear.tiles is listed",
+    "because all three tiles it names are noLegal-only components, but wear.shortcut-grid-tiles keeps",
+    "its Programs tile in the store artifact and loses only the Sections tile, and",
+    "wear.home-sections-and-view-modes keeps the home route and loses the sections that point at media.",
+    "wearFlavors has no partial value, so declaring ['noLegal'] for those would trade an overclaim for",
+    "an underclaim. They stay absent and are named here so the next reader knows it was a decision."
+  ],
+  "ticket": "S3264",
+  "policyFile": "wear/config/store-boundary-policy.json",
+  "wearFlavors": ["noLegal"],
+  "noLegalOnly": [
+    {
+      "category": "media access",
+      "ids": [
+        "wear-os.automatic-advance-at-end-of-track",
+        "wear-os.automatic-advance-at-end-of-video",
+        "wear.favourites-list-on-watch",
+        "wear.phone-media-browse-by-type",
+        "wear-os-ui.phone-browse-favourites",
+        "wear-os-ui.phone-resource-browser",
+        "wear-os-ui.phone-browser-folder-title",
+        "wear.network-thumbnail-loading",
+        "wear.open_virtual_resource_item",
+        "wear-os-ui.home-favourites-section",
+        "wear.file-grid-and-thumbnails-on-watch",
+        "wear.phone-folder-grid-and-thumbnails",
+        "wear-os.remembered-video-frame-mode",
+        "wear-os.media-library-item-layout",
+        "wear.image-slideshow-from-viewer",
+        "wear.image-fit-mode",
+        "wear-os.video-player-bezel-volume-and-long-press-seek",
+        "wear-os.video-player-volume-readout",
+        "wear-os.file-list-volume-indicator",
+        "wear-os.search-filter-and-sort-inside-a-resource",
+        "wear.content-type-vocabulary",
+        "wear.phone-category-empty-reason",
+        "wear.browse-refine-remembered",
+        "wear.local_folder_walk",
+        "wear.phone_resource_list_row_rendering",
+        "wear-browse.refine-overlay-and-menu",
+        "wear.tap-zones-self-hiding-controls-and-pinch-zoom",
+        "wear.player-panel-autohide-delay",
+        "wear-player.equal-control-grid-layout",
+        "wear-os.now-playing-home-row",
+        "wear.on-watch-text-document-reader",
+        "wear.player-composition-per-screen-size",
+        "wear.audio-player-permanent-volume-and-sticky-actions",
+        "wear.audio-cover-art",
+        "wear.watch-video-player-screen-off-mode",
+        "wear-player.original-command-row-view",
+        "wear.background-audio-playback-service",
+        "wear.video-player-menu-one-list",
+        "wear-os.audio-title-over-cover-art",
+        "wear.image-player-menu-one-list",
+        "wear-os.watch-audio-player-one-menu-one-list",
+        "wear-os.screen-off-in-one-tap-on-the-watch",
+        "wear-os.spreading-ring-on-tap-in-watch-screen-off",
+        "wear-os.crown-image-zoom",
+        "wear.singlecolumntilecell-in-favourites",
+        "wear.watch-storage-file-actions",
+        "wear.companion-off-refusal-on-phone-browsing",
+        "wear.phone-section-previews",
+        "wear.phone-resource-thumbnail",
+        "wear.complication_data_sources",
+        "wear.cast-from-watch"
+      ]
+    },
+    {
+      "category": "microphone and voice notes",
+      "ids": [
+        "wear-os.voice-recorder-with-transfer",
+        "wear-os.voice-note-database-recovery",
+        "wear.watch-listening",
+        "wear.watch-listening-auto-stop",
+        "wear-os.watch-audio-broadcast",
+        "wear-os.broadcast-audio-from-the-watch",
+        "wear-os.broadcast-stable-address",
+        "wear-os.watch-listen-and-record",
+        "wear-os.send-live-broadcast-to-watch",
+        "wear.background-broadcast-recovery",
+        "wear-os.background-broadcast-recovery"
+      ]
+    },
+    {
+      "category": "remote sources and credentials",
+      "ids": [
+        "wear-os.network-source-media-type-step",
+        "wear-os.saved-network-source-connection-test",
+        "wear-os.stream-network-channel",
+        "wear-os.stream-pinning-in-favourites",
+        "wear-os.stream-toolbar-sticky",
+        "wear.streams-phone-pinned-ranking",
+        "wear.streams-facet-labels-and-usage-order",
+        "wear-os.stream-list-counter-and-pin",
+        "wear-os-ui.home-recent-row-includes-last-channel",
+        "wear-os.streams-initial-loading-state",
+        "wear.streams-pin-source-precedence",
+        "wear.streams_filtered_empty_reset",
+        "wear.network-source-empty-category-reason",
+        "wear.network-source-folder-walk",
+        "wear-os.wear-add-network-source-form",
+        "wear-os.stream-jump-to-live",
+        "wear-os.watch-streams-video-audio-and-own-categories",
+        "wear-os.live-stream-station-line",
+        "wear-os.readable-watch-stream-filter-types",
+        "wear-os.wrapping-stream-topic-filters",
+        "wear.sftp_reachable_endpoint_sync",
+        "wear.endpoint_selection_and_failure_classification",
+        "wear.watch_file_remote_destination",
+        "networksources.sync-from-phone-timeout-and-back-navigation",
+        "wear.tiles"
+      ]
+    },
+    {
+      "category": "network and device diagnostics",
+      "ids": [
+        "wear-os.netmon-permission-request",
+        "wear-os.netmon-pages-render",
+        "wear-os.netmon-history-transitions",
+        "wear-os.netmon-section-cloud",
+        "wear.network-monitor-revision",
+        "wear-os.system-info-in-applications",
+        "wear-os.system-info-diagnostics",
+        "wear-os.system-info-actions",
+        "wear-os.environmental-sensor-readings-in-watch-system-info",
+        "wear-os-ui.tourist-glanceable-dashboard-and-touch-lock",
+        "wear-os.send-watch-logs-to-developer"
+      ]
+    },
+    {
+      "category": "health body and motion data",
+      "ids": [
+        "wear.heart-rate-history",
+        "wear.blood-pressure",
+        "wear.motion_monitor"
+      ]
+    },
+    {
+      "category": "screen capture",
+      "ids": [
+        "wear-os.watch-screenshot-on-request"
+      ]
+    },
+    {
+      "category": "file sharing or transfer",
+      "ids": [
+        "wear-os.file-operations-and-send-to-phone",
+        "wear-os.open-watch-file-on-phone",
+        "wear.send-to-receivers",
+        "wear.file_transfer_outcome_ack",
+        "wear.watch-resource-transfer",
+        "wear.selective-resource-transfer-to-watch",
+        "wear.add-or-open-watch-resource-from-companion",
+        "wear.watch-picker-lists-only-transferable-resources",
+        "wear-os.resource-sync-last-write-wins",
+        "wear-os.resource-deletion-propagation",
+        "wear-os.resource-withdrawal-on-deselect",
+        "wear-os.sync-survives-an-older-phone",
+        "wear-os.watch-reports-phone-deleted-sources-in-the-sync",
+        "wear-os.text-clipboard-bridge"
+      ]
+    },
+    {
+      "category": "tiles deeplinks services and receivers",
+      "ids": [
+        "wear-os.phone-initiated-open-when-app-closed",
+        "wear-os.watch-listener-work-survives-service-teardown",
+        "wear-os-ui.watch-colour-scheme-from-phone",
+        "wear.watch-app-background-from-phone",
+        "wear.settings-sync-timeout",
+        "wear.watch-settings-report-carries-panel-auto-hide",
+        "wear-os.one-watch-name"
+      ]
+    }
+  ]
+}

@@ -85,8 +85,10 @@ import com.sza.fastmediasorter.wear.ui.player.common.closingWith
 import com.sza.fastmediasorter.wear.ui.player.common.playerMenuAction
 import com.sza.fastmediasorter.wear.ui.player.common.playerPrimaryRowColumns
 import com.sza.fastmediasorter.wear.ui.player.common.rememberPlayerFileActionEntries
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
 import timber.log.Timber
+import kotlin.math.pow
 
 /** The scrim behind the panel, dark enough to read white text over any picture. */
 private const val OVERLAY_SCRIM_ALPHA = 0.6f
@@ -111,6 +113,10 @@ private const val TAP_ZONE_NEXT_START_FRACTION = 0.7f
 /** Neutral zoom, and also the floor: a cropped picture never shrinks inside its frame. */
 private const val IMAGE_ZOOM_MIN = 1f
 private const val IMAGE_ZOOM_MAX = 4f
+
+// One crown detent multiplies the zoom rather than adding to it, so the picture grows by the same
+// proportion at every magnification - an additive step feels coarse at 1x and imperceptible at 4x.
+private const val IMAGE_ZOOM_STEP_FACTOR = 1.15f
 
 /**
  * Image viewer screen for Wear OS.
@@ -365,6 +371,12 @@ private fun ZoomableImage(
         contentDescription = uiState.mediaFile?.name,
         modifier = Modifier
             .fillMaxSize()
+            .rotaryActionSteps { step ->
+                Timber.d("S3263: image viewer crown zoom step")
+                val next = (zoom * IMAGE_ZOOM_STEP_FACTOR.pow(step)).coerceIn(IMAGE_ZOOM_MIN, IMAGE_ZOOM_MAX)
+                zoom = next
+                if (next <= IMAGE_ZOOM_MIN) offset = Offset.Zero
+            }
             .cropTransformGestures(enabled = cropMode, currentZoom = { zoom }) { zoomChange, pan ->
                 val next = (zoom * zoomChange).coerceIn(IMAGE_ZOOM_MIN, IMAGE_ZOOM_MAX)
                 zoom = next

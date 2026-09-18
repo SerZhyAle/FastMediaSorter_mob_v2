@@ -2274,7 +2274,7 @@
     <string name="launcher_edit_unpin_named">إلغاء تثبيت %1$s</string>
     <string name="launcher_settings_enable_title">اجعل هذا التطبيق الشاشة الرئيسية</string>
     <string name="launcher_start_window_title">فتح سطح المكتب عند بدء التطبيق</string>
-    <string name="launcher_start_window_desc">يفتح سطح المكتب بدلًا من متصفح الملفات. لا يغيّر الشاشة الرئيسية للجهاز.</string>
+    <string name="launcher_start_window_desc">يفتح سطح المكتب بدلا من مدير الموارد. لا يغير هذا الشاشة الرئيسية للجهاز.</string>
     <string name="launcher_settings_enable_desc">يفتح زر الرئيسية سطح مكتبك الخاص بالاختصارات والأدوات. أوقف هذا الخيار في أي وقت لاستعادة شاشتك الرئيسية السابقة.</string>
     <string name="launcher_settings_enable_help_title">وضع الشاشة الرئيسية</string>
     <string name="launcher_settings_enable_help_message">عند تفعيل هذا الخيار، يسألك Android عن الشاشة الرئيسية التي تريد استخدامها - اختر هذا التطبيق واضغط على دائمًا (أو مرة واحدة فقط لتجربته). للعودة، أوقف هذا الخيار وسيستعيد Android شاشتك الرئيسية السابقة.</string>
@@ -3636,4 +3636,36 @@
     <string name="wear_screenshot_captured">أرسلت الساعة لقطة شاشتها</string>
     <string name="wear_screenshot_no_answer">لم تستجب الساعة</string>
     <string name="wear_companion_group_operations">عمليات الساعة</string>
+    <string name="resource_manager_title">مدير الموارد</string>
+    <string name="welcome_primary_window_title">النافذة الرئيسية</string>
+    <string name="welcome_primary_window_subtitle">اختر ما يفتح عند بدء FastMediaSorter</string>
+    <string name="launcher_primary_window_recommended">موصى به</string>
+    <string name="launcher_primary_window_home_title">الشاشة الرئيسية للجهاز</string>
+    <string name="launcher_primary_window_home_desc">يصبح التطبيق الشاشة الرئيسية لجهازك</string>
+    <string name="launcher_primary_window_desktop_title">سطح المكتب كنافذة رئيسية</string>
+    <string name="launcher_primary_window_desktop_desc">يفتح سطح المكتب داخل التطبيق دون تغيير الشاشة الرئيسية للجهاز</string>
+    <string name="launcher_primary_window_resource_manager_title">مدير الموارد</string>
+    <string name="launcher_primary_window_resource_manager_desc">يفتح إدارة الملفات وموارد الوسائط مباشرة</string>
+    <string name="setting_launcher_primary_window_title">نافذة البدء الرئيسية</string>
+    <string name="setting_launcher_primary_window_desc">اختر ما إذا كان التطبيق يفتح كشاشة رئيسية للجهاز أو كسطح مكتب داخلي أو كمدير موارد</string>
+    <string-array name="launcher_primary_window_options">
+        <item>@string/launcher_primary_window_home_title</item>
+        <item>@string/launcher_primary_window_desktop_title</item>
+        <item>@string/launcher_primary_window_resource_manager_title</item>
+    </string-array>
+    <string name="broadcast_default_stream_title">بث الهاتف</string>
+    <string name="broadcast_share_help">كيفية المشاهدة</string>
+    <string name="sos_title">إشارة استغاثة SOS</string>
+    <string name="sos_hint">تكرر الصفارة والوميض نمط SOS بشفرة مورس. تصدر الساعة المقترنة الإشارة أيضًا عندما تكون ضمن النطاق.</string>
+    <string name="sos_stop_action">إيقاف الإشارة</string>
+    <string name="sos_mode_all">صوت وضوء</string>
+    <string name="sos_mode_sound_only">صوت فقط</string>
+    <string name="sos_mode_light_only">ضوء فقط</string>
+    <string name="sos_notification_text">الإشارة نشطة: %1$s</string>
+    <string name="sos_notification_channel">إشارة SOS</string>
+    <string name="sos_settings_toggle_title">إشارة استغاثة SOS</string>
+    <string name="sos_settings_toggle_subtitle">صفارة مورس عالية وفلاش وامض وإشارة مطابقة على الساعة</string>
+    <string name="sos_help_title">إشارة استغاثة SOS</string>
+    <string name="sos_help_message">يكرر نمط SOS بشفرة مورس مع صفارة عالية على قناة المنبه والفلاش الخلفي وشاشة وامضة. اختر الصوت أو الضوء أو كليهما. تشغيلها هنا يشغلها أيضًا على الساعة المقترنة، وإيقاف أي منهما يوقف كليهما. تنتهي الإشارة تلقائيًا بعد 30 دقيقة حتى تصمد البطارية والفلاش.</string>
+    <string name="tourist_action_sos">إشارة SOS</string>
 </resources>

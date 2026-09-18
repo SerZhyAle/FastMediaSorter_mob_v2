@@ -1481,6 +1481,16 @@
       "titleUk": "Тест знімка екрана"
     },
     {
+      "key": "btnTransferBack",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_data_transfer",
+      "kind": "BUTTON",
+      "titleEn": "Cancel",
+      "titleRu": "Отмена",
+      "titleUk": "Скасувати"
+    },
+    {
       "key": "btnUnusedCredentials",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1641,6 +1651,16 @@
       "titleUk": "Компактні елементи (глобально)"
     },
     {
+      "key": "rowDataTransfer",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Import and export data",
+      "titleRu": "Импорт и экспорт данных",
+      "titleUk": "Імпорт та експорт даних"
+    },
+    {
       "key": "rowDebugLogMirror",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1739,6 +1759,46 @@
       "titleEn": "Hide quick action buttons on thumbnails",
       "titleRu": "Не показывать команды на эскизах",
       "titleUk": "Не показувати команди на ескізах"
+    },
+    {
+      "key": "rowKindFavorites",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_data_transfer",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Favorites",
+      "titleRu": "Избранное",
+      "titleUk": "Вибране"
+    },
+    {
+      "key": "rowKindResources",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_data_transfer",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Resources",
+      "titleRu": "Ресурсы",
+      "titleUk": "Ресурси"
+    },
+    {
+      "key": "rowKindSettings",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_data_transfer",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Settings",
+      "titleRu": "Настройки",
+      "titleUk": "Налаштування"
+    },
+    {
+      "key": "rowKindStreams",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_data_transfer",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Pinned streams",
+      "titleRu": "Закреплённые трансляции",
+      "titleUk": "Закріплені трансляції"
     },
     {
       "key": "rowLanguage",

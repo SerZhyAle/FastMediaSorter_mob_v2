@@ -45,6 +45,25 @@
          is scripts/all_features/patch.ps1 -Id <id> -Gate <flag>; an intentional
          re-gate or removal is -UpdateBaseline.
 
+      6. Wear store boundary (S3264) - a record named in
+         scripts/quality/allfeatures-wear-boundary-map.json must declare
+         wearFlavors ["noLegal"], and every category that map names must still sit
+         in the noLegalOnly set of wear/config/store-boundary-policy.json. The
+         ledger's `flavors` field answers "which PHONE build gates this" and says
+         nothing about the watch, so before this check a capability the wear module
+         ships only in its sideload variant declared the full phone dimension and
+         every showcase generated from that file promised it to Play. Measured
+         2026-09-18: wear-os-ui.tourist-glanceable-dashboard-and-touch-lock rode the
+         tourist_info route, which S3178 confines to noLegal, while the ledger
+         claimed it everywhere. The second half of the check is the extensibility
+         hook of the spec: returning a category to standardAllowlist fails this gate
+         until its records are re-read, rather than leaving them narrow in silence.
+         The map is a declaration rather than a derivation because a ledger record
+         names no route, component or permission - there is nothing to join on.
+         The writer is scripts/all_features/set-wear-flavors.ps1: add.ps1 has no
+         parameter for the field and patch.ps1 rebuilds the record without it, which
+         is the same strip check 5 holds `gate` against.
+
     Default mode reports and exits 0 (audit). With -Gate it fails closed (exit 1)
     on a validation error, an unexplained record-count drop, an unknown area, a
     subject record whose reach is neither its flag's row nor the full dimension, or
@@ -54,10 +73,12 @@
       0 - clean (or audit mode).
       1 - substantive failure: validation error, record-count regression, a record
           carrying an area outside the schema's enum, a subject record declaring
-          a reach the build system does not produce, or a record that lost the gate
-          the baseline recorded for it.
+          a reach the build system does not produce, a record that lost the gate
+          the baseline recorded for it, or a wear record whose store-boundary
+          isolation is not declared in the ledger.
       2 - the gate itself cannot run (inventory, validate.ps1, the schema's area
-          enum, the subject map or the flavor matrix missing or malformed).
+          enum, the subject map, the wear boundary map, the wear store-boundary
+          policy or the flavor matrix missing or malformed).
           Distinct from 1 on purpose: "the gate is broken" is not "the code is
           bad" - and an unreadable input must not read as a pass, which is the one
           way this check could silently switch itself off.
@@ -66,7 +87,8 @@
 
 .PARAMETER Gate
     Fail-closed: exit 1 on validation failure, record-count regression, an unknown
-    area, a bad subject reach, or a lost record gate.
+    area, a bad subject reach, a lost record gate, or an undeclared wear store
+    boundary.
 
 .PARAMETER Quiet
     Print only the expected/actual summary line.
@@ -99,6 +121,8 @@ $schemaFile = Join-Path $repoRoot 'docs/ALL_FEATURES.schema.json'
 $baselineFile = Join-Path $PSScriptRoot 'allfeatures-sync-baseline.txt'
 $gateBaselineFile = Join-Path $PSScriptRoot 'allfeatures-gate-baseline.txt'
 $subjectMapFile = Join-Path $PSScriptRoot 'allfeatures-subject-reach.json'
+$wearBoundaryMapFile = Join-Path $PSScriptRoot 'allfeatures-wear-boundary-map.json'
+$wearPolicyFile = Join-Path $repoRoot 'wear/config/store-boundary-policy.json'
 
 # S3209. One reader for both callers - -UpdateBaseline writes from it and check 5 judges against
 # it - so the baseline can never be written by a rule the check does not apply. A malformed line is
@@ -265,6 +289,62 @@ if (Test-Path -LiteralPath $gateBaselineFile) {
 }
 $gatesOk = ($lostGates.Count -eq 0)
 
+# 6. Wear store boundary (S3264). Two halves, and they fail for opposite reasons: a mapped record
+# that does not declare its isolation is a ledger overclaim, a mapped category the policy no longer
+# excludes is a boundary that MOVED and left the ledger behind.
+$badBoundary = [System.Collections.Generic.List[string]]::new()
+$boundaryIdCount = 0
+if (-not (Test-Path -LiteralPath $wearBoundaryMapFile)) {
+    Write-Error "allfeatures-wear-boundary-map.json not found at $wearBoundaryMapFile" -ErrorAction Continue; exit 2
+}
+if (-not (Test-Path -LiteralPath $wearPolicyFile)) {
+    Write-Error "wear/config/store-boundary-policy.json not found at $wearPolicyFile - the wear boundary check cannot run." -ErrorAction Continue; exit 2
+}
+try { $wearMap = Get-Content -LiteralPath $wearBoundaryMapFile -Raw -Encoding UTF8 | ConvertFrom-Json }
+catch { Write-Error "allfeatures-wear-boundary-map.json is not valid JSON: $($_.Exception.Message)" -ErrorAction Continue; exit 2 }
+try { $wearPolicy = Get-Content -LiteralPath $wearPolicyFile -Raw -Encoding UTF8 | ConvertFrom-Json }
+catch { Write-Error "wear/config/store-boundary-policy.json is not valid JSON: $($_.Exception.Message)" -ErrorAction Continue; exit 2 }
+
+$expectedWear = @($wearMap.wearFlavors | ForEach-Object { [string]$_ })
+if ($expectedWear.Count -eq 0) {
+    Write-Error "allfeatures-wear-boundary-map.json declares no 'wearFlavors' value - there is no requirement to check." -ErrorAction Continue; exit 2
+}
+$policyCategories = @($wearPolicy.noLegalOnly | ForEach-Object { [string]$_.category })
+if ($policyCategories.Count -eq 0) {
+    Write-Error "wear/config/store-boundary-policy.json declares no noLegalOnly categories - the wear boundary check cannot run." -ErrorAction Continue; exit 2
+}
+
+# One read of the ledger for the axis, for the same reason Get-RecordGateMap exists: the record walk
+# above answers about lines, this answers about ids.
+$ledgerWear = [ordered]@{}
+foreach ($l in (Get-Content -LiteralPath $dataFile -Encoding UTF8)) {
+    if ($l.Trim().Length -eq 0) { continue }
+    $o = $null
+    try { $o = $l | ConvertFrom-Json -ErrorAction Stop } catch { continue }
+    $wfDeclared = if ($o.PSObject.Properties.Name -contains 'wearFlavors') { @($o.wearFlavors | ForEach-Object { [string]$_ }) } else { @() }
+    $ledgerWear["$($o.id)"] = $wfDeclared
+}
+
+foreach ($entry in @($wearMap.noLegalOnly)) {
+    $cat = [string]$entry.category
+    if ($policyCategories -cnotcontains $cat) {
+        $badBoundary.Add("category '$cat' is no longer noLegal-only in the policy - re-read its $(@($entry.ids).Count) record(s) before keeping them narrow")
+        continue
+    }
+    foreach ($id in @($entry.ids)) {
+        $boundaryIdCount++
+        if (-not $ledgerWear.Contains([string]$id)) {
+            $badBoundary.Add("$id - mapped to '$cat' but absent from the ledger")
+            continue
+        }
+        $have = @($ledgerWear[[string]$id])
+        if (-not (Compare-Object -ReferenceObject @($expectedWear | Sort-Object) -DifferenceObject @($have | Sort-Object) -SyncWindow 0)) { continue }
+        $haveText = if ($have.Count -eq 0) { 'no wearFlavors (the assertion "every watch build")' } else { "[$($have -join ',')]" }
+        $badBoundary.Add("$id - '$cat' is noLegal-only, so the record must declare [$($expectedWear -join ',')]; it declares $haveText")
+    }
+}
+$boundaryOk = ($badBoundary.Count -eq 0)
+
 if (-not $Quiet) {
     if (-not $schemaOk) { Write-Host "  ALL_FEATURES schema validation FAILED (see validate.ps1 output above)" -ForegroundColor Red }
     if ($regressed) { Write-Host "  ALL_FEATURES record count dropped: baseline $baseline -> current $count (run -UpdateBaseline if intentional)" -ForegroundColor Red }
@@ -287,13 +367,21 @@ if (-not $gatesOk) {
     Write-Host "  Re-gated or removed the record on purpose? Re-run this script with -UpdateBaseline." -ForegroundColor Yellow
 }
 
-Write-Host ("assert-allfeatures-sync: expected: schema ok, count >= {0}, every area in the {1}-value vocabulary, every subject record at its flag's reach, all {2} baseline gates retained | actual: schema {3}, count {4}, areas {5}, reach {6}, gates {7}" -f `
-    $baseline, $allowedAreas.Count, $gateBaselineRows, $(if ($schemaOk) { 'ok' } else { 'FAIL' }), $count, `
+if (-not $boundaryOk) {
+    Write-Host "  ALL_FEATURES record contradicts the wear store boundary ($($badBoundary.Count) finding(s)):" -ForegroundColor Red
+    foreach ($b in $badBoundary) { Write-Host "    $b" -ForegroundColor Red }
+    Write-Host "  Declare the isolation: scripts\all_features\set-wear-flavors.ps1 -Ids <id> -WearFlavors noLegal." -ForegroundColor Yellow
+    Write-Host "  A capability that came BACK to the store watch artifact leaves scripts\quality\allfeatures-wear-boundary-map.json instead." -ForegroundColor Yellow
+}
+
+Write-Host ("assert-allfeatures-sync: expected: schema ok, count >= {0}, every area in the {1}-value vocabulary, every subject record at its flag's reach, all {2} baseline gates retained, all {3} wear boundary records isolated | actual: schema {4}, count {5}, areas {6}, reach {7}, gates {8}, wear boundary {9}" -f `
+    $baseline, $allowedAreas.Count, $gateBaselineRows, $boundaryIdCount, $(if ($schemaOk) { 'ok' } else { 'FAIL' }), $count, `
     $(if ($areasOk) { 'ok' } else { "FAIL ($($badAreas.Count))" }), `
     $(if ($reachOk) { 'ok' } else { "FAIL ($($badReach.Count))" }), `
-    $(if ($gatesOk) { 'ok' } else { "FAIL ($($lostGates.Count))" }))
+    $(if ($gatesOk) { 'ok' } else { "FAIL ($($lostGates.Count))" }), `
+    $(if ($boundaryOk) { 'ok' } else { "FAIL ($($badBoundary.Count))" }))
 
-if ($Gate -and (-not $schemaOk -or $regressed -or -not $areasOk -or -not $reachOk -or -not $gatesOk)) {
+if ($Gate -and (-not $schemaOk -or $regressed -or -not $areasOk -or -not $reachOk -or -not $gatesOk -or -not $boundaryOk)) {
     # Named rather than a bare `exit 1`: this script runs as a hooks.postClose step, where the
     # caller reports the step as FAILED and the detail above may be many lines up the transcript.
     $failed = @()
@@ -302,6 +390,7 @@ if ($Gate -and (-not $schemaOk -or $regressed -or -not $areasOk -or -not $reachO
     if (-not $areasOk) { $failed += "area vocabulary ($($badAreas.Count) record(s))" }
     if (-not $reachOk) { $failed += "subject reach ($($badReach.Count) record(s))" }
     if (-not $gatesOk) { $failed += "gate retention ($($lostGates.Count) record(s))" }
+    if (-not $boundaryOk) { $failed += "wear store boundary ($($badBoundary.Count) finding(s))" }
     Write-Error "assert-allfeatures-sync: FAIL - $($failed -join '; '). The per-check detail is printed above." -ErrorAction Continue
     exit 1
 }

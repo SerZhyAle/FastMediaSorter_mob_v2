@@ -73,6 +73,9 @@ class CapabilityAvailability @Inject constructor(
 
     fun isVrAvailable(): Boolean = CAP_VR in compiled
 
+    /** Whether this build links a cloud account at all - the compile axis behind every cloud surface. */
+    fun isCloudAvailable(): Boolean = CAP_CLOUD in compiled
+
     fun isOcrCompiledIn(): Boolean = CAP_OCR in compiled
 
     fun isOcrAvailable(context: Context): Boolean =
@@ -121,5 +124,6 @@ class CapabilityAvailability @Inject constructor(
         const val CAP_TRANSLATION = "translation"
         const val CAP_VR = "vr"
         const val CAP_NEWPIPE = "newpipe"
+        const val CAP_CLOUD = "cloud"
     }
 }

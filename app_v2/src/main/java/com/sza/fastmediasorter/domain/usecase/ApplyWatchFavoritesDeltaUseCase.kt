@@ -44,7 +44,6 @@ class ApplyWatchFavoritesDeltaUseCase @Inject constructor(
                 favoritesRepository.removeFavorite(item.filePath)
             }
         }
-        Timber.d("S3161: favourites delta ${payload.items.size} item(s), ${watchHeld.size} watch-held skipped")
         if (watchHeld.isNotEmpty()) {
             Timber.i("ApplyWatchFavoritesDelta: skipped %d watch-held item(s)", watchHeld.size)
         }

@@ -931,4 +931,7 @@
     <string name="wear_onboarding_slogan">Your media companion on the wrist</string>
     <string name="wear_onboarding_skip_all">Skip all</string>
     <string name="wear_onboarding_page_indicator">Step %1$d of %2$d</string>
+    <string name="wear_battery_optimization_title">Battery saving may stop the broadcast</string>
+    <string name="wear_battery_optimization_desc">Let the app keep working in the background so the sound does not cut out.</string>
+    <string name="wear_battery_optimization_grant">Allow background work</string>
 </resources>

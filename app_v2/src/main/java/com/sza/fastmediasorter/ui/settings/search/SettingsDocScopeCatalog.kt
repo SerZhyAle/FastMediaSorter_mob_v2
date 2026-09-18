@@ -57,6 +57,13 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.GENERAL,
             "btnResetLauncher"
         ),
+        // S1565: the import/export menu is a dialog on the General tab, opened by rowDataTransfer.
+        DocScopeSurface(
+            R.layout.dialog_data_transfer,
+            "general",
+            SettingsSearchDestination.GENERAL,
+            "rowDataTransfer"
+        ),
         DocScopeSurface(
             R.layout.dialog_edge_gesture_config,
             "gestures",

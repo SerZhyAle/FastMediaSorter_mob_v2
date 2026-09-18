@@ -27,6 +27,7 @@ fun WearAppTheme(
     ) {
         MaterialTheme(
             colors = palette,
+            typography = WearAppTypography,
             content = content
         )
     }

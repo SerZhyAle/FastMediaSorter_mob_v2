@@ -98,7 +98,6 @@ class AltEngineFallbackManager @Inject constructor(
                 false
             } else {
                 inflatedContainer = WeakReference(container)
-                Timber.d("S3157: alt-engine container resolved through the weakly held stub")
 
                 engine.setListener(object : AltPlaybackEngine.Listener {
                     override fun onEnded() {

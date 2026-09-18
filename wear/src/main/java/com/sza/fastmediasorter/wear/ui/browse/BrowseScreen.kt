@@ -34,14 +34,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
 import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineState
@@ -58,6 +54,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.ReceiverListDialog
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
+import com.sza.fastmediasorter.wear.ui.common.StandardWearAlertDialog
 import com.sza.fastmediasorter.wear.ui.common.WEAR_SEARCH_INPUT_KEY
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearRefineControlHeader
@@ -84,6 +81,9 @@ import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorViewModel
 import com.sza.fastmediasorter.wear.ui.player.common.VolumeReadout
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
+
+private val PROGRESS_INDICATOR_SIZE = 24.dp
+private val PROGRESS_INDICATOR_STROKE = 2.dp
 
 /**
  * Browse screen for displaying media files.
@@ -399,51 +399,39 @@ internal fun OperationRunDialog(
     onDismiss: () -> Unit
 ) {
     if (run.running) {
-        Alert(
-            title = {
-                Text(
-                    text = stringResource(R.string.wear_file_op_progress, run.completed, run.total),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.title3
+        // Strategic 3.2 requires the copy to be cancellable, and a batch waiting on an absent
+        // phone blocks for ten seconds per file - long enough to own the watch outright. Cancel is
+        // the run's only answer, so it is the alert's single action rather than its negative one.
+        StandardWearAlertDialog(
+            show = true,
+            title = stringResource(R.string.wear_file_op_progress, run.completed, run.total),
+            onConfirm = onCancel,
+            onDismissRequest = onCancel,
+            confirmLabel = stringResource(R.string.cancel),
+            cancelLabel = null,
+            content = {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .size(PROGRESS_INDICATOR_SIZE),
+                    strokeWidth = PROGRESS_INDICATOR_STROKE
                 )
             }
-        ) {
-            item {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-            }
-            // Strategic 3.2 requires the copy to be cancellable, and a batch waiting on an absent
-            // phone blocks for ten seconds per file - long enough to own the watch outright.
-            item {
-                Chip(
-                    onClick = onCancel,
-                    label = { Text(text = stringResource(R.string.cancel)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ChipDefaults.secondaryChipColors()
-                )
-            }
-        }
+        )
     } else {
-        Alert(
-            title = {
-                Text(
-                    text = stringResource(R.string.wear_file_op_results_title),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.title3
-                )
+        StandardWearAlertDialog(
+            show = true,
+            title = stringResource(R.string.wear_file_op_results_title),
+            onConfirm = onDismiss,
+            onDismissRequest = onDismiss,
+            confirmLabel = stringResource(R.string.done),
+            cancelLabel = null,
+            content = {
+                run.results.forEach { result ->
+                    OperationResultRow(result = result)
+                }
             }
-        ) {
-            items(run.results) { result ->
-                OperationResultRow(result = result)
-            }
-            item {
-                Chip(
-                    onClick = onDismiss,
-                    label = { Text(text = stringResource(R.string.done)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ChipDefaults.primaryChipColors()
-                )
-            }
-        }
+        )
     }
 }
 

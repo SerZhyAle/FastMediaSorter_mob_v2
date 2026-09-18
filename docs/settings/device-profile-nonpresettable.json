@@ -38,6 +38,7 @@
     { "field": "broadcastVideoFps", "reason": "receiver compatibility choice - belongs to the broadcaster, never to a device profile" },
     { "field": "broadcastVideoBitrateBps", "reason": "receiver compatibility choice - belongs to the broadcaster, never to a device profile" },
     { "field": "broadcastMicGainPercent", "reason": "personal session tuning - the gain depends on the room and the speaker, not on the device class" },
+    { "field": "broadcastCameraLensId", "reason": "identifier of a lens this install enumerated - a profile names a class of devices, so an id valid on one member names a different lens or none at all on the rest; see broadcastSourceDeviceId for the same reasoning (S3237)" },
 
     { "field": "screenCaptureDisclosureAccepted", "reason": "consent - only the user can give it" },
     { "field": "screenRecordingDisclosureAccepted", "reason": "consent - only the user can give it" },

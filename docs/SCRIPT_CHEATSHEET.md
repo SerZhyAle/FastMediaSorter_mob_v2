@@ -468,6 +468,21 @@ scripts/all_features/scan_surface.ps1
     -Quiet          [SwitchParameter]
 ```
 
+### set-wear-flavors.ps1
+Set or clear the `wearFlavors` axis on existing ALL_FEATURES records (S3264).
+
+```
+scripts/all_features/set-wear-flavors.ps1
+  Set or clear the `wearFlavors` axis on existing ALL_FEATURES records (S3264).
+  Params:
+    -Ids          (req)  [String]
+    -WearFlavors         [String] = ''
+    -Clear               [SwitchParameter]
+    -NoLegal             [SwitchParameter]
+    -Quiet               [SwitchParameter]
+  Exit: 0 - every requested id was updated (or already carried the requested value).; 1 - invalid arguments, or an inventory line that cannot be rebuilt.; 2 - an id was not found in the inventory; nothing was written.
+```
+
 ### validate.ps1
 Validate the ALL_FEATURES inventory (docs/ALL_FEATURES.jsonl) against the schema rules.
 
@@ -7691,6 +7706,26 @@ scripts/utils/wait-for-ticket-work.ps1
   Exit: 0 - work is available now; the marker names the kind (impl / device-drain) and the ticket.; 3 - required preflight script is missing.; 4 - usage error.
 ```
 
+### watch-agent-progress.ps1
+Prints a queue runner's progress to its own console, live, from the agent chat progress stream.
+
+```
+scripts/utils/watch-agent-progress.ps1
+  Prints a queue runner's progress to its own console, live, from the agent chat progress stream.
+  Params:
+    -Instance                 [String] = ''
+    -IntervalSeconds          [Int32] = 15
+    -Kinds                    [String[]] = @('status', 'verdict', 'phase', 'ticket', 'abandon', 'note')
+    -ParentPid                [Int32] = 0
+    -Since                    [Int32] = 0
+    -MaxLinesPerPass          [Int32] = 8
+    -HeartbeatMinutes         [Int32] = 10
+    -Once                     [SwitchParameter]
+    -RepoRoot                 [String] = ''
+    -Help                     [SwitchParameter]
+  Exit: 2 = the agent chat progress directory cannot be located.
+```
+
 ### withdraw-lock-ticket.ps1
 Withdraw this session's own place in a lock queue, in one domain or across a whole type.
 
@@ -8010,6 +8045,18 @@ scripts/utils/start-detached.tests/Run-Tests.ps1
   Regression suite for scripts/utils/start-detached.ps1 (S2400).
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\utils\watch-agent-progress.tests
+
+### Run-Tests.ps1
+Regression tests for the runner progress watcher: what it prints, and what it hides.
+
+```
+scripts/utils/watch-agent-progress.tests/Run-Tests.ps1
+  Regression tests for the runner progress watcher: what it prints, and what it hides.
+  (no param block)
+  Exit: 0 - every case passed.; 1 - a case failed.; 2 - the sandbox could not be prepared.
 ```
 
 ## scripts\wear

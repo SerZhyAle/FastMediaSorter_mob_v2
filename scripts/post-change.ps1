@@ -1675,7 +1675,12 @@ elseif ($runsDetektGate) {
             $global:LASTEXITCODE = 2
             return
         }
-        $r = Receive-Job -Job $detektJob -Wait -AutoRemoveJob
+        # S3266: no -Wait here. Wait-Job above already proved a terminal state, so the result is
+        # sitting in the job's streams - while -Wait joins a second time under no ceiling of its own,
+        # which is where a closure hung for 52 minutes on 2026-09-18 with the detekt verdict cached
+        # 23 s in. -AutoRemoveJob is legal only beside -Wait, so the removal is explicit.
+        $r = Receive-Job -Job $detektJob
+        try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
         $script:detektJob = $null
         if ($r -and -not [string]::IsNullOrWhiteSpace($r.Output)) {
             Write-Host ($r.Output.TrimEnd())

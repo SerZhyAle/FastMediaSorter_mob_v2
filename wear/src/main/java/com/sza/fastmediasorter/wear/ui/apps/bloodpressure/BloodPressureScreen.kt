@@ -1,18 +1,15 @@
 package com.sza.fastmediasorter.wear.ui.apps.bloodpressure
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,13 +28,16 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.bodysensor.heartRatePermission
 import com.sza.fastmediasorter.wear.domain.model.BloodPressureHistoryEntry
+import com.sza.fastmediasorter.wear.ui.common.StandardWearCard
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 6.dp
 private val SECTION_PADDING = 8.dp
+private val CARD_VERTICAL_INSET = 4.dp
 
 /**
  * S3012/S3113: the blood-pressure screen - an estimate from the pulse wave, started by opening the screen.
@@ -121,32 +121,32 @@ private fun ScreenTitle() {
 
 @Composable
 private fun LastReadingCard(reading: BloodPressureHistoryEntry) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = SECTION_PADDING, vertical = 4.dp)
-            .clip(RoundedCornerShape(SECTION_PADDING))
-            .background(MaterialTheme.colors.surface)
-            .padding(SECTION_PADDING),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Timber.d("S3261: blood pressure last reading drawn as StandardWearCard")
+    StandardWearCard(
+        modifier = Modifier.padding(horizontal = SECTION_PADDING, vertical = CARD_VERTICAL_INSET)
     ) {
-        Text(
-            text = stringResource(R.string.blood_pressure_last_reading, reading.systolic, reading.diastolic),
-            style = MaterialTheme.typography.caption1.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colors.onSurface
-        )
-        reading.pulse?.let { pulse ->
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
-                text = stringResource(R.string.blood_pressure_pulse, pulse),
-                style = MaterialTheme.typography.caption1,
+                text = stringResource(R.string.blood_pressure_last_reading, reading.systolic, reading.diastolic),
+                style = MaterialTheme.typography.caption1.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colors.onSurface
             )
+            reading.pulse?.let { pulse ->
+                Text(
+                    text = stringResource(R.string.blood_pressure_pulse, pulse),
+                    style = MaterialTheme.typography.caption1,
+                    color = MaterialTheme.colors.onSurface
+                )
+            }
+            Text(
+                text = stringResource(sourceText(reading.source)),
+                style = MaterialTheme.typography.caption2,
+                color = MaterialTheme.colors.onSurfaceVariant
+            )
         }
-        Text(
-            text = stringResource(sourceText(reading.source)),
-            style = MaterialTheme.typography.caption2,
-            color = MaterialTheme.colors.onSurfaceVariant
-        )
     }
 }
 

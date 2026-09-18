@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.wear.ui.browse
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SelectAll
@@ -12,15 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
+import com.sza.fastmediasorter.wear.ui.common.StandardWearAlertDialog
 import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearActionColumn
 
@@ -159,40 +156,14 @@ internal fun FileDeleteConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    Alert(
-        title = {
-            Text(
-                text = stringResource(R.string.wear_file_op_delete_confirm, selectedCount),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.title3
-            )
-        },
-        negativeButton = {
-            Chip(
-                onClick = onDismiss,
-                label = {
-                    Text(
-                        text = stringResource(R.string.cancel),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                colors = ChipDefaults.secondaryChipColors()
-            )
-        },
-        positiveButton = {
-            Chip(
-                onClick = onConfirm,
-                label = {
-                    Text(
-                        text = stringResource(R.string.delete),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                colors = ChipDefaults.primaryChipColors()
-            )
-        }
+    StandardWearAlertDialog(
+        show = true,
+        title = stringResource(R.string.wear_file_op_delete_confirm, selectedCount),
+        onConfirm = onConfirm,
+        onDismissRequest = onDismiss,
+        confirmLabel = stringResource(R.string.delete),
+        cancelLabel = stringResource(R.string.cancel),
+        isDestructive = true
     )
 }
 

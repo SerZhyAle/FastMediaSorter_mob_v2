@@ -101,6 +101,17 @@
     </issue>
 
     <issue
+        id="ScopedStorage"
+        message="READ_EXTERNAL_STORAGE is deprecated (and is not granted) when targeting Android 13+. If you need to query or interact with MediaStore or media files on the shared storage, you should instead use one or more new storage permissions: `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO` or `READ_MEDIA_AUDIO`."
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.READ_EXTERNAL_STORAGE&quot; tools:node=&quot;remove&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/standard/AndroidManifest.xml"
+            line="24"
+            column="36"/>
+    </issue>
+
+    <issue
         id="ExifInterface"
         message="Avoid using `android.media.ExifInterface`; use `androidx.exifinterface.media.ExifInterface` instead"
         errorLine1="import android.media.ExifInterface"
@@ -129,7 +140,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/service/VoiceRecordingService.kt"
-            line="430"
+            line="483"
             column="13"/>
     </issue>
 
@@ -167,13 +178,123 @@
     </issue>
 
     <issue
-        id="UnusedAttribute"
-        message="Attribute `usesPermissionFlags` is only used in API level 31 and higher (current min is 28)"
-        errorLine1="        android:usesPermissionFlags=&quot;neverForLocation&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="InlinedApi"
+        message="Field requires API level 33 (current min is 28): `android.Manifest.permission#READ_MEDIA_AUDIO`"
+        errorLine1="                Manifest.permission.READ_MEDIA_AUDIO,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/AndroidManifest.xml"
-            line="30"
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="34"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 33 (current min is 28): `android.Manifest.permission#READ_MEDIA_VIDEO`"
+        errorLine1="                Manifest.permission.READ_MEDIA_VIDEO,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="38"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 33 (current min is 28): `android.Manifest.permission#READ_MEDIA_IMAGES`"
+        errorLine1="                Manifest.permission.READ_MEDIA_IMAGES,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="42"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 33 (current min is 28): `android.Manifest.permission#POST_NOTIFICATIONS`"
+        errorLine1="                Manifest.permission.POST_NOTIFICATIONS,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="51"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 29 (current min is 28): `android.Manifest.permission#ACTIVITY_RECOGNITION`"
+        errorLine1="                Manifest.permission.ACTIVITY_RECOGNITION,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="70"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 28): `android.Manifest.permission#BLUETOOTH_CONNECT`"
+        errorLine1="                Manifest.permission.BLUETOOTH_CONNECT,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="78"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 33 (current min is 28): `android.Manifest.permission#NEARBY_WIFI_DEVICES`"
+        errorLine1="                Manifest.permission.NEARBY_WIFI_DEVICES,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="82"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="NotificationPermission"
+        message="When targeting Android 13 or higher, posting a permission requires holding the `POST_NOTIFICATIONS` permission"
+        errorLine1="        manager.notify(WearNotificationIds.LISTEN_REQUEST, build())"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/service/helpers/ListenRequestNotifier.kt"
+            line="98"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="NotificationPermission"
+        message="When targeting Android 13 or higher, posting a permission requires holding the `POST_NOTIFICATIONS` permission"
+        errorLine1="        manager.notify("
+        errorLine2="        ^">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/service/VoiceRecordingService.kt"
+            line="499"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="NotificationPermission"
+        message="When targeting Android 13 or higher, posting a permission requires holding the `POST_NOTIFICATIONS` permission"
+        errorLine1="        manager.notify(WearNotificationIds.OPEN_ON_WATCH, build(target, subtitle))"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/core/notification/WearOpenOnWatchNotifier.kt"
+            line="69"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="NotificationPermission"
+        message="When targeting Android 13 or higher, posting a permission requires holding the `POST_NOTIFICATIONS` permission"
+        errorLine1="        notificationManager.notify(WearNotificationIds.UPLOAD_OUTCOME, notification)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/core/notification/WearUploadOutcomeNotifier.kt"
+            line="43"
             column="9"/>
     </issue>
 
@@ -184,7 +305,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="97"
+            line="27"
             column="9"/>
     </issue>
 
@@ -200,69 +321,58 @@
     </issue>
 
     <issue
-        id="IntentFilterUniqueDataAttributes"
-        message="Consider splitting data tag into multiple tags with individual attributes to avoid confusion"
-        errorLine1="                &lt;data"
-        errorLine2="                ^">
+        id="BatteryLife"
+        message="Use of `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html"
+        errorLine1="        Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/AndroidManifest.xml"
-            line="149"
-            column="17"/>
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/power/WearPowerManager.kt"
+            line="44"
+            column="25"/>
     </issue>
 
     <issue
-        id="IntentFilterUniqueDataAttributes"
-        message="Consider splitting data tag into multiple tags with individual attributes to avoid confusion"
-        errorLine1="                &lt;data"
-        errorLine2="                ^">
+        id="ForegroundServiceType"
+        message="To call `Service.startForeground()`, the `&lt;service>` element of manifest file must have the `foregroundServiceType` attribute specified"
+        errorLine1="        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())"
+        errorLine2="                      ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/AndroidManifest.xml"
-            line="153"
-            column="17"/>
+            file="src/main/java/com/sza/fastmediasorter/wear/service/VoiceRecordingService.kt"
+            line="261"
+            column="23"/>
     </issue>
 
     <issue
-        id="IntentFilterUniqueDataAttributes"
-        message="Consider splitting data tag into multiple tags with individual attributes to avoid confusion"
-        errorLine1="                &lt;data"
-        errorLine2="                ^">
+        id="ForegroundServiceType"
+        message="To call `Service.startForeground()`, the `&lt;service>` element of manifest file must have the `foregroundServiceType` attribute specified"
+        errorLine1="        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())"
+        errorLine2="                      ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/AndroidManifest.xml"
-            line="157"
-            column="17"/>
+            file="src/main/java/com/sza/fastmediasorter/wear/service/VoiceRecordingService.kt"
+            line="282"
+            column="23"/>
     </issue>
 
     <issue
-        id="IntentFilterUniqueDataAttributes"
-        message="Consider splitting data tag into multiple tags with individual attributes to avoid confusion"
-        errorLine1="                &lt;data"
-        errorLine2="                ^">
+        id="ForegroundServiceType"
+        message="To call `Service.startForeground()`, the `&lt;service>` element of manifest file must have the `foregroundServiceType` attribute specified"
+        errorLine1="        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())"
+        errorLine2="                      ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/AndroidManifest.xml"
-            line="161"
-            column="17"/>
+            file="src/main/java/com/sza/fastmediasorter/wear/service/VoiceRecordingService.kt"
+            line="369"
+            column="23"/>
     </issue>
 
     <issue
-        id="SelectedPhotoAccess"
-        message="Your app is currently not handling Selected Photos Access introduced in Android 14+"
-        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.READ_MEDIA_VIDEO&quot; />"
-        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="ForegroundServiceType"
+        message="To call `Service.startForeground()`, the `&lt;service>` element of manifest file must have the `foregroundServiceType` attribute specified"
+        errorLine1="        ServiceCompat.startForeground("
+        errorLine2="                      ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/AndroidManifest.xml"
-            line="50"
-            column="36"/>
-    </issue>
-
-    <issue
-        id="SelectedPhotoAccess"
-        message="Your app is currently not handling Selected Photos Access introduced in Android 14+"
-        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.READ_MEDIA_IMAGES&quot; />"
-        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/AndroidManifest.xml"
-            line="51"
-            column="36"/>
+            file="src/main/java/com/sza/fastmediasorter/wear/service/WearPlaybackService.kt"
+            line="371"
+            column="23"/>
     </issue>
 
     <issue
@@ -492,7 +602,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="798"
+            line="797"
             column="13"/>
     </issue>
 
@@ -503,7 +613,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="830"
+            line="828"
             column="13"/>
     </issue>
 
@@ -514,7 +624,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="832"
+            line="830"
             column="13"/>
     </issue>
 
@@ -525,7 +635,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="833"
+            line="831"
             column="13"/>
     </issue>
 
@@ -536,7 +646,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="834"
+            line="832"
             column="13"/>
     </issue>
 
@@ -547,40 +657,29 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="835"
+            line="833"
             column="13"/>
     </issue>
 
     <issue
         id="MissingTranslation"
-        message="&quot;wear_listen_ended&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
-        errorLine1="    &lt;string name=&quot;wear_listen_ended&quot;>Listening ended&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="849"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="MissingTranslation"
-        message="&quot;wear_screen_off_exit_hint&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
-        errorLine1="    &lt;string name=&quot;wear_screen_off_exit_hint&quot;>Double tap, press and hold, or use the watch button to wake the screen&lt;/string>"
+        message="&quot;wear_tourist_unit_celsius&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_tourist_unit_celsius&quot;>°C&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="850"
+            line="864"
             column="13"/>
     </issue>
 
     <issue
         id="MissingTranslation"
-        message="&quot;wear_stream_station_bitrate&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
-        errorLine1="    &lt;string name=&quot;wear_stream_station_bitrate&quot;>%1$d kbps&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        message="&quot;blood_pressure_seconds_short&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;blood_pressure_seconds_short&quot;>%1$d s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="851"
+            line="907"
             column="13"/>
     </issue>
 
@@ -651,6 +750,39 @@
     </issue>
 
     <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;over&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;blood_pressure_estimate_description&quot;>Estimated blood pressure %1$d over %2$d. Calibrations: %3$d, newest %4$d days ago&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="891"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;cuff&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;blood_pressure_not_calibrated&quot;>Calibrate first: %1$d of %2$d cuff readings&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="893"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;seconds&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;blood_pressure_measuring_description&quot;>Measuring blood pressure, %1$d seconds left. Keep the arm still&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="908"
+            column="5"/>
+    </issue>
+
+    <issue
         id="TrustAllX509TrustManager"
         message="`checkClientTrusted` is empty, which could cause insecure network traffic due to trusting arbitrary TLS/SSL certificates presented by peers">
         <location
@@ -682,7 +814,7 @@
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/data/tourist/AndroidWearTouristRepository.kt"
-            line="128"
+            line="130"
             column="17"/>
     </issue>
 
@@ -693,7 +825,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/data/tourist/AndroidWearTouristRepository.kt"
-            line="184"
+            line="186"
             column="13"/>
     </issue>
 
@@ -799,6 +931,17 @@
         message="The resource `R.drawable.resource_types` appears to be unused">
         <location
             file="src/main/res/drawable/resource_types.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.xml.send_to_paths` appears to be unused"
+        errorLine1="&lt;paths>"
+        errorLine2="^">
+        <location
+            file="src/main/res/xml/send_to_paths.xml"
+            line="9"
+            column="1"/>
     </issue>
 
     <issue
@@ -1023,6 +1166,17 @@
 
     <issue
         id="UnusedResources"
+        message="The resource `R.string.wear_complication_last_resource_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_complication_last_resource_label&quot;>Last Resource&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="371"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
         message="The resource `R.string.wear_complication_last_resource_description` appears to be unused"
         errorLine1="    &lt;string name=&quot;wear_complication_last_resource_description&quot;>Shortcut to open the most recently used media resource&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -1034,12 +1188,34 @@
 
     <issue
         id="UnusedResources"
+        message="The resource `R.string.wear_complication_favourites_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_complication_favourites_label&quot;>Favourites&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="373"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
         message="The resource `R.string.wear_complication_favourites_description` appears to be unused"
         errorLine1="    &lt;string name=&quot;wear_complication_favourites_description&quot;>Shows favourites count and opens favourites list&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
             line="374"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_complication_now_playing_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_complication_now_playing_label&quot;>Now Playing&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="375"
             column="13"/>
     </issue>
 
@@ -1171,7 +1347,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="728"
+            line="727"
             column="13"/>
     </issue>
 
@@ -1182,7 +1358,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="735"
+            line="734"
             column="13"/>
     </issue>
 
@@ -1193,7 +1369,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="739"
+            line="738"
             column="13"/>
     </issue>
 
@@ -1204,7 +1380,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="740"
+            line="739"
             column="13"/>
     </issue>
 
@@ -1215,29 +1391,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="763"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.wear_tourist_permission_grant` appears to be unused"
-        errorLine1="    &lt;string name=&quot;wear_tourist_permission_grant&quot;>Grant&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="829"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.wear_tourist_unlock_screen` appears to be unused"
-        errorLine1="    &lt;string name=&quot;wear_tourist_unlock_screen&quot;>Unlock&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="845"
+            line="762"
             column="13"/>
     </issue>
 
@@ -1250,6 +1404,50 @@
             file="src/main/res/values/strings_browse.xml"
             line="6"
             column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.tile_preview_favourites` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/tile_preview_favourites.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.tile_preview_resource` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/tile_preview_resource.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.tile_preview_sections` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/tile_preview_sections.xml"
+            line="4"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.tile_preview_stream` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/tile_preview_stream.xml"
+            line="2"
+            column="1"/>
     </issue>
 
     <issue
@@ -1277,7 +1475,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-ar/strings.xml"
-            line="716"
+            line="715"
             column="47"/>
     </issue>
 
@@ -1288,7 +1486,7 @@
         errorLine2="                                              ~~~~~~~~~~~">
         <location
             file="src/main/res/values-b+zh+Hans/strings.xml"
-            line="716"
+            line="715"
             column="47"/>
     </issue>
 
@@ -1299,7 +1497,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-bn/strings.xml"
-            line="716"
+            line="715"
             column="47"/>
     </issue>
 
@@ -1310,7 +1508,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-de/strings.xml"
-            line="716"
+            line="715"
             column="47"/>
     </issue>
 
@@ -1321,7 +1519,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-es/strings.xml"
-            line="716"
+            line="715"
             column="47"/>
     </issue>
 
@@ -1332,7 +1530,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-fr/strings.xml"
-            line="716"
+            line="715"
             column="47"/>
     </issue>
 
@@ -1343,7 +1541,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-hi/strings.xml"
-            line="716"
+            line="715"
             column="47"/>
     </issue>
 
@@ -1354,7 +1552,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-it/strings.xml"
-            line="716"
+            line="715"
             column="47"/>
     </issue>
 
@@ -1365,7 +1563,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-pt/strings.xml"
-            line="716"
+            line="715"
             column="47"/>
     </issue>
 
@@ -1376,7 +1574,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-ur/strings.xml"
-            line="716"
+            line="715"
             column="47"/>
     </issue>
 
@@ -1387,7 +1585,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-ar/strings.xml"
-            line="723"
+            line="722"
             column="43"/>
     </issue>
 
@@ -1398,7 +1596,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-b+zh+Hans/strings.xml"
-            line="723"
+            line="722"
             column="43"/>
     </issue>
 
@@ -1409,7 +1607,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-bn/strings.xml"
-            line="723"
+            line="722"
             column="43"/>
     </issue>
 
@@ -1420,7 +1618,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-de/strings.xml"
-            line="723"
+            line="722"
             column="43"/>
     </issue>
 
@@ -1431,7 +1629,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-hi/strings.xml"
-            line="723"
+            line="722"
             column="43"/>
     </issue>
 
@@ -1442,7 +1640,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-it/strings.xml"
-            line="723"
+            line="722"
             column="43"/>
     </issue>
 
@@ -1453,7 +1651,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-pt/strings.xml"
-            line="723"
+            line="722"
             column="43"/>
     </issue>
 
@@ -1464,7 +1662,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-ur/strings.xml"
-            line="723"
+            line="722"
             column="43"/>
     </issue>
 
@@ -1475,7 +1673,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-ru/strings.xml"
-            line="753"
+            line="752"
             column="47"/>
     </issue>
 
@@ -1486,7 +1684,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-uk/strings.xml"
-            line="753"
+            line="752"
             column="47"/>
     </issue>
 
@@ -1497,7 +1695,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="753"
+            line="752"
             column="47"/>
     </issue>
 
@@ -1508,7 +1706,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-ru/strings.xml"
-            line="760"
+            line="759"
             column="43"/>
     </issue>
 
@@ -1519,7 +1717,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-uk/strings.xml"
-            line="760"
+            line="759"
             column="43"/>
     </issue>
 
@@ -1530,30 +1728,8 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="760"
+            line="759"
             column="43"/>
-    </issue>
-
-    <issue
-        id="MonochromeLauncherIcon"
-        message="The application adaptive icon is missing a monochrome tag"
-        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
-        errorLine2="^">
-        <location
-            file="src/main/res/mipmap-anydpi-v26/ic_launcher.xml"
-            line="2"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="MonochromeLauncherIcon"
-        message="The application adaptive roundIcon is missing a monochrome tag"
-        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
-        errorLine2="^">
-        <location
-            file="src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml"
-            line="2"
-            column="1"/>
     </issue>
 
     <issue
@@ -1605,18 +1781,7 @@
         errorLine2="        ^">
         <location
             file="src/main/AndroidManifest.xml"
-            line="112"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="WearRecents"
-        message="Set `taskAffinity` for Wear activities to make them appear correctly in recents"
-        errorLine1="        &lt;activity"
-        errorLine2="        ^">
-        <location
-            file="src/main/AndroidManifest.xml"
-            line="129"
+            line="42"
             column="9"/>
     </issue>
 
@@ -1627,7 +1792,7 @@
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/service/helpers/ListenRequestNotifier.kt"
-            line="155"
+            line="154"
             column="30"/>
     </issue>
 
@@ -1638,8 +1803,19 @@
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/ui/apps/netmonitor/NetworkMonitorActions.kt"
-            line="32"
+            line="34"
             column="33"/>
+    </issue>
+
+    <issue
+        id="WearRecents"
+        message="Avoid using `FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_CLEAR_TOP`"
+        errorLine1="        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/settings/PermissionsSettingsScreen.kt"
+            line="218"
+            column="26"/>
     </issue>
 
     <issue
@@ -1649,7 +1825,18 @@
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/service/VoiceRecordingService.kt"
-            line="517"
+            line="570"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="WearRecents"
+        message="Avoid using `FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_CLEAR_TOP`"
+        errorLine1="            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)"
+        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/wear/WatchWearListenerService.kt"
+            line="329"
             column="30"/>
     </issue>
 
@@ -1704,7 +1891,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt"
-            line="429"
+            line="430"
             column="25"/>
     </issue>
 
@@ -1715,7 +1902,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt"
-            line="624"
+            line="625"
             column="25"/>
     </issue>
 
@@ -1770,7 +1957,7 @@
         errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/ui/apps/motionmonitor/MotionMonitorScreen.kt"
-            line="134"
+            line="143"
             column="48"/>
     </issue>
 
@@ -1794,6 +1981,17 @@
             file="src/main/java/com/sza/fastmediasorter/wear/data/preferences/NetworkSourceRepositoryImpl.kt"
             line="174"
             column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX function `createBitmap` instead?"
+        errorLine1="        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/wear/PixelCopyWearScreenCapture.kt"
+            line="61"
+            column="22"/>
     </issue>
 
     <issue
@@ -1847,7 +2045,7 @@
         errorLine2="        ~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerViewModel.kt"
-            line="348"
+            line="418"
             column="9"/>
     </issue>
 
@@ -1858,7 +2056,7 @@
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerViewModel.kt"
-            line="460"
+            line="552"
             column="47"/>
     </issue>
 
@@ -1957,7 +2155,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/data/repository/WearMediaRepositoryImpl.kt"
-            line="248"
+            line="247"
             column="13"/>
     </issue>
 
@@ -2001,7 +2199,7 @@
         errorLine2="            ~~~~~~~~~~~~">
         <location
             file="src/main/java/com/sza/fastmediasorter/wear/data/repository/WearStreamUsageRepositoryImpl.kt"
-            line="54"
+            line="55"
             column="13"/>
     </issue>
 
@@ -2014,28 +2212,6 @@
             file="src/main/java/com/sza/fastmediasorter/wear/ui/common/WearWallpaperScrimPolicy.kt"
             line="72"
             column="29"/>
-    </issue>
-
-    <issue
-        id="ConstantLocale"
-        message="Assigning `Locale.getDefault()` to a final static field is suspicious; this code will not work correctly if the user changes locale while the app is running"
-        errorLine1="private val TIME_FORMATTER = DateTimeFormatter.ofPattern(&quot;HH:mm&quot;, Locale.getDefault())"
-        errorLine2="                                                                  ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/ui/apps/tourist/TouristHeroCard.kt"
-            line="30"
-            column="67"/>
-    </issue>
-
-    <issue
-        id="ConstantLocale"
-        message="Assigning `Locale.getDefault()` to a final static field is suspicious; this code will not work correctly if the user changes locale while the app is running"
-        errorLine1="private val TIME_FORMATTER = DateTimeFormatter.ofPattern(&quot;HH:mm&quot;, Locale.getDefault())"
-        errorLine2="                                                                  ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/wear/ui/apps/tourist/TouristSecondaryCard.kt"
-            line="28"
-            column="67"/>
     </issue>
 
 </issues>

@@ -35,8 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
@@ -45,6 +43,7 @@ import coil.compose.AsyncImage
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.onboarding.WearOnboardingPermissionStep
 import com.sza.fastmediasorter.wear.domain.onboarding.WearOnboardingPlannedStep
+import com.sza.fastmediasorter.wear.ui.common.StandardWearChip
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -85,6 +84,7 @@ fun WearOnboardingScreen(
     }
     val step = if (page >= introPages) steps.getOrNull(page - introPages) else null
     Timber.d("S3225: onboarding page %d of %d, step=%s", page, pageCount, step?.step)
+    Timber.d("S3259: onboarding page actions are StandardWearChip")
 
     // A group granted earlier - a reinstall that kept runtime grants - is not asked again.
     LaunchedEffect(page) {
@@ -149,13 +149,31 @@ private fun ScalingLazyListScope.welcomeItems(onNext: () -> Unit) {
             modifier = Modifier.fillMaxWidth()
         )
     }
-    actionChip(R.string.wear_onboarding_next, primary = true, forward = true, onClick = onNext)
+    item {
+        StandardWearChip(
+            label = stringResource(R.string.wear_onboarding_next),
+            onClick = onNext,
+            modifier = Modifier.testTag(WearTestTags.WEAR_ONBOARDING_FORWARD)
+        )
+    }
 }
 
 private fun ScalingLazyListScope.introItems(onStart: () -> Unit, onSkipAll: () -> Unit) {
     titleAndBody(R.string.wear_onboarding_intro_title, R.string.wear_onboarding_intro_body)
-    actionChip(R.string.wear_onboarding_start, primary = true, forward = true, onClick = onStart)
-    actionChip(R.string.wear_onboarding_skip_all, primary = false, forward = false, onClick = onSkipAll)
+    item {
+        StandardWearChip(
+            label = stringResource(R.string.wear_onboarding_start),
+            onClick = onStart,
+            modifier = Modifier.testTag(WearTestTags.WEAR_ONBOARDING_FORWARD)
+        )
+    }
+    item {
+        StandardWearChip(
+            label = stringResource(R.string.wear_onboarding_skip_all),
+            onClick = onSkipAll,
+            primary = false
+        )
+    }
 }
 
 private fun ScalingLazyListScope.stepItems(
@@ -185,9 +203,24 @@ private fun ScalingLazyListScope.stepItems(
         )
     }
     titleAndBody(look.title, look.reason)
-    actionChip(R.string.wear_onboarding_allow, primary = true, forward = false, onClick = onAllow)
-    actionChip(R.string.wear_onboarding_skip, primary = false, forward = true, onClick = onSkip)
-    actionChip(R.string.wear_onboarding_skip_all, primary = false, forward = false, onClick = onSkipAll)
+    item {
+        StandardWearChip(label = stringResource(R.string.wear_onboarding_allow), onClick = onAllow)
+    }
+    item {
+        StandardWearChip(
+            label = stringResource(R.string.wear_onboarding_skip),
+            onClick = onSkip,
+            modifier = Modifier.testTag(WearTestTags.WEAR_ONBOARDING_FORWARD),
+            primary = false
+        )
+    }
+    item {
+        StandardWearChip(
+            label = stringResource(R.string.wear_onboarding_skip_all),
+            onClick = onSkipAll,
+            primary = false
+        )
+    }
 }
 
 private fun ScalingLazyListScope.titleAndBody(@StringRes title: Int, @StringRes body: Int) {
@@ -207,32 +240,6 @@ private fun ScalingLazyListScope.titleAndBody(@StringRes title: Int, @StringRes 
             textAlign = TextAlign.Center,
             color = MaterialTheme.colors.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-
-private fun ScalingLazyListScope.actionChip(
-    @StringRes label: Int,
-    primary: Boolean,
-    forward: Boolean,
-    onClick: () -> Unit,
-) {
-    item {
-        Chip(
-            onClick = onClick,
-            modifier = if (forward) {
-                Modifier.fillMaxWidth().testTag(WearTestTags.WEAR_ONBOARDING_FORWARD)
-            } else {
-                Modifier.fillMaxWidth()
-            },
-            label = {
-                Text(
-                    text = stringResource(label),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            colors = if (primary) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
         )
     }
 }

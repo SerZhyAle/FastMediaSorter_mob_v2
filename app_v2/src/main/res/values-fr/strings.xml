@@ -2261,7 +2261,7 @@
     <string name="launcher_edit_unpin_named">Désépingler %1$s</string>
     <string name="launcher_settings_enable_title">Définir cette application comme écran d\'accueil</string>
     <string name="launcher_start_window_title">Ouvrir le bureau au démarrage de l’app</string>
-    <string name="launcher_start_window_desc">Ouvre votre bureau au lieu du navigateur de fichiers. L’écran d’accueil de l’appareil ne change pas.</string>
+    <string name="launcher_start_window_desc">Ouvre votre bureau au lieu du gestionnaire de ressources. Cela ne change pas l\'écran d\'accueil de l\'appareil.</string>
     <string name="launcher_settings_enable_desc">Le bouton Accueil ouvre votre propre bureau avec des raccourcis et des widgets. Désactivez cette option à tout moment pour retrouver votre écran d\'accueil précédent.</string>
     <string name="launcher_settings_enable_help_title">Mode écran d\'accueil</string>
     <string name="launcher_settings_enable_help_message">Lorsque vous activez cette option, Android vous demande quel écran d\'accueil utiliser - choisissez cette application et appuyez sur Toujours (ou Une seule fois pour l\'essayer). Pour revenir en arrière, désactivez cette option et Android restaure votre écran d\'accueil précédent.</string>
@@ -3624,4 +3624,36 @@
     <string name="wear_screenshot_captured">La montre a envoyé sa capture d\'écran</string>
     <string name="wear_screenshot_no_answer">La montre n\'a pas répondu</string>
     <string name="wear_companion_group_operations">Opérations de la montre</string>
+    <string name="resource_manager_title">Gestionnaire de ressources</string>
+    <string name="welcome_primary_window_title">Fenêtre principale</string>
+    <string name="welcome_primary_window_subtitle">Choisissez ce qui s\'ouvre au démarrage de FastMediaSorter</string>
+    <string name="launcher_primary_window_recommended">Recommandé</string>
+    <string name="launcher_primary_window_home_title">Écran d\'accueil de l\'appareil</string>
+    <string name="launcher_primary_window_home_desc">L\'application devient l\'écran d\'accueil de votre appareil</string>
+    <string name="launcher_primary_window_desktop_title">Bureau comme fenêtre principale</string>
+    <string name="launcher_primary_window_desktop_desc">Ouvre le bureau dans l\'application sans changer l\'écran d\'accueil de l\'appareil</string>
+    <string name="launcher_primary_window_resource_manager_title">Gestionnaire de ressources</string>
+    <string name="launcher_primary_window_resource_manager_desc">Ouvre directement la gestion des fichiers et des médias</string>
+    <string name="setting_launcher_primary_window_title">Fenêtre de démarrage principale</string>
+    <string name="setting_launcher_primary_window_desc">Choisissez si l\'application s\'ouvre comme écran d\'accueil de l\'appareil, bureau intégré ou gestionnaire de ressources</string>
+    <string-array name="launcher_primary_window_options">
+        <item>@string/launcher_primary_window_home_title</item>
+        <item>@string/launcher_primary_window_desktop_title</item>
+        <item>@string/launcher_primary_window_resource_manager_title</item>
+    </string-array>
+    <string name="broadcast_default_stream_title">Flux du téléphone</string>
+    <string name="broadcast_share_help">Comment regarder</string>
+    <string name="sos_title">Signal de détresse SOS</string>
+    <string name="sos_hint">La sirène et le stroboscope répètent le motif SOS en morse. La montre associée signale aussi lorsqu\'elle est à portée.</string>
+    <string name="sos_stop_action">Arrêter le signal</string>
+    <string name="sos_mode_all">Son et lumière</string>
+    <string name="sos_mode_sound_only">Son uniquement</string>
+    <string name="sos_mode_light_only">Lumière uniquement</string>
+    <string name="sos_notification_text">Signal actif : %1$s</string>
+    <string name="sos_notification_channel">Signal SOS</string>
+    <string name="sos_settings_toggle_title">Signal de détresse SOS</string>
+    <string name="sos_settings_toggle_subtitle">Sirène morse puissante, flash stroboscopique et un signal identique sur la montre</string>
+    <string name="sos_help_title">Signal de détresse SOS</string>
+    <string name="sos_help_message">Répète le motif SOS en morse avec une sirène puissante sur le canal d\'alarme, le flash arrière et un écran clignotant. Choisissez le son, la lumière ou les deux. Le lancer ici le lance aussi sur la montre associée, et arrêter l\'un arrête les deux. Le signal s\'arrête de lui-même au bout de 30 minutes pour préserver la batterie et le flash.</string>
+    <string name="tourist_action_sos">Signal SOS</string>
 </resources>

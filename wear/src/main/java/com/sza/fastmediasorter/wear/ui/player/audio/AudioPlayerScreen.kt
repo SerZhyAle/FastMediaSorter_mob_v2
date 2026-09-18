@@ -342,7 +342,7 @@ private fun AudioPlayerContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .rotaryActionSteps(onRotaryStep)
+            .rotaryActionSteps(onStep = onRotaryStep)
             .pointerInput(Unit) {
                 detectVerticalDragGestures { change, dragAmount ->
                     change.consume()

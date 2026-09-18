@@ -2260,7 +2260,7 @@
     <string name="launcher_edit_unpin_named">Desafixar %1$s</string>
     <string name="launcher_settings_enable_title">Tornar este aplicativo a tela inicial</string>
     <string name="launcher_start_window_title">Abrir a área de trabalho ao iniciar o app</string>
-    <string name="launcher_start_window_desc">Abre sua área de trabalho em vez do navegador de arquivos. A tela inicial do dispositivo não muda.</string>
+    <string name="launcher_start_window_desc">Abre a sua área de trabalho em vez do Gestor de recursos. Isto não altera o ecrã principal do dispositivo.</string>
     <string name="launcher_settings_enable_desc">O botão Início abre sua própria área de trabalho com atalhos e widgets. Desative isso a qualquer momento para trazer de volta sua tela inicial anterior.</string>
     <string name="launcher_settings_enable_help_title">Modo de tela inicial</string>
     <string name="launcher_settings_enable_help_message">Quando você ativa isso, o Android pergunta qual tela inicial usar - escolha este aplicativo e toque em Sempre (ou Apenas uma vez para testar). Para voltar, desative isso e o Android restaura sua tela inicial anterior.</string>
@@ -3623,4 +3623,36 @@
     <string name="wear_screenshot_captured">O relógio enviou sua captura de tela</string>
     <string name="wear_screenshot_no_answer">O relógio não respondeu</string>
     <string name="wear_companion_group_operations">Operações do relógio</string>
+    <string name="resource_manager_title">Gestor de recursos</string>
+    <string name="welcome_primary_window_title">Janela principal</string>
+    <string name="welcome_primary_window_subtitle">Escolha o que abre quando inicia o FastMediaSorter</string>
+    <string name="launcher_primary_window_recommended">Recomendado</string>
+    <string name="launcher_primary_window_home_title">Ecrã principal do dispositivo</string>
+    <string name="launcher_primary_window_home_desc">A aplicação torna-se o ecrã principal do seu dispositivo</string>
+    <string name="launcher_primary_window_desktop_title">Área de trabalho como janela principal</string>
+    <string name="launcher_primary_window_desktop_desc">Abre a área de trabalho dentro da aplicação sem alterar o ecrã principal do dispositivo</string>
+    <string name="launcher_primary_window_resource_manager_title">Gestor de recursos</string>
+    <string name="launcher_primary_window_resource_manager_desc">Abre diretamente a gestão de ficheiros e de recursos multimédia</string>
+    <string name="setting_launcher_primary_window_title">Janela de arranque principal</string>
+    <string name="setting_launcher_primary_window_desc">Escolha se a aplicação abre como ecrã principal do dispositivo, área de trabalho interna ou Gestor de recursos</string>
+    <string-array name="launcher_primary_window_options">
+        <item>@string/launcher_primary_window_home_title</item>
+        <item>@string/launcher_primary_window_desktop_title</item>
+        <item>@string/launcher_primary_window_resource_manager_title</item>
+    </string-array>
+    <string name="broadcast_default_stream_title">Transmissão do telemóvel</string>
+    <string name="broadcast_share_help">Como ver isto</string>
+    <string name="sos_title">Sinal de emergência SOS</string>
+    <string name="sos_hint">A sirene e o estroboscópio repetem o padrão SOS em morse. O relógio emparelhado também sinaliza quando está ao alcance.</string>
+    <string name="sos_stop_action">Parar o sinal</string>
+    <string name="sos_mode_all">Som e luz</string>
+    <string name="sos_mode_sound_only">Apenas som</string>
+    <string name="sos_mode_light_only">Apenas luz</string>
+    <string name="sos_notification_text">Sinal ativo: %1$s</string>
+    <string name="sos_notification_channel">Sinal SOS</string>
+    <string name="sos_settings_toggle_title">Sinal de emergência SOS</string>
+    <string name="sos_settings_toggle_subtitle">Sirene morse alta, lanterna estroboscópica e um sinal correspondente no relógio</string>
+    <string name="sos_help_title">Sinal de emergência SOS</string>
+    <string name="sos_help_message">Repete o padrão SOS em morse com uma sirene alta no canal de alarme, o flash traseiro e um ecrã intermitente. Escolha som, luz ou ambos. Iniciá-lo aqui também o inicia no relógio emparelhado, e parar um deles para ambos. O sinal termina sozinho ao fim de 30 minutos para que a bateria e o flash o suportem.</string>
+    <string name="tourist_action_sos">Sinal SOS</string>
 </resources>

@@ -858,6 +858,23 @@ function Get-SourceRules {
                     'that call reads no generic signature, so it survives any R8 configuration. Use Long::class.javaObjectType, ' +
                     'not Long::class.java: the latter is the primitive, which Gson has no adapter for. ' +
                     'Judged in app_v2 only - wear/proguard-rules.pro keeps the unweakened Gson rules and has never seen the crash.')),
+        # S3270: media3 1.11.0 writes per-controller state back AFTER handing the callback out -
+        # `MediaSessionImpl.dispatchOnPlayerInfoChanged` checks `isConnected` at the top of the loop
+        # turn, calls `onPlayerInfoChanged`, then reads the same record through `checkNotNull` in
+        # `ConnectedControllersManager.updateLastSentTimelineAndTracks`. Session and controller share
+        # one process and one looper here, so a release taken from inside a Player.Listener removes the
+        # record between those two points and the library throws a fatal NPE on the main thread. It
+        # reached a remote tester twice from two different owners (S3164, then S3270), which is why the
+        # remembered rule became this one. Baseline is 0 and the cure is one call, so growth is refused
+        # outright rather than measured. Upstream androidx/media #3375, still open.
+        (New-RegexRule -Name 'media3-raw-controller-release' `
+                -Pattern ([regex]'MediaController\.releaseFuture\s*\(|\bmediaController\??\.release\s*\(\s*\)') `
+                -ExcludeNames @('MediaControllerRelease.kt') `
+                -FailMessage ('raw media3 MediaController teardown in app_v2 (S3270). Route it through ' +
+                    'core/playback/MediaControllerRelease - release(controller) / releaseFuture(future, looper) - ' +
+                    'which posts the teardown as a looper message so the session''s dispatch loop finishes first. ' +
+                    'A release taken from inside a Player.Listener removes the controller''s record mid-dispatch and ' +
+                    'media3 1.11.0 throws a fatal NPE there (androidx/media #3375). This baseline is 0 and is never raised.')),
         # S1693: growth stop for findViewById, not a placement rule. Whether one call is legitimate
         # (custom View, adapter, runtime-resolved layout, documented host-neutral helper) or legacy
         # is NOT lexically decidable - both shapes look identical - so this rule counts growth only.
@@ -1305,7 +1322,7 @@ function Get-SourceRules {
                 -Roots @('wear/src/main') `
                 -PathFilter '^wear/src/main/java/com/sza/fastmediasorter/wear/ui/(?!common/).*' `
                 -Baseline 'wear-raw-toggle-baseline.txt' `
-                -FailMessage 'new raw toggle (ToggleChip, Checkbox, Switch) in wear/src/main outside ui/common (S2133). Use WearSettingsToggleCell from ui/common instead.'),
+                -FailMessage 'new raw toggle (ToggleChip, Checkbox, Switch) in wear/src/main outside ui/common (S2133). Use StandardWearToggleChip from ui/common instead.'),
         # S2243: AppSettings field persistence completeness gate.
         # Compares every field in AppSettings.kt against the combined text of
         # data/repository/settings/*.kt and SettingsRepositoryImpl.kt.
@@ -1415,7 +1432,25 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-WearListStartText $t }
             LocateInText = { param($t) Find-WearListStartLines $t }
             FailMessage  = 'direct ScalingLazyColumn or rememberScalingLazyListState in wear module. Use WearListColumn and rememberWearListState to enforce consistent round-screen top-edge placement and content padding (S2466).'
-        }
+        },
+        # S3257: a literal font size in the wear module. docs/ui/WEAR_UI_COMPONENT_PATTERNS.md section
+        # 1.3 has forbidden inline `fontSize = ..sp` since S3232 and five screens carried 24 of them
+        # anyway, because a written rule cannot refuse the sixth screen that copies its neighbour.
+        #
+        # The pattern requires DIGITS before `.sp`, which is what separates a literal from the three
+        # legitimate uses that survive: WearCaptionText applies `.sp` to a computed step of its own
+        # shrink scale, ThumbnailCell converts that scale's floor into dp, and CalculatorHistoryPage
+        # applies the owner's stored history size. None of the three names a number at the call site.
+        #
+        # WearTypography.kt is excluded by name for the reason PackageManagerCompat is: it IS the seam
+        # this rule routes callers towards, and the one place the app's own focal size is written down.
+        (New-RegexRule -Name 'wear-inline-font-size' `
+                -Pattern ([regex]'\b\d+(?:\.\d+)?f?\.sp\b') `
+                -Roots @('wear/src/main') `
+                -PathFilter '^wear/src/main/' `
+                -Baseline 'wear-inline-font-size-baseline.txt' `
+                -ExcludeNames @('WearTypography.kt') `
+                -FailMessage 'literal font size (`NN.sp`) in wear/src/main. docs/ui/WEAR_UI_COMPONENT_PATTERNS.md section 1.3 requires text size to resolve through MaterialTheme.typography - take the nearest token from the table there, and if the screen genuinely needs a size the scale has no name for, re-size a token in ui/theme/WearTypography.kt instead of writing the number at the call site (S3257).')
     )
 }
 

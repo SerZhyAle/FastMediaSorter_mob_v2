@@ -4094,4 +4094,26 @@
     <string name="sos_help_title">Аварийный сигнал SOS</string>
     <string name="sos_help_message">Повторяет сигнал SOS по Морзе: громкая сирена на канале будильника, задняя вспышка и мигающий экран. Можно выбрать звук, свет или и то и другое. Запуск здесь включает сигнал и на парных часах, а остановка на любом устройстве гасит оба. Через 30 минут сигнал выключается сам, чтобы сберечь батарею и вспышку.</string>
     <string name="tourist_action_sos">Сигнал SOS</string>
+    <string name="data_transfer_row_title">Импорт и экспорт данных</string>
+    <string name="data_transfer_row_subtitle">Настройки, избранное, закреплённые трансляции и ресурсы - в файл или в Google Drive</string>
+    <string name="data_transfer_dialog_title">Импорт и экспорт данных</string>
+    <string name="data_transfer_kind_settings">Настройки</string>
+    <string name="data_transfer_kind_favorites">Избранное</string>
+    <string name="data_transfer_kind_streams">Закреплённые трансляции</string>
+    <string name="data_transfer_kind_resources">Ресурсы</string>
+    <string name="data_transfer_direction_export">Выгрузить</string>
+    <string name="data_transfer_direction_import">Загрузить</string>
+    <string name="data_transfer_medium_file">Файл устройства</string>
+    <string name="data_transfer_medium_drive">Google Drive</string>
+    <string name="data_transfer_medium_file_desc">Выбрать файл на этом устройстве</string>
+    <string name="data_transfer_medium_drive_desc">Использовать файл в подключённом аккаунте Google Drive</string>
+    <string name="data_transfer_progress">Переносим %1$s..</string>
+    <string name="data_transfer_export_done">%1$s выгружены.</string>
+    <string name="data_transfer_import_done">Готово. Добавлено %1$d, обновлено %2$d, пропущено %3$d.</string>
+    <string name="data_transfer_error_drive">Не удалось обратиться к Google Drive. Проверьте соединение и что в настройках подключён аккаунт Google, затем повторите.</string>
+    <string name="data_transfer_error_no_file">В Google Drive пока нет файла «%1$s». Сначала выгрузите его с другого устройства.</string>
+    <string name="data_transfer_error_incompatible">Этот файл содержит другой тип данных или создан более новой версией приложения. Ничего не изменилось.</string>
+    <string name="data_transfer_error_empty">В разделе «%1$s» пока нечего выгружать.</string>
+    <string name="data_transfer_error_unreadable">Не удалось прочитать файл. Выберите его снова или другой.</string>
+    <string name="data_transfer_error_unwritable">Не удалось записать в это место. Выберите другой файл и повторите.</string>
 </resources>

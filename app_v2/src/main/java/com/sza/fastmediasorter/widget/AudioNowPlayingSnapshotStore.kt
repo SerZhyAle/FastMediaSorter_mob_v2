@@ -3,6 +3,14 @@ package com.sza.fastmediasorter.widget
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
+import androidx.annotation.VisibleForTesting
+import com.sza.fastmediasorter.data.SyncStorageCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Lightweight persistent state for the home-screen Audio Now Playing widget.
@@ -10,6 +18,20 @@ import android.content.Context
  * The playback service owns writes. Widget providers only read this snapshot and render it.
  */
 object AudioNowPlayingSnapshotStore {
+
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /** Keeps two writes from reaching the file out of the order their callers issued them in. */
+    private val persistLock = Mutex()
+
+    /**
+     * S3239: the playback service publishes a snapshot from a thread that runs under a StrictMode
+     * policy detecting disk reads, and both [read] and [write] used to open the preferences file
+     * there. The last written value lives here instead, so only the very first read touches disk.
+     */
+    @Volatile
+    private var cached: Snapshot? = null
+
     private const val PREFS = "audio_now_playing_widget"
     private const val KEY_ACTIVE = "active"
     private const val KEY_TITLE = "title"
@@ -38,8 +60,10 @@ object AudioNowPlayingSnapshotStore {
             get() = active && mediaUri.isNotBlank() && resourceId > 0L
     }
 
-    fun read(context: Context): Snapshot {
-        val prefs = com.sza.fastmediasorter.data.SyncStorageCompat.getSyncPreferences(context, PREFS)
+    fun read(context: Context): Snapshot = cached ?: readFromDisk(context).also { cached = it }
+
+    private fun readFromDisk(context: Context): Snapshot {
+        val prefs = SyncStorageCompat.getSyncPreferences(context, PREFS)
         return Snapshot(
             active = prefs.getBoolean(KEY_ACTIVE, false),
             title = prefs.getString(KEY_TITLE, "").orEmpty(),
@@ -54,8 +78,23 @@ object AudioNowPlayingSnapshotStore {
         )
     }
 
+    /**
+     * Publishes [snapshot] at once for every in-process reader and persists it on [Dispatchers.IO],
+     * because the callers are the playback service and a widget broadcast, neither of which may block
+     * on the preferences file (S3239).
+     */
     fun write(context: Context, snapshot: Snapshot) {
-        com.sza.fastmediasorter.data.SyncStorageCompat.getSyncPreferences(context, PREFS)
+        cached = snapshot
+        val appContext = context.applicationContext
+        ioScope.launch {
+            persistLock.withLock { persist(appContext, snapshot) }
+            updateWidgets(appContext)
+        }
+    }
+
+    @VisibleForTesting
+    internal fun persist(context: Context, snapshot: Snapshot) {
+        SyncStorageCompat.getSyncPreferences(context, PREFS)
             .edit()
             .putBoolean(KEY_ACTIVE, snapshot.active)
             .putString(KEY_TITLE, snapshot.title)
@@ -68,7 +107,12 @@ object AudioNowPlayingSnapshotStore {
             .putLong(KEY_DATE_MODIFIED, snapshot.dateModified)
             .putBoolean(KEY_IS_FAVORITE, snapshot.isFavorite)
             .apply()
-        updateWidgets(context)
+    }
+
+    /** The cache outlives a test method because the owner is an object, so a suite drops it here. */
+    @VisibleForTesting
+    internal fun dropCacheForTest() {
+        cached = null
     }
 
     fun clear(context: Context) {

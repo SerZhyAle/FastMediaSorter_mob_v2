@@ -12,6 +12,7 @@ import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import android.os.SystemClock
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
@@ -35,6 +36,7 @@ import com.sza.fastmediasorter.wear.domain.listen.ListenSessionState
 import com.sza.fastmediasorter.wear.domain.listen.ListenSessionStateHolder
 import com.sza.fastmediasorter.wear.domain.model.ListenRefusal
 import com.sza.fastmediasorter.wear.domain.model.LiveAudioEndpoint
+import com.sza.fastmediasorter.wear.domain.power.WearPowerManager
 import com.sza.fastmediasorter.wear.domain.repository.BroadcastNetworkLease
 import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
 import com.sza.fastmediasorter.wear.domain.usecase.GetWatchDisplayNameUseCase
@@ -122,8 +124,19 @@ class VoiceRecordingService : Service() {
     @Inject
     lateinit var networkHold: StreamNetworkHold
 
+    /**
+     * S3265: the CPU hold a live audio session needs on top of its foreground type. Without it the
+     * platform's doze policy treats this process as idle work and a Samsung background-management
+     * daemon force-stopped the whole package mid-broadcast (strategic §1).
+     */
+    @Inject
+    lateinit var wearPower: WearPowerManager
+
     /** Owned for the broadcast's whole life and released on every stop and every failed-start path. */
     private var broadcastLease: BroadcastNetworkLease? = null
+
+    /** Held only while a broadcast or a listening session is serving audio; never for a voice note. */
+    private var sessionWakeLock: PowerManager.WakeLock? = null
 
     /** S2939: live only while a phone-requested listening session is serving; cancelled on every stop. */
     private var listenWatchdog: ListenAudienceWatchdog? = null
@@ -194,6 +207,7 @@ class VoiceRecordingService : Service() {
         // Before the listen state is cleared, and unconditionally: a held network outliving the
         // process that held it is the one leak the owner cannot see and cannot undo from the watch.
         releaseBroadcastLease()
+        releaseSessionWakeLock()
         clearListenSessionUnlessFailed()
         clearBroadcastSessionUnlessFailed()
         super.onDestroy()
@@ -217,6 +231,25 @@ class VoiceRecordingService : Service() {
         listenWatchdog = null
         lanServer.stop()
         sessionManager.stop()
+        releaseSessionWakeLock()
+    }
+
+    /**
+     * S3265: taken before the session opens rather than after it is serving, because the kill this
+     * defends against lands during the first quiet minutes of doze and a hold applied late is a hold
+     * that was not there for them. Idempotent - a second start path finds the lock already held.
+     */
+    private fun acquireSessionWakeLock() {
+        if (sessionWakeLock != null) {
+            return
+        }
+        sessionWakeLock = wearPower.acquirePartialWakeLock(WearPowerManager.SESSION_WAKE_LOCK_TAG)
+        Timber.d("S3265: session wake lock held=%s", sessionWakeLock?.isHeld == true)
+    }
+
+    private fun releaseSessionWakeLock() {
+        wearPower.releaseWakeLock(sessionWakeLock)
+        sessionWakeLock = null
     }
 
     private fun handleStart() {
@@ -247,6 +280,7 @@ class VoiceRecordingService : Service() {
         }
         val notification = buildNotification(R.string.wear_listen_notification_title, NotificationStop.LISTEN)
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())
+        acquireSessionWakeLock()
         listenSession.publish(ListenSessionState.Starting)
         serviceScope.launch { openListeningSession() }
     }
@@ -333,6 +367,7 @@ class VoiceRecordingService : Service() {
         }
         val notification = buildNotification(R.string.wear_broadcast_notification_title, NotificationStop.BROADCAST)
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())
+        acquireSessionWakeLock()
         broadcastSession.publish(WearBroadcastSessionState.Starting)
         serviceScope.launch { openBroadcastSession() }
     }
@@ -409,6 +444,7 @@ class VoiceRecordingService : Service() {
     /** Every failed-start path: the network goes back, the state says why, and the service ends. */
     private fun failBroadcast(reason: WearBroadcastFailure) {
         releaseBroadcastLease()
+        releaseSessionWakeLock()
         broadcastSession.publish(WearBroadcastSessionState.Failed(reason))
         stopForegroundAndSelf()
     }
@@ -421,6 +457,7 @@ class VoiceRecordingService : Service() {
         lanServer.stop()
         sessionManager.stop()
         releaseBroadcastLease()
+        releaseSessionWakeLock()
         broadcastSession.publish(WearBroadcastSessionState.Idle)
     }
 

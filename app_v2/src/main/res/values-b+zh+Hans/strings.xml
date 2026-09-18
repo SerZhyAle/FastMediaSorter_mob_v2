@@ -2254,7 +2254,7 @@
     <string name="launcher_edit_unpin_named">取消固定 %1$s</string>
     <string name="launcher_settings_enable_title">将此应用设为主屏幕</string>
     <string name="launcher_start_window_title">应用启动时打开桌面</string>
-    <string name="launcher_start_window_desc">打开你的桌面，而不是文件浏览器。不会更改设备主屏幕。</string>
+    <string name="launcher_start_window_desc">打开你的桌面而不是资源管理器。这不会改变设备的主屏幕。</string>
     <string name="launcher_settings_enable_desc">按下主屏幕键将打开你自己的桌面，包含快捷方式和小组件。随时关闭即可恢复之前的主屏幕。</string>
     <string name="launcher_settings_enable_help_title">主屏幕模式</string>
     <string name="launcher_settings_enable_help_message">开启后，Android 会询问要使用哪个主屏幕 - 选择本应用并点按“始终”（或点按“仅一次”先试用）。要恢复，只需关闭此选项，Android 会还原之前的主屏幕。</string>
@@ -3614,4 +3614,36 @@
     <string name="wear_screenshot_captured">手表已发送截图</string>
     <string name="wear_screenshot_no_answer">手表没有响应</string>
     <string name="wear_companion_group_operations">手表操作</string>
+    <string name="resource_manager_title">资源管理器</string>
+    <string name="welcome_primary_window_title">主窗口</string>
+    <string name="welcome_primary_window_subtitle">选择启动 FastMediaSorter 时打开的内容</string>
+    <string name="launcher_primary_window_recommended">推荐</string>
+    <string name="launcher_primary_window_home_title">设备主屏幕</string>
+    <string name="launcher_primary_window_home_desc">应用将成为你的设备主屏幕</string>
+    <string name="launcher_primary_window_desktop_title">桌面作为主窗口</string>
+    <string name="launcher_primary_window_desktop_desc">在应用内打开桌面，不改变设备主屏幕</string>
+    <string name="launcher_primary_window_resource_manager_title">资源管理器</string>
+    <string name="launcher_primary_window_resource_manager_desc">直接打开文件和媒体资源管理</string>
+    <string name="setting_launcher_primary_window_title">主启动窗口</string>
+    <string name="setting_launcher_primary_window_desc">选择应用以设备主屏幕、应用内桌面还是资源管理器的方式打开</string>
+    <string-array name="launcher_primary_window_options">
+        <item>@string/launcher_primary_window_home_title</item>
+        <item>@string/launcher_primary_window_desktop_title</item>
+        <item>@string/launcher_primary_window_resource_manager_title</item>
+    </string-array>
+    <string name="broadcast_default_stream_title">手机直播</string>
+    <string name="broadcast_share_help">如何观看</string>
+    <string name="sos_title">SOS 紧急信号</string>
+    <string name="sos_hint">警报声和闪光灯重复摩尔斯 SOS 信号。配对的手表在范围内时也会同时发出信号。</string>
+    <string name="sos_stop_action">停止信号</string>
+    <string name="sos_mode_all">声音和灯光</string>
+    <string name="sos_mode_sound_only">仅声音</string>
+    <string name="sos_mode_light_only">仅灯光</string>
+    <string name="sos_notification_text">信号进行中：%1$s</string>
+    <string name="sos_notification_channel">SOS 信号</string>
+    <string name="sos_settings_toggle_title">SOS 紧急信号</string>
+    <string name="sos_settings_toggle_subtitle">响亮的摩尔斯警报声、频闪手电筒，以及手表上的同步信号</string>
+    <string name="sos_help_title">SOS 紧急信号</string>
+    <string name="sos_help_message">以警报音量通道上的响亮警报声、后置闪光灯和闪烁的屏幕重复摩尔斯 SOS 信号。可选择声音、灯光或两者。在此启动也会在配对的手表上启动，停止其中任一方会同时停止两者。信号会在 30 分钟后自动结束，以保护电池和闪光灯。</string>
+    <string name="tourist_action_sos">SOS 信号</string>
 </resources>

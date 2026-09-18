@@ -73,6 +73,10 @@
            Order comes from PLAN/RELEASE_QUEUE.md; the model is picked per ticket (Opus where a
            decision is left, Sonnet for Implemented and tier 1-2). Options forward through, e.g.
            `.\a.ps1 r1 -MaxTickets 5 -TimeoutMinutes 45`.
+           Each of the four prints its own progress into its console as it goes - status flips,
+           closure verdicts, phase posts - read live from the agent chat, plus a still-working line
+           every 10 quiet minutes. Watch all of them from a spare window instead:
+           `pwsh -NoProfile -File scripts/utils/watch-agent-progress.ps1`.
            Each start cleans stale ticket leases first (same as `ul`), so a ticket a killed
            instance was on - still Draft/Tactical/Partial/whatever it was, never "done" - is
            immediately eligible again instead of reading as held for up to 45 minutes.
@@ -599,6 +603,40 @@ if ($releaseCommands -contains $Command) {
 # running it here is free when every lease is genuinely live and frees a real one immediately when
 # it is not. Best-effort: a failed cleanup must not block the runner from starting - the lease
 # would still be swept by its own staleness window eventually.
+#
+# The instance name each runner stamps on its own process tree, and the progress watcher
+# started beside it. r0's MONO chain takes no lease, so it is absent from the cleanup set below but
+# present in both maps - it needs the console progress at least as much, being one agent alone.
+$queueRunnerInstanceNames = @{ 'r0' = 'mono'; 'r1' = 'a'; 'r2' = 'b'; 'r3' = 'c' }
+$queueRunnerProgressProc = $null
+if ($queueRunnerInstanceNames.ContainsKey($Command)) {
+    # Stamp the instance on every descendant. agent-identity.ps1 reads FMS_QUEUE_INSTANCE and writes
+    # it into each chat record as `agent.instance`, so the progress watcher - and the monitor, and
+    # any later reader of the chat - can tell three parallel runners apart. Nothing else sets it, so
+    # before this every record from every instance read `instance -`.
+    $env:FMS_QUEUE_INSTANCE = $queueRunnerInstanceNames[$Command]
+
+    # The console's only sign of life between tickets. A `claude -p` child prints one line when its
+    # ticket ENDS and silent-mode.md forbids it anything before that, so a 30-60 minute pipeline read
+    # as a hang; the phases meanwhile announce themselves to the agent chat as they happen. Started
+    # -NoNewWindow so it writes into THIS console, and told this pid so it dies with the runner even
+    # when the runner is killed rather than stopped. Best-effort: no progress view is worth failing a
+    # runner start over.
+    $progressWatcher = Join-Path $ProjectRoot 'scripts\utils\watch-agent-progress.ps1'
+    if (Test-Path $progressWatcher) {
+        try {
+            $queueRunnerProgressProc = Start-Process -FilePath 'pwsh' -NoNewWindow -PassThru -ArgumentList @(
+                '-NoProfile', '-File', $progressWatcher,
+                '-Instance', $env:FMS_QUEUE_INSTANCE,
+                '-ParentPid', $PID
+            )
+        }
+        catch {
+            Write-Host "  progress watcher did not start, continuing without it - $($_.Exception.Message)" -ForegroundColor DarkYellow
+        }
+    }
+}
+
 $queueRunnerStartCommands = @('r1', 'r2', 'r3')
 if ($queueRunnerStartCommands -contains $Command) {
     $leaseCleanScript = Join-Path $ProjectRoot 'scripts\spec_catalog\ticket-lease.ps1'
@@ -623,7 +661,17 @@ $argsDisplay = if ($scriptArgs -is [hashtable]) {
 Write-Host "Executing: $($scriptEntry.Path) $argsDisplay $($Rest -join ' ')" -ForegroundColor Green
 Write-Host ""
 
-Invoke-LauncherTarget -Path $scriptPath -PresetArgs $scriptArgs -ExtraArgs $Rest
+try {
+    Invoke-LauncherTarget -Path $scriptPath -PresetArgs $scriptArgs -ExtraArgs $Rest
+}
+finally {
+    # The watcher exits on its own once this pid is gone, but only at its next poll - stopping it here
+    # keeps a normal runner exit from leaving a stray pwsh writing into a console the operator has
+    # moved on from.
+    if ($queueRunnerProgressProc -and -not $queueRunnerProgressProc.HasExited) {
+        try { $queueRunnerProgressProc.Kill() } catch { }
+    }
+}
 
 # Return exit code from executed script
 exit $LASTEXITCODE

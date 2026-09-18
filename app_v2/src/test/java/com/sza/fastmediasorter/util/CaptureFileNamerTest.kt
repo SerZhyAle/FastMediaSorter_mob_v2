@@ -24,6 +24,24 @@ class CaptureFileNamerTest {
             "video_frame_260821_123456.png",
             namer.allocate(CaptureKind.VIDEO_FRAME, ".png", timestamp),
         )
+        assertEquals(
+            "broadcast_260821_123456.fmsbcast",
+            namer.allocate(CaptureKind.BROADCAST, ".fmsbcast", timestamp),
+        )
+    }
+
+    @Test
+    fun `gives each broadcast descriptor export its own timestamped name`() {
+        val namer = CaptureFileNamer()
+
+        assertEquals(
+            "broadcast_260821_123456.fmsbcast",
+            namer.allocate(CaptureKind.BROADCAST, ".fmsbcast", timestamp),
+        )
+        assertEquals(
+            "broadcast_260821_123457.fmsbcast",
+            namer.allocate(CaptureKind.BROADCAST, ".fmsbcast", timestamp + MILLIS_PER_SECOND),
+        )
     }
 
     @Test
@@ -41,6 +59,7 @@ class CaptureFileNamerTest {
         const val HOUR = 12
         const val MINUTE = 34
         const val SECOND = 56
+        const val MILLIS_PER_SECOND = 1000L
 
         val timestamp = GregorianCalendar(YEAR, Calendar.AUGUST, DAY, HOUR, MINUTE, SECOND).timeInMillis
     }

@@ -88,11 +88,19 @@ fun TouristScreen(
     }
 
     Timber.d("S3227: tourist screen location permission=${telemetry.hasLocationPermission}")
+    Timber.d("S3115: tourist tiles=${secondaryMetrics.size} locked=${state.isScreenLocked}")
 
     val promoteMetric: (TouristMetricType) -> Unit = { metricType ->
         viewModel.selectMetric(metricType)
         // Without the jump the list stays where it was and nothing shows that the main panel changed.
-        coroutineScope.launch { listState.animateScrollToItem(0) }
+        // The snap after the animation is not a duplicate: promoting a metric moves a tile out of the
+        // wrapping cloud and re-measures every row under it, so the animation that started against the
+        // old layout ends short of the title (measured on Galaxy Watch 7, 2026-09-17 - the title and the
+        // permission button stayed above the viewport). The snap re-reads the settled layout.
+        coroutineScope.launch {
+            listState.animateScrollToItem(0)
+            listState.scrollToItem(0)
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

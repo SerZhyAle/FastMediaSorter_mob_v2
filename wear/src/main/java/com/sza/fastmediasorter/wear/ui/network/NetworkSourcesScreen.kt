@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -27,10 +28,11 @@ import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.StandardWearAlertDialog
+import com.sza.fastmediasorter.wear.ui.common.StandardWearChip
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
@@ -46,6 +48,9 @@ import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesViewModel
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.SyncState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
+
+private val PROGRESS_INDICATOR_SIZE = 24.dp
+private val PROGRESS_INDICATOR_STROKE = 2.dp
 
 /**
  * Screen for displaying available SMB network sources.
@@ -167,43 +172,17 @@ fun NetworkSourcesScreen(
 
     // Delete confirmation dialog
     pendingDeleteSource?.let { source ->
-        Alert(
-            title = {
-                Text(
-                    text = stringResource(R.string.delete_source_confirm, source.name),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.title3
-                )
+        StandardWearAlertDialog(
+            show = true,
+            title = stringResource(R.string.delete_source_confirm, source.name),
+            onConfirm = {
+                viewModel.deleteSource(source.id)
+                pendingDeleteSource = null
             },
-            negativeButton = {
-                Chip(
-                    onClick = { pendingDeleteSource = null },
-                    label = {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    },
-                    colors = ChipDefaults.secondaryChipColors()
-                )
-            },
-            positiveButton = {
-                Chip(
-                    onClick = {
-                        viewModel.deleteSource(source.id)
-                        pendingDeleteSource = null
-                    },
-                    label = {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    },
-                    colors = ChipDefaults.primaryChipColors()
-                )
-            }
+            onDismissRequest = { pendingDeleteSource = null },
+            confirmLabel = stringResource(R.string.delete),
+            cancelLabel = stringResource(R.string.cancel),
+            isDestructive = true
         )
     }
 
@@ -217,7 +196,8 @@ fun NetworkSourcesScreen(
             onDelete = {
                 pendingDeleteSource = source
                 pendingActionSource = null
-            }
+            },
+            onDismiss = { pendingActionSource = null }
         )
     }
 
@@ -236,46 +216,26 @@ fun NetworkSourcesScreen(
 private fun SourceActionsDialog(
     source: SourceItem,
     onTest: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onDismiss: () -> Unit
 ) {
-    Alert(
-        title = {
-            Text(
-                text = source.name,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.title3
+    // Delete is the alert's own action and therefore the last row, which is where the module keeps a
+    // destructive choice; testing the source sits above it as an ordinary content row.
+    StandardWearAlertDialog(
+        show = true,
+        title = source.name,
+        onConfirm = onDelete,
+        onDismissRequest = onDismiss,
+        confirmLabel = stringResource(R.string.delete),
+        cancelLabel = null,
+        isDestructive = true,
+        content = {
+            StandardWearChip(
+                label = stringResource(R.string.test_connection),
+                onClick = onTest
             )
         }
-    ) {
-        item {
-            Chip(
-                onClick = onTest,
-                label = {
-                    Text(
-                        text = stringResource(R.string.test_connection),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ChipDefaults.primaryChipColors()
-            )
-        }
-        item {
-            Chip(
-                onClick = onDelete,
-                label = {
-                    Text(
-                        text = stringResource(R.string.delete),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ChipDefaults.secondaryChipColors()
-            )
-        }
-    }
+    )
 }
 
 /** S1833: the outcome of checking a saved source, in the same words the add form uses. */
@@ -286,37 +246,35 @@ private fun ConnectionTestDialog(
 ) {
     when (state) {
         is ConnectionTestState.Testing -> {
-            Alert(
-                title = {
-                    Text(
-                        text = state.sourceName,
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.title3
-                    )
-                },
-                message = {
-                    Text(
-                        text = stringResource(R.string.testing_connection),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.body2
+            // The check runs on the phone's timeout, so the alert keeps a way out: without one a
+            // source that never answers holds the screen until the timeout expires.
+            StandardWearAlertDialog(
+                show = true,
+                title = state.sourceName,
+                onConfirm = onDismiss,
+                onDismissRequest = onDismiss,
+                message = stringResource(R.string.testing_connection),
+                confirmLabel = stringResource(android.R.string.ok),
+                cancelLabel = null,
+                content = {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .size(PROGRESS_INDICATOR_SIZE),
+                        strokeWidth = PROGRESS_INDICATOR_STROKE
                     )
                 }
-            ) {
-                item {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                }
-            }
+            )
         }
         is ConnectionTestState.Finished -> {
-            Alert(
-                title = {
-                    Text(
-                        text = state.sourceName,
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.title3
-                    )
-                },
-                message = {
+            StandardWearAlertDialog(
+                show = true,
+                title = state.sourceName,
+                onConfirm = onDismiss,
+                onDismissRequest = onDismiss,
+                confirmLabel = stringResource(android.R.string.ok),
+                cancelLabel = null,
+                content = {
                     Text(
                         text = state.message,
                         textAlign = TextAlign.Center,
@@ -325,25 +283,11 @@ private fun ConnectionTestDialog(
                             MaterialTheme.colors.error
                         } else {
                             MaterialTheme.colors.onBackground
-                        }
-                    )
-                }
-            ) {
-                item {
-                    Chip(
-                        onClick = onDismiss,
-                        label = {
-                            Text(
-                                text = stringResource(android.R.string.ok),
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            )
                         },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ChipDefaults.primaryChipColors()
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-            }
+            )
         }
         ConnectionTestState.Idle -> Unit
     }

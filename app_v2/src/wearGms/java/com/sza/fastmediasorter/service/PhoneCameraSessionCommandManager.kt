@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.domain.model.WearCameraRefusal
 import com.sza.fastmediasorter.domain.model.WearCameraSessionPayloadCodec
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -40,7 +39,6 @@ class PhoneCameraSessionCommandManager @Inject constructor(
 
     fun handleStart(nodeId: String, data: ByteArray) {
         val command = cameraPayloadCodec.decodeCommand(data) ?: return
-        Timber.d("S3117: camera session start asked by the watch")
         applicationScope.launch { answerStart(nodeId, command.requestId) }
     }
 
@@ -54,7 +52,6 @@ class PhoneCameraSessionCommandManager @Inject constructor(
      */
     fun handleStop(nodeId: String, data: ByteArray) {
         val command = cameraPayloadCodec.decodeCommand(data) ?: return
-        Timber.d("S3117: camera session stop asked by the watch")
         val startedByWatch = sessions.current()?.startedByWatch == true
         sessions.clear()
         applicationScope.launch {
@@ -74,7 +71,6 @@ class PhoneCameraSessionCommandManager @Inject constructor(
      */
     fun handleSwitch(nodeId: String, data: ByteArray) {
         val command = cameraPayloadCodec.decodeCommand(data) ?: return
-        Timber.d("S3117: camera lens switch asked by the watch")
         val lensId = command.lensId
         val session = sessions.current()
         applicationScope.launch {

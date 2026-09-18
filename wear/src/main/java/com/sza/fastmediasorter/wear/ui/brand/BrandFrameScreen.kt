@@ -19,6 +19,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import coil.compose.AsyncImage
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import kotlinx.coroutines.delay
 import timber.log.Timber
 
@@ -54,7 +55,8 @@ fun BrandFrameScreen(onTimeout: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(Color.Black)
+            .rotaryActionSwallow(),
         contentAlignment = Alignment.Center
     ) {
         Column(

@@ -770,7 +770,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * missing file look the same from outside.
      */
     private suspend fun logStreamArtworkState() {
-        Timber.d("S3230: logStreamArtworkState entered - atlas payload probes about to run on IO")
         // S3230: the three payload probes each stat a file, so they run on IO before the line is built.
         val faviconInstalled = faviconAtlasStore.isInstalled()
         val previewKind = channelPreviewAtlasStore.payloadKind()
@@ -1531,7 +1530,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // S1445: either container counts as installed - a fresh install carries the pack and no sheet.
         // S3230: isInstalled() stats the payload on IO, so the probe never lands on the resume frame.
         lifecycleScope.launch {
-            Timber.d("S3230: onStart atlas install probe running off the main thread")
             if (atlasPreviewCoords.isEmpty() && channelPreviewAtlasStore.isInstalled()) {
                 reloadAtlasPreviews()
             }

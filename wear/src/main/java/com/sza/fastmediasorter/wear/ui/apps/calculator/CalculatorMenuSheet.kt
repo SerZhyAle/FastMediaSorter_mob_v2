@@ -33,6 +33,7 @@ import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearFitText
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private val TITLE_VERTICAL_PADDING = 12.dp
@@ -77,7 +78,7 @@ fun CalculatorMenuSheet(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(WearAppTheme.colors.canvasBlack)
     ) {
         val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
         val functionColorsBase = colorResource(R.color.wear_calc_function_tint)

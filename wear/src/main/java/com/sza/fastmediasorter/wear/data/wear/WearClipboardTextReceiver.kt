@@ -28,7 +28,6 @@ class WearClipboardTextReceiver @Inject constructor(
 ) {
 
     suspend fun handle(nodeId: String, data: ByteArray) {
-        Timber.d("S3109: phone clipboard text received")
         when (val parsed = WearClipboardTextCodec.parse(data, gson)) {
             is WearClipboardTextParseResult.Malformed ->
                 refuse(nodeId, requestId = null, reason = WearClipboardTextRefusalReasons.MALFORMED)

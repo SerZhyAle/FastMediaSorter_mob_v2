@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.ui.common.widget.DimOverlayView
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -96,8 +95,6 @@ class BroadcastBlankScreenManager @Inject constructor(
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
         activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         backCallback?.get()?.isEnabled = true
-        Timber.d("S3154: broadcast blank overlay shown")
-        Timber.d("S3157: blank overlay shown from weakly held host, fullscreen entered on a fresh SystemBarsManager")
     }
 
     private fun hide(activity: AppCompatActivity) {
@@ -111,7 +108,6 @@ class BroadcastBlankScreenManager @Inject constructor(
         // lifetime that the UiContextLeak detector cannot see. exitFullscreenMode() has no early return on
         // its own isFullscreenMode, so a fresh instance restores the bars exactly as a retained one did.
         SystemBarsManager(activity).exitFullscreenMode()
-        Timber.d("S3157: blank overlay hidden, system bars restored on a fresh SystemBarsManager")
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
     }
 

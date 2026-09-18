@@ -45,7 +45,6 @@ class SosTorchManager @Inject constructor(
 
     /** Idempotent: a second call while the strobe runs is a no-op rather than a second loop. */
     fun start(context: Context) {
-        Timber.d("S3216: torch strobe start requested, already running = ${scope != null}")
         if (scope != null) return
         val running = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineName("sos-strobe"))
         scope = running

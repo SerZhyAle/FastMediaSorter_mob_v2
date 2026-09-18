@@ -56,7 +56,6 @@ import com.sza.fastmediasorter.service.WearListenState
 import com.sza.fastmediasorter.ui.settings.ClipboardSendOutcomeText
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
-import timber.log.Timber
 
 internal val SPACING_TINY = 4.dp
 internal val SPACING_SMALL = 8.dp
@@ -102,7 +101,6 @@ fun WearCompanionScreen(
     val currentPayload by rememberUpdatedState { watchSettingsState.payload(context, unitSystem) }
     LaunchedEffect(viewModel) {
         viewModel.settingsPushRequests.collect {
-            Timber.d("S3185: island answers header sync request")
             viewModel.pushSettings(currentPayload())
         }
     }

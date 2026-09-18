@@ -4,6 +4,8 @@ import com.sza.fastmediasorter.broadcast.BroadcastFailure
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -50,6 +52,30 @@ class BroadcastEntryUiStateTest {
             BroadcastEntryUi.UiState.Confirm,
             BroadcastEntryUi.mapState(failedState(), isAvailable = true),
         )
+    }
+
+    @Test
+    fun `settings card shows before the session and never during it`() {
+        assertTrue(BroadcastEntryUi.showsSettingsCard(BroadcastState.Idle))
+        assertTrue(BroadcastEntryUi.showsSettingsCard(failedState()))
+        assertFalse(BroadcastEntryUi.showsSettingsCard(liveState()))
+    }
+
+    @Test
+    fun `listener count shows only during the session`() {
+        assertTrue(BroadcastEntryUi.showsListenerCount(liveState()))
+        assertFalse(BroadcastEntryUi.showsListenerCount(BroadcastState.Idle))
+        assertFalse(BroadcastEntryUi.showsListenerCount(failedState()))
+    }
+
+    @Test
+    fun `settings card and listener count never share the screen`() {
+        listOf(BroadcastState.Idle, failedState(), liveState()).forEach { state ->
+            assertFalse(
+                "both blocks visible in $state",
+                BroadcastEntryUi.showsSettingsCard(state) && BroadcastEntryUi.showsListenerCount(state),
+            )
+        }
     }
 
     private fun liveState() = BroadcastState.Live(

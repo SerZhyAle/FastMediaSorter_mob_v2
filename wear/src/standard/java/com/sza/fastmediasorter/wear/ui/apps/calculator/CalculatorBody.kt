@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
 
 /**
  * S3192: the standard calculator placement - the whole calculator stands inside the largest square
@@ -61,6 +62,7 @@ internal fun CalculatorBody(
                 // The bottom padding sits BEFORE the scroll, so it shortens the viewport rather than
                 // the content: a row scrolled to the bottom then stops at the square's edge.
                 .padding(bottom = squareInset)
+                .rotaryActionScroll(keypadScrollState)
                 .verticalScroll(keypadScrollState)
                 .padding(PaddingValues(vertical = KEY_GAP)),
             verticalArrangement = Arrangement.spacedBy(KEY_GAP)

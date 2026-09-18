@@ -16,7 +16,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CompactChip
 import androidx.wear.compose.material.MaterialTheme
@@ -24,18 +23,9 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.tourist.TouristMetricType
 import com.sza.fastmediasorter.wear.domain.tourist.WearTouristState
+import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import java.util.Locale
 
-private val COLOR_HR = Color(0xFFFF5252.toInt())
-private val COLOR_SPEED = Color(0xFF00BFA5.toInt())
-private val COLOR_STEPS = Color(0xFFFFAB00.toInt())
-private val COLOR_DIST = Color(0xFF448AFF.toInt())
-
-private val FOCAL_DIGITS_SIZE_SP = 48.sp
-private val FOCAL_LINE_HEIGHT_SP = 52.sp
-private val UNIT_SIZE_SP = 14.sp
-private val CHIP_LABEL_SIZE_SP = 9.sp
-private val LOCK_CHIP_SIZE_SP = 11.sp
 private const val LOCK_BUTTON_WIDTH_FRACTION = 0.8f
 
 private const val KMH_TO_MPH = 0.621371f
@@ -63,11 +53,11 @@ fun TouristAthleteCard(
     modifier: Modifier = Modifier,
 ) {
     val accentColor = when (state.focusedMetric) {
-        TouristMetricType.HEART_RATE -> COLOR_HR
-        TouristMetricType.SPEED -> COLOR_SPEED
-        TouristMetricType.STEPS -> COLOR_STEPS
-        TouristMetricType.TRIP_DISTANCE -> COLOR_DIST
-        else -> COLOR_SPEED
+        TouristMetricType.HEART_RATE -> WearAppTheme.colors.heartRate
+        TouristMetricType.SPEED -> WearAppTheme.colors.touristAccent
+        TouristMetricType.STEPS -> WearAppTheme.colors.steps
+        TouristMetricType.TRIP_DISTANCE -> WearAppTheme.colors.distance
+        else -> WearAppTheme.colors.touristAccent
     }
 
     val (metricTitle, metricValue, metricUnit) = formatAthleteMetric(state, isMetric)
@@ -75,7 +65,7 @@ fun TouristAthleteCard(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(WearAppTheme.colors.canvasBlack)
             .padding(horizontal = 8.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -130,18 +120,17 @@ private fun AthleteFocalDisplay(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        // The focal size, its line height and its weight all live in the token: WearAppTypography
+        // re-sizes display1 to exactly what this card was drawn at (S3257).
         Text(
             text = value,
-            fontSize = FOCAL_DIGITS_SIZE_SP,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color.White,
+            style = MaterialTheme.typography.display1,
+            color = WearAppTheme.colors.athleteOnCanvas,
             textAlign = TextAlign.Center,
-            lineHeight = FOCAL_LINE_HEIGHT_SP,
         )
         Text(
             text = unit,
-            fontSize = UNIT_SIZE_SP,
-            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.caption1,
             color = accentColor,
             textAlign = TextAlign.Center,
         )
@@ -182,7 +171,7 @@ private fun AthleteControls(
                 }
                 CompactChip(
                     onClick = { onSelectMetric(metric) },
-                    label = { Text(shortLabel, fontSize = CHIP_LABEL_SIZE_SP) },
+                    label = { Text(shortLabel, style = MaterialTheme.typography.caption3) },
                     colors = if (isSelected) {
                         ChipDefaults.primaryChipColors()
                     } else {
@@ -200,7 +189,7 @@ private fun AthleteControls(
                 label = {
                     Text(
                         text = "🔒 " + stringResource(R.string.wear_tourist_lock_screen),
-                        fontSize = LOCK_CHIP_SIZE_SP,
+                        style = MaterialTheme.typography.caption3,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
                     )

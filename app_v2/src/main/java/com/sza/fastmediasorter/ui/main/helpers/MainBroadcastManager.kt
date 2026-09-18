@@ -49,7 +49,7 @@ class MainBroadcastManager(
     )
     private var indicatorShown = false
     private var autoOpenShare = true
-    private var autoOpenedForSession = false
+    private var autoOpenedForSessionStartedAtMs: Long? = null
 
     fun bind(lifecycleOwner: LifecycleOwner) {
         lifecycleOwner.collectOnLifecycle(settingsRepository.getSettings()) { settings ->
@@ -59,8 +59,8 @@ class MainBroadcastManager(
             when (state) {
                 is BroadcastState.Live -> {
                     showIndicator(state)
-                    if (autoOpenShare && !autoOpenedForSession) {
-                        autoOpenedForSession = true
+                    if (autoOpenShare && autoOpenedForSessionStartedAtMs != state.startedAtElapsedRealtimeMs) {
+                        autoOpenedForSessionStartedAtMs = state.startedAtElapsedRealtimeMs
                         BroadcastControlActivity.launch(activity)
                     }
                 }
@@ -153,12 +153,14 @@ class MainBroadcastManager(
      * The launch tracking belongs to the broadcast session, not to the main screen's visibility.
      * Opening the broadcast screen stops the host activity, so resetting on every dismissal cleared
      * the tracking, and the re-emitted Live state on the way back re-opened the screen the user had
-     * just closed - trapping them there for as long as the broadcast ran. Only the session's end
-     * clears it, so one live session opens the screen once.
+     * just closed - trapping them there for as long as the broadcast ran. Tracking the session's own
+     * start moment instead of a flag survives the gap: this collector is lifecycle-bound, so a stop
+     * and a fresh start performed while the main screen is away never delivers Idle here, and a flag
+     * cleared only by Idle stayed set and swallowed the next session's auto-open.
      */
     private fun endBroadcastSession() {
         liveStartedAtElapsedRealtimeMs = null
-        autoOpenedForSession = false
+        autoOpenedForSessionStartedAtMs = null
         dismissIndicator()
     }
 

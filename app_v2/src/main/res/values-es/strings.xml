@@ -2260,7 +2260,7 @@
     <string name="launcher_edit_unpin_named">Desanclar %1$s</string>
     <string name="launcher_settings_enable_title">Convertir esta app en la pantalla de inicio</string>
     <string name="launcher_start_window_title">Abrir el escritorio al iniciar la app</string>
-    <string name="launcher_start_window_desc">Abre tu escritorio en lugar del explorador de archivos. No cambia la pantalla de inicio del dispositivo.</string>
+    <string name="launcher_start_window_desc">Abre tu escritorio en lugar del Gestor de recursos. Esto no cambia la pantalla de inicio del dispositivo.</string>
     <string name="launcher_settings_enable_desc">El botón de inicio abre tu propio escritorio con accesos directos y widgets. Desactívalo en cualquier momento para recuperar tu pantalla de inicio anterior.</string>
     <string name="launcher_settings_enable_help_title">Modo de pantalla de inicio</string>
     <string name="launcher_settings_enable_help_message">Al activarlo, Android pregunta qué pantalla de inicio usar - elige esta app y toca Siempre (o Solo una vez para probarlo). Para volver atrás, desactívalo y Android restaurará tu pantalla de inicio anterior.</string>
@@ -3623,4 +3623,36 @@
     <string name="wear_screenshot_captured">El reloj envió su captura de pantalla</string>
     <string name="wear_screenshot_no_answer">El reloj no respondió</string>
     <string name="wear_companion_group_operations">Operaciones del reloj</string>
+    <string name="resource_manager_title">Gestor de recursos</string>
+    <string name="welcome_primary_window_title">Ventana principal</string>
+    <string name="welcome_primary_window_subtitle">Elige qué se abre al iniciar FastMediaSorter</string>
+    <string name="launcher_primary_window_recommended">Recomendado</string>
+    <string name="launcher_primary_window_home_title">Pantalla de inicio del dispositivo</string>
+    <string name="launcher_primary_window_home_desc">La app se convierte en la pantalla de inicio de tu dispositivo</string>
+    <string name="launcher_primary_window_desktop_title">Escritorio como ventana principal</string>
+    <string name="launcher_primary_window_desktop_desc">Abre el escritorio dentro de la app sin cambiar la pantalla de inicio del dispositivo</string>
+    <string name="launcher_primary_window_resource_manager_title">Gestor de recursos</string>
+    <string name="launcher_primary_window_resource_manager_desc">Abre directamente la gestión de archivos y recursos multimedia</string>
+    <string name="setting_launcher_primary_window_title">Ventana de inicio principal</string>
+    <string name="setting_launcher_primary_window_desc">Elige si la app se abre como pantalla de inicio del dispositivo, escritorio interno o Gestor de recursos</string>
+    <string-array name="launcher_primary_window_options">
+        <item>@string/launcher_primary_window_home_title</item>
+        <item>@string/launcher_primary_window_desktop_title</item>
+        <item>@string/launcher_primary_window_resource_manager_title</item>
+    </string-array>
+    <string name="broadcast_default_stream_title">Transmisión del teléfono</string>
+    <string name="broadcast_share_help">Cómo ver esto</string>
+    <string name="sos_title">Señal de emergencia SOS</string>
+    <string name="sos_hint">La sirena y el estroboscopio repiten el patrón SOS en Morse. El reloj emparejado también señaliza cuando está dentro del alcance.</string>
+    <string name="sos_stop_action">Detener la señal</string>
+    <string name="sos_mode_all">Sonido y luz</string>
+    <string name="sos_mode_sound_only">Solo sonido</string>
+    <string name="sos_mode_light_only">Solo luz</string>
+    <string name="sos_notification_text">Señal activa: %1$s</string>
+    <string name="sos_notification_channel">Señal SOS</string>
+    <string name="sos_settings_toggle_title">Señal de emergencia SOS</string>
+    <string name="sos_settings_toggle_subtitle">Sirena Morse a alto volumen, linterna estroboscópica y una señal equivalente en el reloj</string>
+    <string name="sos_help_title">Señal de emergencia SOS</string>
+    <string name="sos_help_message">Repite el patrón SOS en Morse con una sirena a alto volumen en el canal de alarma, el flash trasero y una pantalla parpadeante. Elige sonido, luz o ambos. Iniciarlo aquí también lo inicia en el reloj emparejado, y detener cualquiera de los dos detiene ambos. La señal termina sola a los 30 minutos para que la batería y el flash lo resistan.</string>
+    <string name="tourist_action_sos">Señal SOS</string>
 </resources>

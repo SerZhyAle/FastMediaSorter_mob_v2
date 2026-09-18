@@ -264,4 +264,16 @@
     <string name="settings_wear_install_guide_button">Cómo instalar en un reloj</string>
     <string name="settings_wear_web_portal_button">Todo sobre el reloj</string>
     <string name="setting_stopwatch_desc">Mostrar el Cronómetro en el menú principal y en el widget del launcher</string>
+    <string name="cross_device_transfer_send_to_device">Enviar a mi dispositivo (Drive)</string>
+    <string name="cross_device_transfer_pending_title">Transferencias de dispositivo pendientes</string>
+    <string name="cross_device_transfer_receive_and_delete">Recibir y eliminar de la nube</string>
+    <string name="cross_device_transfer_receive_and_keep">Recibir y mantener en la nube</string>
+    <string name="cross_device_transfer_clear_queue">Vaciar la cola pendiente</string>
+    <string name="cross_device_transfer_empty">No hay nada esperando para este dispositivo. Envía un archivo o los ajustes desde otro dispositivo para verlos aquí.</string>
+    <string name="cross_device_transfer_sending">Subiendo a tu cola de Drive..</string>
+    <string name="cross_device_transfer_sent">Subido. Abre esta pantalla en tu otro dispositivo para recogerlo.</string>
+    <string name="cross_device_transfer_received_files">Guardado en la carpeta de entrada de la app</string>
+    <string name="cross_device_transfer_received_settings">Se han aplicado los ajustes del otro dispositivo</string>
+    <string name="cross_device_transfer_failed">La transferencia no terminó. Comprueba el inicio de sesión de Drive y la conexión, y vuelve a intentarlo.</string>
+    <string name="cross_device_transfer_queue_cleared">Cola vaciada: %1$d paquete(s) eliminado(s)</string>
 </resources>

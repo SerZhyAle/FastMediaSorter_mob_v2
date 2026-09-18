@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 /**
@@ -174,7 +173,6 @@ class LauncherEditModeManager(
                 if (sameScreenSection) {
                     viewModel.moveSectionBlock(id, target.row)
                 } else {
-                    Timber.d("S3205: drag drop id=$id screen=$screenIndex from=${dragged?.screenIndex}")
                     viewModel.moveCell(id, target.row, target.col, desktop.columns, targetScreenIndex = screenIndex)
                 }
                 true
@@ -265,7 +263,6 @@ class LauncherEditModeManager(
             val direction = edgePagingDirection
             // Same leak guard as the auto-scroller: a delayed page turn must not act on a dead view tree.
             if (direction == NO_EDGE || !desktop.isAttachedToWindow || !canPage(direction)) return
-            Timber.d("S3205: edge paging direction=$direction from screen=${activeScreenIndex()}")
             if (direction < NO_EDGE) actions.pagePrevious() else actions.pageNext()
             desktop.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
             // A finger still held in the band keeps turning pages, one dwell per screen.

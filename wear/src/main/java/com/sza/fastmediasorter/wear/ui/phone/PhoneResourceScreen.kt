@@ -94,6 +94,7 @@ import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.delay
+import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 
@@ -119,6 +120,7 @@ fun PhoneResourceScreen(
     val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
 
     val openOutcome by viewModel.openOutcome.collectAsStateWithLifecycle()
+    Timber.d("S3259: phone resource screen shown - single-column rows are EntryTileRow")
 
     // Back walks the folder trail first; only the root hands Back back to navigation.
     BackHandler(enabled = true) {
@@ -713,7 +715,7 @@ private fun ScalingLazyListScope.entryItems(
             if (!entry.isDirectory) {
                 onRequestThumbnail(entry.token)
             }
-            EntryChip(
+            EntryTileRow(
                 entry = entry,
                 thumbnail = thumbnails[entry.token] ?: WearThumbnail.Unavailable,
                 onEntryClick = onEntryClick,
@@ -770,8 +772,13 @@ private fun EntryRow(
     }
 }
 
+/**
+ * S3259: a thumbnail tile row, never a chip - it draws the entry's preview through the module's
+ * shared `SingleColumnTileCell`, which a label-and-icon chip has no slot for. Only the old name said
+ * chip, and that name is what put it on this ticket's migration list.
+ */
 @Composable
-private fun EntryChip(
+private fun EntryTileRow(
     entry: WearPhoneResourceItem,
     thumbnail: WearThumbnail,
     onEntryClick: (WearPhoneResourceItem) -> Unit,
