@@ -64,6 +64,9 @@ class SosActivity : BaseActivity<ActivitySosBinding>() {
             }
         }
 
+    /** The stop button finishes the window, so onDestroy must not send a second stop behind it. */
+    private var stopRequested = false
+
     override fun setupViews() {
         binding.btnSosStop.setOnClickListener { stopAndLeave() }
         binding.groupSosMode.addOnButtonCheckedListener(modeCheckedListener)
@@ -79,7 +82,7 @@ class SosActivity : BaseActivity<ActivitySosBinding>() {
     override fun onDestroy() {
         binding.groupSosMode.removeOnButtonCheckedListener(modeCheckedListener)
         binding.btnSosStop.setOnClickListener(null)
-        if (isFinishing) {
+        if (isFinishing && !stopRequested) {
             viewModel.requestStopEverywhere()
             SosService.stop(this)
         }
@@ -110,6 +113,7 @@ class SosActivity : BaseActivity<ActivitySosBinding>() {
     }
 
     private fun stopAndLeave() {
+        stopRequested = true
         viewModel.requestStopEverywhere()
         SosService.stop(this)
         finish()

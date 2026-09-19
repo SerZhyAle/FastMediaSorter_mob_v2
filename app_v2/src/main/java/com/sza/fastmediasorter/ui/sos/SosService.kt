@@ -90,7 +90,20 @@ class SosService : Service() {
         Timber.i("SOS signal running in mode %s", mode)
     }
 
+    /**
+     * Every entry point reaches the service through [Context.startForegroundService], including the stop
+     * one, and the system then requires a matching [startForeground] within a few seconds whatever the
+     * command turns out to be - a stop that skips it is killed with
+     * ForegroundServiceDidNotStartInTimeException. Two live races make the stop path arrive at a service
+     * that was never promoted: the watch dropping the signal just before the button is pressed, and
+     * [SosActivity] stopping once on the button and again from onDestroy. So the promise is paid first
+     * and withdrawn in the same breath; the notification never reaches the shade.
+     */
     private fun stopSignal() {
+        // A stop can land on a service instance that never ran the start path, so the channel the
+        // notification below names may not exist yet.
+        createChannel()
+        startForegroundCompat(activeMode.value ?: SosMode.ALL)
         stopForegroundCompat()
         stopSelf()
     }
