@@ -27,6 +27,13 @@
 .PARAMETER VersionName
   Release versionName - locates store_assets/release_waivers/<VersionName>.md.
 
+.PARAMETER ApkPath
+  Release APK the smoke installs. Without it the smoke looks only in this checkout's build outputs,
+  which is empty when the release was built in the release worktree.
+
+.PARAMETER DeviceId
+  adb serial the smoke installs on. Required whenever more than one device is online.
+
 .PARAMETER SkipSmoke
   Skip the device smoke (treated as a recorded coverage gap, waiver-eligible).
 
@@ -39,6 +46,8 @@
 [CmdletBinding()]
 param(
     [string]$VersionName,
+    [string]$ApkPath,
+    [string]$DeviceId,
     [switch]$SkipSmoke,
     [switch]$Json
 )
@@ -67,7 +76,12 @@ $smokeStatus = 'skipped'
 $smokeHardFail = $false
 $smokeGap = $true   # no successful on-device proof => recorded coverage gap by default
 if (-not $SkipSmoke) {
-    & pwsh -NoProfile -File $smokeTool -Json *> $null
+    # S3335: both are forwarded because the smoke cannot guess either - it finds no APK when the
+    # bundle was built in the release worktree, and it cannot pick between two online devices.
+    $smokeArgs = @('-Json')
+    if ($ApkPath)  { $smokeArgs += @('-ApkPath', $ApkPath) }
+    if ($DeviceId) { $smokeArgs += @('-DeviceId', $DeviceId) }
+    & pwsh -NoProfile -File $smokeTool @smokeArgs *> $null
     switch ($LASTEXITCODE) {
         0 { $smokeStatus = 'clean'; $smokeGap = $false }
         1 { $smokeStatus = 'r8-breakage'; $smokeHardFail = $true; $smokeGap = $false }

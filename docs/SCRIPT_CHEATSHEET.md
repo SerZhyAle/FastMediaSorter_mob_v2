@@ -5603,6 +5603,8 @@ scripts/release/standard-release-gate.ps1
   S0553 - standard production release gate: single PASS/FAIL/WAIVED verdict.
   Params:
     -VersionName         [String]
+    -ApkPath             [String]
+    -DeviceId            [String]
     -SkipSmoke           [SwitchParameter]
     -Json                [SwitchParameter]
 ```
@@ -5615,6 +5617,7 @@ scripts/release/standard-release-smoke.ps1
   S0553 - standardRelease smoke: detect R8/shrink/signing/auth breakage on the minified release artifact (the only build that exposes R8/shrink failures).
   Params:
     -ApkPath            [String]
+    -DeviceId           [String]
     -Build              [SwitchParameter]
     -CheckSeams         [SwitchParameter]
     -Json               [SwitchParameter]

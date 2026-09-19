@@ -33835,3 +33835,5 @@ Format: | datetime | file | target | description |
 | 2026-09-19 19:05:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/sos/SosService.kt` | `S3332` | S3332: pay the foreground-service promise on the SOS stop path and stop the activity double-sending it [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/ui/sos/SosActivity.kt] [branch: DEBUG-v040] |
 | 2026-09-19 19:11:46 | `PLAN/S3333_alarm-low-volume.md` | `S3333` | Capture Draft S3333 alarm-low-volume [branch: DEBUG-v040] |
 | 2026-09-19 19:14:12 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Fix-release v2.60.9191.906 for S3332: stopping the SOS signal crashed the app [branch: DEBUG-v040] |
+| 2026-09-19 19:16:17 | `PLAN/S3335_camera-wallpaper-app-conflict.md` | `S3335` | Capture Draft S3335 camera-wallpaper-app-conflict [branch: DEBUG-v040] |
+| 2026-09-19 19:26:11 | `scripts/release/standard-release-smoke.ps1` | `S3336` | S3336: resolve adb and name the device in the release smoke, forward both from the gate [set of 3: scripts/release/standard-release-gate.ps1, store_assets/release_waivers/2.60.9191.906.md] [branch: DEBUG-v040] |
