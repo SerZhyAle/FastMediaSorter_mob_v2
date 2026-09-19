@@ -6,7 +6,17 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.9191.534** (September 2026)
+**Current release: 2.60.9191.906** (September 2026) - Fix Release
+
+> Fix: stopping the SOS signal crashes the app
+
+## What's Fixed
+
+- Stopping the SOS signal no longer closes the app (spec S3332).
+
+---
+
+## Previous Release: 2.60.9191.534 (September 2026)
 
 > Changes since version 2.60.9151.928
 

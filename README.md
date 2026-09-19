@@ -58,7 +58,14 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.9191.534 (September 2026)
+## What's New in v2.60.9191.906 (September 2026) - Fix Release
+
+**Fixed:**
+Stopping the SOS signal no longer closes the app.
+
+[Full release notes →](docs/WHATS_NEW.md)
+
+## Previous Release: v2.60.9191.534 (September 2026)
 
 **New:**
 Cross-device file transfer over Google Drive, an SOS distress signal from the phone, a more complete settings backup with file/Drive import and export, app-icon shortcuts that reach sub-programs, a fuller starter desktop with preset profiles and start-panel rows, faster desktop editing with edge-hold drag and whole-section reordering, launcher window choice and a separate charging screen timeout, one broadcast screen with camera preview and a remembered lens choice, a dedicated broadcast settings section that survives a backup restore, easier broadcast hand-off via a descriptor file and import link, and a dimmed player that still shows the clock.
