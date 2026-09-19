@@ -155,7 +155,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляция.. |
 | <img src="icons/svg/ic_compress.svg" alt="ic_compress" width="24" height="24"> | Сжатая копия |
 | (системный значок) | Копировать в буфер |
-| <img src="icons/svg/ic_crop.svg" alt="ic_crop" width="24" height="24"> | Вырезать |
+| <img src="icons/svg/ic_crop.svg" alt="ic_crop" width="24" height="24"> | Обрезать |
 | <img src="icons/svg/ic_crop_to_file.svg" alt="ic_crop_to_file" width="24" height="24"> | Вырезать в файл |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Удалить |
 | <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Рисование |
@@ -170,7 +170,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Информация о файле |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Лирика |
+| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Текст песни |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |

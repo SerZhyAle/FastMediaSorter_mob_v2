@@ -530,7 +530,7 @@
     <string name="wear_playback_mode_sequential">Fortlaufende Wiedergabe</string>
     <string name="wear_playback_mode_shuffle">Zufallswiedergabe</string>
     <string name="wear_playback_mode_loop">Wiederholte Wiedergabe</string>
-    <string name="wear_sync_now">Sync</string>
+    <string name="wear_sync_now">Synchronisieren</string>
     <string name="wear_sync_now_description">Uhr und Telefon synchronisieren</string>
     <string name="wear_voice_note_play_last">Letztes abspielen</string>
     <string name="about_web_portal_on_phone">Auf Telefon öffnen</string>

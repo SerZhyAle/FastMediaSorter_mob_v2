@@ -170,7 +170,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Налаштування тексту |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Інформація про файл |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Лірика |
+| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Текст пісні |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Витягти текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Витягти текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Витягти текст |
