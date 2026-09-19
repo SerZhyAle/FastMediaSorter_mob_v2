@@ -58,7 +58,7 @@
     <string name="sysinfo_field_density">Плотность</string>
     <string name="sysinfo_field_device_name">Имя устройства</string>
     <string name="sysinfo_field_display_count">Дисплеи</string>
-    <string name="sysinfo_field_fingerprint">Fingerprint</string>
+    <string name="sysinfo_field_fingerprint">Отпечаток пальца</string>
     <string name="sysinfo_field_first_install">Первая установка</string>
     <string name="sysinfo_field_flavor">Вариант</string>
     <string name="sysinfo_field_font_scale">Масштаб шрифта</string>

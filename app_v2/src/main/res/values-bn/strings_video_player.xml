@@ -5,7 +5,7 @@
     <string name="playback">প্লেব্যাক এবং বাছাই</string>
     <string name="playback_control_brightness_value">উজ্জ্বলতা: %1$+d%%</string>
     <string name="playback_control_done">সম্পন্ন হয়েছে</string>
-    <string name="playback_control_hue_value">HUE: %1$+d°</string>
+    <string name="playback_control_hue_value">রঙের আভা: %1$+d°</string>
     <string name="playback_control_mute">মূক</string>
     <string name="playback_control_mute_active">ম্লান</string>
     <string name="playback_control_mute_inactive">শব্দ চালু করুন</string>

@@ -3,7 +3,7 @@
     <string name="playback">Відтворення та сортування</string>
     <string name="playback_control_brightness_value">Яскравість: %1$+d%%</string>
     <string name="playback_control_done">Готово</string>
-    <string name="playback_control_hue_value">HUE: %1$+d°</string>
+    <string name="playback_control_hue_value">Відтінок: %1$+d°</string>
     <string name="playback_control_mute">Без звуку</string>
     <string name="playback_control_mute_active">Звук вимкнено</string>
     <string name="playback_control_mute_inactive">Звук увімкнено</string>
@@ -12,7 +12,7 @@
     <string name="playback_control_speed_value">Швидкість: %1$.2fx</string>
     <string name="playback_control_tab_audio">Аудіодоріжка</string>
     <string name="playback_control_tab_brightness">Світло</string>
-    <string name="playback_control_tab_hue">HUE</string>
+    <string name="playback_control_tab_hue">Відтінок</string>
     <string name="playback_control_tab_speed">Швидкість</string>
     <string name="playback_control_tab_subtitles">Субтит.</string>
     <string name="playback_control_tab_volume">Гучність</string>
@@ -88,7 +88,7 @@
     <string name="video_size_range">1 КБ - 1 ГБ</string>
     <string name="video_snapshot_resource_label">Ресурс для збереження кадрів</string>
     <string name="video_snapshot_resource_not_set">Не вибрано (зберігається в Downloads)</string>
-    <string name="videos_v">Videos (V)</string>
+    <string name="videos_v">Відео (V)</string>
     <string name="playback_control_speed_0_5x">0.5x</string>
     <string name="playback_control_speed_1_5x">1.5x</string>
     <string name="playback_control_speed_2x">2x</string>

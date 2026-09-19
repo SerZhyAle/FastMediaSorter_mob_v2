@@ -81,7 +81,7 @@
     <string name="widget_network_monitor_direct_connection">اتصال مباشر</string>
     <string name="launcher_gadget_network_indicator">مؤشر الشبكة</string>
     <string name="launcher_gadget_network_indicator_pick_title">أي مؤشر تريد عرضه</string>
-    <string name="widget_front_flashlight_label">Front Flashlight</string>
+    <string name="widget_front_flashlight_label">الكشاف الأمامي</string>
     <string name="widget_front_flashlight_description">يحوّل الشاشة إلى مصباح بضغطة واحدة</string>
     <string name="widget_stopwatch_label">ساعة إيقاف</string>
     <string name="widget_stopwatch_description">ابدأ القياس وأوقفه من الشاشة الرئيسية</string>

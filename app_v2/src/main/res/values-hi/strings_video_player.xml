@@ -5,7 +5,7 @@
     <string name="playback">प्लेबैक और सॉर्टिंग</string>
     <string name="playback_control_brightness_value">चमक: %1$+d%%</string>
     <string name="playback_control_done">हो गया</string>
-    <string name="playback_control_hue_value">HUE: %1$+d°</string>
+    <string name="playback_control_hue_value">रंगत: %1$+d°</string>
     <string name="playback_control_mute">आवाज़ बंद करना</string>
     <string name="playback_control_mute_active">म्यूट किए गए</string>
     <string name="playback_control_mute_inactive">पर ध्वनि</string>

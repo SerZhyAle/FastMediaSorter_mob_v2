@@ -27,7 +27,7 @@
     <string name="image_size_limits">Обмеження розміру зображень (МБ)</string>
     <string name="image_size_range">1 КБ - 10 МБ</string>
     <string name="images">Зображення</string>
-    <string name="images_i">Images (I)</string>
+    <string name="images_i">Зображення (I)</string>
     <string name="gif_animations">GIF-анімації</string>
     <string name="gif_edit_apply_speed">Застосувати зміну швидкості</string>
     <string name="gif_edit_completed">Редагування GIF завершено</string>

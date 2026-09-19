@@ -183,7 +183,15 @@ foreach ($line in (Get-Content -LiteralPath $CorpusIndexPath -Encoding UTF8)) {
     foreach ($tag in $locales) {
         $values = Get-CachedValues -Set $unit.set -File $unit.file -Tag $tag
         if (-not $values.ContainsKey($slotKey)) { $missing.Add($tag); continue }
-        if ($values[$slotKey] -eq $unit.en) { $identical.Add($tag) } else { $translated.Add($tag) }
+        # S3311: ORDINAL, not -eq. PowerShell's -eq is case-insensitive, so a locale carrying
+        # "ROTATION" against an English "Rotation" was reported as an untouched copy; the triage then
+        # produced a work row whose -ExpectedOldValue could not match, which is how this was found.
+        # list-new-lexemes.ps1 has always compared ordinally, so the two tools disagreed by case.
+        if ([string]::Equals([string]$values[$slotKey], [string]$unit.en, [System.StringComparison]::Ordinal)) {
+            $identical.Add($tag)
+        } else {
+            $translated.Add($tag)
+        }
     }
 
     [void]$seen.Add($unit.key)

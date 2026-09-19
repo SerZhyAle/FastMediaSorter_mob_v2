@@ -87,5 +87,5 @@
     <string name="text_size_limit">Максимальний розмір текстового файлу (внутрішній переглядач)</string>
     <string name="text_style_bold">1</string>
     <string name="text_style_italic">2</string>
-    <string name="text_t">Text (T)</string>
+    <string name="text_t">Текст (T)</string>
 </resources>

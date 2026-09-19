@@ -11827,6 +11827,10 @@
         {
           "url": "https://vm65162.streamerr.co/listen/mirchi/radio.mp3",
           "order": 225
+        },
+        {
+          "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/METROFMAAC.aac",
+          "order": 226
         }
       ]
     },
@@ -29495,6 +29499,10 @@
         {
           "url": "https://my.radiolize.com/radio/8090/radio.mp3",
           "order": 148
+        },
+        {
+          "url": "https://chaosfm.com:8443/stream",
+          "order": 149
         }
       ]
     },
@@ -30114,6 +30122,14 @@
         {
           "url": "http://eu10.fastcast4u.com:8120/",
           "order": 152
+        },
+        {
+          "url": "http://allzic14.ice.infomaniak.ch/allzic14.mp3",
+          "order": 153
+        },
+        {
+          "url": "http://allzic014.ice.infomaniak.ch/allzic15.mp3",
+          "order": 154
         }
       ]
     }

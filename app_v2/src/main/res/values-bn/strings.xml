@@ -3464,8 +3464,8 @@
     <string name="unit_distance_kilometres_spoken">%1$s কিলোমিটার</string>
     <string name="unit_distance_miles_spoken">%1$s মাইল</string>
     <string name="launcher_gadget_chart_altitude_now">এখন %1$s</string>
-    <string name="settings_broadcast_channels_mono">Mono</string>
-    <string name="settings_broadcast_channels_stereo">Stereo</string>
+    <string name="settings_broadcast_channels_mono">মনো</string>
+    <string name="settings_broadcast_channels_stereo">স্টেরিও</string>
     <string name="settings_broadcast_audio_format_value">%1$s kHz / %2$s</string>
     <string name="launcher_gadget_youtube_channel_window">YouTube চ্যানেল উইন্ডো</string>
     <string name="launcher_youtube_channel_title">বসানোর জন্য চ্যানেল</string>

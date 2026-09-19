@@ -6845,15 +6845,16 @@ S3151: capture a Draft ticket from a slug and the owner's verbatim text in one c
 scripts/utils/capture-draft.ps1
   S3151: capture a Draft ticket from a slug and the owner's verbatim text in one call.
   Params:
-    -Slug               [String] = ''
-    -Text               [String]
-    -TextFile           [String] = ''
-    -Attach             [String] = ''
-    -Tier               [Int32] = 3  {range 0..4}
-    -Priority           [Int32] = -1
-    -DedupQuery         [String] = ''
-    -RepoRoot           [String] = ''
-  Exit: 0 ticket created, or -WhatIf finished its dedup report.; 1 the catalog refused the insert or the spec file could not be written.; 2 bad invocation - invalid slug, no text or both text forms, missing attachment or template.
+    -Slug                         [String] = ''
+    -Text                         [String]
+    -TextFile                     [String] = ''
+    -Attach                       [String] = ''
+    -Tier                         [Int32] = 3  {range 0..4}
+    -Priority                     [Int32] = -1
+    -DedupQuery                   [String] = ''
+    -AllowClosedDuplicate         [SwitchParameter]
+    -RepoRoot                     [String] = ''
+  Exit: 0 ticket created, or -WhatIf finished its dedup report.; 1 the catalog refused the insert or the spec file could not be written.; 2 bad invocation - invalid slug, no text or both text forms, missing attachment or template.; 3 refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
 ```
 
 ### check-typo-lint.ps1

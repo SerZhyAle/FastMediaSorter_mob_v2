@@ -1126,7 +1126,7 @@
     <string name="folder_dcim">DCIM</string>
     <string name="folder_pictures">Pictures</string>
     <string name="folder_download">Download</string>
-    <string name="folder_documents">Documents</string>
+    <string name="folder_documents">Документы</string>
     <string name="folder_whatsapp">WhatsApp</string>
     <string name="folder_telegram">Telegram</string>
     <string name="folder_instagram">Instagram</string>
@@ -1216,7 +1216,7 @@
     <string name="fragment_settings_images_tilImageSizeMin_hint">Мин (КБ)</string>
     <string name="fragment_settings_video_tilVideoSizeMax_hint">Макс (КБ)</string>
     <string name="fragment_settings_video_tilVideoSizeMin_hint">Мин (КБ)</string>
-    <string name="item_folder_tvFolderName_text">Folder Name</string>
+    <string name="item_folder_tvFolderName_text">Имя папки</string>
     <string name="item_resource_to_add_btnTypeAudio_text">A</string>
     <string name="item_resource_to_add_btnTypeGif_text">G</string>
     <string name="item_resource_to_add_btnTypeImage_text">I</string>
@@ -1277,7 +1277,7 @@
     <string name="office_doc_d">DOC (D)</string>
     <string name="error_reason_unknown">Произошла непредвиденная ошибка. Попробуйте ещё раз.</string>
     <string name="find_counter">%1$d / %2$d</string>
-    <string name="pip_pause">Pause</string>
+    <string name="pip_pause">Пауза</string>
     <string name="run_integration_tests">RUN INTEGRATION TESTS</string>
     <string name="search_counter_default">0/0</string>
 

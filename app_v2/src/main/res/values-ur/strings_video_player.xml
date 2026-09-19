@@ -14,7 +14,7 @@
     <string name="playback_control_speed_value">رفتار: %1$.2fx</string>
     <string name="playback_control_tab_audio">آڈیو ٹریک</string>
     <string name="playback_control_tab_brightness">روشنی</string>
-    <string name="playback_control_tab_hue">HUE</string>
+    <string name="playback_control_tab_hue">رنگت</string>
     <string name="playback_control_tab_speed">رفتار</string>
     <string name="playback_control_tab_subtitles">سبس</string>
     <string name="playback_control_tab_volume">حجم</string>

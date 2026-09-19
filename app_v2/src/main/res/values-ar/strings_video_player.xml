@@ -5,7 +5,7 @@
     <string name="playback">التشغيل والفرز</string>
     <string name="playback_control_brightness_value">السطوع: %1$+d%%</string>
     <string name="playback_control_done">منتهي</string>
-    <string name="playback_control_hue_value">HUE: %1$+d°</string>
+    <string name="playback_control_hue_value">تدرج اللون: %1$+d°</string>
     <string name="playback_control_mute">صامت</string>
     <string name="playback_control_mute_active">مكتوم</string>
     <string name="playback_control_mute_inactive">تشغيل الصوت</string>

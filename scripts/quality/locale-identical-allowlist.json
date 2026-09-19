@@ -6,7 +6,22 @@
   "animated_badge_gif",
   "app_launch_panel_os_bluetooth",
   "app_launch_panel_os_display",
-  "app_launch_panel_os_location",
+  {
+    "key": "app_launch_panel_os_location",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "app_launch_panel_os_nfc",
   "app_launch_panel_os_tethering",
   "app_launch_panel_os_vpn",
@@ -16,13 +31,41 @@
   "archive_action_btn",
   "archive_files",
   "audio",
-  "audio_a",
+  {
+    "key": "audio_a",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "audio_album_label",
   "audio_channels_mono",
   "audio_channels_stereo",
   "audio_lossless_value_lossy",
   "audio_replaygain_album_label",
-  "audio_title_label",
+  {
+    "key": "audio_title_label",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "auth_sessions_cookie_count",
   "auto_calculate_cache",
   "background_audio_setting_summary",
@@ -45,7 +88,22 @@
   "calculator_action_backspace",
   "calculator_action_paste",
   "calculator_action_percent",
-  "calculator_action_settings",
+  {
+    "key": "calculator_action_settings",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "calculator_display_content_description",
   "calculator_fn_cbrt",
   "calculator_fn_cot",
@@ -56,13 +114,100 @@
   "calculator_fn_reciprocal",
   "calculator_fn_sin",
   "calculator_keypad_mode_compact",
-  "calculator_keypad_mode_large",
-  "calculator_keypad_mode_normal",
-  "calculator_settings_group_thousands",
+  {
+    "key": "calculator_keypad_mode_large",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "calculator_keypad_mode_normal",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "calculator_settings_group_thousands",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "calculator_settings_group_thousands_summary",
-  "calculator_settings_keypad_mode",
-  "calculator_settings_text_size",
-  "calculator_settings_title",
+  {
+    "key": "calculator_settings_keypad_mode",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "calculator_settings_text_size",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "calculator_settings_title",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "camera_capture_microphone",
   "camera_capture_record_stop",
   "camera_control_flash",
@@ -71,11 +216,38 @@
   "camera_control_zoom_step",
   "camera_lens_front",
   "camera_lens_macro",
-  "camera_lens_switching",
+  {
+    "key": "camera_lens_switching",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur"
+    ]
+  },
   "camera_lens_tele",
   "camera_mode_photo",
   "camera_mode_video",
-  "camera_profile_document",
+  {
+    "key": "camera_profile_document",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur"
+    ]
+  },
   "camera_profile_macro",
   "camera_profile_manual",
   "camera_profile_normal",
@@ -136,7 +308,20 @@
   "filter_label_date_short",
   "filter_label_name_short",
   "folder_dcim",
-  "folder_documents",
+  {
+    "key": "folder_documents",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "folder_download",
   "folder_instagram",
   "folder_pictures",
@@ -176,16 +361,59 @@
   "icon_set_docs",
   "icon_set_image",
   "icon_set_video",
-  "image_edit_rotation",
+  {
+    "key": "image_edit_rotation",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "image_edit_saturation",
   "image_edit_sepia",
   "image_format_label",
   "image_megapixels_label",
   "images",
-  "images_i",
+  {
+    "key": "images_i",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "import_fav_action",
   "information",
-  "item_folder_tvFolderName_text",
+  {
+    "key": "item_folder_tvFolderName_text",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "kbm_help_section_dialog",
   "kbm_help_section_global",
   "kbm_help_section_navigation",
@@ -221,13 +449,72 @@
   "keybinding_row_remap",
   "label_profile_documents",
   "language",
-  "launcher_add_cell",
+  {
+    "key": "launcher_add_cell",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "launcher_contact_cell_unnamed",
   "launcher_desktop_swipe_down_title",
-  "launcher_desktop_swipe_left_title",
+  {
+    "key": "launcher_desktop_swipe_left_title",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "launcher_desktop_swipe_picker_title",
-  "launcher_desktop_swipe_right_title",
-  "launcher_desktop_swipe_up_title",
+  {
+    "key": "launcher_desktop_swipe_right_title",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "launcher_desktop_swipe_up_title",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "launcher_edit_kind_app",
   "launcher_edit_kind_gadget",
   "launcher_edit_kind_section",
@@ -241,11 +528,65 @@
   "launcher_gadget_open_external",
   "launcher_gadget_playlist",
   "launcher_gadget_satellites",
-  "launcher_gadget_steps_since_date",
-  "launcher_gadget_stream_window",
-  "launcher_gadget_stream_window_stopped",
+  {
+    "key": "launcher_gadget_steps_since_date",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "launcher_gadget_stream_window",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "launcher_gadget_stream_window_stopped",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "launcher_gadget_streams",
-  "launcher_gadget_world_clock",
+  {
+    "key": "launcher_gadget_world_clock",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "launcher_gadget_world_clock_actions",
   "launcher_gadget_world_clock_no_zone",
   "launcher_gadget_youtube",
@@ -253,20 +594,78 @@
   "launcher_home_contact_action_message",
   "launcher_home_gadget_failed",
   "launcher_primary_window_options",
-  "launcher_scheduled_op_create",
+  {
+    "key": "launcher_scheduled_op_create",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "launcher_section_action_delete",
   "launcher_section_action_resort",
-  "launcher_section_android_apps",
+  {
+    "key": "launcher_section_android_apps",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "launcher_section_delete_confirm_message",
   "launcher_section_delete_confirm_title",
-  "launcher_section_desktop",
+  {
+    "key": "launcher_section_desktop",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "launcher_section_google",
   "launcher_section_widgets",
   "launcher_settings_density_default",
   "launcher_settings_density_dense",
   "launcher_settings_double_tap_lock_subtitle",
   "launcher_settings_double_tap_lock_title",
-  "launcher_settings_group_appearance",
+  {
+    "key": "launcher_settings_group_appearance",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur"
+    ]
+  },
   "launcher_settings_group_desktop",
   "launcher_settings_group_system",
   "launcher_settings_group_tray",
@@ -275,15 +674,60 @@
   "launcher_settings_tray_bluetooth_title",
   "launcher_settings_tray_speed_subtitle",
   "launcher_settings_tray_speed_title",
-  "launcher_settings_wallpaper_camera",
+  {
+    "key": "launcher_settings_wallpaper_camera",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "launcher_settings_wallpaper_camera_lens_title",
   "launcher_settings_widget_backdrop_alpha_0",
   "launcher_settings_widget_backdrop_alpha_100",
   "launcher_stream_add_desktop_window",
   "launcher_stream_desktop_window_added",
   "launcher_stream_desktop_window_no_space",
-  "launcher_stream_overlay_fullscreen",
-  "launcher_stream_overlay_mute",
+  {
+    "key": "launcher_stream_overlay_fullscreen",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "launcher_stream_overlay_mute",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "launcher_stream_overlay_pip",
   "launcher_stream_overlay_play_pause",
   "launcher_stream_overlay_stop",
@@ -295,9 +739,39 @@
   "launcher_tray_sim_roaming_data_type",
   "launcher_tray_speed_download",
   "launcher_tray_speed_upload",
-  "launcher_wallpaper_mode_instant_photo",
+  {
+    "key": "launcher_wallpaper_mode_instant_photo",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "launcher_wallpaper_section_source",
-  "launcher_world_clock_zone_title",
+  {
+    "key": "launcher_world_clock_zone_title",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "main_streams_panel_strip",
   "media_gone_message",
   "media_gone_title",
@@ -309,25 +783,113 @@
   "media_type_text",
   "media_type_video",
   "media_unavailable_message",
-  "media_unavailable_title",
+  {
+    "key": "media_unavailable_title",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "menu_automate_source",
   "minutes",
   "mirror_zoom_button",
   "motion_stat_max",
   "motion_stat_total",
   "name_label",
-  "network_monitor_action_clear",
-  "network_monitor_action_copy",
+  {
+    "key": "network_monitor_action_clear",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur"
+    ]
+  },
+  {
+    "key": "network_monitor_action_copy",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "network_monitor_action_ping",
   "network_monitor_action_traceroute",
   "network_monitor_bluetooth_adapter_label",
   "network_monitor_chart_signal_heading",
   "network_monitor_console_empty",
-  "network_monitor_console_heading",
+  {
+    "key": "network_monitor_console_heading",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur"
+    ]
+  },
   "network_monitor_console_ping_header",
   "network_monitor_console_traceroute_header",
-  "network_monitor_external_ip_label",
-  "network_monitor_external_ip_resolving",
+  {
+    "key": "network_monitor_external_ip_label",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "network_monitor_external_ip_resolving",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "network_monitor_external_ip_reveal",
   "network_monitor_fact_link_speed",
   "network_monitor_gnss_latitude_label",
@@ -336,7 +898,22 @@
   "network_monitor_history_export",
   "network_monitor_history_kind_ping",
   "network_monitor_history_kind_traceroute",
-  "network_monitor_host_diagnostics_heading",
+  {
+    "key": "network_monitor_host_diagnostics_heading",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "network_monitor_host_hint",
   "network_monitor_internet_offline",
   "network_monitor_link_dns_label",
@@ -345,7 +922,22 @@
   "network_monitor_link_ipv4_label",
   "network_monitor_link_ipv6_label",
   "network_monitor_link_proxy_label",
-  "network_monitor_local_ip_label",
+  {
+    "key": "network_monitor_local_ip_label",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "network_monitor_mobile_sim_label",
   "network_monitor_path_dns",
   "network_monitor_path_gateway",
@@ -355,11 +947,80 @@
   "network_monitor_section_gnss",
   "network_monitor_section_internet",
   "network_monitor_section_mobile",
-  "network_monitor_section_resource_speed",
-  "network_monitor_section_tools",
-  "network_monitor_select_resource_heading",
-  "network_monitor_speed_result_heading",
-  "network_monitor_subnet_scan_heading",
+  {
+    "key": "network_monitor_section_resource_speed",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur"
+    ]
+  },
+  {
+    "key": "network_monitor_section_tools",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "network_monitor_select_resource_heading",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur"
+    ]
+  },
+  {
+    "key": "network_monitor_speed_result_heading",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "network_monitor_subnet_scan_heading",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur"
+    ]
+  },
   "network_monitor_transport_ethernet",
   "network_monitor_transport_vpn",
   "network_monitor_value_dbm",
@@ -390,11 +1051,49 @@
   "perm_title_record_audio",
   "physical_flashlight_unavailable",
   "pip_enter_failed",
-  "pip_pause",
+  {
+    "key": "pip_pause",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "playback_control_balance_value",
-  "playback_control_hue_value",
+  {
+    "key": "playback_control_hue_value",
+    "locales": [
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "playback_control_tab_balance",
-  "playback_control_tab_hue",
+  {
+    "key": "playback_control_tab_hue",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "zh-Hans"
+    ]
+  },
   "playback_control_tab_subtitles",
   "playback_control_tab_volume",
   "playback_order_shuffle",
@@ -408,7 +1107,21 @@
   "port",
   "power_saving_trigger_options",
   "pref_disable_animations_desc",
-  "pref_disable_animations_title",
+  {
+    "key": "pref_disable_animations_title",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur"
+    ]
+  },
   "pref_streaming_clear_confirm_format",
   "privacy_policy",
   "protected_archive_password_hint",
@@ -436,8 +1149,30 @@
   "scheduled_ops_target",
   "search_in_youtube_music",
   "settings_broadcast_audio_format_value",
-  "settings_broadcast_channels_mono",
-  "settings_broadcast_channels_stereo",
+  {
+    "key": "settings_broadcast_channels_mono",
+    "locales": [
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk"
+    ]
+  },
+  {
+    "key": "settings_broadcast_channels_stereo",
+    "locales": [
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk"
+    ]
+  },
   "settings_broadcast_port",
   "settings_default_document_type_epub",
   "settings_default_document_type_pdf",
@@ -465,7 +1200,20 @@
   "share_target_desc_watch",
   "share_target_help_watch",
   "share_target_title_email",
-  "share_target_title_watch",
+  {
+    "key": "share_target_title_watch",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur"
+    ]
+  },
   "share_target_watch_app_not_open",
   "share_target_watch_no_reply",
   "share_target_watch_opened",
@@ -509,8 +1257,38 @@
   "stream_wait_buffering",
   "streams_category_live_tv",
   "streams_category_on_demand_video",
-  "streams_category_radio",
-  "streams_category_test_streams",
+  {
+    "key": "streams_category_radio",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "streams_category_test_streams",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "streams_collection_strip_description",
   "streams_edit_type_audio",
   "streams_edit_type_auto",
@@ -546,7 +1324,21 @@
   "sysinfo_field_build",
   "sysinfo_field_camera_active_array",
   "sysinfo_field_display_count",
-  "sysinfo_field_fingerprint",
+  {
+    "key": "sysinfo_field_fingerprint",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "sysinfo_field_gles",
   "sysinfo_field_hdr",
   "sysinfo_field_kernel",
@@ -582,7 +1374,21 @@
   "text_editing_large_file",
   "text_page_indicator",
   "text_page_indicator_estimated",
-  "text_t",
+  {
+    "key": "text_t",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "theme_sepia",
   "tile_audio_label",
   "tile_audio_pause",
@@ -603,12 +1409,41 @@
   "video",
   "video_bitrate_label",
   "video_codec_label",
-  "videos_v",
+  {
+    "key": "videos_v",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "volume_level",
   "volume_max",
   "vr_hud_audio_label",
   "vr_hud_pause",
-  "vr_hud_prev",
+  {
+    "key": "vr_hud_prev",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "vr_hud_subs_label",
   "vr_hud_volume_label",
   "vr_hud_volume_percent",
@@ -627,8 +1462,36 @@
   "wear_app_sos",
   "wear_background_failed",
   "wear_background_mode_animation",
-  "wear_background_mode_image",
-  "wear_background_pick_image",
+  {
+    "key": "wear_background_mode_image",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk"
+    ]
+  },
+  {
+    "key": "wear_background_pick_image",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk"
+    ]
+  },
   "wear_background_preview",
   "wear_background_sending",
   "wear_background_sent",
@@ -692,7 +1555,22 @@
   "wear_setting_streams_section_desc",
   "wear_settings_album_art_desc",
   "wear_settings_album_art_tooltip_message",
-  "wear_settings_album_art_tooltip_title",
+  {
+    "key": "wear_settings_album_art_tooltip_title",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "wear_settings_audio",
   "wear_settings_audio_desc",
   "wear_settings_documents",
@@ -704,8 +1582,38 @@
   "wear_settings_keep_awake_tooltip_title",
   "wear_settings_last_synced",
   "wear_settings_slideshow_desc",
-  "wear_settings_sync_button",
-  "wear_settings_sync_never",
+  {
+    "key": "wear_settings_sync_button",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "wear_settings_sync_never",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "zh-Hans"
+    ]
+  },
   "wear_settings_video",
   "wear_settings_video_desc",
   "wear_stopwatch_menu",
@@ -740,7 +1648,22 @@
   "widget_camera_quick_capture_mode_photo",
   "widget_camera_quick_capture_mode_video",
   "widget_front_flashlight_description",
-  "widget_front_flashlight_label",
+  {
+    "key": "widget_front_flashlight_label",
+    "locales": [
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "widget_network_monitor_indicator_hotspot_state",
   "widget_network_monitor_indicator_radio_status",
   "widget_network_monitor_indicator_satellite_count",

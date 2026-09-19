@@ -762,6 +762,22 @@ The domain set lives in `locks.domains` of `.sza-profile.json` and nowhere else 
 
 The lock window text above superseded "release it right after", which had been the whole of the rule until 2026-09-03 and did not say after *what*.
 
+### How much runs at once - the concurrency bound (S3308)
+
+The locks above order work that already exists; nothing decided how much of it there should be. Until this ticket the level was set by two hands that could not see each other - lanes started deliberately with `a.ps1 r1`/`r2`/`r3`, and sessions opened beside them - so the total was never anybody's number. Measured over 2026-09-17..19: up to **11 simultaneous sessions**, `check_fast_app_v2_Code` running a median **~50 s** against the **14.1 s** `docs/BUILD_TEST_FAST_PATH.md` documents for `a.ps1 fk`, and **40** domain queue entries in the window. The idle half of the old argument had already been paid off - 64 runner runs, **0** of them moving no status - so the price of concurrency here is build time, not wasted runs.
+
+The bound is one declared block, `concurrency` in `.sza-profile.json`, and nothing else configures it:
+
+- `maxSessions` - the owner's ruling of 2026-09-19, currently 6.
+- `activeAgentWindowMinutes` - how recently an agent must have acted to count. **Active is the owner's definition of 2026-09-19**: it talked in the chat, wrote a file or ran a script inside that window. A hung agent, an interrupted one, one stopped by usage limits, one that finished its task and sits idle, and one the owner has declared dead are all out of the count - the bound measures load, and an open window is not load. This is why the count is of recent activity and not of running processes: 12 agent processes were live on 2026-09-19 while the chat showed 7 that had acted at all.
+- `idleRunSharePercentMax` - the share of runner runs that moved no status, above which more lanes buy nothing.
+- `fastCheckLagSecondsMax` - how far past its documented duration the phone code fast check may run. 14.1 s of lag is the check taking twice the documented figure.
+- `holdSecondsMax` - the age at which a Rule 23 domain hold is reported as having outlived its edit window.
+
+`a.ps1 r1`/`r2`/`r3` read that block before starting and **exit 4** naming the bound crossed, with the measured value beside the declared one. `r0` is exempt: MONO is one agent alone, which is the opposite of adding load. The measured side comes from `scripts/utils/measure-process-throughput.ps1`, which sweeps the three journals that were already being written - the runner's run rows, `temp/metrics/gate-executions.jsonl` and the fast-check logs - and answers any window with the five values plus the model each policy actually produced, a warning for a declared policy that never ran, and the long-hold report below. Nothing swept them before, so every process audit re-mined the same corpus by hand and its numbers died with the conversation.
+
+**A hold that outlived its edit window is now reported, not discovered afterwards.** Rule 23 releases a domain at the last file a step writes. On 2026-09-19 one `Code.Scripts` hold ran at least 41 minutes with no release, against 4 to 418 seconds for every other hold of that domain in the same stretch, and alone produced the window's longest wait - 747 s served by a neighbouring session. The summary pairs acquire and release events from the agent progress records and the queue handoffs, prints every hold past `holdSecondsMax` with its domain, holder and duration, and carries **an acquire with no release as `still held`** rather than dropping it for having no end stamp - that shape is precisely what a dropped hold looks like. The longest wait printed beside a hold is a lower bound: the grant itself is not journalled, so a waiter that took a ticket during the hold is credited only with the time up to the hold's end.
+
 ### The temp/ root inventory (S3030)
 
 `temp/` root holds three kinds of content, and `scripts/utils/archive-temp.ps1` has always said so in
