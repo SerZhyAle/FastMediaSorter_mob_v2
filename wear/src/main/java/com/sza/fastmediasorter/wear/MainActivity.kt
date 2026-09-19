@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentResolver
 import android.content.Intent
@@ -29,12 +30,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
@@ -56,6 +60,7 @@ import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.sza.fastmediasorter.wear.core.notification.WearOpenOnWatchNotifier
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
 import com.sza.fastmediasorter.wear.core.util.WearUnitDateTimeFormatter
+import com.sza.fastmediasorter.wear.data.onboarding.WearInstallInfoReader
 import com.sza.fastmediasorter.wear.data.wear.WatchFileOpenEvents
 import com.sza.fastmediasorter.wear.data.wear.WatchStreamOpenEvents
 import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
@@ -71,25 +76,30 @@ import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.readWearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.BuildWearOnboardingStepsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ObserveWearGeometryModeUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareVoiceNotePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearFilePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearNetworkFilePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.RecordLastUsedAppUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchAddressUseCase
 import com.sza.fastmediasorter.wear.ui.apps.AppsScreen
 import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.BloodPressureScreen
+import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.calibration.BloodPressureCalibrationScreen
 import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.history.BloodPressureHistoryScreen
 import com.sza.fastmediasorter.wear.ui.apps.bodysensor.BodySensorScreen
 import com.sza.fastmediasorter.wear.ui.apps.bodysensor.history.HeartRateHistoryScreen
 import com.sza.fastmediasorter.wear.ui.apps.calculator.CalculatorScreen
+import com.sza.fastmediasorter.wear.ui.apps.clipboard.ClipboardScreen
 import com.sza.fastmediasorter.wear.ui.apps.game.GameRulesScreen
 import com.sza.fastmediasorter.wear.ui.apps.game.GameScreen
 import com.sza.fastmediasorter.wear.ui.apps.motionmonitor.MotionMonitorScreen
 import com.sza.fastmediasorter.wear.ui.apps.motionmonitor.history.MotionHistoryScreen
 import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorDetailScreen
 import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorScreen
+import com.sza.fastmediasorter.wear.ui.apps.sos.SosScreen
 import com.sza.fastmediasorter.wear.ui.apps.stopwatch.WearStopwatchScreen
 import com.sza.fastmediasorter.wear.ui.apps.systeminfo.SystemInfoScreen
 import com.sza.fastmediasorter.wear.ui.apps.tourist.TouristScreen
@@ -108,11 +118,16 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.LocalWearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
+import com.sza.fastmediasorter.wear.ui.common.WearDimOverlay
 import com.sza.fastmediasorter.wear.ui.common.WearListPositionStore
 import com.sza.fastmediasorter.wear.ui.common.WearRotaryFocusStack
+import com.sza.fastmediasorter.wear.ui.common.WearScreenOffAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearSectionExpansionStore
 import com.sza.fastmediasorter.wear.ui.common.WearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
+import com.sza.fastmediasorter.wear.ui.common.testlaunch.WearTestLaunchOverride
+import com.sza.fastmediasorter.wear.ui.common.testlaunch.WearTestLaunchOverrideReader
+import com.sza.fastmediasorter.wear.ui.common.testlaunch.rememberWearTestScreenMetrics
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
 import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
 import com.sza.fastmediasorter.wear.ui.folder.WearFolderWalkScreen
@@ -127,6 +142,8 @@ import com.sza.fastmediasorter.wear.ui.network.NetworkSourcesScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncResultScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncTransferScreen
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesViewModel
+import com.sza.fastmediasorter.wear.ui.onboarding.WearOnboardingEntry
+import com.sza.fastmediasorter.wear.ui.onboarding.WearOnboardingScreen
 import com.sza.fastmediasorter.wear.ui.permission.PermissionsScreen
 import com.sza.fastmediasorter.wear.ui.phone.PhoneResourceScreen
 import com.sza.fastmediasorter.wear.ui.phonecamera.PhoneCameraScreen
@@ -138,6 +155,7 @@ import com.sza.fastmediasorter.wear.ui.player.video.VideoPlayerScreen
 import com.sza.fastmediasorter.wear.ui.settings.AboutSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.MediaTypesSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.OtherSettingsScreen
+import com.sza.fastmediasorter.wear.ui.settings.PermissionsSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.ScreenSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.SettingsRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsScreen
@@ -154,6 +172,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -175,6 +194,8 @@ data class WearHostUseCases(
     val observeGeometryMode: ObserveWearGeometryModeUseCase,
     // S2995: restricted capabilities for build flavor routing
     val capabilities: WearRestrictedCapabilities,
+    // S3116: records the mini-program the host navigated to, for the home row that offers it again.
+    val recordLastUsedApp: RecordLastUsedAppUseCase,
 )
 
 /**
@@ -189,6 +210,8 @@ data class WearLaunchEntry(
     val pendingTarget: StateFlow<WearLaunchTarget?>,
     /** Takes the target it handled, so a newer one that arrived mid-resolution is not cleared unhandled. */
     val onHandled: (WearLaunchTarget) -> Unit,
+    /** S3201: the test parameters of this launch; null on every launch that carried none. */
+    val testOverride: StateFlow<WearTestLaunchOverride?>,
 )
 
 /** S2201: the sentinel the player view models already treat as "no file was named". */
@@ -211,9 +234,19 @@ private val SETTINGS_ROUTES = setOf(
     SettingsRoutes.SCREEN,
     SettingsRoutes.OTHER,
     SettingsRoutes.TILE_TARGETS,
+    SettingsRoutes.PERMISSIONS,
     SettingsRoutes.ABOUT
 )
 
+// S3155: ActivityLogicViolation fires on all eight @Inject use-case fields below. The detector
+// enforces CLAUDE.md Rule 3 against a View-based Activity, where the cure is a Manager the Activity
+// delegates to. This module is Compose (Rule 32) and this class is its composition root: there is no
+// view hierarchy to own logic, and each field is handed down to the screen that needs it for a
+// reason recorded on the field itself by the ticket that put it there - S1781, S1944, S1884, S2161,
+// S1955, S2000. Rule 8 makes those comments requirements, so the suppression records the existing
+// decision instead of silently overturning eight of them. Narrow by construction: MainActivity is
+// the only Activity in the module, so this does not disarm the rule for any future one.
+@SuppressLint("ActivityLogicViolation")
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -246,6 +279,16 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var capabilities: WearRestrictedCapabilities
 
+    // S3186: the first-run walk reads which permissions this edition declares and whether this is the
+    // first install at all - an update over a used install goes straight to the app.
+    @Inject lateinit var installInfo: WearInstallInfoReader
+
+    @Inject lateinit var buildOnboardingSteps: BuildWearOnboardingStepsUseCase
+
+    // S3116: the host is where a mini-program is seen to open, whichever entrance was used, so it is
+    // where the home row's "last program" is recorded (strategic ADR-1).
+    @Inject lateinit var recordLastUsedApp: RecordLastUsedAppUseCase
+
     // S1961: the pending-open notification is this app's own, so it is this app that puts it away
     // once the user is here and no longer needs it.
     @Inject lateinit var openOnWatchNotifier: WearOpenOnWatchNotifier
@@ -262,6 +305,9 @@ class MainActivity : ComponentActivity() {
     // that shows a time needs it, and the pattern cache is worth nothing if each screen builds its own.
     @Inject lateinit var dateTimeFormatter: WearUnitDateTimeFormatter
 
+    // S3201: one-launch test parameters. The release binding always answers null.
+    @Inject lateinit var testLaunchOverrideReader: WearTestLaunchOverrideReader
+
     /**
      * S1955: what this launch asked to open, until the navigation host has opened it.
      *
@@ -270,6 +316,12 @@ class MainActivity : ComponentActivity() {
      * is exactly the start a tile tap produces.
      */
     private val pendingLaunchTarget = MutableStateFlow<WearLaunchTarget?>(null)
+
+    /**
+     * S3201: what the current launch asked to draw instead of the stored settings. Held in memory only,
+     * so a process death or a launch without parameters is the owner's own view again.
+     */
+    private val testLaunchOverride = MutableStateFlow<WearTestLaunchOverride?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -285,9 +337,9 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) {
             pendingLaunchTarget.value = launchTargetFrom(intent)
         }
-
-        // Check if permissions are already granted
-        val hasPermissions = hasMediaPermissions()
+        // Unlike the target, re-reading on a recreation is right: it is the same launch, and a rotation
+        // must not drop the geometry the test is looking at.
+        testLaunchOverride.value = testLaunchOverrideReader.read(intent)
 
         setContent {
             // S2763: one rotary stack for the whole watch UI. It has to span the screen and everything
@@ -298,7 +350,12 @@ class MainActivity : ComponentActivity() {
             // flashlight's clock. A push from the phone lands here and recomposes all of them.
             val units by preferencesRepository.unitSystem
                 .collectAsStateWithLifecycle(initialValue = UnitSystem.DEFAULT)
+            // S3201: above everything, so the brand frame and the permission screen scale with the rest.
+            val testOverride by testLaunchOverride.collectAsStateWithLifecycle()
+            val testScreen = rememberWearTestScreenMetrics(testOverride?.screenDp)
             CompositionLocalProvider(
+                LocalDensity provides testScreen.density,
+                LocalConfiguration provides testScreen.configuration,
                 LocalWearUnitSystem provides units,
                 LocalWearListPositions provides listPositions,
                 LocalWearSectionExpansion provides sectionExpansion,
@@ -312,7 +369,18 @@ class MainActivity : ComponentActivity() {
                     }
                 )
                 WearApp(
-                    initialHasPermissions = hasPermissions,
+                    onboarding = WearOnboardingEntry(
+                        needed = preferencesRepository.onboardingCompleted.map { completed ->
+                            !completed && installInfo.isFreshInstall
+                        },
+                        steps = { buildOnboardingSteps(installInfo.declaredPermissions, Build.VERSION.SDK_INT) },
+                        onFinished = {
+                            lifecycleScope.launch { preferencesRepository.setOnboardingCompleted(true) }
+                        },
+                        // S3178: the store artifact declares no media permission, so the request could never
+                        // be granted and the watch would stop on this prompt forever instead of reaching Home.
+                        hasMediaAccess = { !capabilities.offersMediaAccess || hasMediaPermissions() }
+                    ),
                     keepScreenAwakeOutsidePlayers = preferencesRepository.keepScreenAwakeOutsidePlayers,
                     isAutoRotationEnabled = preferencesRepository.isAutoRotationEnabled,
                     appLanguage = preferencesRepository.appLanguage,
@@ -325,11 +393,13 @@ class MainActivity : ComponentActivity() {
                         prepareNetworkFilePlayback = prepareNetworkFilePlayback,
                         observeGeometryMode = observeGeometryMode,
                         capabilities = capabilities,
+                        recordLastUsedApp = recordLastUsedApp,
                     ),
                     launchEntry = WearLaunchEntry(
                         resolveAddress = resolveLaunchAddress,
                         pendingTarget = pendingLaunchTarget,
-                        onHandled = { handled -> pendingLaunchTarget.compareAndSet(handled, null) }
+                        onHandled = { handled -> pendingLaunchTarget.compareAndSet(handled, null) },
+                        testOverride = testLaunchOverride
                     )
                 )
             }
@@ -361,6 +431,9 @@ class MainActivity : ComponentActivity() {
         // Only overwrite with a real target: tapping the launcher icon while a tile's target is still
         // waiting behind the permission screen delivers a bare MAIN intent, and that must not erase it.
         launchTargetFrom(intent)?.let { pendingLaunchTarget.value = it }
+        // Always overwritten: a launch without parameters is the owner's view again, which is the
+        // "only this launch" promise the test parameters make.
+        testLaunchOverride.value = testLaunchOverrideReader.read(intent)
     }
 
     /**
@@ -422,7 +495,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WearApp(
-    initialHasPermissions: Boolean = false,
+    onboarding: WearOnboardingEntry,
     keepScreenAwakeOutsidePlayers: Flow<Boolean>,
     isAutoRotationEnabled: Flow<Boolean>,
     appLanguage: Flow<String?>,
@@ -444,14 +517,32 @@ fun WearApp(
         AutoRotationEffect(isAutoRotationEnabled = isAutoRotationEnabled)
         val keepAwake by keepScreenAwakeOutsidePlayers.collectAsStateWithLifecycle(initialValue = false)
         KeepScreenOnEffect(enabled = keepAwake)
-        var hasPermissions by remember { mutableStateOf(initialHasPermissions) }
+        var hasPermissions by remember { mutableStateOf(onboarding.hasMediaAccess()) }
         // S1981: scoped to this composable, not `rememberSaveable` or persistent storage - it
         // resets only when `WearApp` itself is recreated (a cold start), never on backgrounding/
         // foregrounding or in-app navigation back to Home (strategic §6 item 4).
         var showBrandFrame by remember { mutableStateOf(true) }
+        // S3186: null until the store answers - neither the walk nor the app is drawn on a guess.
+        val onboardingNeeded by onboarding.needed.collectAsStateWithLifecycle<Boolean?>(initialValue = null)
+        // Local latch: the stored flag is written asynchronously, and the walk must not reappear for
+        // the frames between the last tap and the store's next emission.
+        var onboardingFinished by remember { mutableStateOf(false) }
 
         if (showBrandFrame) {
             BrandFrameScreen(onTimeout = { showBrandFrame = false })
+        } else if (onboardingNeeded == null) {
+            Unit
+        } else if (onboardingNeeded == true && !onboardingFinished) {
+            val steps = remember { onboarding.steps() }
+            WearOnboardingScreen(
+                steps = steps,
+                onFinished = {
+                    onboardingFinished = true
+                    onboarding.onFinished()
+                    // The walk may just have granted media access; the gate below was decided before it.
+                    hasPermissions = onboarding.hasMediaAccess()
+                }
+            )
         } else if (!hasPermissions) {
             // Show permissions screen first
             PermissionsScreen(
@@ -556,13 +647,29 @@ fun MainNavigation(
 ) {
     val navController = rememberSwipeDismissableNavController()
 
-    OpenStreamOnWatchEffect(navController = navController, prepareStreamPlayback = hostUseCases.prepareStreamPlayback)
+    // S3178: two effects that navigate on something the PHONE sent, not on something the user tapped
+    // here. Both are collected only where the capability behind them exists - the store artifact has
+    // no Data Layer listener to receive either, and an effect that stayed collected would be a second
+    // address into a graph whose destinations are no longer registered.
+    if (hostUseCases.capabilities.offersRemoteSources) {
+        OpenStreamOnWatchEffect(
+            navController = navController,
+            prepareStreamPlayback = hostUseCases.prepareStreamPlayback
+        )
+    }
 
-    OpenFileOnWatchEffect(navController = navController, prepareFilePlayback = hostUseCases.prepareFilePlayback)
+    if (hostUseCases.capabilities.offersContentTransfer) {
+        OpenFileOnWatchEffect(
+            navController = navController,
+            prepareFilePlayback = hostUseCases.prepareFilePlayback
+        )
+    }
 
     OpenLaunchTargetEffect(navController = navController, launchEntry = launchEntry)
 
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
+    RecordLastUsedAppEffect(currentRoute = currentRoute, recordLastUsedApp = hostUseCases.recordLastUsedApp)
 
     // S2097 - When on WearRoutes.HOME (root destination), intercept Back press to call moveTaskToBack(true)
     // instead of finishing the Activity and overshooting into developer options or settings.
@@ -586,9 +693,17 @@ fun MainNavigation(
     // S2773: the geometry in force, published beside the wallpaper state because the shape helpers
     // every screen already calls read it from here. The initial value is the reviewed view, so the one
     // frame drawn before DataStore answers is never the shape Play rejected.
-    val geometryMode by hostUseCases.observeGeometryMode().collectAsStateWithLifecycle(
+    val storedGeometryMode by hostUseCases.observeGeometryMode().collectAsStateWithLifecycle(
         initialValue = WearGeometryMode.STORE
     )
+    // S3201: a test launch draws the other view without writing the owner's choice.
+    val testOverride by launchEntry.testOverride.collectAsStateWithLifecycle()
+    val geometryMode = testOverride?.geometryMode ?: storedGeometryMode
+
+    // S3098: the screen-off command reaches about thirty screens, so it belongs to none of them. The
+    // three screens that dimmed before this ticket keep their own state and are not in the route set
+    // below, so the two owners never raise a sheet over each other.
+    var dimmed by rememberSaveable { mutableStateOf(false) }
 
     CompositionLocalProvider(
         LocalWearWallpaperState provides WearWallpaperState(
@@ -616,13 +731,7 @@ fun MainNavigation(
                     HomeScreen(navController = navController)
                 }
 
-                browseRoutes(navController = navController)
-
-                localFolderRoutes(
-                    navController,
-                    hostUseCases.prepareFilePlayback,
-                    hostUseCases.prepareNetworkFilePlayback
-                )
+                contentRoutes(navController = navController, hostUseCases = hostUseCases)
 
                 miniAppRoutes(
                     navController = navController,
@@ -630,17 +739,27 @@ fun MainNavigation(
                     capabilities = hostUseCases.capabilities,
                 )
 
-                tileRoutes(navController = navController)
-
-                syncRoutes(navController = navController)
-
-                playerRoutes(navController = navController)
-
-                settingsRoutes(navController = navController)
+                settingsRoutes(
+                    navController = navController,
+                    capabilities = hostUseCases.capabilities
+                )
             }
 
             // S2472: the universal back affordance, drawn above the host.
             WearNavBackAffordanceHost(currentRoute = currentRoute, navController = navController)
+
+            // S3098: its mirror at the opposite rim, on exactly the same routes.
+            WearNavScreenOffHost(
+                currentRoute = currentRoute,
+                dimmed = dimmed,
+                onDim = { dimmed = true }
+            )
+
+            // Drawn last so the sheet covers both rim controls; a control left glowing over a dark
+            // screen is the one thing this mode exists to remove.
+            if (dimmed) {
+                WearDimOverlay(onExit = { dimmed = false })
+            }
         }
     }
 }
@@ -669,6 +788,31 @@ private fun BoxScope.WearNavBackAffordanceHost(
 }
 
 /**
+ * S3098: the screen-off command at the right rim, opposite the shared back arrow.
+ *
+ * It hides while the sheet is up because the sheet covers it anyway, and a command that cannot be seen
+ * must not stay pressable underneath.
+ */
+@Composable
+private fun BoxScope.WearNavScreenOffHost(
+    currentRoute: String?,
+    dimmed: Boolean,
+    onDim: () -> Unit
+) {
+    if (!showsNavBackAffordance(currentRoute) || dimmed) {
+        return
+    }
+    WearScreenOffAffordance(
+        onClick = {
+            onDim()
+        },
+        modifier = Modifier
+            .align(Alignment.CenterEnd)
+            .padding(end = wearBackAffordanceInset())
+    )
+}
+
+/**
  * S2472: which routes draw the shared back arrow. The players get their back command inside their
  * own control cluster (it must hide with those controls), home gets the close/minimize role, and
  * the game board and calculator are surfaces whose every pixel is the interaction itself - an edge
@@ -685,10 +829,49 @@ private fun showsNavBackAffordance(route: String?): Boolean =
         route != WearRoutes.STOPWATCH &&
         // S2516: the back arrow is a touch target, and this screen exists to have none - drawing it
         // would hand a wet wrist the exit the program is built to withhold.
-        route != WearRoutes.WATER_FLASHLIGHT
+        route != WearRoutes.WATER_FLASHLIGHT &&
+        // S3216: the same reason, and for the same half of the program - while the signal runs this
+        // screen has no touch target at all, so an arrow drawn over it would be the one exception.
+        route != WearRoutes.SOS
 
 private fun showsWallpaper(route: String?): Boolean =
     route != null && route !in SETTINGS_ROUTES && route !in PLAYER_ROUTES
+
+/**
+ * S3178: the four route groups that reach user content, registered only where the artifact can.
+ *
+ * A route that is not registered is not reachable - not by a tap, not by a tile, not by an incoming
+ * intent - so this is the navigation half of the store boundary and its manifest half is
+ * `wear/src/standard/AndroidManifest.xml`. Neither is sufficient alone: the manifest stops a
+ * component being started, this stops an address being resolved, and a capability returns to the
+ * store variant only when both are edited together on its own ticket.
+ *
+ * Grouped into one function rather than four gated call sites in [MainNavigation] because that host
+ * already sat at detekt's length ceiling - the same reason [settingsRoutes] and [miniAppRoutes] were
+ * lifted out of it by S1944.
+ */
+private fun NavGraphBuilder.contentRoutes(
+    navController: NavHostController,
+    hostUseCases: WearHostUseCases
+) {
+    if (hostUseCases.capabilities.offersMediaAccess) {
+        browseRoutes(navController = navController)
+
+        localFolderRoutes(
+            navController,
+            hostUseCases.prepareFilePlayback,
+            hostUseCases.prepareNetworkFilePlayback
+        )
+
+        playerRoutes(navController = navController)
+    }
+
+    if (hostUseCases.capabilities.offersRemoteSources) {
+        tileRoutes(navController = navController)
+
+        syncRoutes(navController = navController)
+    }
+}
 
 private fun NavGraphBuilder.syncRoutes(navController: NavHostController) {
     composable(WearRoutes.ADD_NETWORK_SOURCE) {
@@ -798,17 +981,25 @@ private fun NavGraphBuilder.playerRoutes(navController: NavHostController) {
  * S2008 took system information out of the block: it configured nothing, so it moved to
  * [miniAppRoutes] with the rest of the watch's programs.
  */
-private fun NavGraphBuilder.settingsRoutes(navController: NavHostController) {
+private fun NavGraphBuilder.settingsRoutes(
+    navController: NavHostController,
+    capabilities: WearRestrictedCapabilities
+) {
     composable(WearRoutes.SETTINGS) {
         SettingsScreen(navController = navController)
     }
 
-    composable(SettingsRoutes.MEDIA_TYPES) {
-        MediaTypesSettingsScreen()
-    }
+    // S3178: three of these seven configure a capability the store artifact does not carry. A
+    // settings page reads as a promise that the thing it configures exists, so they follow their
+    // subject out of the store variant rather than staying as pages that change nothing.
+    if (capabilities.offersMediaAccess) {
+        composable(SettingsRoutes.MEDIA_TYPES) {
+            MediaTypesSettingsScreen()
+        }
 
-    composable(SettingsRoutes.SLIDESHOW) {
-        SlideshowSettingsScreen()
+        composable(SettingsRoutes.SLIDESHOW) {
+            SlideshowSettingsScreen()
+        }
     }
 
     composable(SettingsRoutes.SCREEN) {
@@ -819,8 +1010,17 @@ private fun NavGraphBuilder.settingsRoutes(navController: NavHostController) {
         OtherSettingsScreen()
     }
 
-    composable(SettingsRoutes.TILE_TARGETS) {
-        TileTargetsSettingsScreen(navController = navController)
+    if (capabilities.offersRemoteSources) {
+        composable(SettingsRoutes.TILE_TARGETS) {
+            TileTargetsSettingsScreen(navController = navController)
+        }
+    }
+
+    // S3226: registered in every edition. The screen decides for itself what it can ask for, and the
+    // menu entry above it is hidden where that answer is nothing, so a build without permissions has
+    // no way in rather than a route that crashes when one is reached from elsewhere.
+    composable(SettingsRoutes.PERMISSIONS) {
+        PermissionsSettingsScreen()
     }
 
     composable(SettingsRoutes.ABOUT) {
@@ -852,7 +1052,7 @@ private fun OpenStreamOnWatchEffect(
                 } else {
                     WearRoutes.audioPlayer(target.fileId)
                 }
-                navController.navigate(route)
+                navigateReplacingContent(navController, route)
                 // Confirm only after navigating, so the phone's "playing" is a report, not a promise.
                 WatchStreamOpenEvents.openedFlow.emit(channel.url)
             }
@@ -878,11 +1078,34 @@ private fun OpenFileOnWatchEffect(
             WatchFileOpenEvents.requestFlow.collect { request ->
 
                 val target = prepareFilePlayback(request)
-                navController.navigate(playerRouteFor(target.fileId, target.mimeType, fileName = request.path))
+                navigateReplacingContent(
+                    navController,
+                    playerRouteFor(target.fileId, target.mimeType, fileName = request.path)
+                )
                 // Confirm only after navigating, so the phone's "opened" is a report, not a promise.
                 WatchFileOpenEvents.openedFlow.emit(request.path)
             }
         }
+    }
+}
+
+/**
+ * S3116: records the mini-program the host is showing, so the home row can offer it again.
+ *
+ * Keyed on the route rather than collecting an event stream: a program is reached from the Apps list,
+ * from the home row, from a tile shortcut and from an external launch intent, and every one of those
+ * ends as this route - one observation covers four entrances (strategic ADR-1). A route naming no
+ * program records nothing, which is what leaves the value at the program actually opened last.
+ */
+@Composable
+private fun RecordLastUsedAppEffect(
+    currentRoute: String?,
+    recordLastUsedApp: RecordLastUsedAppUseCase,
+) {
+    LaunchedEffect(currentRoute) {
+        val program = currentRoute?.let(WearLaunchRoutes::appIdForRoute) ?: return@LaunchedEffect
+        Timber.d("S3116: recording opened program %s", program)
+        recordLastUsedApp(program)
     }
 }
 
@@ -927,9 +1150,31 @@ private fun OpenLaunchTargetEffect(
  */
 private fun navigateGuarded(navController: NavHostController, route: String) {
     try {
-        navController.navigate(route)
+        navigateReplacingContent(navController, route)
     } catch (e: IllegalArgumentException) {
         Timber.w(e, "Launch route is not in the navigation graph: %s", route)
+    }
+}
+
+/**
+ * S3213: opens [route], replacing the content destination the watch is already standing on.
+ *
+ * Every caller here is an entrance that can fire while a player is open - the phone's stream, the
+ * phone's file, a launch intent, a second Start on the phone-camera screen - and each of them used to
+ * push unconditionally. Two players then stood next to each other on the back stack and BACK from the
+ * upper one resumed the older one instead of leaving the flow (observed on the S2551 device run).
+ *
+ * Only the destination the user can see is replaced, so a browse screen or a control screen under the
+ * player survives and BACK still lands where the flow was entered. `launchSingleTop` covers the
+ * narrower case of the very same address arriving twice.
+ */
+private fun navigateReplacingContent(navController: NavHostController, route: String) {
+    val replaced = navController.currentBackStackEntry?.destination
+        ?.takeIf { WearRoutes.isContentRoute(it.route) }
+    Timber.d("S3213: opening content route %s, replacing %s", route, replaced?.route)
+    navController.navigate(route) {
+        replaced?.let { popUpTo(it.id) { inclusive = true } }
+        launchSingleTop = true
     }
 }
 
@@ -959,17 +1204,20 @@ private fun NavGraphBuilder.miniAppRoutes(
         WearStopwatchScreen(onLeave = { navController.popBackStack() })
     }
 
-    composable(WearRoutes.NETWORK_MONITOR) {
-        NetworkMonitorScreen(
-            onNavigateToSection = { sectionKey ->
-                navController.navigate(WearRoutes.networkMonitorSection(sectionKey))
-            }
-        )
-    }
+    // S3178: the radio sampling behind these two has no permission in the store artifact.
+    if (capabilities.offersDeviceDiagnostics && capabilities.offersNearbyDeviceState) {
+        composable(WearRoutes.NETWORK_MONITOR) {
+            NetworkMonitorScreen(
+                onNavigateToSection = { sectionKey ->
+                    navController.navigate(WearRoutes.networkMonitorSection(sectionKey))
+                }
+            )
+        }
 
-    composable(WearRoutes.NETWORK_MONITOR_SECTION_PATTERN) { backStackEntry ->
-        val sectionKey = backStackEntry.arguments?.getString(WearRoutes.ARG_NETMON_SECTION)
-        NetworkMonitorDetailScreen(sectionKey = sectionKey.orEmpty())
+        composable(WearRoutes.NETWORK_MONITOR_SECTION_PATTERN) { backStackEntry ->
+            val sectionKey = backStackEntry.arguments?.getString(WearRoutes.ARG_NETMON_SECTION)
+            NetworkMonitorDetailScreen(sectionKey = sectionKey.orEmpty())
+        }
     }
 
     composable(WearRoutes.GAME) {
@@ -988,28 +1236,48 @@ private fun NavGraphBuilder.miniAppRoutes(
 
     // S1862: the recorder is a program of this list, and its note list is reached only from it -
     // so both live in this group rather than growing a fourth one for one feature.
-    composable(WearRoutes.VOICE_RECORDER) {
-        VoiceRecorderScreen(
-            navController = navController,
-            onPlayNote = { note -> navigateToVoiceNote(navController, note, prepareVoiceNotePlayback) }
-        )
-    }
+    // S3178: neither is registered where the microphone service is not declared.
+    if (capabilities.offersVoiceRecording) {
+        composable(WearRoutes.VOICE_RECORDER) {
+            VoiceRecorderScreen(
+                navController = navController,
+                onPlayNote = { note -> navigateToVoiceNote(navController, note, prepareVoiceNotePlayback) }
+            )
+        }
 
-    composable(WearRoutes.VOICE_NOTES) {
-        VoiceNoteListScreen(
-            onPlayNote = { note -> navigateToVoiceNote(navController, note, prepareVoiceNotePlayback) }
-        )
+        composable(WearRoutes.VOICE_NOTES) {
+            VoiceNoteListScreen(
+                onPlayNote = { note -> navigateToVoiceNote(navController, note, prepareVoiceNotePlayback) }
+            )
+        }
     }
 
     // S2008: moved here from [settingsRoutes]. The screen configures nothing - it reports what this
     // watch is - so it is a program of this list rather than a settings destination.
-    composable(WearRoutes.SYSTEM_INFO) {
-        SystemInfoScreen()
+    // S3178: that report is device and usage data, which the store artifact does not collect.
+    if (capabilities.offersDeviceDiagnostics) {
+        composable(WearRoutes.SYSTEM_INFO) {
+            SystemInfoScreen()
+        }
+
+        // S3007: Tourist telemetry and navigation dashboard
+        // S3216: the dashboard names the destination it wants and the host performs the jump, the way
+        // every other screen here does - the screen holds no navigation controller of its own.
+        composable(WearRoutes.TOURIST) {
+            TouristScreen(onLaunchSos = { navController.navigate(WearRoutes.SOS) })
+        }
     }
 
-    // S3007: Tourist telemetry and navigation dashboard
-    composable(WearRoutes.TOURIST) {
-        TouristScreen()
+    // S3109: the watch's text clipboard, and the action that hands it to the paired phone.
+    composable(WearRoutes.CLIPBOARD) {
+        ClipboardScreen()
+    }
+
+    // S3216: leaving is the host's word here too, the way the water flashlight already has it - the
+    // screen knows only that some hardware input arrived, never what to navigate to. Registered in
+    // both flavors: the siren declares no permission a store review could withhold.
+    composable(WearRoutes.SOS) {
+        SosScreen(onLeave = { navController.popBackStack() })
     }
 
     healthAndHardwareAppRoutes(navController, capabilities)
@@ -1038,8 +1306,13 @@ private fun NavGraphBuilder.healthAndHardwareAppRoutes(
         // S2809: registered in noLegal flavor when offersHealthFeatures is true.
         composable(WearRoutes.BLOOD_PRESSURE) {
             BloodPressureScreen(
+                onCalibrationClick = { navController.navigate(WearRoutes.BLOOD_PRESSURE_CALIBRATION) },
                 onHistoryClick = { navController.navigate(WearRoutes.BLOOD_PRESSURE_HISTORY) }
             )
+        }
+
+        composable(WearRoutes.BLOOD_PRESSURE_CALIBRATION) {
+            BloodPressureCalibrationScreen()
         }
 
         composable(WearRoutes.BLOOD_PRESSURE_HISTORY) {
@@ -1063,29 +1336,41 @@ private fun NavGraphBuilder.healthAndHardwareAppRoutes(
     // S2509: reached from the Home section and from this list alike - one route, two entrances, as
     // the owner ruled. Going back from here does not stop the broadcast: the session belongs to the
     // foreground service, and its notification carries the same stop action.
-    composable(WearRoutes.BROADCAST) {
-        WearBroadcastScreen(onShowQr = { navController.navigate(WearRoutes.BROADCAST_QR) })
-    }
+    // S3178: both entrances close together in the store artifact, which declares no microphone.
+    if (capabilities.offersVoiceRecording) {
+        composable(WearRoutes.BROADCAST) {
+            WearBroadcastScreen(onShowQr = { navController.navigate(WearRoutes.BROADCAST_QR) })
+        }
 
-    composable(WearRoutes.BROADCAST_QR) {
-        WearBroadcastQrScreen()
+        composable(WearRoutes.BROADCAST_QR) {
+            WearBroadcastQrScreen()
+        }
     }
 
     // S2551: leaving this screen DOES end the session, unlike the broadcast above - the camera runs
     // on the phone with no surface here to stop it from, so the screen's own lifetime is the
     // session's (strategic criterion 3).
-    composable(WearRoutes.PHONE_CAMERA) {
-        PhoneCameraScreen(
-            onWatch = { target -> navController.navigate(WearRoutes.videoPlayer(target.fileId)) }
-        )
+    // S3178: the view arrives over the Data Layer, which the store artifact does not listen on.
+    if (capabilities.offersContentTransfer) {
+        composable(WearRoutes.PHONE_CAMERA) {
+            PhoneCameraScreen(
+                onWatch = { target ->
+                    navigateReplacingContent(navController, WearRoutes.videoPlayer(target.fileId))
+                }
+            )
+        }
     }
 
-    composable(
-        route = WearRoutes.UNSUPPORTED_FILE,
-        arguments = listOf(navArgument(WearRoutes.ARG_DOCUMENT_FORMAT) { type = NavType.StringType })
-    ) { entry ->
-        val token = entry.arguments?.getString(WearRoutes.ARG_DOCUMENT_FORMAT)
-        UnsupportedFileScreen(format = WearDocumentFormat.fromToken(token))
+    // S3178: the refusal screen belongs to the media graph it refuses from - registering it where
+    // no file can be opened would leave one reachable address into a capability that is gone.
+    if (capabilities.offersMediaAccess) {
+        composable(
+            route = WearRoutes.UNSUPPORTED_FILE,
+            arguments = listOf(navArgument(WearRoutes.ARG_DOCUMENT_FORMAT) { type = NavType.StringType })
+        ) { entry ->
+            val token = entry.arguments?.getString(WearRoutes.ARG_DOCUMENT_FORMAT)
+            UnsupportedFileScreen(format = WearDocumentFormat.fromToken(token))
+        }
     }
 }
 

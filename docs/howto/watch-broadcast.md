@@ -17,7 +17,7 @@ Someone is broadcasting from their phone or their watch with FastMediaSorter and
 
 The broadcast is served by the broadcaster's own device, not by a server on the internet. **Your device and theirs must be on the same Wi-Fi network.** Nothing is recorded: you hear and see what is captured from the moment you connect.
 
-The broadcaster can hand the stream over in three ways, and all three carry the same description:
+The broadcaster can hand the broadcast over in three ways, and all three carry the same description:
 
 - a **link** that opens the app,
 - a **QR code** on their screen,
@@ -42,8 +42,8 @@ The broadcaster can hand the stream over in three ways, and all three carry the 
 
 1. Install FastMedia Wear on the watch - see [Put FastMedia on Your Watch](wear-install.md).
 2. Add the broadcast on the phone first, as described above.
-3. On the broadcaster's phone screen there is a **Send to watch** button while the broadcast is live; from your own phone use the same action on the stream in the Streams list, and it lands on your paired watch.
-4. On the watch, open the stream and play it. The watch needs the same Wi-Fi as the broadcaster - it connects to the broadcaster directly, not through your phone.
+3. On the broadcaster's phone screen there is a **Send to watch** button while the broadcast is live; from your own phone use the same action on the broadcast in the Streams list, and it lands on your paired watch.
+4. On the watch, open the broadcast and play it. The watch needs the same Wi-Fi as the broadcaster - it connects to the broadcaster directly, not through your phone.
 
 ---
 
@@ -60,7 +60,7 @@ The broadcaster can hand the stream over in three ways, and all three carry the 
 ## If It Does Not Connect
 
 - **"Cannot reach the broadcast":** you are on a different Wi-Fi, or the networks are separated by a guest-network setting on the router.
-- **The stream was there and went silent:** the broadcaster stopped, or their device left the network. Ask for a fresh link - the address changes with the network.
+- **The broadcast was there and went silent:** the broadcaster stopped, or their device left the network. Ask for a fresh link - the address changes with the network.
 - **The link opens a web page instead of the app:** the app is not installed on that device, or the page was opened on a desktop browser. Install the app and tap the link again on the phone.
 
 ---

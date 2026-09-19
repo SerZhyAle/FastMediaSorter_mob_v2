@@ -80,7 +80,7 @@ try {
     }
 
     Assert-Case 'E2 a store directory is <root>/temp/<leaf>' {
-        foreach ($store in @('Lease', 'Registry')) {
+        foreach ($store in @('Lease', 'Registry', 'State')) {
             $expected = Join-Path (Join-Path $fixture 'temp') (Get-DeviceStoreDirName -Store $store)
             $actual = Get-DeviceStoreDir -RepoRoot $fixture -Store $store
             if ($actual -ne $expected) { return "$store - expected: $expected | actual: $actual" }
@@ -134,7 +134,7 @@ try {
         # dot-sourced by its consumers and S2441 is about exactly that reach into a caller's scope.
         . $inventoryLib
         $inventory = Get-TempRootInventory -RepoRoot $repoRoot
-        foreach ($store in @('Lease', 'Registry')) {
+        foreach ($store in @('Lease', 'Registry', 'State')) {
             $leaf = Get-DeviceStoreDirName -Store $store
             if ($inventory.FixedDirs -notcontains $leaf) {
                 return "$leaf is declared by the store lib but not protected by the temp-root inventory - the archiver's age rule can reach it"

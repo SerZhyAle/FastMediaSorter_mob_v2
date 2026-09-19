@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.GsonBuilder
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BroadcastSettings
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -27,6 +28,11 @@ class SettingsDefaultParityTest {
 
     private companion object {
         const val LAUNCHER_PREFIX = "launcher"
+
+        // S3222: the second prefixed group. Without it the fourteen broadcast pairs stop being
+        // compared at all - an absent source of truth reads as "nothing to compare", not as a
+        // divergence, so the defect this test exists to catch would go quiet for them.
+        const val BROADCAST_PREFIX = "broadcast"
     }
 
     /**
@@ -49,9 +55,11 @@ class SettingsDefaultParityTest {
         val backupDefaults = fieldValues(BackupSettings())
         val appDefaults = fieldValues(AppSettings())
         val launcherDefaults = fieldValues(LauncherSettings())
+        val broadcastDefaults = fieldValues(BroadcastSettings())
 
         val divergences = backupDefaults.mapNotNull { (name, backupValue) ->
-            divergenceOrNull(name, backupValue, sourceOfTruthFor(name, appDefaults, launcherDefaults))
+            val source = sourceOfTruthFor(name, appDefaults, launcherDefaults, broadcastDefaults)
+            divergenceOrNull(name, backupValue, source)
         }
 
         assertEquals(emptyList<String>(), divergences)
@@ -73,10 +81,15 @@ class SettingsDefaultParityTest {
     private fun sourceOfTruthFor(
         name: String,
         appDefaults: Map<String, Any?>,
-        launcherDefaults: Map<String, Any?>
+        launcherDefaults: Map<String, Any?>,
+        broadcastDefaults: Map<String, Any?>
     ): Any? {
-        val unprefixed = name.removePrefix(LAUNCHER_PREFIX).replaceFirstChar { it.lowercaseChar() }
-        return appDefaults[name] ?: launcherDefaults[name] ?: launcherDefaults[unprefixed]
+        val unprefixedLauncher = name.removePrefix(LAUNCHER_PREFIX).replaceFirstChar { it.lowercaseChar() }
+        val unprefixedBroadcast = name.removePrefix(BROADCAST_PREFIX).replaceFirstChar { it.lowercaseChar() }
+        return appDefaults[name]
+            ?: launcherDefaults[name]
+            ?: launcherDefaults[unprefixedLauncher]
+            ?: broadcastDefaults[unprefixedBroadcast]
     }
 
     /**

@@ -134,6 +134,74 @@ class LauncherMoveToScreenTest {
         assertFalse(move(cellId = 4242L, screenIndex = 1))
     }
 
+    private suspend fun dropOn(cellId: Long, row: Int, col: Int, screenIndex: Int) = repository.moveCell(
+        id = cellId,
+        rowIndex = row,
+        colIndex = col,
+        columns = COLUMNS,
+        targetScreenIndex = screenIndex,
+    )
+
+    @Test
+    fun `S3205 a drop on another screen keeps the chosen square when it is free`() = runTest {
+        val id = add(cell(row = 3, col = 2))
+        assertNotNull(id)
+
+        assertTrue(dropOn(id!!, row = 1, col = 4, screenIndex = 1))
+
+        val stored = storedCell(id)
+        assertEquals(1, stored?.screenIndex)
+        assertEquals(1, stored?.rowIndex)
+        assertEquals(4, stored?.colIndex)
+    }
+
+    @Test
+    fun `S3205 a drop onto a wider cell on another screen seats on a free square`() = runTest {
+        val wide = add(cell(row = 0, col = 0, screenIndex = 1, target = "app:com.wide").copy(spanW = 2))
+        val id = add(cell(row = 3, col = 2))
+        assertNotNull(wide)
+        assertNotNull(id)
+
+        assertTrue(dropOn(id!!, row = 0, col = 0, screenIndex = 1))
+
+        val stored = storedCell(id)
+        assertEquals("the drop was not lost", 1, stored?.screenIndex)
+        val overlapsWide = stored?.rowIndex == 0 && (stored.colIndex == 0 || stored.colIndex == 1)
+        assertFalse("the moved cell does not overlap the wide one", overlapsWide)
+        assertEquals("the wide cell stayed where it was", 0, storedCell(wide!!)?.colIndex)
+    }
+
+    @Test
+    fun `S3205 a section header dropped on another screen takes its cells with it`() = runTest {
+        val header = add(section(row = 0))
+        val owned = add(cell(row = 1, target = "app:com.owned"))
+        assertNotNull(header)
+        assertNotNull(owned)
+
+        assertTrue(dropOn(header!!, row = 4, col = 3, screenIndex = 1))
+
+        assertEquals(1, storedCell(header)?.screenIndex)
+        assertEquals("the owned cell travelled with its header", 1, storedCell(owned!!)?.screenIndex)
+    }
+
+    @Test
+    fun `S3205 equal footprints trade places across screens`() = runTest {
+        val here = add(cell(row = 2, col = 1))
+        val there = add(cell(row = 0, col = 5, screenIndex = 1, target = "app:com.there"))
+        assertNotNull(here)
+        assertNotNull(there)
+
+        assertTrue(dropOn(here!!, row = 0, col = 5, screenIndex = 1))
+
+        val movedHere = storedCell(here)
+        val movedThere = storedCell(there!!)
+        assertEquals(1, movedHere?.screenIndex)
+        assertEquals(5, movedHere?.colIndex)
+        assertEquals(0, movedThere?.screenIndex)
+        assertEquals(2, movedThere?.rowIndex)
+        assertEquals(1, movedThere?.colIndex)
+    }
+
     private companion object {
         const val COLUMNS = 8
     }

@@ -32,12 +32,13 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.BloodPressureCategory
 import com.sza.fastmediasorter.wear.domain.model.BloodPressureHistoryEntry
 import com.sza.fastmediasorter.wear.domain.model.BloodPressureSummary
+import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.sourceText
 import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
 import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import timber.log.Timber
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 
 private val TITLE_BOTTOM_PADDING = 6.dp
 private val SECTION_VERTICAL_PADDING = 4.dp
@@ -54,10 +55,9 @@ private const val HISTORY_BADGE_ALPHA = 0.2f
 @Composable
 fun BloodPressureHistoryScreen(
     viewModel: BloodPressureHistoryViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(positionKey = WearRoutes.BLOOD_PRESSURE_HISTORY)
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -229,6 +229,19 @@ private fun BloodPressureHistoryCard(entry: BloodPressureHistoryEntry) {
                 text = stringResource(R.string.blood_pressure_reading_format, entry.systolic, entry.diastolic),
                 style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colors.onSurface
+            )
+            entry.pulse?.let { pulse ->
+                Text(
+                    text = stringResource(R.string.blood_pressure_pulse, pulse),
+                    style = MaterialTheme.typography.caption2,
+                    color = MaterialTheme.colors.onSurface
+                )
+            }
+            // S3113: an estimate and a cuff reading must never look alike in the diary.
+            Text(
+                text = stringResource(sourceText(entry.source)),
+                style = MaterialTheme.typography.caption3,
+                color = MaterialTheme.colors.onSurfaceVariant
             )
         }
 

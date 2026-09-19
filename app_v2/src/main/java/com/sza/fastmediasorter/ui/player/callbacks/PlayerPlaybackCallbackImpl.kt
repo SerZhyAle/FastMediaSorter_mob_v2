@@ -191,7 +191,7 @@ class PlayerPlaybackCallbackImpl(
         AlertDialog.Builder(activity)
             .setTitle(activity.getString(R.string.error_bdts_format_title))
             .setMessage(activity.getString(R.string.error_bdts_format_message))
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.ok, null)
             .showBoundTo(activity)
     }
 
@@ -204,7 +204,7 @@ class PlayerPlaybackCallbackImpl(
         AlertDialog.Builder(activity)
             .setTitle(activity.getString(R.string.error_vob_route_title))
             .setMessage(activity.getString(R.string.error_vob_route_message))
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.ok, null)
             .showBoundTo(activity)
     }
 

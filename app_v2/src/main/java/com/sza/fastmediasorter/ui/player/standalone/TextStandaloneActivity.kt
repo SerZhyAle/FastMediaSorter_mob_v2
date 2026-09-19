@@ -18,7 +18,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.share.SharePrintHost
@@ -37,6 +36,7 @@ import com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -175,8 +175,8 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
                     com.google.android.material.dialog.MaterialAlertDialogBuilder(this@TextStandaloneActivity)
                         .setTitle(R.string.download_translation_model_title)
                         .setMessage(getString(R.string.download_translation_model_message, languageName))
-                        .setPositiveButton(android.R.string.ok) { _, _ -> onConfirm() }
-                        .setNegativeButton(android.R.string.cancel) { _, _ -> onCancel() }
+                        .setPositiveButton(R.string.ok) { _, _ -> onConfirm() }
+                        .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
                         .setOnCancelListener { onCancel() }
                         .showBoundTo(this@TextStandaloneActivity)
                 }
@@ -278,7 +278,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
         com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
             .setTitle(R.string.search)
             .setView(input)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 val q = input.text?.toString()?.trim().orEmpty()
                 if (q.isNotEmpty()) {
                     val matches = textViewerManager.searchText(q)
@@ -286,7 +286,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
                     Toast.makeText(this, "${getString(R.string.search)}: $matches", Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(this@TextStandaloneActivity)
     }
 

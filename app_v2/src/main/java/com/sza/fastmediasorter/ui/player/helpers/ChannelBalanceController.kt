@@ -1,8 +1,12 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
-import timber.log.Timber
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * Live source of the per-channel gain pair applied by [ChannelBalanceAudioProcessor].
@@ -23,6 +27,12 @@ interface ChannelBalanceSource {
  */
 object ChannelBalanceController : ChannelBalanceSource {
 
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /** Guards a fresh user choice against a restore that is still on its way back from disk. */
+    @Volatile
+    private var hasUserChoice = false
+
     @Volatile
     override var leftGain: Float = UNITY_GAIN
         private set
@@ -37,6 +47,7 @@ object ChannelBalanceController : ChannelBalanceSource {
         private set
 
     fun setBalance(leftGain: Float, rightGain: Float) {
+        hasUserChoice = true
         this.leftGain = leftGain
         this.rightGain = rightGain
     }
@@ -46,11 +57,34 @@ object ChannelBalanceController : ChannelBalanceSource {
         isStereoContentActive = channelCount == STEREO_CHANNEL_COUNT
     }
 
+    /**
+     * S3239: the caller is the renderers-factory thread, which runs under a StrictMode policy that
+     * detects disk reads, so the preferences load is handed to [Dispatchers.IO]. Both gains stay at
+     * [UNITY_GAIN] until it lands - plain 50/50 audio, never silence.
+     */
     fun restore(context: Context) {
-        val prefs = context.applicationContext
+        val appContext = context.applicationContext
+        ioScope.launch { loadStoredGains(appContext) }
+    }
+
+    @VisibleForTesting
+    internal fun loadStoredGains(context: Context) {
+        val prefs = context
             .getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
-        leftGain = prefs.getFloat(PlaybackControlPreferences.KEY_BALANCE_LEFT_GAIN, UNITY_GAIN)
-        rightGain = prefs.getFloat(PlaybackControlPreferences.KEY_BALANCE_RIGHT_GAIN, UNITY_GAIN)
+        val storedLeft = prefs.getFloat(PlaybackControlPreferences.KEY_BALANCE_LEFT_GAIN, UNITY_GAIN)
+        val storedRight = prefs.getFloat(PlaybackControlPreferences.KEY_BALANCE_RIGHT_GAIN, UNITY_GAIN)
+        // A tap on a preset while the read was in flight wins - it is the newer of the two values.
+        if (hasUserChoice) return
+        leftGain = storedLeft
+        rightGain = storedRight
+    }
+
+    /** The gains outlive a test method because the owner is an object, so a suite resets them here. */
+    @VisibleForTesting
+    internal fun resetForTest() {
+        hasUserChoice = false
+        leftGain = UNITY_GAIN
+        rightGain = UNITY_GAIN
     }
 
     const val UNITY_GAIN = 1f

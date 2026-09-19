@@ -155,3 +155,16 @@ function Get-DetektFindingsFromReports {
         Reason   = ($problems -join '; ')
     }
 }
+
+# S3199: counts the reports rewritten at or after the run start. DateTime comparison in .NET ignores
+# Kind and compares raw ticks, so a local-time start against a LastWriteTimeUtc stamp is off by the
+# UTC offset: at UTC+3 a report written one second ago looked three hours older than the run, and
+# every real finding was reported as "detekt never executed". Both sides are normalised to UTC here.
+function Get-DetektRefreshedReportCount {
+    param(
+        [object[]]$Stamps,
+        [datetime]$RunStart
+    )
+    $startUtc = $RunStart.ToUniversalTime()
+    return @($Stamps | Where-Object { $null -ne $_ -and ([datetime]$_).ToUniversalTime() -ge $startUtc }).Count
+}

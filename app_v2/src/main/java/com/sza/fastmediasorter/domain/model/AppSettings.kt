@@ -1,7 +1,22 @@
 package com.sza.fastmediasorter.domain.model
 
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
+import com.sza.fastmediasorter.domain.model.sos.SosMode
 import kotlin.math.abs
+
+/**
+ * S3173: neutral default broadcast title. It must not name the carrier - one setting serves audio,
+ * camera and camera+audio sessions, and the descriptor already carries `mode` for the receiver to
+ * tell them apart. Resource-backed wherever a Context is available; this constant is the fallback
+ * for the layers that have none.
+ */
+const val DEFAULT_BROADCAST_STREAM_TITLE = "Phone Stream"
+
+/**
+ * S3173: the pre-fix default, persisted verbatim into DataStore by every settings write. An
+ * installation carrying it never chose it, so it is read as absent rather than broadcast.
+ */
+const val LEGACY_BROADCAST_STREAM_TITLE = "Phone Audio Stream"
 
 /**
  * Application settings model
@@ -58,6 +73,13 @@ data class AppSettings(
     val frontFlashlightColor: Int = FRONT_FLASHLIGHT_DEFAULT_COLOR,
     // S2516: the water flashlight is its own program beside the one above, off until asked for.
     val waterFlashlightEnabled: Boolean = false,
+    // S3216: the distress signal is a program like its neighbours - off until the user asks for it, so
+    // an update never puts a siren one tap away from a pocket.
+    val enableSos: Boolean = false,
+    // S3216: which halves of the signal the SOS screen starts with, and what the paired device is asked
+    // for. Written by the screen's own mode chips rather than by a settings row, so the last choice is
+    // the next start - the mode is a decision taken in the emergency, not in advance.
+    val sosMode: SosMode = SosMode.ALL,
     // S2776: the camera flashlight has no switch of its own - it is offered wherever the device has a
     // flash - so its shade shortcut needs one here, and a permanent notification nobody asked for is
     // a defect rather than a service.
@@ -182,25 +204,10 @@ data class AppSettings(
 
     // S2817: an absent preference preserves the broadcast session defaults used before settings existed.
     val enableBroadcasting: Boolean = false,
-    val broadcastStreamTitle: String = "Phone Audio Stream",
-    val broadcastBitRateBps: Int = 128_000,
-    val broadcastPort: Int = 8768,
-    val broadcastSampleRateHz: Int = 44_100,
-    val broadcastChannelCount: Int = 1,
-    val broadcastAutoOpenShare: Boolean = true,
-    // S2814: stable identity of this phone as a broadcast source. Null until the first broadcast
-    // generates a UUID and persists it; a receiver that scanned this phone before recognises it
-    // across address changes instead of adding a second catalog entry.
-    val broadcastSourceDeviceId: String? = null,
-    // S3038: camera and microphone defaults for broadcast mode selection, plus video quality.
-    val broadcastCameraEnabled: Boolean = false,
-    val broadcastMicrophoneEnabled: Boolean = true,
-    val broadcastVideoWidth: Int = 1280,
-    val broadcastVideoHeight: Int = 720,
-    val broadcastVideoFps: Int = 30,
-    val broadcastVideoBitrateBps: Int = 2_000_000,
-    // S3049: digital PCM microphone gain percentage for broadcasts (50% - 400%, default 100%).
-    val broadcastMicGainPercent: Int = 100,
+    // S3222: the session parameters themselves are a nested group - see [BroadcastSettings] for why the
+    // constructor cannot hold them inline. The switch above stays flat: it is a program toggle beside
+    // enableCalculator and enableStopwatch, not a parameter of the session.
+    val broadcast: BroadcastSettings = BroadcastSettings(),
 
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = false, // S0386: default OFF - translation engine delivered on demand
@@ -420,6 +427,8 @@ data class AppSettings(
 
     // S0050: Black Screen mode - show/hide the black-screen toolbar button in audio/video players
     val showBlackScreenButton: Boolean = false,
+    // S3256: Dim screen clock and status overlay on dimmed phone/watch screen
+    val dimClockOverlayEnabled: Boolean = false,
 
     // S0028: Multi-window mode - allow opening Browse/Player in a separate window
     val allowSeparateWindow: Boolean = false,
@@ -458,6 +467,7 @@ data class AppSettings(
     val launcherScreenCount: Int get() = launcher.screenCount
     val launcherShowScreenNumber: Boolean get() = launcher.showScreenNumber
     val launcherTaskbarPlacement: String get() = launcher.taskbarPlacement
+    val launcherTaskbarRows: Int get() = launcher.taskbarRows
     val launcherTaskbarShowRecents: Boolean get() = launcher.taskbarShowRecents
     val launcherTaskbarShowPinned: Boolean get() = launcher.taskbarShowPinned
     val launcherTaskbarShowTray: Boolean get() = launcher.taskbarShowTray
@@ -500,6 +510,8 @@ data class AppSettings(
     val allAppsSortOrder: String get() = launcher.allAppsSortOrder
     val allAppsSortDescending: Boolean get() = launcher.allAppsSortDescending
     val launcherScreenBlackoutTimeoutSeconds: Int get() = launcher.screenBlackoutTimeoutSeconds
+    val launcherScreenBlackoutTimeoutOnChargeSeconds: Int
+        get() = launcher.screenBlackoutTimeoutOnChargeSeconds
     val launcherWidgetBackdropAlpha: Float get() = launcher.widgetBackdropAlpha
     val launcherWeatherLastLocation: String get() = launcher.weatherLastLocation
     val launcherStepsResetCount: Long get() = launcher.stepsResetCount
@@ -641,6 +653,16 @@ data class AppSettings(
          */
         const val DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS = 30
 
+        /**
+         * S3284: the launcher never blacks out on its own while the charger is attached.
+         *
+         * Off rather than a copy of [DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS] because a plugged-in
+         * device is the case the owner wants the desktop readable in - a dock, a car head unit, a
+         * bedside stand - and the on-charge timeout fully overrides the battery one, so a non-zero
+         * default would change behaviour for every existing install that never opens the new row.
+         */
+        const val DEFAULT_LAUNCHER_SCREEN_TIMEOUT_ON_CHARGE_SECONDS = 0
+
         /** S0404: selectable launcher grid densities (see [launcherDensityFactor]). */
         val LAUNCHER_DENSITY_OPTIONS = listOf(0.75f, 1.0f, 1.25f, 1.5f)
 
@@ -665,6 +687,20 @@ data class AppSettings(
             LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
             LAUNCHER_TASKBAR_PLACEMENT_TOP,
         )
+
+        /**
+         * S3131: one row - the pre-S3131 taskbar, so an update moves nobody's bar until they ask.
+         */
+        const val DEFAULT_LAUNCHER_TASKBAR_ROWS: Int = 1
+
+        /** S3131: the floor of the taskbar row count, and the shape every earlier build drew. */
+        const val MIN_LAUNCHER_TASKBAR_ROWS: Int = 1
+
+        /**
+         * S3131: three rows take about a third of a phone's short side; five would leave the desktop
+         * fewer than two cell rows, so the range stops here (strategic §6.1).
+         */
+        const val MAX_LAUNCHER_TASKBAR_ROWS: Int = 3
 
         /** S1101: branded procedural waves-and-particles animation - the default desktop wallpaper. */
         const val LAUNCHER_WALLPAPER_BRANDED = "BRANDED"

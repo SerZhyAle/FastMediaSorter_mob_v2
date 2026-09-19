@@ -7,6 +7,8 @@ permalink: /docs/howto/scenario-watch-music.html
 
 > **Level:** Beginner &bull; **Time:** ~5 minutes &bull; **Device:** Wear OS smartwatch (paired with Android phone)
 
+> **Full version only** - this guide is not implemented in the version distributed through Google Play. It applies to the full version, a direct APK download from [Downloads](../DOWNLOADS.md).
+
 [Русский](scenario-watch-music-ru.md) | [Українська](scenario-watch-music-uk.md)
 
 FastMediaSorter lets you browse and play your music collection directly from your Wear OS smartwatch. You can stream tracks shared from your paired phone or play local audio files stored on the watch, with cover artwork, shuffle, rotary bezel volume control, background playback that survives leaving the app, and a screen-off mode that keeps the music going with the display dark.
@@ -78,7 +80,7 @@ There are two different ways to keep listening, and they answer two different qu
 
 **Leaving the app** - turn on **Keep playing in background** in the watch settings. Audio then continues after you minimize the app or return to the watch face, with controls in the media notification. When you come back, the home screen carries a row naming what is playing: tap it to return to the track where it left off, or tap the stop button beside it to end playback without opening anything else. The switch is opt-in, and it needs notifications to be allowed - without them the system cannot keep the playback service alive.
 
-**Staying in the player with the screen dark** - tap the **Screen off (🌙)** button at the bottom of the player controls. The display turns completely black while the music keeps playing, which saves battery on an OLED watch. Tap anywhere to wake it and see the controls again.
+**Staying in the player with the screen dark** - tap the **Screen off (🌙)** button at the bottom of the player controls. The display turns completely black while the music keeps playing, which saves battery on an OLED watch. A single tap only marks the spot you touched with a small white dot, so a sleeve brushing the glass changes nothing; a double tap, a press and hold, or the watch's own button brings the controls back. On the smallest watch faces the button stays in the player menu instead of the row.
 
 ![Screen-off mode button](screenshots/screenshot-wear-music-step5.png)
 

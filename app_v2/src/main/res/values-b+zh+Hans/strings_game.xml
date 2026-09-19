@@ -16,7 +16,7 @@
     <string name="game_help_legend_kryvavitsa">红色 - Kryvavitsa，猎杀玩家</string>
     <string name="game_help_legend_player">蓝色-怪物，你控制的角色</string>
     <string name="game_help_legend_shadow">紫色 - 较小的 Kryvavitsa，随机移动</string>
-    <string name="game_help_legend_title">传奇</string>
+    <string name="game_help_legend_title">图例</string>
     <string name="game_help_legend_wall">灰色墙，可以推</string>
     <string name="game_help_rules">使用方向键、键盘、十字键、滑动或点击棋盘移动一格。\n红色克里瓦维察猎杀怪物。紫色小克里瓦维察随机游荡。\n将灰色墙壁推入空位以开辟道路。粗边框会阻挡离开棋盘。\n得分：每次移动扣10分，推入墙壁加10分，击倒紫色敌人加50分，到达出口加1000分。\n如果任何敌人到达同一格或相邻格，游戏结束。</string>
     <string name="game_help_rules_title">规则</string>
@@ -24,7 +24,6 @@
     <string name="game_how_to_play">怎么玩？</string>
     <string name="game_level">级别 %1$d</string>
     <string name="game_loading">游戏正在加载..</string>
-    <string name="game_menu_label">玩小游戏</string>
     <string name="game_move_down">向下</string>
     <string name="game_move_left">向左移动</string>
     <string name="game_move_right">向右移动</string>

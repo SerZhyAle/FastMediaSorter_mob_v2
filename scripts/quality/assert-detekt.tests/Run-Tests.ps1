@@ -116,6 +116,16 @@ try {
     $e = Get-DetektFindingFiles -RepoRoot $rootE -Modules @('app_v2', 'wear')
     Assert-That 'E1 Ok is false when only wear''s report is missing' (-not $e.Ok) "Ok=$($e.Ok) - app_v2 being readable must not excuse wear"
     Assert-That 'E2 Reason names wear, not app_v2' ($e.Reason -like '*wear*' -and $e.Reason -notlike '*app_v2*') "Reason='$($e.Reason)'"
+
+    # --- F: S3199. A report written after the run start counts as refreshed whatever Kind the start
+    # carries; the old tick comparison of a Local start against a UTC stamp failed east of Greenwich. ---
+    Write-Host 'F: report refresh is judged in one time frame' -ForegroundColor Yellow
+    $startLocal = [datetime]::SpecifyKind([datetime]'2026-09-17 12:00:00', [System.DateTimeKind]::Local)
+    $freshUtc = $startLocal.ToUniversalTime().AddSeconds(5)
+    $staleUtc = $startLocal.ToUniversalTime().AddSeconds(-5)
+    Assert-That 'F1 fresh UTC stamp vs Local start is refreshed' ((Get-DetektRefreshedReportCount -Stamps @($freshUtc) -RunStart $startLocal) -eq 1) 'fresh report misread as stale'
+    Assert-That 'F2 older UTC stamp vs Local start is not refreshed' ((Get-DetektRefreshedReportCount -Stamps @($staleUtc) -RunStart $startLocal) -eq 0) 'stale report misread as fresh'
+    Assert-That 'F3 a missing report is not refreshed' ((Get-DetektRefreshedReportCount -Stamps @($null) -RunStart $startLocal) -eq 0) 'null stamp counted'
 }
 finally {
     foreach ($r in $roots) { Remove-Item -LiteralPath $r -Recurse -Force -ErrorAction SilentlyContinue }

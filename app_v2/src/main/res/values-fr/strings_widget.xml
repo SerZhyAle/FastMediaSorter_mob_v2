@@ -81,8 +81,8 @@
     <string name="widget_network_monitor_direct_connection">Connexion directe</string>
     <string name="launcher_gadget_network_indicator">Indicateur réseau</string>
     <string name="launcher_gadget_network_indicator_pick_title">Quel indicateur afficher</string>
-    <string name="widget_front_flashlight_label">Front Flashlight</string>
-    <string name="widget_front_flashlight_description">Turns the screen into a lamp in one tap</string>
+    <string name="widget_front_flashlight_label">Torche avant</string>
+    <string name="widget_front_flashlight_description">Transforme l\'écran en lampe en un seul appui</string>
     <string name="widget_stopwatch_label">Chronomètre</string>
     <string name="widget_stopwatch_description">Démarrer et arrêter une mesure depuis l\'écran d\'accueil</string>
 </resources>

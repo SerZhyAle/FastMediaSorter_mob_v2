@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S3178: the Google Play variant's own manifest, and the second half of the store boundary.
+
+  Moving the sensitive declarations to wear/src/noLegal/ removes them from what THIS repository
+  contributes to the standard artifact. It does not remove them from what a DEPENDENCY contributes:
+  a library manifest merges into every flavor, so a future version of a Wear, media3 or GMS artifact
+  could put RECORD_AUDIO or a media permission back into the store build with no file here changing.
+  That is the exact defect wear/config/store-boundary-policy.json exists to catch - but catching it
+  in a gate means the bad artifact was built first, and a merger removal means it cannot be built.
+
+  Each line below names a permission catalogued as noLegal-only. Measured 2026-09-16: no dependency
+  contributes any of them today, so every one of these directives is a no-op against the current
+  tree and the merged manifest is unchanged by them. They are here for the version that is not.
+
+  A permission REMOVED here is not a permission this flavor may quietly regain: returning one to
+  the store variant is an edit of the policy file, reviewed on its own ticket, and only then a
+  deletion of its line here.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Category: media access -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" tools:node="remove" />
+
+    <!-- Category: microphone and voice notes -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" tools:node="remove" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" tools:node="remove" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" tools:node="remove" />
+
+    <!-- Category: remote sources and credentials -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" tools:node="remove" />
+
+    <!-- Category: network and device diagnostics -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" tools:node="remove" />
+
+    <!-- Category: device location -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove" />
+
+    <!-- Category: nearby device state -->
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" tools:node="remove" />
+    <uses-permission android:name="android.permission.BLUETOOTH" tools:node="remove" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" tools:node="remove" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" tools:node="remove" />
+
+    <!-- Category: health body and motion data -->
+    <uses-permission android:name="android.permission.BODY_SENSORS" tools:node="remove" />
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" tools:node="remove" />
+
+    <!--
+      Category: tiles, deeplinks, services and receivers. FOREGROUND_SERVICE is removed rather than
+      allowlisted because every foreground service this module starts belongs to an excluded
+      category - the store variant declares no service that could use it.
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
+
+</manifest>

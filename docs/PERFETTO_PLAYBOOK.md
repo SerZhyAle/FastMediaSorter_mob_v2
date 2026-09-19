@@ -30,17 +30,23 @@
 - browse ready: `TraceSectionMetric("FMS_BROWSE_READY")`
 - player ready: `TraceSectionMetric("FMS_PLAYER_READY")`
 - player back navigation: `TraceSectionMetric("FMS_PLAYER_BACK_NAVIGATION")`
+- browse list under interaction: `BrowseInteractionBenchmarks` - `browseListFling`, `browseSelectAll`, `browseDragSelect`, each `FrameTimingMetric` over the interaction alone, with the screen open paid inside `setupBlock` (S3322)
+
+The three interaction journeys refuse to measure a list shorter than `BenchmarkJourneys.MIN_INTERACTION_ROWS` visible rows: below that the list pays none of the per-row bind cost they exist to measure, so a number from such a run describes an empty screen rather than the app. A run that fails with "Browse list shows N visible row(s)" is a fixture problem - point the benchmark at a folder holding more files - not a regression.
 
 ## Regression Thresholds
 
+The budgets live in `scripts/quality/macrobenchmark-budgets.json` and are applied by a command, not by eye (S3322):
+
+```powershell
+pwsh -NoProfile -File scripts/quality/compare-macrobenchmark-runs.ps1 -Baseline <previous>.json -Candidate <new>.json
+```
+
+Exit `0` = every budgeted record within budget, `1` = at least one regressed, `2` = cannot verify (a file missing or unparseable, or no budgeted record present in both runs). `-Json` puts a machine-readable document alone on stdout. Compare runs from the **same device**: a budget crossed between two different devices measures the devices.
+
+A record is regressed only when the candidate exceeds **both** allowances - relative and absolute - so a large percentage on a tiny number is not a regression and neither is a small drift on a large one. The four navigation budgets carry the numbers this section used to state in prose (`15%`/`120 ms` cold start, `20%`/`80 ms` browse ready, `20%`/`120 ms` player ready, `20%`/`60 ms` back navigation); the interaction journeys budget `frameDurationCpuMs` P99 at `20%` or half a 60 Hz frame.
+
 Until the first clean device baseline is committed, use the first successful physical-device JSON as the reference run and store it in `temp/` or the spec notes.
-
-Treat the run as regressed when the median grows by more than the larger of:
-
-- cold start (`timeToInitialDisplayMs` or `timeToFullDisplayMs`): `15%` or `120 ms`
-- browse ready: `20%` or `80 ms`
-- player ready: `20%` or `120 ms`
-- player back navigation: `20%` or `60 ms`
 
 Treat a sustained `FrameTimingMetric` jank increase as escalation evidence even when the section metric stays within threshold.
 

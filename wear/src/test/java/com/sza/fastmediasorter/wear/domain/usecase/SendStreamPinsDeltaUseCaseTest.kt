@@ -58,7 +58,9 @@ class SendStreamPinsDeltaUseCaseTest {
 
         val node = mockk<Node> { every { id } returns "phone-node-1" }
         every { nodeClient.connectedNodes } returns Tasks.forResult(listOf(node))
-        every { messageClient.sendMessage("phone-node-1", WearDataLayerPaths.STREAM_PINS_DELTA, any()) } returns Tasks.forResult(1)
+        every {
+            messageClient.sendMessage("phone-node-1", WearDataLayerPaths.STREAM_PINS_DELTA, any())
+        } returns Tasks.forResult(1)
 
         val result = useCase()
 
@@ -79,7 +81,9 @@ class SendStreamPinsDeltaUseCaseTest {
 
         val node = mockk<Node> { every { id } returns "phone-node-1" }
         every { nodeClient.connectedNodes } returns Tasks.forResult(listOf(node))
-        every { messageClient.sendMessage("phone-node-1", WearDataLayerPaths.STREAM_PINS_DELTA, any()) } returns Tasks.forException(RuntimeException("Network error"))
+        every {
+            messageClient.sendMessage("phone-node-1", WearDataLayerPaths.STREAM_PINS_DELTA, any())
+        } returns Tasks.forException(RuntimeException("Network error"))
 
         val result = useCase()
 
@@ -102,4 +106,3 @@ class SendStreamPinsDeltaUseCaseTest {
         coVerify(exactly = 0) { streamPinsRepo.clearPendingDelta() }
     }
 }
-

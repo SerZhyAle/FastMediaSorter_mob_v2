@@ -168,13 +168,21 @@ class CustomLintRulesTest {
         """.trimIndent()
     )
 
+    // S3156: FTPFile is a value object holding an already-fetched listing entry - the detector must
+    // not treat its getters as blocking I/O just because they live in a network library package.
     private val commonsNetStub = kotlin(
         """
         package org.apache.commons.net.ftp
 
+        class FTPFile {
+            fun getName(): String = ""
+            fun getSize(): Long = 0L
+        }
+
         class FTPClient {
             fun connect(hostname: String) {}
             fun listFiles(): Array<Any> = emptyArray()
+            fun isConnected(): Boolean = false
         }
         """.trimIndent()
     )
@@ -1406,5 +1414,100 @@ class CustomLintRulesTest {
             .issues(NetworkDataSourceDispatcherDetector.ISSUE)
             .run()
             .expectErrorCount(1)
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherIgnoresValueTypeAndLocalState() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                coroutinesStub,
+                commonsNetStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.data.network
+
+                    import org.apache.commons.net.ftp.FTPClient
+                    import org.apache.commons.net.ftp.FTPFile
+
+                    class FtpListingMapper(private val client: FTPClient) {
+                        fun describe(file: FTPFile): String {
+                            if (!client.isConnected()) return ""
+                            return file.getName() + ":" + file.getSize()
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(NetworkDataSourceDispatcherDetector.ISSUE)
+            .run()
+            .expectClean()
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherAcceptsWorkerThreadScopingFunction() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                coroutinesStub,
+                workerThreadStub,
+                smbjStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.data.network
+
+                    import androidx.annotation.WorkerThread
+                    import com.hierynomus.smbj.SMBClient
+                    import kotlinx.coroutines.Dispatchers
+                    import kotlinx.coroutines.withContext
+
+                    class SmbConnectionManager(private val client: SMBClient) {
+                        @WorkerThread
+                        suspend fun <T> withConnection(block: (SMBClient) -> T): T =
+                            withContext(Dispatchers.IO) { block(client) }
+                    }
+
+                    class SmbFileOperations(private val manager: SmbConnectionManager) {
+                        suspend fun list(): Any = manager.withConnection { c ->
+                            c.connect("192.168.1.1")
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(NetworkDataSourceDispatcherDetector.ISSUE)
+            .run()
+            .expectClean()
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherAcceptsInjectedDispatcher() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                coroutinesStub,
+                jschStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.data.network
+
+                    import com.jcraft.jsch.ChannelSftp
+                    import kotlinx.coroutines.CoroutineDispatcher
+                    import kotlinx.coroutines.withContext
+
+                    class SftpDirectoryScanner(
+                        private val channel: ChannelSftp,
+                        private val sftpDispatcher: CoroutineDispatcher
+                    ) {
+                        suspend fun list(): List<Any> = withContext(sftpDispatcher) {
+                            channel.ls("/path")
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(NetworkDataSourceDispatcherDetector.ISSUE)
+            .run()
+            .expectClean()
     }
 }

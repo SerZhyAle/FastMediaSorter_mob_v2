@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1565: two panes in one dialog. Pane 1 lists the data kinds this build and these settings
+     offer; pane 2 offers the four direction-medium combinations for the kind that was picked.
+     Two panes rather than four expanding blocks so the focus order stays one short chain -
+     strategic 3.2 requires D-pad and keyboard to walk it without a trap. Every action carries a
+     text label AND a content description, so "Device file" and "Google Drive" never differ by
+     icon or colour alone. No landscape variant: the dialog is one scrolling column. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/margin_medium"
+        android:paddingEnd="@dimen/margin_medium"
+        android:paddingTop="@dimen/margin_small"
+        android:paddingBottom="@dimen/margin_small">
+
+        <!-- The title lives in the layout, not in an AlertDialog frame: the fragment inflates its
+             own view so viewLifecycleOwner exists, which collectOnLifecycle requires. -->
+        <TextView
+            android:id="@+id/tvDataTransferTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:text="@string/data_transfer_dialog_title"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="@dimen/collapsible_section_title_text_size"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/paneKinds"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                android:id="@+id/rowKindSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nextFocusDown="@+id/rowKindFavorites"
+                app:ssr_navMode="true"
+                app:ssr_title="@string/data_transfer_kind_settings" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                android:id="@+id/rowKindFavorites"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nextFocusUp="@+id/rowKindSettings"
+                android:nextFocusDown="@+id/rowKindStreams"
+                app:ssr_navMode="true"
+                app:ssr_title="@string/data_transfer_kind_favorites" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                android:id="@+id/rowKindStreams"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nextFocusUp="@+id/rowKindFavorites"
+                android:nextFocusDown="@+id/rowKindResources"
+                app:ssr_navMode="true"
+                app:ssr_title="@string/data_transfer_kind_streams" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                android:id="@+id/rowKindResources"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nextFocusUp="@+id/rowKindStreams"
+                app:ssr_navMode="true"
+                app:ssr_title="@string/data_transfer_kind_resources" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/paneActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvSelectedKind"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExportToFile"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/data_transfer_medium_file_desc"
+                android:focusable="true"
+                android:nextFocusDown="@+id/btnExportToDrive"
+                app:icon="@drawable/ic_cloud_upload" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExportToDrive"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/data_transfer_medium_drive_desc"
+                android:focusable="true"
+                android:nextFocusUp="@+id/btnExportToFile"
+                android:nextFocusDown="@+id/btnImportFromFile"
+                app:icon="@drawable/ic_cloud_upload" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnImportFromFile"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/data_transfer_medium_file_desc"
+                android:focusable="true"
+                android:nextFocusUp="@+id/btnExportToDrive"
+                android:nextFocusDown="@+id/btnImportFromDrive"
+                app:icon="@drawable/ic_cloud_download" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnImportFromDrive"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/data_transfer_medium_drive_desc"
+                android:focusable="true"
+                android:nextFocusUp="@+id/btnImportFromFile"
+                android:nextFocusDown="@+id/btnTransferBack"
+                app:icon="@drawable/ic_cloud_download" />
+
+            <!-- S1565: the escape carries its own container so the pane is not measured from it.
+                 It is the only child that is not match_parent, and a wrap_content child is the one
+                 LinearLayout counts towards a wrap_content parent's width - the match_parent
+                 siblings contribute their margins only - so the action pane took this button's
+                 width and the button rendered as an unreadable pill. The label is the app's own
+                 string, not @android:string/cancel: framework resources follow the system display
+                 locale rather than the per-app one, so that reference reads "Cancel" in English on
+                 a Russian screen (S2930 measured the same split on this phone). -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTransferBack"
+                    style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:nextFocusUp="@+id/btnImportFromDrive"
+                    android:text="@string/back" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutTransferStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/progressTransfer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_small"
+                android:indeterminate="true"
+                android:visibility="gone"
+                app:indicatorSize="@dimen/settings_icon_size" />
+
+            <TextView
+                android:id="@+id/tvTransferStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?android:attr/textColorSecondary" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

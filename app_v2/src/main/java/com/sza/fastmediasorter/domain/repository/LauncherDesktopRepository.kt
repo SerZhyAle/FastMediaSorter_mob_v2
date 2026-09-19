@@ -122,7 +122,13 @@ interface LauncherDesktopRepository {
      * the screen currently rendering the desktop, not to the stored desktop, the same contract
      * [addCellInFirstFreeSlot] documents.
      */
-    suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int, columns: Int): Boolean
+    suspend fun moveCell(
+        id: Long,
+        rowIndex: Int,
+        colIndex: Int,
+        columns: Int,
+        targetScreenIndex: Int? = null,
+    ): Boolean
 
     /**
      * Changes a cell's footprint at its current anchor, but only onto free space: the new
@@ -151,6 +157,17 @@ interface LauncherDesktopRepository {
      * in [orientation]. Returns whether the swap occurred (false if no adjacent section exists).
      */
     suspend fun swapSectionBlock(orientation: LauncherOrientation, sectionCellId: Long, moveUp: Boolean): Boolean
+
+    /**
+     * S3204: relocates a whole section block (the header and every cell it owns) to [targetRow] on
+     * [orientation] in one transaction. Internal cell geometry is preserved, and remaining rows on the
+     * screen are compacted without gaps. Returns whether any cell moved (false for invalid target or no-op).
+     */
+    suspend fun relocateSectionBlock(
+        orientation: LauncherOrientation,
+        sectionCellId: Long,
+        targetRow: Int,
+    ): Boolean
 
     /**
      * S2222: deletes the section header with cell id [sectionCellId] together with every cell it owns on

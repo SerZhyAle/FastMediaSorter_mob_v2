@@ -117,6 +117,8 @@
         app:layout_constraintEnd_toEndOf="@+id/launcherGridScroll"
         app:layout_constraintTop_toTopOf="@+id/launcherGridScroll" />
 
+    <!-- S3131: this height is the one-row case. It survives inflation over the included root's own value,
+         so LauncherTaskbarManager reassigns it at runtime for a taller bar - never edit it to a multiple. -->
     <include
         android:id="@+id/launcherTaskbar"
         layout="@layout/launcher_taskbar"

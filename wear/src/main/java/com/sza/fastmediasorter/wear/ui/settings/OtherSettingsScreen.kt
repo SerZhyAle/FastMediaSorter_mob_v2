@@ -29,15 +29,16 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.StandardWearToggleChip
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsStepperCell
-import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 import kotlin.math.abs
 
 private const val THREE_SECONDS = 3
@@ -81,6 +82,7 @@ fun OtherSettingsScreen(
     listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.OTHER)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    Timber.d("S3260: other settings shown - switches and the voice note radio pair are StandardWearToggleChip")
     val items = otherSettingsItems(uiState = uiState, viewModel = viewModel)
 
     WearScreenScaffold(
@@ -144,20 +146,20 @@ private fun otherSettingsItems(
     return buildList {
         add(
             WearSettingsItem { narrow ->
-                WearSettingsToggleCell(
+                StandardWearToggleChip(
                     label = albumArtLabel,
                     checked = uiState.downloadAlbumArt,
-                    onToggle = { viewModel.toggleAlbumArt() },
+                    onCheckedChange = { viewModel.toggleAlbumArt() },
                     narrow = narrow
                 )
             }
         )
         add(
             WearSettingsItem { narrow ->
-                WearSettingsToggleCell(
+                StandardWearToggleChip(
                     label = disableAnimationsLabel,
                     checked = uiState.isAnimationsDisabled,
-                    onToggle = { viewModel.toggleDisableAnimations() },
+                    onCheckedChange = { viewModel.toggleDisableAnimations() },
                     narrow = narrow
                 )
             }
@@ -169,10 +171,10 @@ private fun otherSettingsItems(
         if (uiState.hasAutoRotationSensor) {
             add(
                 WearSettingsItem { narrow ->
-                    WearSettingsToggleCell(
+                    StandardWearToggleChip(
                         label = autoRotationLabel,
                         checked = uiState.isAutoRotationEnabled,
-                        onToggle = { viewModel.toggleAutoRotation() },
+                        onCheckedChange = { viewModel.toggleAutoRotation() },
                         narrow = narrow
                     )
                 }
@@ -180,7 +182,7 @@ private fun otherSettingsItems(
         }
         add(
             WearSettingsItem { narrow ->
-                WearSettingsToggleCell(
+                StandardWearToggleChip(
                     label = backgroundPlaybackLabel,
                     checked = uiState.backgroundPlaybackEnabled,
                     // S2166 (strategic criterion 9): switching it ON asks for the notification
@@ -190,7 +192,7 @@ private fun otherSettingsItems(
                     // control. The branch is written here rather than in a helper because
                     // assert-wear-settings-parity resolves this row's anchor by where its literal
                     // is drawn, and a literal inside a helper resolves to that helper's call site.
-                    onToggle = {
+                    onCheckedChange = {
                         if (uiState.backgroundPlaybackEnabled || notificationsAllowed) {
                             viewModel.toggleBackgroundPlayback()
                         } else {
@@ -233,18 +235,18 @@ private fun voiceNoteSendPolicyRows(
     keepOnWatchLabel: String
 ): List<WearSettingsItem> = listOf(
     WearSettingsItem(fullWidth = true) { _ ->
-        WearSettingsToggleCell(
+        StandardWearToggleChip(
             label = sendAutomaticallyLabel,
             checked = uiState.voiceNoteSendPolicy == VoiceNoteSendPolicy.AUTOMATIC,
-            onToggle = { viewModel.setVoiceNoteSendPolicy(VoiceNoteSendPolicy.AUTOMATIC) },
+            onCheckedChange = { viewModel.setVoiceNoteSendPolicy(VoiceNoteSendPolicy.AUTOMATIC) },
             radio = true
         )
     },
     WearSettingsItem(fullWidth = true) { _ ->
-        WearSettingsToggleCell(
+        StandardWearToggleChip(
             label = keepOnWatchLabel,
             checked = uiState.voiceNoteSendPolicy == VoiceNoteSendPolicy.MANUAL,
-            onToggle = { viewModel.setVoiceNoteSendPolicy(VoiceNoteSendPolicy.MANUAL) },
+            onCheckedChange = { viewModel.setVoiceNoteSendPolicy(VoiceNoteSendPolicy.MANUAL) },
             radio = true
         )
     }

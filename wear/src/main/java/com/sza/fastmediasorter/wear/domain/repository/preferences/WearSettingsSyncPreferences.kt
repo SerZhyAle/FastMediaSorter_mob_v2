@@ -25,6 +25,15 @@ interface WearSettingsSyncPreferences {
     suspend fun setNotificationPermissionAsked(asked: Boolean)
 
     /**
+     * S3186: whether the first-run welcome and permission walk has been finished.
+     *
+     * Watch-local on purpose and absent from `WearSettingsRegistry`: the phone has its own welcome, and
+     * a synced value would let one device's answer skip or replay the other's first run.
+     */
+    val onboardingCompleted: Flow<Boolean>
+    suspend fun setOnboardingCompleted(completed: Boolean)
+
+    /**
      * S2093: contract field name to epoch-millis of that field's last change on this watch.
      *
      * Every setter that backs a `WearSettingsRegistry` entry stamps itself, so the two-way exchange can

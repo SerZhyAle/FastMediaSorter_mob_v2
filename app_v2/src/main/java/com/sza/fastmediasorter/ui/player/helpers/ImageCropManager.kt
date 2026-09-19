@@ -377,11 +377,11 @@ class ImageCropManager(
 
         MaterialAlertDialogBuilder(activity)
             .setView(container)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 val name = editText.text.toString().trim().ifEmpty { defaultName }
                 onConfirm(name)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 

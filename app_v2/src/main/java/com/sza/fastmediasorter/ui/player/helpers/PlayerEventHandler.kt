@@ -164,7 +164,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
             AlertDialog.Builder(activity)
                 .setTitle(R.string.file_not_found_title)
                 .setMessage(activity.getString(R.string.player_file_not_found_message, fileName))
-                .setPositiveButton(android.R.string.ok, null)
+                .setPositiveButton(R.string.ok, null)
                 .showBoundTo(activity)
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "PlayerEventHandler: showFileNotFound failed - bad window token")

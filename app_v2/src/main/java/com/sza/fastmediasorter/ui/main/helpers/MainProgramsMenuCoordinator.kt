@@ -22,16 +22,21 @@ import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
 import com.sza.fastmediasorter.ui.wear.WatchListenLaunchActivity
 import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
+import timber.log.Timber
 
 /**
  * S0774: single home for the main-window programs menu - item registration, count, click dispatch,
  * and the S0770 per-item "Open in new window" / "Remove" resolvers.
  *
  * S2673: which sub-programs the menu shows, in what order, and whether each is available now come
- * from [SubProgramCatalog] and the one route-availability chain. What stays here is what ADR-1 keeps
- * out of the registry - the label, the icon and the menu item id each route is drawn with. Three items
- * are not sub-programs and are still added by hand: the streams entry, VR Cinema and the quick-launch
- * panel. The live broadcast is a registry entry; drawing it by hand as well listed it twice.
+ * from [SubProgramCatalog] and the one route-availability chain. Three items are not sub-programs and
+ * are still added by hand: the streams entry, VR Cinema and the quick-launch panel. The live broadcast
+ * is a registry entry; drawing it by hand as well listed it twice.
+ *
+ * S1736 phase 04: the label and the icon are now read from [InternalRouteCatalog] instead of a second
+ * copy kept here, so a program is worded and drawn the same in the menu, the quick-access panel, the
+ * widget picker and the launcher. The menu item id is all that stays: seven manager classes and the
+ * programs panel dispatch taps on it, so it is an identity, not presentation.
  *
  * Taps still travel through the per-program managers. A route's intent says how to OPEN a program,
  * never what a tap does: quick capture and the link download act inside this window, and routing them
@@ -78,8 +83,8 @@ class MainProgramsMenuCoordinator(
         val isSubProgramAvailable: (String) -> Boolean,
     )
 
-    /** How one sub-program is drawn; the registry stores none of this, by ADR-1. */
-    private data class MenuPresentation(val itemId: Int, val labelRes: Int, val iconRes: Int)
+    /** What a programs-panel "Remove" tap needs: the program's own title and its own off-switch. */
+    data class RemoveTarget(val titleRes: Int, val disable: (AppSettings) -> AppSettings)
 
     // S0757: the quick-launch panel entry is always present (no toggle), so the count starts at 1 and
     // the three-dots menu button stays visible even when every other program is disabled.
@@ -111,27 +116,18 @@ class MainProgramsMenuCoordinator(
         ).setIcon(R.drawable.ic_view_grid)
         // S2673: the one call that draws a sub-program. Its order is the registry's own `order`, which
         // is what puts every surface on one sequence and what makes the accent pass below match.
-        val visible = visibleSubPrograms(gate)
-        for (entry in visible) {
-            val presentation = PRESENTATION.getValue(entry.routeKey)
-            popup.menu.add(0, presentation.itemId, MainProgramsMenuOrder.menuOrderFor(entry), presentation.labelRes)
-                .setIcon(presentation.iconRes)
+        for (entry in visibleSubPrograms(gate)) {
+            val route = InternalRouteCatalog.byKey(entry.routeKey) ?: continue
+            popup.menu.add(
+                0,
+                MENU_ITEM_IDS.getValue(entry.routeKey),
+                MainProgramsMenuOrder.menuOrderFor(entry),
+                route.labelRes,
+            ).setIcon(route.iconRes)
         }
         applyProgramAccents(popup)
         return popup.menu.size()
     }
-
-    /**
-     * The registry's programs-menu entries this build can draw and this settings state allows.
-     *
-     * An entry with no [PRESENTATION] row is skipped rather than crashing the menu; the completeness
-     * test is what refuses to let such an entry exist in the first place.
-     */
-    private fun visibleSubPrograms(gate: ProgramsMenuGate): List<SubProgramEntry> =
-        SubProgramCatalog.forSurface(SubProgramSurface.PROGRAMS_MENU)
-            .filter { it.routeKey in PRESENTATION && gate.isSubProgramAvailable(it.routeKey) }
-            // The route chain answers "streams available", which a flavor without a broadcast source also has.
-            .filter { it.routeKey != InternalRouteCatalog.KEY_BROADCAST || gate.broadcast }
 
     /**
      * S2510: colours each program's glyph with the accent that identifies it in every other list.
@@ -205,6 +201,8 @@ class MainProgramsMenuCoordinator(
         // S2673: the three registry entries the hand-written menu never drew.
         MENU_ITEM_PHYSICAL_FLASHLIGHT -> AppLaunchPanelRouteIntents.physicalFlashlight(activity)
         MENU_ITEM_MIRROR -> AppLaunchPanelRouteIntents.mirror(activity)
+        // S3216: manager-less like the two watch-listen rows above, so its launch lives here.
+        MENU_ITEM_SOS -> AppLaunchPanelRouteIntents.sos(activity)
         MENU_ITEM_BLACK_SCREEN -> AppLaunchPanelRouteIntents.blackScreen(activity)
         // S2881: the two watch-listen programs are manager-less, so their launch lives here beside
         // the other registry rows - found on device, where a row without a branch here tapped dead.
@@ -254,16 +252,11 @@ class MainProgramsMenuCoordinator(
      * physical flashlight and the black screen - is simply not removable, with no branch saying so.
      */
     fun removeActionFor(itemId: Int): (() -> Unit)? =
-        routeKeyForItemId(itemId)?.let { routeKey ->
-            SubProgramCatalog.byRouteKey(routeKey)?.disable?.let { disable ->
-                val titleRes = PRESENTATION.getValue(routeKey).labelRes
-                { hostActions.confirmRemoveProgram(titleRes, disable) }
+        removeTargetFor(itemId)?.let { target ->
+            {
+                hostActions.confirmRemoveProgram(target.titleRes, target.disable)
             }
         }
-
-    /** The route a menu item id belongs to, or null when the item is not a sub-program. */
-    private fun routeKeyForItemId(itemId: Int): String? =
-        PRESENTATION.entries.firstOrNull { it.value.itemId == itemId }?.key
 
     companion object {
 
@@ -299,123 +292,79 @@ class MainProgramsMenuCoordinator(
         const val MENU_ITEM_WATCH_LISTEN_RECORD = 29
         const val MENU_ITEM_TOURIST = 30
 
+        // S3216: 31 is the next free id. The distress signal has no manager of its own, so its launch
+        // sits in launchIntentFor beside the other registry rows - a row without a branch there taps
+        // dead, which is the S2881 finding.
+        const val MENU_ITEM_SOS = 31
+
         /**
-         * S2673: label, icon and menu item id per sub-program - the three things ADR-1 keeps out of the
-         * registry.
+         * The menu item id each sub-program's tap is dispatched on - the one thing ADR-1 keeps out of
+         * the registry that this file still has to own.
          *
-         * Existing entries repeat the label and the id they are drawn with today rather than reading
-         * `InternalRouteCatalog`, which would rename the quick camera, the camera translation and the
-         * mini-game, and would break the ids the programs panel and the managers dispatch on
-         * (strategic §2). The three entries the menu never drew have no such label to preserve, so
-         * they take the route catalog's.
+         * S1736 phase 04 removed the label and the icon from this table: both now come from
+         * [InternalRouteCatalog], so the menu cannot word or draw a program differently from every
+         * other surface. The id cannot follow them. Seven manager classes own the id they dispatch on
+         * and the programs panel raises the same ids as buttons, so an id derived from a list position
+         * would change under every registry insertion and route one program's tap into another's branch
+         * - the failure the free-id comments above exist to prevent.
          */
-        private val PRESENTATION: Map<String, MenuPresentation> = mapOf(
-            InternalRouteCatalog.KEY_QUICK_CAMERA to MenuPresentation(
-                MainQuickCaptureMenuManager.MENU_ITEM_QUICK_CAMERA,
-                R.string.quick_camera_menu_label,
-                R.drawable.ic_camera_capture,
-            ),
-            InternalRouteCatalog.KEY_QUICK_VOICE to MenuPresentation(
-                MainQuickCaptureMenuManager.MENU_ITEM_QUICK_VOICE,
-                R.string.quick_voice_menu_label,
-                R.drawable.ic_microphone,
-            ),
-            InternalRouteCatalog.KEY_CALCULATOR to MenuPresentation(
-                MENU_ITEM_CALCULATOR,
-                R.string.calculator_title,
-                R.drawable.ic_calculator,
-            ),
-            InternalRouteCatalog.KEY_NETWORK_MONITOR to MenuPresentation(
-                MENU_ITEM_NETWORK_MONITOR,
-                R.string.network_monitor_title,
-                R.drawable.ic_network_monitor,
-            ),
-            InternalRouteCatalog.KEY_OCR to MenuPresentation(
-                MENU_ITEM_CAMERA_OCR,
-                R.string.setting_camera_ocr_translation_title,
-                R.drawable.ic_camera_ocr_translate,
-            ),
-            InternalRouteCatalog.KEY_SCREEN_RECORDING to MenuPresentation(
-                MainScreenRecordingMenuManager.MENU_ITEM_SCREEN_RECORDING,
-                R.string.screen_recording_menu_label,
-                R.drawable.ic_display,
-            ),
-            InternalRouteCatalog.KEY_LINK_DOWNLOAD to MenuPresentation(
-                MainLinkDownloadMenuManager.MENU_ITEM_LINK_DOWNLOAD,
-                R.string.download_by_link_menu_label,
-                R.drawable.ic_cloud_download,
-            ),
-            InternalRouteCatalog.KEY_GAME to MenuPresentation(
-                MainMiniGameMenuManager.MENU_ITEM_GAME,
-                R.string.game_menu_label,
-                R.drawable.ic_game_kryvavitsa,
-            ),
-            InternalRouteCatalog.KEY_SYSTEM_INFO to MenuPresentation(
-                MENU_ITEM_SYSTEM_INFO,
-                R.string.settings_system_info_title,
-                R.drawable.ic_info,
-            ),
-            InternalRouteCatalog.KEY_WEAR_COMPANION to MenuPresentation(
-                MainWearCompanionMenuManager.MENU_ITEM_WEAR_COMPANION,
-                R.string.wear_companion,
-                R.drawable.ic_watch,
-            ),
-            // S2881: the two listen calls stand beside the companion they extend; the record variant
-            // takes the microphone, because recording is what separates the two icons at a glance.
-            InternalRouteCatalog.KEY_WATCH_LISTEN to MenuPresentation(
-                MENU_ITEM_WATCH_LISTEN,
-                R.string.watch_listen_label,
-                R.drawable.ic_watch_listen,
-            ),
-            InternalRouteCatalog.KEY_WATCH_LISTEN_RECORD to MenuPresentation(
-                MENU_ITEM_WATCH_LISTEN_RECORD,
-                R.string.watch_listen_record_label,
-                R.drawable.ic_watch_listen_record,
-            ),
-            InternalRouteCatalog.KEY_FRONT_FLASHLIGHT to MenuPresentation(
-                MENU_ITEM_FRONT_FLASHLIGHT,
-                R.string.front_flashlight_title,
-                R.drawable.ic_front_flashlight,
-            ),
-            InternalRouteCatalog.KEY_PHYSICAL_FLASHLIGHT to MenuPresentation(
-                MENU_ITEM_PHYSICAL_FLASHLIGHT,
-                R.string.physical_flashlight_title,
-                R.drawable.ic_camera_flash_on,
-            ),
-            InternalRouteCatalog.KEY_WATER_FLASHLIGHT to MenuPresentation(
-                MENU_ITEM_WATER_FLASHLIGHT,
-                R.string.water_flashlight_title,
-                R.drawable.ic_water_flashlight,
-            ),
-            InternalRouteCatalog.KEY_MIRROR to MenuPresentation(
-                MENU_ITEM_MIRROR,
-                R.string.mirror_title,
-                R.drawable.ic_mirror,
-            ),
-            InternalRouteCatalog.KEY_BLACK_SCREEN to MenuPresentation(
-                MENU_ITEM_BLACK_SCREEN,
-                R.string.launcher_action_black_screen,
-                R.drawable.ic_black_screen,
-            ),
-            InternalRouteCatalog.KEY_STOPWATCH to MenuPresentation(
-                MENU_ITEM_STOPWATCH,
-                R.string.stopwatch_title,
-                R.drawable.ic_stopwatch,
-            ),
-            InternalRouteCatalog.KEY_TOURIST_INFO to MenuPresentation(
-                MENU_ITEM_TOURIST,
-                R.string.tourist_info_title,
-                R.drawable.ic_tourist,
-            ),
-            InternalRouteCatalog.KEY_BROADCAST to MenuPresentation(
-                MainBroadcastMenuManager.MENU_ITEM_BROADCAST,
-                R.string.broadcast_menu_label,
-                R.drawable.ic_display,
-            ),
+        private val MENU_ITEM_IDS: Map<String, Int> = mapOf(
+            InternalRouteCatalog.KEY_QUICK_CAMERA to MainQuickCaptureMenuManager.MENU_ITEM_QUICK_CAMERA,
+            InternalRouteCatalog.KEY_QUICK_VOICE to MainQuickCaptureMenuManager.MENU_ITEM_QUICK_VOICE,
+            InternalRouteCatalog.KEY_CALCULATOR to MENU_ITEM_CALCULATOR,
+            InternalRouteCatalog.KEY_NETWORK_MONITOR to MENU_ITEM_NETWORK_MONITOR,
+            InternalRouteCatalog.KEY_OCR to MENU_ITEM_CAMERA_OCR,
+            InternalRouteCatalog.KEY_SCREEN_RECORDING to MainScreenRecordingMenuManager.MENU_ITEM_SCREEN_RECORDING,
+            InternalRouteCatalog.KEY_LINK_DOWNLOAD to MainLinkDownloadMenuManager.MENU_ITEM_LINK_DOWNLOAD,
+            InternalRouteCatalog.KEY_GAME to MainMiniGameMenuManager.MENU_ITEM_GAME,
+            InternalRouteCatalog.KEY_SYSTEM_INFO to MENU_ITEM_SYSTEM_INFO,
+            InternalRouteCatalog.KEY_WEAR_COMPANION to MainWearCompanionMenuManager.MENU_ITEM_WEAR_COMPANION,
+            InternalRouteCatalog.KEY_WATCH_LISTEN to MENU_ITEM_WATCH_LISTEN,
+            InternalRouteCatalog.KEY_WATCH_LISTEN_RECORD to MENU_ITEM_WATCH_LISTEN_RECORD,
+            InternalRouteCatalog.KEY_FRONT_FLASHLIGHT to MENU_ITEM_FRONT_FLASHLIGHT,
+            InternalRouteCatalog.KEY_PHYSICAL_FLASHLIGHT to MENU_ITEM_PHYSICAL_FLASHLIGHT,
+            InternalRouteCatalog.KEY_WATER_FLASHLIGHT to MENU_ITEM_WATER_FLASHLIGHT,
+            InternalRouteCatalog.KEY_SOS to MENU_ITEM_SOS,
+            InternalRouteCatalog.KEY_MIRROR to MENU_ITEM_MIRROR,
+            InternalRouteCatalog.KEY_BLACK_SCREEN to MENU_ITEM_BLACK_SCREEN,
+            InternalRouteCatalog.KEY_STOPWATCH to MENU_ITEM_STOPWATCH,
+            InternalRouteCatalog.KEY_TOURIST_INFO to MENU_ITEM_TOURIST,
+            InternalRouteCatalog.KEY_BROADCAST to MainBroadcastMenuManager.MENU_ITEM_BROADCAST,
         )
 
         /** The route keys the menu can draw - read by SubProgramCatalogCompletenessTest. */
-        val PRESENTABLE_ROUTE_KEYS: Set<String> get() = PRESENTATION.keys
+        val PRESENTABLE_ROUTE_KEYS: Set<String> get() = MENU_ITEM_IDS.keys
+
+        /**
+         * The registry's programs-menu entries this build can draw and this settings state allows.
+         *
+         * An entry with no item id, or with no route behind it, is skipped rather than crashing the
+         * menu; the completeness test is what refuses to let such an entry exist in the first place.
+         */
+        fun visibleSubPrograms(gate: ProgramsMenuGate): List<SubProgramEntry> =
+            SubProgramCatalog.forSurface(SubProgramSurface.PROGRAMS_MENU)
+                .filter { it.routeKey in MENU_ITEM_IDS && InternalRouteCatalog.byKey(it.routeKey) != null }
+                .filter { gate.isSubProgramAvailable(it.routeKey) }
+                // The route chain answers "streams available", which a flavor without a broadcast source also has.
+                .filter { it.routeKey != InternalRouteCatalog.KEY_BROADCAST || gate.broadcast }
+
+        /** The menu item id [routeKey] is drawn and dispatched under, or null when it is not drawn. */
+        fun menuItemIdFor(routeKey: String): Int? = MENU_ITEM_IDS[routeKey]
+
+        /** The route a menu item id belongs to, or null when the item is not a sub-program. */
+        fun routeKeyForItemId(itemId: Int): String? =
+            MENU_ITEM_IDS.entries.firstOrNull { it.value == itemId }?.key
+
+        /**
+         * The title and the off-switch a "Remove" tap on [itemId] acts on, or null when the item is not
+         * a removable sub-program - the physical flashlight and the black screen declare no `disable`.
+         */
+        fun removeTargetFor(itemId: Int): RemoveTarget? {
+            val routeKey = routeKeyForItemId(itemId) ?: return null
+            val disable = SubProgramCatalog.byRouteKey(routeKey)?.disable
+            val titleRes = InternalRouteCatalog.byKey(routeKey)?.labelRes
+            return if (disable != null && titleRes != null) RemoveTarget(titleRes, disable) else null
+        }
 
         // S2673: the three non-registry items sort outside the registry's own band, so the sequence
         // the owner sees is unchanged while every sub-program carries its own registry order.

@@ -68,6 +68,88 @@ object WearDataLayerPaths {
     /** Message, phone → watch. Answers one log report - accepted, or refused with a reason. */
     const val LOG_REPORT_ACK = "/fms/phone/log_report_ack"
 
+    /**
+     * Message, watch → phone. Carries this watch's system-information report as flat text (S3108).
+     *
+     * Rendered here rather than on the phone: every label in the report is a string resource of this
+     * module, which the phone cannot resolve at all.
+     *
+     * Hand-mirrored from the phone's copy of this object - the modules share no code, so this literal
+     * is the entire contract and one differing character produces a message nobody receives.
+     */
+    const val SYSTEM_INFO_REPORT = "/fms/watch/system_info_report"
+
+    /** Message, phone → watch. Answers one system-information report - stored, or refused with a reason. */
+    const val SYSTEM_INFO_REPORT_ACK = "/fms/phone/system_info_report_ack"
+
+    /**
+     * Message, watch → phone. Carries this watch's text clipboard (S3109).
+     *
+     * Under the `/fms/watch` prefix the phone already declares for its listener, so it needs no
+     * manifest edit; a path outside a declared prefix is dropped by GMS in silence (S1697).
+     *
+     * Mirrored verbatim from the phone module's copy of this object - the two must not drift.
+     */
+    const val CLIPBOARD_TEXT_FROM_WATCH = "/fms/watch/clipboard_text"
+
+    /** Message, phone → watch. Answers one watch clipboard - taken, or refused with a reason. */
+    const val CLIPBOARD_TEXT_FROM_WATCH_ACK = "/fms/phone/clipboard_text_ack"
+
+    /**
+     * Message, phone → watch. Carries the phone's text clipboard (S3109).
+     *
+     * ADR-1 decides the direction rather than symmetry: since Android 10 only the foreground app may
+     * read its own clipboard, so the side whose clipboard is read is always the side that starts, and
+     * this watch has no route by which to ask for the text.
+     *
+     * Mirrored verbatim from the phone module's copy of this object - the two must not drift.
+     */
+    const val CLIPBOARD_TEXT_FROM_PHONE = "/fms/phone/clipboard_text"
+
+    /** Message, watch → phone. Answers one phone clipboard - taken, or refused with a reason. */
+    const val CLIPBOARD_TEXT_FROM_PHONE_ACK = "/fms/watch/clipboard_text_ack"
+
+    /**
+     * Message, phone → watch. Asks this watch for a picture of its own screen (S3110).
+     *
+     * The image never rides this route: a Data Layer message is capped at 100 KB, so the answer sends
+     * the PNG over [FILE_TRANSFER] and this path carries only the ask.
+     *
+     * Mirrored verbatim from the phone module's copy of this object - the two must not drift.
+     */
+    const val SCREENSHOT_REQUEST = "/fms/phone/screenshot_request"
+
+    /**
+     * Message, watch → phone. Answers one screenshot request - captured, or refused with a reason.
+     *
+     * It carries the name of the file this watch sent, because the phone receives that file through
+     * the generic transfer route and has nothing else with which to tie an arrival to its request.
+     */
+    const val SCREENSHOT_REQUEST_ACK = "/fms/watch/screenshot_request_ack"
+
+    /**
+     * Message, watch → phone. Starts the phone's distress signal in the mode this watch chose (S3216).
+     *
+     * The payload is the `SosMode` member name and nothing else - the two modules share no source, so
+     * those names are the whole wire contract. Mirrored verbatim from the phone module's copy of this
+     * object; one differing character produces a message nobody receives.
+     */
+    const val SOS_START_FROM_WATCH = "/fms/watch/sos/start"
+
+    /** Message, watch → phone. Ends the phone's distress signal, whichever device started it (S3216). */
+    const val SOS_STOP_FROM_WATCH = "/fms/watch/sos/stop"
+
+    /**
+     * Message, phone → watch. Starts this watch's distress signal in the mode the phone chose (S3216).
+     *
+     * Under the `/fms/phone` prefix `wear/src/main/AndroidManifest.xml` already declares, so it needs no
+     * manifest edit; a path outside a declared prefix is dropped by GMS in silence (S1697).
+     */
+    const val SOS_START_FROM_PHONE = "/fms/phone/sos/start"
+
+    /** Message, phone → watch. Ends this watch's distress signal, whichever device started it (S3216). */
+    const val SOS_STOP_FROM_PHONE = "/fms/phone/sos/stop"
+
     /** Message, phone → watch. Carries one stream channel description to store on the watch. */
     const val STREAM_TRANSFER = "/fms/phone/stream_transfer"
 

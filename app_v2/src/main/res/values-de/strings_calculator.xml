@@ -4,7 +4,7 @@
 <resources>
     <string name="calculator_action_add">Hinzufügen</string>
     <string name="calculator_action_backspace">Rücktaste</string>
-    <string name="calculator_action_clear">Klar</string>
+    <string name="calculator_action_clear">Löschen</string>
     <string name="calculator_action_clear_entry">Freie Einfahrt</string>
     <string name="calculator_action_clear_history">Verlauf löschen</string>
     <string name="calculator_action_decimal">Komma</string>
@@ -17,7 +17,7 @@
     <string name="calculator_action_memory_subtract">Speicher subtrahieren</string>
     <string name="calculator_action_memory_toggle">Speichertasten ein- oder ausblenden</string>
     <string name="calculator_action_multiply">Multiplizieren</string>
-    <string name="calculator_action_paste">Paste</string>
+    <string name="calculator_action_paste">Einfügen</string>
     <string name="calculator_action_percent">Prozent</string>
     <string name="calculator_action_round">Runden</string>
     <string name="calculator_action_save_history">Verlauf speichern</string>
@@ -33,7 +33,7 @@
     <string name="calculator_fn_cot">ctg (cotan)</string>
     <string name="calculator_fn_div">DIV (Ganzzahl)</string>
     <string name="calculator_fn_factorial">n! (Fakultät)</string>
-    <string name="calculator_fn_ln">ln (nat. log)</string>
+    <string name="calculator_fn_ln">ln (nat. Log.)</string>
     <string name="calculator_fn_log10">log₁₀ (Log)</string>
     <string name="calculator_fn_mod">mod (remain)</string>
     <string name="calculator_fn_power">xʸ (Potenz)</string>
@@ -48,7 +48,7 @@
     <string name="calculator_history_saved_to_downloads">Verlauf unter Downloads gespeichert: %1$s</string>
     <string name="calculator_open_settings">Einstellungen öffnen</string>
     <string name="calculator_share_result_no_target">Es ist keine App verfügbar, um das Ergebnis zu senden.</string>
-    <string name="calculator_title">Kalkulator</string>
+    <string name="calculator_title">Rechner</string>
     <string name="calculator_prank_title">Gefährlicher Systembetrieb</string>
     <string name="calculator_prank_message">Es wurde ein gefährlicher Systemvorgang abgeschlossen, der zur Löschung aller Daten auf diesem Gerät führte.</string>
     <string name="calculator_prank_details">Weitere Details..</string>

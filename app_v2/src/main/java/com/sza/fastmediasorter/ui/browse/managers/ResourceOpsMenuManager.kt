@@ -31,7 +31,6 @@ import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ActivityContext
-import timber.log.Timber
 import javax.inject.Inject
 
 class ResourceOpsMenuManager @Inject constructor(
@@ -297,7 +296,7 @@ class ResourceOpsMenuManager @Inject constructor(
                 val maxSize = if (isSmaller) valueMb else null
                 viewModel.scanBySize(minSizeMb = minSize, maxSizeMb = maxSize)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 
@@ -351,7 +350,7 @@ class ResourceOpsMenuManager @Inject constructor(
         MaterialAlertDialogBuilder(activity, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.delete_by_size_preview_title)
             .setView(root)
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.delete_by_size_confirm_btn) { _, _ ->
                 viewModel.executeBySizeDeleteConfirmed(matchedFiles)
             }
@@ -392,13 +391,13 @@ class ResourceOpsMenuManager @Inject constructor(
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.create_folder_title)
             .setView(tilWrapper)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 val folderName = inputEdit.text.toString().trim()
                 if (folderName.isNotEmpty()) {
                     viewModel.createFolder(folderName)
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
 
         // Disable OK button initially and enable live validation

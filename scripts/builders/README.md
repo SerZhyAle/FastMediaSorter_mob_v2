@@ -111,7 +111,30 @@ Build + install to connected device:
 .\scripts\builders\build-lite-device.ps1
 .\scripts\builders\build-photos-device.ps1
 .\scripts\builders\build-legacy-device.ps1
+.\scripts\builders\build-nolegal-device.ps1
 ```
+
+Every one of them takes `-DeviceId <serial>`, defaulting to `ANDROID_SERIAL`:
+
+```powershell
+.\scripts\builders\build-standard-device.ps1 -DeviceId RFCR110NBQJ
+```
+
+- `build-standard-device.ps1` rebuilds everything from scratch (S3094 reuse-disabling flags), so it
+  measured `BUILD SUCCESSFUL in 4m 51s` on 2026-09-18 with 49 of 49 tasks executed. Minutes of
+  silence under a named task - `mergeExtDex`, `ksp`, `compileKotlin`, `dexBuilder` - is the normal
+  shape of that run, not a stall. A heartbeat names the running task every 60 silent seconds, and a
+  run past the 45-minute ceiling is stopped with exit 124 (S3290, `docs/DEV_OPS.md`).
+- With several devices online and no serial given, a watch is ignored and the single remaining
+  phone-class device is used; anything less clear-cut refuses and names every online id.
+- A failed install or launch ends the script with that `adb` call's exit code. Before S3169 the
+  builders called `adb` with no serial, so a paired watch made every step fail while the script
+  still printed its success line and exited 0.
+- Each device build ends by writing one bounded logcat snapshot of the install-and-launch window to
+  `temp/logcat_<flavor>_<stamp>.log` and starts no background capture. Before S3297 the same five
+  scripts left an `adb logcat` stream running per build - eight at once on 2026-09-18, 1.8 GB on
+  disk - and the stream began after `am start`, so it never held the launch it was there to record.
+  A capture spanning a whole scenario is still the job of the test flow that owns the scenario.
 
 VR has no build+install script - see the VR section above.
 

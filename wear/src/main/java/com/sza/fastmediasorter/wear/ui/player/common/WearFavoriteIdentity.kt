@@ -4,7 +4,6 @@ import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
 import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
-import timber.log.Timber
 
 /** How a marked file or channel is addressed, whichever watch player opened it. */
 internal data class WearFavoriteIdentity(val sourceId: String, val filePath: String)

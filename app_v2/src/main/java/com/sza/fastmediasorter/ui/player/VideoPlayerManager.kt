@@ -48,7 +48,6 @@ import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
 import com.sza.fastmediasorter.ui.player.helpers.applyConfiguredVideoEffects
-import com.sza.fastmediasorter.ui.player.helpers.brightnessAdjustmentToProgress
 import com.sza.fastmediasorter.ui.player.helpers.brightnessProgressToAdjustment
 import com.sza.fastmediasorter.ui.player.helpers.cancelPlaybackHealthCheck
 import com.sza.fastmediasorter.ui.player.helpers.formatTime
@@ -61,7 +60,6 @@ import com.sza.fastmediasorter.ui.player.helpers.playStreamVideo
 import com.sza.fastmediasorter.ui.player.helpers.resetStreamFrameCapture
 import com.sza.fastmediasorter.ui.player.helpers.startPlaybackHealthCheck
 import com.sza.fastmediasorter.ui.player.helpers.startPositionSaving
-import com.sza.fastmediasorter.ui.player.helpers.stopPositionSaving
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -141,12 +139,19 @@ class VideoPlayerManager(
         fun isActivityDestroyed(): Boolean
         fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean)
         fun onBdTsFormatError()
+
         /** Fired when a network VOB/DVD route error is detected; bypasses generic auto-next skip. */
-        fun onNetworkContainerRouteError(path: String, hint: com.sza.fastmediasorter.ui.player.helpers.NetworkPlaybackContainerHint)
+        fun onNetworkContainerRouteError(
+            path: String,
+            hint: com.sza.fastmediasorter.ui.player.helpers.NetworkPlaybackContainerHint
+        )
+
         /** Fired before a new video starts loading so session-only 3D state can reset per file. */
         fun onBeforeVideoLoad(path: String) {}
+
         /** Fired once per video load when a stereo format is detected. Default no-op. */
         fun onStereoDetected(mode: StereoMode, forFilePath: String) {}
+
         /**
          * S0213 Pillar A: fired when a manual replay request hits a path that is still inside the
          * decoder cooldown window (slideshow context auto-skips before this is reached). UI layer
@@ -219,6 +224,9 @@ class VideoPlayerManager(
 
         internal const val DEFAULT_BRIGHTNESS_PROGRESS = 50
 
+        // S3268: the value both colour adjustments hold until the stored ones arrive from disk.
+        private const val NEUTRAL_COLOR_ADJUSTMENT = 0f
+
         // Playback health-check - thresholds for detecting stuck / white-noise audio
         internal const val PLAYBACK_HEALTH_CHECK_DELAY_MS = 2_000L
         internal const val MAX_PLAYBACK_STUCK_COUNT = 2
@@ -235,7 +243,9 @@ class VideoPlayerManager(
     // S1648: lazy, not eager. The manager is constructed from PlayerActivity.onCreate, and opening the
     // preferences file there was a blocking disk read of ~53 ms on the player's hot open path. Nothing
     // in the constructor reads a value, so the file is only needed when a control is actually used.
-    private val playbackControlPrefs by lazy(LazyThreadSafetyMode.NONE) {
+    // S3268: SYNCHRONIZED, not NONE - the stored colour adjustments are now read from a background
+    // thread while the controls helper may touch the same delegate on the main one.
+    private val playbackControlPrefs by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         context.getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
     }
 
@@ -250,15 +260,11 @@ class VideoPlayerManager(
 
     // Stereo GL effect builder - Phase 2: builds Crop effects for ExoPlayer.setVideoEffects()
     internal val stereoVideoProcessor = StereoVideoProcessor()
-    internal val videoColorProcessor = VideoColorProcessor(
-        initialHueDegrees = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_HUE_DEGREES, 0f),
-        initialBrightnessAdjustment = brightnessProgressToAdjustment(
-            playbackControlPrefs.getInt(
-                PlaybackControlPreferences.KEY_BRIGHTNESS_PERCENT,
-                DEFAULT_BRIGHTNESS_PROGRESS
-            )
-        )
-    )
+
+    // S3268: constructed neutral. Seeding it here read the preferences file while the manager was being
+    // built, which forced the S1648 lazy delegate and cost a StrictMode disk read on the player's hot open
+    // path; the stored hue/brightness are loaded off-thread by loadStoredColorAdjustments() instead.
+    internal val videoColorProcessor = VideoColorProcessor()
 
     // S1144: internal so the stream-start extension in StreamPlaybackHelper can seat the channel
     // preference on it before prepare().
@@ -271,7 +277,7 @@ class VideoPlayerManager(
         VideoPlaybackControlsHelper(
             manager = this,
             context = context,
-            playbackControlPrefs = playbackControlPrefs,
+            playbackControlPrefsProvider = { playbackControlPrefs },
             trackSelectionManager = trackSelectionManager
         )
     }
@@ -502,6 +508,34 @@ class VideoPlayerManager(
                 stereoDetectionConfig = config
             }
             .launchIn(managerScope)
+
+        // S3268: seat the session's stored hue/brightness on the neutral [videoColorProcessor] from a
+        // background thread - reading them in the property initializer forced the S1648 lazy preferences
+        // delegate and cost a StrictMode disk read on every player construction. The effect pipeline is
+        // rebuilt only when a stored value is non-neutral, so the untouched-sliders case stays free.
+        managerScope.launch {
+            val stored = withContext(Dispatchers.IO) {
+                val prefs = playbackControlPrefs
+                val hue = prefs.getFloat(
+                    PlaybackControlPreferences.KEY_HUE_DEGREES,
+                    NEUTRAL_COLOR_ADJUSTMENT
+                )
+                val brightness = brightnessProgressToAdjustment(
+                    prefs.getInt(
+                        PlaybackControlPreferences.KEY_BRIGHTNESS_PERCENT,
+                        DEFAULT_BRIGHTNESS_PROGRESS
+                    )
+                )
+                hue to brightness
+            }
+            val (hueDegrees, brightnessAdjustment) = stored
+            if (hueDegrees == NEUTRAL_COLOR_ADJUSTMENT && brightnessAdjustment == NEUTRAL_COLOR_ADJUSTMENT) {
+                return@launch
+            }
+            videoColorProcessor.setHueAdjustmentDegrees(hueDegrees)
+            videoColorProcessor.setBrightnessAdjustment(brightnessAdjustment)
+            applyConfiguredVideoEffects()
+        }
     }
 
     /**
@@ -631,7 +665,8 @@ class VideoPlayerManager(
             val callback = onFirstFrameReady ?: return
             // Poster extractor only supports local files - skip for network/cloud sources
             if (path.startsWith("smb://") || path.startsWith("sftp://") ||
-                path.startsWith("ftp://") || path.startsWith("cloud://")) {
+                path.startsWith("ftp://") || path.startsWith("cloud://")
+            ) {
                 Timber.d("VideoPlayerManager: Skipping first-frame capture for network/cloud source")
                 return
             }
@@ -790,9 +825,10 @@ class VideoPlayerManager(
                 val sourceEnabled = when (resourceType) {
                     ResourceType.LOCAL -> true
                     ResourceType.CLOUD -> remoteSourceGate.anyCloudEnabled()
-                    else -> com.sza.fastmediasorter.core.capability.RemoteSourceId
-                        .networkFromResourceType(resourceType)
-                        ?.let { remoteSourceGate.isEnabled(it) } ?: true
+                    else ->
+                        com.sza.fastmediasorter.core.capability.RemoteSourceId
+                            .networkFromResourceType(resourceType)
+                            ?.let { remoteSourceGate.isEnabled(it) } ?: true
                 }
                 if (!sourceEnabled) {
                     Timber.w("VideoPlayerManager: playback refused - source disabled, type=%s path=%s", resourceType, path)

@@ -4,11 +4,13 @@ import android.content.Context
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.repository.LauncherPinsRepository
+import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 /** A recent launcher launch, paired with the visual the taskbar draws for it. */
@@ -29,6 +31,7 @@ class QueryRecentLauncherCommandsUseCase @Inject constructor(
     private val journal: LauncherJournalRepository,
     private val pins: LauncherPinsRepository,
     private val resolveVisual: ResolveLauncherCommandLabelUseCase,
+    private val resolveRouteAvailability: ResolvePanelRouteAvailabilityUseCase,
     @ApplicationContext private val context: Context,
 ) {
 
@@ -40,6 +43,24 @@ class QueryRecentLauncherCommandsUseCase @Inject constructor(
                 .mapNotNull { resolve(it) }
                 .take(limit)
         }.flowOn(Dispatchers.IO)
+
+    /**
+     * The system-menu surface has no independent resource/program quotas: journal recency decides
+     * every available place, and commands that cannot become an Android shortcut drop before ranks do.
+     */
+    fun osAppShortcuts(limit: Int): Flow<List<RecentLauncherCommand>> =
+        journal.recentCommands(limit * 2)
+            .map { recentCommands ->
+                recentCommands
+                    .filter { isOpenableFromShortcut(it) }
+                    .mapNotNull { resolveVisual.shortcutPublication(it) }
+                    .take(limit)
+            }
+            .flowOn(Dispatchers.IO)
+
+    // A switched-off sub-program would open its settings instead of itself, which is not what its caption promises.
+    private suspend fun isOpenableFromShortcut(command: LauncherCellCommand): Boolean =
+        command !is LauncherCellCommand.Feature || resolveRouteAvailability(command.routeKey).isLaunchable
 
     private suspend fun resolve(command: LauncherCellCommand): RecentLauncherCommand? {
         // An app must still be launchable to earn a recents slot. ResolveLauncherCommandLabelUseCase

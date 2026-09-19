@@ -88,6 +88,27 @@ try {
 
     $r = Invoke-Subject @('-Slug', 'dedup-probe-only', '-Text', 'x', '-DedupQuery', 'thumbnail-preload', '-WhatIf')
     Assert-That 'dedup with -WhatIf reports hits and creates nothing' ($r.Code -eq 0 -and $r.Out -match 'dedup: S\d{4} Draft thumbnail-preload-idea' -and @(Get-Content -LiteralPath $catalog | Where-Object { $_ }).Count -eq $before) "exit $($r.Code): $($r.Out)"
+
+    # S3308. The closed-status refusal. The fixture's journal gets one row in a closed status
+    # written straight in: the transition scripts are not part of this fixture, and what the
+    # refusal reads is the journal row, not the path the row arrived by.
+    $closedRow = '{"id":"S9990","name":"grid-rotation-crash-closed","status":"Verified","priority":90,"tier":1,"file":"PLAN/S9990_grid-rotation-crash-closed.md","created":"2026-01-01","updated":"2026-01-02","closed_at":"2026-01-02"}'
+    Add-Content -LiteralPath $catalog -Value $closedRow
+    $before = @(Get-Content -LiteralPath $catalog | Where-Object { $_ }).Count
+
+    $r = Invoke-Subject @('-Slug', 'bugfix-grid-rotation-again', '-Text', 'x', '-DedupQuery', 'grid-rotation-crash-closed')
+    $after = @(Get-Content -LiteralPath $catalog | Where-Object { $_ }).Count
+    Assert-That 'a closed-status hit refuses with exit 3 and writes nothing' ($r.Code -eq 3 -and $after -eq $before -and $r.Out -match 'S9990' -and $r.Out -match 'Verified') "exit $($r.Code): $($r.Out)"
+    Assert-That 'the refusal names its override switch' ($r.Out -match 'AllowClosedDuplicate') $r.Out
+
+    $r = Invoke-Subject @('-Slug', 'bugfix-grid-rotation-regression', '-Text', 'x', '-DedupQuery', 'grid-rotation-crash-closed', '-AllowClosedDuplicate')
+    $after = @(Get-Content -LiteralPath $catalog | Where-Object { $_ }).Count
+    Assert-That 'the override captures the regression anyway' ($r.Code -eq 0 -and $after -eq ($before + 1)) "exit $($r.Code): $($r.Out)"
+
+    $before = $after
+    $r = Invoke-Subject @('-Slug', 'open-hit-still-captures', '-Text', 'x', '-DedupQuery', 'thumbnail-preload')
+    $after = @(Get-Content -LiteralPath $catalog | Where-Object { $_ }).Count
+    Assert-That 'a hit on an open ticket only prints and still captures' ($r.Code -eq 0 -and $after -eq ($before + 1) -and $r.Out -match 'dedup: S\d{4} Draft') "exit $($r.Code): $($r.Out)"
 }
 finally {
     Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue

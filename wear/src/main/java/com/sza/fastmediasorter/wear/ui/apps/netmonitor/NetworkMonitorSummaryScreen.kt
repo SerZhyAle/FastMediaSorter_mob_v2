@@ -2,11 +2,13 @@ package com.sza.fastmediasorter.wear.ui.apps.netmonitor
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,7 +18,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
@@ -27,6 +28,7 @@ import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSnapshot
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkTransport
 import com.sza.fastmediasorter.wear.domain.netmonitor.formatRate
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearReportDivider
@@ -34,29 +36,39 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import timber.log.Timber
 
-private val TITLE_BOTTOM_PADDING = 6.dp
 private val ROW_SPACING = 4.dp
 private val HEADER_LINE_SPACING = 2.dp
+private val CHIP_GAP = 6.dp
 
 /**
  * Root Dashboard screen of the Wear Network Monitor.
  *
  * One report, not a grid of tiles (S2805): the header states the active link and the two addresses,
- * then every section takes a full-width row of its own carrying its name and its live fact. The
- * general view-mode setting is deliberately not read here - at the two and three columns it asks
- * for, a section cell keeps about 54 dp of an inscribed 170 dp square, which truncated the fact
- * away and left a panel that reported nothing.
+ * then the sections follow. S2805's rule that a section panel must still REPORT holds - each panel
+ * keeps its live fact under its name - but the full-width row it used to sit in does not: seven
+ * names a third of a row wide cost six screens of scrolling, so the panels now wrap into a cloud
+ * sized by their own text (owner capture 2026-09-14). The general view-mode setting stays unread
+ * here for S2805's reason: a fixed column count cuts the cell to about 54 dp of an inscribed 170 dp
+ * square and truncates the fact away, which content-sized wrapping never does.
+ *
+ * The screen title is gone with it - it said "Summary" one line under the app that is the summary.
  */
 @Composable
 fun NetworkMonitorSummaryScreen(
     viewModel: NetworkMonitorViewModel,
     onNavigateToSection: (String) -> Unit,
     modifier: Modifier = Modifier,
-    listState: ScalingLazyListState = rememberWearListState()
+    // No opening anchor: with the title gone and the sections in one wrapping panel this is a fixed
+    // three-item report, not a list of data rows the anchor rule is written for.
+    listState: ScalingLazyListState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snapshot = state.snapshot
     val nonSummarySections = state.sections.filter { it != WearNetworkSection.Summary }
+
+    LaunchedEffect(nonSummarySections.size) {
+        Timber.d("S3105: netmon summary opened as a section cloud, panels=${nonSummarySections.size}, no title row")
+    }
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -69,27 +81,16 @@ fun NetworkMonitorSummaryScreen(
             verticalArrangement = Arrangement.spacedBy(ROW_SPACING)
         ) {
             item {
-                Text(
-                    text = stringResource(R.string.wear_netmon_summary),
-                    style = MaterialTheme.typography.title3,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = TITLE_BOTTOM_PADDING),
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            item {
                 SummaryHeaderBlock(snapshot = snapshot, externalIp = state.externalIp)
             }
 
             item { WearReportDivider() }
 
-            items(nonSummarySections) { section ->
-                SectionRow(
-                    section = section,
-                    fact = state.sectionFacts[section] ?: WearSectionFact.None,
-                    onClick = { onNavigateToSection(section.key) }
+            item {
+                SectionCloud(
+                    sections = nonSummarySections,
+                    facts = state.sectionFacts,
+                    onNavigateToSection = onNavigateToSection
                 )
             }
         }
@@ -132,14 +133,46 @@ private fun SummaryHeaderBlock(snapshot: WearNetworkSnapshot?, externalIp: Strin
 }
 
 /**
- * One section of the report: its name, its live fact under it, and the whole row opening the
+ * Every section panel in one wrapping cloud: a row holds as many panels as fit, the rest go to the
+ * next row.
+ *
+ * The same arrangement the watch's action menus already use (`WearActionCloud`), rather than a
+ * column of full-width rows or a fixed-column grid - a panel is as wide as its own
+ * longest line, so short names share a row and nothing is cut to fit a column that was decided in
+ * advance.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SectionCloud(
+    sections: List<WearNetworkSection>,
+    facts: Map<WearNetworkSection, WearSectionFact>,
+    onNavigateToSection: (String) -> Unit
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(CHIP_GAP, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(CHIP_GAP)
+    ) {
+        sections.forEach { section ->
+            SectionPanel(
+                section = section,
+                fact = facts[section] ?: WearSectionFact.None,
+                onClick = { onNavigateToSection(section.key) }
+            )
+        }
+    }
+}
+
+/**
+ * One section of the report: its name, its live fact under it, and the whole panel opening the
  * section's page.
  *
- * A chip rather than an information row because this row is a control - the chip gives it the
- * interactive height a caption pair does not reach, and states its button role to TalkBack.
+ * A chip rather than an information row because this panel is a control - the chip gives it the
+ * interactive height a caption pair does not reach, and states its button role to TalkBack. No width
+ * modifier: a Wear chip measures itself by its content, which is what lets the cloud above wrap.
  */
 @Composable
-private fun SectionRow(
+private fun SectionPanel(
     section: WearNetworkSection,
     fact: WearSectionFact,
     onClick: () -> Unit
@@ -166,8 +199,7 @@ private fun SectionRow(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-        },
-        modifier = Modifier.fillMaxWidth()
+        }
     )
 }
 

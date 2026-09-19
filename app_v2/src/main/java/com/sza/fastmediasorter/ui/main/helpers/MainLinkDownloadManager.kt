@@ -41,11 +41,11 @@ class MainLinkDownloadManager(private val activity: Activity, private val onClos
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.download_by_link_dialog_title)
             .setView(container)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 val link = input.text?.toString()?.trim().orEmpty()
                 if (link.isNotEmpty()) dispatchToReceiver(link)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .setOnDismissListener { onClosed() }
             .showBoundToHost(activity)
     }

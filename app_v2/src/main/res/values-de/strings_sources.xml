@@ -15,7 +15,7 @@
     <string name="smb_network_unstable">Netzwerk instabil - bitte überprüfen Sie Ihr WLAN.</string>
     <string name="smb_no_shares_found_title">Keine Anteile gefunden</string>
     <string name="smb_password">Passwort</string>
-    <string name="smb_port">Hafen</string>
+    <string name="smb_port">Port</string>
     <string name="smb_port_hint">Standardwert: 445</string>
     <string name="smb_resource_added_readonly">SMB-Ressource hinzugefügt (schreibgeschützt). Schreibvorgänge sind nicht möglich.</string>
     <string name="smb_resource_added_success">SMB-Ressource erfolgreich hinzugefügt</string>
@@ -36,7 +36,7 @@
     <string name="sftp_ftp_folder">SFTP / FTP</string>
     <string name="sftp_ftp_folder_description">Fügen Sie SFTP- oder FTP-Remote-Ordner hinzu</string>
     <string name="sftp_ftp_port_hint">SFTP: 22, FTP: 21</string>
-    <string name="sftp_host">Gastgeber</string>
+    <string name="sftp_host">Host</string>
     <string name="sftp_host_hint">Server-IP-Adresse</string>
     <string name="sftp_key_invalid">Ungültiges Format des privaten SSH-Schlüssels</string>
     <string name="sftp_key_load_error">Fehler beim Laden der Schlüsseldatei</string>
@@ -44,7 +44,7 @@
     <string name="sftp_key_passphrase_hint">Lassen Sie dieses Feld leer, wenn der Schlüssel nicht verschlüsselt ist.</string>
     <string name="sftp_load_key">Datei laden</string>
     <string name="sftp_password">Passwort</string>
-    <string name="sftp_port">Hafen</string>
+    <string name="sftp_port">Port</string>
     <string name="sftp_private_key">Privater SSH-Schlüssel</string>
     <string name="sftp_private_key_hint">Fügen Sie den Schlüssel ein oder wählen Sie eine Datei aus.</string>
     <string name="sftp_remote_path">Remote-Pfad</string>

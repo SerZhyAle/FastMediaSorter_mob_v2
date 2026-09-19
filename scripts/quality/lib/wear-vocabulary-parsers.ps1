@@ -110,6 +110,36 @@ function Get-KotlinNamedSetMember {
     return $members
 }
 
+# The string VALUES of a named `setOf(..)` whose members are `const val` names declared in the same
+# file, in declaration order.
+#
+# S3160: the two sides of the browse `mediaType` vocabulary are both named sets of string constants,
+# and their constants are named differently on purpose - `FILTER_PHOTOS` on the phone against
+# `TOKEN_PHOTOS` on the watch, because each name belongs to its own module's vocabulary. Comparing the
+# NAMES would report a divergence on every member of an identical wire vocabulary; the value is what
+# travels, so the value is what is compared.
+#
+# A member no `const val` in the file defines comes back as `<unresolved:NAME>` rather than being
+# dropped: a silently shorter set is the failure mode this library's header warns about, and a
+# placeholder surfaces as a divergence the way a real mismatch does.
+function Get-KotlinNamedSetResolvedValue {
+    param([string]$Source, [string]$SetName)
+
+    $members = Get-KotlinNamedSetMember -Source $Source -SetName $SetName
+    if ($members.Count -eq 0) { return @() }
+
+    $constants = @{}
+    foreach ($m in [regex]::Matches($Source, 'const\s+val\s+(?<n>\w+)\s*=\s*"(?<v>[^"]*)"')) {
+        $constants[$m.Groups['n'].Value] = $m.Groups['v'].Value
+    }
+
+    $values = @()
+    foreach ($name in $members) {
+        $values += if ($constants.ContainsKey($name)) { $constants[$name] } else { "<unresolved:$name>" }
+    }
+    return $values
+}
+
 # The quoted left-hand literals of a `when` inside a named function, in branch order.
 #
 # S2641: the receiving half of the source contract is a branch list, not a declaration - the watch

@@ -61,7 +61,7 @@
     <string name="epub_table_of_contents">Оглавление</string>
     <string name="epub_text_empty_tts">Текст в главе не найден</string>
     <string name="text_content_hint">Текстовое содержимое</string>
-    <string name="text_editing_large_file">Editing is not available for files with multiple pages</string>
+    <string name="text_editing_large_file">Редактирование недоступно для файлов с несколькими страницами</string>
     <string name="text_editor_action_cancel">Отменить</string>
     <string name="text_editor_action_save">Сохранить</string>
     <string name="text_editor_action_save_close">Сохранить и закрыть</string>
@@ -87,5 +87,5 @@
     <string name="text_size_limit">Максимальный размер текстового файла (внутренний просмотрщик)</string>
     <string name="text_style_bold">1</string>
     <string name="text_style_italic">2</string>
-    <string name="text_t">Text (T)</string>
+    <string name="text_t">Текст (T)</string>
 </resources>

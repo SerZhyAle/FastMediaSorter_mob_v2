@@ -171,6 +171,12 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var pushWearSendToReceivers: dagger.Lazy<PushWearSendToReceiversUseCase>
 
+    // S3220: names the end of a camera session served to the watch. Field-injected beside the two
+    // publishers above for the S2149 reason - AppStartupInitializer's constructor is at detekt's ceiling.
+    @Inject
+    lateinit var announceWatchCameraSessionEnd:
+        dagger.Lazy<com.sza.fastmediasorter.broadcast.AnnounceWatchCameraSessionEndUseCase>
+
     // S2745: package installs and updates reach a runtime receiver only, so this registration is what
     // keeps the all-apps list, the quick-launch panel and the desktop from going stale. Field-injected
     // here for the S2149 reason above - AppStartupInitializer's constructor sits at detekt's ceiling.
@@ -253,7 +259,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             // No distinctUntilChanged: a StateFlow already conflates, and applying it here is a
             // deprecated no-op. AnimationPolicy.update ignores a repeat of the current level anyway,
             // which is what keeps the listeners below from firing on every battery tick.
-            powerStateObserver.get().level.collect { level -> AnimationPolicy.update(level) }
+            powerStateObserver.get().decision.collect { decision -> AnimationPolicy.update(decision) }
         }
 
         // S2776: the shade shortcut for the camera flashlight follows one setting, and this is where
@@ -364,6 +370,15 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         applicationScope.launch {
             runCatching { pushWearSendToReceivers.get().observeAndPush(applicationScope) }
                 .onFailure { Timber.e(it, "Wear send-to receivers publisher not started") }
+        }
+
+        // S3220: a broadcast can end while no screen is alive - the owner stops it from the tile, or the
+        // capture dies - so the process is the only owner this collector can have. Dereferenced inside
+        // the coroutine for the reason above: a flavor with no watch must not build the Data Layer graph
+        // on the main thread at startup.
+        applicationScope.launch {
+            runCatching { announceWatchCameraSessionEnd.get().observe() }
+                .onFailure { Timber.e(it, "Watch camera session-end announcer not started") }
         }
 
         // S1650: build Glide off the main thread. Deliberately NOT gated on firstFrameSignal, unlike
@@ -538,7 +553,6 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         }
 
         StrictMode.setThreadPolicy(threadPolicy.build())
-        Timber.d("S3129: StrictMode policy set, violations log call site and repeat count")
 
             StrictMode.setVmPolicy(
                 StrictMode.VmPolicy.Builder()

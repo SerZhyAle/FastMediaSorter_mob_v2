@@ -908,6 +908,15 @@
     <dimen name="broadcast_share_qr_size">280dp</dimen>
     <dimen name="broadcast_control_qr_size">160dp</dimen>
 
+    <!-- S3275: the broadcast preview pane keeps a fixed height in portrait only - the land twin
+         stretches the same pane by weight, so this value exists in exactly one place. -->
+    <dimen name="broadcast_control_preview_height">220dp</dimen>
+
+    <!-- S3236: the three share buttons take a fixed third of the row, so a long single-word label
+         ("Копировать") is shrunk to fit rather than hyphenated mid-word. -->
+    <dimen name="broadcast_share_button_text_size_min">10sp</dimen>
+    <dimen name="broadcast_share_button_text_size_max">14sp</dimen>
+
     <!-- S2730: the wallpaper screen's preview of the chosen image. Shorter in landscape, where the
          screen splits into two columns and the whole block has half the height to spend. -->
     <dimen name="launcher_wallpaper_preview_height">140dp</dimen>
@@ -916,6 +925,12 @@
          their own sizes - twice the shared large and small they used to borrow. -->
     <dimen name="water_flashlight_clock_text_size">36sp</dimen>
     <dimen name="water_flashlight_hint_text_size">28sp</dimen>
+
+    <!-- S3216: the distress signal is operated in the dark, in a hurry, possibly with wet or gloved
+         hands, so its glyph and its stop control carry their own sizes rather than the shared button
+         scale - the same reason the two flashlights above have theirs. -->
+    <dimen name="sos_glyph_size">96dp</dimen>
+    <dimen name="sos_stop_button_height">88dp</dimen>
 
     <!-- S2777: the front flashlight is operated at arm's length with the screen glaring, so its
          controls carry their own sizes instead of borrowing the shared button and text scales. The
@@ -947,4 +962,19 @@
     <dimen name="tourist_primary_text_size_land">64sp</dimen>
     <dimen name="tourist_coords_text_size">36sp</dimen>
     <dimen name="tourist_coords_text_size_land">32sp</dimen>
+
+    <!-- S3256: Dim screen clock and status overlay dimensions -->
+    <dimen name="launcher_cell_outline_width">1dp</dimen>
+    <dimen name="dim_clock_padding">16dp</dimen>
+    <dimen name="dim_clock_chip_size">24dp</dimen>
+    <dimen name="dim_clock_chip_padding">2dp</dimen>
+    <dimen name="dim_clock_chip_spacing">6dp</dimen>
+    <dimen name="dim_clock_battery_text_size">12sp</dimen>
+    <dimen name="dim_clock_date_text_size">14sp</dimen>
+    <dimen name="dim_clock_time_text_size">48sp</dimen>
+    <dimen name="dim_clock_date_margin_top">2dp</dimen>
+    <dimen name="dim_clock_battery_padding_h">6dp</dimen>
+    <dimen name="dim_clock_battery_padding_v">2dp</dimen>
+    <dimen name="dim_clock_badge_padding_h">2dp</dimen>
+    <dimen name="dim_clock_badge_text_size">8sp</dimen>
 </resources>

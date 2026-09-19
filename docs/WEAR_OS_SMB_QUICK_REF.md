@@ -7,13 +7,16 @@ permalink: /docs/WEAR_OS_SMB_QUICK_REF.html
 
 > **Step-by-step guide:** See [Connect Smartwatch to NAS & PC Shares](howto/scenario-watch-network.md).
 
+> **Available in noLegal only.** SMB connections on the watch are **not available in the version distributed
+> through Google Play** (S3178). This page describes the `noLegal` build.
+
 ## Add a Connection (on your phone)
 
 ```
 Phone app → Resources → "+ Add Network Source" → fill in → Save
 ```
 
-It syncs to the watch automatically. **On a Google Play build this is the only way to add one** - the
+It syncs to the watch automatically. **In the `noLegal` build this is the normal way to add one** - the
 watch does not ask for a username or password. Not there yet? On the watch: `Browse → Resources → Sync
 from Phone`.
 
@@ -26,7 +29,7 @@ from Phone`.
 
 ## On Your Watch
 
-What the watch itself can do, on every build:
+What the watch itself can do in the `noLegal` build:
 
 ```
 Browse → Resources → tap a connection   (browse and play)
@@ -83,12 +86,13 @@ Password: [your password]
 
 ## Apps on the watch
 
-The watch home screen has an **Apps** section with three small programs. They run on the watch
-itself, so they keep working when the phone is out of range or switched off.
+The watch home screen has an **Apps** section with small programs. They run on the watch itself, so
+they keep working when the phone is out of range or switched off. The version distributed through Google
+Play offers the calculator and the game; the network monitor is available in `noLegal` only (S3178).
 
 - **Calculator** - counting on the keypad, everything else behind the menu key. Your history and the
   memory value stay until you clear them.
-- **Network monitor** - what the watch itself is connected through: Wi-Fi, mobile, Bluetooth,
+- **Network monitor** (`noLegal` only) - what the watch itself is connected through: Wi-Fi, mobile, Bluetooth,
   location and whether the internet is reachable. Swipe sideways to move between the pages. A page
   appears only for hardware your watch has, and a reading your watch cannot take is labelled plainly
   instead of showing a zero.

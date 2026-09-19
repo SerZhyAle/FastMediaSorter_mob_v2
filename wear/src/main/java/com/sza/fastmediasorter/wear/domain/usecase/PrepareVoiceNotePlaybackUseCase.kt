@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 

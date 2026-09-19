@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.databinding.ItemResourceToAddBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.allowsWriteOperations
+import com.sza.fastmediasorter.ui.common.recycler.notifyChangedRuns
 
 
 private const val PAYLOAD_SELECTION = "payload_selection"
@@ -32,13 +33,11 @@ class ResourceToAddAdapter(
     fun setSelectedPaths(paths: Set<String>) {
         val oldSelected = selectedPaths
         selectedPaths = paths
-        
+
         // Only notify rows whose selection membership flipped; payload triggers
         // checkbox-only rebind to avoid disrupting active EditText editing.
-        currentList.forEachIndexed { index, resource ->
-            if ((resource.path in oldSelected) != (resource.path in paths)) {
-                notifyItemChanged(index, PAYLOAD_SELECTION)
-            }
+        notifyChangedRuns(PAYLOAD_SELECTION) { resource ->
+            (resource.path in oldSelected) != (resource.path in paths)
         }
     }
 

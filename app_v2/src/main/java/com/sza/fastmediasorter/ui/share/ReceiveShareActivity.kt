@@ -814,7 +814,7 @@ class ReceiveShareActivity : AppCompatActivity() {
             .setPositiveButton(R.string.s0200_cct_unavailable_retry) { _, _ ->
                 if (cctChecker.isAvailable()) onRetry() else showCctUnavailableDialog(onRetry)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(this@ReceiveShareActivity)
     }
 }

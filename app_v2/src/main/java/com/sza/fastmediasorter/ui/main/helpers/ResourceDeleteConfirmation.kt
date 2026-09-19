@@ -29,7 +29,7 @@ object ResourceDeleteConfirmation {
             .setTitle(R.string.delete_resource_title)
             .setMessage(activity.getString(R.string.delete_resource_message, resourceName))
             .setPositiveButton(R.string.delete) { _, _ -> onConfirm() }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 }

@@ -85,6 +85,7 @@
     <string name="settings_profile_title">Perfil del dispositivo</string>
     <plurals name="settings_profile_warning_count">
         <item quantity="one">Cambiar a este perfil sustituye %1$d ajuste por el valor que define este perfil. ¿Continuar?</item>
+        <item quantity="many">Cambiar a este perfil sustituye %1$d de ajustes por los valores que define este perfil. ¿Continuar?</item>
         <item quantity="other">Cambiar a este perfil sustituye %1$d ajustes por los valores que define este perfil. ¿Continuar?</item>
     </plurals>
     <string name="settings_all_files_create_resource">Crear la fuente \"Todos los archivos\"</string>
@@ -133,7 +134,7 @@
     <string name="setting_camera_ocr_only_title">Solo OCR (sin traducción)</string>
     <string name="setting_camera_ocr_translation_desc">Activar el flujo rápido Foto-OCR-Traducción</string>
     <string name="setting_camera_ocr_translation_title">Traducción con OCR de cámara</string>
-    <string name="setting_compact_elements_desc">Reducir en un 50% el tamaño y el espaciado de los elementos en toda la aplicación</string>
+    <string name="setting_compact_elements_desc" formatted="false">Reducir en un 50% el tamaño y el espaciado de los elementos en toda la aplicación</string>
     <string name="setting_confirm_delete_desc">Pedir confirmación antes de eliminar archivos</string>
     <string name="setting_confirm_delete_player_desc">Pedir confirmación antes de eliminar archivos en el reproductor</string>
     <string name="setting_confirm_move_desc">Pedir confirmación antes de mover archivos</string>
@@ -263,4 +264,17 @@
     <string name="settings_wear_install_guide_button">Cómo instalar en un reloj</string>
     <string name="settings_wear_web_portal_button">Todo sobre el reloj</string>
     <string name="setting_stopwatch_desc">Mostrar el Cronómetro en el menú principal y en el widget del launcher</string>
+    <string name="cross_device_transfer_send_to_device">Enviar a mi dispositivo (Drive)</string>
+    <string name="cross_device_transfer_pending_title">Transferencias de dispositivo pendientes</string>
+    <string name="cross_device_transfer_receive_and_delete">Recibir y eliminar de la nube</string>
+    <string name="cross_device_transfer_receive_and_keep">Recibir y mantener en la nube</string>
+    <string name="cross_device_transfer_empty">No hay nada esperando para este dispositivo. Envía un archivo o los ajustes desde otro dispositivo para verlos aquí.</string>
+    <string name="cross_device_transfer_sending">Subiendo a tu cola de Drive..</string>
+    <string name="cross_device_transfer_sent">Subido. Abre esta pantalla en tu otro dispositivo para recogerlo.</string>
+    <string name="cross_device_transfer_received_files">Guardado en la carpeta de entrada de la app</string>
+    <string name="cross_device_transfer_received_settings">Se han aplicado los ajustes del otro dispositivo</string>
+    <string name="cross_device_transfer_failed">La transferencia no terminó. Comprueba el inicio de sesión de Drive y la conexión, y vuelve a intentarlo.</string>
+    <string name="cross_device_transfer_row_subtitle">Archivos y ajustes entrantes de tus otros dispositivos, esperando en tu Google Drive</string>
+    <string name="cross_device_transfer_remove_expired">Eliminar paquetes caducados</string>
+    <string name="cross_device_transfer_expired_removed">Paquetes caducados eliminados: %1$d</string>
 </resources>

@@ -13,12 +13,15 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.databinding.DialogNetworkMonitorClearHistoryBinding
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorHistoryBinding
 import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkMeasurement
+import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * S1433: the History subscreen - the stored measurements, a clear-all behind a confirmation and an export
@@ -37,7 +40,15 @@ class NetworkHistoryFragment : Fragment() {
 
     private val viewModel: NetworkHistoryViewModel by viewModels()
 
-    private val adapter = NetworkHistoryAdapter()
+    @Inject
+    lateinit var quantityFormatter: QuantityFormatter
+
+    @Inject
+    lateinit var unitSystemProvider: UnitSystemProvider
+
+    private val adapter by lazy {
+        NetworkHistoryAdapter(quantityFormatter) { unitSystemProvider.value }
+    }
 
     private var clearDialog: AlertDialog? = null
 

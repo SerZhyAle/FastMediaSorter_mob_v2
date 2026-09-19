@@ -1,10 +1,10 @@
 package com.sza.fastmediasorter.wear.ui.streams.helpers
 
-import java.util.Locale
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import java.util.Locale
 
 /**
  * S2146: the language label resolves through the JVM's own locale table, which a unit test has, so

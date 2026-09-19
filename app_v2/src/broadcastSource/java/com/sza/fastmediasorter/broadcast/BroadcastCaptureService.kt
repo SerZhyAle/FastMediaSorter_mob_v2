@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.broadcast
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -12,6 +13,7 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
+import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
@@ -59,6 +61,9 @@ class BroadcastCaptureService : Service() {
             return START_NOT_STICKY
         }
 
+        // Reachable only if the grant was revoked between the companion's check and this callback: a
+        // typed foreground start without RECORD_AUDIO is refused by Android 14, so this branch cannot
+        // keep the startForegroundService() promise and the promise is refused before it is made (S3267).
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -71,15 +76,15 @@ class BroadcastCaptureService : Service() {
             return START_NOT_STICKY
         }
 
+        // Before the reentrancy guard and before the asynchronous session work: a second start command,
+        // or a session that fails to open, used to leave the promise unkept and cost the process (S3267).
+        enterForeground()
+
         startBroadcast()
         return START_STICKY
     }
 
-    private fun startBroadcast() {
-        // compareAndSet, not get: the session now opens asynchronously, so a second onStartCommand can
-        // arrive before the first one has bound its port.
-        if (!isRecording.compareAndSet(false, true)) return
-
+    private fun enterForeground() {
         val notification = BroadcastNotificationFactory.createNotification(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
@@ -90,6 +95,17 @@ class BroadcastCaptureService : Service() {
         } else {
             startForeground(NotificationIds.PHONE_BROADCAST, notification)
         }
+    }
+
+    private fun leaveForegroundAndStop() {
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
+    private fun startBroadcast() {
+        // compareAndSet, not get: the session now opens asynchronously, so a second onStartCommand can
+        // arrive before the first one has bound its port.
+        if (!isRecording.compareAndSet(false, true)) return
 
         serviceScope.launch { openSession() }
     }
@@ -109,7 +125,7 @@ class BroadcastCaptureService : Service() {
                 "Port ${config.port} is occupied or unavailable"
             )
             isRecording.set(false)
-            stopSelf()
+            leaveForegroundAndStop()
             return
         }
         if (!isRecording.get()) {
@@ -124,7 +140,7 @@ class BroadcastCaptureService : Service() {
                 "No reachable local IPv4 address"
             )
             isRecording.set(false)
-            stopSelf()
+            leaveForegroundAndStop()
             return
         }
         httpServer = server
@@ -154,7 +170,6 @@ class BroadcastCaptureService : Service() {
             isLive = true,
             targetLatencyMs = 200L
         )
-        Timber.d("S3051: audio descriptor published with endpoints=%s isLive=%s", dto.endpoints, dto.isLive)
         _state.value = BroadcastState.Live(dto, SystemClock.elapsedRealtime())
 
         captureAudioLoop(server, config)
@@ -162,23 +177,32 @@ class BroadcastCaptureService : Service() {
 
     private suspend fun readSessionConfig(): BroadcastSessionConfig {
         val settings = settingsRepository.getSettings().first()
-        val sourceDeviceId = settings.broadcastSourceDeviceId ?: run {
+        val broadcast = settings.broadcast
+        val sourceDeviceId = broadcast.sourceDeviceId ?: run {
             val id = UUID.randomUUID().toString()
-            settingsRepository.updateSettings(settings.copy(broadcastSourceDeviceId = id))
+            settingsRepository.updateSettings(
+                settings.copy(broadcast = broadcast.copy(sourceDeviceId = id))
+            )
             id
         }
         return BroadcastSessionConfig(
-            streamTitle = settings.broadcastStreamTitle.ifBlank { BroadcastSessionConfig.DEFAULT.streamTitle },
-            bitRateBps = settings.broadcastBitRateBps,
-            port = settings.broadcastPort,
-            sampleRateHz = settings.broadcastSampleRateHz,
-            channelCount = settings.broadcastChannelCount,
+            streamTitle = broadcast.streamTitle.ifBlank { BroadcastSessionConfig.DEFAULT.streamTitle },
+            bitRateBps = broadcast.bitRateBps,
+            port = broadcast.port,
+            sampleRateHz = broadcast.sampleRateHz,
+            channelCount = broadcast.channelCount,
             sourceDeviceId = sourceDeviceId,
-            micGainPercent = settings.broadcastMicGainPercent,
+            micGainPercent = broadcast.micGainPercent,
         )
     }
 
     @Suppress("TooGenericExceptionCaught")
+    // S3155: the service refuses to start at all without RECORD_AUDIO - onStartCommand checks it and
+    // calls stopSelf() - so this loop is unreachable without the grant, and the AudioRecord below is
+    // additionally inside a try/catch(Exception) that takes the SecurityException a mid-session
+    // revocation would throw. Lint follows neither a guard in another method nor a catch around the
+    // call rather than on it.
+    @SuppressLint("MissingPermission")
     private fun captureAudioLoop(server: BroadcastHttpServer, config: BroadcastSessionConfig) {
         val channelConfig = if (config.channelCount >= 2) AudioFormat.CHANNEL_IN_STEREO else AudioFormat.CHANNEL_IN_MONO
         val audioFormat = AudioFormat.ENCODING_PCM_16BIT
@@ -199,6 +223,8 @@ class BroadcastCaptureService : Service() {
                 "AAC encoder unavailable on this device"
             )
             isRecording.set(false)
+            // The session never opened, so the notification would otherwise outlive it.
+            leaveForegroundAndStop()
             return
         }
 
@@ -212,7 +238,6 @@ class BroadcastCaptureService : Service() {
             )
             audioRecord = recorder
             recorder.startRecording()
-            Timber.d("S3049: broadcast audio capture starting with mic gain %d%%", config.micGainPercent)
 
             val buffer = ByteArray(bufferSize)
             val gainPercent = config.micGainPercent
@@ -287,7 +312,22 @@ class BroadcastCaptureService : Service() {
         private val _listenerCount = MutableStateFlow(0)
         val listenerCount: StateFlow<Int> = _listenerCount.asStateFlow()
 
+        /**
+         * A start the service cannot honour is refused here rather than inside it: a promise made by
+         * startForegroundService() and not kept costs the whole process, while a refusal made before
+         * it is only a message (S3267).
+         */
         fun start(context: Context, mode: BroadcastMode) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                Timber.w("BroadcastCaptureService: start refused, RECORD_AUDIO missing")
+                _state.value = BroadcastState.Failed(
+                    BroadcastFailure.MICROPHONE_PERMISSION,
+                    "RECORD_AUDIO permission missing"
+                )
+                return
+            }
             val intent = Intent(context, BroadcastCaptureService::class.java).apply {
                 putExtra("mode", mode.name)
             }

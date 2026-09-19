@@ -363,6 +363,15 @@
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode {
     <fields>;
 }
+# S3040: both constants travel inside manifest.json in Google Drive AppData and are read back by
+# name on ANOTHER device, which may run a build with a different R8 mapping - the strictest case of
+# the rule above, since the two ends are not even the same installation.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.transfer.CrossDevicePayloadKind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketStatus {
+    <fields>;
+}
 # S2364: both of the rules below named a class that does not exist. The enums are nested, so their
 # real R8 names carry `$`, and R8 ignores a rule matching nothing in silence - each protected
 # nothing from the day it was written while the gate reported it as a satisfied contract.
@@ -652,5 +661,14 @@
 # `TouristTileType.valueOf`, degrading to SPEED when the name does not resolve. A rename would
 # silently return every user to the speed tile instead of the one they left open.
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.tourist.TouristTileType {
+    <fields>;
+}
+# S3283: the SOS mode is persisted by member name on three independent paths, and every one of them
+# degrades to a default rather than throwing. ProgramsSettingsStore writes `sosMode.name` into DataStore
+# and restores it with `fromNameOrDefault`; BackupSettingsGroupMapper stamps the same name into a backup
+# file another build will read; and the watch command carries that name as the whole Data Layer payload,
+# decoded on the other side by the wear module's own SosMode - which has its own rule in wear's file,
+# because one module is one R8 run.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.sos.SosMode {
     <fields>;
 }

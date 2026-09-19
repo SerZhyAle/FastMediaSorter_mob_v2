@@ -108,6 +108,8 @@ Your desktop layout is kept either way, so switching launcher mode back on bring
 
 > **Left on all day?** **Settings → General → System launcher settings → Desktop → Screen timeout** sets how long the desktop waits while nobody touches it. It does not go dark at once: first comes a slow dimming, then the blackout - an app-private black overlay rather than the device switching itself off, so any touch brings the desktop straight back. Set it to **Off (never)** to keep the desktop lit.
 
+> **On a charger?** The row right below it, **Screen timeout when on charge**, applies instead for as long as a wired or wireless charger is connected. It ships **Off (never)**, so a docked device keeps the desktop lit without touching the row above.
+
 > **Want the full reference?** Every option, table and corner case lives in the [Use the App as Your Home Screen](../HOW_TO.md#how-to-use-the-app-as-your-home-screen) section of the user manual. This guide covers switching it on and the first steps; that section covers the rest.
 
 > **Other apps can put their own shortcuts here**, exactly as they would on any other home screen.

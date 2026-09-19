@@ -80,7 +80,7 @@
     <string name="text_note_save_dialog_title">حفظ الملاحظة</string>
     <string name="text_note_save_error_network">تعذر الوصول إلى المجلد. بقيت ملاحظتك على الجهاز - حاول مرة أخرى عند اتصالك بالإنترنت.</string>
     <string name="text_note_save_renamed_suffix">تم الحفظ باسم %1$s (الاسم مستخدم بالفعل)</string>
-    <string name="text_note_save_success_local">أنقذ.</string>
+    <string name="text_note_save_success_local">تم الحفظ.</string>
     <string name="text_note_save_success_remote">تم الحفظ في %1$s.</string>
     <string name="text_page_indicator">الصفحة %1$d / %2$d</string>
     <string name="text_page_indicator_estimated">الصفحة %1$d / ~%2$d</string>

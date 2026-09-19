@@ -65,7 +65,13 @@ class ImportSystemShortcutsUseCaseTest {
             columns: Int,
         ): Boolean = false
         override suspend fun normalizeSectionSpans() = Unit
-        override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int, columns: Int): Boolean = true
+        override suspend fun moveCell(
+            id: Long,
+            rowIndex: Int,
+            colIndex: Int,
+            columns: Int,
+            targetScreenIndex: Int?,
+        ): Boolean = true
         override suspend fun resizeCell(id: Long, spanW: Int, spanH: Int, columns: Int): Boolean = true
         override suspend fun updateCellTarget(id: Long, target: String): Boolean = true
         override suspend fun seedIfEmpty(orientation: LauncherOrientation, cells: List<LauncherCell>): Boolean = true
@@ -83,6 +89,12 @@ class ImportSystemShortcutsUseCaseTest {
             sectionCellId: Long,
             moveUp: Boolean,
         ): Boolean = true
+
+        override suspend fun relocateSectionBlock(
+            orientation: LauncherOrientation,
+            sectionCellId: Long,
+            targetRow: Int,
+        ): Boolean = false
 
         override suspend fun removeSection(
             orientation: LauncherOrientation,

@@ -89,7 +89,7 @@
     <string name="vr_overlay_btn_prev">पिछला</string>
     <string name="vr_overlay_btn_settings">सेटिंग्स</string>
     <string name="vr_overlay_btn_speed">रफ़्तार</string>
-    <string name="vr_overlay_btn_track">रास्ता</string>
+    <string name="vr_overlay_btn_track">ट्रैक</string>
     <string name="vr_overlay_btn_vol_down">वॉल्यूम -</string>
     <string name="vr_overlay_btn_vol_up">वॉल्यूम +</string>
     <string name="vr_overlay_speed_label">गति: %sx</string>

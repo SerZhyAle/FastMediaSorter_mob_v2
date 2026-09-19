@@ -8,15 +8,16 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemTouristTileBinding
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.util.Locale
 
 /**
  * S2922/S3000/S2995/S3011: renders the grid of secondary telemetry tiles.
+ *
+ * S3101: every reading with two scales goes through [TouristTileValueFormatter]; nothing here picks a
+ * unit or a clock length of its own.
  */
 class TouristSecondaryTilesAdapter(
+    private val valueFormatter: TouristTileValueFormatter,
     private val onTileClicked: (TouristTileType) -> Unit,
 ) : RecyclerView.Adapter<TouristSecondaryTilesAdapter.TileViewHolder>() {
 
@@ -44,7 +45,7 @@ class TouristSecondaryTilesAdapter(
 
     override fun onBindViewHolder(holder: TileViewHolder, position: Int) {
         val tile = visibleTiles[position]
-        holder.bind(tile, state, onTileClicked)
+        holder.bind(tile, state, valueFormatter, onTileClicked)
     }
 
     override fun getItemCount(): Int = visibleTiles.size
@@ -56,6 +57,7 @@ class TouristSecondaryTilesAdapter(
         fun bind(
             tile: TouristTileType,
             state: TouristDashboardState,
+            valueFormatter: TouristTileValueFormatter,
             onTileClicked: (TouristTileType) -> Unit,
         ) {
             val context = binding.root.context
@@ -64,36 +66,42 @@ class TouristSecondaryTilesAdapter(
             val bgColor = ContextCompat.getColor(context, getTileBackgroundColorRes(tile))
             binding.cardTileRoot.setCardBackgroundColor(bgColor)
 
-            bindTileContent(tile, state)
+            bindTileContent(tile, state, valueFormatter)
         }
 
-        private fun bindTileContent(tile: TouristTileType, state: TouristDashboardState) {
+        private fun bindTileContent(
+            tile: TouristTileType,
+            state: TouristDashboardState,
+            valueFormatter: TouristTileValueFormatter,
+        ) {
             when (tile) {
-                TouristTileType.SPEED -> bindSpeed(state)
-                TouristTileType.ALTITUDE -> bindAltitude(state)
+                TouristTileType.SPEED -> bindSpeed(state, valueFormatter)
+                TouristTileType.ALTITUDE -> bindAltitude(state, valueFormatter)
                 TouristTileType.COMPASS -> bindCompass(state)
                 TouristTileType.COORDINATES -> bindCoordinates(state)
                 TouristTileType.SATELLITES -> bindSatellites(state)
                 TouristTileType.STEPS -> bindSteps(state)
-                TouristTileType.TRIP_DISTANCE -> bindTripDistance(state)
-                TouristTileType.SUN_TIME -> bindSunTime(state)
-                TouristTileType.WEATHER -> bindWeather(state)
-                TouristTileType.DEW_POINT -> bindDewPoint(state)
+                TouristTileType.TRIP_DISTANCE -> bindTripDistance(state, valueFormatter)
+                TouristTileType.SUN_TIME -> bindSunTime(state, valueFormatter)
+                TouristTileType.WEATHER -> bindWeather(state, valueFormatter)
+                TouristTileType.DEW_POINT -> bindDewPoint(state, valueFormatter)
             }
         }
 
-        private fun bindSpeed(state: TouristDashboardState) {
+        private fun bindSpeed(state: TouristDashboardState, valueFormatter: TouristTileValueFormatter) {
             binding.ivTileIcon.setImageResource(R.drawable.ic_speed)
             binding.tvTileLabel.setText(R.string.tourist_tile_speed)
-            binding.tvTileValue.text = state.speedKmh?.let { String.format(Locale.US, "%.1f", it) } ?: "--"
-            binding.tvTileUnit.setText(R.string.tourist_unit_kmh)
+            val speed = valueFormatter.speed(state.speedKmh)
+            binding.tvTileValue.text = speed.value
+            binding.tvTileUnit.text = speed.unit
         }
 
-        private fun bindAltitude(state: TouristDashboardState) {
+        private fun bindAltitude(state: TouristDashboardState, valueFormatter: TouristTileValueFormatter) {
             binding.ivTileIcon.setImageResource(R.drawable.ic_altitude)
             binding.tvTileLabel.setText(R.string.tourist_tile_altitude)
-            binding.tvTileValue.text = state.altitudeMeters?.let { String.format(Locale.US, "%.0f", it) } ?: "--"
-            binding.tvTileUnit.setText(R.string.tourist_unit_meters)
+            val altitude = valueFormatter.altitude(state.altitudeMeters)
+            binding.tvTileValue.text = altitude.value
+            binding.tvTileUnit.text = altitude.unit
         }
 
         private fun bindCompass(state: TouristDashboardState) {
@@ -133,41 +141,38 @@ class TouristSecondaryTilesAdapter(
             binding.tvTileUnit.setText(R.string.tourist_unit_steps)
         }
 
-        private fun bindTripDistance(state: TouristDashboardState) {
+        private fun bindTripDistance(state: TouristDashboardState, valueFormatter: TouristTileValueFormatter) {
             binding.ivTileIcon.setImageResource(R.drawable.ic_route_distance)
             binding.tvTileLabel.setText(R.string.tourist_tile_trip_distance)
-            if (state.tripDistanceMeters >= METERS_PER_KM) {
-                val km = state.tripDistanceMeters / METERS_PER_KM
-                binding.tvTileValue.text = String.format(Locale.US, "%.2f", km)
-                binding.tvTileUnit.text = "km"
-            } else {
-                binding.tvTileValue.text = String.format(Locale.US, "%.0f", state.tripDistanceMeters)
-                binding.tvTileUnit.setText(R.string.tourist_unit_meters)
-            }
+            val trip = valueFormatter.tripDistance(state.tripDistanceMeters)
+            binding.tvTileValue.text = trip.value
+            binding.tvTileUnit.text = trip.unit
         }
 
-        private fun bindSunTime(state: TouristDashboardState) {
+        private fun bindSunTime(state: TouristDashboardState, valueFormatter: TouristTileValueFormatter) {
             val iconRes = if (state.isDaylight) R.drawable.ic_sunset else R.drawable.ic_sunrise
             binding.ivTileIcon.setImageResource(iconRes)
             binding.tvTileLabel.setText(R.string.tourist_tile_sun_time)
             val targetMillis = if (state.isDaylight) state.sunsetMillis else state.sunriseMillis
-            binding.tvTileValue.text = formatTime(targetMillis)
+            binding.tvTileValue.text = valueFormatter.clockTime(targetMillis)
             val unitRes = if (state.isDaylight) R.string.tourist_sunset else R.string.tourist_sunrise
             binding.tvTileUnit.setText(unitRes)
         }
 
-        private fun bindWeather(state: TouristDashboardState) {
+        private fun bindWeather(state: TouristDashboardState, valueFormatter: TouristTileValueFormatter) {
             binding.ivTileIcon.setImageResource(R.drawable.ic_info)
             binding.tvTileLabel.setText(R.string.tourist_tile_weather)
-            binding.tvTileValue.text = state.temperatureCelsius?.let { String.format(Locale.US, "%.1f", it) } ?: "--"
-            binding.tvTileUnit.text = "°C"
+            val temperature = valueFormatter.temperature(state.temperatureCelsius)
+            binding.tvTileValue.text = temperature.value
+            binding.tvTileUnit.text = temperature.unit
         }
 
-        private fun bindDewPoint(state: TouristDashboardState) {
+        private fun bindDewPoint(state: TouristDashboardState, valueFormatter: TouristTileValueFormatter) {
             binding.ivTileIcon.setImageResource(R.drawable.ic_info)
             binding.tvTileLabel.setText(R.string.tourist_tile_dew_point)
-            binding.tvTileValue.text = state.dewPointCelsius?.let { String.format(Locale.US, "%.1f", it) } ?: "--"
-            binding.tvTileUnit.text = "°C"
+            val dewPoint = valueFormatter.temperature(state.dewPointCelsius)
+            binding.tvTileValue.text = dewPoint.value
+            binding.tvTileUnit.text = dewPoint.unit
         }
 
         private fun getTileBackgroundColorRes(tileType: TouristTileType): Int = when (tileType) {
@@ -189,14 +194,7 @@ class TouristSecondaryTilesAdapter(
             return directions[index]
         }
 
-        private fun formatTime(millis: Long?): String {
-            if (millis == null) return "--:--"
-            val zdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault())
-            return String.format(Locale.US, "%02d:%02d", zdt.hour, zdt.minute)
-        }
-
         private companion object {
-            private const val METERS_PER_KM = 1000.0
             private const val HALF_SECTOR = 22.5f
             private const val SECTOR = 45f
             private const val FULL_CIRCLE = 360

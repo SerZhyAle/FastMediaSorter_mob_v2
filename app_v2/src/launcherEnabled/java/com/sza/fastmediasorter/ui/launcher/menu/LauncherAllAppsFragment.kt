@@ -74,7 +74,6 @@ class LauncherAllAppsFragment : DialogFragment() {
     private val systemDialogsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.getStringExtra(SYSTEM_DIALOG_REASON) == SYSTEM_DIALOG_REASON_HOME_KEY) {
-                Timber.d("S3122: all-apps drawer closed by the HOME system-dialogs broadcast")
                 // The system can issue HOME after FragmentManager saves state; there is no UI state to retain.
                 dismissAllowingStateLoss()
             }

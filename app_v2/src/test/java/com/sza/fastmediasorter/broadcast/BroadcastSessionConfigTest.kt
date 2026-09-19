@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.broadcast
 
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BroadcastSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
@@ -16,7 +17,8 @@ class BroadcastSessionConfigTest {
     fun `default config preserves the pre-S2817 hard-coded session values`() {
         val config = BroadcastSessionConfig.DEFAULT
 
-        assertEquals("Phone Audio Stream", config.streamTitle)
+        // S3173: the default no longer names the carrier - one title serves every broadcast mode.
+        assertEquals("Phone Stream", config.streamTitle)
         assertEquals(128_000, config.bitRateBps)
         assertEquals(8768, config.port)
         assertEquals(44_100, config.sampleRateHz)
@@ -85,20 +87,22 @@ class BroadcastSessionConfigTest {
     @Test
     fun `config built from AppSettings carries the user's preferences`() {
         val settings = AppSettings(
-            broadcastStreamTitle = "Custom Title",
-            broadcastBitRateBps = 192_000,
-            broadcastPort = 8080,
-            broadcastSampleRateHz = 48_000,
-            broadcastChannelCount = 2,
-            broadcastAutoOpenShare = false,
+            broadcast = BroadcastSettings(
+                streamTitle = "Custom Title",
+                bitRateBps = 192_000,
+                port = 8080,
+                sampleRateHz = 48_000,
+                channelCount = 2,
+                autoOpenShare = false,
+            )
         )
 
         val config = BroadcastSessionConfig(
-            streamTitle = settings.broadcastStreamTitle,
-            bitRateBps = settings.broadcastBitRateBps,
-            port = settings.broadcastPort,
-            sampleRateHz = settings.broadcastSampleRateHz,
-            channelCount = settings.broadcastChannelCount,
+            streamTitle = settings.broadcast.streamTitle,
+            bitRateBps = settings.broadcast.bitRateBps,
+            port = settings.broadcast.port,
+            sampleRateHz = settings.broadcast.sampleRateHz,
+            channelCount = settings.broadcast.channelCount,
             sourceDeviceId = null,
         )
 

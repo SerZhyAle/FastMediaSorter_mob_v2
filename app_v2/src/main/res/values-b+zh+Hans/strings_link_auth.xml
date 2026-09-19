@@ -7,7 +7,7 @@
     <string name="s0140_webview_auth_sign_in_first">请先登录，然后点击“保存授权”。</string>
     <string name="s0155_name_account_title">请为此帐户命名</string>
     <string name="s0155_name_account_hint">例如 @myusername</string>
-    <string name="s0155_name_account_positive">节省</string>
+    <string name="s0155_name_account_positive">保存</string>
     <string name="s0155_pick_account_title">选择账户，金额为 %1$s</string>
     <string name="s0155_pick_account_last_used">（上次使用）</string>
     <string name="s0155_reauth_title">再次以 %1$s 身份登录？</string>

@@ -7,6 +7,8 @@ permalink: /docs/howto/wear-install.html
 
 > **Level:** Beginner &bull; **Time:** ~5 minutes &bull; **Device:** Wear OS smartwatch paired with an Android phone
 
+> **Two versions.** The version from Google Play is a small first release: Calculator, Stopwatch, Mini-game, Water flashlight, Clipboard, Settings and the Programs tile. Music, photos, network shares and phone features are in the full version only, a direct APK download from [Downloads](../DOWNLOADS.md).
+
 [Русский](wear-install-ru.md) | [Українська](wear-install-uk.md)
 
 FastMedia Wear is the watch half of FastMediaSorter. Once it is on your wrist you can play music and view photos straight from the watch, reach folders shared by your paired phone, and open network shares the watch connects to on its own. This page gets it installed and paired.
@@ -108,7 +110,7 @@ The checkbox switches the whole companion on: the button that opens its window a
 
 If the Phone section is empty, return to the companion window on the phone and confirm that at least one resource is selected.
 
-> **Tip:** You can navigate back from any screen on your watch using the visible universal back affordance button on the left edge, swiping from the left edge, or pressing your watch's hardware back button. On the main home screen, tapping the back affordance shows a close icon (×) to exit or a double-chevron («) to minimize background playback.
+> **Tip:** You can navigate back from any screen on your watch using the visible universal back affordance button on the left edge, swiping from the left edge, or pressing your watch's hardware back button. On the main home screen, tapping the back affordance shows a close icon (×) to exit or a double-chevron («) to minimize background playback. On every screen that shows that button, a moon button faces it at the right edge and blanks the watch screen; a double tap, a press and hold, or the hardware button brings it back.
 
 ---
 

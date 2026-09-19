@@ -16,7 +16,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CompactChip
 import androidx.wear.compose.material.MaterialTheme
@@ -24,19 +23,9 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.tourist.TouristMetricType
 import com.sza.fastmediasorter.wear.domain.tourist.WearTouristState
-import timber.log.Timber
+import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import java.util.Locale
 
-private val COLOR_HR = Color(0xFFFF5252.toInt())
-private val COLOR_SPEED = Color(0xFF00BFA5.toInt())
-private val COLOR_STEPS = Color(0xFFFFAB00.toInt())
-private val COLOR_DIST = Color(0xFF448AFF.toInt())
-
-private val FOCAL_DIGITS_SIZE_SP = 48.sp
-private val FOCAL_LINE_HEIGHT_SP = 52.sp
-private val UNIT_SIZE_SP = 14.sp
-private val CHIP_LABEL_SIZE_SP = 9.sp
-private val LOCK_CHIP_SIZE_SP = 11.sp
 private const val LOCK_BUTTON_WIDTH_FRACTION = 0.8f
 
 private const val KMH_TO_MPH = 0.621371f
@@ -58,18 +47,17 @@ private val ATHLETE_METRICS = listOf(
 fun TouristAthleteCard(
     state: WearTouristState,
     isMetric: Boolean,
+    isScreenLocked: Boolean,
     onSelectMetric: (TouristMetricType) -> Unit,
     onLockScreen: () -> Unit,
-    onExitAthleteMode: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
     val accentColor = when (state.focusedMetric) {
-        TouristMetricType.HEART_RATE -> COLOR_HR
-        TouristMetricType.SPEED -> COLOR_SPEED
-        TouristMetricType.STEPS -> COLOR_STEPS
-        TouristMetricType.TRIP_DISTANCE -> COLOR_DIST
-        else -> COLOR_SPEED
+        TouristMetricType.HEART_RATE -> WearAppTheme.colors.heartRate
+        TouristMetricType.SPEED -> WearAppTheme.colors.touristAccent
+        TouristMetricType.STEPS -> WearAppTheme.colors.steps
+        TouristMetricType.TRIP_DISTANCE -> WearAppTheme.colors.distance
+        else -> WearAppTheme.colors.touristAccent
     }
 
     val (metricTitle, metricValue, metricUnit) = formatAthleteMetric(state, isMetric)
@@ -77,7 +65,7 @@ fun TouristAthleteCard(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(WearAppTheme.colors.canvasBlack)
             .padding(horizontal = 8.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -86,10 +74,9 @@ fun TouristAthleteCard(
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxSize(),
         ) {
-            AthleteTopBar(
+            AthleteTitle(
                 title = metricTitle,
                 accentColor = accentColor,
-                onExit = onExitAthleteMode,
             )
             AthleteFocalDisplay(
                 value = metricValue,
@@ -98,6 +85,8 @@ fun TouristAthleteCard(
             )
             AthleteControls(
                 focusedMetric = state.focusedMetric,
+                hasTemperatureSensor = state.hasBodyTemperatureSensor,
+                isScreenLocked = isScreenLocked,
                 onSelectMetric = onSelectMetric,
                 onLock = onLockScreen,
             )
@@ -105,29 +94,20 @@ fun TouristAthleteCard(
     }
 }
 
+/** Centred rather than laid out in a bar: on a round display a title pinned to the left is cut off. */
 @Composable
-private fun AthleteTopBar(
+private fun AthleteTitle(
     title: String,
     accentColor: Color,
-    onExit: () -> Unit,
 ) {
-    Row(
+    Text(
+        text = title.uppercase(Locale.getDefault()),
+        style = MaterialTheme.typography.caption2,
+        color = accentColor,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = title.uppercase(Locale.getDefault()),
-            style = MaterialTheme.typography.caption2,
-            color = accentColor,
-            fontWeight = FontWeight.Bold,
-        )
-        CompactChip(
-            onClick = onExit,
-            label = { Text(stringResource(R.string.wear_tourist_dashboard_mode), fontSize = CHIP_LABEL_SIZE_SP) },
-            colors = ChipDefaults.secondaryChipColors(),
-        )
-    }
+    )
 }
 
 @Composable
@@ -140,18 +120,17 @@ private fun AthleteFocalDisplay(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        // The focal size, its line height and its weight all live in the token: WearAppTypography
+        // re-sizes display1 to exactly what this card was drawn at (S3257).
         Text(
             text = value,
-            fontSize = FOCAL_DIGITS_SIZE_SP,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color.White,
+            style = MaterialTheme.typography.display1,
+            color = WearAppTheme.colors.athleteOnCanvas,
             textAlign = TextAlign.Center,
-            lineHeight = FOCAL_LINE_HEIGHT_SP,
         )
         Text(
             text = unit,
-            fontSize = UNIT_SIZE_SP,
-            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.caption1,
             color = accentColor,
             textAlign = TextAlign.Center,
         )
@@ -161,9 +140,17 @@ private fun AthleteFocalDisplay(
 @Composable
 private fun AthleteControls(
     focusedMetric: TouristMetricType,
+    hasTemperatureSensor: Boolean,
+    isScreenLocked: Boolean,
     onSelectMetric: (TouristMetricType) -> Unit,
     onLock: () -> Unit,
 ) {
+    // The temperature chip exists only where the watch can actually measure it.
+    val metrics = if (hasTemperatureSensor) {
+        ATHLETE_METRICS + TouristMetricType.BODY_TEMPERATURE
+    } else {
+        ATHLETE_METRICS
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -172,18 +159,19 @@ private fun AthleteControls(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ATHLETE_METRICS.forEach { metric ->
+            metrics.forEach { metric ->
                 val isSelected = metric == focusedMetric
                 val shortLabel = when (metric) {
                     TouristMetricType.STEPS -> "STP"
                     TouristMetricType.TRIP_DISTANCE -> "DST"
                     TouristMetricType.HEART_RATE -> "BPM"
                     TouristMetricType.SPEED -> "SPD"
+                    TouristMetricType.BODY_TEMPERATURE -> "TMP"
                     else -> "???"
                 }
                 CompactChip(
                     onClick = { onSelectMetric(metric) },
-                    label = { Text(shortLabel, fontSize = CHIP_LABEL_SIZE_SP) },
+                    label = { Text(shortLabel, style = MaterialTheme.typography.caption3) },
                     colors = if (isSelected) {
                         ChipDefaults.primaryChipColors()
                     } else {
@@ -193,12 +181,23 @@ private fun AthleteControls(
             }
         }
 
-        CompactChip(
-            onClick = onLock,
-            label = { Text("🔒 " + stringResource(R.string.wear_tourist_lock_screen), fontSize = LOCK_CHIP_SIZE_SP) },
-            colors = ChipDefaults.secondaryChipColors(),
-            modifier = Modifier.fillMaxWidth(LOCK_BUTTON_WIDTH_FRACTION),
-        )
+        if (isScreenLocked) {
+            TouristUnlockHint()
+        } else {
+            CompactChip(
+                onClick = onLock,
+                label = {
+                    Text(
+                        text = "🔒 " + stringResource(R.string.wear_tourist_lock_screen),
+                        style = MaterialTheme.typography.caption3,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                },
+                colors = ChipDefaults.secondaryChipColors(),
+                modifier = Modifier.fillMaxWidth(LOCK_BUTTON_WIDTH_FRACTION),
+            )
+        }
     }
 }
 
@@ -212,6 +211,11 @@ private fun formatAthleteMetric(
         TouristMetricType.HEART_RATE -> Triple("Heart Rate", state.heartRateBpm?.toString() ?: "--", "bpm")
         TouristMetricType.SPEED -> formatAthleteSpeed(state.speedKmh, isMetric)
         TouristMetricType.ALTITUDE -> formatAthleteAltitude(state.altitudeMeters, isMetric)
+        TouristMetricType.BODY_TEMPERATURE -> Triple(
+            "Temperature",
+            state.bodyTemperatureCelsius?.let { String.format(Locale.US, "%.1f", it) } ?: "--",
+            "°C",
+        )
         else -> Triple("Tourist", "--", "")
     }
 }

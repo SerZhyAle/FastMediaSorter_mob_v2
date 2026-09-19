@@ -22,7 +22,6 @@
     <string name="game_how_to_play">Как играть?</string>
     <string name="game_level">Уровень %1$d</string>
     <string name="game_loading">Загрузка игры..</string>
-    <string name="game_menu_label">Играть в мини-игру</string>
     <string name="game_move_down">Ход вниз</string>
     <string name="game_move_left">Ход влево</string>
     <string name="game_move_right">Ход вправо</string>

@@ -1,0 +1,11 @@
+{"_comment": "Cluster-to-ticket registry for Play Vitals crash dedup (S3286). One JSON object per line. Machine-written by scripts/release/lib/play-vitals-cluster-registry.ps1, never hand-edited."}
+{"clusterId":"8210bf01b4d65c648a82dbf47e0df6ef","ticketId":"S3281","ticketStatus":"Verified","fixVersionCode":null,"state":"fixed-unpublished","registeredUtc":"2026-09-18T16:32:23Z","updatedUtc":"2026-09-18T16:32:23Z"}
+{"clusterId":"79e19874f6c07ec33547e74447d4ad6d","ticketId":"S3067","ticketStatus":"Draft","fixVersionCode":null,"state":"fixed-unpublished","registeredUtc":"2026-09-19T02:45:52Z","updatedUtc":"2026-09-19T02:45:52Z"}
+{"clusterId":"daf4cfa06fbe2ac60ec520ebecc05e00","ticketId":"S3068","ticketStatus":"Draft","fixVersionCode":null,"state":"fixed-unpublished","registeredUtc":"2026-09-19T02:45:52Z","updatedUtc":"2026-09-19T02:45:53Z"}
+{"clusterId":"6b3f881bedc99196c06248781b22b350","ticketId":"S3280","ticketStatus":"Draft","fixVersionCode":null,"state":"fixed-unpublished","registeredUtc":"2026-09-19T02:46:14Z","updatedUtc":"2026-09-19T02:46:15Z"}
+{"clusterId":"a6da2615cb54d58b9e0b918422451575","ticketId":"S3070","ticketStatus":"Archived","fixVersionCode":null,"state":"fixed-unpublished","registeredUtc":"2026-09-19T02:46:37Z","updatedUtc":"2026-09-19T09:56:26Z"}
+{"clusterId":"2ddded2b2b021809a3bf8f73ce35bbd2","ticketId":"S3319","ticketStatus":"Draft","fixVersionCode":null,"state":"open","registeredUtc":"2026-09-19T02:47:08Z","updatedUtc":"2026-09-19T02:47:08Z"}
+{"clusterId":"381d940961edf26db2d1da7fc3a5bd54","ticketId":"S3319","ticketStatus":"Draft","fixVersionCode":null,"state":"open","registeredUtc":"2026-09-19T02:47:08Z","updatedUtc":"2026-09-19T02:47:08Z"}
+{"clusterId":"4973f43d832111cb3ab08b3f52aa3823","ticketId":"S3319","ticketStatus":"Draft","fixVersionCode":null,"state":"open","registeredUtc":"2026-09-19T02:47:09Z","updatedUtc":"2026-09-19T02:47:09Z"}
+{"clusterId":"730c8efb2083eaf072dfcd1061fc3344","ticketId":"S3319","ticketStatus":"Draft","fixVersionCode":null,"state":"open","registeredUtc":"2026-09-19T02:47:09Z","updatedUtc":"2026-09-19T02:47:09Z"}
+{"clusterId":"92124ceaf03478d223c737437290a8f1","ticketId":"S3319","ticketStatus":"Draft","fixVersionCode":null,"state":"open","registeredUtc":"2026-09-19T02:47:09Z","updatedUtc":"2026-09-19T02:47:09Z"}

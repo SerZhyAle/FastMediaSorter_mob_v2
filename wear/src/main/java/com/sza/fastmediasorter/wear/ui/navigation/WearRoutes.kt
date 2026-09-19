@@ -80,11 +80,17 @@ object WearRoutes {
     /** S2808: the heart-rate measurement history screen, reached from the body sensor screen. */
     const val HEART_RATE_HISTORY = "heart_rate_history"
 
-    /** S2809: the blood pressure input screen. Available in both flavors - no permission needed. */
+    /**
+     * S2809/S3113: the blood pressure estimate screen; offered only with offersHealthFeatures, and the
+     * capture behind it needs the heart-rate permission.
+     */
     const val BLOOD_PRESSURE = "blood_pressure"
 
     /** S2809: the blood pressure history screen, reached from the blood pressure screen. */
     const val BLOOD_PRESSURE_HISTORY = "blood_pressure_history"
+
+    /** S3113: cuff readings taken together with the pulse wave, which the estimate is fitted on. */
+    const val BLOOD_PRESSURE_CALIBRATION = "blood_pressure_calibration"
 
     /**
      * S2008: the watch's own report, relocated from `settings/system_info`. Its value is the program's
@@ -126,6 +132,18 @@ object WearRoutes {
      * S3007: the watch Tourist telemetry and navigation dashboard.
      */
     const val TOURIST = "tourist_info"
+
+    /**
+     * S3109: the watch's text clipboard and its send action. Ships in both watch flavors with no
+     * `WearRestrictedCapabilities` gate - it needs no permission and no hardware.
+     */
+    const val CLIPBOARD = "clipboard"
+
+    /**
+     * S3216: the distress signal. Carries its `canonicalKey` like the programs above, and that key is
+     * the phone's route key too - one program on two devices.
+     */
+    const val SOS = "sos"
 
     const val ARG_MEDIA_TYPE = "mediaType"
     const val ARG_SOURCE_ID = "sourceId"
@@ -229,6 +247,18 @@ object WearRoutes {
     /** The refusal, told which format it is refusing. Enum names need no encoding. */
     fun unsupportedFile(format: WearDocumentFormat): String = "unsupported_file/${format.name}"
 
+    /**
+     * S3213: whether [route] is one of the content destinations - the screens that render a file and
+     * hold the watch while it plays.
+     *
+     * Asked of a graph route, so the argument is the declared `*_PATTERN` rather than a filled address.
+     * Two content destinations must never stand next to each other on the back stack: an entrance that
+     * fires while a player is already open - the phone's stream, the phone's file, a launch intent, a
+     * second Start on the phone-camera screen - used to push a second player, and BACK from it resumed
+     * the older one instead of leaving the flow.
+     */
+    fun isContentRoute(route: String?): Boolean = route != null && route in CONTENT_PATTERNS
+
     fun tileTargetPicker(kind: String): String = "tile_target_picker/${encodeArg(kind)}"
 
     /**
@@ -289,6 +319,14 @@ object WearRoutes {
             }
         }
     }
+
+    private val CONTENT_PATTERNS = setOf(
+        AUDIO_PLAYER_PATTERN,
+        VIDEO_PLAYER_PATTERN,
+        IMAGE_VIEWER_PATTERN,
+        DOCUMENT_VIEWER_PATTERN,
+        UNSUPPORTED_FILE,
+    )
 
     private const val CHAR_LIMIT_ASCII = 128
     private const val UNRESERVED_PUNCTUATION = "-_.~"

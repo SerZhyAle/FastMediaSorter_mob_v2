@@ -17,6 +17,7 @@ import javax.inject.Inject
 private const val BAND_2_4_GHZ = "2.4 GHz"
 private const val BAND_5_GHZ = "5 GHz"
 private const val BAND_6_GHZ = "6 GHz"
+private const val ANDROID_SENSOR_PREFIX = "android.sensor."
 
 /**
  * Reads what this watch is made of.
@@ -38,6 +39,7 @@ class AndroidWearHardwareDataSource @Inject constructor(
         get() = read("sensors") {
             sensorManager()?.getSensorList(Sensor.TYPE_ALL)?.map { sensor ->
                 WearSensorDescriptor(
+                    type = purposeOf(sensor),
                     name = sensor.name,
                     vendor = sensor.vendor,
                     powerMilliAmps = sensor.power,
@@ -113,6 +115,14 @@ class AndroidWearHardwareDataSource @Inject constructor(
         } else {
             null
         }
+
+    /**
+     * What the sensor is for, in the platform's vocabulary: `android.sensor.heart_rate` reads back as
+     * `heart_rate`. A vendor sensor answers its own reverse-DNS name, which keeps its own prefix and
+     * is left whole - dropping an unknown prefix would leave a bare word that names nothing.
+     */
+    private fun purposeOf(sensor: Sensor): String =
+        sensor.stringType.orEmpty().removePrefix(ANDROID_SENSOR_PREFIX)
 
     private fun sensorManager(): SensorManager? =
         context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager

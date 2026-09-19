@@ -13,7 +13,7 @@
     <string name="image_edit_flip_horizontal">ফ্লিপ ↔</string>
     <string name="image_edit_flip_vertical">ফ্লিপ ↕</string>
     <string name="image_edit_grayscale">গ্রেস্কেল</string>
-    <string name="image_edit_negative">নেতিবাচক</string>
+    <string name="image_edit_negative">নেগেটিভ</string>
     <string name="image_edit_rotation">ঘূর্ণন</string>
     <string name="image_edit_saturation">স্যাচুরেশন</string>
     <string name="image_edit_sepia">সেপিয়া</string>

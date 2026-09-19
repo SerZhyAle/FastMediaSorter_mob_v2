@@ -13,6 +13,10 @@ interface FavoritesRepository {
      * launcher desktop gadget - read this rather than filtering [getAllFavorites] themselves.
      */
     fun getFileFavorites(): Flow<List<FavoritesEntity>>
+
+    /** S3161: the same file-only slice as a one-shot read, for maintenance that runs once and exits. */
+    suspend fun getFileFavoritesSync(): List<FavoritesEntity>
+
     fun isFavorite(uri: String): Flow<Boolean>
     suspend fun isFavoriteSync(uri: String): Boolean
     suspend fun getFavoritesForPaths(paths: List<String>): Map<String, Boolean>

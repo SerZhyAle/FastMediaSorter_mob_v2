@@ -25,15 +25,16 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.StandardWearToggleChip
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
-import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 
@@ -43,6 +44,7 @@ fun MediaTypesSettingsScreen(
     listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.MEDIA_TYPES)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    Timber.d("S3260: media types settings shown - every type row is StandardWearToggleChip")
 
     // S1949: every label on this screen measures 17-21 characters in its worst locale - under the
     // 32-character threshold - so the toggles share rows instead of each taking the full width.
@@ -116,16 +118,16 @@ private fun mediaTypeItem(
     tag: String?,
     onToggle: () -> Unit
 ): WearSettingsItem = WearSettingsItem { narrow ->
-    // The tag rides an outer Box rather than the toggle row itself: the row rewrites its own
-    // semantics with clearAndSetSemantics, so a tag declared on the same node is not guaranteed
-    // to survive into the UiAutomator tree a flow reads.
+    // The tag rides an outer Box rather than the toggle row itself: the chip merges its descendants
+    // into one semantics node, so a tag declared on the same node is not guaranteed to survive into
+    // the UiAutomator tree a flow reads.
     Box(
         modifier = tag?.let { Modifier.testTag(it) } ?: Modifier
     ) {
-        WearSettingsToggleCell(
+        StandardWearToggleChip(
             label = label,
             checked = checked,
-            onToggle = onToggle,
+            onCheckedChange = { onToggle() },
             narrow = narrow
         )
     }

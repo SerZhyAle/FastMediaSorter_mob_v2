@@ -80,32 +80,25 @@
                     </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
 
 
-                    <!-- S1088: System launcher enable toggle + entry to the launcher-settings dialog.
+                    <!-- S3024: Consolidated primary window choice (Home screen / In-app Desktop / Resource Manager)
+                         plus entry to the launcher-settings dialog.
                          GeneralSettingsLauncherHelper hides both on builds without the launcher surface
                          (launcherModeContract.isAvailableInBuild) and keeps the entry button disabled until
                          the launcher is enabled.
                          S2288: orientation parity with portrait - the entry is a content-width button, so it
                          reads as subordinate to the toggle. -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowLauncherModeEnabled"
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowLauncherPrimaryWindow"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
-                        app:str_icon="@drawable/ic_launcher_mode"
-                        app:str_title="@string/launcher_settings_enable_title"
-                        app:str_subtitle="@string/launcher_settings_enable_desc"
-                        app:str_showHelp="true"
-                        app:str_helpTitle="@string/launcher_settings_enable_help_title"
-                        app:str_helpMessage="@string/launcher_settings_enable_help_message" />
-
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowLauncherStartWindow"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_tiny"
-                        app:str_icon="@drawable/ic_launcher_mode"
-                        app:str_title="@string/launcher_start_window_title"
-                        app:str_subtitle="@string/launcher_start_window_desc" />
+                        app:sdr_valueAsText="true"
+                        app:sdr_title="@string/setting_launcher_primary_window_title"
+                        app:sdr_subtitle="@string/setting_launcher_primary_window_desc"
+                        app:sdr_entries="@array/launcher_primary_window_options"
+                        app:sdr_showHelp="true"
+                        app:sdr_helpTitle="@string/launcher_settings_enable_help_title"
+                        app:sdr_helpMessage="@string/launcher_settings_enable_help_message" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/rowLauncherSettings"
@@ -670,6 +663,30 @@
 
                     </FrameLayout>
 
+                    <!-- S1565: the compact import/export entry. It sits beside the settings, favorites and
+                         resource button pairs rather than adding a seventh pair - owner ruling 2026-09-08. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowDataTransfer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:ssr_navMode="true"
+                        app:ssr_title="@string/data_transfer_row_title"
+                        app:ssr_subtitle="@string/data_transfer_row_subtitle" />
+
+                    <!-- S3040: the cross-device packet queue entry, mirroring the portrait row - both
+                         orientations of this card must carry the same ids (one ViewBinding). -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowCrossDevicePackets"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:ssr_navMode="true"
+                        app:ssr_title="@string/cross_device_transfer_pending_title"
+                        app:ssr_subtitle="@string/cross_device_transfer_row_subtitle" />
+
                     <!-- Reset All Settings - destructive action, placed at the very end of the Backup & Export section. -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
@@ -753,7 +770,9 @@
 
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSyncInterval" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:maxWidth="@dimen/settings_dropdown_compact_width" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/sync_interval">
 
-                                <AutoCompleteTextView android:id="@+id/actvSyncInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sync_interval" android:inputType="number" android:text="@string/default_sync_interval_minutes" android:textSize="@dimen/toggler_title_text_size" />
+                                <!-- S3295: imeOptions makes the keyboard send IME_ACTION_DONE. Without it the
+                                     Samsung IME swallows its own Enter key and the commit listener never runs. -->
+                                <AutoCompleteTextView android:id="@+id/actvSyncInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sync_interval" android:imeOptions="actionDone" android:inputType="number" android:text="@string/default_sync_interval_minutes" android:textSize="@dimen/toggler_title_text_size" />
 
                             </com.google.android.material.textfield.TextInputLayout>
 

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.networkmonitor
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -83,6 +84,10 @@ class BluetoothDeviceDataSource @Inject constructor(
         }
     }
 
+    // S3155: the only caller is readDevices, which runs after the grant check and inside a
+    // catch (SecurityException) that reports NoPermission. Lint cannot follow either across the
+    // method boundary, so it reports a call that already degrades safely.
+    @SuppressLint("MissingPermission")
     private fun connectedDevices(): List<BluetoothDevice> =
         bluetoothManager?.getConnectedDevices(BluetoothProfile.GATT).orEmpty()
 

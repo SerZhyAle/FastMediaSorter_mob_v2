@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.repository
 
 import com.sza.fastmediasorter.wear.domain.model.BloodPressureHistoryEntry
+import com.sza.fastmediasorter.wear.domain.model.BloodPressureSource
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -12,7 +13,11 @@ import kotlinx.coroutines.flow.Flow
  */
 interface BloodPressureHistoryRepository {
 
-    suspend fun save(systolic: Int, diastolic: Int)
+    /**
+     * S3113: [source] says whether the values were typed, taken by a cuff, or estimated; [pulse] is the heart
+     * rate measured with them, or null when none was.
+     */
+    suspend fun save(systolic: Int, diastolic: Int, source: BloodPressureSource, pulse: Int?)
 
     fun observeAll(): Flow<List<BloodPressureHistoryEntry>>
 

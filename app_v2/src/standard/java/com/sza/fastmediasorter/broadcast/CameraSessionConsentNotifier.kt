@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.broadcast
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -33,6 +34,9 @@ class CameraSessionConsentNotifier @Inject constructor(
     @ApplicationContext private val context: Context
 ) : CameraSessionConsentPrompt {
 
+    // S3155: same double guard as the two wear notifiers - a POST_NOTIFICATIONS check above and the
+    // runCatching that absorbs a revocation between the check and the post. Lint accepts neither.
+    @SuppressLint("MissingPermission")
     override fun ask(requestId: String): Boolean {
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) {

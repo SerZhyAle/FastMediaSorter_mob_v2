@@ -22,7 +22,7 @@
     <string name="scheduled_ops_battery_dialog_title">पृष्ठभूमि गतिविधि की अनुमति दें</string>
     <string name="scheduled_ops_btn_add">जोड़ना</string>
     <string name="scheduled_ops_btn_clear_all">सभी साफ करें</string>
-    <string name="scheduled_ops_btn_log">लकड़ी का लट्ठा</string>
+    <string name="scheduled_ops_btn_log">लॉग</string>
     <string name="scheduled_ops_btn_run_now">अब दौड़े</string>
     <string name="scheduled_ops_col_condition">स्थितियाँ</string>
     <string name="scheduled_ops_col_operation">संचालन</string>
@@ -53,7 +53,7 @@
     <string name="scheduled_ops_notif_running">निर्धारित कार्यक्रम चल रहा है..</string>
     <string name="scheduled_ops_op_copy">प्रतिलिपि</string>
     <string name="scheduled_ops_op_delete">मिटाना</string>
-    <string name="scheduled_ops_op_move">कदम</string>
+    <string name="scheduled_ops_op_move">ले जाएं</string>
     <string name="scheduled_ops_operation">संचालन</string>
     <string name="scheduled_ops_overwrite">मौजूदा फ़ाइलों को ओवरराइट करें</string>
     <string name="scheduled_ops_readonly_source">स्रोत केवल पढ़ने योग्य है</string>

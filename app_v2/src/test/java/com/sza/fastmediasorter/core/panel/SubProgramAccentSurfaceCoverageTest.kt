@@ -75,7 +75,7 @@ class SubProgramAccentSurfaceCoverageTest {
     private companion object {
 
         /** Raised only together with a new entry in [SITES] and its stated tone source. */
-        const val SITE_COUNT = 7
+        const val SITE_COUNT = 8
 
         val SITES = listOf(
             DrawingSite(
@@ -122,6 +122,14 @@ class SubProgramAccentSurfaceCoverageTest {
                 source = ToneSource.EXCLUDED,
                 note = "res/xml/widget_*_info.xml previewImage, rendered by the OS in its own process - the " +
                     "app cannot reach it, which is why the baked vectors are kept rather than stripped.",
+            ),
+            DrawingSite(
+                name = "app-icon long-press shortcut",
+                surface = SubProgramSurface.OS_APP_SHORTCUT,
+                source = ToneSource.EXCLUDED,
+                note = "AppShortcutsManager.toShortcut hands the launcher a bare IconCompat.createWithResource " +
+                    "id, and the launcher draws it in its own process on a background of its own. ADR-2 picks " +
+                    "the palette half by that background, so neither half can be chosen here.",
             ),
         )
     }

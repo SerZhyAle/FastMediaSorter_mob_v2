@@ -4,7 +4,6 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.model.WearApp
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
-import timber.log.Timber
 
 /**
  * The Apps screen renders what this catalog returns; it never decides for itself which programs exist.
@@ -23,27 +22,35 @@ import timber.log.Timber
 object WearAppCatalog {
 
     fun apps(capabilities: WearRestrictedCapabilities): List<WearApp> {
-        Timber.d("S3042: Tourist offersHealthFeatures=%s", capabilities.offersHealthFeatures)
         return listOf(
             WearApp(
                 id = WearAppId.CALCULATOR,
                 labelRes = R.string.wear_app_calculator
             ),
+            // S3178: the Network Monitor reads this watch's own radios, which the store artifact
+            // declares no permission for - so the row is withheld rather than left to report nothing.
             WearApp(
                 id = WearAppId.NETWORK_MONITOR,
-                labelRes = R.string.wear_app_network_monitor
+                labelRes = R.string.wear_app_network_monitor,
+                isAvailable = capabilities.offersDeviceDiagnostics && capabilities.offersNearbyDeviceState
             ),
             WearApp(
                 id = WearAppId.GAME,
                 labelRes = R.string.wear_app_game
             ),
+            // S3178: the recorder opens the microphone through a foreground service the store
+            // artifact does not declare, so the platform would refuse to start it.
             WearApp(
                 id = WearAppId.VOICE_RECORDER,
-                labelRes = R.string.wear_voice_note_app
+                labelRes = R.string.wear_voice_note_app,
+                isAvailable = capabilities.offersVoiceRecording
             ),
+            // S3178: the watch's own report is device and usage data, which Play counts as personal
+            // and sensitive whatever the screen does with it.
             WearApp(
                 id = WearAppId.SYSTEM_INFO,
-                labelRes = R.string.system_info_title
+                labelRes = R.string.system_info_title,
+                isAvailable = capabilities.offersDeviceDiagnostics
             ),
             WearApp(
                 id = WearAppId.WATER_FLASHLIGHT,
@@ -68,11 +75,14 @@ object WearAppCatalog {
                 isAvailable = capabilities.offersHealthFeatures
             ),
             // S2509: the second of the two equal entrances the owner chose; the first is the Home section.
-            // Listed in both flavors - strategic §3.2 rules that the microphone broadcast is not hidden
-            // behind WearRestrictedCapabilities, unlike the row above it.
+            // Its strategic §3.2 ruling - that the microphone broadcast is not hidden behind
+            // WearRestrictedCapabilities - held while both flavors declared RECORD_AUDIO. S3178 moved
+            // that declaration to the sideload manifest alone, so the store artifact has no session to
+            // start and the row is withheld there rather than offering a refusal.
             WearApp(
                 id = WearAppId.BROADCAST,
-                labelRes = R.string.wear_broadcast_app
+                labelRes = R.string.wear_broadcast_app,
+                isAvailable = capabilities.offersVoiceRecording
             ),
             // S2825: listed in both flavors - the stopwatch needs no permission and no hardware, so there
             // is nothing here for a store review to withhold.
@@ -84,7 +94,24 @@ object WearAppCatalog {
             WearApp(
                 id = WearAppId.TOURIST,
                 labelRes = R.string.wear_tourist_app,
-                isAvailable = capabilities.offersHealthFeatures
+                // S3178: telemetry as well as health - the dashboard reports the device alongside the
+                // activity, so both answers must allow it.
+                isAvailable = capabilities.offersHealthFeatures && capabilities.offersDeviceDiagnostics
+            ),
+            // S3109: listed in both flavors - moving text between the two devices needs no permission
+            // and no hardware, so there is nothing here for a store review to withhold. Appended
+            // rather than placed beside a program it resembles: the order of this list is the owner's.
+            WearApp(
+                id = WearAppId.CLIPBOARD,
+                labelRes = R.string.wear_app_clipboard
+            ),
+            // S3216: listed in both flavors - the siren goes out on the alarm channel and the strobe is
+            // the display itself, so the program declares no permission for a store review to withhold.
+            // Appended rather than placed beside the water flashlight it resembles: the order of this
+            // list is the owner's, and moving an existing program is not this ticket's to decide.
+            WearApp(
+                id = WearAppId.SOS,
+                labelRes = R.string.wear_app_sos
             )
         ).filter { it.isAvailable }
     }

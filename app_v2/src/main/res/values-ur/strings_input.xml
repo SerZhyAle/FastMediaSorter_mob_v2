@@ -76,7 +76,7 @@
     <string name="keybinding_label_playback_frame_step_forward">فریم سٹیپ فارورڈ</string>
     <string name="keybinding_label_playback_pause">توقف</string>
     <string name="keybinding_label_playback_pause_play">روکنا / کھیلنا</string>
-    <string name="keybinding_label_playback_play">کھیلیں</string>
+    <string name="keybinding_label_playback_play">چلائیں</string>
     <string name="keybinding_label_playback_repeat_mode">ریپیٹ موڈ</string>
     <string name="keybinding_label_playback_slideshow_toggle">سلائیڈ شو ٹوگل</string>
     <string name="keybinding_label_playback_speed_down">رفتار کم کریں۔</string>

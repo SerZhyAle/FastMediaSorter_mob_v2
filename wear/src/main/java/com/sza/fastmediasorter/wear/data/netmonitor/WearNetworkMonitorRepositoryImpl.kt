@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.data.netmonitor
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.pm.PackageManager
@@ -148,6 +149,12 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
         null
     }
 
+    // S3155: the GNSS registration below is guarded by isGranted() and wrapped in a SecurityException
+    // catch. Lint resolves neither - it cannot follow a custom permission helper, and it does not
+    // accept a catch placed around the call rather than on it - so it reports MissingPermission on a
+    // call that is already checked twice over. Suppressing records that guard; removing it would be
+    // the defect.
+    @SuppressLint("MissingPermission")
     override fun snapshots(): Flow<WearNetworkSnapshot> = callbackFlow {
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
@@ -294,6 +301,8 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
         )
     }
 
+    // S3155: same guard shape as snapshots() - isGranted() above, SecurityException caught below.
+    @SuppressLint("MissingPermission")
     private fun sampleGnss(now: Long): WearGnssDetails? {
         val hasPermission = isGranted(Manifest.permission.ACCESS_FINE_LOCATION) ||
             isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -422,6 +431,9 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
         return ssid?.takeIf { it.isNotBlank() && it != WifiManager.UNKNOWN_SSID.trim('"') }
     }
 
+    // S3155: NEARBY_WIFI_DEVICES is checked through isGranted() in the `scannable` expression and the
+    // function returns before touching scanResults when it is absent. Lint cannot follow the helper.
+    @SuppressLint("MissingPermission")
     @Suppress("DEPRECATION")
     private fun visibleWifiNetworks(): List<String>? {
         val scannable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&

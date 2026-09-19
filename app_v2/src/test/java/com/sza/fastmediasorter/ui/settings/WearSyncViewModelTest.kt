@@ -21,6 +21,8 @@ import com.sza.fastmediasorter.domain.usecase.SendWearBackgroundImageUseCase
 import com.sza.fastmediasorter.domain.usecase.StartWatchListeningUseCase
 import com.sza.fastmediasorter.domain.usecase.StopWatchListeningUseCase
 import com.sza.fastmediasorter.domain.usecase.SyncWithWatchUseCase
+import com.sza.fastmediasorter.domain.usecase.wear.RequestWatchScreenshotUseCase
+import com.sza.fastmediasorter.domain.usecase.wear.SendClipboardTextToWatchUseCase
 import com.sza.fastmediasorter.service.WatchListenSessionManager
 import com.sza.fastmediasorter.service.WearListenState
 import com.sza.fastmediasorter.service.WearSyncEvents
@@ -98,6 +100,8 @@ class WearSyncViewModelTest {
         val syncWithWatchUseCase = mockk<SyncWithWatchUseCase>(relaxed = true)
         val startWatchListeningUseCase = mockk<StartWatchListeningUseCase>(relaxed = true)
         val stopWatchListeningUseCase = mockk<StopWatchListeningUseCase>(relaxed = true)
+        val sendClipboardTextToWatchUseCase = mockk<SendClipboardTextToWatchUseCase>(relaxed = true)
+        val requestWatchScreenshotUseCase = mockk<RequestWatchScreenshotUseCase>(relaxed = true)
 
         outbound = WearOutboundUseCases(
             sendResources = sendResourcesToWatchUseCase,
@@ -106,7 +110,9 @@ class WearSyncViewModelTest {
             pushStreamPins = pushWearStreamPinsUseCase,
             syncEverything = syncWithWatchUseCase,
             startListening = startWatchListeningUseCase,
-            stopListening = stopWatchListeningUseCase
+            stopListening = stopWatchListeningUseCase,
+            sendClipboardText = sendClipboardTextToWatchUseCase,
+            requestWatchScreenshot = requestWatchScreenshotUseCase
         )
 
         importWatchSourcesUseCase = mockk(relaxed = true)

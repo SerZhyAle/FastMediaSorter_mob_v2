@@ -228,7 +228,16 @@ function Format-BuildQueueRefusalReport {
         [object]$BlockingState,
         [Parameter(Mandatory)][string]$Reason,
         [string]$HandoffPath,
-        [int]$BudgetSeconds = 0
+        [int]$BudgetSeconds = 0,
+        # S3300: the entry point that declares -BlockThrough, passed in rather than named here.
+        # This file is dot-sourced, so the script whose stdout the operator is reading is not
+        # knowable from inside it - and the hint was printed unconditionally. Measured 2026-09-18:
+        # post-change.ps1 spawns check-standard-fast.ps1 as a CHILD process and forwards its
+        # output, so a refusal raised under the facade advertised a flag the facade does not accept
+        # and the advice cost a wasted run (exit 2, unrecognized argument). Left empty the clause is
+        # omitted entirely, because a flag cannot be promised for an entry point nobody named; the
+        # FMS_LOCK_BLOCK=1 half is correct from any of them and is printed either way.
+        [string]$BlockThroughScript
     )
 
     if ($BudgetSeconds -le 0) { $BudgetSeconds = Get-BuildQueueBudgetSeconds }
@@ -248,6 +257,11 @@ function Format-BuildQueueRefusalReport {
     if ($HandoffPath) { $waitCmd += " -Handoff `"$HandoffPath`"" }
     $lines += "    $waitCmd"
     $lines += "  Keep doing lock-free work while it waits (reading, research, specs, catalog) - CLAUDE.md Rule 23."
-    $lines += "  Block through instead: -BlockThrough on this call, or FMS_LOCK_BLOCK=1 for a terminal session."
+    if ($BlockThroughScript) {
+        $lines += "  Block through instead: FMS_LOCK_BLOCK=1 before any entry point, or -BlockThrough when you invoke $BlockThroughScript itself - a facade that merely forwards this output does not accept the flag."
+    }
+    else {
+        $lines += "  Block through instead: FMS_LOCK_BLOCK=1 before the command."
+    }
     return $lines
 }

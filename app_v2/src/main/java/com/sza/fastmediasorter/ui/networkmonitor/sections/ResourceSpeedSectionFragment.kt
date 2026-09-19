@@ -109,7 +109,7 @@ class ResourceSpeedSectionFragment : Fragment() {
             .setPositiveButton(R.string.network_monitor_action_continue) { _, _ ->
                 viewModel.startSpeedTest(getNetworkLabel(), allowMetered = true)
             }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> viewModel.dismissMeteredWarning() }
+            .setNegativeButton(R.string.cancel) { _, _ -> viewModel.dismissMeteredWarning() }
             .setOnCancelListener { viewModel.dismissMeteredWarning() }
             .showBoundTo(this)
     }

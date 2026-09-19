@@ -225,6 +225,9 @@ class SettingsRepositoryImpl @Inject constructor(
         // S0050: Black Screen button visibility in player toolbar
         private val KEY_SHOW_BLACK_SCREEN_BUTTON = booleanPreferencesKey("show_black_screen_button")
 
+        // S3256: Dim screen clock and status overlay
+        private val KEY_DIM_CLOCK_OVERLAY_ENABLED = booleanPreferencesKey("dim_clock_overlay_enabled")
+
         // S0473: opt-in local usage statistics (default OFF for privacy).
         private val KEY_ENABLE_STATISTICS = booleanPreferencesKey("enable_statistics")
 
@@ -289,6 +292,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     // S3004: deduplicate probes in hot settings flow to prevent log flooding
     @Volatile private var lastEmittedS2571Language: String? = null
+
     @Volatile private var lastEmittedS2603VideoSizeMin: Long? = null
 
     override fun getSettings(): Flow<AppSettings> {
@@ -342,7 +346,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 }
                 val remoteSource = RemoteSourceSettingsStore.read(preferences)
                 val streams = StreamsSettingsStore.read(preferences)
-                val broadcast = BroadcastSettingsStore.read(preferences, context)
+                val broadcastStored = BroadcastSettingsStore.read(preferences, context)
                 val programs = ProgramsSettingsStore.read(preferences)
                 val stopwatch = StopwatchSettingsStore.read(preferences)
                 val launcher = LauncherSettingsStore.read(preferences)
@@ -436,14 +440,11 @@ class SettingsRepositoryImpl @Inject constructor(
                     streamsVisualizeAsMusic = streams.streamsVisualizeAsMusic,
                     streamsDefaultAudioLanguage = streams.streamsDefaultAudioLanguage,
                     streamsDefaultSubtitleLanguage = streams.streamsDefaultSubtitleLanguage,
-                    enableBroadcasting = broadcast.enableBroadcasting,
-                    broadcastStreamTitle = broadcast.streamTitle,
-                    broadcastBitRateBps = broadcast.bitRateBps,
-                    broadcastPort = broadcast.port,
-                    broadcastSampleRateHz = broadcast.sampleRateHz,
-                    broadcastChannelCount = broadcast.channelCount,
-                    broadcastAutoOpenShare = broadcast.autoOpenShare,
-                    broadcastSourceDeviceId = broadcast.sourceDeviceId,
+                    enableBroadcasting = broadcastStored.enableBroadcasting,
+                    // S3222: the whole group is restored at once. Before the fold this line carried the
+                    // eight session fields by hand and the six of S3038/S3049 were written to DataStore
+                    // but never read back, so a restored backup could not reach the capture services.
+                    broadcast = broadcastStored.broadcast,
                     translationSourceLanguage = textRec.translationSourceLanguage,
                     translationTargetLanguage = textRec.translationTargetLanguage,
                     translationLensStyle = textRec.translationLensStyle,
@@ -618,6 +619,9 @@ class SettingsRepositoryImpl @Inject constructor(
 
                     // S0050: absent key → false (opt-in feature, disabled by default)
                     showBlackScreenButton = preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] ?: false,
+
+                    // S3256: absent key → false (disabled by default)
+                    dimClockOverlayEnabled = preferences[KEY_DIM_CLOCK_OVERLAY_ENABLED] ?: false,
 
                     // Absent key → true: local-only usage statistics are enabled by default on a
                     // fresh install (nothing leaves the device; user can opt out in onboarding/Settings).
@@ -843,6 +847,8 @@ class SettingsRepositoryImpl @Inject constructor(
                 preferences[KEY_RESUME_ON_NEXT_LAUNCH] = settings.resumeOnNextLaunch
                 // S0050: Black Screen button (opt-in)
                 preferences[KEY_SHOW_BLACK_SCREEN_BUTTON] = settings.showBlackScreenButton
+                // S3256: Dim screen clock and status overlay (opt-in)
+                preferences[KEY_DIM_CLOCK_OVERLAY_ENABLED] = settings.dimClockOverlayEnabled
                 // S0473: local usage statistics (opt-in)
                 preferences[KEY_ENABLE_STATISTICS] = settings.enableStatistics
                 // S1045: secure sensitive screens (opt-out)
@@ -981,6 +987,10 @@ class SettingsRepositoryImpl @Inject constructor(
             Timber.e("Failed to decrypt password, returning empty string")
             ""
         }
+    }
+
+    override suspend fun updateDimClockOverlayEnabled(enabled: Boolean) {
+        updateSettings { it.copy(dimClockOverlayEnabled = enabled) }
     }
 
     override suspend fun isConsolidatedStorageActive(): Boolean {

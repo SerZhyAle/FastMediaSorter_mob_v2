@@ -108,12 +108,26 @@ function Get-SettingsHookGroups([string]$Path) {
 }
 
 function Get-HookNamesFromSettings([string]$Path) {
-    # Returns the set of <name>.ps1 referenced by any hook command in a settings file.
+    # Returns the set of <name>.ps1 a settings file actually RUNS as a hook.
+    #
+    # The script that runs is the argument of `-File`; every other `.ps1` on the command line is
+    # data, not a registration. S3299 registered a hook behind a shell `case` whose pre-filter
+    # pattern mentions `a.ps1`, and a scan of all `.ps1` tokens reported the launcher itself as an
+    # undocumented hook - a divergence that no edit to docs/AGENT_HOOKS.md could ever clear,
+    # because the name it demanded is not a hook. Falls back to the old whole-command scan when a
+    # command names no `-File`, so a differently shaped registration is still seen rather than
+    # silently dropped: this gate's whole purpose is that an unlisted hook cannot hide.
     $names = New-Object System.Collections.Generic.HashSet[string]
     foreach ($entry in (Get-SettingsHookGroups $Path)) {
         foreach ($hook in @($entry.Group.hooks)) {
             if (-not $hook.command) { continue }
-            foreach ($m in [regex]::Matches($hook.command, '([A-Za-z0-9._-]+)\.ps1')) {
+            # Not $matches: that is an automatic variable, and overwriting it here would clobber
+            # the capture groups of any -match the caller ran.
+            $fileRefs = [regex]::Matches($hook.command, '(?i)-File\s+"?[^"\s]*?([A-Za-z0-9._-]+)\.ps1')
+            if ($fileRefs.Count -eq 0) {
+                $fileRefs = [regex]::Matches($hook.command, '([A-Za-z0-9._-]+)\.ps1')
+            }
+            foreach ($m in $fileRefs) {
                 [void]$names.Add($m.Groups[1].Value)
             }
         }

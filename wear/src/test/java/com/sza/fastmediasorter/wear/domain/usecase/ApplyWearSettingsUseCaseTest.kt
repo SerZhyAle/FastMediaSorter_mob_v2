@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.UnitSystem
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
+import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
@@ -511,6 +512,8 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     var backgroundModeValue = WearBackgroundMode.BRANDED_ANIMATION
     var colorSchemeValue = WearColorScheme.DEFAULT
     var keepScreenAwakeValue = false
+    var dimClockOverlayEnabledValue = false
+    var dimClockSecondsVisibleValue = false
     var backgroundPlaybackValue = false
     var fileListViewModeValue = WearViewMode.LIST
     var videoScaleModeValue = VideoScaleMode.FIT
@@ -526,6 +529,7 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     var gameStateValue: String? = null
     var voiceNoteSendPolicyValue = VoiceNoteSendPolicy.AUTOMATIC
     var notificationPermissionAskedValue = false
+    var onboardingCompletedValue = false
     var settingTimestampsValue: Map<String, Long> = emptyMap()
     var lastSettingsSyncAtValue = 0L
     var browseContentTypesValue: Set<WearContentType> = emptySet()
@@ -551,6 +555,8 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val videoScaleMode: Flow<VideoScaleMode> = MutableStateFlow(videoScaleModeValue)
     override val imageScaleMode: Flow<VideoScaleMode> = MutableStateFlow(imageScaleModeValue)
     override val keepScreenAwakeOutsidePlayers: Flow<Boolean> = MutableStateFlow(keepScreenAwakeValue)
+    override val dimClockOverlayEnabled: Flow<Boolean> = MutableStateFlow(dimClockOverlayEnabledValue)
+    override val dimClockSecondsVisible: Flow<Boolean> = MutableStateFlow(dimClockSecondsVisibleValue)
     override val backgroundPlaybackEnabled: Flow<Boolean> = MutableStateFlow(backgroundPlaybackValue)
     override val lastUsedResources: Flow<List<LastUsedResource>> = MutableStateFlow(lastUsedResourcesValue)
     override val streamsSectionEnabled: Flow<Boolean> = MutableStateFlow(streamsSectionEnabledValue)
@@ -565,6 +571,7 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val voiceNoteSendPolicy: Flow<VoiceNoteSendPolicy> = MutableStateFlow(voiceNoteSendPolicyValue)
     override val notificationPermissionAsked: Flow<Boolean> =
         MutableStateFlow(notificationPermissionAskedValue)
+    override val onboardingCompleted: Flow<Boolean> = MutableStateFlow(onboardingCompletedValue)
 
     // Like the refine state below: part of the contract, never read by ApplyWearSettingsUseCase.
     override val isAnimationsDisabled: Flow<Boolean> = MutableStateFlow(animationsDisabledValue)
@@ -629,6 +636,10 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setNotificationPermissionAsked(asked: Boolean) {
         notificationPermissionAskedValue = asked
+    }
+
+    override suspend fun setOnboardingCompleted(completed: Boolean) {
+        onboardingCompletedValue = completed
     }
 
     override suspend fun setGameState(value: String?) {
@@ -707,6 +718,14 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
         keepScreenAwakeValue = enabled
     }
 
+    override suspend fun setDimClockOverlayEnabled(enabled: Boolean) {
+        dimClockOverlayEnabledValue = enabled
+    }
+
+    override suspend fun setDimClockSecondsVisible(visible: Boolean) {
+        dimClockSecondsVisibleValue = visible
+    }
+
     override suspend fun setBackgroundPlaybackEnabled(enabled: Boolean) {
         backgroundPlaybackValue = enabled
     }
@@ -728,6 +747,15 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun clearLastUsedResource() {
         lastUsedResourcesValue = emptyList()
+    }
+
+    // S3116: local behaviour, never part of the settings exchange this fake serves - it is held here
+    // only so the fake satisfies the repository contract.
+    var lastUsedAppValue: WearAppId? = null
+    override val lastUsedApp: Flow<WearAppId?> = MutableStateFlow(lastUsedAppValue)
+
+    override suspend fun setLastUsedApp(id: WearAppId) {
+        lastUsedAppValue = id
     }
 
     override suspend fun setStreamsSectionEnabled(enabled: Boolean) {

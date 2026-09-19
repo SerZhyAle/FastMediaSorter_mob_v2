@@ -53,5 +53,12 @@ object WearAppAccentCatalog {
         WearAppId.STOPWATCH -> R.color.color_program_accent_brown
         // S3007: emerald green, distinct from game green and other program accents.
         WearAppId.TOURIST -> R.color.color_program_accent_emerald
+        // S3109: slate, the thirteenth name. Deliberately not blue - the Motion Monitor holds it, and
+        // the whole list fits one watch screen, so a repeat is two visible rows looking alike.
+        WearAppId.CLIPBOARD -> R.color.color_program_accent_slate
+        // S3216: scarlet, the fourteenth name. The phone gives this program its plain red, but red is
+        // the Voice Recorder's here and a repeat is two visible rows looking alike - so the value
+        // diverges by necessity, like the stopwatch's brown above.
+        WearAppId.SOS -> R.color.color_program_accent_scarlet
     }
 }

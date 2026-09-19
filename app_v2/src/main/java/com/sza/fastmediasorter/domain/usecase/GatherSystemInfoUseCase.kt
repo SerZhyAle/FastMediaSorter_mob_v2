@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
@@ -11,9 +12,9 @@ import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
+import android.os.LocaleList
 import android.os.Process
 import android.os.StatFs
-import android.os.LocaleList
 import android.os.UserManager
 import android.provider.Settings
 import android.text.format.DateFormat
@@ -21,16 +22,16 @@ import android.util.DisplayMetrics
 import android.view.WindowManager
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.BuildConfig
-import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsContributor
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsSection
-import com.sza.fastmediasorter.core.systeminfo.SystemInfoBenchmark
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoAccessClassifier
+import com.sza.fastmediasorter.core.systeminfo.SystemInfoBenchmark
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoReport
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoSection
 import com.sza.fastmediasorter.core.systeminfo.renderSystemInfo
 import com.sza.fastmediasorter.core.systeminfo.toSystemInfoSections
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.net.Inet4Address
@@ -99,7 +100,9 @@ class GatherSystemInfoUseCase @Inject constructor(
         SystemInfoSection(
             label(R.string.sysinfo_section_os),
             listOf(
-                label(R.string.sysinfo_field_android_version) to safe { sanitize(Build.VERSION.RELEASE, Build.VERSION.SDK_INT.toString()) },
+                label(R.string.sysinfo_field_android_version) to safe {
+                    sanitize(Build.VERSION.RELEASE, Build.VERSION.SDK_INT.toString())
+                },
                 label(R.string.sysinfo_field_api_level) to safe { Build.VERSION.SDK_INT.toString() },
             ),
         ),
@@ -303,7 +306,9 @@ class GatherSystemInfoUseCase @Inject constructor(
             label(R.string.sysinfo_field_net_transport) to transport,
             label(R.string.sysinfo_field_net_metered) to yesNo(cm.isActiveNetworkMetered),
             label(R.string.sysinfo_field_net_vpn) to yesNo(vpn),
-            label(R.string.sysinfo_field_net_airplane) to safe { onOff(Settings.Global.getInt(context.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) == 1) },
+            label(R.string.sysinfo_field_net_airplane) to safe {
+                onOff(Settings.Global.getInt(context.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) == 1)
+            },
             label(R.string.sysinfo_field_net_ip) to safe { localIpAddresses() },
         )
     } ?: listOf(label(R.string.sysinfo_field_net_transport) to UNKNOWN)
@@ -343,6 +348,7 @@ class GatherSystemInfoUseCase @Inject constructor(
     private fun displayFields(): List<Pair<String, String>> = safeList {
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val metrics = DisplayMetrics()
+
         @Suppress("DEPRECATION")
         val display = wm.defaultDisplay
         @Suppress("DEPRECATION")
@@ -354,7 +360,9 @@ class GatherSystemInfoUseCase @Inject constructor(
             label(R.string.sysinfo_field_refresh_rate) to safe { String.format(Locale.US, "%.0f Hz", display.refreshRate) },
             label(R.string.sysinfo_field_hdr) to safe { hdrSupport(display) },
             label(R.string.sysinfo_field_wide_gamut) to safe { wideGamut(display) },
-            label(R.string.sysinfo_field_dark_mode) to safe { yesNo((config.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) },
+            label(R.string.sysinfo_field_dark_mode) to safe {
+                yesNo((config.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES)
+            },
             label(R.string.sysinfo_field_font_scale) to safe { config.fontScale.toString() },
             label(R.string.sysinfo_field_orientation) to safe { orientation(config.orientation) },
             label(R.string.sysinfo_field_smallest_width) to safe { "${config.smallestScreenWidthDp} dp" },
@@ -387,7 +395,12 @@ class GatherSystemInfoUseCase @Inject constructor(
 
     private fun yesNo(value: Boolean): String = if (value) "yes" else "no"
 
+    // S3155: getUserName throws SecurityException on API 31+ for an app holding none of the
+    // privileged user permissions. The only call site wraps it in safe { }, which classifies that
+    // denial and reports the field as unknown - the report loses one line, nothing crashes.
+    @SuppressLint("MissingPermission")
     private fun userName(): String {
+        Timber.d("S3155: userName system info gathered")
         val um = context.getSystemService(Context.USER_SERVICE) as UserManager
         return sanitize(um.userName)
     }

@@ -604,6 +604,13 @@ class LauncherCellViewBinder(
             binding.sectionActionsButton.setOnClickListener {
                 onSectionLongClick(binding.sectionActionsButton, item)
             }
+            binding.root.setOnLongClickListener {
+                onCellDragStart(binding.root, item)
+                true
+            }
+            // S3204: an accessibility action cannot aim a drop, so it opens the section menu instead,
+            // whose move rows carry the same whole-section reorder in edit mode.
+            nameSectionActionsForAccessibility(binding.root, item)
         }
         return binding.root
     }

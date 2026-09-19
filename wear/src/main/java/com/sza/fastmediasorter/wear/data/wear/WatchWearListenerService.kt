@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.wear
 
+import android.content.Intent
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -15,6 +16,7 @@ import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import com.sza.fastmediasorter.wear.MainActivity
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.data.wear.helpers.WearTransferOutcomeCoordinator
@@ -27,11 +29,14 @@ import com.sza.fastmediasorter.wear.domain.model.ImportResult
 import com.sza.fastmediasorter.wear.domain.model.ListenRefusal
 import com.sza.fastmediasorter.wear.domain.model.ListenSessionPayloadCodec
 import com.sza.fastmediasorter.wear.domain.model.PhoneCameraSessionState
+import com.sza.fastmediasorter.wear.domain.model.SosMode
+import com.sza.fastmediasorter.wear.domain.model.WearDestinationId
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveResult
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferMetadata
+import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiversPayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
@@ -40,9 +45,12 @@ import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
 import com.sza.fastmediasorter.wear.domain.model.asSessionFailure
+import com.sza.fastmediasorter.wear.domain.model.writeTo
 import com.sza.fastmediasorter.wear.domain.repository.PhoneCameraSessionHolder
 import com.sza.fastmediasorter.wear.domain.repository.WearCastRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
+import com.sza.fastmediasorter.wear.domain.sos.SosSyncBus
+import com.sza.fastmediasorter.wear.domain.usecase.CaptureAndSendWearScreenshotUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ImportNetworkSourcesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.StoreTransferredStreamUseCase
@@ -105,6 +113,10 @@ class WatchWearListenerService : WearableListenerService() {
 
     @Inject lateinit var listenSessionTerminator: ListenSessionTerminator
 
+    // S3216: the signal itself belongs to the SOS screen, so this service only relays the phone's two
+    // commands to it - the bus is the only thing a service and a composable can both reach.
+    @Inject lateinit var sosSyncBus: SosSyncBus
+
     @Inject lateinit var listenSessionStateHolder: ListenSessionStateHolder
 
     @Inject lateinit var listenPayloadCodec: ListenSessionPayloadCodec
@@ -126,6 +138,12 @@ class WatchWearListenerService : WearableListenerService() {
     // S2531: the cast replies land here rather than on a listener the repository registers, because the
     // phone pushes session state between requests and two receivers would race over the same two paths.
     @Inject lateinit var wearCastRepository: WearCastRepository
+
+    // S3109: the phone's text clipboard. Its own receiver rather than a branch body here, because the
+    // write, the toast and the answer all have to outlive this service's callback.
+    @Inject lateinit var wearClipboardTextReceiver: WearClipboardTextReceiver
+
+    @Inject lateinit var captureAndSendWearScreenshotUseCase: CaptureAndSendWearScreenshotUseCase
 
     // S2915: every handler below launches on the application-owned scope. The platform destroys this
     // service shortly after the callback returns, and the service-owned scope this used to cancel in
@@ -262,9 +280,54 @@ class WatchWearListenerService : WearableListenerService() {
             WearDataLayerPaths.CAMERA_VIEW_ACK -> handleCameraViewAck(event.data)
             WearDataLayerPaths.CAST_ACK -> wearCastRepository.onAckReceived(event.data)
             WearDataLayerPaths.CAST_STATE -> wearCastRepository.onStateReceived(event.data)
+            WearDataLayerPaths.CLIPBOARD_TEXT_FROM_PHONE ->
+                handleClipboardText(event.sourceNodeId, event.data)
+            WearDataLayerPaths.SCREENSHOT_REQUEST ->
+                handleScreenshotRequest(event.sourceNodeId, event.data)
+            else -> onSosMessageReceived(event)
+        }
+    }
+
+    /**
+     * S3216: the phone's two distress-signal commands.
+     *
+     * Split off rather than added to the dispatch above, which is already at detekt's complexity
+     * ceiling, and it is also where an unrecognised route now ends - the log line that used to sit on
+     * the `else` moved here with it.
+     *
+     * Neither command touches the siren directly. The signal belongs to the screen, so a start becomes
+     * a pending mode plus a launch and a stop becomes an event; [SosSyncBus] records why.
+     */
+    private fun onSosMessageReceived(event: MessageEvent) {
+        when (event.path) {
+            WearDataLayerPaths.SOS_START_FROM_PHONE -> {
+                val mode = SosMode.fromNameOrDefault(
+                    event.data.decodeToString().takeIf { it.isNotBlank() }
+                )
+                Timber.i("SOS: the phone asks this watch to signal in mode %s", mode)
+                sosSyncBus.requestStart(mode)
+                startActivity(sosLaunchIntent())
+            }
+
+            WearDataLayerPaths.SOS_STOP_FROM_PHONE -> {
+                Timber.i("SOS: the phone asks this watch to stop signalling")
+                sosSyncBus.requestStop()
+            }
+
             else -> Timber.d("WatchWearListenerService: unhandled message path ${event.path}")
         }
     }
+
+    /**
+     * The app opened at the SOS destination, in the shape `MainActivity` already reads back (S2511).
+     *
+     * A launch target rather than a route string: a route is an address inside the navigation graph and
+     * nothing outside the graph may name one, which is the whole reason `WearDestinationId` exists.
+     */
+    private fun sosLaunchIntent(): Intent =
+        Intent(this, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            .also { intent -> WearLaunchTarget.Destination(WearDestinationId.SOS).writeTo(intent) }
 
     /**
      * The phone announcing a file before it opens the channel. Parsed on the caller's thread because
@@ -340,25 +403,91 @@ class WatchWearListenerService : WearableListenerService() {
      * another build, and the codec's null is how this process is left exactly as it was found rather
      * than crashing a service the system restarts. An ack naming another request answers a command
      * the owner already walked away from, and its address is a port that has since closed.
+     *
+     * S3223: the id of the LIVE session is matched too, not only the one being awaited. That is the
+     * id the phone names when it announces the end of a session nobody here asked to end, and until
+     * it was matched the announcement was dropped and the session ended only on a refused socket.
      */
     private fun handleCameraViewAck(data: ByteArray) {
         val ack = cameraPayloadCodec.decodeAck(data)
         val awaited = phoneCameraSessionHolder.awaitingRequestId
+        val live = phoneCameraSessionHolder.liveRequestId
+        Timber.d("S3223: camera ack received, awaiting=$awaited live=$live")
         when {
             ack == null -> Timber.w("Dropped an undecodable camera ack")
 
-            ack.requestId != awaited ->
+            ack.requestId != awaited && ack.requestId != live ->
                 Timber.w("Dropped a camera ack for %s while awaiting %s", ack.requestId, awaited)
 
-            ack.refusal != null -> phoneCameraSessionHolder.markRefused(ack.refusal.asSessionFailure())
+            ack.refusal != null -> phoneCameraSessionHolder.markRefused(
+                ack.refusal.asSessionFailure(unrequested = ack.requestId != awaited)
+            )
 
             else -> phoneCameraSessionHolder.markLive(
                 PhoneCameraSessionState.Live(
+                    requestId = ack.requestId,
                     url = ack.url,
                     lenses = ack.lenses,
                     activeLensId = ack.activeLensId
                 )
             )
+        }
+    }
+
+    /**
+     * S3109: launched on the application scope, never on a service-owned one - the platform destroys
+     * this service shortly after the callback returns, and S2915 recorded that a service-owned scope
+     * took every job still in flight with it, so a slow handler died with no log line on either side.
+     */
+    private fun handleClipboardText(nodeId: String, data: ByteArray) {
+        applicationScope.launch {
+            wearClipboardTextReceiver.handle(nodeId, data)
+        }
+    }
+
+    /**
+     * S3110: the phone asking for a picture of this watch's screen.
+     *
+     * An unparseable request is answered too, under an empty request id: the phone has to be able to
+     * tell a refusal from a lost link, and it can tolerate an id that matches nothing it sent.
+     */
+    private fun handleScreenshotRequest(nodeId: String, data: ByteArray) {
+        applicationScope.launch {
+            val ack = when (val parsed = WearScreenshotRequestCodec.parse(data, gson)) {
+                is WearScreenshotRequestParseResult.Malformed -> WearScreenshotRequestAck(
+                    requestId = "",
+                    captured = false,
+                    reason = WearScreenshotRefusalReasons.MALFORMED
+                )
+
+                is WearScreenshotRequestParseResult.UnsupportedVersion -> {
+                    Timber.w("Screenshot request: unknown format version ${parsed.version}")
+                    WearScreenshotRequestAck(
+                        requestId = "",
+                        captured = false,
+                        reason = WearScreenshotRefusalReasons.UNSUPPORTED_VERSION
+                    )
+                }
+
+                is WearScreenshotRequestParseResult.Parsed ->
+                    captureAndSendWearScreenshotUseCase(parsed.payload.requestId)
+            }
+            sendScreenshotRequestAck(nodeId, ack)
+        }
+    }
+
+    private suspend fun sendScreenshotRequestAck(nodeId: String, ack: WearScreenshotRequestAck) {
+        if (nodeId.isBlank()) return
+        try {
+            Wearable.getMessageClient(this)
+                .sendMessage(
+                    nodeId,
+                    WearDataLayerPaths.SCREENSHOT_REQUEST_ACK,
+                    WearScreenshotRequestCodec.serializeAck(ack, gson)
+                )
+                .await()
+        } catch (e: Exception) {
+            e.errorUnlessCancellation("Failed to send screenshot request ack")
         }
     }
 

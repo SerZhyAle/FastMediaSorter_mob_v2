@@ -132,4 +132,21 @@ class CameraSessionPayloadCodecTest {
 
         assertEquals(CameraRefusal.NOT_SUPPORTED, decoded?.refusal)
     }
+
+    /**
+     * S3211: the standby refusal is the one constant whose remedy is the opposite of NOT_ASKED's, so a
+     * spelling drift here would put the wrong instruction on the watch rather than merely an unnamed
+     * reason - the wearer would be sent to the notification settings instead of arming the capture.
+     */
+    @Test
+    fun `the phone's spelling of the standby refusal decodes on the watch`() {
+        val fromPhone = """
+            {"requestId":"req-1","url":"","lenses":[],"activeLensId":null,"refusal":"NOT_ARMED"}
+        """.trimIndent()
+
+        val decoded = codec.decodeAck(fromPhone.toByteArray(Charsets.UTF_8))
+
+        assertEquals(CameraRefusal.NOT_ARMED, decoded?.refusal)
+        assertEquals(PhoneCameraFailure.NOT_ARMED, decoded?.refusal?.asSessionFailure())
+    }
 }

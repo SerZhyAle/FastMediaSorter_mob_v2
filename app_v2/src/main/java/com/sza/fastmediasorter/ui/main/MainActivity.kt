@@ -1121,8 +1121,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.resource_share_export_title)
                     .setMessage(R.string.resource_share_credentials_warning)
-                    .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.exportResourceForShare(resource) }
-                    .setNegativeButton(android.R.string.cancel, null)
+                    .setPositiveButton(R.string.ok) { _, _ -> viewModel.exportResourceForShare(resource) }
+                    .setNegativeButton(R.string.cancel, null)
                     .showBoundToHost(this@MainActivity)
             },
             onShareSftpAccessClick = { resource ->

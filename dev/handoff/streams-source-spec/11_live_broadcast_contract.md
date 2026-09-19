@@ -112,9 +112,14 @@ Rules:
 
 - "Send link" shares an Android `intent://` URI carrying the URL-encoded `FMSBCAST1:` descriptor. Its
   `fmsbcast://import?payload=` target opens FastMediaSorter import; Chrome's browser fallback opens
-  `broadcast-import.html`, which retries the app link and offers installation when the app is absent. The
-  plain stream URL of section 2 also works on its
+  `broadcast-import.html`, which offers both installation and an explicit app-open tap when the app is
+  absent. The plain stream URL of section 2 also works on its
   own in any player.
+- The link's `package=` hint names the **sending** build's own application id, so a link shared from a debug
+  or `noLegal` build opens that same build. A third-party producer targeting the store app writes
+  `package=com.sza.fastmediasorter`.
+- The fallback page never auto-navigates to `fmsbcast://`: with no handler an unresolvable custom scheme
+  replaces the page and leaves the receiver with a browser error and no install route.
 - A plain URL carries no description: no title, no `sourceId`, no kind. A consumer that has only the URL
   applies section 5 when the user marks the stream as live, or when it can tell the stream is one of ours.
 - Next: a clickable link form that opens the importer directly. Its scheme is not decided.
@@ -168,6 +173,25 @@ live FastMediaSorter broadcast that duty is met by reconnecting, not by a deep b
 - The owner also found the phone's audio quiet. That is a producer matter, tracked in this repository as
   S3049 (microphone level control); a consumer must not apply its own gain to compensate.
 
+### 5.5 Watch audio, measured 2026-09-17
+
+Galaxy Watch 7, `noLegal` debug build (the broadcast is withheld from the store build), one plain TCP listener
+on a PC on the same Wi-Fi:
+
+- 43.08 ADTS frames per second over 40 s, the exact AAC-LC rate at 44 100 Hz; no frame lost.
+- Bytes arrive about every 47 ms (p50), two frames at a time; the longest gap was 77 ms. Nothing clusters
+  near 200 ms, so small frames are not being held for delayed acknowledgements.
+- The latest frame arrived 117 ms behind the earliest one against the audio clock (p99 92 ms). A 200 ms
+  consumer buffer covers the watch's whole spread.
+- The stream keeps flowing with the watch screen off while the app stays in front. After the app leaves the
+  foreground the broadcast stops serving within a minute - a producer defect, S3197.
+- Battery with one listener and the screen on: about 98 mAh/h, a third of the charge an hour; the display is
+  most of it. The screen-off figure is pending S3197.
+
+Using the broadcast as a PC microphone needs no producer or consumer change: StreamsPlayer plays into the
+Windows default device, the Windows volume mixer assigns StreamsPlayer the `CABLE Input` device of a
+virtual audio cable (VB-CABLE), and the program that wants a microphone selects `CABLE Output` (S1699).
+
 ---
 
 ## 6. Verification handshake
@@ -194,5 +218,6 @@ live FastMediaSorter broadcast that duty is met by reconnecting, not by a deep b
 - S3055 - tests that hold the phone wire format of 2.1 and 4.
 - S3056 - the watch descriptor mirror cannot drift from the phone schema (3.1, 4.1).
 - S3057 - relay or P2P through a data-exchange server (1, 3.2).
+- S1699 - the watch broadcast as a PC microphone; watch arrival and battery measurements (5.5).
 
 For the consumer side, `CONSUMER_PROMPT_live_broadcast.md` in this directory is the prompt to hand over.

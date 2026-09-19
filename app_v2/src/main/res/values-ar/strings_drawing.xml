@@ -15,12 +15,12 @@
     <string name="draw_overlay_toolbar_eraser">ممحاة</string>
     <string name="draw_overlay_toolbar_rect">المستطيل</string>
     <string name="draw_save_failed_toast">فشل الحفظ</string>
-    <string name="draw_save_ok_toast">أنقذ</string>
+    <string name="draw_save_ok_toast">تم الحفظ</string>
     <string name="draw_save_remote_failed">تعذر الوصول إلى المجلد. بقي الرسم على هذا الجهاز - حاول الحفظ مرة أخرى.</string>
     <string name="draw_settings_brush_size">حجم الفرشاة</string>
-    <string name="draw_settings_opacity">الشفافية</string>
+    <string name="draw_settings_opacity">التعتيم</string>
     <string name="draw_settings_text_large">كبير</string>
-    <string name="draw_settings_text_medium">واسطة</string>
+    <string name="draw_settings_text_medium">متوسط</string>
     <string name="draw_settings_text_size">حجم النص</string>
     <string name="draw_settings_text_small">صغير</string>
     <string name="draw_settings_title">إعدادات الرسم</string>

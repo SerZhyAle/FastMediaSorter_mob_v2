@@ -13,7 +13,13 @@
     Prints planned changes without writing files.
 
 .EXAMPLE
-    pwsh -File scripts/utils/batch-set-android-string.ps1 -JsonPath temp/updates.json
+    pwsh -NoProfile -File scripts/utils/batch-set-android-string.ps1 -JsonPath temp/updates.json
+
+.OUTPUTS
+    Exit codes:
+      0 - every entry was written, or was skipped as invalid.
+      1 - unusable input (missing or unparseable JSON), or at least one entry failed to write. The
+          batch always runs to the end first, so the summary names how many of each there were.
 #>
 [CmdletBinding()]
 param(
@@ -62,22 +68,43 @@ $stats = @{
 
 Write-Host "Starting batch update of $($stats.Total) strings..." -ForegroundColor Cyan
 
+# S3305: every optional field is read through PSObject.Properties, never as $update.Name. Under
+# Set-StrictMode -Version Latest a missing property on a PSCustomObject THROWS rather than yielding
+# $null, so the documented minimal entry - Key, Locale, Value and nothing else - made this script
+# fail on its own first line of work. Measured on a 199-entry batch: 199 failed, 0 written, each one
+# reported as "The property 'Module' cannot be found on this object".
+function Get-UpdateField {
+    param([Parameter(Mandatory = $true)]$Update, [Parameter(Mandatory = $true)][string]$Name)
+
+    if ($Update.PSObject.Properties[$Name]) { return $Update.PSObject.Properties[$Name].Value }
+    return $null
+}
+
 foreach ($update in $updates) {
-    if (-not $update.Key -or -not $update.Locale) {
+    $key = Get-UpdateField -Update $update -Name 'Key'
+    $locale = Get-UpdateField -Update $update -Name 'Locale'
+    if (-not $key -or -not $locale) {
         Write-Host "[skip] Invalid entry: missing Key or Locale" -ForegroundColor Yellow
         $stats.Skipped++
         continue
     }
 
-    $module = if ($update.Module) { $update.Module } else { "app_v2" }
-    $value = if ($null -ne $update.Value) { $update.Value } else { "" }
-    
+    $module = Get-UpdateField -Update $update -Name 'Module'
+    if (-not $module) { $module = "app_v2" }
+    $value = Get-UpdateField -Update $update -Name 'Value'
+    if ($null -eq $value) { $value = "" }
+
     $params = @{
         Module = $module
-        Locale = $update.Locale
-        Key    = $update.Key
+        Locale = $locale
+        Key    = $key
         Value  = $value
     }
+
+    # The worker defaults to strings.xml, so a key living in a thematic split file is reported as
+    # missing unless the entry names its file.
+    $file = Get-UpdateField -Update $update -Name 'File'
+    if ($file) { $params["File"] = $file }
 
     if ($update.PSObject.Properties['ExpectedOldValue']) {
         $params["ExpectedOldValue"] = $update.ExpectedOldValue
@@ -92,16 +119,16 @@ foreach ($update in $updates) {
     }
 
     try {
-        & pwsh -File $workerScript @params
+        & pwsh -NoProfile -File $workerScript @params
         if ($LASTEXITCODE -eq 0) {
             $stats.Success++
         } else {
-            Write-Host "[error] Failed to update $($update.Key) ($($update.Locale))" -ForegroundColor Red
+            Write-Host "[error] Failed to update $key ($locale)" -ForegroundColor Red
             $stats.Failed++
         }
     }
     catch {
-        Write-Host "[error] Exception updating $($update.Key): $_" -ForegroundColor Red
+        Write-Host "[error] Exception updating $key ($locale): $_" -ForegroundColor Red
         $stats.Failed++
     }
 }

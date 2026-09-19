@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.RawSettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -38,6 +39,7 @@ class ApplyBackupPayloadUseCaseTest {
     private val packageManager = mockk<PackageManager>(relaxed = true)
     private val db = mockk<AppDatabase>()
     private val settingsRepository = mockk<SettingsRepository>()
+    private val rawSettingsRepository = mockk<RawSettingsRepository>(relaxed = true)
     private val resourceRepository = mockk<ResourceRepository>(relaxed = true)
     private val favoritesDao = mockk<FavoritesDao>(relaxed = true)
     private val scheduledRepo = mockk<ScheduledOperationRepository>(relaxed = true)
@@ -67,6 +69,7 @@ class ApplyBackupPayloadUseCaseTest {
             context = context,
             db = db,
             settingsRepository = settingsRepository,
+            rawSettingsRepository = rawSettingsRepository,
             resourceRepository = resourceRepository,
             scheduledOperationRepository = scheduledRepo,
             credentialsRepository = credentialsRepository,
@@ -106,7 +109,9 @@ class ApplyBackupPayloadUseCaseTest {
         )
 
         every { packageManager.getPackageInfoCompat("com.installed.app", 0) } returns PackageInfo()
-        every { packageManager.getPackageInfoCompat("com.missing.app", 0) } throws PackageManager.NameNotFoundException()
+        every {
+            packageManager.getPackageInfoCompat("com.missing.app", 0)
+        } throws PackageManager.NameNotFoundException()
 
         val payload = BackupPayload(
             version = BackupPayload.CURRENT_VERSION,

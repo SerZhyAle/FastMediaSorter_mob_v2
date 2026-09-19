@@ -130,7 +130,7 @@ class DeviceProfilePickerDialogFragment : DialogFragment() {
                     )
                 )
                 .setPositiveButton(R.string.profile_picker_select) { _, _ -> confirmSelection(type) }
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .showBoundTo(this@DeviceProfilePickerDialogFragment)
         }
     }

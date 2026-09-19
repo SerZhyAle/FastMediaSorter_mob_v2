@@ -44,6 +44,12 @@ object SupportIntentFactory {
         "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/wear/index-ru.html"
     private const val WEAR_PORTAL_UK =
         "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/wear/index-uk.html"
+    private const val BROADCAST_GUIDE_EN =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/watch-broadcast.html"
+    private const val BROADCAST_GUIDE_RU =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/watch-broadcast-ru.html"
+    private const val BROADCAST_GUIDE_UK =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/watch-broadcast-uk.html"
     private const val LAUNCHER_PORTAL_EN =
         "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/launcher/"
     private const val LAUNCHER_PORTAL_RU =
@@ -93,6 +99,13 @@ object SupportIntentFactory {
         "ru" -> WEAR_PORTAL_RU
         "uk" -> WEAR_PORTAL_UK
         else -> WEAR_PORTAL_EN
+    }
+
+    /** S3175: locale-aware URL for the "how to watch this broadcast" guide handed to the viewer. */
+    fun broadcastGuideUrl(context: Context): String = when (LocaleHelper.getLanguage(context)) {
+        "ru" -> BROADCAST_GUIDE_RU
+        "uk" -> BROADCAST_GUIDE_UK
+        else -> BROADCAST_GUIDE_EN
     }
 
     /** S2002: locale-aware URL for the Launcher Web Portal. */

@@ -12,7 +12,33 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
 $facadePath = Join-Path $repoRoot 'scripts/post-change.ps1'
 $hintsPath = Join-Path $repoRoot 'scripts/quality/gate-recovery-hints.psd1'
-$facade = Get-Content -LiteralPath $facadePath -Raw
+
+# S3150: the closure is one surface spread over three files - the facade plus the two libraries it
+# dot-sources, extracted when the facade passed the 2000-line ceiling of CLAUDE.md Rule 2. Every
+# assertion below is about that surface, so a block moving between the files must not change a
+# verdict here; only the two assertions immediately after this one are about the facade FILE, where
+# the gate dispatch has to stay, because scripts/quality/assert-gate-placement.ps1 reads it there.
+$closureLibraryPaths = @(
+    (Join-Path $repoRoot 'scripts/quality/lib/post-change-step-runners.ps1'),
+    (Join-Path $repoRoot 'scripts/quality/lib/post-change-changed-set.ps1')
+)
+foreach ($libraryPath in $closureLibraryPaths) {
+    if (-not (Test-Path -LiteralPath $libraryPath)) {
+        throw "Closure library '$libraryPath' is absent; the facade cannot parse without it."
+    }
+}
+$facadeFile = Get-Content -LiteralPath $facadePath -Raw
+foreach ($libraryPath in $closureLibraryPaths) {
+    $libraryName = Split-Path -Leaf $libraryPath
+    if ($facadeFile -notmatch [regex]::Escape($libraryName)) {
+        throw "The facade does not dot-source '$libraryName', so the library is orphaned."
+    }
+}
+$facadeFileLines = (Get-Content -LiteralPath $facadePath).Count
+if ($facadeFileLines -gt 2000) {
+    throw "The facade measures $facadeFileLines lines, above the 2000-line ceiling of CLAUDE.md Rule 2."
+}
+$facade = (@($facadeFile) + @($closureLibraryPaths | ForEach-Object { Get-Content -LiteralPath $_ -Raw })) -join [Environment]::NewLine
 
 foreach ($removedLabel in @(
     'flavor-flag-gate',
@@ -160,15 +186,28 @@ if ($facade -notmatch "gradle-modules\.ps1") {
 
 # Behaviour of the variant selector, run from the facade's own function text so a rename or a logic
 # change fails here rather than silently selecting the wrong variant.
-$facadeAst = [System.Management.Automation.Language.Parser]::ParseFile($facadePath, [ref]$null, [ref]$null)
-$selectorAst = $facadeAst.FindAll(
-    {
-        param($node)
-        $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
-        $node.Name -eq 'Get-ResourceLinkFlavors'
-    }, $true) | Select-Object -First 1
+# S3150: parsed across the facade and its libraries for the same reason the text above is joined -
+# a function lives wherever the extraction put it, and the behaviour asserted below is unchanged by
+# that. A name defined in none of the three is still a failure.
+$closureAsts = @(@($facadePath) + $closureLibraryPaths | ForEach-Object {
+        [System.Management.Automation.Language.Parser]::ParseFile($_, [ref]$null, [ref]$null)
+    })
+function Get-ClosureFunctionAst {
+    param([string] $Name)
+    foreach ($closureAst in $closureAsts) {
+        $found = $closureAst.FindAll(
+            {
+                param($node)
+                $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+                $node.Name -eq $Name
+            }, $true) | Select-Object -First 1
+        if ($found) { return $found }
+    }
+    return $null
+}
+$selectorAst = Get-ClosureFunctionAst 'Get-ResourceLinkFlavors'
 if (-not $selectorAst) {
-    throw 'Get-ResourceLinkFlavors is not defined in the facade.'
+    throw 'Get-ResourceLinkFlavors is not defined in the facade or its libraries.'
 }
 
 # S2121: the harness loads the real registry instead of stubbing a flavor list. The stub it replaced
@@ -245,13 +284,8 @@ Assert-FlavorSelection -Case 'foreign flavor path does not leak in' -TargetModul
 $roomRegistryPath = Join-Path $repoRoot 'scripts/quality/lib/room-databases.ps1'
 function Get-FacadeFunctionText {
     param([string] $Name)
-    $ast = $facadeAst.FindAll(
-        {
-            param($node)
-            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
-            $node.Name -eq $Name
-        }, $true) | Select-Object -First 1
-    if (-not $ast) { throw "$Name is not defined in the facade." }
+    $ast = Get-ClosureFunctionAst $Name
+    if (-not $ast) { throw "$Name is not defined in the facade or its libraries." }
     return $ast.Extent.Text
 }
 
@@ -554,5 +588,85 @@ if ($loud.Console -notmatch '\[gate-a\] PASS' -or $loud.Console -notmatch '\[gat
     throw '-ShowPasses did not restore the per-gate PASS lines.'
 }
 Remove-Item -LiteralPath $quietDir -Recurse -Force -ErrorAction SilentlyContinue
+
+# --- S3301: the closure ledger -----------------------------------------------------------------
+# The facade may now report a verdict it did not earn, so what has to be proved is the opposite of
+# the usual gate test: not that reuse happens, but that it refuses to happen on any difference.
+$ledgerPath = Join-Path $repoRoot 'scripts/quality/lib/post-change-closure-ledger.ps1'
+if (-not (Test-Path -LiteralPath $ledgerPath)) { throw "The closure ledger '$ledgerPath' is absent." }
+if ($facadeFile -notmatch 'post-change-closure-ledger\.ps1') {
+    throw 'The facade does not dot-source the closure ledger, so the library is orphaned.'
+}
+
+$runnersSource = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/quality/lib/post-change-step-runners.ps1') -Raw
+foreach ($wrapper in @('Invoke-Gate', 'Invoke-AdvisoryStep', 'Invoke-FixedInputGate')) {
+    if ($runnersSource -notmatch "(?s)function $wrapper\([^)]*\)\s*\{[^}]*ClosureReuseActive") {
+        throw "$wrapper does not short-circuit on an active reuse, so the batch still runs."
+    }
+}
+$poolSource = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/quality/lib/gate-pool.ps1') -Raw
+if ($poolSource -notmatch '(?s)function Start-PooledGate\s*\{[^}]*ClosureReuseActive') {
+    throw 'Start-PooledGate does not honour an active reuse, so pooled gates still run in threads.'
+}
+# Condition 2: a run that ended with an advisory finding must leave no record behind.
+if ($facadeFile -notmatch '(?s)Send-PostChangeChatVerdict -Verdict "PASS, \$elapsedMs ms".*?Add-ClosureLedgerRecord') {
+    throw 'The ledger record is not written from the clean-PASS branch alone.'
+}
+
+$ledgerDir = Join-Path $repoRoot 'temp/S3301/ledger-tests'
+Remove-Item -LiteralPath $ledgerDir -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path $ledgerDir | Out-Null
+. $ledgerPath
+$ledgerJournal = Join-Path $ledgerDir 'closures.jsonl'
+function Get-ClosureLedgerPath { return $ledgerJournal }
+
+$fileA = Join-Path $ledgerDir 'a.txt'
+$fileB = Join-Path $ledgerDir 'b.txt'
+Set-Content -LiteralPath $fileA -Value 'alpha' -Encoding utf8 -NoNewline
+Set-Content -LiteralPath $fileB -Value 'beta' -Encoding utf8 -NoNewline
+
+$env:FMS_POSTCHANGE_NO_REUSE = $null
+$pairPrint = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt', 'b.txt') -ChangeType 'Doc' -Module 'app_v2' -Scoped $true
+if ($pairPrint.files.Count -ne 2) { throw 'The fingerprint did not stamp both files of the set.' }
+Add-ClosureLedgerRecord -Target 'S9901' -Fingerprint $pairPrint -RunId 'testrun00001' -ElapsedMs 1234 -Protocol 'none'
+
+$sameSet = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt', 'b.txt') -ChangeType 'Doc' -Module 'app_v2' -Scoped $true
+if (-not (Find-ReusableClosure -Target 'S9901' -Fingerprint $sameSet)) {
+    throw 'An unchanged set under the same ticket did not match its own record.'
+}
+$subset = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt') -ChangeType 'Doc' -Module 'app_v2' -Scoped $true
+if (-not (Find-ReusableClosure -Target 'S9901' -Fingerprint $subset)) {
+    throw 'A subset of an already-judged set did not match; condition 5 rejects what it should accept.'
+}
+if (Find-ReusableClosure -Target 'S9902' -Fingerprint $sameSet) {
+    throw 'A record written under one ticket was reused under another.'
+}
+$otherType = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt', 'b.txt') -ChangeType 'Mixed' -Module 'app_v2' -Scoped $true
+if (Find-ReusableClosure -Target 'S9901' -Fingerprint $otherType) { throw 'A different ChangeType was reused.' }
+$unscoped = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt', 'b.txt') -ChangeType 'Doc' -Module 'app_v2' -Scoped $false
+if (Find-ReusableClosure -Target 'S9901' -Fingerprint $unscoped) { throw 'A different -ScopeToFile mode was reused.' }
+
+Set-Content -LiteralPath $fileB -Value 'beta!' -Encoding utf8 -NoNewline
+$changedSet = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt', 'b.txt') -ChangeType 'Doc' -Module 'app_v2' -Scoped $true
+if (Find-ReusableClosure -Target 'S9901' -Fingerprint $changedSet) {
+    throw 'One changed byte in the set still matched the record.'
+}
+$widerSet = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt', 'closures.jsonl') -ChangeType 'Doc' -Module 'app_v2' -Scoped $true
+if (Find-ReusableClosure -Target 'S9901' -Fingerprint $widerSet) {
+    throw 'A set carrying a file the record never saw was reused.'
+}
+
+$env:FMS_POSTCHANGE_NO_REUSE = '1'
+if (Find-ReusableClosure -Target 'S9901' -Fingerprint $subset) { throw 'FMS_POSTCHANGE_NO_REUSE did not suppress the lookup.' }
+Add-ClosureLedgerRecord -Target 'S9903' -Fingerprint $subset -RunId 'testrun00002' -ElapsedMs 1 -Protocol 'none'
+$env:FMS_POSTCHANGE_NO_REUSE = $null
+if (Find-ReusableClosure -Target 'S9903' -Fingerprint $subset) { throw 'A record was written while reuse was disabled.' }
+
+$env:FMS_POSTCHANGE_REUSE_WINDOW_MIN = '0'
+if ((Get-ClosureLedgerWindowMinutes) -ne $script:ClosureLedgerDefaultWindowMinutes) {
+    throw 'A non-positive window override was accepted instead of falling back to the default.'
+}
+$env:FMS_POSTCHANGE_REUSE_WINDOW_MIN = $null
+Remove-Item -LiteralPath $ledgerDir -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Output "post-change tests: PASS ($($labels.Count) routed labels with hints)"

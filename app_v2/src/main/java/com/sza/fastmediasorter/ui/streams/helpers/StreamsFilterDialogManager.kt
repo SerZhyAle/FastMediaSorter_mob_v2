@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.databinding.DialogStreamsFilterBinding
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel
-import timber.log.Timber
 
 /**
  * Hosts the streams filter dialog so [com.sza.fastmediasorter.ui.streams.StreamsActivity] stays free of
@@ -41,7 +40,6 @@ class StreamsFilterDialogManager(
         ) -> Unit,
     ) {
         val binding = DialogStreamsFilterBinding.inflate(activity.layoutInflater)
-        Timber.d("S3061: filter dialog opened with four narrow-padded media category segments")
         var category = state.filter.category
         var topic = state.filter.topic
         var language = state.filter.language
@@ -156,7 +154,7 @@ class StreamsFilterDialogManager(
             .setTitle(R.string.streams_filter)
             .setView(binding.root)
             .setNeutralButton(R.string.streams_filter_clear, null)
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.ok, null)
             .create()
         // Override the neutral click after show() so "Clear filters" resets in place without dismissing.
         dialog.setOnShowListener {

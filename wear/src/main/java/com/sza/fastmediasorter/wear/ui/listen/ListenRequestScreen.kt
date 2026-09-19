@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,15 +32,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.domain.listen.ListenSessionState
+import com.sza.fastmediasorter.wear.ui.common.StandardWearChip
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -57,7 +56,7 @@ private val TEXT_HORIZONTAL_PADDING = 8.dp
  * S2550 Pillar F / S2941: the window that makes the feature legal, now auto-starting the microphone.
  *
  * S2941 replaces the confirm/decline tap with an automatic start: the window opens via
- * `setFullScreenIntent` and calls `confirm()` from `LaunchedEffect` while in the `Idle` state, so the
+ * `setFullScreenIntent` and calls `confirm()` from `LaunchedEffect` while still `Requesting`, so the
  * microphone starts from a foreground context without user interaction. While the session runs the
  * screen says so in words and in a glyph, with the state also on the accessibility tree - §3.2 requires
  * an active-transmission indicator distinguishable by more than colour, and there is no action here
@@ -70,11 +69,12 @@ fun ListenRequestScreen(
     onDimScreen: () -> Unit,
     viewModel: ListenRequestViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
 
     LaunchedEffect(Unit) {
-        if (state is ListenSessionState.Idle) {
+        Timber.d("S3259: listen request screen shown - actions are StandardWearChip")
+        if (state is ListenRequestUiState.Requesting) {
             viewModel.confirm()
         }
     }
@@ -112,8 +112,8 @@ fun ListenRequestScreen(
  * added on top, never a replacement - a watch with a colour filter still reads the first three.
  */
 @Composable
-private fun ListenStatus(state: ListenSessionState) {
-    val live = state is ListenSessionState.Live
+private fun ListenStatus(state: ListenRequestUiState) {
+    val live = state is ListenRequestUiState.Live
     // Resolved outside the semantics lambda, which is not a composable scope and cannot read a
     // resource; the description is only applied while the microphone is actually open.
     val microphoneOn = stringResource(R.string.wear_listen_active_description)
@@ -150,12 +150,13 @@ private fun ListenStatus(state: ListenSessionState) {
  * A live session offers two actions: "dim screen" (finish the activity, session continues in the
  * notification) and "stop listening" (end the session on both sides). There is no dismiss and no
  * setting that hides the indicator above: Pillar F makes covert listening structurally impossible
- * rather than merely discouraged. A failed start offers a close action; `Idle` is transient
- * (auto-start fires in `LaunchedEffect`), and `Starting` shows no action while the microphone opens.
+ * rather than merely discouraged. A failed start and a finished session both offer a close action;
+ * `Requesting` is transient (auto-start fires in `LaunchedEffect`), and `Starting` shows no action
+ * while the microphone opens.
  */
 @Composable
 private fun ListenActions(
-    state: ListenSessionState,
+    state: ListenRequestUiState,
     onDimScreen: () -> Unit,
     onStop: () -> Unit,
     onFinished: () -> Unit
@@ -166,71 +167,59 @@ private fun ListenActions(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         when (state) {
-            is ListenSessionState.Live -> {
-                ActionChip(
-                    labelRes = R.string.wear_listen_dim_screen,
-                    icon = Icons.Default.BrightnessLow,
-                    primary = false,
-                    onClick = onDimScreen
+            is ListenRequestUiState.Live -> {
+                StandardWearChip(
+                    label = stringResource(R.string.wear_listen_dim_screen),
+                    onClick = onDimScreen,
+                    icon = { ActionIcon(Icons.Default.BrightnessLow) },
+                    primary = false
                 )
-                ActionChip(
-                    labelRes = R.string.wear_listen_stop,
-                    icon = Icons.Default.Stop,
-                    primary = true,
-                    onClick = onStop
+                StandardWearChip(
+                    label = stringResource(R.string.wear_listen_stop),
+                    onClick = onStop,
+                    icon = { ActionIcon(Icons.Default.Stop) }
                 )
             }
-            is ListenSessionState.Starting -> Unit
-            is ListenSessionState.Idle -> Unit
-            is ListenSessionState.Failed -> ActionChip(
-                labelRes = R.string.wear_listen_request_decline,
-                icon = Icons.Default.Close,
-                primary = false,
-                onClick = onFinished
+            is ListenRequestUiState.Starting -> Unit
+            is ListenRequestUiState.Requesting -> Unit
+            is ListenRequestUiState.Failed,
+            is ListenRequestUiState.Ended -> StandardWearChip(
+                label = stringResource(R.string.wear_listen_request_decline),
+                onClick = onFinished,
+                icon = { ActionIcon(Icons.Default.Close) },
+                primary = false
             )
         }
     }
 }
 
+/** The chip's own label names the action; the glyph repeats it for the eye only. */
 @Composable
-private fun ActionChip(
-    @StringRes labelRes: Int,
-    icon: ImageVector,
-    primary: Boolean,
-    onClick: () -> Unit
-) {
-    Chip(
-        onClick = onClick,
-        label = { Text(text = stringResource(labelRes)) },
-        icon = {
-            Icon(
-                imageVector = icon,
-                // The chip's own label names the action; the glyph repeats it for the eye only.
-                contentDescription = null,
-                modifier = Modifier.size(ACTION_ICON_SIZE)
-            )
-        },
-        // Fills the intrinsic-width column above, so every chip ends up the width of the widest.
-        modifier = Modifier.fillMaxWidth(),
-        colors = if (primary) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
+private fun ActionIcon(imageVector: ImageVector) {
+    Icon(
+        imageVector = imageVector,
+        contentDescription = null,
+        modifier = Modifier.size(ACTION_ICON_SIZE)
     )
 }
 
 @StringRes
-private fun statusLabelOf(state: ListenSessionState): Int = when (state) {
-    is ListenSessionState.Idle -> R.string.wear_listen_request_caption
-    is ListenSessionState.Starting -> R.string.wear_listen_starting
-    is ListenSessionState.Live -> R.string.wear_listen_active_label
-    is ListenSessionState.Failed -> R.string.wear_listen_failed
+private fun statusLabelOf(state: ListenRequestUiState): Int = when (state) {
+    is ListenRequestUiState.Requesting -> R.string.wear_listen_request_caption
+    is ListenRequestUiState.Starting -> R.string.wear_listen_starting
+    is ListenRequestUiState.Live -> R.string.wear_listen_active_label
+    is ListenRequestUiState.Failed -> R.string.wear_listen_failed
+    is ListenRequestUiState.Ended -> R.string.wear_listen_ended
 }
 
 /**
  * The live glyph differs in SHAPE from every other state's, not only in tint: §3.2 requires the
  * indicator to be readable with colour removed, which a same-glyph-different-colour pair is not.
  */
-private fun statusIconOf(state: ListenSessionState): ImageVector = when (state) {
-    is ListenSessionState.Idle -> Icons.Default.Mic
-    is ListenSessionState.Starting -> Icons.Default.HourglassEmpty
-    is ListenSessionState.Live -> Icons.Default.FiberManualRecord
-    is ListenSessionState.Failed -> Icons.Default.ErrorOutline
+private fun statusIconOf(state: ListenRequestUiState): ImageVector = when (state) {
+    is ListenRequestUiState.Requesting -> Icons.Default.Mic
+    is ListenRequestUiState.Starting -> Icons.Default.HourglassEmpty
+    is ListenRequestUiState.Live -> Icons.Default.FiberManualRecord
+    is ListenRequestUiState.Failed -> Icons.Default.ErrorOutline
+    is ListenRequestUiState.Ended -> Icons.Default.NotificationsOff
 }

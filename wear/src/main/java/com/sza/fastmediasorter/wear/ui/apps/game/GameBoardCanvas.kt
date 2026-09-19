@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -20,6 +21,7 @@ import com.sza.fastmediasorter.wear.domain.game.GameLevelState
 import com.sza.fastmediasorter.wear.domain.game.GamePosition
 import com.sza.fastmediasorter.wear.domain.game.GameStatus
 import com.sza.fastmediasorter.wear.ui.theme.LocalWearAppColors
+import timber.log.Timber
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -38,7 +40,10 @@ private const val SHADOW_ALPHA = 0.55f
 /** Half of something - a gap split over two neighbours, a centre offset inside a cell. */
 private const val HALF = 0.5f
 
-/** The exit is a portal: a filled disc with a ring around it, so it never reads as a wall square. */
+/**
+ * The exit is a portal: a filled diamond inside a diamond ring. The rhombus, not a disc, is what tells
+ * it apart from the player and both enemies, which are the only other round figures on the board.
+ */
 private const val EXIT_FILL_FRACTION = 0.36f
 private const val EXIT_RING_FRACTION = 0.46f
 private const val EXIT_STROKE_WIDTH_FRACTION = 0.06f
@@ -92,6 +97,7 @@ fun GameBoardCanvas(
     capturedBy: GameEnemyType? = null,
     capturedByPosition: GamePosition? = null
 ) {
+    Timber.d("S3107: exit cell drawn as diamond")
     val palette = BoardPalette(
         floor = MaterialTheme.colors.surface,
         wall = MaterialTheme.colors.onSurfaceVariant,
@@ -188,17 +194,24 @@ private fun DrawScope.drawCells(board: GameBoard, metrics: BoardMetrics, palette
 
 private fun DrawScope.drawExitCell(palette: BoardPalette, topLeft: Offset, tile: Float) {
     val centre = Offset(topLeft.x + tile * HALF, topLeft.y + tile * HALF)
-    drawCircle(
-        color = palette.exit,
-        radius = tile * EXIT_FILL_FRACTION,
-        center = centre
+    drawPath(
+        path = diamondPath(centre, tile * EXIT_FILL_FRACTION),
+        color = palette.exit
     )
-    drawCircle(
+    drawPath(
+        path = diamondPath(centre, tile * EXIT_RING_FRACTION),
         color = palette.exit,
-        radius = tile * EXIT_RING_FRACTION,
-        center = centre,
         style = Stroke(width = tile * EXIT_STROKE_WIDTH_FRACTION)
     )
+}
+
+/** A rhombus standing on its point: [radius] is the distance from the centre to each of the four tips. */
+private fun diamondPath(centre: Offset, radius: Float): Path = Path().apply {
+    moveTo(centre.x, centre.y - radius)
+    lineTo(centre.x + radius, centre.y)
+    lineTo(centre.x, centre.y + radius)
+    lineTo(centre.x - radius, centre.y)
+    close()
 }
 
 private fun DrawScope.drawActors(

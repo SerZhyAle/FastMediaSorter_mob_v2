@@ -35,6 +35,7 @@ $root = Join-Path ([System.IO.Path]::GetTempPath()) ("release-freeze-tests-" + [
 New-Item -ItemType Directory -Path (Join-Path $root 'temp') -Force | Out-Null
 
 $markerPath = Join-Path $root 'temp\RELEASE-FREEZE.json'
+$endedPath = Join-Path $root 'temp\RELEASE-FREEZE-ENDED.json'
 $stopPath = Join-Path $root 'temp\STOP-SPEC-QUEUE'
 
 $previousRoot = $env:FMS_REPO_ROOT
@@ -54,14 +55,18 @@ function Get-FreezeJson {
 
 function Reset-Fixture {
     Remove-Item -LiteralPath $markerPath -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $endedPath -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $stopPath -Force -ErrorAction SilentlyContinue
 }
 
 # A marker owned by somebody else. 'live' gives it a transcript written just now, which is the signal
 # Get-AgentTicketLiveness reads after the heartbeat; 'stale' gives it neither a reachable transcript
-# nor a recent heartbeat, so only the clock is left and the clock says it is gone.
+# nor a recent heartbeat, so only the clock is left and the clock says it is gone. 'working' is S3320's
+# case and the one the two above cannot express: an owner that has been holding the freeze for an hour -
+# so its Take-time heartbeat is long past the 45-minute window - while its transcript says it is writing
+# right now, which is every real sweep past its first three-quarters of an hour.
 function New-ForeignMarker {
-    param([ValidateSet('live', 'stale')][string] $Kind)
+    param([ValidateSet('live', 'stale', 'working')][string] $Kind)
 
     $now = Get-Date
     $stampMs = { param($d) [DateTimeOffset]::new($d.ToUniversalTime(), [TimeSpan]::Zero).ToUnixTimeMilliseconds() }
@@ -70,6 +75,10 @@ function New-ForeignMarker {
     if ($Kind -eq 'live') {
         Set-Content -LiteralPath $transcript -Value '{}' -Encoding UTF8
         $when = $now
+    }
+    elseif ($Kind -eq 'working') {
+        Set-Content -LiteralPath $transcript -Value '{}' -Encoding UTF8
+        $when = $now.AddMinutes(-60)
     }
     else {
         Remove-Item -LiteralPath $transcript -Force -ErrorAction SilentlyContinue
@@ -221,6 +230,114 @@ try {
         $code = Invoke-Freeze @('-Verb', 'Take', '-Reason', 'suite', '-Hours', '24')
         if ($code -ne 2) { return "expected exit 2, got $code" }
         if (Test-Path -LiteralPath $markerPath) { return 'a refused Take wrote a marker anyway' }
+        return $null
+    }
+
+    # The three ends are meant to be interchangeable (docs/DEV_OPS.md, "Release freeze"), so the two
+    # that need no co-operation must undo exactly what Release undoes. Until 2026-09-19 they undid the
+    # marker alone, and the stop flag left behind stood every queue lane down for six hours.
+    Assert-Case 'E13 an expired freeze lifts the stand-down it requested' {
+        Reset-Fixture
+        [void](Invoke-Freeze @('-Verb', 'Take', '-Reason', 'suite'))
+        if (-not (Test-Path -LiteralPath $stopPath)) { return 'Take did not write the stop file' }
+        $record = Get-Content -LiteralPath $markerPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $record.expiresAt = (Get-Date).AddHours(-1).ToString('s')
+        Set-Content -LiteralPath $markerPath -Value ($record | ConvertTo-Json -Depth 4) -Encoding UTF8
+        $state = Get-FreezeJson
+        if ($state.held) { return 'expected held=false for an expired freeze' }
+        if (Test-Path -LiteralPath $stopPath) { return 'the expired freeze left its stop file behind' }
+        return $null
+    }
+
+    Assert-Case 'E14 a freeze whose owner is gone lifts the stand-down it requested' {
+        Reset-Fixture
+        New-ForeignMarker -Kind stale
+        $record = Get-Content -LiteralPath $markerPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $record.stoppedQueue = $true
+        Set-Content -LiteralPath $markerPath -Value ($record | ConvertTo-Json -Depth 4) -Encoding UTF8
+        Set-Content -LiteralPath $stopPath -Value 'stop requested by the freeze that died' -Encoding UTF8
+        $state = Get-FreezeJson
+        if ($state.held) { return 'expected held=false for a dead owner' }
+        if (Test-Path -LiteralPath $stopPath) { return 'the dead freeze left its stop file behind' }
+        return $null
+    }
+
+    # The mirror of E10. An owner's own stop must survive every one of the three ends, not just Release.
+    Assert-Case 'E15 a stop the freeze did not request survives the expiry clearing' {
+        Reset-Fixture
+        Set-Content -LiteralPath $stopPath -Value 'stopped by the owner' -Encoding UTF8
+        [void](Invoke-Freeze @('-Verb', 'Take', '-Reason', 'suite'))
+        $record = Get-Content -LiteralPath $markerPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $record.expiresAt = (Get-Date).AddHours(-1).ToString('s')
+        Set-Content -LiteralPath $markerPath -Value ($record | ConvertTo-Json -Depth 4) -Encoding UTF8
+        [void](Get-FreezeJson)
+        if (-not (Test-Path -LiteralPath $stopPath)) { return 'the expiry removed a stop file the freeze had not written' }
+        return $null
+    }
+
+    # S3320, the regression this pair exists for. Take stamps lastSeenAt once and nothing refreshes it,
+    # and Get-AgentTicketLiveness ranks that heartbeat above the transcript - so until the marker started
+    # presenting the newest of the two, EVERY freeze was evictable 45 minutes after Take, by any reader,
+    # including the Status child guard-release-freeze.ps1 spawns in a sibling session. Measured
+    # 2026-09-19: held=false, endedBy=dead-owner, marker deleted, with the owner's transcript written one
+    # second earlier and three hours of the freeze's own expiry left.
+    Assert-Case 'E16 a freeze older than the stale window survives while its owner is writing' {
+        Reset-Fixture
+        New-ForeignMarker -Kind working
+        $state = Get-FreezeJson
+        if (-not $state.held) { return "a live owner's freeze was cleared - endedBy '$($state.endedBy)'" }
+        if (-not (Test-Path -LiteralPath $markerPath)) { return 'the marker was deleted under a live owner' }
+        return $null
+    }
+
+    # The other direction, and the one that must not be lost while fixing the first: an owner with no
+    # signal at all is still evicted, or an abandoned freeze blocks every sibling for its whole expiry.
+    Assert-Case 'E17 the same age with no reachable transcript is still cleared' {
+        Reset-Fixture
+        New-ForeignMarker -Kind stale
+        $state = Get-FreezeJson
+        if ($state.held) { return 'expected held=false for an owner with no signal' }
+        if ($state.endedBy -ne 'dead-owner') { return "expected endedBy=dead-owner, got '$($state.endedBy)'" }
+        return $null
+    }
+
+    Assert-Case 'E18 the owner reading its own freeze refreshes the heartbeat' {
+        Reset-Fixture
+        [void](Invoke-Freeze @('-Verb', 'Take', '-Reason', 'suite'))
+        $record = Get-Content -LiteralPath $markerPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $backdated = [DateTimeOffset]::new((Get-Date).AddMinutes(-60).ToUniversalTime(), [TimeSpan]::Zero).ToUnixTimeMilliseconds()
+        $record.lastSeenAt = $backdated
+        Set-Content -LiteralPath $markerPath -Value ($record | ConvertTo-Json -Depth 4) -Encoding UTF8
+        [void](Get-FreezeJson)
+        $after = Get-Content -LiteralPath $markerPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([int64]$after.lastSeenAt -le [int64]$backdated) { return 'the holder read left the stale heartbeat on disk' }
+        return $null
+    }
+
+    # "No freeze held" used to read the same whether the tree had never been frozen or the sweep's own
+    # freeze had ended under it, which is why the package-39 loss was noticed only by a claim that should
+    # have been refused (S3320 section 0).
+    Assert-Case 'E19 a freeze that ends leaves a record the next Status names' {
+        Reset-Fixture
+        [void](Invoke-Freeze @('-Verb', 'Take', '-Reason', 'suite'))
+        $record = Get-Content -LiteralPath $markerPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $record.expiresAt = (Get-Date).AddHours(-1).ToString('s')
+        Set-Content -LiteralPath $markerPath -Value ($record | ConvertTo-Json -Depth 4) -Encoding UTF8
+        [void](Get-FreezeJson)
+        if (-not (Test-Path -LiteralPath $endedPath)) { return 'the cleared freeze left no record of its end' }
+        $state = Get-FreezeJson
+        if ($state.held) { return 'expected held=false after the expiry' }
+        if ($state.endedBy -ne 'expiry') { return "expected the later read to still say expiry, got '$($state.endedBy)'" }
+        if (-not $state.endedAt) { return 'the later read carried no endedAt' }
+        return $null
+    }
+
+    Assert-Case 'E20 taking a fresh freeze clears the previous end record' {
+        if (-not (Test-Path -LiteralPath $endedPath)) { return 'precondition: E19 should have left the record in place' }
+        [void](Invoke-Freeze @('-Verb', 'Take', '-Reason', 'suite'))
+        if (Test-Path -LiteralPath $endedPath) { return 'a new freeze kept the record of the old one ending' }
+        $state = Get-FreezeJson
+        if (-not $state.held) { return 'expected the fresh freeze to be held' }
         return $null
     }
 }

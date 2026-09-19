@@ -34,6 +34,13 @@ import com.google.gson.annotations.SerializedName
         /** Read-only access to user's Drive metadata + content. RESTRICTED scope (per Google): subject to restricted-scope OAuth App Verification. CASA does not apply - client-only data flow, see class KDoc. */
         val DRIVE_READONLY = GoogleScope("https://www.googleapis.com/auth/drive.readonly")
 
+        /**
+         * S3040: the app's own isolated `appDataFolder` space. NOT a restricted or sensitive scope
+         * per Google's scope table - it grants no sight of the user's own documents, which is why
+         * the cross-device transfer queue lives there rather than in the browsable Drive tree.
+         */
+        val DRIVE_APPDATA = GoogleScope("https://www.googleapis.com/auth/drive.appdata")
+
         /** User's primary email address. */
         val EMAIL = GoogleScope("email")
 

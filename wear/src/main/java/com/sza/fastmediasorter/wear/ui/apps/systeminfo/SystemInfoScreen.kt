@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,6 +48,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoValue
 import com.sza.fastmediasorter.wear.ui.common.LocalWearSectionExpansion
 import com.sza.fastmediasorter.wear.ui.common.LocalWearTileEven
 import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
+import com.sza.fastmediasorter.wear.ui.common.WearInformationRowGestures
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearReportDivider
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -53,7 +57,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import timber.log.Timber
 
 /**
  * The key this screen's list position and its open sections are remembered under (S2543, S2806).
@@ -71,6 +74,11 @@ private val TITLE_BOTTOM_PADDING = 8.dp
 private val SECTION_TOP_PADDING = 14.dp
 private val SECTION_TITLE_BOTTOM_PADDING = 10.dp
 private val ROW_VERTICAL_PADDING = 4.dp
+private val CHIP_GAP = 4.dp
+private val CHIP_CORNER = 4.dp
+private val CHIP_HORIZONTAL_PADDING = 8.dp
+private val CHIP_VERTICAL_PADDING = 6.dp
+private val ACTION_ICON_SIZE = 16.dp
 
 /**
  * What the watch can say about itself, in the same shape the phone's report uses: a section title, then
@@ -140,6 +148,14 @@ fun SystemInfoScreen(
                 item {
                     RefreshChip(enabled = !uiState.refreshing, onClick = viewModel::refresh)
                 }
+                item {
+                    SendToPhoneChip(
+                        enabled = !uiState.sending && uiState.sections.isNotEmpty(),
+                        outcomeRes = uiState.sendOutcomeRes,
+                        sending = uiState.sending,
+                        onClick = viewModel::sendToPhone
+                    )
+                }
             }
             itemsIndexed(rows) { rowIndex, row ->
                 WearSettingsRow(row = row, rowIndex = rowIndex)
@@ -162,12 +178,60 @@ private fun RefreshChip(enabled: Boolean, onClick: () -> Unit) {
             Icon(
                 imageVector = Icons.Default.Refresh,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(ACTION_ICON_SIZE)
             )
         },
         modifier = Modifier.fillMaxWidth(),
         colors = ChipDefaults.secondaryChipColors()
     )
+}
+
+/**
+ * Sends the report on screen to the paired phone, and says underneath what came of it (S3108).
+ *
+ * The outcome is a line of text rather than a toast or a dialog: the watch has no Snackbar host, and
+ * the strategic risk list names a button that works silently as the thing this action must not be.
+ */
+@Composable
+private fun SendToPhoneChip(
+    enabled: Boolean,
+    outcomeRes: Int?,
+    sending: Boolean,
+    onClick: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        CompactChip(
+            onClick = onClick,
+            enabled = enabled,
+            label = {
+                Text(
+                    stringResource(
+                        if (sending) R.string.system_info_send_sending else R.string.system_info_send_to_phone
+                    )
+                )
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    contentDescription = null,
+                    modifier = Modifier.size(ACTION_ICON_SIZE)
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ChipDefaults.secondaryChipColors()
+        )
+        if (outcomeRes != null && !sending) {
+            Text(
+                text = stringResource(outcomeRes),
+                style = MaterialTheme.typography.caption3,
+                color = MaterialTheme.colors.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = ROW_VERTICAL_PADDING),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
 }
 
 /**
@@ -179,52 +243,89 @@ private fun RefreshChip(enabled: Boolean, onClick: () -> Unit) {
  * A collapsed section contributes its title and nothing else (S2806). The fields are left OUT of the
  * list rather than hidden by a modifier: a ScalingLazyColumn counts items, so a hidden row would still
  * be one crown notch to scroll past, which is the very cost this screen was reported for.
+ *
+ * Since S3108 a RUN of consecutive collapsed sections contributes one item between them all - a cloud
+ * of chips, each the width of its own title, wrapping as many to a row as fit. An open section leaves
+ * the cloud and takes its own row so its fields still sit under their own heading; collecting every
+ * heading into one block at the top would have separated the two and needed a second mechanism to say
+ * where the open one is.
  */
 private fun reportItems(
     sections: List<WearSystemInfoSection>,
     expansion: WearSectionExpansionStore
 ): List<WearSettingsItem> = buildList {
-    sections.forEachIndexed { index, section ->
-        if (index > 0) {
+    val collapsed = mutableListOf<WearSystemInfoSection>()
+
+    fun divide() {
+        if (isNotEmpty()) {
             add(WearSettingsItem(fullWidth = true) { WearReportDivider() })
         }
-        val open = expansion.isExpanded(SYSTEM_INFO_SCREEN_KEY, section.titleRes)
+    }
+
+    fun flushCollapsed() {
+        if (collapsed.isEmpty()) {
+            return
+        }
+        val cloud = collapsed.toList()
+        collapsed.clear()
+        divide()
+        add(
+            WearSettingsItem(fullWidth = true) {
+                SectionChipCloud(
+                    sections = cloud,
+                    onToggle = { titleRes -> expansion.toggle(SYSTEM_INFO_SCREEN_KEY, titleRes) }
+                )
+            }
+        )
+    }
+
+    sections.forEach { section ->
+        if (!expansion.isExpanded(SYSTEM_INFO_SCREEN_KEY, section.titleRes)) {
+            collapsed += section
+            return@forEach
+        }
+        flushCollapsed()
+        divide()
         add(
             WearSettingsItem(fullWidth = true) {
                 SectionTitle(
                     titleRes = section.titleRes,
-                    hiddenCount = if (open) null else section.fields.size,
-                    open = open,
-                    onToggle = {
-                        expansion.toggle(SYSTEM_INFO_SCREEN_KEY, section.titleRes)
-                    }
+                    hiddenCount = null,
+                    open = true,
+                    onToggle = { expansion.toggle(SYSTEM_INFO_SCREEN_KEY, section.titleRes) }
                 )
             }
         )
-        if (!open) {
-            return@forEachIndexed
-        }
-        val emptyReasonRes = section.emptyReasonRes
-        if (section.fields.isEmpty() && emptyReasonRes != null) {
-            add(WearSettingsItem(fullWidth = true) { SectionEmptyReason(emptyReasonRes) })
-        }
-        section.fields.forEach { field ->
-            val enumerated = field.value as? WearSystemInfoValue.Enumerated
-            if (enumerated == null) {
-                add(WearSettingsItem(fullWidth = false) { narrow -> SystemInfoRow(field = field, narrow = narrow) })
-            } else {
-                add(
-                    WearSettingsItem(fullWidth = true) { narrow ->
-                        EnumeratedRow(
-                            field = field,
-                            entries = enumerated.entries,
-                            open = expansion.isExpanded(SYSTEM_INFO_FIELDS_KEY, field.labelRes),
-                            onToggle = { expansion.toggle(SYSTEM_INFO_FIELDS_KEY, field.labelRes) },
-                            narrow = narrow
-                        )
-                    }
-                )
-            }
+        addAll(sectionBody(section, expansion))
+    }
+    flushCollapsed()
+}
+
+/** The fields of one open section, in the shapes the packer understands. */
+private fun sectionBody(
+    section: WearSystemInfoSection,
+    expansion: WearSectionExpansionStore
+): List<WearSettingsItem> = buildList {
+    val emptyReasonRes = section.emptyReasonRes
+    if (section.fields.isEmpty() && emptyReasonRes != null) {
+        add(WearSettingsItem(fullWidth = true) { SectionEmptyReason(emptyReasonRes) })
+    }
+    section.fields.forEach { field ->
+        val enumerated = field.value as? WearSystemInfoValue.Enumerated
+        if (enumerated == null) {
+            add(WearSettingsItem(fullWidth = false) { narrow -> SystemInfoRow(field = field, narrow = narrow) })
+        } else {
+            add(
+                WearSettingsItem(fullWidth = true) { narrow ->
+                    EnumeratedRow(
+                        field = field,
+                        entries = enumerated.entries,
+                        open = expansion.isExpanded(SYSTEM_INFO_FIELDS_KEY, field.labelRes),
+                        onToggle = { expansion.toggle(SYSTEM_INFO_FIELDS_KEY, field.labelRes) },
+                        narrow = narrow
+                    )
+                }
+            )
         }
     }
 }
@@ -250,10 +351,15 @@ private fun EnumeratedRow(
         WearInformationRow(
             labelRes = field.labelRes,
             value = entries.size.toString(),
-            onClick = onToggle,
             accessibilitySuffix = hint,
             accentColor = accentColor(field),
-            narrow = narrow
+            narrow = narrow,
+            gestures = WearInformationRowGestures(
+                onClick = onToggle,
+                // The visible value is a count, so the default "label: 37" would put a digit in the
+                // clipboard for a row the user opened precisely to read the thirty-seven entries.
+                copyText = entries.joinToString(separator = "\n")
+            )
         )
         if (open) {
             entries.forEach { entry ->
@@ -297,6 +403,60 @@ private fun SectionEmptyReason(@StringRes reasonRes: Int) {
  * The clickable is applied before the padding so the padding is part of the touch target - a heading
  * is one line of caption text, which on its own is well under a comfortable target on a watch.
  */
+/**
+ * Every closed section of a run, laid out as a wrapping cloud of chips.
+ *
+ * `FlowRow` rather than the report's own two-column packer: the packer divides the width equally,
+ * which is what put one heading on each line in the first place, and a heading is short enough that
+ * several of them fit a watch row when each is allowed its own width.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SectionChipCloud(sections: List<WearSystemInfoSection>, onToggle: (Int) -> Unit) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(CHIP_GAP, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(CHIP_GAP)
+    ) {
+        sections.forEach { section ->
+            SectionChip(
+                titleRes = section.titleRes,
+                hiddenCount = section.fields.size,
+                onToggle = { onToggle(section.titleRes) }
+            )
+        }
+    }
+}
+
+/**
+ * One closed section as a rectangle the width of its own name.
+ *
+ * Rectangular rather than the stadium shape of a Wear chip, and drawn as a plain surface rather than
+ * with `CompactChip`: a chip stretches to a minimum width that would leave four of these looking like
+ * four equal buttons, which is the layout the cloud exists to replace.
+ */
+@Composable
+private fun SectionChip(titleRes: Int, hiddenCount: Int, onToggle: () -> Unit) {
+    val title = stringResource(titleRes)
+    val hint = stringResource(R.string.system_info_expand_hint)
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(CHIP_CORNER))
+            .background(MaterialTheme.colors.surface)
+            .clickable(onClick = onToggle)
+            .padding(horizontal = CHIP_HORIZONTAL_PADDING, vertical = CHIP_VERTICAL_PADDING)
+            .semantics { contentDescription = "$title. $hint" }
+    ) {
+        Text(
+            text = "$title ($hiddenCount)",
+            style = MaterialTheme.typography.caption2,
+            color = MaterialTheme.colors.primary,
+            maxLines = 1,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
 @Composable
 private fun SectionTitle(titleRes: Int, hiddenCount: Int?, open: Boolean, onToggle: () -> Unit) {
     val title = stringResource(titleRes)

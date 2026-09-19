@@ -25,7 +25,7 @@
         android:focusable="true"
         android:clickable="true"
         app:sir_title="@string/settings_broadcast_stream_title"
-        app:sir_hint="@string/settings_broadcast_stream_title_hint" />
+        app:sir_hint="@string/broadcast_default_stream_title" />
 
     <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
         android:id="@+id/broadcastConfigGroup"

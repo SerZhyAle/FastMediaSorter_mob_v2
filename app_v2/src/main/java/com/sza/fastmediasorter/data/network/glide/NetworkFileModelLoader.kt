@@ -112,7 +112,6 @@ class NetworkFileDataFetcher(
                 persistenceGeneration
             }
             persistenceLoadScope.launch {
-                Timber.d("S3086: hydrating persisted thumbnail failure cache on IO")
                 try {
                     val persisted = VideoExtractionFailurePersistence.loadAll()
                     synchronized(failedVideos) {

@@ -18,9 +18,13 @@ import timber.log.Timber
  * device profiles S2384 sets to 30 seconds, `personal_smartphone` and `home_tablet`, both carry
  * `preventSleep` on, so a veto would make the new default inert exactly where it was asked for.
  *
+ * S3285 narrows what that elapsed countdown may choose, not whether it runs: while the hold stands, the
+ * host asks the decision point for the app's own dark surface and forbids the real device lock, so the
+ * desktop dims without the system sleeping behind it.
+ *
  * Requirements kept from S1741:
- * 1. The countdown runs only while the launcher activity is started, owns window focus and
- *    timeoutSeconds > 0.
+ * 1. The countdown runs only while the launcher activity is started, owns window focus and the
+ *    timeout in force - the on-charge one while power is connected (S3284) - is above zero.
  * 2. A dialog, popup or system window taking focus pauses it, and regaining focus starts it over at
  *    full length.
  * 3. It mutates no system bar, no Android system timeout and no DevicePolicyManager.
@@ -31,6 +35,12 @@ class LauncherIdleScreenOffManager(
     private val onScreenOff: () -> Unit,
 ) {
     private var timeoutSeconds: Int = 0
+
+    // S3284: the countdown that replaces [timeoutSeconds] outright while power is connected (owner
+    // ruling 2026-09-18) - including its 0, which means the desktop never blacks out on a charger.
+    private var timeoutOnChargeSeconds: Int = 0
+    private var isCharging: Boolean = false
+
     private var isStarted: Boolean = false
 
     // A dialog, a popup or the notification shade lives in its own window, so input there never reaches
@@ -45,10 +55,24 @@ class LauncherIdleScreenOffManager(
     private val handler = Handler(Looper.getMainLooper())
     private val screenOffRunnable = Runnable { fireScreenOff() }
 
-    fun updateTimeout(seconds: Int) {
-        val coerced = seconds.coerceAtLeast(0)
-        if (timeoutSeconds == coerced) return
-        timeoutSeconds = coerced
+    fun updateTimeouts(defaultSeconds: Int, onChargeSeconds: Int) {
+        val coercedDefault = defaultSeconds.coerceAtLeast(0)
+        val coercedOnCharge = onChargeSeconds.coerceAtLeast(0)
+        if (timeoutSeconds == coercedDefault && timeoutOnChargeSeconds == coercedOnCharge) return
+        timeoutSeconds = coercedDefault
+        timeoutOnChargeSeconds = coercedOnCharge
+        resetTimer()
+    }
+
+    /**
+     * Restarts the countdown at the length the new power state selects, rather than letting the
+     * running one finish: plugging in is a user action on the desktop, and the whole point of the
+     * on-charge value is that it takes effect the moment the cable does.
+     */
+    fun onChargingChanged(charging: Boolean) {
+        if (isCharging == charging) return
+        isCharging = charging
+        Timber.d("S3284: charging=%b, effective timeout=%ds", charging, effectiveTimeoutSeconds())
         resetTimer()
     }
 
@@ -85,13 +109,15 @@ class LauncherIdleScreenOffManager(
         resetTimer()
     }
 
+    private fun effectiveTimeoutSeconds(): Int = if (isCharging) timeoutOnChargeSeconds else timeoutSeconds
+
     private fun isEligible(): Boolean =
-        isStarted && hasWindowFocus && timeoutSeconds > 0 && !isScreenOff
+        isStarted && hasWindowFocus && effectiveTimeoutSeconds() > 0 && !isScreenOff
 
     private fun resetTimer() {
         handler.removeCallbacks(screenOffRunnable)
         if (!isEligible()) return
-        handler.postDelayed(screenOffRunnable, timeoutSeconds * MILLIS_PER_SECOND)
+        handler.postDelayed(screenOffRunnable, effectiveTimeoutSeconds() * MILLIS_PER_SECOND)
     }
 
     private fun stopTimer() {
@@ -101,7 +127,11 @@ class LauncherIdleScreenOffManager(
     private fun fireScreenOff() {
         if (!isEligible()) return
         isScreenOff = true
-        Timber.d("Launcher idle timeout elapsed (%ds) - requesting screen off", timeoutSeconds)
+        Timber.d(
+            "Launcher idle timeout elapsed (%ds, charging=%b) - requesting screen off",
+            effectiveTimeoutSeconds(),
+            isCharging,
+        )
         onScreenOff()
     }
 

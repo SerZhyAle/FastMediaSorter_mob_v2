@@ -316,6 +316,7 @@ class BackupMapperTest {
                 allAppsSortOrder = "USAGE_COUNT",
                 allAppsSortDescending = true,
                 screenBlackoutTimeoutSeconds = 60,
+                screenBlackoutTimeoutOnChargeSeconds = 300,
             )
         }
 
@@ -331,6 +332,7 @@ class BackupMapperTest {
         assertEquals("USAGE_COUNT", restored.allAppsSortOrder)
         assertEquals(true, restored.allAppsSortDescending)
         assertEquals(60, restored.launcherScreenBlackoutTimeoutSeconds)
+        assertEquals(300, restored.launcherScreenBlackoutTimeoutOnChargeSeconds)
     }
 
     // S2249: pre-S2249 backups carry no launcherDesktopDoubleTapLockEnabled field, which Gson

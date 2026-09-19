@@ -43,7 +43,12 @@
     uidump               dump the uiautomator node tree, save the XML, and print every node that
                          carries text or a content-description with its resource-id, its bounds and
                          its tap point. -Grep <regex> filters by label OR resource-id; -Ids also
-                         lists the nodes named by an id alone (-Json: file, nodes[])
+                         lists the nodes named by an id alone (-Json: file, nodes[]). A refused
+                         dump is retried and the read repeats until two consecutive trees agree,
+                         so the listing describes the current screen even where the accessibility
+                         tree lags it by seconds (S3238; tap-id and tap-label read the same way).
+                         A screen carrying a live readout cannot be dumped at all and is refused
+                         after one retry rather than three (S3289 - see exit code 7)
     tap-id               locate a node by its resource-id and tap the centre of its bounds:
                          -ResourceId <short-or-full> [-Exact] [-Index N]. PREFER THIS over tap-label:
                          a label is translated and an id is not, so a label-aimed call passes on the
@@ -61,7 +66,14 @@
                          refuses on any other form factor rather than sending the event nowhere
     font-scale           read the device's system font scale, or set it with -Scale <n>. A large
                          font is a Play review criterion, so this is a measurement tool, not a
-                         convenience: 1.0 restores the platform default
+                         convenience: 1.0 restores the platform default. The value before the write
+                         goes into the device state journal (S3201)
+    state-begin          open an on-device run: put back whatever an earlier run left in the journal,
+                         then snapshot wm density, wm size, font_scale and the app's DataStore files
+                         into temp/DEVICE.STATE/<serial>.json (S3201)
+    state-check          close an on-device run: compare the device with the journal, put every
+                         drifted value back, print one RESTORED line per value, clear the journal.
+                         -NoRestore reports the drift instead and exits 13 when there is any
     text                 input text -Text "<string>" (spaces handled)
     key                  input keyevent -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME)
     prefs                pull settings.preferences.pb via run-as to temp/scratch/ (debuggable build only)
@@ -69,7 +81,19 @@
                          Without -Local the file lands in temp/scratch/ under its own name.
                          -Latest treats -Remote as a directory or glob and takes the newest match
     push                 send a local file OR directory to the device: -Local <path> -Remote <path>
-    shell                arbitrary passthrough: -Cmd "<adb shell command>"
+    shell                arbitrary passthrough: -Cmd "<adb shell command>". A command that changes
+                         `wm density`, `wm size` or a `settings` value records the original in the
+                         device state journal first (S3201)
+
+  Watch test parameters (S3201): `launch -GeometryMode <ORIGINAL|STORE> -ScreenDp <n>` starts the watch
+  debug build with one-launch parameters that draw the other geometry or a smaller glass without
+  writing a setting. The app is force-stopped first, so the parameters describe the whole launch.
+
+  Why the device state journal exists (S3201). On 2026-09-16 one device test left `wm density 380`
+  and a flipped app setting on the owner's watch; its recipe said "reset after" and nothing did,
+  because putting state back was the agent's memory. Every verb here that changes device state now
+  records the original before it runs, and state-begin / state-check put it back mechanically.
+  Journal library: scripts/devtest/lib/device-state-journal.ps1.
 
   Why pull/push live here rather than in a bare `adb` call (S1578): the wrapper keeps the adb
   discovery, the device selection and the exit contract, and - the reason it was worth a ticket -
@@ -128,7 +152,12 @@
         Nothing was executed on the device
     6 - `pull`: the remote path does not exist on the device. Distinct from 7 because "the file was
         never written" and "the transfer failed" call for different next moves
-    7 - the underlying adb command returned non-zero
+    7 - the underlying adb command returned non-zero. For the three tree verbs it also covers the
+        one refusal no wrapper can work around: `uiautomator dump` waits for 500 ms with no
+        accessibility event anywhere on the device, budget 10 s, and offers no flag to shorten or
+        skip that wait, so a window that emits a content-change event every ~100 ms is undumpable
+        for as long as its readout is live (S3289). The refusal names it and costs one retry, not
+        three - each refused attempt blocks for the full 10 s budget
     8 - `tap-label` / `tap-id`: no visible node carried that label or that resource-id, so NOTHING
         was tapped. Distinct from 7 because "the screen does not show it" and "the tap failed" call
         for different next moves - the first usually means an animation was still running, the
@@ -144,6 +173,9 @@
    12 - `rotary`: the selected device is not a watch, so it has no rotary encoder and NOTHING was
         sent. Distinct from 3 because "you did not say which device" and "you named one that cannot
         answer this verb" call for different next moves
+   13 - `state-check`: the device still differs from the journal - with -NoRestore because nothing
+        was put back, without it because a restore ran and the value did not come back. The journal
+        is kept either way, so the next state-begin tries again
 
   Human output: one verdict line per verb (plus the data the verb produces).
   Machine output (with -Json): a single JSON object on stdout, all human noise suppressed.
@@ -288,7 +320,13 @@ param(
     # Confirmation for the one-way verbs (wipe-data, uninstall). This script is called by agents and by
     # other scripts, so an interactive prompt is not available - a required flag is the only gate that can
     # actually fire. It waives the confirmation only: device selection and package resolution still run.
-    [switch]$Yes
+    [switch]$Yes,
+    # launch (watch debug build): one-launch test parameters, read by the app and never persisted (S3201).
+    [ValidateSet('ORIGINAL', 'STORE')]
+    [string]$GeometryMode,
+    [int]$ScreenDp,
+    # state-check: report drift without putting anything back.
+    [switch]$NoRestore
 )
 
 $ErrorActionPreference = 'Stop'
@@ -313,6 +351,8 @@ $WEAR_MAIN_ACTIVITY = 'com.sza.fastmediasorter.wear.MainActivity'
 
 . (Join-Path $PSScriptRoot 'lib/adb-log-filter.ps1')
 . (Join-Path $PSScriptRoot 'lib/ui-tree.ps1')
+. (Join-Path $PSScriptRoot 'lib/device-store-paths.ps1')
+. (Join-Path $PSScriptRoot 'lib/device-state-journal.ps1')
 
 # ---------- result shape ----------
 
@@ -491,6 +531,17 @@ function Test-SecureFocusedWindow {
 # (or release with -Release); fall back to the other variant if the chosen one is absent.
 function Resolve-Package {
     param([string]$Id)
+    $found = Find-InstalledPackage $Id
+    if ($found) { return $found }
+    $primary  = if ($Release) { $BASE_PACKAGE } else { $DEBUG_PACKAGE }
+    $fallback = if ($Release) { $DEBUG_PACKAGE } else { $BASE_PACKAGE }
+    Fail 4 "neither '$primary' nor '$fallback' is installed on $Id (build/install first)"
+}
+
+# The lookup half of Resolve-Package without the refusal: state-begin snapshots a device that may carry
+# no app at all, and for it that is a legal state rather than exit 4.
+function Find-InstalledPackage {
+    param([string]$Id)
     if ($Package) { return $Package }
     $primary  = if ($Release) { $BASE_PACKAGE } else { $DEBUG_PACKAGE }
     $fallback = if ($Release) { $DEBUG_PACKAGE } else { $BASE_PACKAGE }
@@ -500,7 +551,7 @@ function Resolve-Package {
             if ($pmLine.Trim() -eq "package:$pkg") { return $pkg }
         }
     }
-    Fail 4 "neither '$primary' nor '$fallback' is installed on $Id (build/install first)"
+    return $null
 }
 
 # Resolve which activity component `launch` should start. An EXPLICIT -Module is honoured as
@@ -559,28 +610,252 @@ function Get-TempDir {
 # replayable workflow), unlike the workflow runtime which forbids it.
 function Get-Stamp { (Get-Date).ToString('yyyyMMdd_HHmmss') }
 
+# ---------- device state journal (S3201) ----------
+
+# Keyed by the device's own serial, never by the adb id: the watch is reached over wireless debugging
+# and its ip:port changes every session, so an id-keyed journal written today would be invisible to
+# tomorrow's state-begin - which is exactly the run that has to put it back.
+function Get-StateSerial {
+    param([string]$Id)
+    if ($script:stateSerial) { return $script:stateSerial }
+    $serial = ((Invoke-Adb $Id @('shell', 'getprop', 'ro.serialno') -AllowFail) -join '').Trim()
+    if ([string]::IsNullOrWhiteSpace($serial) -or $serial -match '\s') { $serial = $Id }
+    $script:stateSerial = $serial
+    return $serial
+}
+
+function Get-StateJournalPath {
+    param([string]$Id)
+    # FMS_DEVICE_STATE_ROOT exists for the contract suite, which must not write the live store.
+    $root = if ($env:FMS_DEVICE_STATE_ROOT) { $env:FMS_DEVICE_STATE_ROOT } else { (Resolve-Path -Path (Join-Path $PSScriptRoot '..\..')).Path }
+    return (Get-DeviceStoreRecordPath -RepoRoot $root -Store State -Serial (Get-StateSerial $Id))
+}
+
+function Get-StateDataStoreDir {
+    param([string]$JournalPath, [string]$Pkg)
+    return (Join-Path ([System.IO.Path]::ChangeExtension($JournalPath, '.datastore')) $Pkg)
+}
+
+function Read-StateScalar {
+    param([string]$Id, [string]$Key)
+    $raw = (Invoke-Adb $Id (Get-DeviceStateReadCommand -Key $Key) -AllowFail) -join "`n"
+    return (ConvertFrom-DeviceStateReading -Key $Key -Text $raw)
+}
+
+# Called by every verb that changes device state, BEFORE the change. The first original wins, so a
+# second write of the same key in one run cannot overwrite the value the owner actually had.
+function Save-StateOriginal {
+    param([string]$Id, [string]$Key)
+    $path = Get-StateJournalPath $Id
+    $journal = Read-DeviceStateJournal -Path $path
+    if ($null -eq $journal) { $journal = New-DeviceStateJournal -Serial (Get-StateSerial $Id) }
+    if ($journal.entries.Contains($Key)) { return }
+    Add-DeviceStateOriginal -Journal $journal -Key $Key -Original (Read-StateScalar $Id $Key) | Out-Null
+    Write-DeviceStateJournal -Path $path -Journal $journal
+}
+
+# The app's DataStore directory as file name -> SHA-256, plus the bytes. run-as works on a debuggable
+# build only; on any other build the listing is an error line, the name filter drops it, and the
+# snapshot is empty - nothing a test does through this route can write there either.
+function Get-DataStoreSnapshot {
+    param([string]$Id, [string]$Pkg)
+    $files = [ordered]@{}
+    $bytesByName = @{}
+    $listing = (Invoke-Adb $Id @('shell', "run-as $Pkg ls files/datastore") -AllowFail) -join "`n"
+    foreach ($line in ($listing -split "`r?`n")) {
+        $name = $line.Trim()
+        if ($name -notmatch '^[\w.\-]+$') { continue }
+        $encoded = (Invoke-Adb $Id @('shell', "run-as $Pkg base64 files/datastore/$name") -AllowFail) -join ''
+        if ($encoded -notmatch '^[A-Za-z0-9+/=\s]+$') {
+            Write-Host "WARN could not read files/datastore/$name of $Pkg - left out of the snapshot" -ForegroundColor Yellow
+            continue
+        }
+        $bytes = [Convert]::FromBase64String(($encoded -replace '\s', ''))
+        $files[$name] = Get-Sha256Hex -Bytes $bytes
+        $bytesByName[$name] = $bytes
+    }
+    return @{ Files = $files; Bytes = $bytesByName }
+}
+
+function Format-StateValue {
+    param($Value)
+    if ($null -eq $Value -or "$Value" -eq '') { return '(none)' }
+    return "$Value"
+}
+
+# Compares the device with the journal at -Path and, unless -ReportOnly, puts every drifted value
+# back. Returns one object per drifted value. A DataStore file goes back through /data/local/tmp and
+# a run-as copy after a force-stop: DataStore holds the file cached in the running process, and a
+# copy under a live app is overwritten by its next write.
+function Invoke-StateRestore {
+    param([string]$Id, [string]$Path, [switch]$ReportOnly)
+    $drift = [System.Collections.Generic.List[object]]::new()
+    $journal = Read-DeviceStateJournal -Path $Path
+    if ($null -eq $journal) { return $drift.ToArray() }
+    foreach ($key in @($journal.entries.Keys)) {
+        $original = $journal.entries[$key].original
+        if ($key -like 'datastore.*') {
+            $pkg = $key.Substring('datastore.'.Length)
+            $recorded = $original.files
+            $current = (Get-DataStoreSnapshot $Id $pkg).Files
+            $fileDrift = @(Compare-DeviceStateFiles -Recorded $recorded -Current $current)
+            if ($fileDrift.Count -eq 0) { continue }
+            if (-not $ReportOnly) {
+                Invoke-Adb $Id @('shell', 'am', 'force-stop', $pkg) | Out-Null
+                $saved = Get-StateDataStoreDir -JournalPath $Path -Pkg $pkg
+                foreach ($d in $fileDrift) {
+                    if ($d.Action -eq 'remove') {
+                        Invoke-Adb $Id @('shell', "run-as $pkg rm -f files/datastore/$($d.Name)") | Out-Null
+                        continue
+                    }
+                    $tmp = "/data/local/tmp/fms_state_$($d.Name)"
+                    Invoke-Adb $Id @('push', (Join-Path $saved $d.Name), $tmp) | Out-Null
+                    Invoke-Adb $Id @('shell', "chmod 644 $tmp") | Out-Null
+                    Invoke-Adb $Id @('shell', "run-as $pkg cp $tmp files/datastore/$($d.Name)") | Out-Null
+                    Invoke-Adb $Id @('shell', "rm -f $tmp") -AllowFail | Out-Null
+                }
+            }
+            foreach ($d in $fileDrift) {
+                $drift.Add([pscustomobject]@{
+                    key      = "$key/$($d.Name)"
+                    current  = $current[$d.Name]
+                    original = $recorded[$d.Name]
+                    action   = $d.Action
+                })
+            }
+            continue
+        }
+        $now = Read-StateScalar $Id $key
+        if (-not (Compare-DeviceStateScalar -Original $original -Current $now)) { continue }
+        if (-not $ReportOnly) {
+            Invoke-Adb $Id (Get-DeviceStateRestoreCommand -Key $key -Original $original) | Out-Null
+        }
+        $drift.Add([pscustomobject]@{ key = $key; current = $now; original = $original; action = 'restore' })
+    }
+    return $drift.ToArray()
+}
+
+function Remove-StateJournal {
+    param([string]$Path)
+    if (Test-Path -LiteralPath $Path) { Remove-Item -LiteralPath $Path -Force }
+    $savedRoot = [System.IO.Path]::ChangeExtension($Path, '.datastore')
+    if (Test-Path -LiteralPath $savedRoot) { Remove-Item -LiteralPath $savedRoot -Recurse -Force }
+}
+
 # ---------- uiautomator node tree ----------
 
 # Dump the node tree and bring it back as parsed XML. The remote path never crosses bash, which is
 # the same reason pull/push live in this script at all (S1578) - MSYS rewrites /sdcard/x into a path
 # inside the Git installation, and adb then reports a missing remote object.
+# S3238: on the Samsung fleet one dump is not a verdict. `uiautomator dump` refuses while it cannot
+# reach an idle UI ('could not get idle state'), and the tree it does produce can lag the glass by
+# seconds, so a tap aimed from a stale tree hits a screen that is gone. The dump call is therefore
+# retried a bounded number of times, and -Stable re-dumps until two consecutive reads agree, which is
+# what makes a single uidump / tap-id / tap-label answer describe the screen the caller is looking at.
+#
+# S3289 measured what that idle wait actually is and split the refusal in two. The dump calls
+# UiAutomation.waitForIdle with a 500 ms quiet window and a 10 s budget; idle means no accessibility
+# event of ANY type from ANY package reached the connection, and the command exposes no flag to
+# shorten or skip it (`uiautomator help` lists only --verbose and --compressed). Two regimes follow,
+# and they need different budgets:
+#   transient - a window settling after a tap. Measured on RFCR110NBQJ: 2 refusals in 15 calls, the
+#               next call through, so the state lives ~22 s. One retry clears it.
+#   permanent - a window carrying a live readout. The same phone's player emits a content-change
+#               event every 100-101 ms while a stream plays, which is ViewRootImpl's own coalescing
+#               floor, so the 500 ms of quiet never arrives and the screen is undumpable for as long
+#               as the readout runs. Retrying cannot help, and each refused attempt blocks for the
+#               full 10 s budget (measured 11.10 s and 11.09 s), so three attempts burn ~35 s to
+#               learn nothing.
+# The idle refusal is therefore capped at one retry; every other failure answer keeps the full
+# budget, because those are cheap and a different cause. The cure is app-side (S3293), and the one
+# uiautomator-free tree source was measured unusable in S3289 - see dev/REFUTED_APPROACHES.md.
+$script:UiTreeIdleRefusal = 'could not get idle state'
+$script:UiTreeIdleAttempts = 2
+
+# Why a refused dump is not something to wait out, in the words the caller needs at the moment of
+# refusal. Kept beside the constants above so the two never drift.
+function Get-UiTreeIdleRefusalText {
+    param([int]$Attempts, [string]$LastOut)
+    return ("uiautomator refused with 'could not get idle state' in $Attempts attempt(s); last answer was: " +
+        "$($LastOut.Trim()). The dump waits for 500 ms with no accessibility event anywhere on the device " +
+        "(budget 10 s) and has no flag to shorten or skip that wait. A window carrying a live readout - the " +
+        "player while audio plays, the broadcast screen while broadcasting - emits a content-change event about " +
+        "every 100 ms and never leaves that gap, so this screen will not dump however long you wait (S3289, " +
+        "measured on RFCR110NBQJ). What works instead: `shot` for a screenshot, and this same screen once the " +
+        "readout stops. There is no wrapper workaround - the app-side cure is S3293, and dumpsys was measured " +
+        "unusable as a second tree source (dev/REFUTED_APPROACHES.md)")
+}
+
 function Get-UiTree {
-    param([string]$Id, [string]$Destination)
+    param([string]$Id, [string]$Destination, [int]$Attempts = 3, [switch]$Stable)
     $remote = '/sdcard/_fms_tree.xml'
+    $retryDelayMs = 800
+    $stableDelayMs = 900
     # Remove it FIRST. uiautomator refuses while the window is animating and writes nothing at all,
     # and `shot` uses this same remote path - so without this line a refused dump silently pulls the
     # previous screen's tree and every verb above reports confidently about a frame that is gone.
-    Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
-    Invoke-Adb $Id @('shell', 'uiautomator', 'dump', $remote) -AllowFail | Out-Null
+    $lastOut = ''
+    $sawIdleRefusal = $false
+    $budget = $Attempts
+    for ($attempt = 1; $attempt -le $budget; $attempt++) {
+        Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
+        $lastOut = (Invoke-Adb $Id @('shell', 'uiautomator', 'dump', $remote) -AllowFail) -join ' '
+        if ($lastOut -match 'dumped to') { break }
+        if ($lastOut -match $script:UiTreeIdleRefusal) {
+            $sawIdleRefusal = $true
+            if ($budget -gt $script:UiTreeIdleAttempts) { $budget = $script:UiTreeIdleAttempts }
+        }
+        if ($attempt -lt $budget) { Start-Sleep -Milliseconds ($retryDelayMs * $attempt) }
+    }
+    if ($lastOut -notmatch 'dumped to') {
+        if ($sawIdleRefusal) { Fail 7 (Get-UiTreeIdleRefusalText -Attempts $budget -LastOut $lastOut) }
+        Fail 7 ("uiautomator produced no tree in $budget attempt(s); last answer was: $($lastOut.Trim()). It " +
+            "refuses while the window is still animating - let the screen settle and re-run")
+    }
     Invoke-Adb $Id @('pull', $remote, $Destination) -AllowFail | Out-Null
     Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
     if (-not (Test-Path -LiteralPath $Destination -PathType Leaf)) {
-        Fail 7 "uiautomator produced no tree. It refuses while the window is still animating ('could not get idle state') - let the screen settle and re-run"
+        Fail 7 "uiautomator reported a dump but the pull produced no file at $Destination - re-run"
     }
     # Explicit UTF8: uiautomator writes UTF-8 and the tree is the only place a non-Latin label
     # survives, so a default-encoding read turns every Cyrillic label into a row of question marks.
-    $raw = Get-Content -LiteralPath $Destination -Raw -Encoding UTF8
-    try { return [xml]$raw } catch { Fail 7 "the node tree at $Destination is not valid XML: $($_.Exception.Message)" }
+    $previous = Get-Content -LiteralPath $Destination -Raw -Encoding UTF8
+    if (-not $Stable) {
+        try { return [xml]$previous } catch { Fail 7 "the node tree at $Destination is not valid XML: $($_.Exception.Message)" }
+    }
+    # Stable read: re-dump until two consecutive trees agree. A lagging tree stays self-consistent
+    # only until the accessibility layer catches up, so agreement across a pause is the cheapest
+    # signal that the read now describes the glass. The newest read always wins - the file on disk
+    # is the audit artifact and must match what this function returns - and a read that never
+    # settles is reported, not silently passed off as current.
+    $settled = $false
+    $wentNonIdle = $false
+    for ($read = 2; $read -le $Attempts; $read++) {
+        Start-Sleep -Milliseconds $stableDelayMs
+        Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
+        $dumpOut = (Invoke-Adb $Id @('shell', 'uiautomator', 'dump', $remote) -AllowFail) -join ' '
+        # A readout that went live between the first read and this one will refuse every remaining
+        # read for 10 s each and can never agree with anything (S3289). The first tree is already on
+        # disk and is the best answer available, so stop paying for confirmation that cannot come.
+        if ($dumpOut -match $script:UiTreeIdleRefusal) { $wentNonIdle = $true; break }
+        if ($dumpOut -notmatch 'dumped to') { continue }
+        $nextFile = "$Destination.next"
+        Invoke-Adb $Id @('pull', $remote, $nextFile) -AllowFail | Out-Null
+        Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
+        if (-not (Test-Path -LiteralPath $nextFile -PathType Leaf)) { continue }
+        $current = Get-Content -LiteralPath $nextFile -Raw -Encoding UTF8
+        Remove-Item -LiteralPath $nextFile -Force
+        if ($current -eq $previous) { $settled = $true; break }
+        $previous = $current
+    }
+    Set-Content -LiteralPath $Destination -Value $previous -NoNewline -Encoding UTF8
+    if ($wentNonIdle) {
+        Write-Host ("NOTE the screen stopped idling before the read could be confirmed on $Id - the listing is " +
+            "the first tree and may lag the screen (S3289: a live readout blocks every further dump)") -ForegroundColor Yellow
+    } elseif (-not $settled) {
+        Write-Host "NOTE the tree did not settle after $Attempts reads on $Id - the listing may lag the screen" -ForegroundColor Yellow
+    }
+    try { return [xml]$previous } catch { Fail 7 "the node tree at $Destination is not valid XML: $($_.Exception.Message)" }
 }
 
 # Flatten the tree in document order, carrying down whether an ANCESTOR is scrollable. That flag is
@@ -631,7 +906,7 @@ function Get-DisplayShape {
 switch ($Verb.ToLowerInvariant()) {
 
     'help' {
-        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,uidump,clip-check,log,tap,tap-id,tap-label,swipe,text,key,prefs,pull,push,shell,font-scale' } }
+        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,uidump,clip-check,log,tap,tap-id,tap-label,swipe,text,key,prefs,pull,push,shell,font-scale,state-begin,state-check' } }
         Write-Host "adb.ps1 - ad-hoc device swiss-army" -ForegroundColor Cyan
         Write-Host "Usage: pwsh -NoProfile -File scripts/devtest/adb.ps1 <verb> [options]" -ForegroundColor Gray
         Write-Host ""
@@ -651,6 +926,8 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  tap-label  tap a node by its text/content-desc: -Label <s> [-Exact] [-Index N]" -ForegroundColor White
         Write-Host "  clip-check report content leaving the display shape (read from the device); -Strict fails on CLIPPED" -ForegroundColor White
         Write-Host "  font-scale read the system font scale, or set it with -Scale <n> (1.0 = default)" -ForegroundColor White
+        Write-Host "  state-begin  open a device run: restore leftovers, snapshot device + app DataStore state" -ForegroundColor White
+        Write-Host "  state-check  close a device run: restore drift, one RESTORED line each (-NoRestore = report)" -ForegroundColor White
         Write-Host "  tap        input tap -X <x> -Y <y>" -ForegroundColor White
         Write-Host "  swipe      input swipe -X <x> -Y <y> -X2 <x> -Y2 <y> [-Duration ms]" -ForegroundColor White
         Write-Host "  text       input text -Text <string>" -ForegroundColor White
@@ -724,8 +1001,23 @@ switch ($Verb.ToLowerInvariant()) {
         $script:result.device = $id; $script:result.package = $pkg
         # Explicit component avoids the debug LeakCanary launcher pre-empting the app launcher.
         $activity = Resolve-Activity $id
-        Invoke-Adb $id @('shell', 'am', 'start', '-n', "$pkg/$activity") | Out-Null
-        if ($Json) { Emit-Ok @{ id = $id; package = $pkg; component = "$pkg/$activity" } }
+        $startArgs = @('shell', 'am', 'start', '-n', "$pkg/$activity")
+        $hasScreenDp = $PSBoundParameters.ContainsKey('ScreenDp')
+        if ($GeometryMode -or $hasScreenDp) {
+            if ($activity -ne $WEAR_MAIN_ACTIVITY) {
+                Fail 1 "-GeometryMode / -ScreenDp are watch test parameters, but the resolved component is the phone's $activity"
+            }
+            # A running activity would get these as a new intent over an already-composed screen; the
+            # force-stop makes the parameters describe the whole launch, which is what they promise.
+            Invoke-Adb $id @('shell', 'am', 'force-stop', $pkg) | Out-Null
+            if ($GeometryMode) { $startArgs += @('--es', 'fms_test_geometry', $GeometryMode) }
+            if ($hasScreenDp) { $startArgs += @('--ei', 'fms_test_screen_dp', "$ScreenDp") }
+        }
+        Invoke-Adb $id $startArgs | Out-Null
+        if ($Json) {
+            $dp = if ($hasScreenDp) { $ScreenDp } else { $null }
+            Emit-Ok @{ id = $id; package = $pkg; component = "$pkg/$activity"; geometryMode = $GeometryMode; screenDp = $dp }
+        }
         Write-Host "LAUNCHED $pkg/$activity on $id" -ForegroundColor Green
         exit 0
     }
@@ -1027,7 +1319,8 @@ switch ($Verb.ToLowerInvariant()) {
         }
         $written = $Axis.ToString([System.Globalization.CultureInfo]::InvariantCulture)
         for ($turn = 0; $turn -lt $Repeat; $turn++) {
-            Invoke-Adb $id @('shell', 'input', 'rotaryencoder', 'scroll', $written) | Out-Null
+            # S3233: emit --axis SCROLL,<val> so negative values (e.g. -2) are not parsed by platform input as unsupported option flag
+            Invoke-Adb $id @('shell', 'input', 'rotaryencoder', 'scroll', '--axis', "SCROLL,$written") | Out-Null
         }
         if ($Json) { Emit-Ok @{ id = $id; axis = $Axis; repeat = $Repeat } }
         Write-Host "ROTARY axis $written x$Repeat on $id" -ForegroundColor Green
@@ -1038,7 +1331,7 @@ switch ($Verb.ToLowerInvariant()) {
         $id = Select-Device
         $script:result.device = $id
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
-        $nodes = @(Get-UiNodes (Get-UiTree $id $file))
+        $nodes = @(Get-UiNodes (Get-UiTree $id $file -Stable))
         if (-not $Ids) { $nodes = @($nodes | Where-Object { $_.labelled }) }
         # -Grep spans the identifier too, so the same regex serves both ways of naming a target.
         if ($Grep) { $nodes = @($nodes | Where-Object { $_.label -match $Grep -or $_.resId -match $Grep }) }
@@ -1066,7 +1359,7 @@ switch ($Verb.ToLowerInvariant()) {
         $id = Select-Device
         $script:result.device = $id
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
-        $nodes = @(Get-UiNodes (Get-UiTree $id $file))
+        $nodes = @(Get-UiNodes (Get-UiTree $id $file -Stable))
         $hits  = @(Select-UiNodesById $nodes $ResourceId -Exact:$Exact)
         if ($hits.Count -eq 0) {
             Fail 8 "no visible node carries the resource-id '$ResourceId' - nothing was tapped. The tree is at $file; run 'uidump -Ids' and match an id from ITS output. Causes, commonest first: this node carries no resource-id at all (TabLayout tabs carry none - reach those with tap-label), the list needs scrolling, the screen is still animating"
@@ -1089,7 +1382,7 @@ switch ($Verb.ToLowerInvariant()) {
         $script:result.device = $id
         if (-not $Label) { Fail 1 "tap-label needs -Label <text-or-content-desc> (add -Exact for a whole-value match)" }
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
-        $nodes = @(Get-UiNodes (Get-UiTree $id $file))
+        $nodes = @(Get-UiNodes (Get-UiTree $id $file -Stable))
         $hits  = @($nodes | Where-Object {
             if ($Exact) { $_.text -eq $Label -or $_.desc -eq $Label }
             else { $_.text -like "*$Label*" -or $_.desc -like "*$Label*" }
@@ -1134,6 +1427,7 @@ switch ($Verb.ToLowerInvariant()) {
         # Invariant culture on purpose: a Russian Windows interpolates 1.3 as "1,3", which the
         # platform stores verbatim and then reads back as an unusable value.
         $written = $Scale.ToString([System.Globalization.CultureInfo]::InvariantCulture)
+        Save-StateOriginal $id 'settings.system.font_scale'
         Invoke-Adb $id @('shell', 'settings', 'put', 'system', 'font_scale', $written) | Out-Null
         $now = & $readScale
         if ($Json) { Emit-Ok @{ id = $id; scale = [double]$now; previous = [double]$current; written = [double]$written } }
@@ -1314,6 +1608,8 @@ switch ($Verb.ToLowerInvariant()) {
         $id = Select-Device
         $script:result.device = $id
         if (-not $Cmd) { Fail 1 "shell needs -Cmd `"<adb shell command>`"" }
+        $mutation = ConvertFrom-ShellMutation -Command $Cmd
+        if ($mutation) { Save-StateOriginal $id $mutation.Key }
         $out = & $adb -s $id shell $Cmd 2>&1
         $code = $LASTEXITCODE
         if ($Json) { Emit-Ok @{ id = $id; cmd = $Cmd; exit = $code; out = ($out -join "`n") } }
@@ -1322,6 +1618,72 @@ switch ($Verb.ToLowerInvariant()) {
         # file with no error at all, which is silent data loss rather than a visible failure.
         foreach ($l in $out) { Write-Output $l }
         if ($code -ne 0) { Fail 7 "shell command exit $code" }
+        exit 0
+    }
+
+    'state-begin' {
+        $id = Select-Device
+        $script:result.device = $id
+        $path = Get-StateJournalPath $id
+        # A journal already here is a run that never closed. Its originals are the owner's real values,
+        # so they go back before a new snapshot could record the leftovers as originals.
+        $leftover = @(Invoke-StateRestore -Id $id -Path $path)
+        Remove-StateJournal -Path $path
+        $journal = New-DeviceStateJournal -Serial (Get-StateSerial $id)
+        foreach ($key in @('wm.density', 'wm.size', 'settings.system.font_scale')) {
+            Add-DeviceStateOriginal -Journal $journal -Key $key -Original (Read-StateScalar $id $key) | Out-Null
+        }
+        $pkg = Find-InstalledPackage $id
+        $script:result.package = $pkg
+        $dataStoreFiles = 0
+        if ($pkg) {
+            $snapshot = Get-DataStoreSnapshot $id $pkg
+            $saved = Get-StateDataStoreDir -JournalPath $path -Pkg $pkg
+            New-Item -ItemType Directory -Path $saved -Force | Out-Null
+            foreach ($name in $snapshot.Bytes.Keys) {
+                [System.IO.File]::WriteAllBytes((Join-Path $saved $name), $snapshot.Bytes[$name])
+            }
+            Add-DeviceStateOriginal -Journal $journal -Key "datastore.$pkg" -Original ([ordered]@{ files = $snapshot.Files }) | Out-Null
+            $dataStoreFiles = $snapshot.Files.Count
+        }
+        Write-DeviceStateJournal -Path $path -Journal $journal
+        if ($Json) { Emit-Ok @{ id = $id; journal = $path; keys = @($journal.entries.Keys); dataStoreFiles = $dataStoreFiles; restoredLeftovers = $leftover } }
+        foreach ($d in $leftover) {
+            Write-Host "RESTORED $($d.key) $(Format-StateValue $d.current) -> $(Format-StateValue $d.original) (left by an earlier run)" -ForegroundColor Yellow
+        }
+        Write-Host "STATE BEGIN $($journal.entries.Count) key(s), $dataStoreFiles DataStore file(s) on $id -> $path" -ForegroundColor Green
+        exit 0
+    }
+
+    'state-check' {
+        $id = Select-Device
+        $script:result.device = $id
+        $path = Get-StateJournalPath $id
+        $hadJournal = Test-Path -LiteralPath $path
+        $drift = @(Invoke-StateRestore -Id $id -Path $path -ReportOnly:$NoRestore)
+        if ($NoRestore) {
+            if ($drift.Count -gt 0) {
+                if (-not $Json) {
+                    foreach ($d in $drift) { Write-Host "DRIFT $($d.key) $(Format-StateValue $d.current) (was $(Format-StateValue $d.original))" -ForegroundColor Yellow }
+                }
+                Fail 13 "$($drift.Count) value(s) differ from the journal and were not put back (-NoRestore)"
+            }
+            if ($Json) { Emit-Ok @{ id = $id; journal = $path; hadJournal = $hadJournal; restored = @() } }
+            Write-Host "STATE CLEAN on $id" -ForegroundColor Green
+            exit 0
+        }
+        # Proof, not intent: the restore is judged by reading the device again.
+        $remaining = @(Invoke-StateRestore -Id $id -Path $path -ReportOnly)
+        if (-not $Json) {
+            foreach ($d in $drift) { Write-Host "RESTORED $($d.key) $(Format-StateValue $d.current) -> $(Format-StateValue $d.original)" -ForegroundColor Yellow }
+        }
+        if ($remaining.Count -gt 0) {
+            Fail 13 "$($remaining.Count) value(s) still differ after the restore: $(($remaining | ForEach-Object { $_.key }) -join ', ') - journal kept at $path"
+        }
+        Remove-StateJournal -Path $path
+        if ($Json) { Emit-Ok @{ id = $id; journal = $path; hadJournal = $hadJournal; restored = $drift } }
+        $note = if ($hadJournal) { '' } else { ' (no journal - nothing was recorded)' }
+        Write-Host "STATE CHECK $($drift.Count) restored on $id$note" -ForegroundColor Green
         exit 0
     }
 

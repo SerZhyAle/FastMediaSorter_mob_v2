@@ -194,7 +194,7 @@ internal class AddResourceConnectionManager(
             .setPositiveButton(R.string.google_drive_select_folder) { _, _ ->
                 navigateToGoogleDriveFolderPicker(accountEmail)
             }
-            .setNeutralButton(android.R.string.cancel, null)
+            .setNeutralButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 
@@ -245,7 +245,7 @@ internal class AddResourceConnectionManager(
             .setMessage(R.string.msg_already_authenticated)
             .setPositiveButton(R.string.dropbox_select_folder) { _, _ -> navigateToDropboxFolderPicker(accountEmail) }
             .setNegativeButton(R.string.dropbox_sign_out) { _, _ -> signOutDropbox() }
-            .setNeutralButton(android.R.string.cancel, null)
+            .setNeutralButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 
@@ -290,7 +290,7 @@ internal class AddResourceConnectionManager(
             .setMessage(R.string.msg_already_authenticated)
             .setPositiveButton(R.string.onedrive_select_folder) { _, _ -> navigateToOneDriveFolderPicker(accountEmail) }
             .setNegativeButton(R.string.onedrive_sign_out) { _, _ -> signOutOneDrive() }
-            .setNeutralButton(android.R.string.cancel, null)
+            .setNeutralButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 
@@ -345,7 +345,7 @@ internal class AddResourceConnectionManager(
                     }
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 
@@ -457,7 +457,7 @@ internal class AddResourceConnectionManager(
                     smbForm.etSmbShareName.setText(resolved)
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 
@@ -465,7 +465,7 @@ internal class AddResourceConnectionManager(
         AlertDialog.Builder(activity)
             .setTitle(R.string.smb_no_shares_found_title)
             .setMessage(R.string.msg_no_shares_found)
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 
@@ -488,8 +488,8 @@ internal class AddResourceConnectionManager(
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.smb_manual_share_dialog_title))
             .setView(editText)
-            .setPositiveButton(android.R.string.ok, null) // set below to prevent auto-dismiss on invalid input
-            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.ok, null) // set below to prevent auto-dismiss on invalid input
+            .setNegativeButton(R.string.cancel, null)
             .create()
 
         dialog.setOnShowListener {
@@ -547,7 +547,7 @@ internal class AddResourceConnectionManager(
                     PermissionHelper.routeToLocalNetworkSettings(activity)
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 

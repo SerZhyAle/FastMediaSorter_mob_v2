@@ -2,92 +2,62 @@ package com.sza.fastmediasorter.wear.ui.apps.bodysensor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.data.bodysensor.HeartRateSessionManager
 import com.sza.fastmediasorter.wear.domain.bodysensor.BodySensorReading
 import com.sza.fastmediasorter.wear.domain.bodysensor.BodySensorUnavailableReason
-import com.sza.fastmediasorter.wear.domain.bodysensor.WearBodySensorDataSource
-import com.sza.fastmediasorter.wear.domain.model.HeartRateHistoryEntry
 import com.sza.fastmediasorter.wear.domain.model.HeartRateZone
 import com.sza.fastmediasorter.wear.domain.repository.HeartRateHistoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * S3013: Holds one foreground heart-rate session for exactly as long as the screen is open.
+ * S3013/S3112: a view of the heart-rate session, which it no longer owns.
  *
- * Every collection runs in `viewModelScope`, so leaving the diagnostic cancels it and the cold flow's
- * own teardown unregisters the sensor. Exposes live physiological heart rate zones and last reading history.
+ * The session runs for as long as the app is in the foreground and is held by
+ * [HeartRateSessionManager]; this ViewModel only renders its readings and the history it writes. Owning
+ * a measurement here would register a second sensor callback and write a competing history row.
  */
 @HiltViewModel
 class BodySensorViewModel @Inject constructor(
-    private val bodySensorDataSource: WearBodySensorDataSource,
-    private val historyRepository: HeartRateHistoryRepository
+    private val sessionManager: HeartRateSessionManager,
+    historyRepository: HeartRateHistoryRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BodySensorUiState())
     val state: StateFlow<BodySensorUiState> = _state.asStateFlow()
 
-    private var measurement: Job? = null
-    private var lastHeartRate: BodySensorReading.HeartRate? = null
-    private var cachedLastReading: HeartRateHistoryEntry? = null
-
     init {
         viewModelScope.launch {
             historyRepository.observeAll().collect { entries ->
-                cachedLastReading = entries.firstOrNull()
-                _state.value = _state.value.copy(lastReading = cachedLastReading)
+                _state.value = _state.value.copy(
+                    lastReading = entries.firstOrNull(),
+                    history = entries
+                )
             }
         }
-        refreshAvailability()
+        viewModelScope.launch {
+            sessionManager.state.collect { reading -> publish(reading) }
+        }
     }
 
     /**
-     * Asks whether a measurement could start, without starting one. Called again after the permission
-     * dialog closes, because the answer that mattered was taken before the user decided.
+     * Restarts the session after the permission dialog closes: the refusal that ended the previous one
+     * was recorded before the user decided, so it says nothing about the answer that is now in force.
      */
     fun refreshAvailability() {
-        measurement?.cancel()
-        measurement = null
-        savePendingReading()
-        viewModelScope.launch {
-            publish(bodySensorDataSource.availability())
-        }
+        sessionManager.restart()
     }
 
     fun startMeasurement() {
-        // A second press must not leave the first session registered: the previous flow is cancelled
-        // before the new one is collected, and cancellation is what runs its awaitClose.
-        measurement?.cancel()
-        savePendingReading()
-        lastHeartRate = null
-        measurement = viewModelScope.launch {
-            bodySensorDataSource.measure().collect(::publish)
-        }
-        measurement?.invokeOnCompletion { savePendingReading() }
-    }
-
-    /**
-     * S3013: saves the last heart-rate reading of the session that just ended, if one was received.
-     * Called from [invokeOnCompletion] on the measurement job, which fires on both cancellation
-     * (leaving the screen, starting a new measurement) and normal completion - so one history entry
-     * is written per session, carrying the last BPM the sensor delivered.
-     */
-    private fun savePendingReading() {
-        val reading = lastHeartRate
-        if (reading != null) {
-            lastHeartRate = null
-            viewModelScope.launch { historyRepository.save(reading.beatsPerMinute) }
-        }
+        sessionManager.restart()
     }
 
     private fun publish(reading: BodySensorReading) {
         val zone = if (reading is BodySensorReading.HeartRate) {
-            lastHeartRate = reading
             HeartRateZone.classify(reading.beatsPerMinute)
         } else {
             null
@@ -95,7 +65,6 @@ class BodySensorViewModel @Inject constructor(
         _state.value = _state.value.copy(
             reading = reading,
             currentZone = zone,
-            lastReading = cachedLastReading,
             canMeasure = isRetryable(reading)
         )
     }

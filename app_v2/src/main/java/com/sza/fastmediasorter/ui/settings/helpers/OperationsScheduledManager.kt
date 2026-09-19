@@ -134,7 +134,7 @@ class OperationsScheduledManager(
                         scheduledViewModel.operations.value.forEach { scheduledViewModel.delete(it.id) }
                     }
                 }
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .showBoundTo(fragment)
         }
 
@@ -289,7 +289,7 @@ class OperationsScheduledManager(
         MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.scheduled_ops_confirm_delete)
             .setPositiveButton(R.string.delete) { _, _ -> scheduledViewModel.delete(op.id) }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
     }
 
@@ -347,7 +347,7 @@ class OperationsScheduledManager(
                 )
             )
             .setPositiveButton(R.string.grant_permission) { _, _ -> openBatteryOptimizationScreen() }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
     }
 

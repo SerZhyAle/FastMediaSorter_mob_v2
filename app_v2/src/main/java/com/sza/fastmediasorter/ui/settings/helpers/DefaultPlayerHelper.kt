@@ -126,7 +126,7 @@ object DefaultPlayerHelper {
             .setPositiveButton(R.string.settings_default_player_dialog_confirm) { _, _ ->
                 openChooserOrFallback(fragment, mimeType)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
     }
 

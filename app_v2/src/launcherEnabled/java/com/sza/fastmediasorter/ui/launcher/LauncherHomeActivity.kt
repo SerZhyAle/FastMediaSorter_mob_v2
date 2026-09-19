@@ -15,6 +15,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -84,6 +85,7 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.lang.ref.WeakReference
@@ -282,7 +284,19 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     // S1560: one overlay per Activity, built on the first black-screen tap - a fresh manager per tap
     // would leak the previous overlay view on the decor view instead of reusing its hide path.
     private val blackScreenOverlayManager by lazy {
-        BlackScreenOverlayManager(WeakReference(this), SystemBarsManager(this))
+        BlackScreenOverlayManager(
+            WeakReference(this),
+            SystemBarsManager(this),
+            onVisibilityChanged = { isVisible ->
+                if (::wallpaperManager.isInitialized) {
+                    if (isVisible) {
+                        wallpaperManager.onStop()
+                    } else if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                        wallpaperManager.onStart()
+                    }
+                }
+            },
+        )
     }
 
     // S2667: one layout pass over this desktop was measured at 1.53 s, so re-padding it when the black
@@ -447,7 +461,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             gadgetRegistry = gadgetRegistry,
             viewModel = viewModel,
         )
-        Timber.d("S3087: resize manager ready before first desktop render")
         geometryManager.applyGridGeometry()
         geometryManager.seedDesktopIfNeeded()
 
@@ -513,7 +526,14 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // Order matters: the re-opened picker delivers to the listener registered on the line above, so
         // registering second would drop the very pick this call exists to enable.
         contactPickManager.restorePendingPicker()
-        idleScreenOffManager = LauncherIdleScreenOffManager { screenLockManager.turnScreenOff() }
+        // S3285: while the global prevent-sleep hold stands, an idle desktop goes dark by the app's own
+        // overlay and never by the system lock - the lock is the system sleep that setting forbids. The
+        // hold is re-read at each timeout, so dropping it (power saving, or the user turning it off)
+        // hands the idle path back to the real lock without restarting the launcher.
+        idleScreenOffManager = LauncherIdleScreenOffManager {
+            Timber.d("S3285: launcher idle elapsed, hold=$isKeepingScreenAwake")
+            screenLockManager.turnScreenOff(allowSystemLock = !isKeepingScreenAwake)
+        }
         idleScreenOffManager.onStart()
     }
 
@@ -590,7 +610,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     val isUnassigned = action is LauncherDesktopSwipeAction.EdgeGestureAction &&
                         action.action == ScreenshotGestureAction.DO_NOT_USE
                     val routedAction = if (startedOnRightHalf && isNotificationShadeDownSwipe(direction, action)) {
-                        Timber.d("S3148: right-half down swipe opens Quick Settings")
                         LauncherDesktopSwipeAction.EdgeGestureAction(
                             ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
                         )
@@ -653,6 +672,9 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 addItemAtSlot = { row, col -> addFlowManager.openContentPicker(row, col) },
                 wallpaper = { showWallpaperSettings() },
                 launcherSettings = { showLauncherSettings() },
+                pagePrevious = { pagingManager.previous() },
+                pageNext = { pagingManager.next() },
+                screenCount = { viewModel.launcherDesktopSettings.value.launcherScreenCount },
             ),
         )
         editModeManager.attach()
@@ -708,8 +730,18 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             geometryManager.renderDesktop(pagingManager.activeScreenIndex)
             taskbarManager.setEditMode(editMode)
         }
-        collectOnLifecycle(viewModel.screenBlackoutTimeoutSeconds) { timeout ->
-            idleScreenOffManager.updateTimeout(timeout)
+        // S3284: the two timeouts are one decision - the manager picks between them by the power state -
+        // so they arrive together rather than as two independent updates.
+        collectOnLifecycle(
+            viewModel.screenBlackoutTimeoutSeconds.combine(
+                viewModel.screenBlackoutTimeoutOnChargeSeconds,
+            ) { onBattery, onCharge -> onBattery to onCharge },
+        ) { (onBattery, onCharge) ->
+            Timber.d("S3284: launcher timeouts battery=%ds, onCharge=%ds", onBattery, onCharge)
+            idleScreenOffManager.updateTimeouts(onBattery, onCharge)
+        }
+        collectOnLifecycle(viewModel.chargingConnected) { charging ->
+            idleScreenOffManager.onChargingChanged(charging)
         }
         // S1904: the backdrop is part of what a cell looks like, so a new opacity is a re-render - the
         // binder's render key carries it and skips the rebuild when the value did not actually change.
@@ -743,7 +775,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     MaterialAlertDialogBuilder(this)
                         .setTitle(R.string.launcher_scheduled_op_confirm_title)
                         .setMessage(R.string.launcher_scheduled_op_confirm_message)
-                        .setPositiveButton(android.R.string.ok) { _, _ ->
+                        .setPositiveButton(R.string.ok) { _, _ ->
                             viewModel.executeScheduledOp(event.operationId)
                         }
                         .setNegativeButton(R.string.cancel, null)
@@ -936,7 +968,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         super.onStart()
         // Guarded: onStart fires before BaseActivity's posted setupViews() on the very first pass, which
         // is where the manager is created - that pass starts it itself.
-        if (::wallpaperManager.isInitialized) wallpaperManager.onStart()
+        if (::wallpaperManager.isInitialized && !blackScreenOverlayManager.isVisible) wallpaperManager.onStart()
         if (::idleScreenOffManager.isInitialized) idleScreenOffManager.onStart()
     }
 
@@ -1044,10 +1076,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     private fun consumeTouchForBlackScreen(ev: MotionEvent): Boolean {
         if (!blackScreenOverlayManager.isVisible) return false
-        if (ev.action == MotionEvent.ACTION_DOWN) {
-            blackScreenOverlayManager.hide()
-        }
-        return true
+        return blackScreenOverlayManager.onTouchEvent(ev)
     }
 
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {

@@ -59,7 +59,7 @@
     <string name="vr_hud_last_file">Último arquivo</string>
     <string name="vr_hud_move_done">Movido</string>
     <string name="vr_hud_paused">Em pausa</string>
-    <string name="vr_hud_playing">Jogando</string>
+    <string name="vr_hud_playing">Reproduzindo</string>
     <string name="vr_hud_prev_next_hint">← anterior / seguinte →</string>
     <string name="vr_hud_recenter_done">Recentrado</string>
     <string name="vr_hud_seek_bwd">Buscar para trás</string>
@@ -83,13 +83,13 @@
     <string name="vr_overlay_btn_bright_down">Brilhante -</string>
     <string name="vr_overlay_btn_bright_up">Brilhante +</string>
     <string name="vr_overlay_btn_exit">Saída</string>
-    <string name="vr_overlay_btn_format">Formatar</string>
+    <string name="vr_overlay_btn_format">Formato</string>
     <string name="vr_overlay_btn_next">Próximo</string>
     <string name="vr_overlay_btn_play_pause">Reproduzir/Pausar</string>
     <string name="vr_overlay_btn_prev">Anterior</string>
     <string name="vr_overlay_btn_settings">Configurações</string>
     <string name="vr_overlay_btn_speed">Velocidade</string>
-    <string name="vr_overlay_btn_track">Acompanhar</string>
+    <string name="vr_overlay_btn_track">Faixa</string>
     <string name="vr_overlay_btn_vol_down">Vol -</string>
     <string name="vr_overlay_btn_vol_up">Vol +</string>
     <string name="vr_overlay_speed_label">Velocidade: %sx</string>

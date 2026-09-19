@@ -53,6 +53,12 @@ class BrowseRecyclerViewManager(
         const val GRID_NO_THUMB_PLANK_CUBE_UNITS = 4
         const val GRID_NO_THUMB_CUBE_DP = 48f
         const val GRID_NO_THUMB_CUBE_COMPACT_DP = 24f
+
+        // Card padding a grid cell adds to its thumbnail width, and the tablet break point
+        // above which the grid never drops below three columns.
+        const val GRID_CARD_PADDING_DP = 8f
+        const val TABLET_WIDTH_DP = 600f
+        const val TABLET_MIN_GRID_SPAN = 3
     }
     
     init {
@@ -108,55 +114,29 @@ class BrowseRecyclerViewManager(
                         "UI_LAYOUT LIST wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} span=$columnCount"
                     )
                     Timber.d("updateDisplayMode: LIST dynamic columns=$columnCount (wide=$isWide, widthDp=$screenWidthDp)")
-                    GridLayoutManager(recyclerView.context, columnCount)
+                    resolveLayoutManager(columnCount, asGrid = true)
                 } else {
                     Timber.d(
                         "UI_LAYOUT LIST wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} span=1"
                     )
                     Timber.d("updateDisplayMode: Using Linear for LIST mode (widthDp=$screenWidthDp)")
-                    LinearLayoutManager(recyclerView.context)
+                    resolveLayoutManager(spanCount = 1, asGrid = false)
                 }
             }
             DisplayMode.GRID -> {
-                // In compact mode use half the icon size for span count so more columns fit;
-                // the adapter's onBindViewHolder renders each thumbnail at iconSize/2 internally.
-                val cardPaddingDp = 8f
-                val effectiveIconSizeDp = (if (isCompactMode) iconSize / 2 else iconSize).toFloat()
-                val itemWidthDp = effectiveIconSizeDp + cardPaddingDp
-
-                // Calculate span count with minimum for tablets
-                val calculatedSpanCount = (screenWidthDp / itemWidthDp).toInt()
-                val baseSpanCount = if (screenWidthDp >= 600f) {
-                    // Tablet: minimum 3 columns for better space utilization
-                    calculatedSpanCount.coerceAtLeast(3)
-                } else {
-                    // Phone: minimum 1 column
-                    calculatedSpanCount.coerceAtLeast(1)
-                }
-
-                // No-thumbnail grid renders horizontal "planks" (square extension cube + name).
-                // Size each plank to at least four cube-widths - one cube plus three for the name
-                // area, which also hosts the optional overflow button - so the name stays readable
-                // whatever the overflow-menu setting (S0548; supersedes the S0419 halving, which was
-                // tied to icon size and left the name only ~5 characters wide). Cube dp mirrors
-                // MediaFileAdapter.GridNoThumbViewHolder.cubeSizePx().
-                val spanCount = if (disableThumbnails) {
-                    val cubeDp = if (isCompactMode) GRID_NO_THUMB_CUBE_COMPACT_DP else GRID_NO_THUMB_CUBE_DP
-                    val minPlankWidthDp = cubeDp * GRID_NO_THUMB_PLANK_CUBE_UNITS + cardPaddingDp
-                    (screenWidthDp / minPlankWidthDp).toInt().coerceAtLeast(1)
-                } else {
-                    baseSpanCount
-                }
-
-                Timber.d(
-                    "UI_LAYOUT GRID wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} item=${"%.0f".format(itemWidthDp)} span=$spanCount compact=$isCompactMode noThumbs=$disableThumbnails"
+                val spanCount = calculateGridSpanCount(
+                    screenWidthDp = screenWidthDp,
+                    iconSize = iconSize,
+                    isCompactMode = isCompactMode,
+                    disableThumbnails = disableThumbnails
                 )
-
-                Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, itemWidth=${itemWidthDp}dp, spanCount=$spanCount (base=$baseSpanCount, calculated=$calculatedSpanCount)")
-                GridLayoutManager(recyclerView.context, spanCount)
+                resolveLayoutManager(spanCount, asGrid = true)
             }
         }
-        recyclerView.layoutManager = newLayoutManager
+        val layoutManagerChanged = recyclerView.layoutManager !== newLayoutManager
+        if (layoutManagerChanged) {
+            recyclerView.layoutManager = newLayoutManager
+        }
 
         // Grid rows otherwise touch (card padding is 0dp); add a small vertical gap between rows (S0419).
         if (mode == DisplayMode.GRID) {
@@ -170,20 +150,88 @@ class BrowseRecyclerViewManager(
         }
 
         // Restore scroll position after layout manager change
-        if (scrollPosition >= 0) {
+        if (layoutManagerChanged && scrollPosition >= 0) {
             recyclerView.post {
                 newLayoutManager.scrollToPosition(scrollPosition)
                 Timber.d("updateDisplayMode: Restored scroll position=$scrollPosition")
             }
         }
 
-        Timber.d("updateDisplayMode: Layout manager updated to ${newLayoutManager::class.simpleName}")
+        val managerState = if (layoutManagerChanged) "rebuilt" else "reused"
+        Timber.d("updateDisplayMode: Layout manager $managerState as ${newLayoutManager::class.simpleName}")
 
         callbacks.onDisplayModeChanged(mode)
     }
-    
+
+    /**
+     * S3282: assigning a freshly built layout manager drops the whole recycler pool and forces a
+     * full re-layout with a fresh bind of every visible row. The attached manager is kept whenever
+     * it already has the shape the caller asked for.
+     */
+    private fun resolveLayoutManager(spanCount: Int, asGrid: Boolean): RecyclerView.LayoutManager {
+        val current = recyclerView.layoutManager
+        val reusable = if (asGrid) {
+            current is GridLayoutManager && current.spanCount == spanCount
+        } else {
+            current is LinearLayoutManager && current !is GridLayoutManager
+        }
+        return when {
+            reusable -> requireNotNull(current)
+            asGrid -> GridLayoutManager(recyclerView.context, spanCount)
+            else -> LinearLayoutManager(recyclerView.context)
+        }
+    }
+
     fun cleanup() {
         // Release adapter resources if needed
+    }
+
+    private fun calculateGridSpanCount(
+        screenWidthDp: Float,
+        iconSize: Int,
+        isCompactMode: Boolean,
+        disableThumbnails: Boolean
+    ): Int {
+        // In compact mode use half the icon size for span count so more columns fit;
+        // the adapter's onBindViewHolder renders each thumbnail at iconSize/2 internally.
+        val effectiveIconSizeDp = (if (isCompactMode) iconSize / 2 else iconSize).toFloat()
+        val itemWidthDp = effectiveIconSizeDp + GRID_CARD_PADDING_DP
+
+        // Calculate span count with minimum for tablets
+        val calculatedSpanCount = (screenWidthDp / itemWidthDp).toInt()
+        val baseSpanCount = if (screenWidthDp >= TABLET_WIDTH_DP) {
+            calculatedSpanCount.coerceAtLeast(TABLET_MIN_GRID_SPAN)
+        } else {
+            calculatedSpanCount.coerceAtLeast(1)
+        }
+
+        // No-thumbnail grid renders horizontal "planks" (square extension cube + name).
+        // Size each plank to at least four cube-widths - one cube plus three for the name
+        // area, which also hosts the optional overflow button - so the name stays readable
+        // whatever the overflow-menu setting (S0548; supersedes the S0419 halving, which was
+        // tied to icon size and left the name only ~5 characters wide). Cube dp mirrors
+        // MediaFileAdapter.GridNoThumbViewHolder.cubeSizePx().
+        val spanCount = if (disableThumbnails) {
+            val cubeDp = if (isCompactMode) GRID_NO_THUMB_CUBE_COMPACT_DP else GRID_NO_THUMB_CUBE_DP
+            val minPlankWidthDp = cubeDp * GRID_NO_THUMB_PLANK_CUBE_UNITS + GRID_CARD_PADDING_DP
+            (screenWidthDp / minPlankWidthDp).toInt().coerceAtLeast(1)
+        } else {
+            baseSpanCount
+        }
+
+        val widthLabel = "%.0f".format(screenWidthDp)
+        val fontScaleLabel = "%.2f".format(resources.configuration.fontScale)
+        val itemLabel = "%.0f".format(itemWidthDp)
+        Timber.d(
+            "UI_LAYOUT GRID wDp=$widthLabel fs=$fontScaleLabel item=$itemLabel span=$spanCount " +
+                "compact=$isCompactMode noThumbs=$disableThumbnails"
+        )
+        Timber.d(
+            "updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, " +
+                "itemWidth=${itemWidthDp}dp, spanCount=$spanCount " +
+                "(base=$baseSpanCount, calculated=$calculatedSpanCount)"
+        )
+        return spanCount
     }
 
     private fun calculateListSpanCount(screenWidthDp: Float, isWide: Boolean): Int {

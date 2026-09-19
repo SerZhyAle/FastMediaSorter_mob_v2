@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.data.local.db.LauncherCellDao
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.RawSettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -48,6 +49,7 @@ class RestoreFromGoogleDriveUseCaseTest {
     private val context = mockk<Context>(relaxed = true)
     private val driveClient = mockk<GoogleDriveRestClient>()
     private val settingsRepository = mockk<SettingsRepository>()
+    private val rawSettingsRepository = mockk<RawSettingsRepository>(relaxed = true)
     private val resourceRepository = mockk<ResourceRepository>(relaxed = true)
     private val favoritesDao = mockk<FavoritesDao>(relaxed = true)
     private val scheduledRepo = mockk<ScheduledOperationRepository>(relaxed = true)
@@ -83,6 +85,7 @@ class RestoreFromGoogleDriveUseCaseTest {
             context,
             db,
             settingsRepository,
+            rawSettingsRepository,
             resourceRepository,
             scheduledRepo,
             credentialsRepository,

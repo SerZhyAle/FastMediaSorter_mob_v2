@@ -44,11 +44,17 @@ class LauncherSettingsStoreTest {
         // S2384: idle screen-off ships on at 30 seconds. Pinned as a literal for the same reason the
         // backdrop alpha below is - reading the constant the store reads would pin nothing.
         assertEquals(30, values.screenBlackoutTimeoutSeconds)
+        // S3284: the on-charge countdown ships off, so a plugged-in desktop stays lit. Literal for the
+        // same reason as the line above.
+        assertEquals(0, values.screenBlackoutTimeoutOnChargeSeconds)
         // S2320: the shared launcher backdrop starts at 25% opacity, so a fresh install reads its
         // surfaces as plates over the wallpaper. Pinned as a literal - reading the constant the store
         // itself reads would compare it with itself and pin nothing.
         assertEquals(0.25f, values.widgetBackdropAlpha, 0.0f)
         assertEquals(AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM, values.taskbarPlacement)
+        // S3131: one row is the pre-ticket bar, pinned as a literal so a later default move is a
+        // deliberate edit here rather than a constant compared with itself.
+        assertEquals(1, values.taskbarRows)
         assertEquals(AppSettings.LAUNCHER_WALLPAPER_BRANDED, values.wallpaperMode)
         // S2213: no saved place yet is the state a fresh install is in, and the branch a device pass is
         // least likely to reach - the tester has picked a city before he thinks to test this.
@@ -67,6 +73,19 @@ class LauncherSettingsStoreTest {
         LauncherSettingsStore.write(prefs, AppSettings(launcher = LauncherSettings(widgetBackdropAlpha = 0.02f)))
 
         assertEquals(0.0f, LauncherSettingsStore.read(prefs).widgetBackdropAlpha, 0.0f)
+    }
+
+    /**
+     * S3131: the settings row offers 1..3, so a stored value outside that range must resolve to one the
+     * row can select - otherwise the bar and the row it is configured by disagree (the S2320 lesson).
+     */
+    @Test
+    fun `a stored taskbar row count above the range reads back as the maximum`() {
+        val prefs = mutablePreferencesOf()
+
+        LauncherSettingsStore.write(prefs, AppSettings(launcher = LauncherSettings(taskbarRows = 9)))
+
+        assertEquals(AppSettings.MAX_LAUNCHER_TASKBAR_ROWS, LauncherSettingsStore.read(prefs).taskbarRows)
     }
 
     @Test
@@ -236,6 +255,7 @@ class LauncherSettingsStoreTest {
                 wallpaperImagePath = "/storage/emulated/0/wall.png",
                 allAppsSortDescending = true,
                 screenBlackoutTimeoutSeconds = 45,
+                screenBlackoutTimeoutOnChargeSeconds = 120,
                 widgetBackdropAlpha = 0.25f,
                 weatherLastLocation = "50.45,30.52,Kyiv",
                 animationPalette = AppSettings.ANIMATION_PALETTE_GREEN,
@@ -274,6 +294,10 @@ class LauncherSettingsStoreTest {
         assertEquals(
             settings.launcherScreenBlackoutTimeoutSeconds,
             values.screenBlackoutTimeoutSeconds,
+        )
+        assertEquals(
+            settings.launcherScreenBlackoutTimeoutOnChargeSeconds,
+            values.screenBlackoutTimeoutOnChargeSeconds,
         )
         assertEquals(settings.launcherWidgetBackdropAlpha, values.widgetBackdropAlpha, 0.0f)
         assertEquals(settings.launcherTaskbarPlacement, values.taskbarPlacement)

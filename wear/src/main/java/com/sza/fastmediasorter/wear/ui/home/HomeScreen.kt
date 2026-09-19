@@ -31,6 +31,8 @@ import com.sza.fastmediasorter.wear.domain.model.HomeSection
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.apps.WearAppAccentCatalog
+import com.sza.fastmediasorter.wear.ui.apps.WearAppIconCatalog
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
@@ -244,11 +246,7 @@ private fun HomeSectionChip(
                 painter = painterResource(glyph.painterRes),
                 contentDescription = null,
                 modifier = glyphModifier,
-                tint = if (glyph.ownsItsColour) {
-                    Color.Unspecified
-                } else {
-                    sectionTint(contentTypeFor(section.id))
-                }
+                tint = glyphTint(section, glyph)
             )
         }
     )
@@ -308,13 +306,24 @@ private fun HomeSectionCell(
             painter = painterResource(glyph.painterRes),
             contentDescription = null,
             modifier = glyphModifier,
-            tint = if (glyph.ownsItsColour) {
-                Color.Unspecified
-            } else {
-                sectionTint(contentTypeFor(section.id))
-            }
+            tint = glyphTint(section, glyph)
         )
     }
+}
+
+/**
+ * The tone a section glyph is drawn in: none for a vector that carries its own colour, the program's
+ * accent for the row that stands for a program, the section's semantic tone otherwise.
+ *
+ * S3116: one function rather than the same three-way choice repeated in the chip and the cell, which
+ * is how the two would come to draw one program in two colours.
+ */
+@Composable
+private fun glyphTint(section: HomeSection, glyph: SectionGlyph): Color = when {
+    glyph.ownsItsColour -> Color.Unspecified
+    // The Apps list's accent for the same program, so the row and the cell are recognisably one thing.
+    section.appId != null -> colorResource(WearAppAccentCatalog.accentFor(section.appId))
+    else -> sectionTint(contentTypeFor(section.id))
 }
 
 /**
@@ -335,6 +344,9 @@ private data class SectionGlyph(@DrawableRes val painterRes: Int, val ownsItsCol
 private fun glyphFor(section: HomeSection): SectionGlyph =
     WearResourceIconRegistry.resolveDrawable(section.iconId)
         ?.let { SectionGlyph(it, ownsItsColour = true) }
+        // S3116: a program wears the same glyph on this row as in the Apps list - one entity, one glyph,
+        // the rule S2509 already applied to the broadcast's two entrances. Its accent is applied below.
+        ?: section.appId?.let { SectionGlyph(WearAppIconCatalog.iconFor(it), ownsItsColour = false) }
         ?: SectionGlyph(iconFor(section.id), ownsItsColour = false)
 
 /**
@@ -377,6 +389,9 @@ private fun contentTypeFor(id: HomeSectionId): WearContentType? = when (id) {
     // one that exists only while the session does - giving it the stream tone would place it beside
     // the registered channels, which is exactly what the ticket's non-goal keeps it out of.
     HomeSectionId.PHONE_CAMERA,
+    // S3116: never reached while the row carries its program - the accent above answers first - and
+    // OTHER when it does not, for the same reason as the Programs row: it is a program of this app.
+    HomeSectionId.LAST_USED_APP,
     HomeSectionId.APPS -> WearContentType.OTHER
 }
 

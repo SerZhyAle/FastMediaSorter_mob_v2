@@ -16,10 +16,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sza.fastmediasorter.R
@@ -27,7 +27,6 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.databinding.ActivityResourceLaunchWidgetConfigBinding
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
@@ -54,8 +53,6 @@ class ResourceLaunchWidgetConfigActivity : BaseActivity<ActivityResourceLaunchWi
     override fun getViewBinding(): ActivityResourceLaunchWidgetConfigBinding =
         ActivityResourceLaunchWidgetConfigBinding.inflate(layoutInflater)
 
-    override fun keepScreenAwakeFor(settings: AppSettings): Boolean = false
-
     /** S0289 Phase 09: multimodal surface marker - widget config activity. */
     @Suppress("unused")
     private val multimodalInputSurface: UiSurface = UiSurface.WIDGET_CONFIG
@@ -68,7 +65,10 @@ class ResourceLaunchWidgetConfigActivity : BaseActivity<ActivityResourceLaunchWi
     override fun getMouseScrollTargetView(): View? = binding.widgetConfigComposeView
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_ESCAPE) { finish(); return true }
+        if (keyCode == KeyEvent.KEYCODE_ESCAPE) {
+            finish()
+            return true
+        }
         return super.onKeyDown(keyCode, event)
     }
 

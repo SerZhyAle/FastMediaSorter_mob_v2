@@ -34,4 +34,26 @@ class NoLegalWearRestrictedCapabilities @Inject constructor() : WearRestrictedCa
      * S2995: health features (Blood Pressure log, Motion Monitor) are offered in the sideload build.
      */
     override val offersHealthFeatures: Boolean = true
+
+    /**
+     * S3178: the sideload artifact is the full product and keeps every capability the store variant
+     * gave up. Stated once for all eight: this flavor's own manifest declares the permissions and the
+     * components behind them, so each one has a working path here. The strategic non-goal is explicit -
+     * nothing in `noLegal` changes behaviour to make the store variant simpler.
+     */
+    override val offersMediaAccess: Boolean = true
+
+    override val offersVoiceRecording: Boolean = true
+
+    override val offersRemoteSources: Boolean = true
+
+    override val offersDeviceDiagnostics: Boolean = true
+
+    override val offersNearbyDeviceState: Boolean = true
+
+    override val offersScreenCapture: Boolean = true
+
+    override val offersContentTransfer: Boolean = true
+
+    override val offersExternalEntryPoints: Boolean = true
 }

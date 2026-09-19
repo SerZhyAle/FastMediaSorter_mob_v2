@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.sync
 
 import com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.model.WearSyncLeg
 import com.sza.fastmediasorter.wear.domain.model.WearSyncLegResult
 import com.sza.fastmediasorter.wear.domain.model.WearSyncOutcome
@@ -9,9 +10,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
@@ -42,7 +43,12 @@ sealed class UnifiedSyncState {
  */
 @Singleton
 class WatchSyncCoordinator @Inject constructor(
-    private val syncWithPhone: SyncWithPhoneUseCase
+    private val syncWithPhone: SyncWithPhoneUseCase,
+    // S3178: the exchange moves the user's resources between the two devices, which is content
+    // transfer. The store artifact declares no Data Layer listener, so the answer never arrives -
+    // refusing at the entrance is what keeps the screen from waiting fifteen seconds for a reply
+    // that no component exists to receive.
+    private val capabilities: WearRestrictedCapabilities
 ) {
 
     private val _state = MutableStateFlow<UnifiedSyncState>(UnifiedSyncState.Idle)
@@ -53,6 +59,10 @@ class WatchSyncCoordinator @Inject constructor(
      *   not own a scope of its own that would keep an exchange running after the watch left the app.
      */
     fun syncEverything(scope: CoroutineScope) {
+        if (!capabilities.offersContentTransfer) {
+            Timber.d("Content transfer is not offered by this build - the unified sync is not started")
+            return
+        }
         if (_state.value is UnifiedSyncState.Running) {
             Timber.d("Unified sync already running - ignoring the repeat tap")
             return
@@ -86,9 +96,9 @@ class WatchSyncCoordinator @Inject constructor(
         val result = withTimeoutOrNull(IMPORT_TIMEOUT_MS) { imported.first() }
         if (result == null) {
             Timber.w("Unified sync: the phone did not answer with resources within $IMPORT_TIMEOUT_MS ms")
-            return outcome.withLeg(WearSyncLeg.RESOURCES_IN, WearSyncLegResult.Failed(REASON_NO_ANSWER))
         }
-        return outcome.withLeg(WearSyncLeg.RESOURCES_IN, result)
+        val leg = result ?: WearSyncLegResult.Failed(REASON_NO_ANSWER)
+        return outcome.withLeg(WearSyncLeg.RESOURCES_IN, leg)
     }
 
     private companion object {

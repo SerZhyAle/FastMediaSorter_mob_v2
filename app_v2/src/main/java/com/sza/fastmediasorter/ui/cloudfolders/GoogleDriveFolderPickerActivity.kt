@@ -10,13 +10,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.children
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityGoogleDriveFolderPickerBinding
-import com.sza.fastmediasorter.databinding.ItemGoogleDriveFolderBinding
+import com.sza.fastmediasorter.databinding.ItemCloudFolderBinding
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -35,19 +35,21 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
     @javax.inject.Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
 
     private lateinit var folderAdapter: CloudFolderAdapter
+
     // S0196 Phase 04: one-shot tag on the first non-empty folder list bind.
     private var firstListBoundLogged = false
     private var initialFolderFocusTransferred = false
-    private val keyboardDelegate = CloudFolderPickerKeyboardDelegate(object : CloudFolderPickerKeyboardDelegate.Callback {
-        override fun activateFocused(): Boolean {
-            // Keyboard OpenCurrent must target the focused row/button, not always the first folder.
-            return activateFocusedViewOrAncestor()
-        }
-        override fun navigateUp() { handleBackNavigation() }
-        override fun refresh() { viewModel.loadFolders() }
-        override fun cancel() { finish() }
-        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.CLOUD_PICKER) }
-    })
+    private val keyboardDelegate =
+        CloudFolderPickerKeyboardDelegate(object : CloudFolderPickerKeyboardDelegate.Callback {
+            override fun activateFocused(): Boolean {
+                // Keyboard OpenCurrent must target the focused row/button, not always the first folder.
+                return activateFocusedViewOrAncestor()
+            }
+            override fun navigateUp() { handleBackNavigation() }
+            override fun refresh() { viewModel.loadFolders() }
+            override fun cancel() { finish() }
+            override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.CLOUD_PICKER) }
+        })
 
     private val reAuthLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -92,15 +94,18 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
             handleBackNavigation()
         }
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                handleBackNavigation()
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    handleBackNavigation()
+                }
             }
-        })
+        )
 
         folderAdapter = CloudFolderAdapter(
             inflate = { inflater, parent, attach ->
-                CloudFolderItemBinding.GDrive(ItemGoogleDriveFolderBinding.inflate(inflater, parent, attach))
+                ItemCloudFolderBinding.inflate(inflater, parent, attach)
             },
             onFolderSelect = { folder -> viewModel.selectFolder(folder) },
             onFolderNavigate = { folder -> viewModel.navigateIntoFolder(folder) },

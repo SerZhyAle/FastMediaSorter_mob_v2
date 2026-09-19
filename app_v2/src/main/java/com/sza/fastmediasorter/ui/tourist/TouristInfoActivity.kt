@@ -5,15 +5,19 @@ import android.content.Intent
 import android.content.res.Configuration
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityTouristInfoBinding
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
+import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristActionsManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristHeroTileManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristSecondaryTilesAdapter
+import com.sza.fastmediasorter.ui.tourist.helpers.TouristTileValueFormatter
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * S2922: Tourist dashboard subprogram displaying live telemetry and navigational tiles.
@@ -22,6 +26,12 @@ import dagger.hilt.android.AndroidEntryPoint
 class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
 
     private val viewModel: TouristInfoViewModel by viewModels()
+
+    @Inject
+    lateinit var quantityFormatter: QuantityFormatter
+
+    @Inject
+    lateinit var unitSystemProvider: UnitSystemProvider
 
     private lateinit var heroTileManager: TouristHeroTileManager
     private lateinit var secondaryTilesAdapter: TouristSecondaryTilesAdapter
@@ -34,7 +44,11 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
         binding.touristRoot.applySystemBarInsetPadding()
         binding.toolbar.setNavigationOnClickListener { finish() }
 
-        heroTileManager = TouristHeroTileManager(binding) { focusedTile ->
+        val valueFormatter = TouristTileValueFormatter(this, quantityFormatter) {
+            unitSystemProvider.value
+        }
+
+        heroTileManager = TouristHeroTileManager(binding, valueFormatter) { focusedTile ->
             when (focusedTile) {
                 TouristTileType.SPEED -> viewModel.resetSpeedAndTrip()
                 TouristTileType.STEPS -> viewModel.resetSteps()
@@ -44,7 +58,7 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
         }
         actionsManager = TouristActionsManager(this)
 
-        secondaryTilesAdapter = TouristSecondaryTilesAdapter { tileType ->
+        secondaryTilesAdapter = TouristSecondaryTilesAdapter(valueFormatter) { tileType ->
             viewModel.selectTile(tileType)
         }
 
@@ -71,6 +85,10 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
             }
         }
 
+        // S3216: the dashboard is where the owner already is when something goes wrong outdoors, so
+        // the distress signal is one tap from it rather than back through the programs menu.
+        binding.btnSos.setOnClickListener { actionsManager.launchSos() }
+
         binding.cardHeroTile.setOnClickListener {
             val state = viewModel.state.value
             if (state.focusedTile == TouristTileType.COORDINATES) {
@@ -80,10 +98,20 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
     }
 
     override fun observeData() {
-        collectOnLifecycle(viewModel.state) { state ->
-            heroTileManager.bind(state, this)
-            secondaryTilesAdapter.updateState(state)
+        collectOnLifecycle(viewModel.state) {
+            renderDashboard()
         }
+        // The measurement system can flip while this screen is open, and every tile's unit depends on
+        // it, so the same state is re-bound rather than waiting for the next telemetry emission.
+        collectOnLifecycle(unitSystemProvider.current) {
+            renderDashboard()
+        }
+    }
+
+    private fun renderDashboard() {
+        val state = viewModel.state.value
+        heroTileManager.bind(state, this)
+        secondaryTilesAdapter.updateState(state)
     }
 
     companion object {

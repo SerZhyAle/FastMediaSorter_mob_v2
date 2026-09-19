@@ -35,8 +35,9 @@ import javax.inject.Inject
  * contract (strategic §5.3). Every flavor that has a desktop also has translation, so the cell needs no
  * runtime capability check and adds no gating axis.
  *
- * Seeds and stays at 2x2: a translation almost never fits one line, so the grid must keep room for the
- * input and controls.
+ * S3206: seeds, adds and resizes at 4x3 and never smaller - the owner's minimum footprint. A
+ * translation almost never fits one line, so the grid must keep room for the input and the controls,
+ * and the seed hands the tile this size directly so a fresh desktop never opens below it.
  */
 class TranslatorGadget @Inject constructor(
     private val facadeFactory: Lazy<TextTranslationFacadeFactory>,
@@ -44,16 +45,22 @@ class TranslatorGadget @Inject constructor(
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_TRANSLATOR
-    override val defaultSpanW: Int = 2
-    override val defaultSpanH: Int = 2
-    override val minSpanW: Int = 2
+    override val defaultSpanW: Int = SPAN_W
+    override val defaultSpanH: Int = SPAN_H
+    override val minSpanW: Int = SPAN_W
+    override val minSpanH: Int = SPAN_H
     override val labelRes: Int = R.string.launcher_gadget_translator
     override val iconRes: Int = R.drawable.ic_translate
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View {
-        Timber.d("S3135: Translator gadget view created")
         return TranslatorGadgetView(container.context, facadeFactory, settingsRepository)
+    }
+
+    private companion object {
+        // S3206: the owner's minimum footprint, shared by the default and the resize floor.
+        const val SPAN_W = 4
+        const val SPAN_H = 3
     }
 }
 

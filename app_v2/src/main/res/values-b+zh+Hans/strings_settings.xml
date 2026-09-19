@@ -262,4 +262,17 @@
     <string name="settings_wear_install_guide_button">如何在手表上安装</string>
     <string name="settings_wear_web_portal_button">关于手表</string>
     <string name="setting_stopwatch_desc">在主菜单和启动器小部件中显示秒表</string>
+    <string name="cross_device_transfer_send_to_device">发送到我的设备（Drive）</string>
+    <string name="cross_device_transfer_pending_title">待处理的设备传输</string>
+    <string name="cross_device_transfer_receive_and_delete">接收并从云端删除</string>
+    <string name="cross_device_transfer_receive_and_keep">接收并保留在云端</string>
+    <string name="cross_device_transfer_empty">没有内容在等待此设备。请从另一台设备发送文件或设置，即可在此看到。</string>
+    <string name="cross_device_transfer_sending">正在上传到你的 Drive 队列..</string>
+    <string name="cross_device_transfer_sent">已上传。请在你的另一台设备上打开此界面来取用。</string>
+    <string name="cross_device_transfer_received_files">已保存到应用的接收文件夹</string>
+    <string name="cross_device_transfer_received_settings">已应用来自另一台设备的设置</string>
+    <string name="cross_device_transfer_failed">传输未完成。请检查 Drive 登录状态和网络连接，然后重试。</string>
+    <string name="cross_device_transfer_row_subtitle">来自您其他设备的文件和设置，正在您的 Google Drive 中等待</string>
+    <string name="cross_device_transfer_remove_expired">移除过期数据包</string>
+    <string name="cross_device_transfer_expired_removed">已移除过期数据包：%1$d</string>
 </resources>

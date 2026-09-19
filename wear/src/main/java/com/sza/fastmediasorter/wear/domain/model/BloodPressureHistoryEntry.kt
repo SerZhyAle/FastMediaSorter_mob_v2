@@ -9,10 +9,15 @@ package com.sza.fastmediasorter.wear.domain.model
  *
  * [timestampMillis] is the wall-clock time the measurement was saved, set by the repository
  * implementation so callers never need to pass it.
+ *
+ * S3113: [source] tells a cuff reading from an estimate, which the history must show; [pulse] is the heart
+ * rate measured with it, null for a row typed before the watch measured one.
  */
 data class BloodPressureHistoryEntry(
     val id: Long,
     val systolic: Int,
     val diastolic: Int,
-    val timestampMillis: Long
+    val timestampMillis: Long,
+    val source: BloodPressureSource = BloodPressureSource.MANUAL,
+    val pulse: Int? = null
 )

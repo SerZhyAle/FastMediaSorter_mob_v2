@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.wear.domain.catalog
 
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
+import com.sza.fastmediasorter.wear.domain.model.WearApp
+import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.destinationFor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -49,9 +51,17 @@ class HomeSectionCatalogTest {
     fun `a catalogued section is addressed by its id and carries no route`() {
         // S2751: a route on a record the domain hands out is what put the address table below the
         // screens. Every catalogued section must therefore answer null here and resolve through its id.
-        HomeSectionCatalog.sectionsFor(visibility(streamsEnabled = true)).forEach { section ->
+        // S3116: the recent-program row is the one exception, and it is addressed by the program it
+        // carries rather than by a fixed destination - so it is asserted to carry that instead.
+        HomeSectionCatalog.sectionsFor(
+            visibility(streamsEnabled = true, lastUsedApp = app(WearAppId.GAME))
+        ).forEach { section ->
             assertNull("${'$'}{section.id} must not carry an address", section.route)
-            assertNotNull("${'$'}{section.id} must resolve to a destination", destinationFor(section.id))
+            if (section.id == HomeSectionId.LAST_USED_APP) {
+                assertNotNull("${'$'}{section.id} must carry a program", section.appId)
+            } else {
+                assertNotNull("${'$'}{section.id} must resolve to a destination", destinationFor(section.id))
+            }
         }
     }
 
@@ -129,7 +139,58 @@ class HomeSectionCatalogTest {
         assertTrue(ids.indexOf(HomeSectionId.FAVOURITES) < ids.indexOf(HomeSectionId.PHONE_CAMERA))
     }
 
-    private fun visibility(streamsEnabled: Boolean = false) = HomeSectionVisibility(
-        streamsEnabled = streamsEnabled
+    /**
+     * S3116: the slot after Apps follows the program opened last, and its first state is the one it
+     * had before this ticket - the broadcast entrance every existing shortcut already addresses.
+     */
+    @Test
+    fun `the slot after apps is the broadcast row until a program has been opened`() {
+        val ids = HomeSectionCatalog.sectionsFor(visibility()).map { it.id }
+
+        assertEquals(
+            "the broadcast row moved",
+            ids.indexOf(HomeSectionId.APPS) + 1,
+            ids.indexOf(HomeSectionId.BROADCAST)
+        )
+        assertFalse(ids.contains(HomeSectionId.LAST_USED_APP))
+    }
+
+    /** The broadcast is a program too, and the row it was reached by stays exactly itself. */
+    @Test
+    fun `the broadcast opened last leaves the row as the broadcast row`() {
+        val ids = HomeSectionCatalog.sectionsFor(visibility(lastUsedApp = app(WearAppId.BROADCAST)))
+            .map { it.id }
+
+        assertTrue(ids.contains(HomeSectionId.BROADCAST))
+        assertFalse(ids.contains(HomeSectionId.LAST_USED_APP))
+    }
+
+    @Test
+    fun `another program opened last takes that slot and carries its own id`() {
+        val sections = HomeSectionCatalog.sectionsFor(visibility(lastUsedApp = app(WearAppId.GAME)))
+        val ids = sections.map { it.id }
+
+        assertEquals(ids.indexOf(HomeSectionId.APPS) + 1, ids.indexOf(HomeSectionId.LAST_USED_APP))
+        assertFalse(ids.contains(HomeSectionId.BROADCAST))
+        assertEquals(WearAppId.GAME, sections.first { it.id == HomeSectionId.LAST_USED_APP }.appId)
+    }
+
+    /** ADR-3: the row replaces one cell rather than adding one, so the grid below it never moves. */
+    @Test
+    fun `the recent program row does not change how many sections are drawn`() {
+        assertEquals(
+            HomeSectionCatalog.sectionsFor(visibility()).size,
+            HomeSectionCatalog.sectionsFor(visibility(lastUsedApp = app(WearAppId.GAME))).size
+        )
+    }
+
+    private fun app(id: WearAppId) = WearApp(id = id, labelRes = 0)
+
+    private fun visibility(
+        streamsEnabled: Boolean = false,
+        lastUsedApp: WearApp? = null
+    ) = HomeSectionVisibility(
+        streamsEnabled = streamsEnabled,
+        lastUsedApp = lastUsedApp
     )
 }

@@ -15,7 +15,7 @@
     <string name="smb_network_unstable">网络不稳定 - 请检查 Wi-Fi。</string>
     <string name="smb_no_shares_found_title">未找到股份</string>
     <string name="smb_password">密码</string>
-    <string name="smb_port">港口</string>
+    <string name="smb_port">端口</string>
     <string name="smb_port_hint">默认值：445</string>
     <string name="smb_resource_added_readonly">已添加 SMB 资源（只读）。写入操作将不可用。</string>
     <string name="smb_resource_added_success">SMB资源已成功添加。</string>
@@ -36,7 +36,7 @@
     <string name="sftp_ftp_folder">SFTP/FTP</string>
     <string name="sftp_ftp_folder_description">添加 SFTP 或 FTP 远程文件夹</string>
     <string name="sftp_ftp_port_hint">SFTP：22，FTP：21</string>
-    <string name="sftp_host">主持人</string>
+    <string name="sftp_host">主机</string>
     <string name="sftp_host_hint">服务器 IP 地址</string>
     <string name="sftp_key_invalid">无效的 SSH 私钥格式</string>
     <string name="sftp_key_load_error">加载密钥文件失败</string>
@@ -44,7 +44,7 @@
     <string name="sftp_key_passphrase_hint">如果密钥未加密，请留空。</string>
     <string name="sftp_load_key">加载文件</string>
     <string name="sftp_password">密码</string>
-    <string name="sftp_port">港口</string>
+    <string name="sftp_port">端口</string>
     <string name="sftp_private_key">私钥</string>
     <string name="sftp_private_key_hint">粘贴密钥或选择一个文件。</string>
     <string name="sftp_remote_path">远程路径</string>

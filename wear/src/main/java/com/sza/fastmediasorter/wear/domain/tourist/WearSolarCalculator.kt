@@ -16,6 +16,8 @@ import kotlin.math.tan
  * S3007: pure offline astronomical calculator for solar events (sunrise, sunset, daylight)
  * based on the standard NOAA Solar Position Algorithm.
  */
+// The coefficients are the published NOAA algorithm itself, not tunable thresholds.
+@Suppress("MagicNumber")
 object WearSolarCalculator {
 
     private const val OFFICIAL_ZENITH = 90.83333333333333
@@ -152,4 +154,3 @@ object WearSolarCalculator {
         return utcDateTime.toInstant().toEpochMilli()
     }
 }
-

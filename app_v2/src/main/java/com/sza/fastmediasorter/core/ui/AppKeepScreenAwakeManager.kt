@@ -5,8 +5,6 @@ import android.app.Application
 import android.os.Bundle
 import android.view.WindowManager
 import com.sza.fastmediasorter.core.di.ApplicationScope
-import com.sza.fastmediasorter.core.util.AnimationPolicy
-import com.sza.fastmediasorter.core.util.PowerPolicyLevel
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +12,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -52,7 +51,8 @@ class AppKeepScreenAwakeManager @Inject constructor(
         // S2536: the same stand-down BaseActivity applies, for the hosts that do not inherit it. The
         // level is read here rather than cached with preventSleep so a resume after the charge
         // recovered gets the current answer without this class observing the level itself.
-        if (preventSleep && AnimationPolicy.level != PowerPolicyLevel.SAVING) {
+        Timber.d("S3285: plain host ${activity::class.simpleName}, preventSleep=$preventSleep")
+        if (KeepScreenAwakePolicy.shouldKeepScreenAwake(preventSleep)) {
             activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
             activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -70,8 +70,8 @@ class AppKeepScreenAwakeManager @Inject constructor(
         if (resumedActivity?.get() === activity) resumedActivity = null
     }
 
-    override fun onActivityStarted(activity: Activity) {}
-    override fun onActivityStopped(activity: Activity) {}
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-    override fun onActivityDestroyed(activity: Activity) {}
+    override fun onActivityStarted(activity: Activity) = Unit
+    override fun onActivityStopped(activity: Activity) = Unit
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+    override fun onActivityDestroyed(activity: Activity) = Unit
 }

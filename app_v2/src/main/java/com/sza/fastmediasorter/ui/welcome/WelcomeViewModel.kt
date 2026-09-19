@@ -6,18 +6,19 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.ui.BaseViewModel
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
+import com.sza.fastmediasorter.data.model.DetectionConfidence
+import com.sza.fastmediasorter.data.model.DeviceProfile
+import com.sza.fastmediasorter.data.model.DeviceProfileSource
+import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
+import com.sza.fastmediasorter.domain.launcher.LauncherPrimaryWindow
+import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ApplyProfilePresetUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.ProfileImpliesAllFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.SeedDefaultGestureBindingsUseCase
 import com.sza.fastmediasorter.ui.profile.DeviceProfileAvailability
-import com.sza.fastmediasorter.data.model.DeviceProfile
-import com.sza.fastmediasorter.data.model.DeviceProfileType
-import com.sza.fastmediasorter.data.model.DeviceProfileSource
-import com.sza.fastmediasorter.data.model.DetectionConfidence
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -86,6 +87,9 @@ class WelcomeViewModel @Inject constructor(
             } else {
                 recommended
             }
+            if (!hasExplicitPrimaryWindowChoice && selectedPrimaryWindow == null) {
+                selectedPrimaryWindow = LauncherPrimaryWindow.recommendedFor(selected)
+            }
             updateState {
                 it.copy(
                     recommendedProfile = recommended,
@@ -99,6 +103,9 @@ class WelcomeViewModel @Inject constructor(
 
     fun onProfileSelected(type: DeviceProfileType) {
         updateState { it.copy(selectedProfile = type) }
+        if (!hasExplicitPrimaryWindowChoice) {
+            selectedPrimaryWindow = LauncherPrimaryWindow.recommendedFor(type)
+        }
         Timber.i("Device profile manually selected in Welcome: $type")
     }
 
@@ -342,14 +349,23 @@ class WelcomeViewModel @Inject constructor(
         }
     }
 
-    // S0404: the first-page launcher toggle choice, honoured once when onboarding completes. Held in
-    // the (config-change-surviving) ViewModel rather than the StateFlow - no UI observes it; only
-    // completeWelcomeFlow reads it at the end of the wizard.
-    var launcherModeRequested: Boolean = false
-        private set
+    // S0404 / S3024: Primary window choice for onboarding. Held in the (config-change-surviving)
+    // ViewModel so explicit picks survive configuration changes.
+    private var selectedPrimaryWindow: LauncherPrimaryWindow? = null
+    private var hasExplicitPrimaryWindowChoice: Boolean = false
 
-    fun setLauncherModeRequested(requested: Boolean) {
-        launcherModeRequested = requested
+    fun getRecommendedPrimaryWindow(): LauncherPrimaryWindow {
+        val profile = state.value.selectedProfile ?: state.value.recommendedProfile
+        return LauncherPrimaryWindow.recommendedFor(profile)
+    }
+
+    fun getSelectedPrimaryWindow(): LauncherPrimaryWindow {
+        return selectedPrimaryWindow ?: getRecommendedPrimaryWindow()
+    }
+
+    fun onPrimaryWindowSelected(choice: LauncherPrimaryWindow) {
+        selectedPrimaryWindow = choice
+        hasExplicitPrimaryWindowChoice = true
     }
 
     /**

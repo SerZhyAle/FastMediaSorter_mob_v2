@@ -256,16 +256,54 @@ Assert-Equal -Label 'a screen that never ran clip-check is clean, not unchecked'
 Assert-Equal -Label 'a non-numeric exit code is never read as passing' `
     -Expected 'unchecked' -Actual (Get-ClipShapeClass 'not-a-code')
 
+# --- S3189: a shape finding accepted for one flavor only -----------------------------------------
+
+Assert-Equal -Label 'a -NoLegal versionName is the noLegal flavor' `
+    -Expected 'noLegal' -Actual (Get-WearFlavorFromVersionName '2.60.9162.000-NoLegal-DEBUG')
+
+Assert-Equal -Label 'a plain versionName is the standard flavor' `
+    -Expected 'standard' -Actual (Get-WearFlavorFromVersionName '2.60.9162.000-DEBUG')
+
+Assert-Equal -Label 'an unreadable versionName is standard, so a failed probe grants nothing' `
+    -Expected 'standard' -Actual (Get-WearFlavorFromVersionName $null)
+
+$acceptingEntry = '{"id":"apps-game","acceptedOffGlass":{"flavors":["noLegal"],"reason":"r"}}' | ConvertFrom-Json
+$plainEntry = '{"id":"apps-calculator"}' | ConvertFrom-Json
+
+Assert-Equal -Label 'an entry accepts a finding on a flavor it lists' `
+    -Expected $true -Actual (Test-WalkShapeAccepted -Screen $acceptingEntry -Flavor 'noLegal')
+
+Assert-Equal -Label 'the same entry does not accept it on standard' `
+    -Expected $false -Actual (Test-WalkShapeAccepted -Screen $acceptingEntry -Flavor 'standard')
+
+Assert-Equal -Label 'an entry without acceptedOffGlass accepts nothing' `
+    -Expected $false -Actual (Test-WalkShapeAccepted -Screen $plainEntry -Flavor 'noLegal')
+
+Assert-Equal -Label 'an accepted finding row classifies as accepted' `
+    -Expected 'accepted' -Actual (Get-WalkRowShapeClass ([pscustomobject]@{ shapeExit = 9; shapeAccepted = 'r' }))
+
+Assert-Equal -Label 'a finding row without acceptance is still a finding' `
+    -Expected 'finding' -Actual (Get-WalkRowShapeClass ([pscustomobject]@{ shapeExit = 9 }))
+
+Assert-Equal -Label 'acceptance never turns an unchecked shape into a pass' `
+    -Expected 'unchecked' -Actual (Get-WalkRowShapeClass ([pscustomobject]@{ shapeExit = 7; shapeAccepted = 'r' }))
+
+Assert-Equal -Label 'a row with no shape check is clean' `
+    -Expected 'clean' -Actual (Get-WalkRowShapeClass ([pscustomobject]@{ id = 'x' }))
+
+Assert-Equal -Label 'the walk marks an accepted finding on the row' `
+    -Expected $true -Actual ($walkText -match 'Test-WalkShapeAccepted -Screen \$screen -Flavor \$result\.flavor')
+
 # --- S2782: the walk wires the two classes to two different exit codes ---------------------------
 
 Assert-Equal -Label 'the walk sources the shape classifier instead of testing 9 and 10 itself' `
     -Expected $true -Actual ($walkText -match 'clip-shape-outcome\.ps1')
 
-Assert-Equal -Label 'the shape-failure count is classified, not a bare -ne 0 test' `
-    -Expected $true -Actual ($walkText -match "Get-ClipShapeClass \`$_\.shapeExit\) -eq 'finding'")
+Assert-Equal -Label 'the shape-failure count is classified (S3189: through the row classifier), not a bare -ne 0 test' `
+    -Expected $true -Actual ($walkText -match "Get-WalkRowShapeClass \`$_\) -eq 'finding'")
 
 Assert-Equal -Label 'an unchecked shape is counted in its own right' `
-    -Expected $true -Actual ($walkText -match "Get-ClipShapeClass \`$_\.shapeExit\) -eq 'unchecked'")
+    -Expected $true -Actual ($walkText -match "Get-WalkRowShapeClass \`$_\) -eq 'unchecked'")
 
 Assert-Equal -Label 'a shape FINDING still loses the walk its exit 0' `
     -Expected $true -Actual ($walkText -match '(?s)\$verdict = if \(.*?\$shapeFailuresCount -gt 0')
@@ -324,6 +362,11 @@ Assert-Equal -Label 'and does not inflate the failed count with it' `
 
 # A screen whose clip-check could not run at all. Nothing was decided about the glass there, which is
 # the `manual` class - it refuses the PASS without claiming the app is broken.
+$acceptedVerdict = Invoke-VerdictOnScreens -Screens @(
+    [pscustomobject]@{ id = 'apps-game'; outcome = 'observed'; shapeExit = 9; shapeAccepted = 'r' })
+Assert-Equal -Label 'the verdict does not count an accepted finding as offGlass' `
+    -Expected 0 -Actual $(if ($acceptedVerdict) { $acceptedVerdict.breakdown.walk.offGlass } else { 'no-json' })
+
 $uncheckedVerdict = Invoke-VerdictOnScreens @(
     @{ id = 'home'; outcome = 'observed'; detail = $null; shapeExit = 0 },
     @{ id = 'apps-game'; outcome = 'observed'; detail = $null; shapeExit = 7 }
@@ -533,6 +576,16 @@ Assert-Equal -Label 'a system window on top parses as the system package' `
 Assert-Equal -Label 'a Samsung system window with a uid parses as the Samsung package' `
     -Expected 'com.samsung.android.systemui' `
     -Actual (Get-TopWindowPackage (Read-Fixture 'window-foreign-with-uid.txt'))
+
+# S3181: a debug install's own window was read as foreign and three screens went `manual`.
+Assert-Equal -Label 'the debug install window is the app, not a foreign window' `
+    -Expected $true -Actual (Test-IsAppWindowPackage -Package 'com.sza.fastmediasorter.debug' -AppPackage 'com.sza.fastmediasorter')
+
+Assert-Equal -Label 'the release install window is the app' `
+    -Expected $true -Actual (Test-IsAppWindowPackage -Package 'com.sza.fastmediasorter' -AppPackage 'com.sza.fastmediasorter')
+
+Assert-Equal -Label 'a system package is not the app' `
+    -Expected $false -Actual (Test-IsAppWindowPackage -Package 'com.android.systemui' -AppPackage 'com.sza.fastmediasorter')
 
 Assert-Equal -Label 'a capture without mCurrentFocus parses as nothing, never a guess' `
     -Expected '' -Actual (Get-TopWindowPackage (Read-Fixture 'window-no-focus.txt'))

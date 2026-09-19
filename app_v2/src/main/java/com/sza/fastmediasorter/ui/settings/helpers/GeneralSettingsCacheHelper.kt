@@ -120,7 +120,7 @@ class GeneralSettingsCacheHelper(
                         ).show()
                     }
                 }
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .showBoundTo(fragment)
         }
     }
@@ -129,7 +129,7 @@ class GeneralSettingsCacheHelper(
         MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.clear_cache)
             .setMessage(R.string.clear_cache_confirm_message)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 binding.btnClearCache.isEnabled = false
                 binding.btnClearCache.text = fragment.getString(R.string.cache_size_calculating)
                 fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
@@ -186,7 +186,7 @@ class GeneralSettingsCacheHelper(
                     }
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
     }
 
@@ -239,7 +239,7 @@ class GeneralSettingsCacheHelper(
                     audioMetadataCacheRepository.trimIfNeeded()
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
     }
 

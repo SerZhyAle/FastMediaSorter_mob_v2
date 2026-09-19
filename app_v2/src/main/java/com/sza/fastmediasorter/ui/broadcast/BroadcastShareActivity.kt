@@ -6,6 +6,14 @@ import androidx.appcompat.app.AppCompatActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * S3060: Activity proxy. The QR, the link and the export live on [BroadcastControlActivity] now, so
+ * anything still aimed at the old share screen - a shortcut, an external intent - lands there.
+ *
+ * The screen's own launch helpers and url/title/mode extras went with it: the control screen reads the
+ * live descriptor from [com.sza.fastmediasorter.broadcast.BroadcastSourceController], so there is
+ * nothing for a caller to hand over.
+ */
 @AndroidEntryPoint
 class BroadcastShareActivity : AppCompatActivity() {
     override fun attachBaseContext(newBase: Context) {
@@ -16,29 +24,5 @@ class BroadcastShareActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         BroadcastControlActivity.launch(this)
         finish()
-    }
-
-    companion object {
-        const val EXTRA_URL = "extra_url"
-        const val EXTRA_TITLE = "extra_title"
-        const val EXTRA_MODE = "extra_mode"
-
-        private var lastLaunchedUrl: String? = null
-
-        @Suppress("UnusedParameter")
-        fun launch(context: Context, url: String, title: String? = null, mode: String = "AUDIO_ONLY") {
-            lastLaunchedUrl = url
-            BroadcastControlActivity.launch(context)
-        }
-
-        @Suppress("UnusedParameter")
-        fun launchIfNew(context: Context, url: String, title: String? = null, mode: String = "AUDIO_ONLY") {
-            if (lastLaunchedUrl == url) return
-            launch(context, url, title, mode)
-        }
-
-        fun resetLaunchTracking() {
-            lastLaunchedUrl = null
-        }
     }
 }

@@ -146,9 +146,9 @@
       "destination": "MEDIA",
       "layout": "fragment_settings_broadcast",
       "kind": "INPUT_ROW",
-      "titleEn": "Stream title",
-      "titleRu": "Заголовок потока",
-      "titleUk": "Заголовок потоку"
+      "titleEn": "Broadcast title",
+      "titleRu": "Название вещания",
+      "titleUk": "Назва мовлення"
     },
     {
       "key": "cbOcrOnly",
@@ -789,6 +789,16 @@
       "titleEn": "Use scheduled operations",
       "titleRu": "Использовать операции по расписанию",
       "titleUk": "Використовувати операції за розкладом"
+    },
+    {
+      "key": "rowEnableSos",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "SOS emergency signal",
+      "titleRu": "Аварийный сигнал SOS",
+      "titleUk": "Аварійний сигнал SOS"
     },
     {
       "key": "rowEnableStopwatch",
@@ -1471,6 +1481,16 @@
       "titleUk": "Тест знімка екрана"
     },
     {
+      "key": "btnTransferBack",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_data_transfer",
+      "kind": "BUTTON",
+      "titleEn": "Back",
+      "titleRu": "Назад",
+      "titleUk": "Назад"
+    },
+    {
       "key": "btnUnusedCredentials",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1631,6 +1651,26 @@
       "titleUk": "Компактні елементи (глобально)"
     },
     {
+      "key": "rowCrossDevicePackets",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Pending device transfers",
+      "titleRu": "Ожидающие передачи",
+      "titleUk": "Очікувані передачі"
+    },
+    {
+      "key": "rowDataTransfer",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Import and export data",
+      "titleRu": "Импорт и экспорт данных",
+      "titleUk": "Імпорт та експорт даних"
+    },
+    {
       "key": "rowDebugLogMirror",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1731,6 +1771,46 @@
       "titleUk": "Не показувати команди на ескізах"
     },
     {
+      "key": "rowKindFavorites",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_data_transfer",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Favorites",
+      "titleRu": "Избранное",
+      "titleUk": "Вибране"
+    },
+    {
+      "key": "rowKindResources",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_data_transfer",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Resources",
+      "titleRu": "Ресурсы",
+      "titleUk": "Ресурси"
+    },
+    {
+      "key": "rowKindSettings",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_data_transfer",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Settings",
+      "titleRu": "Настройки",
+      "titleUk": "Налаштування"
+    },
+    {
+      "key": "rowKindStreams",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "dialog_data_transfer",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Pinned streams",
+      "titleRu": "Закреплённые трансляции",
+      "titleUk": "Закріплені трансляції"
+    },
+    {
       "key": "rowLanguage",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1741,14 +1821,14 @@
       "titleUk": "Language/Язык/Мова"
     },
     {
-      "key": "rowLauncherModeEnabled",
+      "key": "rowLauncherPrimaryWindow",
       "sectionId": "general",
       "destination": "GENERAL",
       "layout": "fragment_settings_general",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Make this app the home screen",
-      "titleRu": "Лаунчер: сделать приложение домашним экраном",
-      "titleUk": "Лаунчер: зробити застосунок домашнім екраном"
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Primary startup window",
+      "titleRu": "Основное стартовое окно",
+      "titleUk": "Основне стартове вікно"
     },
     {
       "key": "rowLauncherSettings",
@@ -1759,16 +1839,6 @@
       "titleEn": "System launcher settings",
       "titleRu": "Настройки системного лаунчера",
       "titleUk": "Налаштування системного лаунчера"
-    },
-    {
-      "key": "rowLauncherStartWindow",
-      "sectionId": "general",
-      "destination": "GENERAL",
-      "layout": "fragment_settings_general",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Open the desktop when the app starts",
-      "titleRu": "Открывать рабочий стол при запуске",
-      "titleUk": "Відкривати робочий стіл під час запуску"
     },
     {
       "key": "rowOpenStatistics",
@@ -2711,6 +2781,16 @@
       "titleUk": "Автовимкнення екрана"
     },
     {
+      "key": "rowLauncherScreenTimeoutOnCharge",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Screen timeout when on charge",
+      "titleRu": "Таймаут экрана при зарядке",
+      "titleUk": "Таймаут екрана під час заряджання"
+    },
+    {
       "key": "rowLauncherShowPinned",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -2749,6 +2829,16 @@
       "titleEn": "Taskbar position",
       "titleRu": "Расположение панели задач",
       "titleUk": "Розташування панелі задач"
+    },
+    {
+      "key": "rowLauncherTaskbarRows",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Start panel rows",
+      "titleRu": "Строк панели «Пуск»",
+      "titleUk": "Рядків панелі «Пуск»"
     },
     {
       "key": "rowLauncherTopStatusStrip",
@@ -2846,9 +2936,9 @@
       "destination": "GENERAL",
       "layout": "dialog_launcher_settings",
       "kind": "SELECTION_ROW",
-      "titleEn": "Launcher screens",
-      "titleRu": "Экраны лаунчера",
-      "titleUk": "Екрани лаунчера"
+      "titleEn": "Screens and wallpaper",
+      "titleRu": "Экраны и обои",
+      "titleUk": "Екрани та шпалери"
     },
     {
       "key": "rowLauncherWidgetBackdropAlpha",
@@ -3129,6 +3219,16 @@
       "titleEn": "Confirm delete",
       "titleRu": "Подтверждать удаление",
       "titleUk": "Підтверджувати видалення"
+    },
+    {
+      "key": "rowDimClockOverlay",
+      "sectionId": "playback",
+      "destination": "PLAYBACK",
+      "layout": "fragment_settings_playback",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show clock and status while dimmed",
+      "titleRu": "выводить часы и состояние во время затемнения",
+      "titleUk": "Показувати годинник і стан під час затемнення"
     },
     {
       "key": "rowDisableNineZone",
@@ -3579,6 +3679,16 @@
       "titleEn": "Colour scheme",
       "titleRu": "Цветовая схема",
       "titleUk": "Колірна схема"
+    },
+    {
+      "key": "wearDimClockOverlay",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_screen_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show clock and status while dimmed",
+      "titleRu": "Выводить часы и состояние во время затемнения",
+      "titleUk": "Показувати годинник і стан під час затемнення"
     },
     {
       "key": "wearDisableAnimations",

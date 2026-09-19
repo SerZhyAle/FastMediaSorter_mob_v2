@@ -341,6 +341,16 @@
         <!-- S2516: the water flashlight - the same family, but a screen no touch can close. -->
         <activity android:name=".ui.flashlight.WaterFlashlightActivity" android:exported="false" android:label="@string/water_flashlight_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
+        <!-- S3216: the distress signal - siren and strobe on the Morse SOS cadence, and the same
+             signal on the paired watch. Showing over the lock screen is asked for in code rather than
+             here: the attributes exist only from API 27 and the `legacy` flavor builds against 23. -->
+        <activity android:name=".ui.sos.SosActivity" android:exported="false" android:label="@string/sos_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
+        <!-- S3216: the signal itself, so it survives the window being destroyed. mediaPlayback is the
+             foreground type: the siren is what the platform can see it doing, and there is no alarm
+             type to declare. -->
+        <service android:name=".ui.sos.SosService" android:exported="false" android:foregroundServiceType="mediaPlayback" />
+
         <!-- S2211: autonomous Black Screen application surface -->
         <activity android:name=".ui.blackscreen.BlackScreenActivity" android:exported="false" android:label="@string/launcher_action_black_screen" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 

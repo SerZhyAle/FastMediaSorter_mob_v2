@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.apps.netmonitor
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
@@ -27,13 +28,16 @@ object NetworkMonitorActions {
     }
 
     private fun openSettingsIntent(context: Context, action: String) {
+        Timber.d("S3199: openSettingsIntent %s", action)
         try {
             val intent = Intent(action).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
-        } catch (e: Exception) {
+        } catch (e: ActivityNotFoundException) {
             Timber.w(e, "Failed to launch settings intent: %s", action)
+        } catch (e: SecurityException) {
+            Timber.w(e, "Settings intent refused: %s", action)
         }
     }
 }

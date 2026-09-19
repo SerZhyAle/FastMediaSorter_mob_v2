@@ -19,6 +19,9 @@ class TransferPayloadUnavailable(kind: TransferDataKind) :
 class IncompatibleTransferFile(kind: TransferDataKind, cause: Throwable? = null) :
     Exception("not a readable ${kind.name} transfer file", cause)
 
+/** S3040: the packet left the cross-device queue - another device claimed and deleted it. */
+class PacketNotInQueue(packetId: String) : Exception("packet $packetId is no longer in the Drive queue")
+
 /** This kind's import shows the user a preview first, so it is driven from the UI layer. */
 class PreviewedKindNotAppliedHere(kind: TransferDataKind) :
     Exception("${kind.name} is applied through its previewing use case, not here")

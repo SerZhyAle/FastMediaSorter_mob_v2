@@ -16,7 +16,7 @@
     <string name="game_help_legend_kryvavitsa">Vermelho - Kryvavitsa, caça o jogador</string>
     <string name="game_help_legend_player">Azul - Monstro, o personagem que você controla.</string>
     <string name="game_help_legend_shadow">Roxo - menor Kryvavitsa, move-se aleatoriamente</string>
-    <string name="game_help_legend_title">Lenda</string>
+    <string name="game_help_legend_title">Legenda</string>
     <string name="game_help_legend_wall">Cinza - parede, pode ser empurrada</string>
     <string name="game_help_rules">Use as setas, o teclado, o direcional, deslize ou toque no tabuleiro para mover uma casa.\nO Kryvavitsa vermelho caça o Monstro. Kryvavitsas roxos menores vagam aleatoriamente.\nEmpurre paredes cinzas para abrir caminho em casas livres. A borda espessa impede a saída do tabuleiro.\nPontuação: -10 por movimento, +10 por empurrar uma parede, +50 por esmagar um inimigo roxo, +1000 por alcançar a saída.\nSe algum inimigo alcançar a mesma casa ou uma casa vizinha, o jogo termina.</string>
     <string name="game_help_rules_title">Regras</string>
@@ -24,7 +24,6 @@
     <string name="game_how_to_play">Como jogar?</string>
     <string name="game_level">Nível %1$d</string>
     <string name="game_loading">Carregando jogo..</string>
-    <string name="game_menu_label">Jogar minijogo</string>
     <string name="game_move_down">Desça</string>
     <string name="game_move_left">Mova-se para a esquerda.</string>
     <string name="game_move_right">Mova-se para a direita.</string>

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.data.tourist
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.hardware.Sensor
@@ -46,6 +47,7 @@ private const val FULL_ROTATION_DEGREES = 360.0
 private const val CARDINAL_OFFSET_DEGREES = 22.5f
 private const val CARDINAL_SECTOR_DEGREES = 45f
 private const val CARDINAL_SECTORS_COUNT = 8
+private const val TEMPERATURE_TOKEN = "temperature"
 
 /**
  * S3007: Android implementation of [WearTouristRepository] aggregating GPS, GNSS, orientation,
@@ -90,6 +92,7 @@ class AndroidWearTouristRepository @Inject constructor(
             hasStepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null ||
                 sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR) != null,
             hasHeartRateSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_HEART_RATE) != null,
+            hasBodyTemperatureSensor = resolveTemperatureSensor(sensorManager) != null,
         )
 
         val updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit = { transform ->
@@ -199,6 +202,11 @@ class AndroidWearTouristRepository @Inject constructor(
         }
     }
 
+    // S3155: every call in this function sits behind the hasLocationPermission() early return on its
+    // first line and inside the SecurityException catch below. Lint follows neither a custom
+    // permission helper nor a catch around the call, so all five findings here are the same blind
+    // spot; the guard they claim is missing is the line that opens the body.
+    @SuppressLint("MissingPermission")
     @Suppress("LongParameterList")
     private fun registerLocationAndGnss(
         locationManager: LocationManager?,
@@ -285,6 +293,7 @@ class AndroidWearTouristRepository @Inject constructor(
                             updateAndEmit { it.copy(heartRateBpm = bpm) }
                         }
                     }
+                    else -> handleTemperatureEvent(event, updateAndEmit)
                 }
             }
 
@@ -313,7 +322,36 @@ class AndroidWearTouristRepository @Inject constructor(
                     sm.registerListener(listener, it, SensorManager.SENSOR_DELAY_UI)
                 }
             }
+            resolveTemperatureSensor(sm)?.let {
+                sm.registerListener(listener, it, SensorManager.SENSOR_DELAY_UI)
+            }
         }
+    }
+
+    /**
+     * The platform exposes no body-temperature type, so a watch that measures skin temperature reports
+     * it either as the ambient type or under a vendor sensor whose name says so. Both are accepted, and
+     * a watch matching neither shows no temperature at all.
+     */
+    private fun resolveTemperatureSensor(sensorManager: SensorManager?): Sensor? {
+        val sm = sensorManager ?: return null
+        return sm.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
+            ?: sm.getSensorList(Sensor.TYPE_ALL).firstOrNull { sensor ->
+                sensor.stringType.contains(TEMPERATURE_TOKEN, ignoreCase = true) ||
+                    sensor.name.contains(TEMPERATURE_TOKEN, ignoreCase = true)
+            }
+    }
+
+    private fun handleTemperatureEvent(
+        event: SensorEvent,
+        updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit,
+    ) {
+        val isTemperature = event.sensor.type == Sensor.TYPE_AMBIENT_TEMPERATURE ||
+            event.sensor.stringType.contains(TEMPERATURE_TOKEN, ignoreCase = true) ||
+            event.sensor.name.contains(TEMPERATURE_TOKEN, ignoreCase = true)
+        if (!isTemperature) return
+        val celsius = event.values.firstOrNull() ?: return
+        updateAndEmit { it.copy(bodyTemperatureCelsius = celsius) }
     }
 
     private fun hasLocationPermission(): Boolean {

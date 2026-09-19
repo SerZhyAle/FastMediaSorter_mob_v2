@@ -219,6 +219,11 @@ $gates = [ordered]@{
     # single source file, and the author of a new Activity is the only one who can say whether it is
     # the rare one that must not wrap its context. Exclusions are named with a reason, never counted.
     'assert-activity-locale-wrapper.ps1'        = @()
+    # S2870/S3101: a user-facing quantity formatted past the seam - the app's UnitSystem decides the
+    # clock length, the field order and the scale, so a call site of its own hands that choice back to
+    # the device or the locale. Wired here by S3101 after sitting hand-run since birth, during which
+    # two offenders and a whole dashboard reached the tree unremarked. Reads text, no gradle daemon.
+    'assert-quantity-format-seam.ps1'           = @()
     'assert-wear-route-literals.ps1'            = @()
     # S2547: the declared watch pre-release walk against the module it claims to walk. Per-ticket by
     # Rule 33 - the subject is a wear string, so a rename must fail in the ticket that made it rather
@@ -547,7 +552,8 @@ $changedFilesAware = @(
     'assert-listener-symmetry.ps1',
     'assert-gson-persistence-contract.ps1',
     'assert-device-ready-module.ps1',
-    'assert-gate-placement.ps1'
+    'assert-gate-placement.ps1',
+    'assert-quantity-format-seam.ps1'
 )
 
 # Build the work list first so a MISSING gate is settled without spawning anything, and so

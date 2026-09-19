@@ -105,8 +105,11 @@ $containerSkip = @(
 # Custom views that render their own focus affordance in code (verified in their Kotlin source),
 # so an XML clickable/focusable attr is not a real gap:
 #   SettingsToggleRow      - sets android.R.attr.selectableItemBackground in its constructor.
+#   SettingsSelectionRow   - same constructor, same two lines: isFocusable = true plus the resolved
+#                            selectableItemBackground (S1565 added it; its absence here flagged a
+#                            row that has had a ripple all along).
 #   TranslationOverlayView - custom interactive canvas overlay (own onDraw), not a discrete control.
-$customFocusViews = @('SettingsToggleRow', 'TranslationOverlayView', 'FocusMaterialCardView')
+$customFocusViews = @('SettingsToggleRow', 'SettingsSelectionRow', 'TranslationOverlayView', 'FocusMaterialCardView')
 
 # Confirmed non-targets, whitelisted by android:id. These are clickable/focusable to block touch
 # passthrough or to drive marquee scroll, NOT discrete D-pad-activatable controls; a focus stroke

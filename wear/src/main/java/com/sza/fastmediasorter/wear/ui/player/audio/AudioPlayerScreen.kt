@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.CastConnected
@@ -32,6 +31,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -78,12 +78,14 @@ import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.domain.model.displayName
+import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
 import com.sza.fastmediasorter.wear.ui.common.AnimationIntent
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearAction
+import com.sza.fastmediasorter.wear.ui.common.WearDimOverlay
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearBandEdgeOffset
@@ -96,18 +98,20 @@ import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogVisibilities
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogsHost
-import com.sza.fastmediasorter.wear.ui.player.common.PlayerDimOverlay
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerOverflowMenu
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerProgressRing
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
 import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorSideBar
+import com.sza.fastmediasorter.wear.ui.player.common.closingWith
 import com.sza.fastmediasorter.wear.ui.player.common.playerCommandBandWidth
 import com.sza.fastmediasorter.wear.ui.player.common.playerMenuAction
 import com.sza.fastmediasorter.wear.ui.player.common.playerMenuCycleAction
 import com.sza.fastmediasorter.wear.ui.player.common.playerPrimaryRowColumns
+import com.sza.fastmediasorter.wear.ui.player.common.rememberPlayerFileActionEntries
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
 import timber.log.Timber
+import java.util.Locale
 
 /** Keeps white text readable over the animation, made 33% more visible per S1866. */
 private const val ANIMATION_SCRIM_ALPHA = 0.37f
@@ -128,6 +132,9 @@ private val PROGRESS_BAR_SPACING = 6.dp
 
 /** A fully rounded cap on a bar this thin reads as a track rather than as a rectangle. */
 private const val PROGRESS_BAR_CORNER_PERCENT = 50
+
+/** S3099: punctuation between the station's fields, so it needs no locale of its own. */
+private const val STATION_PART_SEPARATOR = " · "
 
 private const val DRAG_THRESHOLD_UP_PX = -10f
 private const val DRAG_THRESHOLD_DOWN_PX = 10f
@@ -194,10 +201,26 @@ fun AudioPlayerScreen(
 
     AudioPlayerLifecycleEffects(viewModel)
 
-
+    // S3120: this player draws the file operations as entries of its own menu, so the file-action
+    // dialog never opens here and the flag only ever reads false. It is still passed to the shared
+    // host, which owns the rename, delete and receiver dialogs the entries do open.
     var showActions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showReceivers by remember { mutableStateOf(false) }
+
+    val dialogVisibilities = PlayerDialogVisibilities(
+        showActions = showActions,
+        showDeleteConfirm = showDeleteConfirm,
+        showReceivers = showReceivers,
+        onActionsVisibilityChange = { showActions = it },
+        onDeleteVisibilityChange = { showDeleteConfirm = it },
+        onReceiversVisibilityChange = { showReceivers = it }
+    )
+    val fileActions = rememberPlayerFileActionEntries(
+        operations = viewModel.fileOperations,
+        visibilities = dialogVisibilities,
+        currentFileName = uiState.mediaFile?.name
+    )
 
     LaunchedEffect(uiState.closeScreen) {
         if (uiState.closeScreen) {
@@ -210,7 +233,7 @@ fun AudioPlayerScreen(
     val actions = rememberAudioPlayerActions(
         viewModel = viewModel,
         onBack = onBack,
-        onShowActions = { showActions = true }
+        fileActions = fileActions
     )
 
     WearScreenScaffold(
@@ -250,20 +273,13 @@ fun AudioPlayerScreen(
             }
         }
         if (uiState.isDimmed) {
-            PlayerDimOverlay(onExit = viewModel::toggleDimmed)
+            WearDimOverlay(onExit = viewModel::toggleDimmed)
         }
     }
 
     PlayerDialogsHost(
         operations = viewModel.fileOperations,
-        visibilities = PlayerDialogVisibilities(
-            showActions = showActions,
-            showDeleteConfirm = showDeleteConfirm,
-            showReceivers = showReceivers,
-            onActionsVisibilityChange = { showActions = it },
-            onDeleteVisibilityChange = { showDeleteConfirm = it },
-            onReceiversVisibilityChange = { showReceivers = it }
-        ),
+        visibilities = dialogVisibilities,
         currentFileName = uiState.mediaFile?.name
     )
 
@@ -274,18 +290,19 @@ fun AudioPlayerScreen(
 private fun rememberAudioPlayerActions(
     viewModel: AudioPlayerViewModel,
     onBack: () -> Unit,
-    onShowActions: () -> Unit
-): AudioPlayerActions = remember(viewModel, onBack, onShowActions) {
+    fileActions: List<WearAction>
+): AudioPlayerActions = remember(viewModel, onBack, fileActions) {
     AudioPlayerActions(
         onBack = onBack,
         onPlayPause = viewModel::togglePlayPause,
+        onJumpToLive = viewModel::jumpToLive,
         onToggleFavorite = viewModel::toggleFavorite,
         onTogglePin = viewModel::togglePin,
         onSkipNext = viewModel::skipToNext,
         onSkipPrevious = viewModel::skipToPrevious,
         onToggleDimmed = viewModel::toggleDimmed,
         onTogglePlaybackMode = viewModel::togglePlaybackMode,
-        onFileOperations = onShowActions,
+        fileActions = fileActions,
         onToggleCast = viewModel::toggleCast,
         seek = PlayerSeekActions(
             onSeekTo = viewModel::seekTo,
@@ -298,13 +315,14 @@ private fun rememberAudioPlayerActions(
 private data class AudioPlayerActions(
     val onBack: () -> Unit,
     val onPlayPause: () -> Unit,
+    val onJumpToLive: () -> Unit,
     val onToggleFavorite: () -> Unit,
     val onTogglePin: () -> Unit,
     val onSkipNext: () -> Unit,
     val onSkipPrevious: () -> Unit,
     val onToggleDimmed: () -> Unit,
     val onTogglePlaybackMode: () -> Unit,
-    val onFileOperations: () -> Unit,
+    val fileActions: List<WearAction>,
     val seek: PlayerSeekActions,
     val onToggleCast: () -> Unit
 )
@@ -324,7 +342,7 @@ private fun AudioPlayerContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .rotaryActionSteps(onRotaryStep)
+            .rotaryActionSteps(onStep = onRotaryStep)
             .pointerInput(Unit) {
                 detectVerticalDragGestures { change, dragAmount ->
                     change.consume()
@@ -375,7 +393,10 @@ private fun AudioPlayerContent(
                 isPinned = isPinned,
                 actions = actions,
                 paddings = PlayerColumnPaddings(trackInfoPadding, commandRowPadding),
-                onOpenMenu = { showMenu = true }
+                onOpenMenu = {
+                    Timber.d("S3120: audio menu opened without the pin or favourite the row draws")
+                    showMenu = true
+                }
             )
         }
 
@@ -435,18 +456,28 @@ private fun ColumnScope.PlayerColumnContent(
     // more than the glass leaves them at 192 dp, and this row costs about 24. Below the breakpoint
     // the position moves onto the ring around the play button instead.
     if (!wearIsCompactScreen()) {
-        PlaybackTimeRow(
-            currentPosition = uiState.currentPositionFormatted,
-            duration = uiState.durationFormatted,
-            progress = uiState.progress,
-            durationMs = uiState.durationMs,
-            onSeekTo = actions.seek.onSeekTo
-        )
+        // S3099: a broadcast has no duration and nowhere to seek to, so the same row carries what the
+        // station says about itself instead of a bar that cannot move and a `0:00` that never changes.
+        if (uiState.isStream) {
+            StreamStationRow(
+                elapsed = uiState.currentPositionFormatted,
+                station = uiState.station
+            )
+        } else {
+            PlaybackTimeRow(
+                currentPosition = uiState.currentPositionFormatted,
+                duration = uiState.durationFormatted,
+                progress = uiState.progress,
+                durationMs = uiState.durationMs,
+                onSeekTo = actions.seek.onSeekTo
+            )
+        }
     }
 
     PlaybackControls(
         uiState = uiState,
         onPlayPause = actions.onPlayPause,
+        onJumpToLive = actions.onJumpToLive,
         onTogglePlaybackMode = actions.onTogglePlaybackMode,
         onSkipNext = actions.onSkipNext,
         onSkipPrevious = actions.onSkipPrevious,
@@ -461,6 +492,13 @@ private fun ColumnScope.PlayerColumnContent(
         horizontalPadding = paddings.commandRow,
         onOpenMenu = onOpenMenu
     )
+
+    if (playerShowsDimRow(uiState.isStream)) {
+        DisplayControls(
+            onToggleDimmed = actions.onToggleDimmed,
+            horizontalPadding = paddings.commandRow
+        )
+    }
 
     if (!uiState.isStream && uiState.positionText.isNotEmpty()) {
         Text(
@@ -478,11 +516,13 @@ private fun ColumnScope.PlayerColumnContent(
  *
  * S2766: the rows carry three primary and two or three secondary commands now, so the commands they
  * no longer show need a container that is itself reachable - otherwise they have not moved, they have
- * disappeared. The favourite appears here only below the breakpoint, because above it the secondary
- * row still has the slot.
+ * disappeared. The favourite and the pin appear here only where the secondary row draws no slot for
+ * them.
  *
- * The file operations stay their own entry rather than being merged in: that dialog answers what the
- * file capability policy allows (ADR-4), and a playback mode inside it would make that answer wrong.
+ * S3120 (ADR-2, ADR-3): a command drawn on the panel is not repeated here - a command reachable twice
+ * is the extra menu trip this ticket removes - and the file operations end the list as entries rather
+ * than opening a second dialog behind one. The set is still the capability policy's answer, read
+ * through [rememberPlayerFileActionEntries], never a list this screen composed.
  */
 @Composable
 private fun playerMenuActions(
@@ -510,49 +550,50 @@ private fun playerMenuActions(
         if (isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
     )
     val screenOffLabel = stringResource(R.string.wear_screen_off)
-    val fileActionsLabel = stringResource(R.string.wear_player_file_actions)
     // S2531: the wording carries the state, not a colour - strategic 3.2 accessibility.
     val castLabel = stringResource(
         if (isCasting) R.string.wear_cast_stop else R.string.wear_cast_send
     )
     val castIcon = if (isCasting) Icons.Filled.CastConnected else Icons.Filled.Cast
-    val showFavorite = wearIsCompactScreen()
+    // S3120: the playback mode is a button of the primary row in the restored view only, and that is
+    // exactly where this entry would be the second way to reach it.
+    val playbackModeOnPanel = playerRestoredView()
 
     return buildList {
-        add(
-            playerMenuCycleAction(
-                playbackModeLabel,
-                playbackModeIcon,
-                actions.onTogglePlaybackMode
+        if (!playbackModeOnPanel) {
+            add(
+                playerMenuCycleAction(
+                    playbackModeLabel,
+                    playbackModeIcon,
+                    actions.onTogglePlaybackMode
+                )
             )
-        )
-        if (showFavorite) {
+        }
+        if (!playerFavoriteOnPanel()) {
             val icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
             add(playerMenuAction(favoriteLabel, icon, onDismiss, actions.onToggleFavorite))
         }
-        if (uiState.isStream) {
+        if (uiState.isStream && !playerPinOnPanel(uiState.isStream)) {
             val icon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin
             add(playerMenuAction(pinLabel, icon, onDismiss, actions.onTogglePin))
         }
         add(playerMenuAction(castLabel, castIcon, onDismiss, actions.onToggleCast))
-        add(
-            playerMenuAction(
-                screenOffLabel,
-                Icons.Filled.DarkMode,
-                onDismiss,
-                actions.onToggleDimmed
-            )
-        )
-        if (!uiState.isStream) {
+        // S3097: the entry and the third row are alternatives, never both - a command reachable twice
+        // leaves the menu trip the owner asked to remove, and a command removed from the menu where no
+        // row is drawn is unreachable. S3120 added the secondary-row slot as a third alternative.
+        if (!playerShowsDimRow(uiState.isStream) && !playerShowsDimCommand(uiState.isStream)) {
             add(
                 playerMenuAction(
-                    fileActionsLabel,
-                    Icons.AutoMirrored.Filled.List,
+                    screenOffLabel,
+                    Icons.Filled.DarkMode,
                     onDismiss,
-                    actions.onFileOperations
+                    actions.onToggleDimmed
                 )
             )
         }
+        // S3120: last, and last for the same reason the file-action dialog puts them last - delete
+        // closes the list, and the outer rows of a round screen are the easiest to reach by accident.
+        addAll(actions.fileActions.map { entry -> entry.closingWith(onDismiss) })
     }
 }
 
@@ -683,6 +724,46 @@ private fun PlayerBackground(
 }
 
 /**
+ * S3099: the stream's own row - how long this station has been playing, and what it says it is.
+ *
+ * The station text is what gives way when the round glass runs out of width: the elapsed time is two
+ * or three glyphs of known width, the station line is arbitrary text from a third party.
+ */
+@Composable
+private fun StreamStationRow(
+    elapsed: String,
+    station: WearStationInfo?
+) {
+    val bitrateFormat = stringResource(R.string.wear_stream_station_bitrate)
+    val stationText = station
+        ?.textParts { kbps -> String.format(Locale.US, bitrateFormat, kbps) }
+        ?.joinToString(STATION_PART_SEPARATOR)
+        .orEmpty()
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(PROGRESS_BAR_SPACING),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = elapsed,
+            style = MaterialTheme.typography.caption3,
+            color = Color.Gray
+        )
+        if (stationText.isNotEmpty()) {
+            Text(
+                text = stationText,
+                style = MaterialTheme.typography.caption3,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+/**
  * S1701: position is shown by the same bar the user drags, so what is visible is what is grabbed.
  * The two times stay where they already were, at the ends of the row, and the bar takes the space
  * the 100.dp ring used to occupy in the centre of a round screen.
@@ -779,17 +860,23 @@ private fun RowScope.SeekBar(
  *
  * Below the breakpoint the position rides a ring around the play button, because the compact
  * composition has no separate time row for it to live on.
+ *
+ * S3217: a stream puts Jump to live right after play/pause, in the playback-mode cell a single live
+ * stream has no use for. STORE drops previous rather than next for it, because next keeps paging
+ * stations and the owner kept forward switching.
  */
 @Composable
 private fun PlaybackControls(
     uiState: AudioPlayerUiState,
     onPlayPause: () -> Unit,
+    onJumpToLive: () -> Unit,
     onTogglePlaybackMode: () -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
     seek: PlayerSeekActions
 ) {
     val isPlaying = uiState.isPlaying
+    val isStream = uiState.isStream
     val playbackMode = uiState.playbackMode
     val progress = uiState.progress
     val previousDesc = stringResource(R.string.wear_previous_file)
@@ -797,6 +884,7 @@ private fun PlaybackControls(
     val seekBackwardDesc = stringResource(R.string.wear_seek_backward)
     val seekForwardDesc = stringResource(R.string.wear_seek_forward)
     val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
+    val jumpToLiveDesc = stringResource(R.string.wear_jump_to_live)
     val ringed = wearIsCompactScreen()
     // S2803: the ORIGINAL view restores the row of four, the composition S1701's owner ruling drew -
     // previous, play/pause, playback mode, next - and the bare play button that stood before S2766
@@ -816,14 +904,16 @@ private fun PlaybackControls(
     )
 
     PlayerCommandGrid(columns = playerPrimaryRowColumns()) { targetSize ->
-        PlayerCommandButton(
-            onClick = onSkipPrevious,
-            icon = Icons.Filled.SkipPrevious,
-            contentDescription = previousDesc,
-            size = targetSize,
-            onLongClick = seek.onSeekBackward,
-            onLongClickLabel = seekBackwardDesc
-        )
+        if (restored || !isStream) {
+            PlayerCommandButton(
+                onClick = onSkipPrevious,
+                icon = Icons.Filled.SkipPrevious,
+                contentDescription = previousDesc,
+                size = targetSize,
+                onLongClick = seek.onSeekBackward,
+                onLongClickLabel = seekBackwardDesc
+            )
+        }
 
         PlayPauseCommand(
             isPlaying = isPlaying,
@@ -833,7 +923,14 @@ private fun PlaybackControls(
             onPlayPause = onPlayPause
         )
 
-        if (restored) {
+        if (isStream) {
+            PlayerCommandButton(
+                onClick = onJumpToLive,
+                icon = Icons.Filled.Sensors,
+                contentDescription = jumpToLiveDesc,
+                size = targetSize
+            )
+        } else if (restored) {
             PlayerCommandButton(
                 onClick = onTogglePlaybackMode,
                 icon = playbackModeIcon,
@@ -905,14 +1002,12 @@ private fun SecondaryControls(
 ) {
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
     val menuDesc = stringResource(R.string.wear_file_op_actions)
+    val screenOffDesc = stringResource(R.string.wear_screen_off)
     val pinDesc = stringResource(
         if (isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
     )
-    // S2803: the primary row's answer names the view in force - four means the restored composition,
-    // three the reviewed one. S2531: the cast entry lives in the overflow menu, so the restored row
-    // keeps a menu button where the pre-S2766 tree held screen off - screen off moved to the menu.
-    val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
-
+    // S2531: the cast entry lives in the overflow menu, so the restored row keeps a menu button where
+    // the pre-S2766 tree held screen off.
     PlayerCommandGrid(
         horizontalPadding = horizontalPadding,
         columns = secondaryRowColumns()
@@ -924,7 +1019,7 @@ private fun SecondaryControls(
             size = targetSize
         )
 
-        if (restored || !wearIsCompactScreen()) {
+        if (playerFavoriteOnPanel()) {
             PlayerCommandButton(
                 onClick = actions.onToggleFavorite,
                 icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
@@ -934,23 +1029,24 @@ private fun SecondaryControls(
             )
         }
 
-        if (restored) {
-            if (isStream) {
-                PlayerCommandButton(
-                    onClick = actions.onTogglePin,
-                    icon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                    contentDescription = pinDesc,
-                    size = targetSize,
-                    checked = isPinned
-                )
-            } else {
-                PlayerCommandButton(
-                    onClick = actions.onFileOperations,
-                    icon = Icons.Default.MoreVert,
-                    contentDescription = menuDesc,
-                    size = targetSize
-                )
-            }
+        if (playerPinOnPanel(isStream)) {
+            PlayerCommandButton(
+                onClick = actions.onTogglePin,
+                icon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                contentDescription = pinDesc,
+                size = targetSize,
+                checked = isPinned
+            )
+        } else if (playerShowsDimCommand(isStream)) {
+            // S3120: the slot held a second three-dot button whose glyph was the menu's own, so the
+            // wearer could not tell which list a tap would open. The file operations moved into that
+            // menu as entries, and the freed slot took screen off - the owner's placement.
+            PlayerCommandButton(
+                onClick = actions.onToggleDimmed,
+                icon = Icons.Filled.DarkMode,
+                contentDescription = screenOffDesc,
+                size = targetSize
+            )
         }
 
         PlayerCommandButton(
@@ -961,6 +1057,73 @@ private fun SecondaryControls(
         )
     }
 }
+
+/**
+ * S3097: the third command row the owner asked for, and it carries one command - screen off, which
+ * was two taps deep in the overflow menu on a screen used on every track.
+ *
+ * It is a centred row rather than a one-cell [PlayerCommandGrid]: a grid divides the whole width
+ * among its cells, so a single cell would be the width of the glass, and [PlayerCommandButton] floors
+ * its height at its width - a full-width cell would be a row roughly a screen tall. The command
+ * therefore takes the standard target and the row centres it.
+ */
+@Composable
+private fun DisplayControls(onToggleDimmed: () -> Unit, horizontalPadding: Dp) {
+    val screenOffDesc = stringResource(R.string.wear_screen_off)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = horizontalPadding),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        PlayerCommandButton(
+            onClick = onToggleDimmed,
+            icon = Icons.Filled.DarkMode,
+            contentDescription = screenOffDesc
+        )
+    }
+}
+
+/**
+ * S3097 (ADR-1): the compact glass already gave up its time row to fit the column (S2766), so another
+ * 48 dp row there rebuilds the overflowing composition Google's review photographed. Below the
+ * breakpoint the command stays where it was, in the menu; above it the row replaces that entry.
+ *
+ * S3120: a row of its own is the second choice now. Where the secondary row has the slot the file
+ * operations vacated, the command stands there and this row is not drawn at all - a 48 dp row that
+ * repeats a button beside it costs the column height for nothing.
+ */
+@Composable
+private fun playerShowsDimRow(isStream: Boolean): Boolean =
+    !wearIsCompactScreen() && !playerShowsDimCommand(isStream)
+
+/**
+ * S3120: whether screen off stands in the secondary row.
+ *
+ * Only the restored view has a third slot there, and only for a file - a stream keeps the pin in it
+ * (ADR-1). Everywhere else the command is the third row's or the menu's, as before this ticket.
+ */
+@Composable
+private fun playerShowsDimCommand(isStream: Boolean): Boolean = !isStream && playerRestoredView()
+
+/**
+ * The restored (ORIGINAL) geometry, the only view whose secondary row has a slot to spare.
+ *
+ * S3120: the row and the menu read the view from this one place, because they must agree command by
+ * command - a slot the row draws is an entry the menu must not. The device run found the menu still
+ * offering the pin and the favourite the restored row already drew.
+ */
+@Composable
+private fun playerRestoredView(): Boolean = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
+
+/** The secondary row draws the favourite above the compact breakpoint, and in the restored view. */
+@Composable
+private fun playerFavoriteOnPanel(): Boolean = playerRestoredView() || !wearIsCompactScreen()
+
+/** The pin takes the restored row's third slot for a stream; the reviewed row has no slot for it. */
+@Composable
+private fun playerPinOnPanel(isStream: Boolean): Boolean = isStream && playerRestoredView()
 
 @Composable
 private fun ErrorContent(message: String) {

@@ -13,4 +13,5 @@ enum class TouristMetricType {
     TRIP_DISTANCE,
     SUN_TIME,
     HEART_RATE,
+    BODY_TEMPERATURE,
 }

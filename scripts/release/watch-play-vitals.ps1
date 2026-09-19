@@ -92,6 +92,7 @@ $inv = [System.Globalization.CultureInfo]::InvariantCulture
 . (Join-Path $PSScriptRoot 'lib\marked-region.ps1')
 . (Join-Path $PSScriptRoot 'lib\play-vitals-verdict.ps1')
 . (Join-Path $PSScriptRoot 'lib\play-vitals-filing.ps1')
+. (Join-Path $PSScriptRoot 'lib\play-vitals-cluster-registry.ps1')
 
 $script:runVerdict = $null
 $script:runMeasured = $null
@@ -325,9 +326,12 @@ if (-not $NoFile -and -not $Check -and $red.Count -gt 0) {
         # Assigned in two steps: an empty array returned from an if-expression arrives as $null.
         $records = @()
         if ($recordsText) { $records = @($recordsText | ConvertFrom-Json) }
-        $plan = Get-PlayVitalsFilingPlan -Findings $red -Records $records
+        # The cluster registry is the second dedup key (S3286): a crash already owned by a ticket - archived
+        # ones included - must not be filed again while Play still reports it against a pre-fix versionCode.
+        $clusterRegistry = @(Read-ClusterRegistry -Path (Get-ClusterRegistryPath -ProjectRoot $CatalogRoot))
+        $plan = Get-PlayVitalsFilingPlan -Findings $red -Records $records -ClusterRegistry $clusterRegistry -ErrorIssues $issues
         $results = Invoke-PlayVitalsFiling -Plan $plan -ProjectRoot $CatalogRoot -Snapshot $snapshot `
-            -TopIssues ([int] $bands.TopIssuesInTicket) -MeasuredDate $measuredDate
+            -TopIssues ([int] $bands.TopIssuesInTicket) -MeasuredDate $measuredDate -ErrorIssues $issues
     } catch {
         Stop-Run 2 "both records are current, but the red finding(s) were NOT filed - $($_.Exception.Message)"
     }

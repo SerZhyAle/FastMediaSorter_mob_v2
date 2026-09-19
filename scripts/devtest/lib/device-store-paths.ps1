@@ -1,12 +1,13 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Declares WHERE the two device stores live and HOW a serial becomes a file name (S3036).
+    Declares WHERE the device stores live and HOW a serial becomes a file name (S3036).
 
 .DESCRIPTION
     Two coordination stores sit at the root of temp/ with opposite lifecycles (docs/DEV_OPS.md):
     DEVICE.LEASES/ is ephemeral and swept by session liveness, DEVICE.REGISTRY/ is durable and never
-    swept. Every OTHER coordination directory at that root resolves its path through
+    swept. S3201 added a third, DEVICE.STATE/ - the per-device journal of state a test changed and must
+    put back, durable for the same reason as the registry. Every OTHER coordination directory at that root resolves its path through
     .sza-profile.json, read by the canon-shipped harness. These two cannot: the harness reads no
     device path at all (verified 2026-09-12 across tools/harness - a device appears there only as a
     serial in the agent chat), and Get-SzaProfileValue throws on an unknown key by design (S2705),
@@ -64,11 +65,14 @@ function Get-DeviceStoreDirName {
     #>
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)][ValidateSet('Lease', 'Registry')][string]$Store
+        [Parameter(Mandatory)][ValidateSet('Lease', 'Registry', 'State')][string]$Store
     )
     switch ($Store) {
         'Lease' { return 'DEVICE.LEASES' }
         'Registry' { return 'DEVICE.REGISTRY' }
+        # S3201: the per-device journal of state a test changed and must put back. Durable like the
+        # registry - an unrestored journal is exactly the record the next run needs.
+        'State' { return 'DEVICE.STATE' }
     }
 }
 
@@ -86,7 +90,7 @@ function Get-DeviceStoreDir {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$RepoRoot,
-        [Parameter(Mandatory)][ValidateSet('Lease', 'Registry')][string]$Store
+        [Parameter(Mandatory)][ValidateSet('Lease', 'Registry', 'State')][string]$Store
     )
     return (Join-Path (Join-Path $RepoRoot 'temp') (Get-DeviceStoreDirName -Store $Store))
 }
@@ -120,7 +124,7 @@ function Get-DeviceStoreRecordPath {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$RepoRoot,
-        [Parameter(Mandatory)][ValidateSet('Lease', 'Registry')][string]$Store,
+        [Parameter(Mandatory)][ValidateSet('Lease', 'Registry', 'State')][string]$Store,
         [Parameter(Mandatory)][string]$Serial
     )
     $dir = Get-DeviceStoreDir -RepoRoot $RepoRoot -Store $Store

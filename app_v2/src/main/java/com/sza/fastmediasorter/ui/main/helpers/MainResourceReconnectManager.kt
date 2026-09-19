@@ -159,8 +159,8 @@ class MainResourceReconnectManager(
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.reconnect_different_folder_title)
             .setMessage(message)
-            .setPositiveButton(android.R.string.ok) { _, _ -> proceed(target, uri) }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> pending = null }
+            .setPositiveButton(R.string.ok) { _, _ -> proceed(target, uri) }
+            .setNegativeButton(R.string.cancel) { _, _ -> pending = null }
             .setOnCancelListener { pending = null }
             .showBoundToHost(activity)
     }

@@ -37,9 +37,9 @@
     <string name="keybinding_input_gamepad_mode">Modo</string>
     <string name="keybinding_input_gamepad_select">Selecione</string>
     <string name="keybinding_input_gamepad_start">Começar</string>
-    <string name="keybinding_input_mod_alt">Alternativa</string>
+    <string name="keybinding_input_mod_alt">Alt</string>
     <string name="keybinding_input_mod_ctrl">Ctrl</string>
-    <string name="keybinding_input_mod_shift">Mudança</string>
+    <string name="keybinding_input_mod_shift">Shift</string>
     <string name="keybinding_input_mouse_back">Voltar do mouse</string>
     <string name="keybinding_input_mouse_forward">Avançar com o mouse</string>
     <string name="keybinding_input_mouse_left">LMB</string>
@@ -76,7 +76,7 @@
     <string name="keybinding_label_playback_frame_step_forward">Passo a passo da estrutura</string>
     <string name="keybinding_label_playback_pause">Pausa</string>
     <string name="keybinding_label_playback_pause_play">Pausar/Reproduzir</string>
-    <string name="keybinding_label_playback_play">Jogar</string>
+    <string name="keybinding_label_playback_play">Reproduzir</string>
     <string name="keybinding_label_playback_repeat_mode">Modo de repetição</string>
     <string name="keybinding_label_playback_slideshow_toggle">Alternar apresentação de slides</string>
     <string name="keybinding_label_playback_speed_down">Reduzir a velocidade</string>
@@ -114,7 +114,7 @@
     <string name="keybinding_label_view_aspect_ratio">Proporção da tela</string>
     <string name="keybinding_label_view_fit_screen">Ajuste da tela</string>
     <string name="keybinding_label_view_fullscreen">Tela cheia</string>
-    <string name="keybinding_label_view_pan">Frigideira</string>
+    <string name="keybinding_label_view_pan">Deslocar</string>
     <string name="keybinding_label_view_rotate">Girar</string>
     <string name="keybinding_label_view_rotation_toggle">Rotação da tela</string>
     <string name="keybinding_label_view_zoom_in">Ampliar</string>
@@ -136,7 +136,7 @@
     <string name="keybinding_remap_not_impl">Reiniciar tudo - em breve</string>
     <string name="keybinding_remap_reset_all">Redefinir tudo</string>
     <string name="keybinding_remap_search_hint">Comandos de pesquisa..</string>
-    <string name="keybinding_row_remap">Remap</string>
+    <string name="keybinding_row_remap">Remapear</string>
     <string name="keybinding_row_reset">Restaurar para as configurações padrão</string>
     <string name="kbm_help_browse_back">Acesse a pasta principal</string>
     <string name="kbm_help_browse_open">Abra a pasta ou o arquivo.</string>

@@ -15,12 +15,18 @@ import com.sza.fastmediasorter.R
  * @param addItem the picker with no square named - the taskbar "+" path, where the repository picks the
  *   position (S1209).
  * @param addItemAtSlot the same picker told which square was pressed.
+ * @param pagePrevious S3205: the edge-hold drag turns to the previous screen through the one paging owner.
+ * @param pageNext S3205: the same, towards the next screen.
+ * @param screenCount S3205: read at hover time, so an edge with no screen behind it arms nothing.
  */
 class LauncherDesktopActions(
     val addItem: () -> Unit,
     val addItemAtSlot: (row: Int, col: Int) -> Unit,
     val wallpaper: () -> Unit,
     val launcherSettings: () -> Unit,
+    val pagePrevious: () -> Unit,
+    val pageNext: () -> Unit,
+    val screenCount: () -> Int,
 )
 
 /**

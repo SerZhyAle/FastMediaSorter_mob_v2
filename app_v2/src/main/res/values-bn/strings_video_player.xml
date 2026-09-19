@@ -5,9 +5,9 @@
     <string name="playback">প্লেব্যাক এবং বাছাই</string>
     <string name="playback_control_brightness_value">উজ্জ্বলতা: %1$+d%%</string>
     <string name="playback_control_done">সম্পন্ন হয়েছে</string>
-    <string name="playback_control_hue_value">HUE: %1$+d°</string>
-    <string name="playback_control_mute">মূক</string>
-    <string name="playback_control_mute_active">ম্লান</string>
+    <string name="playback_control_hue_value">রঙের আভা: %1$+d°</string>
+    <string name="playback_control_mute">নিঃশব্দ</string>
+    <string name="playback_control_mute_active">নিঃশব্দ করা</string>
     <string name="playback_control_mute_inactive">শব্দ চালু করুন</string>
     <string name="playback_control_no_audio_tracks">কোন অডিও ট্র্যাক উপলব্ধ নেই</string>
     <string name="playback_control_no_subtitles">কোনো সাবটাইটেল উপলব্ধ নেই</string>
@@ -16,7 +16,7 @@
     <string name="playback_control_tab_brightness">আলো</string>
     <string name="playback_control_tab_hue">হিউ</string>
     <string name="playback_control_tab_speed">গতি</string>
-    <string name="playback_control_tab_subtitles">বদলি</string>
+    <string name="playback_control_tab_subtitles">সাবটাইটেল</string>
     <string name="playback_control_tab_volume">ভলিউম</string>
     <string name="playback_control_unmute">আনমিউট করুন</string>
     <string name="playback_order_button_desc">প্লেব্যাক ক্রম: %1$s</string>
@@ -71,7 +71,7 @@
     <string name="video_bitrate_label">বিটরেট: %1$s Mbps</string>
     <string name="video_codec_label">কোডেক: %1$s</string>
     <string name="video_duration_label">সময়কাল: %1$s</string>
-    <string name="video_framerate_label">ফ্রেম রেট: 1.2fps</string>
+    <string name="video_framerate_label">ফ্রেম রেট: %1$.2f fps</string>
     <string name="video_info_section">ভিডিও মেটাডেটা</string>
     <string name="video_playback_failed_session_warning">এই সেশনে ফাইলটি আগে চালানো সম্ভব হয়নি।</string>
     <string name="video_playback_failed_with_name">চালানো যায়নি: %1$s</string>

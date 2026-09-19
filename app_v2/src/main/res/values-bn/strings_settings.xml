@@ -263,4 +263,17 @@
     <string name="settings_wear_install_guide_button">ঘড়িতে কীভাবে ইনস্টল করবেন</string>
     <string name="settings_wear_web_portal_button">ঘড়ি সম্পর্কে সব</string>
     <string name="setting_stopwatch_desc">প্রধান মেনু ও লঞ্চার উইজেটে স্টপওয়াচ দেখান</string>
+    <string name="cross_device_transfer_send_to_device">আমার ডিভাইসে পাঠান (Drive)</string>
+    <string name="cross_device_transfer_pending_title">মুলতুবি ডিভাইস স্থানান্তর</string>
+    <string name="cross_device_transfer_receive_and_delete">গ্রহণ করুন এবং ক্লাউড থেকে মুছুন</string>
+    <string name="cross_device_transfer_receive_and_keep">গ্রহণ করুন এবং ক্লাউডে রাখুন</string>
+    <string name="cross_device_transfer_empty">এই ডিভাইসের জন্য কিছু অপেক্ষা করছে না। এখানে দেখতে অন্য ডিভাইস থেকে একটি ফাইল বা সেটিংস পাঠান।</string>
+    <string name="cross_device_transfer_sending">আপনার Drive সারিতে আপলোড হচ্ছে..</string>
+    <string name="cross_device_transfer_sent">আপলোড হয়েছে। এটি নিতে আপনার অন্য ডিভাইসে এই স্ক্রিন খুলুন।</string>
+    <string name="cross_device_transfer_received_files">অ্যাপের ইনকামিং ফোল্ডারে সংরক্ষিত হয়েছে</string>
+    <string name="cross_device_transfer_received_settings">অন্য ডিভাইসের সেটিংস প্রয়োগ করা হয়েছে</string>
+    <string name="cross_device_transfer_failed">স্থানান্তর শেষ হয়নি। Drive সাইন-ইন ও সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
+    <string name="cross_device_transfer_row_subtitle">আপনার অন্য ডিভাইস থেকে আসা ফাইল ও সেটিংস, আপনার Google Drive-এ অপেক্ষা করছে</string>
+    <string name="cross_device_transfer_remove_expired">মেয়াদোত্তীর্ণ প্যাকেট সরান</string>
+    <string name="cross_device_transfer_expired_removed">মেয়াদোত্তীর্ণ প্যাকেট সরানো হয়েছে: %1$d</string>
 </resources>

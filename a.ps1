@@ -33,7 +33,8 @@
     fwn  - Fast Kotlin compile check, wear module (noLegal flavor)
     fwr  - Fast resources/manifest check, wear module (standard flavor)
     fwrn - Fast resources/manifest check, wear module (noLegal flavor)
-    fwu  - Fast unit-test suite, wear module
+    fwu  - Fast unit-test suite, wear module (standard flavor)
+    fwun - Fast unit-test suite, wear module (noLegal flavor)
            fk/fkn/fr/fc/fu all check app_v2. A change under wear/ needs fw/fwr/fwu -
            the phone target exits 0 without looking at the watch module at all.
            fw covers only the flavor the module declares first, standard. Since S2486 the
@@ -44,6 +45,8 @@
            in it. A change to a flavor manifest needs fwrn, and its merged output is the only
            place the permission's presence or absence can actually be read.
     flr  - Fast lint-rules detector test suite (:lint-rules:test)
+    fl   - Android lint, app_v2 (:app_v2:lintStandardDebug) - runs long, background it
+    flw  - Android lint, wear (:wear:lintStandardDebug) - runs long, background it
     fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in)
     fs   - Script regression suites (bare = full sweep, background it; -ChangedFiles "<paths>", -ListOnly)
     mb   - Run standard macrobenchmark suite
@@ -62,12 +65,18 @@
     nd   - Build noLegal Debug
     wd   - Build Wear OS Debug and distribute APK
     iw   - Build and install noLegal Wear OS Debug APK on a selected watch
+    r0   - MONO queue: one agent alone on the project, children run `/spec-all -m <id>` with no
+           lease, lock or chat wait; starts by dropping every leftover lease, lock and queue (S3158)
     r1   - Run the release queue unattended, instance A (one fresh claude process per ticket)
     r2   - Same, instance B - the second parallel stream, staggered so it does not race A
     r3   - Same, instance C - the third parallel stream, staggered further so it does not race A or B
            Order comes from PLAN/RELEASE_QUEUE.md; the model is picked per ticket (Opus where a
            decision is left, Sonnet for Implemented and tier 1-2). Options forward through, e.g.
            `.\a.ps1 r1 -MaxTickets 5 -TimeoutMinutes 45`.
+           Each of the four prints its own progress into its console as it goes - status flips,
+           closure verdicts, phase posts - read live from the agent chat, plus a still-working line
+           every 10 quiet minutes. Watch all of them from a spare window instead:
+           `pwsh -NoProfile -File scripts/utils/watch-agent-progress.ps1`.
            Each start cleans stale ticket leases first (same as `ul`), so a ticket a killed
            instance was on - still Draft/Tactical/Partial/whatever it was, never "done" - is
            immediately eligible again instead of reading as held for up to 45 minutes.
@@ -254,6 +263,7 @@ $scripts = @{
     'fwr'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear' } }  # S1807: fast resources/manifest check for the wear module
     'fwrn'      = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear'; Flavor = 'NoLegal' } }  # S2458: fwr resolves to standard, and since wear/src/noLegal/AndroidManifest.xml exists the two flavors merge different manifests - fwr cannot see the one that carries a permission
     'fwu'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit'; Module = 'wear' } }  # S1807: fast unit-test suite for the wear module
+    'fwun'      = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit'; Module = 'wear'; Flavor = 'NoLegal' } }  # S3178: fwu resolves to standard, and since this ticket the two flavors carry different test sets - wear/src/testStandard and wear/src/testNoLegal assert opposite halves of the store boundary, so fwu alone never runs the sideload half at all
     # S2355: compile the WATCH instrumented set. `fa` compiles app_v2 only, so quoting it under a
     # wear change records a verdict about the other module - the miss S1807 measured five times.
     # The flavor is named rather than defaulted: S2090 gave the watch a standard/noLegal dimension.
@@ -262,6 +272,10 @@ $scripts = @{
     # The flavor is named rather than defaulted: S2090 gave the watch a standard/noLegal dimension.
     'fwm'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'ConnectedAndroidTest'; Module = 'wear'; Flavor = 'Standard'; Tests = 'com.sza.fastmediasorter.wear.data.db' } }
     'flr'       = @{ Path = 'scripts\builders\check-lint-rules.ps1'; Args = @{} }  # S1195: custom lint detectors' own test suite
+    # S3155: lint itself, per module. Until this ticket no target ran it at all, so CI was the only
+    # place it executed and hundreds of errors accumulated unseen. Both run long - background them.
+    'fl'        = @{ Path = 'scripts\builders\check-lint.ps1'; Args = @{ Module = 'app_v2' } }
+    'flw'       = @{ Path = 'scripts\builders\check-lint.ps1'; Args = @{ Module = 'wear' } }
     'fg'        = @{ Path = 'scripts\quality\assert-fast-gates.ps1'; Args = @{} }  # S0826: batch fast static gates in one process
     # S2122: the repository's *.tests/Run-Tests.ps1 suites, by hand. Bare = the full sweep (measured
     # over 120 s, so background it); `-ChangedFiles "<paths>"` runs only the suites guarding those
@@ -288,6 +302,9 @@ $scripts = @{
     # r2 and r3 stagger their first ranking, each by a wider window than the last, so no pair
     # ranks on the same instant and races for the same ticket. Long-running by design: start them
     # in their own windows.
+    # S3158: the MONO chain - one agent alone on the project, so its children take no lease or lock
+    # and the wrapper runs the MONO start instead of the lease cleanup below.
+    'r0'        = @{ Path = 'scripts\utils\run-mono-queue.ps1'; Args = @{} }
     'r1'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'a' } }
     'r2'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'b'; StartDelaySeconds = 20 } }
     'r3'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'c'; StartDelaySeconds = 40 } }
@@ -382,6 +399,8 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "         fk/fkn/fr/fc/fu all check app_v2 - a wear/ change needs fw/fwr/fwu." -ForegroundColor DarkCyan
     Write-Host "         a wear/src/<flavor> change needs fwn too - fw only sees standard (S2486)." -ForegroundColor DarkCyan
     Write-Host "  flr  - Fast lint-rules detector test suite (:lint-rules:test)" -ForegroundColor Cyan
+    Write-Host "  fl   - Android lint, app_v2 - runs long, background it" -ForegroundColor Cyan
+    Write-Host "  flw  - Android lint, wear - runs long, background it" -ForegroundColor Cyan
     Write-Host "  fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log)" -ForegroundColor Cyan
     Write-Host "  fs   - Script regression suites (-ChangedFiles / -ListOnly; bare = full sweep)" -ForegroundColor Cyan
     Write-Host "  mb   - Run standard macrobenchmark suite" -ForegroundColor Cyan
@@ -399,6 +418,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
     Write-Host "  wd   - Build Wear OS Debug and distribute APK" -ForegroundColor Cyan
     Write-Host "  iw   - Build + install noLegal Wear OS Debug (-DeviceId <watch> when multiple devices)" -ForegroundColor Cyan
+    Write-Host "  r0   - MONO queue: one agent alone, children run /spec-all -m <id> (no lease, lock or wait)" -ForegroundColor Cyan
     Write-Host "  r1   - Run the release queue unattended, instance A (fresh process per ticket)" -ForegroundColor Cyan
     Write-Host "  r2   - Same, instance B - the second parallel stream" -ForegroundColor Cyan
     Write-Host "  r3   - Same, instance C - the third parallel stream" -ForegroundColor Cyan
@@ -572,6 +592,126 @@ if ($releaseCommands -contains $Command) {
     }
 }
 
+$queueRunnerStartCommands = @('r1', 'r2', 'r3')
+
+# S3308. How much runs at once was set by two unconnected hands - lanes started deliberately here,
+# and sessions opened beside them - so neither hand could see the total. The bound is declared once
+# in .sza-profile.json and read here, and it counts every active agent rather than only the lanes,
+# because the larger half of the load was never the lanes. r0 is exempt: MONO is one agent alone,
+# which is the opposite of adding load.
+#
+# Active is the owner's definition of 2026-09-19: an agent that talked, wrote a file or ran a script
+# inside the profile's window. A hung, interrupted, limit-stopped, finished or owner-declared-dead
+# agent is not load and does not count, which is why an open process is not what gets counted here.
+if ($queueRunnerStartCommands -contains $Command) {
+    $concurrency = $null
+    $profilePath = Join-Path $ProjectRoot '.sza-profile.json'
+    if (Test-Path $profilePath) {
+        try { $concurrency = (Get-Content -LiteralPath $profilePath -Raw | ConvertFrom-Json).concurrency } catch { $concurrency = $null }
+    }
+
+    if ($concurrency) {
+        $crossed = @()
+
+        $windowMinutes = if ($concurrency.activeAgentWindowMinutes) { [double]$concurrency.activeAgentWindowMinutes } else { 2 }
+        $cutoff = (Get-Date).AddMinutes(-$windowMinutes)
+        $lastSeen = @{}
+        foreach ($record in @(Get-ChildItem -Path (Join-Path $ProjectRoot 'temp\AGENT-CHAT') -Filter '*.json' -File -Recurse -ErrorAction SilentlyContinue)) {
+            if ($record.LastWriteTime -lt $cutoff) { continue }
+            try { $parsed = Get-Content -LiteralPath $record.FullName -Raw | ConvertFrom-Json } catch { continue }
+            $agentId = [string]$parsed.agent.id
+            if (-not $agentId) { continue }
+            $lastSeen[$agentId] = $true
+        }
+        $activeAgents = $lastSeen.Count
+        if ($concurrency.maxSessions -and $activeAgents -ge [int]$concurrency.maxSessions) {
+            $crossed += "active agents $activeAgents at or past the declared maximum $($concurrency.maxSessions)"
+        }
+
+        # The window is deliberately short and declared. The question here is whether the machine is
+        # loaded NOW, and the summary's own default is 24 hours: on 2026-09-19 the first lane started
+        # under this rule was refused at 39.6 s of lag on a machine that had run no fast check for an
+        # hour, because the median still carried the loaded part of the previous day. A window holding
+        # fewer than loadMinSamples checks is not evidence of a quiet machine or a busy one, so it
+        # refuses nothing rather than guessing from one run.
+        $summaryScript = Join-Path $ProjectRoot 'scripts\utils\measure-process-throughput.ps1'
+        if (Test-Path $summaryScript) {
+            $loadWindow = if ($concurrency.loadWindowMinutes) { [double]$concurrency.loadWindowMinutes } else { 60 }
+            $minSamples = if ($concurrency.loadMinSamples) { [int]$concurrency.loadMinSamples } else { 3 }
+            $since = (Get-Date).AddMinutes(-$loadWindow).ToString('yyyy-MM-ddTHH:mm:ss')
+            try { $summary = & pwsh -NoProfile -File $summaryScript -Since $since -Json | ConvertFrom-Json } catch { $summary = $null }
+            if ($summary) {
+                if ($null -ne $summary.idleRunShare -and $concurrency.idleRunSharePercentMax -and
+                    $summary.runCount -ge $minSamples -and
+                    $summary.idleRunShare -gt [double]$concurrency.idleRunSharePercentMax) {
+                    $crossed += "idle run share $($summary.idleRunShare) % past the declared $($concurrency.idleRunSharePercentMax) % over the last $loadWindow min"
+                }
+                if ($null -ne $summary.fastCheckLag -and $concurrency.fastCheckLagSecondsMax -and
+                    $summary.fastCheckRuns -ge $minSamples -and
+                    $summary.fastCheckLag -gt [double]$concurrency.fastCheckLagSecondsMax) {
+                    $crossed += "fast check lag $($summary.fastCheckLag) s past the declared $($concurrency.fastCheckLagSecondsMax) s over the last $loadWindow min ($($summary.fastCheckRuns) run(s))"
+                }
+            }
+        }
+
+        if ($crossed.Count -gt 0) {
+            Write-Host "Refusing to start another lane - the concurrency bound is crossed:" -ForegroundColor Red
+            foreach ($reason in $crossed) { Write-Host "  $reason" -ForegroundColor Red }
+            Write-Host "Read the window with: pwsh -NoProfile -File scripts/utils/measure-process-throughput.ps1" -ForegroundColor DarkGray
+            Write-Host "The bound is declared in .sza-profile.json under 'concurrency'." -ForegroundColor DarkGray
+            exit 4
+        }
+    }
+}
+
+# The instance name each runner stamps on its own process tree, and the progress watcher
+# started beside it. r0's MONO chain takes no lease, so it is absent from the lease cleanup below
+# but present in both maps - it needs the console progress at least as much, being one agent alone.
+$queueRunnerInstanceNames = @{ 'r0' = 'mono'; 'r1' = 'a'; 'r2' = 'b'; 'r3' = 'c' }
+$queueRunnerProgressProc = $null
+if ($queueRunnerInstanceNames.ContainsKey($Command)) {
+    # Stamp the instance on every descendant. agent-identity.ps1 reads FMS_QUEUE_INSTANCE and writes
+    # it into each chat record as `agent.instance`, so the progress watcher - and the monitor, and
+    # any later reader of the chat - can tell three parallel runners apart. Nothing else sets it, so
+    # before this every record from every instance read `instance -`.
+    $env:FMS_QUEUE_INSTANCE = $queueRunnerInstanceNames[$Command]
+
+    # The console's only sign of life between tickets. A `claude -p` child prints one line when its
+    # ticket ENDS and silent-mode.md forbids it anything before that, so a 30-60 minute pipeline read
+    # as a hang; the phases meanwhile announce themselves to the agent chat as they happen. Started
+    # -NoNewWindow so it writes into THIS console, and told this pid so it dies with the runner even
+    # when the runner is killed rather than stopped. Best-effort: no progress view is worth failing a
+    # runner start over.
+    $progressWatcher = Join-Path $ProjectRoot 'scripts\utils\watch-agent-progress.ps1'
+    if (Test-Path $progressWatcher) {
+        try {
+            $queueRunnerProgressProc = Start-Process -FilePath 'pwsh' -NoNewWindow -PassThru -ArgumentList @(
+                '-NoProfile', '-File', $progressWatcher,
+                '-Instance', $env:FMS_QUEUE_INSTANCE,
+                '-ParentPid', $PID
+            )
+        }
+        catch {
+            Write-Host "  progress watcher did not start, continuing without it - $($_.Exception.Message)" -ForegroundColor DarkYellow
+        }
+    }
+}
+
+# A freeze that ended by expiry or with its holder, rather than by an explicit Release, used to leave
+# its queue stand-down behind. release-freeze.ps1 lifts that flag when it clears such a marker, but
+# only a READER of the freeze learns it is over, and a lane start is the one moment where nothing else
+# reads it: run-spec-queue.ps1 sees the flag alone and, with any headless child alive, refuses to start
+# (exit 3) having run nothing. The status read is read-only against a live freeze and costs one line.
+if ($queueRunnerInstanceNames.ContainsKey($Command)) {
+    $freezeStatusScript = Join-Path $ProjectRoot 'scripts\utils\release-freeze.ps1'
+    if (Test-Path $freezeStatusScript) {
+        try { & $freezeStatusScript -Verb Status }
+        catch {
+            Write-Host "  freeze status unavailable, continuing - $($_.Exception.Message)" -ForegroundColor DarkYellow
+        }
+    }
+}
+
 # A queue-runner instance starting up cleans stale ticket leases first (same effect as `ul`).
 #
 # The lease a killed r1/r2/r3 child leaves behind is not swept by ordinary liveness: that check
@@ -583,7 +723,6 @@ if ($releaseCommands -contains $Command) {
 # running it here is free when every lease is genuinely live and frees a real one immediately when
 # it is not. Best-effort: a failed cleanup must not block the runner from starting - the lease
 # would still be swept by its own staleness window eventually.
-$queueRunnerStartCommands = @('r1', 'r2', 'r3')
 if ($queueRunnerStartCommands -contains $Command) {
     $leaseCleanScript = Join-Path $ProjectRoot 'scripts\spec_catalog\ticket-lease.ps1'
     if (Test-Path $leaseCleanScript) {
@@ -607,7 +746,17 @@ $argsDisplay = if ($scriptArgs -is [hashtable]) {
 Write-Host "Executing: $($scriptEntry.Path) $argsDisplay $($Rest -join ' ')" -ForegroundColor Green
 Write-Host ""
 
-Invoke-LauncherTarget -Path $scriptPath -PresetArgs $scriptArgs -ExtraArgs $Rest
+try {
+    Invoke-LauncherTarget -Path $scriptPath -PresetArgs $scriptArgs -ExtraArgs $Rest
+}
+finally {
+    # The watcher exits on its own once this pid is gone, but only at its next poll - stopping it here
+    # keeps a normal runner exit from leaving a stray pwsh writing into a console the operator has
+    # moved on from.
+    if ($queueRunnerProgressProc -and -not $queueRunnerProgressProc.HasExited) {
+        try { $queueRunnerProgressProc.Kill() } catch { }
+    }
+}
 
 # Return exit code from executed script
 exit $LASTEXITCODE

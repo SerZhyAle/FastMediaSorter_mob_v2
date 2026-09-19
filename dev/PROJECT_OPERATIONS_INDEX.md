@@ -123,6 +123,12 @@ Main app (`app_v2/src/main/java/com/sza/fastmediasorter/`):
 	- Watch half: `wear/.../ui/apps/waterflashlight/`
 	- Which surfaces each one appears on: `core/panel/SubProgramCatalog.kt`
 
+- Sub-programs (the calculator, stopwatch, mini-game, network monitor, recorder, lights, camera routes, watch companion) and the surfaces that offer them:
+	- `core/panel/` - `SubProgramCatalog.kt` (membership, order, surface eligibility, widget pairing, off-switch), `SubProgramEntry.kt`, `SubProgramSurface.kt`, `InternalRouteCatalog.kt` (label, icon, intent per route key)
+	- `ui/main/helpers/` - `MainProgramsMenuCoordinator.kt` (the dropdown menu and the programs panel), `MainProgramsMenuOrder.kt`
+	- `widget/registry/` - `HomeWidgetCatalog.kt`, the widget each entry pairs with
+	- Availability: `domain/usecase/panel/ResolvePanelRouteAvailabilityUseCase.kt`. Overview: `docs/ARCHITECTURE.md` "Sub-Program Registry".
+
 - Desktop companion config (`.fmscfg` SFTP-share import/export) - NOT the Wear companion:
 	- `data/companion/` (`CompanionConfigParser.kt` read side, `CompanionConfigSerializer.kt` write side, `CompanionConfigDto.kt` contract mirror, `CompanionResourceTokens.kt`)
 	- `domain/usecase/companion/` (`ImportCompanionConfigUseCase.kt`, `ExportCompanionConfigUseCase.kt`)

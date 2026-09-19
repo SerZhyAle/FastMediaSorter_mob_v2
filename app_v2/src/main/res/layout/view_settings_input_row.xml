@@ -57,11 +57,15 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- S2786: takes the slack at the END of an inline row, so the value never drifts away from its caption. -->
+    <!--
+      S2786: takes the slack at the END of an inline row, so the value never drifts away from its caption.
+      S3229: the height is 0dp, never wrap_content - a bare View answers an AT_MOST spec with the whole
+      available size (View.getDefaultSize), which inflated the row to the full height of its card.
+    -->
     <View
         android:id="@+id/sir_inlineTailSpacer"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:visibility="gone" />
 
 </merge>

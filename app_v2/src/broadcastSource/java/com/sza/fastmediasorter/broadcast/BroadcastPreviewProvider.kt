@@ -9,6 +9,7 @@ import com.pedro.library.view.OpenGlView
 import com.pedro.rtspserver.RtspServerCamera2
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
+import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,8 +37,11 @@ class BroadcastPreviewProvider @Inject constructor(
     @Volatile
     private var videoMuted = false
 
-    private var previewView: OpenGlView? = null
-    private var boundView: OpenGlView? = null
+    // S3157: the scope is @Singleton because this bridges the service and the control screen, two owners
+    // with different lifetimes, so the preview is held weakly. detach() still clears it; the container it
+    // was added to is the strong owner while the screen lives.
+    private var previewView: WeakReference<OpenGlView>? = null
+    private var boundView: WeakReference<OpenGlView>? = null
 
     private val surfaceCallback = object : SurfaceHolder.Callback {
         override fun surfaceCreated(holder: SurfaceHolder) = Unit
@@ -59,11 +63,11 @@ class BroadcastPreviewProvider @Inject constructor(
             view,
             ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
         )
-        previewView = view
+        previewView = WeakReference(view)
     }
 
     override fun detach() {
-        val view = previewView ?: return
+        val view = previewView?.get() ?: return
         view.holder.removeCallback(surfaceCallback)
         unbindView()
         (view.parent as? ViewGroup)?.removeView(view)
@@ -93,11 +97,11 @@ class BroadcastPreviewProvider @Inject constructor(
     @Suppress("TooGenericExceptionCaught")
     private fun bindView() {
         val liveCamera = camera ?: return
-        val view = previewView?.takeIf { it !== boundView && it.holder.surface.isValid } ?: return
+        val currentlyBound = boundView?.get()
+        val view = previewView?.get()?.takeIf { it !== currentlyBound && it.holder.surface.isValid } ?: return
         try {
             liveCamera.replaceView(view)
-            boundView = view
-            Timber.d("S3038: preview bound to live camera")
+            boundView = WeakReference(view)
         } catch (e: Throwable) {
             Timber.w(e, "Broadcast preview: renderer not ready, the stream stays headless")
             try {

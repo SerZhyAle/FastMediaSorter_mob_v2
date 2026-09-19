@@ -8,6 +8,7 @@
     android:orientation="horizontal"
     android:background="@android:color/transparent"
     android:gravity="center_vertical"
+    android:elevation="@dimen/elevation_player_controls"
     android:paddingVertical="@dimen/player_pdf_controls_padding_vertical"
     android:paddingHorizontal="@dimen/player_pdf_controls_padding_horizontal"
     android:visibility="gone">

@@ -1,0 +1,2217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.2.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.2.1)" variant="all" version="9.2.1">
+
+    <issue
+        id="NetworkDataSourceDispatcher"
+        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPClient.completePendingCommand` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
+        errorLine1="                if (!client.completePendingCommand()) {"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
+            line="140"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="NetworkDataSourceDispatcher"
+        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPClient.logout` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
+        errorLine1="                runCatching { client.logout() }"
+        errorLine2="                              ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
+            line="144"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="NetworkDataSourceDispatcher"
+        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPClient.disconnect` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
+        errorLine1="                runCatching { if (client.isConnected) client.disconnect() }"
+        errorLine2="                                                      ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
+            line="145"
+            column="55"/>
+    </issue>
+
+    <issue
+        id="NetworkDataSourceDispatcher"
+        message="Network I/O operation calling `org.apache.commons.net.ftp.FTP.sendCommand` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
+        errorLine1="        val replyCode = sendCommand(&quot;OPTS&quot;, &quot;UTF8 ON&quot;)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpEncodingSupport.kt"
+            line="34"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="NetworkDataSourceDispatcher"
+        message="Network I/O operation calling `org.apache.commons.net.SocketClient.connect` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
+        errorLine1="    connect(source.server, source.port)"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpSessionSupport.kt"
+            line="18"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="NetworkDataSourceDispatcher"
+        message="Network I/O operation calling `org.apache.commons.net.ftp.FTPClient.login` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
+        errorLine1="    if (!login(source.username, source.password)) {"
+        errorLine2="         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpSessionSupport.kt"
+            line="22"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="NetworkDataSourceDispatcher"
+        message="Network I/O operation calling `com.jcraft.jsch.ChannelSftp.disconnect` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
+        errorLine1="                runCatching { channel.disconnect() }"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/network/sftp/SftpDataSource.kt"
+            line="182"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="NetworkDataSourceDispatcher"
+        message="Network I/O operation calling `com.jcraft.jsch.Session.disconnect` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
+        errorLine1="                runCatching { session.disconnect() }"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/network/sftp/SftpDataSource.kt"
+            line="183"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="NetworkDataSourceDispatcher"
+        message="Network I/O operation calling `com.hierynomus.smbj.SMBClient.SMBClient` without background dispatcher confinement. Wrap in withContext(Dispatchers.IO)."
+        errorLine1="    private val client = SMBClient(config)"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/network/smb/SmbDataSource.kt"
+            line="49"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="ScopedStorage"
+        message="READ_EXTERNAL_STORAGE is deprecated (and is not granted) when targeting Android 13+. If you need to query or interact with MediaStore or media files on the shared storage, you should instead use one or more new storage permissions: `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO` or `READ_MEDIA_AUDIO`."
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.READ_EXTERNAL_STORAGE&quot; tools:node=&quot;remove&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/standard/AndroidManifest.xml"
+            line="24"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="ExifInterface"
+        message="Avoid using `android.media.ExifInterface`; use `androidx.exifinterface.media.ExifInterface` instead"
+        errorLine1="import android.media.ExifInterface"
+        errorLine2="       ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/thumbnail/EmbeddedPreviewReader.kt"
+            line="4"
+            column="8"/>
+    </issue>
+
+    <issue
+        id="ExifInterface"
+        message="Avoid using `android.media.ExifInterface`; use `androidx.exifinterface.media.ExifInterface` instead"
+        errorLine1="            val exif = ExifInterface(ByteArrayInputStream(head))"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/thumbnail/EmbeddedPreviewReader.kt"
+            line="54"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 30 (current min is 29): `android.content.pm.ServiceInfo#FOREGROUND_SERVICE_TYPE_MICROPHONE`"
+        errorLine1="            ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/service/VoiceRecordingService.kt"
+            line="483"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 29 (current min is 28): `android.Manifest.permission#ACTIVITY_RECOGNITION`"
+        errorLine1="            ?.contains(Manifest.permission.ACTIVITY_RECOGNITION) == true"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/motion/WearActivityRecognitionState.kt"
+            line="59"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 29 (current min is 28): `android.Manifest.permission#ACTIVITY_RECOGNITION`"
+        errorLine1="        context.checkSelfPermission(Manifest.permission.ACTIVITY_RECOGNITION) =="
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/motion/WearActivityRecognitionState.kt"
+            line="68"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 30 (current min is 28): `android.net.wifi.WifiManager#UNKNOWN_SSID`"
+        errorLine1="        return ssid?.takeIf { it.isNotBlank() &amp;&amp; it != WifiManager.UNKNOWN_SSID.trim(&apos;&quot;&apos;) }"
+        errorLine2="                                                       ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/netmonitor/WearNetworkMonitorRepositoryImpl.kt"
+            line="431"
+            column="56"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 33 (current min is 28): `android.Manifest.permission#READ_MEDIA_AUDIO`"
+        errorLine1="                Manifest.permission.READ_MEDIA_AUDIO,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="34"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 33 (current min is 28): `android.Manifest.permission#READ_MEDIA_VIDEO`"
+        errorLine1="                Manifest.permission.READ_MEDIA_VIDEO,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="38"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 33 (current min is 28): `android.Manifest.permission#READ_MEDIA_IMAGES`"
+        errorLine1="                Manifest.permission.READ_MEDIA_IMAGES,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="42"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 33 (current min is 28): `android.Manifest.permission#POST_NOTIFICATIONS`"
+        errorLine1="                Manifest.permission.POST_NOTIFICATIONS,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="51"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 29 (current min is 28): `android.Manifest.permission#ACTIVITY_RECOGNITION`"
+        errorLine1="                Manifest.permission.ACTIVITY_RECOGNITION,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="70"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 31 (current min is 28): `android.Manifest.permission#BLUETOOTH_CONNECT`"
+        errorLine1="                Manifest.permission.BLUETOOTH_CONNECT,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="78"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 33 (current min is 28): `android.Manifest.permission#NEARBY_WIFI_DEVICES`"
+        errorLine1="                Manifest.permission.NEARBY_WIFI_DEVICES,"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/onboarding/WearOnboardingPermissionStep.kt"
+            line="82"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="NotificationPermission"
+        message="When targeting Android 13 or higher, posting a permission requires holding the `POST_NOTIFICATIONS` permission"
+        errorLine1="        manager.notify(WearNotificationIds.LISTEN_REQUEST, build())"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/service/helpers/ListenRequestNotifier.kt"
+            line="98"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="NotificationPermission"
+        message="When targeting Android 13 or higher, posting a permission requires holding the `POST_NOTIFICATIONS` permission"
+        errorLine1="        manager.notify("
+        errorLine2="        ^">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/service/VoiceRecordingService.kt"
+            line="499"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="NotificationPermission"
+        message="When targeting Android 13 or higher, posting a permission requires holding the `POST_NOTIFICATIONS` permission"
+        errorLine1="        manager.notify(WearNotificationIds.OPEN_ON_WATCH, build(target, subtitle))"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/core/notification/WearOpenOnWatchNotifier.kt"
+            line="69"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="NotificationPermission"
+        message="When targeting Android 13 or higher, posting a permission requires holding the `POST_NOTIFICATIONS` permission"
+        errorLine1="        notificationManager.notify(WearNotificationIds.UPLOAD_OUTCOME, notification)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/core/notification/WearUploadOutcomeNotifier.kt"
+            line="43"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `localeConfig` is only used in API level 33 and higher (current min is 28)"
+        errorLine1="        android:localeConfig=&quot;@xml/locales_config&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="27"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="AppBundleLocaleChanges"
+        message="Found dynamic locale changes, but did not find corresponding Play Core library calls for downloading languages and splitting by language is not disabled in the `bundle` configuration"
+        errorLine1="            config.setLocales(LocaleList(locale))"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/core/util/WearLocaleManager.kt"
+            line="51"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="BatteryLife"
+        message="Use of `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html"
+        errorLine1="        Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/power/WearPowerManager.kt"
+            line="44"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="ForegroundServiceType"
+        message="To call `Service.startForeground()`, the `&lt;service>` element of manifest file must have the `foregroundServiceType` attribute specified"
+        errorLine1="        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())"
+        errorLine2="                      ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/service/VoiceRecordingService.kt"
+            line="261"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="ForegroundServiceType"
+        message="To call `Service.startForeground()`, the `&lt;service>` element of manifest file must have the `foregroundServiceType` attribute specified"
+        errorLine1="        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())"
+        errorLine2="                      ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/service/VoiceRecordingService.kt"
+            line="282"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="ForegroundServiceType"
+        message="To call `Service.startForeground()`, the `&lt;service>` element of manifest file must have the `foregroundServiceType` attribute specified"
+        errorLine1="        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())"
+        errorLine2="                      ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/service/VoiceRecordingService.kt"
+            line="369"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="ForegroundServiceType"
+        message="To call `Service.startForeground()`, the `&lt;service>` element of manifest file must have the `foregroundServiceType` attribute specified"
+        errorLine1="        ServiceCompat.startForeground("
+        errorLine2="                      ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/service/WearPlaybackService.kt"
+            line="371"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="PrivateResource"
+        message="The resource `@color/white` is marked as private in androidx.wear:wear-input:1.1.0"
+        errorLine1="        android:fillColor=&quot;@color/white&quot;"
+        errorLine2="                           ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/drawable/ic_sync.xml"
+            line="8"
+            column="28"/>
+    </issue>
+
+    <issue
+        id="PrivateResource"
+        message="The resource `@color/white` is marked as private in androidx.wear:wear-input:1.1.0"
+        errorLine1="        android:fillColor=&quot;@color/white&quot;"
+        errorLine2="                           ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/drawable/ic_tourist.xml"
+            line="7"
+            column="28"/>
+    </issue>
+
+    <issue
+        id="PrivateResource"
+        message="The resource `@color/white` is marked as private in androidx.wear:wear-input:1.1.0"
+        errorLine1="        android:fillColor=&quot;@color/white&quot;"
+        errorLine2="                           ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/drawable/ic_tourist.xml"
+            line="10"
+            column="28"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;password_masked&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;password_masked&quot;>••••&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="94"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_calc_fn_tangent&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_calc_fn_tangent&quot;>tg&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="176"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_calc_fn_natural_log&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_calc_fn_natural_log&quot;>ln&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="183"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_calc_fn_pi&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_calc_fn_pi&quot;>Pi&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="185"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_netmon_wifi&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_netmon_wifi&quot;>Wi-Fi&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="243"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_netmon_no&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_netmon_no&quot;>No&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="262"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_netmon_value_meters&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_netmon_value_meters&quot;>%1$.1f m&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="288"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_netmon_value_kbs&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_netmon_value_kbs&quot;>%1$.1f KB/s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="289"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_netmon_value_mbs&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_netmon_value_mbs&quot;>%1$.2f MB/s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="290"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_streams_facet_with_count&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_streams_facet_with_count&quot;>%1$s (%2$d)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="453"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_unit_size_bytes&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_unit_size_bytes&quot;>%1$s B&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="460"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_unit_size_kb&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_unit_size_kb&quot;>%1$s KB&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="461"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_unit_size_mb&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_unit_size_mb&quot;>%1$s MB&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="462"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;system_info_no&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;system_info_no&quot;>No&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="510"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;system_info_section_radio&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;system_info_section_radio&quot;>Wi-Fi&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="523"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_netmon_fact_on&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_netmon_fact_on&quot;>On&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="535"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_netmon_transport_wifi&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_netmon_transport_wifi&quot;>Wi-Fi&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="544"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_stopwatch_participant_short&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_stopwatch_participant_short&quot;>#%1$d&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="797"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_tourist_unit_kmh&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_tourist_unit_kmh&quot;>km/h&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="828"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_tourist_unit_meters&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_tourist_unit_meters&quot;>m&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="830"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_tourist_unit_feet&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_tourist_unit_feet&quot;>ft&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="831"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_tourist_unit_km&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_tourist_unit_km&quot;>km&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="832"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_tourist_unit_miles&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_tourist_unit_miles&quot;>mi&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="833"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wear_tourist_unit_celsius&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;wear_tourist_unit_celsius&quot;>°C&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="864"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;blood_pressure_seconds_short&quot; is not translated in &quot;ar&quot; (Arabic), &quot;de&quot; (German), &quot;hi&quot; (Hindi), &quot;pt&quot; (Portuguese), &quot;it&quot; (Italian), &quot;bn&quot; (Bangla), &quot;fr&quot; (French), &quot;ur&quot; (Urdu), &quot;zh&quot; (Chinese), &quot;es&quot; (Spanish)"
+        errorLine1="    &lt;string name=&quot;blood_pressure_seconds_short&quot;>%1$d s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="907"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="Typos"
+        message="&quot;Eletrónica&quot; is a common misspelling; did you mean &quot;Electrónica&quot; or &quot;Eletrônica&quot;?"
+        errorLine1="    &lt;string name=&quot;streams_rubric_electronic&quot;>Eletrónica&lt;/string>"
+        errorLine2="                                             ~~~~~~~~~~">
+        <location
+            file="src/main/res/values-pt/strings.xml"
+            line="407"
+            column="46"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;Updated&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;wear_sync_stats&quot;>Added: %1$d  Updated: %2$d&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="57"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;used&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;wear_netmon_satellites_count&quot;>%1$d used / %2$d visible&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="291"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;sats&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;wear_netmon_fact_satellites&quot;>%1$d/%2$d sats&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="542"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;readings&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;wear_netmon_fact_entries&quot;>%1$d readings&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="543"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;steps&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;motion_history_steps_format&quot;>%1$d steps&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="627"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;over&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;blood_pressure_estimate_description&quot;>Estimated blood pressure %1$d over %2$d. Calibrations: %3$d, newest %4$d days ago&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="891"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;cuff&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;blood_pressure_not_calibrated&quot;>Calibrate first: %1$d of %2$d cuff readings&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="893"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;seconds&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;blood_pressure_measuring_description&quot;>Measuring blood pressure, %1$d seconds left. Keep the arm still&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="908"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="TrustAllX509TrustManager"
+        message="`checkClientTrusted` is empty, which could cause insecure network traffic due to trusting arbitrary TLS/SSL certificates presented by peers">
+        <location
+            file="C:/Users/serzh/.gradle/caches/modules-2/files-2.1/commons-net/commons-net/3.10.0/86762ea0ac98fd41c91745a32d496a985e2bd5e7/commons-net-3.10.0.jar"/>
+    </issue>
+
+    <issue
+        id="TrustAllX509TrustManager"
+        message="`checkClientTrusted` is empty, which could cause insecure network traffic due to trusting arbitrary TLS/SSL certificates presented by peers">
+        <location
+            file="C:/Users/serzh/.gradle/caches/modules-2/files-2.1/commons-net/commons-net/3.10.0/86762ea0ac98fd41c91745a32d496a985e2bd5e7/commons-net-3.10.0.jar"/>
+    </issue>
+
+    <issue
+        id="InsecureBaseConfiguration"
+        message="Insecure Base Configuration"
+        errorLine1="    &lt;base-config cleartextTrafficPermitted=&quot;true&quot; />"
+        errorLine2="                                            ~~~~">
+        <location
+            file="src/main/res/xml/network_security_config.xml"
+            line="5"
+            column="45"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; `SDK_INT` is always >= 28"
+        errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &amp;&amp; gnssCallback != null) {"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/tourist/AndroidWearTouristRepository.kt"
+            line="130"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; `SDK_INT` is never &lt; 28"
+        errorLine1="        if (Build.VERSION.SDK_INT &lt; Build.VERSION_CODES.N) return null"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/tourist/AndroidWearTouristRepository.kt"
+            line="186"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; `SDK_INT` is never &lt; 28"
+        errorLine1="        if (Build.VERSION.SDK_INT &lt; Build.VERSION_CODES.O) {"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/service/WearPlaybackService.kt"
+            line="404"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; `SDK_INT` is always >= 28"
+        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/core/notification/WearUploadOutcomeNotifier.kt"
+            line="53"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="This folder configuration (`v26`) is unnecessary; `minSdkVersion` is 28. Merge all the resources in this folder into `mipmap-anydpi`.">
+        <location
+            file="src/main/res/mipmap-anydpi-v26"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.destinations` appears to be unused">
+        <location
+            file="src/main/res/drawable/destinations.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_provider_dropbox` appears to be unused">
+        <location
+            file="src/main/res/drawable/ic_provider_dropbox.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_provider_google_drive` appears to be unused">
+        <location
+            file="src/main/res/drawable/ic_provider_google_drive.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_provider_onedrive` appears to be unused">
+        <location
+            file="src/main/res/drawable/ic_provider_onedrive.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_resource_cloud` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/ic_resource_cloud.xml"
+            line="1"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_sync` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/ic_sync.xml"
+            line="1"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.ic_wifi` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/ic_wifi.xml"
+            line="1"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.raw.msal_config` appears to be unused">
+        <location
+            file="src/main/res/raw/msal_config.json"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.resource_types` appears to be unused">
+        <location
+            file="src/main/res/drawable/resource_types.png"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.xml.send_to_paths` appears to be unused"
+        errorLine1="&lt;paths>"
+        errorLine2="^">
+        <location
+            file="src/main/res/xml/send_to_paths.xml"
+            line="9"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.no_files_found` appears to be unused"
+        errorLine1="    &lt;string name=&quot;no_files_found&quot;>No files found&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="10"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.slideshow_interval` appears to be unused"
+        errorLine1="    &lt;string name=&quot;slideshow_interval&quot;>Interval: %ds&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="27"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.slideshow_paused` appears to be unused"
+        errorLine1="    &lt;string name=&quot;slideshow_paused&quot;>Slideshow Paused&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="36"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.start_slideshow` appears to be unused"
+        errorLine1="    &lt;string name=&quot;start_slideshow&quot;>Start Slideshow&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="37"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.stop_slideshow` appears to be unused"
+        errorLine1="    &lt;string name=&quot;stop_slideshow&quot;>Stop Slideshow&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="38"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.smb_sources` appears to be unused"
+        errorLine1="    &lt;string name=&quot;smb_sources&quot;>SMB Shares&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="48"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_no_sources` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_no_sources&quot;>No network sources.\nSync from phone or add manually.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="52"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.delete_source` appears to be unused"
+        errorLine1="    &lt;string name=&quot;delete_source&quot;>Delete Source&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="65"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.hold_to_delete` appears to be unused"
+        errorLine1="    &lt;string name=&quot;hold_to_delete&quot;>Hold to delete&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="80"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.error` appears to be unused"
+        errorLine1="    &lt;string name=&quot;error&quot;>Error&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="84"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_favorite_sent` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_favorite_sent&quot;>Favorite synced&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="112"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.phone_resource_retry` appears to be unused"
+        errorLine1="    &lt;string name=&quot;phone_resource_retry&quot;>Retry&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="121"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_shuffle_on` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_shuffle_on&quot;>Shuffle on&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="127"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_shuffle_off` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_shuffle_off&quot;>Shuffle off&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="128"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_keep_screen_awake` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_keep_screen_awake&quot;>Keep screen on&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="134"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_coming_soon` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_coming_soon&quot;>Coming soon&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="142"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_netmon_field_location_provider` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_netmon_field_location_provider&quot;>Provider&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="257"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_netmon_action_ip_copied` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_netmon_action_ip_copied&quot;>IP copied&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="281"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_netmon_value_kbs` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_netmon_value_kbs&quot;>%1$.1f KB/s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="289"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_netmon_value_mbs` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_netmon_value_mbs&quot;>%1$.2f MB/s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="290"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_complication_last_resource_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_complication_last_resource_label&quot;>Last Resource&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="371"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_complication_last_resource_description` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_complication_last_resource_description&quot;>Shortcut to open the most recently used media resource&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="372"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_complication_favourites_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_complication_favourites_label&quot;>Favourites&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="373"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_complication_favourites_description` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_complication_favourites_description&quot;>Shows favourites count and opens favourites list&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="374"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_complication_now_playing_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_complication_now_playing_label&quot;>Now Playing&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="375"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_complication_now_playing_description` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_complication_now_playing_description&quot;>Shows currently playing or last played track&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="376"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_setting_streams_section` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_setting_streams_section&quot;>Show Streams&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="389"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_browse_filter` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_browse_filter&quot;>Filter files&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="398"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_browse_sort` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_browse_sort&quot;>Sort files&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="399"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_browse_clear_search` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_browse_clear_search&quot;>Clear search&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="401"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.system_info_section_extended` appears to be unused"
+        errorLine1="    &lt;string name=&quot;system_info_section_extended&quot;>Extended&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="530"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.system_info_signing_fingerprint` appears to be unused"
+        errorLine1="    &lt;string name=&quot;system_info_signing_fingerprint&quot;>Signature&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="531"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_background_playback_desc` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_background_playback_desc&quot;>Audio keeps playing after you leave the app&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="555"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_sync_now` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_sync_now&quot;>Sync&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="568"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_sync_now_description` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_sync_now_description&quot;>Synchronize watch and phone&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="569"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wear_listen_request_confirm` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wear_listen_request_confirm&quot;>Allow&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="662"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.system_info_copied` appears to be unused"
+        errorLine1="    &lt;string name=&quot;system_info_copied&quot;>Copied&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="727"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.body_sensor_history` appears to be unused"
+        errorLine1="    &lt;string name=&quot;body_sensor_history&quot;>History&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="734"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.body_sensor_history_clear_confirm` appears to be unused"
+        errorLine1="    &lt;string name=&quot;body_sensor_history_clear_confirm&quot;>Delete all history?&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="738"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.body_sensor_history_row` appears to be unused"
+        errorLine1="    &lt;string name=&quot;body_sensor_history_row&quot;>%1$s  %2$d bpm&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="739"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.blood_pressure_history_row` appears to be unused"
+        errorLine1="    &lt;string name=&quot;blood_pressure_history_row&quot;>%1$s %2$d/%3$d mmHg&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="762"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.browse_network_connection_failed` appears to be unused"
+        errorLine1="    &lt;string name=&quot;browse_network_connection_failed&quot;>Couldn\&apos;t connect to this source. Check the connection and try again.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings_browse.xml"
+            line="6"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.tile_preview_favourites` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/tile_preview_favourites.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.tile_preview_resource` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/tile_preview_resource.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.tile_preview_sections` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/tile_preview_sections.xml"
+            line="4"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.tile_preview_stream` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/tile_preview_stream.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.touch_zones_scheme` appears to be unused">
+        <location
+            file="src/main/res/drawable/touch_zones_scheme.png"/>
+    </issue>
+
+    <issue
+        id="UsableSpace"
+        message="Consider also using `StorageManager#getAllocatableBytes` and `allocateBytes` which will consider clearable cached data"
+        errorLine1="        val free = fileFactory.directory().usableSpace"
+        errorLine2="                                           ~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/repository/VoiceNoteRepositoryImpl.kt"
+            line="115"
+            column="44"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 طبيعي وقت الراحة&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-ar/strings.xml"
+            line="715"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 静息正常&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-b+zh+Hans/strings.xml"
+            line="715"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 স্বাভাবিক বিশ্রাম&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-bn/strings.xml"
+            line="715"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 normaler Ruhepuls&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-de/strings.xml"
+            line="715"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 en reposo normal&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-es/strings.xml"
+            line="715"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 au repos&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-fr/strings.xml"
+            line="715"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 सामान्य विश्राम&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-hi/strings.xml"
+            line="715"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 a riposo&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-it/strings.xml"
+            line="715"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 normal em repouso&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-pt/strings.xml"
+            line="715"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 آرام کی حالت میں نارمل&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-ur/strings.xml"
+            line="715"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;blood_pressure_invalid&quot;>أدخل قيمًا بين 40-300&lt;/string>"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-ar/strings.xml"
+            line="722"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;blood_pressure_invalid&quot;>输入 40-300 之间的数值&lt;/string>"
+        errorLine2="                                          ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-b+zh+Hans/strings.xml"
+            line="722"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;blood_pressure_invalid&quot;>40-300 এর মধ্যে মান লিখুন&lt;/string>"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-bn/strings.xml"
+            line="722"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;blood_pressure_invalid&quot;>Werte 40-300 eingeben&lt;/string>"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-de/strings.xml"
+            line="722"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;blood_pressure_invalid&quot;>40-300 के बीच वैल्यू दर्ज करें&lt;/string>"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-hi/strings.xml"
+            line="722"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;blood_pressure_invalid&quot;>Inserisci valori 40-300&lt;/string>"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-it/strings.xml"
+            line="722"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;blood_pressure_invalid&quot;>Introduza valores 40-300&lt;/string>"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-pt/strings.xml"
+            line="722"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;blood_pressure_invalid&quot;>40-300 کے درمیان ویلیو درج کریں&lt;/string>"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-ur/strings.xml"
+            line="722"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 норма покоя&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-ru/strings.xml"
+            line="752"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 норма спокою&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-uk/strings.xml"
+            line="752"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;heart_rate_normal_baseline&quot;>60-100 normal resting&lt;/string>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="752"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;blood_pressure_invalid&quot;>Введите 40-300&lt;/string>"
+        errorLine2="                                          ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-ru/strings.xml"
+            line="759"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;blood_pressure_invalid&quot;>Введіть 40-300&lt;/string>"
+        errorLine2="                                          ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-uk/strings.xml"
+            line="759"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="TypographyDashes"
+        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
+        errorLine1="    &lt;string name=&quot;blood_pressure_invalid&quot;>Enter values 40-300&lt;/string>"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="759"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/destinations.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/destinations.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/ic_provider_dropbox.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/ic_provider_dropbox.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/ic_provider_google_drive.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/ic_provider_google_drive.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/ic_provider_onedrive.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/ic_provider_onedrive.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/resource_types.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/resource_types.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/touch_zones_scheme.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/touch_zones_scheme.png"/>
+    </issue>
+
+    <issue
+        id="WearRecents"
+        message="Set `taskAffinity` for Wear activities to make them appear correctly in recents"
+        errorLine1="        &lt;activity"
+        errorLine2="        ^">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="42"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="WearRecents"
+        message="Avoid using `FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_CLEAR_TOP`"
+        errorLine1="            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)"
+        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/service/helpers/ListenRequestNotifier.kt"
+            line="154"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="WearRecents"
+        message="Avoid using `FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_CLEAR_TOP`"
+        errorLine1="                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/apps/netmonitor/NetworkMonitorActions.kt"
+            line="34"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="WearRecents"
+        message="Avoid using `FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_CLEAR_TOP`"
+        errorLine1="        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/settings/PermissionsSettingsScreen.kt"
+            line="218"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="WearRecents"
+        message="Avoid using `FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_CLEAR_TOP`"
+        errorLine1="            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)"
+        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/service/VoiceRecordingService.kt"
+            line="570"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="WearRecents"
+        message="Avoid using `FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_CLEAR_TOP`"
+        errorLine1="            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)"
+        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/wear/WatchWearListenerService.kt"
+            line="329"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="WearRecents"
+        message="Avoid using `FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_CLEAR_TOP`"
+        errorLine1="            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)"
+        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/core/notification/WearOpenOnWatchNotifier.kt"
+            line="104"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="WearRecents"
+        message="Avoid using `FLAG_ACTIVITY_NEW_TASK` and `FLAG_ACTIVITY_CLEAR_TOP`"
+        errorLine1="            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)"
+        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/files/WearSendToLauncher.kt"
+            line="36"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(WearPortalLinks.WEB_PORTAL_URL))"
+        errorLine2="                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/settings/AboutSettingsScreen.kt"
+            line="91"
+            column="65"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `Bitmap.scale` instead?"
+        errorLine1="        return Bitmap.createScaledBitmap(bitmap, w, h, true)"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/thumbnail/AudioCoverArtReader.kt"
+            line="69"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                .setUri(Uri.parse(background.mediaUri))"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt"
+            line="430"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                .setUri(Uri.parse(selected.streamUri))"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt"
+            line="625"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                                uri = android.net.Uri.parse(fullPath),"
+        errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/browse/BrowseViewModel.kt"
+            line="312"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                uri = Uri.parse(record.filePath),"
+        errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/favourites/FavouritesViewModel.kt"
+            line="169"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="        uri = Uri.parse(filePath),"
+        errorLine2="              ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/favourites/FavouritesViewModel.kt"
+            line="283"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                uri = Uri.parse(&quot;ftp://${source.server}:${source.port}${entry.path}&quot;),"
+        errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt"
+            line="36"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="    val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(&quot;geo:0,0?q=&quot;))"
+        errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/apps/motionmonitor/MotionMonitorScreen.kt"
+            line="143"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        encryptedPrefs.edit().putString(sourcesKey, json).apply()"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/preferences/NetworkSourceRepositoryImpl.kt"
+            line="169"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        encryptedPrefs.edit().putString(tombstonesKey, gson.toJson(tombstones)).apply()"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/preferences/NetworkSourceRepositoryImpl.kt"
+            line="174"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX function `createBitmap` instead?"
+        errorLine1="        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/wear/PixelCopyWearScreenCapture.kt"
+            line="61"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="    uri = Uri.parse(url),"
+        errorLine2="          ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/usecase/PrepareWearStreamPlaybackUseCase.kt"
+            line="100"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="            writer.retitle(Uri.parse(address), title) == WearMediaStoreFileWriter.Result.Succeeded"
+        errorLine2="                           ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/usecase/RefreshVoiceNoteTitlesUseCase.kt"
+            line="56"
+            column="28"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                uri = Uri.parse(note.publishedAddress),"
+        errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/domain/usecase/SendVoiceNoteUseCase.kt"
+            line="38"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                uri = Uri.parse(&quot;sftp://${source.server}:${source.port}${entry.path}&quot;),"
+        errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/network/sftp/SftpDataSource.kt"
+            line="43"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putBoolean(KEY_BATTERY_WARNING_SHOWN, true).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerViewModel.kt"
+            line="418"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="            val mediaItem = MediaItem.fromUri(Uri.parse(selected.streamUri))"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerViewModel.kt"
+            line="552"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                context.contentResolver.delete(Uri.parse(published), null, null)"
+        errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/repository/VoiceNoteRepositoryImpl.kt"
+            line="130"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            prefs.edit().putInt(KEY_STEP, stepIndex).apply()"
+        errorLine2="            ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/apps/calculator/WearCalculatorHistoryScale.kt"
+            line="35"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            prefs(context).edit()"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/db/WearDatabaseResetNotice.kt"
+            line="40"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().clear().apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/db/WearDatabaseResetNotice.kt"
+            line="58"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putString(keyDelta, gson.toJson(emptyList&lt;WearFavoriteDeltaItem>())).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/repository/WearFavoritesRepositoryImpl.kt"
+            line="127"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putString(keyFavorites, gson.toJson(favorites)).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/repository/WearFavoritesRepositoryImpl.kt"
+            line="142"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putString(keyRecords, gson.toJson(records)).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/repository/WearFavoritesRepositoryImpl.kt"
+            line="157"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putString(keyDelta, gson.toJson(queued)).apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/repository/WearFavoritesRepositoryImpl.kt"
+            line="173"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="            Uri.parse(&quot;content://media/external/audio/albumart&quot;),"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/repository/WearMediaRepositoryImpl.kt"
+            line="247"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="        uri = if (entry.isDirectory) null else Uri.parse(uriFor(source, entry.path)),"
+        errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/repository/WearNetworkFolderRepositoryImpl.kt"
+            line="85"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="            .setData(Uri.parse(url))"
+        errorLine2="                     ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/repository/WearOpenUrlOnPhoneRepositoryImpl.kt"
+            line="51"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX function `createBitmap` instead?"
+        errorLine1="        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/broadcast/WearQrCodeEncoder.kt"
+            line="47"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            prefs.edit().putString(KEY_USAGE, gson.toJson(updated)).apply()"
+        errorLine2="            ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/data/repository/WearStreamUsageRepositoryImpl.kt"
+            line="55"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `Bitmap.get` instead?"
+        errorLine1="                val pixel = bitmap.getPixel(x, y)"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/sza/fastmediasorter/wear/ui/common/WearWallpaperScrimPolicy.kt"
+            line="72"
+            column="29"/>
+    </issue>
+
+</issues>

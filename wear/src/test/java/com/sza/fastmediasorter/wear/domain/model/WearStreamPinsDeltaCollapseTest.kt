@@ -27,7 +27,10 @@ class WearStreamPinsDeltaCollapseTest {
         queue = appendStreamPinDelta(queue, item("https://stream.example.com/a", true, 100L))
         queue = appendStreamPinDelta(queue, item("https://stream.example.com/b", true, 200L))
 
-        assertEquals(listOf("https://stream.example.com/a", "https://stream.example.com/b"), queue.map { it.urlOrIdentity })
+        assertEquals(
+            listOf("https://stream.example.com/a", "https://stream.example.com/b"),
+            queue.map { it.urlOrIdentity }
+        )
     }
 
     @Test

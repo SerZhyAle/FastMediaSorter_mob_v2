@@ -15,7 +15,7 @@
     <string name="smb_network_unstable">নেটওয়ার্ক অস্থিতিশীল - অনুগ্রহ করে ওয়াই-ফাই পরীক্ষা করুন।</string>
     <string name="smb_no_shares_found_title">কোন শেয়ার খুঁজে পাওয়া যায়নি</string>
     <string name="smb_password">পাসওয়ার্ড</string>
-    <string name="smb_port">বন্দর</string>
+    <string name="smb_port">পোর্ট</string>
     <string name="smb_port_hint">ডিফল্ট: ৪৪৫</string>
     <string name="smb_resource_added_readonly">SMB রিসোর্স যোগ করা হয়েছে (শুধুমাত্র পঠনযোগ্য)। লেখার সুবিধা উপলব্ধ থাকবে না।</string>
     <string name="smb_resource_added_success">SMB রিসোর্স সফলভাবে যোগ করা হয়েছে</string>
@@ -44,7 +44,7 @@
     <string name="sftp_key_passphrase_hint">কী-টি এনক্রিপ্ট করা না থাকলে খালি রাখুন।</string>
     <string name="sftp_load_key">ফাইল লোড করুন</string>
     <string name="sftp_password">পাসওয়ার্ড</string>
-    <string name="sftp_port">বন্দর</string>
+    <string name="sftp_port">পোর্ট</string>
     <string name="sftp_private_key">ব্যক্তিগত SSH কী</string>
     <string name="sftp_private_key_hint">কী-টি পেস্ট করুন অথবা একটি ফাইল বেছে নিন।</string>
     <string name="sftp_remote_path">দূরবর্তী পথ</string>

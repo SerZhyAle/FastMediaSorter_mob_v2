@@ -59,7 +59,7 @@
     <string name="vr_hud_last_file">آخری فائل</string>
     <string name="vr_hud_move_done">منتقل کر دیا گیا</string>
     <string name="vr_hud_paused">روک دیا گیا</string>
-    <string name="vr_hud_playing">کھیلنا</string>
+    <string name="vr_hud_playing">چل رہا ہے</string>
     <string name="vr_hud_prev_next_hint">← پچھلا / اگلا →</string>
     <string name="vr_hud_recenter_done">دوبارہ مرکوز</string>
     <string name="vr_hud_seek_bwd">پیچھے کی طرف تلاش کریں۔</string>

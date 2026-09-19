@@ -181,14 +181,13 @@ object LocaleHelper {
         // so the catalog has to be ready here too - otherwise the very first resolution of the session
         // would see an empty catalog and cache English.
         UiLanguageCatalog.ensureInitialized(context)
-        cachedLanguageCode?.let { cached ->
-            if (!isFollowingSystemLanguageInternal(context)) {
-                Timber.d("LocaleHelper: Read language from cache: $cached")
-                return@allowDiskReads cached
-            }
-        }
 
-        // Android 13+ (API 33): Try reading from LocaleManager first
+        // S3092: LocaleManager outranks the cache, never the other way round. A per-app locale set
+        // outside the process - system settings "App language", `cmd locale set-app-locales` - passes
+        // through neither saveLanguage nor resetLanguage, so the cache keeps answering with the
+        // previous language for the life of the process while every Activity recreation reapplies it.
+        // Nothing is spent by reading here: the cache branch below already made this same binder call
+        // inside isFollowingSystemLanguageInternal and then discarded what it read.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
                 val localeManager = context.getSystemService(LocaleManager::class.java)
@@ -201,6 +200,13 @@ object LocaleHelper {
                 }
             } catch (e: Exception) {
                 Timber.w(e, "LocaleHelper: Failed to read from LocaleManager, fallback to SharedPreferences")
+            }
+        }
+
+        cachedLanguageCode?.let { cached ->
+            if (!isFollowingSystemLanguageInternal(context)) {
+                Timber.d("LocaleHelper: Read language from cache: $cached")
+                return@allowDiskReads cached
             }
         }
 

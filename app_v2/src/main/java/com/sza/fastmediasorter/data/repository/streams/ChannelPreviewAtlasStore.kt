@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.repository.streams
 
+import androidx.annotation.WorkerThread
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,6 +30,7 @@ class ChannelPreviewAtlasStore @Inject constructor(
     private val coordsJson: File get() = File(dir, "channel-preview-coords.json")
 
     /** The downloaded atlas sheet, or null when the atlas is not installed. */
+    @WorkerThread
     fun atlasFile(): File? = atlas.takeIf { it.isFile }
 
     /**
@@ -36,7 +38,22 @@ class ChannelPreviewAtlasStore @Inject constructor(
      * sprite-sheet payload. The two coexist on purpose - the sheet stays readable until the user
      * accepts the payload update.
      */
+    @WorkerThread
     fun tilePackFile(): File? = tilePack.takeIf { it.isFile }
+
+    /** S3230: main-safe "is any payload present" probe for callers on the UI thread. */
+    suspend fun isInstalled(): Boolean = withContext(Dispatchers.IO) {
+        tilePack.isFile || atlas.isFile
+    }
+
+    /** S3230: main-safe payload discriminator - [PAYLOAD_PACK], [PAYLOAD_SHEET] or [PAYLOAD_NONE]. */
+    suspend fun payloadKind(): String = withContext(Dispatchers.IO) {
+        when {
+            tilePack.isFile -> PAYLOAD_PACK
+            atlas.isFile -> PAYLOAD_SHEET
+            else -> PAYLOAD_NONE
+        }
+    }
 
     /**
      * The persisted `url -> tile_index` map. An absent or corrupt sidecar yields an empty map
@@ -69,5 +86,11 @@ class ChannelPreviewAtlasStore @Inject constructor(
             if (index != null) out[key] = index
         }
         return out
+    }
+
+    companion object {
+        const val PAYLOAD_PACK = "pack"
+        const val PAYLOAD_SHEET = "sheet"
+        const val PAYLOAD_NONE = "none"
     }
 }

@@ -6,7 +6,41 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.9151.928** (September 2026)
+**Current release: 2.60.9191.534** (September 2026)
+
+> Changes since version 2.60.9151.928
+
+---
+
+## What's New
+
+- **Cross-device transfer over Google Drive** - queue files between your own devices through a Drive-backed transfer, no cable needed.
+- **SOS distress signal** - trigger it from the phone.
+- **A more complete settings backup** - back up your whole setup, plus import and export to a file or Google Drive.
+- **Shortcuts that reach sub-programs** - a long-press on the app icon jumps straight into a sub-program, not just the main screen.
+- **A fuller starter desktop** - preset device profiles, complete starter sections, and ready-made start-panel rows.
+- **Faster desktop editing** - drag a whole cell between desktops by holding its edge, and reorder entire sections at once.
+- **Launcher window and charging behavior** - choose which window opens first and where it sits, and set a separate screen timeout for while it's charging.
+- **One broadcast screen, start to finish** - a camera preview before you go live, a remembered lens choice, a neutral default title, and share captions that never break mid-word.
+- **Broadcast settings you can trust** - a dedicated settings section for title, bit rate, port, audio format and an auto-open-share toggle, all of it surviving a backup restore.
+- **Easier broadcast hand-off** - a descriptor file and a clickable import link get a broadcast onto another device, with viewer instructions right on the share panel.
+- **The dimmed player still shows the clock** - a clock and status overlay stay visible while the screen is dimmed.
+
+## What's Fixed
+
+- Zero-byte thumbnails no longer show up as valid files.
+- The open-source licences list opens without blocking the app, and drops a stray note line.
+- Accessibility announcements no longer flood the player and broadcast screens.
+- Grid icon size and background sync interval settings are kept, not reset.
+- SOS and taskbar height survive a backup restore.
+- Prevent Sleep now covers every screen, not just some.
+- Animations come back correctly after charging.
+- Dialog buttons follow the app language.
+- Broadcast title and bit rate now report correctly to listeners.
+
+---
+
+## Previous Release: 2.60.9151.928 (September 2026)
 
 > Changes since version 2.60.9121.346
 
@@ -14,7 +48,7 @@ permalink: /docs/WHATS_NEW.html
 
 ## What's New
 
-- **Live broadcast to the watch** - send a live stream from the phone to the paired watch.
+- **Live broadcast to the watch** - send a live broadcast from the phone to the paired watch.
 - **Watch stream categories** - Video, Audio and your own streams sorted apart on the watch.
 - **Camera broadcast lens choice** - pick the lens and mute the camera during a broadcast.
 - **Theme-aware launcher icons** - desktop icons follow the light or dark theme.

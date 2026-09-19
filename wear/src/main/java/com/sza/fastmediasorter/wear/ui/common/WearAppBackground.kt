@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
-import timber.log.Timber
 
 /**
  * S2000: the one layer drawn behind every screen of the watch app.

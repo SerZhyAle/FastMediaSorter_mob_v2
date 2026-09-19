@@ -33,7 +33,11 @@ $trivialKey = (Get-Content -LiteralPath (Join-Path $repoRoot '.sza-profile.json'
 foreach ($name in 'a', 'b', 'c', 'd') {
     Set-Content -LiteralPath (Join-Path $fixture "$name.kt") -Value "package x`n`nfun $name() = 1" -Encoding utf8
 }
+Set-Content -LiteralPath (Join-Path $fixture '.gitignore') -Value "ignored/`n" -Encoding utf8
 & git -C $fixture init -q *> $null
+# `git stash create` (S3182's baseline) writes a commit, so the fixture needs its own identity.
+& git -C $fixture config user.email suite@example.com *> $null
+& git -C $fixture config user.name suite *> $null
 & git -C $fixture add -A *> $null
 & git -C $fixture -c user.email=suite@example.com -c user.name=suite -c core.autocrlf=false commit -q -m base *> $null
 
@@ -71,6 +75,12 @@ Add-Line 'a.kt' 'fun extra() = 2'
 Set-Content -LiteralPath (Join-Path $fixture 'e.kt') -Value 'package x' -Encoding utf8
 Invoke-Case 'a new file escalates' 1 @('-RepoRoot', $fixture, '-Files', 'a.kt,e.kt') 'e\.kt is a new file'
 
+# S3166: an ignored tree is in no commit, so the new-file rule cannot apply to it.
+Add-Line 'a.kt' 'fun extra() = 2'
+New-Item -ItemType Directory -Force -Path (Join-Path $fixture 'ignored') | Out-Null
+Set-Content -LiteralPath (Join-Path $fixture 'ignored/x.md') -Value '# ignored' -Encoding utf8
+Invoke-Case 'a gitignored path is not judged as new' 0 @('-RepoRoot', $fixture, '-Files', 'a.kt,ignored/x.md') 'PASS'
+
 Add-Line 'a.kt' 'data class Extra(val id: Int)'
 Invoke-Case 'an added class declaration escalates' 1 @('-RepoRoot', $fixture, '-Files', 'a.kt') 'adds'
 
@@ -83,6 +93,23 @@ Set-Content -LiteralPath (Join-Path $fixture 'PLAN/S0001_x.md') -Value '# spec' 
 Invoke-Case 'the spec under PLAN/ is not judged' 0 @('-RepoRoot', $fixture, '-Files', 'a.kt,PLAN/S0001_x.md') 'PASS'
 
 Invoke-Case 'no -Files is a bad invocation' 2 @('-RepoRoot', $fixture) 'cannot judge'
+
+Invoke-Case '-RecordBaseline without -Id is a bad invocation' 2 @('-RepoRoot', $fixture, '-RecordBaseline') 'needs -Id'
+
+# S3182: a sibling ticket's uncommitted type line must not be charged to this ticket. The snapshot
+# is taken after that line exists and before this ticket's own edit, exactly as the Trivial path does.
+Add-Line 'a.kt' 'data class SiblingLeftover(val id: Int)'
+Invoke-Case 'a sibling type line without a baseline escalates' 1 @('-RepoRoot', $fixture, '-Id', 'S0002', '-Files', 'a.kt') 'SiblingLeftover'
+
+Add-Line 'a.kt' 'data class SiblingLeftover(val id: Int)'
+& $pwshExe -NoProfile -File $subject -RepoRoot $fixture -Id 'S0002' -RecordBaseline *> $null
+Add-Line 'a.kt' 'fun mine() = 4'
+Invoke-Case 'a baseline taken after the sibling line passes' 0 @('-RepoRoot', $fixture, '-Id', 'S0002', '-Files', 'a.kt') 'snapshot'
+
+Add-Line 'a.kt' 'data class SiblingLeftover(val id: Int)'
+& $pwshExe -NoProfile -File $subject -RepoRoot $fixture -Id 'S0002' -RecordBaseline *> $null
+Add-Line 'a.kt' 'data class MineNow(val id: Int)'
+Invoke-Case 'a type added after the baseline still escalates' 1 @('-RepoRoot', $fixture, '-Id', 'S0002', '-Files', 'a.kt') 'MineNow'
 
 Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue
 

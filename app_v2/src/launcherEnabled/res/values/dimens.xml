@@ -75,6 +75,11 @@
          a drag hovering over the last visible row must still be able to sit still. -->
     <dimen name="launcher_drag_autoscroll_band">48dp</dimen>
 
+    <!-- S3205: band at the left and right edge of the desktop inside which a held drag pages to the
+         neighbouring screen. Narrower than the vertical band because a whole column sits under it -
+         a drop aimed at the outermost column must not start a page turn on its way there. -->
+    <dimen name="launcher_drag_edge_paging_band">36dp</dimen>
+
     <!-- S1414: shortcut caption size. The smallest the app uses for a cell caption (the stream grid
          cell already runs at this size); a cell can be ~63dp across, so every point of size costs
          characters before the ellipsis - and the caption is the only thing telling two cells with the

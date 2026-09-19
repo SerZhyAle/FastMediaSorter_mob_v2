@@ -127,6 +127,9 @@ class StreamHeadlessPlayManager @Inject constructor(
             if (!settled.compareAndSet(false, true)) return
             player?.removeListener(listener)
             player = null
+            // S3164: both callers are Player.Listener callbacks, and a release taken from inside one
+            // removes the controller's record while the session is still iterating them. S3270 folded
+            // the deferral into release() itself, so there is no longer a second method to remember.
             controller.release()
             if (continuation.isActive) continuation.resume(outcome)
         }

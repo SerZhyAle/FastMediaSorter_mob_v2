@@ -45,7 +45,6 @@ import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourceMediaTypeV
 import com.sza.fastmediasorter.wear.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.wear.ui.settings.allowedContentTypes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp

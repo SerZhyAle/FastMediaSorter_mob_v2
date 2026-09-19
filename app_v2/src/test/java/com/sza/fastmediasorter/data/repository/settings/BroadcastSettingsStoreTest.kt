@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.data.repository.settings
 
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BroadcastSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -14,13 +16,15 @@ import org.junit.Test
  */
 class BroadcastSettingsStoreTest {
 
+    private fun settingsOf(broadcast: BroadcastSettings) = AppSettings(broadcast = broadcast)
+
     @Test
     fun `absent keys resolve to the pre-S2817 hard-coded defaults`() {
-        val values = BroadcastSettingsStore.read(mutablePreferencesOf())
+        val values = BroadcastSettingsStore.read(mutablePreferencesOf()).broadcast
 
         // Pinned as literals - reading the constant the store itself reads would compare it with
         // itself and pin nothing.
-        assertEquals("Phone Audio Stream", values.streamTitle)
+        assertEquals("Phone Stream", values.streamTitle)
         assertEquals(128_000, values.bitRateBps)
         assertEquals(8768, values.port)
         assertEquals(44_100, values.sampleRateHz)
@@ -30,25 +34,55 @@ class BroadcastSettingsStoreTest {
 
     @Test
     fun `every persisted broadcast field round-trips through write then read`() {
-        val settings = AppSettings(
-            broadcastStreamTitle = "My Live Stream",
-            broadcastBitRateBps = 256_000,
-            broadcastPort = 9000,
-            broadcastSampleRateHz = 48_000,
-            broadcastChannelCount = 2,
-            broadcastAutoOpenShare = false,
+        val broadcast = BroadcastSettings(
+            streamTitle = "My Live Stream",
+            bitRateBps = 256_000,
+            port = 9000,
+            sampleRateHz = 48_000,
+            channelCount = 2,
+            autoOpenShare = false,
         )
 
         val prefs = mutablePreferencesOf()
-        BroadcastSettingsStore.write(prefs, settings)
-        val values = BroadcastSettingsStore.read(prefs)
+        BroadcastSettingsStore.write(prefs, settingsOf(broadcast))
+        val values = BroadcastSettingsStore.read(prefs).broadcast
 
-        assertEquals(settings.broadcastStreamTitle, values.streamTitle)
-        assertEquals(settings.broadcastBitRateBps, values.bitRateBps)
-        assertEquals(settings.broadcastPort, values.port)
-        assertEquals(settings.broadcastSampleRateHz, values.sampleRateHz)
-        assertEquals(settings.broadcastChannelCount, values.channelCount)
-        assertEquals(settings.broadcastAutoOpenShare, values.autoOpenShare)
+        assertEquals(broadcast, values)
+    }
+
+    @Test
+    fun `the video and microphone fields round-trip too`() {
+        // S3222: they are persisted by `write` and, since the fold, restored by `read` into the same
+        // group the capture services read - before it, six of them were written and never read back.
+        val broadcast = BroadcastSettings(
+            cameraEnabled = true,
+            microphoneEnabled = false,
+            videoWidth = 1920,
+            videoHeight = 1080,
+            videoFps = 60,
+            videoBitrateBps = 6_000_000,
+            micGainPercent = 250,
+        )
+
+        val prefs = mutablePreferencesOf()
+        BroadcastSettingsStore.write(prefs, settingsOf(broadcast))
+
+        assertEquals(broadcast, BroadcastSettingsStore.read(prefs).broadcast)
+    }
+
+    @Test
+    fun `a stored legacy title resolves like an absent key`() {
+        val prefs = mutablePreferencesOf()
+        BroadcastSettingsStore.write(
+            prefs,
+            settingsOf(BroadcastSettings(streamTitle = "Phone Audio Stream")),
+        )
+
+        val values = BroadcastSettingsStore.read(prefs).broadcast
+
+        // S3173: every settings write persisted the old default, so an installation holding it never
+        // chose that title - it must not survive the fix as a user value.
+        assertEquals("Phone Stream", values.streamTitle)
     }
 
     @Test
@@ -56,20 +90,45 @@ class BroadcastSettingsStoreTest {
         val prefs = mutablePreferencesOf()
         BroadcastSettingsStore.write(
             prefs,
-            AppSettings(broadcastStreamTitle = "Title Only"),
+            settingsOf(BroadcastSettings(streamTitle = "Title Only")),
         )
 
-        val values = BroadcastSettingsStore.read(prefs)
+        val values = BroadcastSettingsStore.read(prefs).broadcast
 
         assertEquals("Title Only", values.streamTitle)
         assertTrue(values.autoOpenShare)
     }
 
     @Test
+    fun `the camera lens id round-trips and is absent until a lens is chosen`() {
+        // S3237: the broadcast screen reset its lens choice on every Activity recreation because the
+        // chosen lens lived in the screen alone.
+        val prefs = mutablePreferencesOf()
+        BroadcastSettingsStore.write(prefs, settingsOf(BroadcastSettings()))
+        assertNull(BroadcastSettingsStore.read(prefs).broadcast.cameraLensId)
+
+        BroadcastSettingsStore.write(prefs, settingsOf(BroadcastSettings(cameraLensId = "1/3")))
+
+        assertEquals("1/3", BroadcastSettingsStore.read(prefs).broadcast.cameraLensId)
+    }
+
+    @Test
+    fun `clearing the camera lens id removes the stored one`() {
+        // S3237: a stored lens the phone no longer enumerates is dropped, so the next write must not
+        // leave the old id behind for the screen to restore again.
+        val prefs = mutablePreferencesOf()
+        BroadcastSettingsStore.write(prefs, settingsOf(BroadcastSettings(cameraLensId = "1/3")))
+
+        BroadcastSettingsStore.write(prefs, settingsOf(BroadcastSettings(cameraLensId = null)))
+
+        assertNull(BroadcastSettingsStore.read(prefs).broadcast.cameraLensId)
+    }
+
+    @Test
     fun `disabling auto-open share persists and reads back`() {
         val prefs = mutablePreferencesOf()
-        BroadcastSettingsStore.write(prefs, AppSettings(broadcastAutoOpenShare = false))
+        BroadcastSettingsStore.write(prefs, settingsOf(BroadcastSettings(autoOpenShare = false)))
 
-        assertFalse(BroadcastSettingsStore.read(prefs).autoOpenShare)
+        assertFalse(BroadcastSettingsStore.read(prefs).broadcast.autoOpenShare)
     }
 }

@@ -88,6 +88,26 @@ class WearAppearancePreferencesImpl @Inject constructor(
         }
     }
 
+    override val dimClockOverlayEnabled: Flow<Boolean> = store.data.map { prefs ->
+        prefs[WearPreferenceKeys.DIM_CLOCK_OVERLAY_ENABLED] ?: false
+    }
+
+    override suspend fun setDimClockOverlayEnabled(enabled: Boolean) {
+        stampedEdit("dimClockOverlayEnabled") { prefs ->
+            prefs[WearPreferenceKeys.DIM_CLOCK_OVERLAY_ENABLED] = enabled
+        }
+    }
+
+    override val dimClockSecondsVisible: Flow<Boolean> = store.data.map { prefs ->
+        prefs[WearPreferenceKeys.DIM_CLOCK_SECONDS_VISIBLE] ?: false
+    }
+
+    override suspend fun setDimClockSecondsVisible(visible: Boolean) {
+        stampedEdit("dimClockSecondsVisible") { prefs ->
+            prefs[WearPreferenceKeys.DIM_CLOCK_SECONDS_VISIBLE] = visible
+        }
+    }
+
     override val isAutoRotationEnabled: Flow<Boolean> = store.data.map { prefs ->
         prefs[WearPreferenceKeys.AUTO_ROTATION_ENABLED] ?: false
     }

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.apps.systeminfo
 
+import androidx.annotation.StringRes
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoSection
 
 /**
@@ -12,9 +13,14 @@ import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoSection
  * [refreshing] is separate from [loading] for the same class of reason: a re-read has a report to show
  * already, and blanking it would take the reading away from the user at the moment they asked for a
  * fresher one.
+ *
+ * [sendOutcomeRes] survives the send it describes and is cleared only by the next send (S3108): the
+ * watch has no Snackbar host, so the answer stays on screen as a line of text until it is replaced.
  */
 data class SystemInfoUiState(
     val loading: Boolean = true,
     val refreshing: Boolean = false,
+    val sending: Boolean = false,
+    @StringRes val sendOutcomeRes: Int? = null,
     val sections: List<WearSystemInfoSection> = emptyList()
 )

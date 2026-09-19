@@ -53,6 +53,33 @@ object BrowseCategoryCatalog {
     const val TOKEN_VOICE_NOTES = "voice_notes"
 
     /**
+     * S3160: the tokens that may travel to the paired phone as `WearPhoneResourceRequest.mediaType`.
+     *
+     * The watch's half of a vocabulary whose other half is `KNOWN_MEDIA_TYPE_FILTERS` in the phone's
+     * `ListPhoneResourcePageUseCase`; the phone refuses anything outside its own half with
+     * `UNSUPPORTED_MEDIA` instead of serving an unnarrowed list, and
+     * `assert-wear-wire-vocabulary-parity.ps1` compares the two sets by value. The two modules compile
+     * separately, so nothing but that comparison holds the spellings together.
+     *
+     * [TOKEN_ALL] is in here even though `PhoneResourceViewModel` sends null in its place: the phone
+     * has accepted both spellings for "no filter" since S1846, and a set that omitted it would make the
+     * gate refuse a token the receiving side legitimately knows.
+     *
+     * The two navigational tokens are out, and for different reasons. [TOKEN_BROWSE] never reaches a
+     * request at all - the folder walk is its own route and carries no media argument, which is the one
+     * thing separating it from All. [TOKEN_VOICE_NOTES] names notes recorded on this watch, so no
+     * paired phone holds any and [isPresentable] already refuses it for the phone origin.
+     */
+    val PHONE_FILTER_TOKENS: Set<String> = setOf(
+        TOKEN_RECENTS,
+        TOKEN_VIDEOS,
+        TOKEN_MUSIC,
+        TOKEN_PHOTOS,
+        TOKEN_DOCUMENTS,
+        TOKEN_ALL
+    )
+
+    /**
      * The types a user may switch off in settings.
      *
      * The navigational entries - recents, all, browse - are not in here: they are ways of looking at

@@ -25,8 +25,9 @@ class StandbyCameraSessionConsentPolicy @Inject constructor(
         if (broadcastSourceController.state.value is BroadcastState.Live) {
             CameraConsentOutcome.Granted
         } else {
-            // NOT_ASKED rather than DECLINED: standby is off, so nobody was put the question at all -
-            // the watch's user is told to arm the phone, not that the phone said no.
-            CameraConsentOutcome.Refused(WearCameraRefusal.NOT_ASKED)
+            // NOT_ARMED rather than DECLINED or NOT_ASKED: nobody said no, and nothing failed to be
+            // asked either - standby is simply off. Only this constant sends the watch's user to the
+            // one remedy that works here, which is arming the capture on the phone (S3211).
+            CameraConsentOutcome.Refused(WearCameraRefusal.NOT_ARMED)
         }
 }

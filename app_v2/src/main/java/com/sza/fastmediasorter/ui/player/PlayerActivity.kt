@@ -101,7 +101,9 @@ class PlayerActivity :
     }
 
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
-        return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
+        val binding = ActivityPlayerUnifiedBinding.inflate(layoutInflater)
+        Timber.d("S3293: player unified layout bound with a11y marks")
+        return binding
     }
 
     internal val viewModel: PlayerViewModel by viewModels()
@@ -973,7 +975,6 @@ class PlayerActivity :
     // S0184: open a duplicate Player in a new window slot while keeping the source player alive.
     internal fun tearOffPlayer() {
         val filePath = currentFilePath ?: return
-        Timber.d("S3125: tearing off player document window")
         val state = viewModel.state.value
         val newWindowId = java.util.UUID.randomUUID().toString()
         val intent = Intent(this, PlayerActivity::class.java).apply {

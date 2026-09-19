@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.wear.ui.apps.waterflashlight
 
 import android.view.WindowManager
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,20 +16,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
@@ -38,9 +35,8 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
 import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.SystemShadeLockEffect
 import com.sza.fastmediasorter.wear.ui.common.findActivity
-import com.sza.fastmediasorter.wear.ui.player.common.rememberRotaryFocus
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 /**
  * The water flashlight on the watch: the display itself is the light, and no touch closes it
@@ -66,7 +62,6 @@ fun WaterFlashlightScreen(
     LaunchedEffect(viewModel.locksSystemShade) {
     }
 
-    val focusRequester = rememberRotaryFocus()
     val clockText = rememberMinuteClock()
 
     Box(
@@ -96,9 +91,7 @@ fun WaterFlashlightScreen(
             // circular edge gesture arrives here as a rotary event, which is wet-glass input like any
             // other. The owner ruled on 2026-09-09 (S2812) that neither edition reacts to it, so the
             // keys carry the exit alone. Consumed rather than deleted so the event stops here.
-            .onRotaryScrollEvent { true }
-            .focusRequester(focusRequester)
-            .focusable(),
+            .rotaryActionSwallow(),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -110,12 +103,12 @@ fun WaterFlashlightScreen(
             Text(
                 text = clockText,
                 color = Color.Black,
-                fontSize = CLOCK_TEXT_SIZE,
+                style = MaterialTheme.typography.title2,
             )
             Text(
                 text = stringResource(R.string.wear_water_flashlight_locked_hint),
                 color = Color.Black,
-                fontSize = HINT_TEXT_SIZE,
+                style = MaterialTheme.typography.caption2,
                 textAlign = TextAlign.Center,
             )
         }
@@ -168,6 +161,4 @@ private fun rememberMinuteClock(): String {
 
 private const val MAX_BRIGHTNESS = 1.0f
 private const val MINUTE_MS = 60_000L
-private val CLOCK_TEXT_SIZE = 18.sp
-private val HINT_TEXT_SIZE = 12.sp
 private val HINT_SIDE_PADDING = 16.dp

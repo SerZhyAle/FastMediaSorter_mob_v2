@@ -16,7 +16,7 @@
     <string name="game_help_legend_kryvavitsa">লাল - ক্রিভাভিৎসা, খেলোয়াড়কে শিকার করে।</string>
     <string name="game_help_legend_player">নীল - দানব, যে চরিত্রটি আপনি নিয়ন্ত্রণ করেন</string>
     <string name="game_help_legend_shadow">বেগুনি - কম Kryvavitsa, এলোমেলোভাবে চলে</string>
-    <string name="game_help_legend_title">কিংবদন্তি</string>
+    <string name="game_help_legend_title">প্রতীক নির্দেশিকা</string>
     <string name="game_help_legend_wall">ধূসর - দেয়াল, ধাক্কা দেওয়া যায়</string>
     <string name="game_help_rules">এক ঘর এগোতে অ্যারো কী, কিবোর্ড, ডি-প্যাড, সোয়াইপ অথবা বোর্ডে ট্যাপ ব্যবহার করুন।\nলাল ক্রিভাভিৎসা মনস্টারকে শিকার করে। বেগুনি রঙের ছোট ক্রিভাভিৎসারা এলোমেলোভাবে ঘুরে বেড়ায়।\nপথ পরিষ্কার করতে ধূসর দেয়ালগুলোকে খালি ঘরে ঠেলে দিন। মোটা সীমানা বোর্ড থেকে বের হওয়া আটকে দেয়।\nস্কোর: প্রতি চালে -১০, দেয়াল ঠেলার জন্য +১০, বেগুনি শত্রুকে পিষে ফেলার জন্য +৫০, এবং প্রস্থান পথে পৌঁছানোর জন্য +১০০০।\nযদি কোনো শত্রু একই বা পাশের ঘরে পৌঁছে যায়, তাহলে খেলা শেষ হয়ে যাবে।</string>
     <string name="game_help_rules_title">নিয়ম</string>
@@ -24,7 +24,6 @@
     <string name="game_how_to_play">কীভাবে খেলতে হয়?</string>
     <string name="game_level">স্তর %1$d</string>
     <string name="game_loading">গেম লোড হচ্ছে।</string>
-    <string name="game_menu_label">মিনি-গেম খেলুন</string>
     <string name="game_move_down">নিচে নামুন</string>
     <string name="game_move_left">বাম দিকে সরান</string>
     <string name="game_move_right">ডানদিকে সরান</string>

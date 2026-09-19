@@ -1,35 +1,33 @@
 package com.sza.fastmediasorter.wear.ui.apps.tourist
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material.Card
-import androidx.wear.compose.material.CardDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.core.util.WearUnitScale
 import com.sza.fastmediasorter.wear.domain.tourist.TouristMetricType
 import com.sza.fastmediasorter.wear.domain.tourist.WearTouristState
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
+import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import java.util.Locale
 
-private val TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
-private const val KMH_TO_MPH = 0.621371f
-private const val METERS_TO_FEET = 3.28084
-private const val METERS_TO_MILES = 0.000621371
-private const val METERS_PER_KM = 1000.0
+private val CARD_CORNER = 12.dp
+private val CARD_V_PADDING = 4.dp
+private val CARD_H_PADDING = 8.dp
+private val LABEL_VALUE_GAP = 4.dp
 
 /**
  * S3007 / S3015: Secondary telemetry card. Tapping promotes it to the primary Hero card.
@@ -42,37 +40,33 @@ fun TouristSecondaryCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        backgroundPainter = CardDefaults.cardBackgroundPainter(
-            startBackgroundColor = MaterialTheme.colors.surface,
-            endBackgroundColor = MaterialTheme.colors.surface,
-        ),
+    // Sized to its own content, label beside value: the tiles wrap across the screen as a cloud, and a
+    // reading whose caption sits at the far edge of a full-width row has to be followed with the eye.
+    // Drawn as a plain clipped Row rather than a wear.compose.material Card: that Card stretches to the
+    // full width of its parent whatever width modifier it is given, so inside a FlowRow every tile took
+    // a row of its own and nothing ever wrapped (measured on Galaxy Watch 7, 2026-09-17 - all five tiles
+    // at x=57..423).
+    Row(
+        modifier = modifier
+            .wrapContentWidth()
+            .clip(RoundedCornerShape(CARD_CORNER))
+            .background(MaterialTheme.colors.surface)
+            .clickable(onClick = onClick)
+            .padding(vertical = CARD_V_PADDING, horizontal = CARD_H_PADDING),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(LABEL_VALUE_GAP),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp, horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Column {
-                Text(
-                    text = resolveMetricLabel(metricType),
-                    style = MaterialTheme.typography.caption2,
-                    color = Color.LightGray,
-                )
-            }
-
-            Text(
-                text = resolveMetricValue(metricType, state, isMetric),
-                style = MaterialTheme.typography.body2,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-            )
-        }
+        Text(
+            text = resolveMetricLabel(metricType),
+            style = MaterialTheme.typography.caption2,
+            color = MaterialTheme.colors.onSurfaceVariant,
+        )
+        Text(
+            text = resolveMetricValue(metricType, state, isMetric),
+            style = MaterialTheme.typography.body2,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colors.onSurface,
+        )
     }
 }
 
@@ -88,6 +82,7 @@ private fun resolveMetricLabel(metricType: TouristMetricType): String {
         TouristMetricType.TRIP_DISTANCE -> stringResource(R.string.wear_tourist_metric_trip)
         TouristMetricType.SUN_TIME -> stringResource(R.string.wear_tourist_metric_sun)
         TouristMetricType.HEART_RATE -> stringResource(R.string.wear_tourist_metric_heart_rate)
+        TouristMetricType.BODY_TEMPERATURE -> stringResource(R.string.wear_tourist_metric_body_temperature)
     }
 }
 
@@ -107,13 +102,23 @@ private fun resolveMetricValue(
         TouristMetricType.TRIP_DISTANCE -> formatSecondaryDistance(state.tripDistanceMeters, isMetric)
         TouristMetricType.SUN_TIME -> formatSecondarySunTime(state.sunriseMillis, state.sunsetMillis)
         TouristMetricType.HEART_RATE -> state.heartRateBpm?.let { "$it bpm" } ?: "--"
+        TouristMetricType.BODY_TEMPERATURE -> formatSecondaryTemperature(state.bodyTemperatureCelsius)
+    }
+}
+
+@Composable
+private fun formatSecondaryTemperature(celsius: Float?): String {
+    return if (celsius != null) {
+        "${String.format(Locale.US, "%.1f", celsius)} ${stringResource(R.string.wear_tourist_unit_celsius)}"
+    } else {
+        "--"
     }
 }
 
 @Composable
 private fun formatSecondarySpeed(rawSpeed: Float?, isMetric: Boolean): String {
     return if (rawSpeed != null) {
-        val v = if (isMetric) rawSpeed else rawSpeed * KMH_TO_MPH
+        val v = if (isMetric) rawSpeed.toDouble() else WearUnitScale.kmhToMph(rawSpeed.toDouble())
         val u = if (isMetric) {
             stringResource(R.string.wear_tourist_unit_kmh)
         } else {
@@ -128,7 +133,7 @@ private fun formatSecondarySpeed(rawSpeed: Float?, isMetric: Boolean): String {
 @Composable
 private fun formatSecondaryAltitude(rawAlt: Double?, isMetric: Boolean): String {
     return if (rawAlt != null) {
-        val v = if (isMetric) rawAlt.toInt() else (rawAlt * METERS_TO_FEET).toInt()
+        val v = if (isMetric) rawAlt.toInt() else WearUnitScale.metresToFeet(rawAlt).toInt()
         val u = if (isMetric) {
             stringResource(R.string.wear_tourist_unit_meters)
         } else {
@@ -153,24 +158,33 @@ private fun formatSecondaryCoordinates(lat: Double?, lon: Double?): String {
     }
 }
 
+/** Below the large unit the reading switches to the small one, or a short walk reads as a zero. */
+@Composable
 private fun formatSecondaryDistance(distMeters: Double, isMetric: Boolean): String {
     return if (isMetric) {
-        if (distMeters >= METERS_PER_KM) {
-            "${String.format(Locale.US, "%.2f", distMeters / METERS_PER_KM)} km"
+        val kilometres = WearUnitScale.metresToKilometres(distMeters)
+        if (kilometres >= 1.0) {
+            "${String.format(Locale.US, "%.2f", kilometres)} ${stringResource(R.string.wear_tourist_unit_km)}"
         } else {
-            "${distMeters.toInt()} m"
+            "${distMeters.toInt()} ${stringResource(R.string.wear_tourist_unit_meters)}"
         }
     } else {
-        "${String.format(Locale.US, "%.2f", distMeters * METERS_TO_MILES)} mi"
+        val miles = WearUnitScale.metresToMiles(distMeters)
+        if (miles >= 1.0) {
+            "${String.format(Locale.US, "%.2f", miles)} ${stringResource(R.string.wear_tourist_unit_miles)}"
+        } else {
+            val feet = WearUnitScale.metresToFeet(distMeters).toInt()
+            "$feet ${stringResource(R.string.wear_tourist_unit_feet)}"
+        }
     }
 }
 
+/** The clock length and the AM/PM marker are the watch seam's decision, so this delegates to it. */
+@Composable
 private fun formatSecondarySunTime(sunriseMillis: Long?, sunsetMillis: Long?): String {
-    val sr = sunriseMillis?.let {
-        TIME_FORMATTER.format(Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()))
-    } ?: "--"
-    val ss = sunsetMillis?.let {
-        TIME_FORMATTER.format(Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()))
-    } ?: "--"
+    val formatter = LocalWearDateTimeFormatter.current
+    val system = LocalWearUnitSystem.current
+    val sr = sunriseMillis?.let { formatter.formatTime(it, system) } ?: "--"
+    val ss = sunsetMillis?.let { formatter.formatTime(it, system) } ?: "--"
     return "$sr / $ss"
 }

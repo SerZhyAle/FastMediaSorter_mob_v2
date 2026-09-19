@@ -8,13 +8,13 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.view.children
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityDropboxFolderPickerBinding
-import com.sza.fastmediasorter.databinding.ItemDropboxFolderBinding
+import com.sza.fastmediasorter.databinding.ItemCloudFolderBinding
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -31,19 +31,21 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
     @javax.inject.Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
 
     private lateinit var folderAdapter: CloudFolderAdapter
+
     // S0196 Phase 04: one-shot tag on the first non-empty folder list bind.
     private var firstListBoundLogged = false
     private var initialFolderFocusTransferred = false
-    private val keyboardDelegate = CloudFolderPickerKeyboardDelegate(object : CloudFolderPickerKeyboardDelegate.Callback {
-        override fun activateFocused(): Boolean {
-            // Keyboard OpenCurrent must target the focused row/button, not always the first folder.
-            return activateFocusedViewOrAncestor()
-        }
-        override fun navigateUp() { handleBackNavigation() }
-        override fun refresh() { viewModel.loadFolders() }
-        override fun cancel() { finish() }
-        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.CLOUD_PICKER) }
-    })
+    private val keyboardDelegate =
+        CloudFolderPickerKeyboardDelegate(object : CloudFolderPickerKeyboardDelegate.Callback {
+            override fun activateFocused(): Boolean {
+                // Keyboard OpenCurrent must target the focused row/button, not always the first folder.
+                return activateFocusedViewOrAncestor()
+            }
+            override fun navigateUp() { handleBackNavigation() }
+            override fun refresh() { viewModel.loadFolders() }
+            override fun cancel() { finish() }
+            override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.CLOUD_PICKER) }
+        })
 
     override fun getViewBinding(): ActivityDropboxFolderPickerBinding {
         return ActivityDropboxFolderPickerBinding.inflate(layoutInflater)
@@ -75,16 +77,19 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
         binding.toolbar.setNavigationOnClickListener {
             handleBackNavigation()
         }
-        
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                handleBackNavigation()
+
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    handleBackNavigation()
+                }
             }
-        })
+        )
 
         folderAdapter = CloudFolderAdapter(
             inflate = { inflater, parent, attach ->
-                CloudFolderItemBinding.Dropbox(ItemDropboxFolderBinding.inflate(inflater, parent, attach))
+                ItemCloudFolderBinding.inflate(inflater, parent, attach)
             },
             onFolderSelect = { folder -> viewModel.selectFolder(folder) },
             onFolderNavigate = { folder -> viewModel.navigateIntoFolder(folder) },
@@ -93,7 +98,7 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
         )
 
         binding.rvFolders.adapter = folderAdapter
-        
+
         binding.cbAddAsDestination.setOnCheckedChangeListener { _, _ ->
             viewModel.toggleDestinationFlag()
         }
@@ -151,12 +156,16 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
                     Toast.makeText(this@DropboxFolderPickerActivity, event.message, Toast.LENGTH_SHORT).show()
                 }
                 is DropboxFolderPickerEvent.FolderSelected -> {
-                    Toast.makeText(this@DropboxFolderPickerActivity,
+                    Toast.makeText(
+                        this@DropboxFolderPickerActivity,
                         getString(R.string.resource_added),
-                        Toast.LENGTH_SHORT).show()
+                        Toast.LENGTH_SHORT
+                    ).show()
 
-                    val intent = Intent(this@DropboxFolderPickerActivity,
-                        com.sza.fastmediasorter.ui.main.MainActivity::class.java).apply {
+                    val intent = Intent(
+                        this@DropboxFolderPickerActivity,
+                        com.sza.fastmediasorter.ui.main.MainActivity::class.java
+                    ).apply {
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                     }
                     startActivity(intent)

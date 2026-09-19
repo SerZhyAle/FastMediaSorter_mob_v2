@@ -24,6 +24,8 @@ class LauncherSectionActionsSheet : BottomSheetDialogFragment() {
     enum class Action {
         RENAME,
         RESORT,
+        MOVE_UP,
+        MOVE_DOWN,
         DELETE,
     }
 

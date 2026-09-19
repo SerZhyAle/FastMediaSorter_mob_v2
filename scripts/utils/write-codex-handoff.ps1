@@ -18,7 +18,8 @@
     Exit codes (S1070):
       0 - handoff file written.
       2 - invalid arguments, or -Id does not resolve in the spec catalog.
-      4 - no LEASE-HANDOFF file found for -Id under temp/LEASE-HANDOFF/.
+    A missing LEASE-HANDOFF file is not an error (S3177): a MONO or -NoLease run holds no lease,
+    and refusing there made the stage-boundary handoff impossible exactly where it is needed.
 
 .PARAMETER Id
     Ticket id (Sxxxx).
@@ -91,12 +92,11 @@ $leaseCandidates = @()
 if (Test-Path -LiteralPath $leaseHandoffDir) {
     $leaseCandidates = @(Get-ChildItem -Path $leaseHandoffDir -Filter "LEASE-HANDOFF-$Id-*.json" -File -ErrorAction SilentlyContinue)
 }
-if ($leaseCandidates.Count -eq 0) {
-    Write-Host "write-codex-handoff: no LEASE-HANDOFF file for $Id under $leaseHandoffDir - claim the ticket lease first." -ForegroundColor Red
-    exit 4
+$leaseRelative = 'none (MONO or -NoLease run)'
+if ($leaseCandidates.Count -gt 0) {
+    $leaseFile = ($leaseCandidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
+    $leaseRelative = $leaseFile.Substring($repoRoot.Length).TrimStart('\', '/').Replace('\', '/')
 }
-$leaseFile = ($leaseCandidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
-$leaseRelative = $leaseFile.Substring($repoRoot.Length).TrimStart('\', '/').Replace('\', '/')
 
 $agentId = if ($env:FMS_AGENT_ID) { $env:FMS_AGENT_ID } else { '(unset)' }
 

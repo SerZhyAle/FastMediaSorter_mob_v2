@@ -15,6 +15,8 @@ import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramAccentCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.launcher.LiveContactDataSource
@@ -128,6 +130,19 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
     private val liveContactDataSource: LiveContactDataSource,
     private val faviconAtlasStore: FaviconAtlasStore,
 ) {
+
+    suspend fun shortcutPublication(command: LauncherCellCommand): RecentLauncherCommand? {
+        val visual = when (command) {
+            is LauncherCellCommand.Feature ->
+                SubProgramCatalog
+                    .byRouteKey(command.routeKey)
+                    ?.takeIf { SubProgramSurface.OS_APP_SHORTCUT in it.surfaces }
+                    ?.let { featureVisual(command.routeKey, context) }
+            is LauncherCellCommand.Resource -> resourceVisual(command.resourceId)
+            else -> null
+        }
+        return visual?.let { RecentLauncherCommand(command, it) }
+    }
 
     suspend operator fun invoke(
         command: LauncherCellCommand,

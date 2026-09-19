@@ -39,10 +39,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sza.fastmediasorter.R
@@ -50,7 +50,6 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.databinding.ActivityCameraQuickCaptureWidgetConfigBinding
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.util.VirtualPathUtils
@@ -83,8 +82,6 @@ class CameraQuickCaptureConfigActivity : BaseActivity<ActivityCameraQuickCapture
     override fun getViewBinding(): ActivityCameraQuickCaptureWidgetConfigBinding =
         ActivityCameraQuickCaptureWidgetConfigBinding.inflate(layoutInflater)
 
-    override fun keepScreenAwakeFor(settings: AppSettings): Boolean = false
-
     /** Multimodal surface marker - widget config activity (mirrors the resource-launch config). */
     @Suppress("unused")
     private val multimodalInputSurface: UiSurface = UiSurface.WIDGET_CONFIG
@@ -94,7 +91,10 @@ class CameraQuickCaptureConfigActivity : BaseActivity<ActivityCameraQuickCapture
     override fun getMouseScrollTargetView(): View? = binding.cameraWidgetConfigComposeView
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_ESCAPE) { finish(); return true }
+        if (keyCode == KeyEvent.KEYCODE_ESCAPE) {
+            finish()
+            return true
+        }
         return super.onKeyDown(keyCode, event)
     }
 
@@ -162,8 +162,11 @@ class CameraQuickCaptureConfigActivity : BaseActivity<ActivityCameraQuickCapture
     }
 
     private fun captureModePref(isVideo: Boolean): String =
-        if (isVideo) CameraQuickCaptureWidgetProvider.CAPTURE_MODE_VIDEO
-        else CameraQuickCaptureWidgetProvider.CAPTURE_MODE_PHOTO
+        if (isVideo) {
+            CameraQuickCaptureWidgetProvider.CAPTURE_MODE_VIDEO
+        } else {
+            CameraQuickCaptureWidgetProvider.CAPTURE_MODE_PHOTO
+        }
 
     private fun updateWidgetAndFinish() {
         // S1930: the launcher runs this same screen for a desktop cell, which has no widget to push to;

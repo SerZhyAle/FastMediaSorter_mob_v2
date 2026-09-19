@@ -1,10 +1,7 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
-import android.content.Context
 import android.content.res.ColorStateList
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -23,7 +20,6 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 /**
  * S0755: renders the main-window programs panel as a visual mirror of the three-dots programs menu.
  * Rather than re-declare the item set, it populates a throwaway [PopupMenu] through the same
@@ -85,6 +81,7 @@ class MainProgramsPanelManager(
 
     // S0830: the overflow list is a real anchored popup of item rows; keep a handle to dismiss it on rebuild.
     private var overflowPopup: PopupWindow? = null
+    private val overflowGridPopup = BoundedGridPopupManager()
 
     /**
      * S0807: wire the leading header menu + collapsed-strip tap and load the persisted collapsed state.
@@ -299,82 +296,58 @@ class MainProgramsPanelManager(
     }
 
     /**
-     * S0830: the overflow surface is a real anchored [PopupWindow] whose rows reuse the visible-item
+     * S0830: the overflow surface is a real anchored popup whose cells reuse the visible-item
      * layout ([R.layout.item_main_program]) and wiring, so an overflow item behaves exactly like a
      * visible one - a short tap launches it, a long-press or the three-dots opens the per-item menu.
      * A flat [PopupMenu] cannot offer two gestures per row (single click listener, no per-row view),
      * which is why the previous single-menu approach broke the launch affordance.
+     * S3214 - always two columns, height bounded to the safe area with vertical scroll (owner ruling).
      */
     private fun showOverflowPopup() {
         if (overflowItems.isEmpty()) return
         overflowPopup?.dismiss()
         val anchor = panel.btnProgramsPanelOverflow
         val context = anchor.context
-        val list = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-        val popup = PopupWindow(list, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true)
-        overflowPopup = popup
-
         val inflater = LayoutInflater.from(context)
-        val rows = overflowItems.map { model ->
-            val itemView = inflater.inflate(R.layout.item_main_program, list, false)
-            val button = itemView.findViewById<MaterialButton>(R.id.btnProgram)
-            val menuButton = itemView.findViewById<MaterialButton>(R.id.btnProgramMenu)
-            button.icon = model.icon
-            button.text = model.title
-            button.contentDescription = model.title
-            // S2889: the THEME-following tone here, not the on-dark one - resolvePopupBackground puts this
-            // window on the theme's menu surface, not on the panel strip. Left unset the row would fall back
-            // to item_main_program.xml's ?attr/colorControlNormal, which is how it was the one place a panel
-            // item was drawn with no tone at all.
-            model.accentRes?.let { button.iconTint = ColorStateList.valueOf(ContextCompat.getColor(context, it)) }
-            button.setOnClickListener {
-                popup.dismiss()
-                onItemSelected(model.id)
+        val rowMinHeight = context.resources.getDimensionPixelSize(R.dimen.main_panel_row_height)
+        overflowPopup = overflowGridPopup.show(anchor, OVERFLOW_COLUMN_COUNT, equalColumns = true) { grid, dismiss ->
+            overflowItems.map { model ->
+                val itemView = inflater.inflate(R.layout.item_main_program, grid, false)
+                // The grid cell height wraps two label lines; keep the panel row height as the touch floor.
+                itemView.minimumHeight = rowMinHeight
+                val button = itemView.findViewById<MaterialButton>(R.id.btnProgram)
+                val menuButton = itemView.findViewById<MaterialButton>(R.id.btnProgramMenu)
+                button.icon = model.icon
+                button.text = model.title
+                button.contentDescription = model.title
+                button.maxLines = 2
+                // S2889: the THEME-following tone here, not the on-dark one - the popup sits on the theme's
+                // menu surface, not on the panel strip. Left unset the row would fall back to
+                // item_main_program.xml's ?attr/colorControlNormal, which is how it was the one place a panel
+                // item was drawn with no tone at all.
+                model.accentRes?.let { button.iconTint = ColorStateList.valueOf(ContextCompat.getColor(context, it)) }
+                button.setOnClickListener {
+                    dismiss()
+                    onItemSelected(model.id)
+                }
+                button.setOnLongClickListener {
+                    dismiss()
+                    showItemMenu(model, anchor)
+                    true
+                }
+                menuButton.isVisible = true
+                menuButton.setOnClickListener {
+                    dismiss()
+                    showItemMenu(model, anchor)
+                }
+                // The body takes the cell's remaining width so the trailing three-dots stays at the cell end.
+                button.layoutParams = (button.layoutParams as LinearLayout.LayoutParams).apply {
+                    width = 0
+                    weight = 1f
+                }
+                itemView
             }
-            button.setOnLongClickListener {
-                popup.dismiss()
-                showItemMenu(model, anchor)
-                true
-            }
-            menuButton.isVisible = true
-            menuButton.setOnClickListener {
-                popup.dismiss()
-                showItemMenu(model, anchor)
-            }
-            itemView
         }
-
-        // A vertical list needs full-width rows so the trailing three-dots aligns; let the body expand.
-        val width = rows.maxOf { measureItemWidth(it) }
-        rows.forEach { row ->
-            val body = row.findViewById<MaterialButton>(R.id.btnProgram)
-            body.layoutParams = (body.layoutParams as LinearLayout.LayoutParams).apply {
-                this.width = 0
-                weight = 1f
-            }
-            val rowParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-            )
-            list.addView(row, rowParams)
-        }
-
-        popup.width = width
-        popup.setBackgroundDrawable(resolvePopupBackground(context))
-        popup.elevation = context.resources.getDimension(R.dimen.card_elevation)
-        popup.showAsDropDown(anchor)
-    }
-
-    /** Theme popup-menu background so the overflow window reads as a menu and outside taps dismiss it. */
-    private fun resolvePopupBackground(context: Context): Drawable {
-        val bgAttr = com.google.android.material.R.attr.popupMenuBackground
-        val attrs = context.obtainStyledAttributes(intArrayOf(bgAttr))
-        val drawable = attrs.getDrawable(0)
-        attrs.recycle()
-        if (drawable != null) return drawable
-        val surface = TypedValue()
-        context.theme.resolveAttribute(com.google.android.material.R.attr.colorSurface, surface, true)
-        return ColorDrawable(surface.data)
     }
 
     private fun measureItemWidth(view: View): Int {
@@ -386,6 +359,8 @@ class MainProgramsPanelManager(
     }
 
     companion object {
+        private const val OVERFLOW_COLUMN_COUNT = 2
+
         /**
          * S0807: (contentVisible, stripVisible) for the given availability + collapsed state. The panel
          * root owns availability; when hidden both are false. The item row and strip are never both shown.

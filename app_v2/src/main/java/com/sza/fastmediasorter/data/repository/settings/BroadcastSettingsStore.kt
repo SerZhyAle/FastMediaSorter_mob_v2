@@ -8,7 +8,11 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BroadcastSettings
+import com.sza.fastmediasorter.domain.model.DEFAULT_BROADCAST_STREAM_TITLE
+import com.sza.fastmediasorter.domain.model.LEGACY_BROADCAST_STREAM_TITLE
 import timber.log.Timber
 
 /**
@@ -17,7 +21,7 @@ import timber.log.Timber
  */
 object BroadcastSettingsStore {
 
-    private const val DEFAULT_TITLE = "Phone Audio Stream"
+    private const val UNKNOWN_MODEL = "unknown"
     private const val DEFAULT_BIT_RATE_BPS = 128_000
     private const val DEFAULT_PORT = 8768
     private const val DEFAULT_SAMPLE_RATE_HZ = 44_100
@@ -39,75 +43,89 @@ object BroadcastSettingsStore {
     private val keyVideoHeight = intPreferencesKey("broadcast_video_height")
     private val keyVideoFps = intPreferencesKey("broadcast_video_fps")
     private val keyVideoBitrateBps = intPreferencesKey("broadcast_video_bitrate_bps")
+
     // S3049: microphone digital PCM gain percentage (50% - 400%, default 100%).
     private val keyMicGainPercent = intPreferencesKey("broadcast_mic_gain_percent")
 
+    // S3237: the lens the broadcast screen last opened, so the choice survives an Activity recreation
+    // and the next launch.
+    private val keyCameraLensId = stringPreferencesKey("broadcast_camera_lens_id")
+
+    /**
+     * S3222: the session parameters are the domain group itself, so this store no longer restates the
+     * same fourteen names. `enableBroadcasting` rides beside it rather than inside it - it is a program
+     * toggle in [AppSettings], not a parameter of the session.
+     */
     data class Values(
         val enableBroadcasting: Boolean,
-        val streamTitle: String,
-        val bitRateBps: Int,
-        val port: Int,
-        val sampleRateHz: Int,
-        val channelCount: Int,
-        val autoOpenShare: Boolean,
-        val sourceDeviceId: String?,
-        val cameraEnabled: Boolean,
-        val microphoneEnabled: Boolean,
-        val videoWidth: Int,
-        val videoHeight: Int,
-        val videoFps: Int,
-        val videoBitrateBps: Int,
-        val micGainPercent: Int,
+        val broadcast: BroadcastSettings,
     )
 
     fun defaultDeviceTitle(context: Context? = null): String {
-        if (context != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+        val deviceName = if (context != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             try {
-                val name = Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME)
-                if (!name.isNullOrBlank()) {
-                    return name
-                }
+                Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME)
             } catch (e: SecurityException) {
                 Timber.w(e, "BroadcastSettingsStore: failed to read device name")
+                null
             }
+        } else {
+            null
         }
         val model = try { Build.MODEL } catch (_: Throwable) { null }
-        return if (!model.isNullOrBlank() && model != "unknown") model else DEFAULT_TITLE
+        // S3173: the last fallback is a translated resource wherever a Context exists, so a phone
+        // reporting no name and no model still broadcasts under a localized neutral title.
+        return deviceName?.takeUnless { it.isBlank() }
+            ?: model?.takeUnless { it.isBlank() || it == UNKNOWN_MODEL }
+            ?: context?.getString(R.string.broadcast_default_stream_title)
+            ?: DEFAULT_BROADCAST_STREAM_TITLE
     }
 
     fun read(preferences: Preferences, context: Context? = null): Values = Values(
         enableBroadcasting = preferences[keyEnableBroadcasting] ?: false,
-        streamTitle = preferences[keyStreamTitle] ?: defaultDeviceTitle(context),
-        bitRateBps = preferences[keyBitRateBps] ?: DEFAULT_BIT_RATE_BPS,
-        port = preferences[keyPort] ?: DEFAULT_PORT,
-        sampleRateHz = preferences[keySampleRateHz] ?: DEFAULT_SAMPLE_RATE_HZ,
-        channelCount = preferences[keyChannelCount] ?: DEFAULT_CHANNEL_COUNT,
-        autoOpenShare = preferences[keyAutoOpenShare] ?: true,
-        sourceDeviceId = preferences[keySourceDeviceId],
-        cameraEnabled = preferences[keyCameraEnabled] ?: false,
-        microphoneEnabled = preferences[keyMicrophoneEnabled] ?: true,
-        videoWidth = preferences[keyVideoWidth] ?: 1280,
-        videoHeight = preferences[keyVideoHeight] ?: 720,
-        videoFps = preferences[keyVideoFps] ?: 30,
-        videoBitrateBps = preferences[keyVideoBitrateBps] ?: 2_000_000,
-        micGainPercent = preferences[keyMicGainPercent] ?: 100,
+        broadcast = BroadcastSettings(
+            // S3173: the legacy default was persisted verbatim by every settings write, so an
+            // installation holding it never chose a title - resolve it like an absent key.
+            streamTitle = preferences[keyStreamTitle]
+                ?.takeUnless { it == LEGACY_BROADCAST_STREAM_TITLE }
+                ?: defaultDeviceTitle(context),
+            bitRateBps = preferences[keyBitRateBps] ?: DEFAULT_BIT_RATE_BPS,
+            port = preferences[keyPort] ?: DEFAULT_PORT,
+            sampleRateHz = preferences[keySampleRateHz] ?: DEFAULT_SAMPLE_RATE_HZ,
+            channelCount = preferences[keyChannelCount] ?: DEFAULT_CHANNEL_COUNT,
+            autoOpenShare = preferences[keyAutoOpenShare] ?: true,
+            sourceDeviceId = preferences[keySourceDeviceId],
+            cameraEnabled = preferences[keyCameraEnabled] ?: false,
+            microphoneEnabled = preferences[keyMicrophoneEnabled] ?: true,
+            videoWidth = preferences[keyVideoWidth] ?: 1280,
+            videoHeight = preferences[keyVideoHeight] ?: 720,
+            videoFps = preferences[keyVideoFps] ?: 30,
+            videoBitrateBps = preferences[keyVideoBitrateBps] ?: 2_000_000,
+            micGainPercent = preferences[keyMicGainPercent] ?: 100,
+            cameraLensId = preferences[keyCameraLensId],
+        ),
     )
 
     fun write(preferences: MutablePreferences, settings: AppSettings) {
+        val broadcast = settings.broadcast
         preferences[keyEnableBroadcasting] = settings.enableBroadcasting
-        preferences[keyStreamTitle] = settings.broadcastStreamTitle
-        preferences[keyBitRateBps] = settings.broadcastBitRateBps
-        preferences[keyPort] = settings.broadcastPort
-        preferences[keySampleRateHz] = settings.broadcastSampleRateHz
-        preferences[keyChannelCount] = settings.broadcastChannelCount
-        preferences[keyAutoOpenShare] = settings.broadcastAutoOpenShare
-        settings.broadcastSourceDeviceId?.let { preferences[keySourceDeviceId] = it }
-        preferences[keyCameraEnabled] = settings.broadcastCameraEnabled
-        preferences[keyMicrophoneEnabled] = settings.broadcastMicrophoneEnabled
-        preferences[keyVideoWidth] = settings.broadcastVideoWidth
-        preferences[keyVideoHeight] = settings.broadcastVideoHeight
-        preferences[keyVideoFps] = settings.broadcastVideoFps
-        preferences[keyVideoBitrateBps] = settings.broadcastVideoBitrateBps
-        preferences[keyMicGainPercent] = settings.broadcastMicGainPercent
+        preferences[keyStreamTitle] = broadcast.streamTitle
+        preferences[keyBitRateBps] = broadcast.bitRateBps
+        preferences[keyPort] = broadcast.port
+        preferences[keySampleRateHz] = broadcast.sampleRateHz
+        preferences[keyChannelCount] = broadcast.channelCount
+        preferences[keyAutoOpenShare] = broadcast.autoOpenShare
+        broadcast.sourceDeviceId?.let { preferences[keySourceDeviceId] = it }
+        preferences[keyCameraEnabled] = broadcast.cameraEnabled
+        preferences[keyMicrophoneEnabled] = broadcast.microphoneEnabled
+        preferences[keyVideoWidth] = broadcast.videoWidth
+        preferences[keyVideoHeight] = broadcast.videoHeight
+        preferences[keyVideoFps] = broadcast.videoFps
+        preferences[keyVideoBitrateBps] = broadcast.videoBitrateBps
+        preferences[keyMicGainPercent] = broadcast.micGainPercent
+        // S3237: unlike the device id above, a null here is a real value - the user cleared the choice
+        // or the stored lens no longer exists - so it removes the key instead of leaving a stale id.
+        val lensId = broadcast.cameraLensId
+        if (lensId != null) preferences[keyCameraLensId] = lensId else preferences.remove(keyCameraLensId)
     }
 }

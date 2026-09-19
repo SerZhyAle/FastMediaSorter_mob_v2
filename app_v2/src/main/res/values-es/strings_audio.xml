@@ -14,7 +14,7 @@
     <string name="audio_cache_size_warning_message">La caché de audio está ocupando mucho espacio de almacenamiento. ¿Eliminar archivos antiguos para liberar espacio?</string>
     <string name="audio_cache_size_warning_title">Caché de audio grande</string>
     <string name="audio_channels_label">Canales: %1$s</string>
-    <string name="audio_channels_mono">Mononucleosis infecciosa</string>
+    <string name="audio_channels_mono">Mono</string>
     <string name="audio_channels_stereo">Estéreo</string>
     <string name="audio_codec_label">Códec de audio: %1$s</string>
     <string name="audio_cover_art">Portada del audio</string>

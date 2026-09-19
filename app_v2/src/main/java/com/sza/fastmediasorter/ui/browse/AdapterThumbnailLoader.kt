@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
+import com.sza.fastmediasorter.ui.common.widget.MediaItemThumbnailBinder.Companion.CACHED_THUMBNAIL_SIZE
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import com.sza.fastmediasorter.utils.GlideCacheStats
@@ -81,7 +82,8 @@ class AdapterThumbnailLoader(
     }
 
     companion object {
-        const val CACHED_THUMBNAIL_SIZE = 300
+        // S3246: promoted to MediaItemThumbnailBinder.CACHED_THUMBNAIL_SIZE (ui/common/widget) as the
+        // single source of truth; imported above, so every unqualified use below is unchanged.
 
         /**
          * S3072: the header read behind this verdict used to run on the main thread during row binding,
@@ -761,8 +763,15 @@ class AdapterThumbnailLoader(
         generatedPlaceholder: BitmapDrawable,
         isScrolling: Boolean,
     ) {
-        if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
-            Timber.v("Skipping local image thumbnail for ${file.name} (cached as failed)")
+        // S3287: a zero-length file fails MediaMetadataRetriever with -22, and the local arm's onLoadFailed
+        // never reaches markThumbnailAsFailed, so the doomed decode is reissued on every recycle. The size
+        // is already known to the row, so refuse before Glide is asked at all. Folded into the cached-failure
+        // branch rather than added above it: this function is at its two-return budget, and the guard must
+        // write the cache only on the bind that discovers the file, not on every rebind that reads it.
+        val cachedFailure = NetworkFileDataFetcher.isThumbnailFailed(file.path)
+        if (file.size <= 0L || cachedFailure) {
+            if (!cachedFailure) NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
+            Timber.v("Skipping local image thumbnail for ${file.name} (zero-byte or cached as failed)")
             showGeneratedPlaceholder(imageView, file)
             return
         }
@@ -1022,8 +1031,13 @@ class AdapterThumbnailLoader(
         }
         // S1968: the local arm never consulted the negative cache the network arm three branches up
         // already used, so a doomed frame extraction was reissued on every rebind.
-        if (NetworkFileDataFetcher.isVideoFailed(file.path)) {
-            Timber.v("Skipping local video thumbnail for ${file.name} (cached as failed)")
+        // S3287: a zero-length file still paid for that discovery - measured seven `setDataSource(fd)
+        // return(-22)` round trips to MediaPlayerService on the first bind before the listener cached it.
+        // The size is known to the row, so the extraction is refused outright.
+        val cachedFailure = NetworkFileDataFetcher.isVideoFailed(file.path)
+        if (file.size <= 0L || cachedFailure) {
+            if (!cachedFailure) NetworkFileDataFetcher.markVideoAsFailed(file.path)
+            Timber.v("Skipping local video thumbnail for ${file.name} (zero-byte or cached as failed)")
             showGeneratedPlaceholder(imageView, file)
             return
         }

@@ -57,7 +57,6 @@ internal class ImageLoadingGlideListeners(
             loadingIndicatorCoordinator.reset(LoadingSource.IMAGE_GLIDE)
             if (ImageLoadingDiagnostics.isNonCriticalNetworkImageError(e)) return false
             val isCancelledRequest = e?.rootCauses.orEmpty().any(::hasCancellationCause)
-            Timber.d("S3127: player image load failed; cancelled=$isCancelledRequest")
             if (isCancelledRequest) {
                 Timber.w("ImageLoadingManager: Race condition error during fast scrolling")
                 if (!callback.isDestroyed()) {

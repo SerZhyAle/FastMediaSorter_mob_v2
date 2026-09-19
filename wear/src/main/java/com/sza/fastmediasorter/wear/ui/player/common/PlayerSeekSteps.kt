@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.player.common
 
 import androidx.media3.common.Player
-import timber.log.Timber
 
 /** S1683: one step means the same thing in both watch players, which is why it is named once. */
 internal const val PLAYER_SEEK_STEP_MS = 10_000L

@@ -20,6 +20,7 @@ data class WearTouristState(
     val stepCount: Long = 0L,
     val tripDistanceMeters: Double = 0.0,
     val heartRateBpm: Int? = null,
+    val bodyTemperatureCelsius: Float? = null,
     val sunriseMillis: Long? = null,
     val sunsetMillis: Long? = null,
     val isDaylight: Boolean = true,
@@ -28,4 +29,5 @@ data class WearTouristState(
     val hasPressureSensor: Boolean = true,
     val hasStepSensor: Boolean = true,
     val hasHeartRateSensor: Boolean = true,
+    val hasBodyTemperatureSensor: Boolean = false,
 )

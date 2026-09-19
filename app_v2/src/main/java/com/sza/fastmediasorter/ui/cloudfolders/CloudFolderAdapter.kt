@@ -6,9 +6,10 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.sza.fastmediasorter.databinding.ItemCloudFolderBinding
 
 class CloudFolderAdapter(
-    private val inflate: (LayoutInflater, ViewGroup, Boolean) -> CloudFolderItemBinding,
+    private val inflate: (LayoutInflater, ViewGroup, Boolean) -> ItemCloudFolderBinding,
     private val onFolderSelect: (CloudFolderItem) -> Unit,
     private val onFolderNavigate: (CloudFolderItem) -> Unit,
     private val onNavigateBack: () -> Unit,
@@ -25,7 +26,7 @@ class CloudFolderAdapter(
     }
 
     class FolderViewHolder(
-        private val binding: CloudFolderItemBinding,
+        private val binding: ItemCloudFolderBinding,
         private val onFolderSelect: (CloudFolderItem) -> Unit,
         private val onFolderNavigate: (CloudFolderItem) -> Unit,
         private val onNavigateBack: () -> Unit,

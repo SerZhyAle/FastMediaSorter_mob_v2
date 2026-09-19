@@ -14,13 +14,12 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.broadcast.BroadcastFailure
 import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.broadcast.BroadcastControlActivity
-import com.sza.fastmediasorter.ui.broadcast.BroadcastShareActivity
+import com.sza.fastmediasorter.ui.broadcast.helpers.BroadcastFailureMessage
 import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import timber.log.Timber
@@ -50,16 +49,18 @@ class MainBroadcastManager(
     )
     private var indicatorShown = false
     private var autoOpenShare = true
+    private var autoOpenedForSessionStartedAtMs: Long? = null
 
     fun bind(lifecycleOwner: LifecycleOwner) {
         lifecycleOwner.collectOnLifecycle(settingsRepository.getSettings()) { settings ->
-            autoOpenShare = settings.broadcastAutoOpenShare
+            autoOpenShare = settings.broadcast.autoOpenShare
         }
         lifecycleOwner.collectOnLifecycle(controller.state) { state ->
             when (state) {
                 is BroadcastState.Live -> {
                     showIndicator(state)
-                    if (autoOpenShare) {
+                    if (autoOpenShare && autoOpenedForSessionStartedAtMs != state.startedAtElapsedRealtimeMs) {
+                        autoOpenedForSessionStartedAtMs = state.startedAtElapsedRealtimeMs
                         BroadcastControlActivity.launch(activity)
                     }
                 }
@@ -98,12 +99,7 @@ class MainBroadcastManager(
 
     private fun showFailure(state: BroadcastState.Failed) {
         Timber.w("Broadcast failed: %s (%s)", state.failure, state.detail)
-        val messageRes = when (state.failure) {
-            BroadcastFailure.MICROPHONE_PERMISSION -> R.string.broadcast_failed_microphone_permission
-            BroadcastFailure.NETWORK_UNAVAILABLE -> R.string.broadcast_failed_network
-            BroadcastFailure.ENCODER_UNAVAILABLE -> R.string.broadcast_failed_encoder
-            BroadcastFailure.CAPTURE_ERROR -> R.string.broadcast_failed_capture
-        }
+        val messageRes = BroadcastFailureMessage.resFor(state.failure)
         showMessage(activity.getString(messageRes), openSettingsAction = false)
         // The state is static and its service is already gone, so nothing else retires it - without this
         // a rotation would replay the same message and the next start would begin from a failed state.
@@ -155,14 +151,17 @@ class MainBroadcastManager(
 
     /**
      * The launch tracking belongs to the broadcast session, not to the main screen's visibility.
-     * Opening the descriptor screen stops the host activity, so resetting on every dismissal cleared
+     * Opening the broadcast screen stops the host activity, so resetting on every dismissal cleared
      * the tracking, and the re-emitted Live state on the way back re-opened the screen the user had
-     * just closed - trapping them there for as long as the broadcast ran.
+     * just closed - trapping them there for as long as the broadcast ran. Tracking the session's own
+     * start moment instead of a flag survives the gap: this collector is lifecycle-bound, so a stop
+     * and a fresh start performed while the main screen is away never delivers Idle here, and a flag
+     * cleared only by Idle stayed set and swallowed the next session's auto-open.
      */
     private fun endBroadcastSession() {
         liveStartedAtElapsedRealtimeMs = null
+        autoOpenedForSessionStartedAtMs = null
         dismissIndicator()
-        BroadcastShareActivity.resetLaunchTracking()
     }
 
     @Suppress("ReturnCount")

@@ -239,6 +239,22 @@
     <color name="player_overlay_on_primary">#FFFFFFFF</color>
     <color name="player_overlay_on_primary_translucent">#80FFFFFF</color>
 
+    <!-- S3250: the two remaining foreground shades the text-viewer bars used as raw literals, and the
+         opaque grey of the find/replace panel. Deliberately NOT mirrored in values-night: the bars they
+         sit on carry a fixed white foreground of their own, so flipping these alone would put white text
+         on a light panel. Making the whole text-viewer chrome night-aware is a change of behaviour and
+         belongs to its own ticket, not to a literal-removal pass. -->
+    <color name="player_overlay_text_secondary">#B0FFFFFF</color>
+    <color name="player_overlay_divider">#40FFFFFF</color>
+    <color name="player_panel_dark_grey">#E0303030</color>
+    <color name="player_search_hint_grey">#AAAAAA</color>
+
+    <!-- S3250: draw-overlay colour swatches. These are the drawing colours themselves, not chrome -
+         the swatch has to render the exact colour the stroke will use, so it never follows the theme. -->
+    <color name="draw_swatch_black">#FF000000</color>
+    <color name="draw_swatch_white">#FFFFFFFF</color>
+    <color name="draw_swatch_red">#FFE53935</color>
+
     <!-- Text colors -->
     <color name="player_audio_info_text">#666666</color>
     <color name="player_countdown_text">#888888</color>

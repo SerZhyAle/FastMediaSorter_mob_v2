@@ -604,7 +604,7 @@ class FileOperationDestinationDialog(
             .setNeutralButton(context.getString(R.string.copy_error)) { _, _ ->
                 context.copyTextToClipboard("Error", errorMessage)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
 
         if (onAuthRequest != null) {
             // Try to determine provider from destination resource or error message

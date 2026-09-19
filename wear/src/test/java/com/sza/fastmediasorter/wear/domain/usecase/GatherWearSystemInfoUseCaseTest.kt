@@ -41,11 +41,11 @@ class GatherWearSystemInfoUseCaseTest {
                 R.string.system_info_section_device,
                 R.string.system_info_section_app,
                 R.string.system_info_section_health,
-                R.string.system_info_section_sensors,
                 R.string.system_info_section_radio,
                 R.string.system_info_section_memory,
                 R.string.system_info_section_storage,
-                R.string.system_info_section_phone
+                R.string.system_info_section_phone,
+                R.string.system_info_section_sensors
             ),
             sections.map { section -> section.titleRes }
         )

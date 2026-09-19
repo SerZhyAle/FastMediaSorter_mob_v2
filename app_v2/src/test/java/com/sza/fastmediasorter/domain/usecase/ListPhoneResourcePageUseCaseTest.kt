@@ -217,15 +217,54 @@ class ListPhoneResourcePageUseCaseTest {
         assertEquals(listOf("Papers"), page.items.orEmpty().map { it.name })
     }
 
+    /**
+     * S3160: this case asserted the opposite until 2026-09-16 - an unknown token widened the answer
+     * back to every kind and said nothing. It replaced a dead end with a list that looks filtered and
+     * is not, which no wearer and no log can tell from a correct one.
+     */
     @Test
-    fun `an unknown media type narrows nothing rather than emptying the list`() = runTest {
+    fun `an unknown media type is refused instead of widening the answer`() = runTest {
         coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
             resource(id = 1, name = "Photos", supportedMediaTypes = setOf(MediaType.IMAGE))
         )
 
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "sculptures"))
 
-        assertEquals(listOf("Photos"), page.items.orEmpty().map { it.name })
+        assertEquals(WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA, page.status)
+        assertTrue("a refusal carries no items", page.items.orEmpty().isEmpty())
+    }
+
+    /**
+     * S3160: the two spellings of "no filter" must survive the refusal above. The All chip sends null
+     * today and the request KDoc has promised `all` since S1846, so both stay accepted.
+     */
+    @Test
+    fun `the all token and a null media type both leave the answer unnarrowed`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Photos", supportedMediaTypes = setOf(MediaType.IMAGE)),
+            resource(id = 2, name = "Podcasts", supportedMediaTypes = setOf(MediaType.AUDIO))
+        )
+
+        val explicit = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "all"))
+        val implicit = useCase(request(WearPhoneResourceRequestKind.ROOT))
+
+        assertEquals(listOf("Photos", "Podcasts"), explicit.items.orEmpty().map { it.name })
+        assertEquals(explicit.items.orEmpty().map { it.name }, implicit.items.orEmpty().map { it.name })
+    }
+
+    /**
+     * S3160: a thumbnail request carries no chip, so the refusal must not reach the kinds that never
+     * narrow anything - the watch would lose every picture on the screen instead of one list.
+     */
+    @Test
+    fun `a request carrying no media type is never refused`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Photos", supportedMediaTypes = setOf(MediaType.IMAGE))
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT))
+
+        assertEquals(WearPhoneResourceResponseStatus.OK, page.status)
     }
 
     /**

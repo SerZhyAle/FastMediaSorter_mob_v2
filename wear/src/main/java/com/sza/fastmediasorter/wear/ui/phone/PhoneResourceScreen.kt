@@ -35,6 +35,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -119,6 +120,7 @@ fun PhoneResourceScreen(
     val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
 
     val openOutcome by viewModel.openOutcome.collectAsStateWithLifecycle()
+    Timber.d("S3259: phone resource screen shown - single-column rows are EntryTileRow")
 
     // Back walks the folder trail first; only the root hands Back back to navigation.
     BackHandler(enabled = true) {
@@ -603,12 +605,21 @@ private fun PhoneResourceList(
     // the geometry question exactly as the general file list does.
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(presentation.viewMode, maxWidth.value.toInt())
+        val screenInsets = wearScreenInsets()
         // Decided here, for the whole loaded page, rather than per row: a picture that lands mid-scroll
         // must not re-size the glyph under the reading finger (strategic ADR-3). Only the cell path
         // ever swaps a glyph for a thumbnail, so the column count is what answers that question.
         WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState
+            state = listState,
+            // S3190: the refine header is laid over this list, exactly as on the device browser
+            // (S2136), so the list gives back the height it covers or the first row sits under it.
+            contentPadding = PaddingValues(
+                start = screenInsets.calculateLeftPadding(LayoutDirection.Ltr),
+                top = screenInsets.calculateTopPadding() + WearRefineHeaderHeight,
+                end = screenInsets.calculateRightPadding(LayoutDirection.Ltr),
+                bottom = screenInsets.calculateBottomPadding() + GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
+            )
         ) {
             item {
                 val titleText = when (presentation.title) {
@@ -704,7 +715,7 @@ private fun ScalingLazyListScope.entryItems(
             if (!entry.isDirectory) {
                 onRequestThumbnail(entry.token)
             }
-            EntryChip(
+            EntryTileRow(
                 entry = entry,
                 thumbnail = thumbnails[entry.token] ?: WearThumbnail.Unavailable,
                 onEntryClick = onEntryClick,
@@ -761,8 +772,13 @@ private fun EntryRow(
     }
 }
 
+/**
+ * S3259: a thumbnail tile row, never a chip - it draws the entry's preview through the module's
+ * shared `SingleColumnTileCell`, which a label-and-icon chip has no slot for. Only the old name said
+ * chip, and that name is what put it on this ticket's migration list.
+ */
 @Composable
-private fun EntryChip(
+private fun EntryTileRow(
     entry: WearPhoneResourceItem,
     thumbnail: WearThumbnail,
     onEntryClick: (WearPhoneResourceItem) -> Unit,

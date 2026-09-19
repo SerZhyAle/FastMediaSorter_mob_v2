@@ -1414,7 +1414,7 @@ Available in the Standard, Lite, Photos and Legacy builds.
 
 ## How to Use the Built-In Programs
 
-**Available in:** all flavors - the programs menu and the panel ship in every build, but each program follows its own capability: Network Monitor needs Standard or noLegal, the Wear companion needs Standard or noLegal, and the mini-game is absent from XR and noLegal. The calculator, the front flashlight and System information are in every build.
+**Available in:** all flavors - the programs menu and the panel ship in every build, but each program follows its own capability: Network Monitor needs Standard or noLegal, the Wear companion needs Standard or noLegal, the mini-game is absent from XR and noLegal, and Mirror needs a front-facing camera with camera capture enabled in Settings. The calculator, the front flashlight and System information are in every build.
 
 Besides browsing and playing files, the app carries a set of small built-in programs - a calculator, a screen lamp, a network monitor, a voice recorder and more. They are off by default: each one is switched on by its own setting, and most of the dedicated switches sit together in **Settings → Operations**.
 
@@ -1449,6 +1449,7 @@ In the order they appear:
 - **Wear Companion** - the watch screen, in builds that carry the watch bridge.
 - **Front flashlight** - turns the screen itself into a lamp: it opens white at full window brightness, a vertical swipe changes the brightness, a small top-left button picks and remembers another colour, and a single tap closes it. Only the window brightness is touched, so your device setting is unchanged afterwards.
 - **Water flashlight** - the same light for wet hands. It lights the camera flash and the screen together, then locks the screen: the time and a short reminder are all you see, and touching the glass does nothing at all - a volume button closes it. The system bars go too, so a wet hand does not meet a navigation button; a deliberate swipe can still bring them back. Made for rain and for the shower - the two places where the glass reacts to water rather than to you. Leaving through a system gesture turns the light off as well, so it never stays burning in a pocket. On the watch there is no flash, so the display alone is the light. It does not replace the water-lock mode built into a watch or a phone; no app can switch that one on.
+- **Mirror** - turns the phone into a lit mirror: the front camera fills the screen inside a bright white field that lights your face, and the picture is flipped the way a real mirror shows it, with a corner button to turn the light off without leaving the screen. Zoom presets - x1, x2, x3, x5 - sit in the lower left and open on x3. A photo button and a video button save straight into the same folder Capture uses, video with sound. The zoom, the flip and the backlight state are all remembered between runs. Only the window brightness goes up, never your device's own setting, so the phone is back to normal the moment you leave. On by default on any device with a front camera, as long as camera capture itself is not switched off in Settings.
 
 The panel and the launcher additionally carry direct camera shortcuts - take a photo and send it on, take a photo and edit it, take a photo and translate it, start a video recording, and open the camera folder.
 

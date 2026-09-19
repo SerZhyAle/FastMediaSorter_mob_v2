@@ -43,6 +43,11 @@ function Get-GatePoolKey([string[]]$Argv) { return ($Argv -join [char]1) }
 # Start a gate now so its result is ready when the pipeline reaches its call site. A no-op when
 # ThreadJob is unavailable, which leaves every consumer running inline exactly as before.
 function Start-PooledGate {
+    # S3301: a pooled gate is started long before its call site, so a reuse decided upstream has to
+    # be honoured here or the batch is paid for in threads while every call site reports a skip.
+    # Read defensively: this library is dot-sourced by batch runners that never load the ledger,
+    # and Set-StrictMode would make a bare reference to an undeclared variable throw.
+    if (Get-Variable -Name ClosureReuseActive -Scope Script -ValueOnly -ErrorAction SilentlyContinue) { return }
     if (-not $script:GatePoolEnabled) { return }
     $argv = @($args)
     if ($argv.Count -eq 0) { return }
@@ -78,7 +83,11 @@ function Invoke-GateChild {
             $global:LASTEXITCODE = 2
             return
         }
-        $r = Receive-Job -Job $job -AutoRemoveJob -Wait
+        # S3266: the receive carries no -Wait, for the reason the ceiling above exists at all - Wait-Job
+        # has already proved a terminal state, and a second join would be unbounded, undoing the ceiling
+        # one line below it. -AutoRemoveJob is legal only beside -Wait, so the removal is explicit.
+        $r = Receive-Job -Job $job
+        try { Remove-Job -Job $job -Force -ErrorAction SilentlyContinue } catch { }
         if ($r -and -not [string]::IsNullOrWhiteSpace($r.Output)) { Write-Host ($r.Output.TrimEnd()) }
         # A caller's own stopwatch would record how long the WAIT took, not what the gate cost, and
         # scripts/quality/measure-gate-frequency.ps1 reads that number to rank the gates. The child

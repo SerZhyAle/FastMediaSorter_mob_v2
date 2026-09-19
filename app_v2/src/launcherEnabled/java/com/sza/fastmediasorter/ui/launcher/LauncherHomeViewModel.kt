@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
+import com.sza.fastmediasorter.core.power.PowerStateObserver
 import com.sza.fastmediasorter.data.local.db.LauncherCellConfigEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.launcher.AppShortcut
@@ -58,7 +59,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -100,6 +100,9 @@ class LauncherHomeViewModel @Inject constructor(
     private val isCameraWallpaperAvailable: IsCameraWallpaperAvailableUseCase,
     private val savedStateHandle: SavedStateHandle,
     private val resolveRouteAvailability: ResolvePanelRouteAvailabilityUseCase,
+    // S3284: the process-wide battery observer, whose sticky receiver already answers "is power
+    // connected" for every started activity.
+    powerStateObserver: PowerStateObserver,
 ) : ViewModel() {
 
     // Rotation swaps which layout is observed. The collection itself is never torn down: the
@@ -190,6 +193,7 @@ class LauncherHomeViewModel @Inject constructor(
                 showPinned = it.launcherTaskbarShowPinned,
                 showTray = it.launcherTaskbarShowTray,
                 topStatusStripMode = it.launcherTopStatusStripMode && it.launcherReplaceSystemStatusArea,
+                rows = it.launcherTaskbarRows,
             )
         }
         .distinctUntilChanged()
@@ -391,6 +395,23 @@ class LauncherHomeViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
+    // S3284: the same timeout for a plugged-in device; it replaces the one above whenever
+    // [chargingConnected] is true, 0 included.
+    val screenBlackoutTimeoutOnChargeSeconds: StateFlow<Int> = settingsRepository.getSettings()
+        .map { it.launcherScreenBlackoutTimeoutOnChargeSeconds }
+        .distinctUntilChanged()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            settingsDefaults.launcherScreenBlackoutTimeoutOnChargeSeconds,
+        )
+
+    /**
+     * S3284: whether power is connected, read from the app-wide observer rather than from a receiver
+     * of this screen's own - see [PowerStateObserver.chargingConnected].
+     */
+    val chargingConnected: StateFlow<Boolean> = powerStateObserver.chargingConnected
+
     private val _events = Channel<LauncherHomeEvent>(Channel.BUFFERED)
     val events: Flow<LauncherHomeEvent> = _events.receiveAsFlow()
 
@@ -542,9 +563,40 @@ class LauncherHomeViewModel @Inject constructor(
      * S2599: the column count comes from the surface rendering the desktop, because it decides how far
      * right a cell of this width can be seated - the drop point alone does not say.
      */
-    fun moveCell(id: Long, rowIndex: Int, colIndex: Int, columns: Int) {
+    fun moveCell(
+        id: Long,
+        rowIndex: Int,
+        colIndex: Int,
+        columns: Int,
+        targetScreenIndex: Int? = null,
+    ) {
         viewModelScope.launch {
-            desktopDependencies.desktopRepository.moveCell(id, rowIndex, colIndex, columns)
+            desktopDependencies.desktopRepository.moveCell(
+                id = id,
+                rowIndex = rowIndex,
+                colIndex = colIndex,
+                columns = columns,
+                targetScreenIndex = targetScreenIndex,
+            )
+        }
+    }
+
+    /**
+     * S3204: moves an entire section block to [targetRow] in the active layout orientation.
+     */
+    fun moveSectionBlock(id: Long, targetRow: Int) {
+        viewModelScope.launch {
+            desktopDependencies.desktopRepository.relocateSectionBlock(_orientation.value, id, targetRow)
+        }
+    }
+
+    /**
+     * S3204: the non-pointer twin of [moveSectionBlock]. A keyboard, D-pad or screen-reader user cannot
+     * aim a drop, so the section trades places with its neighbour block instead - one step per action.
+     */
+    fun swapSectionWithNeighbour(id: Long, moveUp: Boolean) {
+        viewModelScope.launch {
+            desktopDependencies.desktopRepository.swapSectionBlock(_orientation.value, id, moveUp)
         }
     }
 

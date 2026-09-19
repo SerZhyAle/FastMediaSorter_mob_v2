@@ -22,7 +22,6 @@ import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 

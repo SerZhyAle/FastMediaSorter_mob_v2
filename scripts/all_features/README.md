@@ -44,6 +44,33 @@ only in its `noLegal` variant (S2090).
   exclusion that does not exist
 - `wearFlavors` = the one variant. Naming both is refused: it claims exactly what absence claims.
 
+## Shape 1 and shape 3 combine when the store watch build lacks the watch half (S3264)
+
+The three shapes above split on "does the phone participate". They do not answer a fourth case the
+Wear store boundary created: a phone-bridge capability whose **watch** half sits on a route,
+component or permission `wear/config/store-boundary-policy.json` confines to the sideload artifact.
+Every phone-watch exchange runs through `.data.wear.WatchWearListenerService`, which the store watch
+build does not carry, so a capability like "watch colour scheme set from the phone" does not exist
+end to end there whatever the phone build offers.
+
+Such a record keeps its `SUPPORT_WEAR_COMPANION` gate **and** declares `wearFlavors: ["noLegal"]`.
+The two fields answer about different modules and `validate.ps1` accepts both at once - what it
+refuses is `wearFlavors` naming every watch variant, which is what absence already says. Which
+records are in this position is declared in `scripts/quality/allfeatures-wear-boundary-map.json` and
+held by check 6 of `scripts/quality/assert-allfeatures-sync.ps1`.
+
+## `wearFlavors` has its own writer, because the sanctioned ones destroy it (S3264)
+
+`add.ps1` has no parameter for the field, and `patch.ps1` rebuilds the record from an `[ordered]` of
+the parameters it was given - so patching any field of a record that carried `wearFlavors` drops the
+key, exactly as S3209 measured for `gate` one field over. Both are canon forwarders whose bodies
+this repository does not own (S2402).
+
+Write it with `scripts/all_features/set-wear-flavors.ps1 -Ids <id[,id..]> -WearFlavors noLegal`,
+which rebuilds from the record's own property order rather than from a known field list, and
+`-Clear` to go back to "every watch build". A strip by some later `patch.ps1` call is caught by
+check 6 inside the closure that did it, for any record the boundary map names.
+
 ## Never hardcode the companion row
 
 Shape 1's `flavors` value is not a constant. As of 2026-08-23 (S1951) the `SUPPORT_WEAR_COMPANION`
@@ -101,6 +128,27 @@ Measured 2026-09-11, **491 of 1085 records** are explained only by coinciding wi
 and a set often equals several rows at once - `[legacy, noLegal, standard, vr]` is `SUPPORT_STREAMS`,
 `ENABLE_TRANSLATION` and `SUPPORT_MIC_RECORDING` together - so no rule can derive which flag produced
 a set. Closing the class needs `gate` on the write path, which is the canon change above.
+
+## A closure that lands on an existing record strips its gate (S3209)
+
+The paragraph above says the closure path cannot **write** a gate. Measured 2026-09-17, it also
+**destroys** one. `add.ps1` upserts the whole record - it rebuilds an `[ordered]` from the parameters
+it was given and replaces the line with the matching `id` - so an absent `-Gate` means "a record with
+no gate", not "leave the gate alone". Closing S3208 with `-FuncOp CHANGE -FeatName "Start panel rows"`
+matched `launcher.start-panel-rows`, written by S3131, and dropped `"gate":"SUPPORT_LAUNCHER"` from it.
+
+Nothing refused. `validate.ps1` returned PASS both before and after: the schema does not require the
+field, and the `flavors` set was untouched, so check 4 saw a correct reach too. The loss was found by
+a human comparing the record against its previous text, and repaired with
+`patch.ps1 -Id launcher.start-panel-rows -Gate SUPPORT_LAUNCHER -Description ..`.
+
+Check 5 of `scripts/quality/assert-allfeatures-sync.ps1` now holds the field. Its baseline,
+`scripts/quality/allfeatures-gate-baseline.txt`, is one `<id> <gate>` row per gated record - 141 of
+1177 when it landed - and a record that lost its flag, carries a different one, or has left the ledger
+fails the check inside the same closure that did it. The refusal prints the `patch.ps1` repair line;
+an intentional re-gate is `-UpdateBaseline`, which rewrites this baseline and the count baseline
+together. Unlike check 4 this one reads the `gate` field directly, which it can afford to: it never
+demands the field be present, only that a field already there stays there.
 
 ## The author's own session judges the record now (S2927)
 

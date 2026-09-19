@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.domain.playback.WearPlayerDisplayHoldPolicy
+import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
 import com.sza.fastmediasorter.wear.util.formatWearDuration
 
 /**
@@ -57,6 +58,11 @@ data class AudioPlayerUiState(
      * screen owns the wording and the locale.
      */
     val channelReason: StreamChannelReason? = null,
+    /**
+     * S3099: what the live stream says about itself, filled only while [isStream] is true. A file has
+     * a duration to show in its place, a broadcast does not.
+     */
+    val station: WearStationInfo? = null,
     val closeScreen: Boolean = false
 ) {
     /**

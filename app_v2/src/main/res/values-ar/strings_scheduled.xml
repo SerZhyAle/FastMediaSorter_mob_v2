@@ -53,7 +53,7 @@
     <string name="scheduled_ops_notif_running">تشغيل العملية المجدولة..</string>
     <string name="scheduled_ops_op_copy">ينسخ</string>
     <string name="scheduled_ops_op_delete">يمسح</string>
-    <string name="scheduled_ops_op_move">يتحرك</string>
+    <string name="scheduled_ops_op_move">نقل</string>
     <string name="scheduled_ops_operation">عملية</string>
     <string name="scheduled_ops_overwrite">استبدال الملفات الموجودة</string>
     <string name="scheduled_ops_readonly_source">المصدر للقراءة فقط</string>

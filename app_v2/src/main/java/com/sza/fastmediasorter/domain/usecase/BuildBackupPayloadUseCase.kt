@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.LauncherCellDao
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.RawSettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -19,6 +20,7 @@ import javax.inject.Inject
  */
 class BuildBackupPayloadUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository,
+    private val rawSettingsRepository: RawSettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val favoritesDao: FavoritesDao,
     private val scheduledOperationRepository: ScheduledOperationRepository,
@@ -43,6 +45,9 @@ class BuildBackupPayloadUseCase @Inject constructor(
         val launcherCells = launcherCellDao.getAllCellsSync()
             .map { BackupMapper.toBackupLauncherCell(it) }
 
+        // S3130: the whole settings store, looped rather than listed field by field.
+        val rawSettings = rawSettingsRepository.exportAll()
+
         return BackupMapper.toBackupPayload(
             settings = settings,
             resources = resources,
@@ -53,7 +58,8 @@ class BuildBackupPayloadUseCase @Inject constructor(
         ).copy(
             networkCredentials = networkCredentials,
             webAuthSessions = webAuthSessions,
-            launcherCells = launcherCells
+            launcherCells = launcherCells,
+            rawSettings = rawSettings
         )
     }
 }

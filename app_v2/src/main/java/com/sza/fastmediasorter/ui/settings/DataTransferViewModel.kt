@@ -119,8 +119,13 @@ class DataTransferViewModel @Inject constructor(
         if (!inFlight.add(kind)) return
         _state.value = DataTransferUiState.InProgress(kind, medium)
         viewModelScope.launch {
-            val outcome = withContext(Dispatchers.IO) { block() }
-            inFlight.remove(kind)
+            // The kind is released in `finally` so an escape nothing modelled as a Result - and a
+            // cancellation - cannot leave it permanently in flight, which would refuse every retry.
+            val outcome = try {
+                withContext(Dispatchers.IO) { block() }
+            } finally {
+                inFlight.remove(kind)
+            }
             _state.value = outcome
         }
     }

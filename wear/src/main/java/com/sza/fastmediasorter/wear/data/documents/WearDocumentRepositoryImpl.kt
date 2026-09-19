@@ -20,18 +20,17 @@ private const val BYTES_PER_KB = 1024L
 /**
  * Maximum bytes of a document held in memory at once.
  *
- * This is a CONSERVATIVE BOUND, not a measured figure. It equals `WearThumbnailBudget`'s
- * `MAX_HEAD_READ_BYTES`, the only other place the module pulls a file's bytes straight into one
- * in-memory array, so the reader claims no more heap than a path already known to survive on the
- * watch; decoded to UTF-16 the text costs roughly twice this again, still an order of magnitude
- * under the module's decoded-thumbnail cache.
+ * S2753 measured this on a Galaxy Watch 7 (`SM-L310`, SDK 36) and kept the figure. Two 128 KiB
+ * ASCII files - one prose, one written as a single line without a break - each grew the Dalvik heap
+ * by about 275 KiB while displayed, against a `dalvik.vm.heapgrowthlimit` of 192 MiB. That is
+ * roughly a tenth of a percent of the limit, so the heap does not bind here and no headroom
+ * argument can pick the number; a heap ceiling would only start to matter at tens of megabytes of
+ * file.
  *
- * S2753 owns the number and holds the derivation. What it settled without a watch: the heap is NOT
- * what binds here - the whole read peaks at roughly five times the cap, so even a pessimistic
- * per-app heap leaves the current figure at about one percent of it, and a heap ceiling only starts
- * to matter at tens of megabytes of file. What binds first is the cost of splitting a file that
- * carries no line breaks, then the number of list items a wearer can travel in one sitting. So the
- * figure to replace this one comes from readability and split cost, not from a headroom measurement.
+ * What binds instead is how far a wearer can travel in one sitting: 128 KiB of prose is already
+ * about 2200 list items. Splitting is no longer a reason to keep the cap low - S2886 made
+ * `DocumentViewerViewModel.wrapLine` walk an index instead of rebuilding the remainder - so raising
+ * the cap is a readability decision about that item count, not a memory one.
  */
 private const val MAX_DOCUMENT_BYTES = 128L * BYTES_PER_KB
 

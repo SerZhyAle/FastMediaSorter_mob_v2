@@ -57,9 +57,16 @@ foreach ($line in Get-Content -Path $featuresJsonl) {
     $t = $line.Trim()
     if (-not $t) { continue }
     $rec = $t | ConvertFrom-Json
-    if (($rec.flavors -contains 'standard') -and ($rec.status -eq 'active')) {
-        $capabilities += [ordered]@{ id = $rec.id; area = $rec.area; name = $rec.name }
-    }
+    if (-not (($rec.flavors -contains 'standard') -and ($rec.status -eq 'active'))) { continue }
+    # S3264: `flavors` answers "which PHONE build gates this" and says nothing about the watch, so
+    # a capability the wear module ships only in its noLegal variant reached this snapshot through
+    # the phone's standard row while being absent from the artifact Play distributes. The absent
+    # key is S2090's assertion "every watch build", so only a declared set is read here.
+    if ($rec.PSObject.Properties.Name -contains 'wearFlavors' -and
+        $null -ne $rec.wearFlavors -and
+        @($rec.wearFlavors).Count -gt 0 -and
+        (@($rec.wearFlavors) -notcontains 'standard')) { continue }
+    $capabilities += [ordered]@{ id = $rec.id; area = $rec.area; name = $rec.name }
 }
 
 # ---- standard BuildConfig flags ------------------------------------------

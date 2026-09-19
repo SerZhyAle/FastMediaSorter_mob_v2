@@ -5,7 +5,7 @@
     <string name="widget_add_to_home_screen">Zum Startbildschirm hinzufügen</string>
     <string name="widget_already_added">Widget bereits zum Startbildschirm hinzugefügt</string>
     <string name="widget_calculator_description">Öffnen Sie den integrierten Taschenrechner.</string>
-    <string name="widget_calculator_label">Kalkulator</string>
+    <string name="widget_calculator_label">Rechner</string>
     <string name="widget_camera_ocr_translate_description">Mit der Kamera schnell Texte erfassen, erkennen und übersetzen.</string>
     <string name="widget_camera_ocr_translate_label">Kamera-OCR</string>
     <string name="widget_camera_photos_description">Schneller Zugriff auf Kamerafotos</string>

@@ -541,6 +541,12 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         moveUp: Boolean,
     ): Boolean = sectionOps.swapSectionBlock(orientation, sectionCellId, moveUp)
 
+    override suspend fun relocateSectionBlock(
+        orientation: LauncherOrientation,
+        sectionCellId: Long,
+        targetRow: Int,
+    ): Boolean = sectionOps.relocateSectionBlock(orientation, sectionCellId, targetRow)
+
     override suspend fun removeSection(
         orientation: LauncherOrientation,
         sectionCellId: Long,
@@ -552,11 +558,25 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         columns: Int,
     ): Boolean = sectionOps.resortSection(orientation, sectionCellId, columns)
 
-    override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int, columns: Int): Boolean =
+    override suspend fun moveCell(
+        id: Long,
+        rowIndex: Int,
+        colIndex: Int,
+        columns: Int,
+        targetScreenIndex: Int?,
+    ): Boolean =
         withContext(Dispatchers.IO) {
             val targetRow = rowIndex.coerceAtLeast(0)
             db.withTransaction {
                 val source = cellDao.getById(id) ?: return@withTransaction false
+                val destScreen = targetScreenIndex ?: source.screenIndex
+                if (destScreen < 0) return@withTransaction false
+
+                if (source.kind == SECTION_KIND && destScreen != source.screenIndex) {
+                    val orientation = LauncherOrientation.valueOf(source.orientation)
+                    return@withTransaction sectionOps.moveSectionBlockToScreen(orientation, source, destScreen)
+                }
+
                 // S1428: a header stays anchored at column 0 for the same reason normalized() puts it
                 // there - it is drawn across the whole row whatever column it was stored in, so any
                 // other value frees squares in the table that stay covered on screen.
@@ -570,7 +590,7 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
                 } else {
                     LauncherCellSeating.seatColumn(colIndex, source.spanW, columns)
                 }
-                if (source.rowIndex == targetRow && source.colIndex == targetCol) {
+                if (source.screenIndex == destScreen && source.rowIndex == targetRow && source.colIndex == targetCol) {
                     return@withTransaction false
                 }
                 // S1428: refused before the overlap lookup so the rule holds on both outcomes below -
@@ -581,12 +601,17 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
                     rowIndex = targetRow,
                     spanH = source.spanH,
                     orientationName = source.orientation,
-                    screenIndex = source.screenIndex,
+                    screenIndex = destScreen,
                 )
-                if (straddlesHeader) return@withTransaction false
+                if (straddlesHeader) {
+                    if (destScreen != source.screenIndex) {
+                        return@withTransaction moveSingleCellToScreen(source, destScreen, columns)
+                    }
+                    return@withTransaction false
+                }
                 val blocker = cellDao.findOverlapping(
                     orientation = source.orientation,
-                    screenIndex = source.screenIndex,
+                    screenIndex = destScreen,
                     rowIndex = targetRow,
                     colIndex = targetCol,
                     spanW = source.spanW,
@@ -594,13 +619,42 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
                     excludeId = id,
                 )
                 if (blocker == null) {
-                    cellDao.update(source.copy(rowIndex = targetRow, colIndex = targetCol))
+                    cellDao.update(
+                        source.copy(
+                            screenIndex = destScreen,
+                            rowIndex = targetRow,
+                            colIndex = targetCol,
+                        ),
+                    )
                     return@withTransaction true
                 }
-                if (blocker.spanW != source.spanW || blocker.spanH != source.spanH) {
+                // S3205: across screens a header is never the exchange partner - it would reach the
+                // source screen without the cells positional membership gives it.
+                val crossScreenHeader = destScreen != source.screenIndex && blocker.kind == SECTION_KIND
+                if (crossScreenHeader || blocker.spanW != source.spanW || blocker.spanH != source.spanH) {
                     // A 2x2 cannot take a 1x1's place: it would still cover that 1x1's neighbours,
                     // trading one overlap for another. Only equal footprints have a defined exchange.
+                    if (destScreen != source.screenIndex) {
+                        return@withTransaction moveSingleCellToScreen(source, destScreen, columns)
+                    }
                     return@withTransaction false
+                }
+                if (destScreen != source.screenIndex) {
+                    cellDao.update(
+                        source.copy(
+                            screenIndex = destScreen,
+                            rowIndex = blocker.rowIndex,
+                            colIndex = blocker.colIndex,
+                        ),
+                    )
+                    cellDao.update(
+                        blocker.copy(
+                            screenIndex = source.screenIndex,
+                            rowIndex = source.rowIndex,
+                            colIndex = source.colIndex,
+                        ),
+                    )
+                    return@withTransaction true
                 }
                 swapAnchors(source, blocker)
                 true

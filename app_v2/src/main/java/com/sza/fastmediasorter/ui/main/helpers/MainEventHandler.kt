@@ -106,8 +106,8 @@ internal class MainEventHandler(
                 MaterialAlertDialogBuilder(activity)
                     .setTitle(R.string.rescan_all_virtual_warning_title)
                     .setMessage(R.string.rescan_all_virtual_warning_message)
-                    .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.forceRescanAllResources() }
-                    .setNegativeButton(android.R.string.cancel, null)
+                    .setPositiveButton(R.string.ok) { _, _ -> viewModel.forceRescanAllResources() }
+                    .setNegativeButton(R.string.cancel, null)
                     .showBoundToHost(activity)
             }
             is MainEvent.ShareResourceFile -> shareResourceFile(event.filePath)

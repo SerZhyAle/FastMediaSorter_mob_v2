@@ -59,7 +59,7 @@
     <string name="vr_hud_last_file">الملف الأخير</string>
     <string name="vr_hud_move_done">تم النقل</string>
     <string name="vr_hud_paused">توقف مؤقتًا</string>
-    <string name="vr_hud_playing">اللعب</string>
+    <string name="vr_hud_playing">قيد التشغيل</string>
     <string name="vr_hud_prev_next_hint">← السابق / التالي →</string>
     <string name="vr_hud_recenter_done">إعادة التمركز</string>
     <string name="vr_hud_seek_bwd">ابحث للخلف</string>
@@ -82,8 +82,8 @@
     <string name="vr_install_cta_title">هذا فيديو ثلاثي الأبعاد</string>
     <string name="vr_overlay_btn_bright_down">ساطع -</string>
     <string name="vr_overlay_btn_bright_up">ساطع +</string>
-    <string name="vr_overlay_btn_exit">مخرج</string>
-    <string name="vr_overlay_btn_format">شكل</string>
+    <string name="vr_overlay_btn_exit">خروج</string>
+    <string name="vr_overlay_btn_format">الصيغة</string>
     <string name="vr_overlay_btn_next">التالي</string>
     <string name="vr_overlay_btn_play_pause">تشغيل / إيقاف مؤقت</string>
     <string name="vr_overlay_btn_prev">السابق</string>

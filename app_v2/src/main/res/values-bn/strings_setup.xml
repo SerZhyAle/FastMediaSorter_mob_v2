@@ -43,7 +43,7 @@
     <string name="sysinfo_field_api_level">API স্তর</string>
     <string name="sysinfo_field_app_version">সংস্করণ</string>
     <string name="sysinfo_field_battery_health">স্বাস্থ্য</string>
-    <string name="sysinfo_field_battery_level">স্তর</string>
+    <string name="sysinfo_field_battery_level">মাত্রা</string>
     <string name="sysinfo_field_battery_plug">বিদ্যুৎ উৎস</string>
     <string name="sysinfo_field_battery_status">অবস্থা</string>
     <string name="sysinfo_field_battery_technology">প্রযুক্তি</string>
@@ -83,7 +83,7 @@
     <string name="sysinfo_field_net_vpn">VPN</string>
     <string name="sysinfo_field_orientation">অভিমুখ</string>
     <string name="sysinfo_field_process_bits">প্রসেস</string>
-    <string name="sysinfo_field_product">পণ্য</string>
+    <string name="sysinfo_field_product">প্রোডাক্ট</string>
     <string name="sysinfo_field_ram_available">উপলব্ধ RAM</string>
     <string name="sysinfo_field_ram_total">মোট RAM</string>
     <string name="sysinfo_field_refresh_rate">রিফ্রেশ রেট</string>

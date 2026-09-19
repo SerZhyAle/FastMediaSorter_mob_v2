@@ -213,17 +213,24 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             ?.let { payload -> viewModel.onImportBroadcastDescriptor(payload) }
     }
 
-    // A descriptor file carries no registered MIME type, so the picker has to accept any document.
+    // S3052 registers application/vnd.fms.bcast+json, but a provider that never saw the file created
+    // still reports .fmsbcast as octet-stream, so the picker keeps accepting any document.
     private val broadcastDescriptorPickerLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
     ) { uri ->
-        val payload = uri?.let { broadcastImportManager.readDescriptorFile(it) }
-        if (payload == null) {
-            if (uri != null) {
-                Toast.makeText(this, R.string.broadcast_import_malformed, Toast.LENGTH_LONG).show()
+        if (uri == null) return@registerForActivityResult
+        // S3167: the document read is IO the picker callback must not do on the main thread.
+        lifecycleScope.launch {
+            val payload = broadcastImportManager.readDescriptorFile(uri)
+            if (payload == null) {
+                Toast.makeText(
+                    this@StreamsActivity,
+                    R.string.broadcast_import_malformed,
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                viewModel.onImportBroadcastDescriptor(payload)
             }
-        } else {
-            viewModel.onImportBroadcastDescriptor(payload)
         }
     }
 
@@ -762,27 +769,20 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * is on disk and how many channels each index actually covers. Without it, an empty map and a
      * missing file look the same from outside.
      */
-    private fun logStreamArtworkState() {
+    private suspend fun logStreamArtworkState() {
+        // S3230: the three payload probes each stat a file, so they run on IO before the line is built.
+        val faviconInstalled = faviconAtlasStore.isInstalled()
+        val previewKind = channelPreviewAtlasStore.payloadKind()
+        val logoKind = streamLogoAtlasStore.payloadKind()
         Timber.i(
             "Streams artwork: favicon=%b/%d, preview=%s/%d, logo=%s/%d (payload on disk / channels covered)",
-            faviconAtlasStore.atlasFile() != null,
+            faviconInstalled,
             faviconCoords.size,
-            payloadKind(channelPreviewAtlasStore.tilePackFile(), channelPreviewAtlasStore.atlasFile()),
+            previewKind,
             atlasPreviewCoords.size,
-            payloadKind(streamLogoAtlasStore.tilePackFile(), streamLogoAtlasStore.atlasFile()),
+            logoKind,
             logoAtlasCoords.size
         )
-    }
-
-    /**
-     * Which container an artwork payload is being served from. A pack and a sheet render identical
-     * pictures at wildly different speed, so a log that says only "installed" cannot explain a slow
-     * grid on a user's device.
-     */
-    private fun payloadKind(pack: java.io.File?, sheet: java.io.File?): String = when {
-        pack != null -> "pack"
-        sheet != null -> "sheet"
-        else -> "none"
     }
 
     /**
@@ -1116,9 +1116,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             return
         }
         if (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND) {
-            val payload = broadcastImportManager.readDescriptorFile(uri)
-            if (payload != null) {
-                viewModel.onImportBroadcastDescriptor(payload)
+            // S3167: the descriptor may sit behind a slow SAF provider, so the read never runs on
+            // the main thread that onCreate/onNewIntent hand us.
+            lifecycleScope.launch {
+                broadcastImportManager.readDescriptorFile(uri)?.let { payload ->
+                    viewModel.onImportBroadcastDescriptor(payload)
+                }
             }
         }
     }
@@ -1339,7 +1342,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(if (isImport) R.string.streams_import else R.string.streams_add)
             .setView(dialogBinding.root)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 val url = dialogBinding.etUrl.text?.toString().orEmpty().trim()
                 if (isImport) {
                     viewModel.onImport(url)
@@ -1348,7 +1351,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     if (url.isNotEmpty()) writeTrackPreference(url)
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .create()
         DialogKeyboardDelegate.applyTo(dialog) {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
@@ -1464,7 +1467,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 viewModel.onSort(modes[which])
                 d.dismiss()
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .create()
         // Single-choice list dismisses itself on pick; Escape-dismiss is the only added contract.
         DialogKeyboardDelegate.applyTo(dialog) {}
@@ -1525,16 +1528,15 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // S1154: the atlas may have been installed from the Extensions Manager while this screen sat in
         // the background - pick it up on return instead of waiting for the next catalog import.
         // S1445: either container counts as installed - a fresh install carries the pack and no sheet.
-        val previewInstalled = channelPreviewAtlasStore.tilePackFile() != null ||
-            channelPreviewAtlasStore.atlasFile() != null
-        if (atlasPreviewCoords.isEmpty() && previewInstalled) {
-            lifecycleScope.launch { reloadAtlasPreviews() }
-        }
-        // S1201: same for the logo atlas - the two payloads install independently.
-        val logoInstalled = streamLogoAtlasStore.tilePackFile() != null ||
-            streamLogoAtlasStore.atlasFile() != null
-        if (logoAtlasCoords.isEmpty() && logoInstalled) {
-            lifecycleScope.launch { reloadLogoTiles() }
+        // S3230: isInstalled() stats the payload on IO, so the probe never lands on the resume frame.
+        lifecycleScope.launch {
+            if (atlasPreviewCoords.isEmpty() && channelPreviewAtlasStore.isInstalled()) {
+                reloadAtlasPreviews()
+            }
+            // S1201: same for the logo atlas - the two payloads install independently.
+            if (logoAtlasCoords.isEmpty() && streamLogoAtlasStore.isInstalled()) {
+                reloadLogoTiles()
+            }
         }
     }
 

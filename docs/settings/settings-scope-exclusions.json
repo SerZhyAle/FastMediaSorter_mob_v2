@@ -11,10 +11,6 @@
     "category": "entity-editor",
     "reason": "Configures the sort/filter for the current browse session, not a persisted app-wide preference."
   },
-  "page_welcome_enhanced": {
-    "category": "onboarding",
-    "reason": "Onboarding-wizard page; whether the reference should document wizard copy or only the settings-screen equivalent is a product decision, deferred (S1313 INDEX Pre-Implementation Blockers)."
-  },
   "page_welcome_functionality": {
     "category": "onboarding",
     "reason": "Onboarding-wizard page; same deferred product decision as page_welcome_enhanced."

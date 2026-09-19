@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.content.Context
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
+import com.sza.fastmediasorter.wear.domain.catalog.HomeSectionCatalog
+import com.sza.fastmediasorter.wear.domain.catalog.WearAppCatalog
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
@@ -21,8 +23,6 @@ import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearTileAssignmentRepository
-import com.sza.fastmediasorter.wear.domain.catalog.WearAppCatalog
-import com.sza.fastmediasorter.wear.domain.catalog.HomeSectionCatalog
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.Flow
@@ -267,6 +267,16 @@ private class TileContentFakeCapabilities : WearRestrictedCapabilities {
     // S2812: the tile catalog does not read this one; it is answered only because the contract has it.
     override val locksSystemShade: Boolean = false
     override val offersHealthFeatures: Boolean = true
+
+    // S3178: the same offering build, so the tile keeps mirroring the full catalog.
+    override val offersMediaAccess: Boolean = true
+    override val offersVoiceRecording: Boolean = true
+    override val offersRemoteSources: Boolean = true
+    override val offersDeviceDiagnostics: Boolean = true
+    override val offersNearbyDeviceState: Boolean = true
+    override val offersScreenCapture: Boolean = true
+    override val offersContentTransfer: Boolean = true
+    override val offersExternalEntryPoints: Boolean = true
 }
 
 private class TileContentFakeTileAssignmentRepository : WearTileAssignmentRepository {

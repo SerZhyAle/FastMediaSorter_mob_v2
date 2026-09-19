@@ -12,6 +12,7 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
+import com.sza.fastmediasorter.core.playback.MediaControllerRelease
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.model.MediaItemWithMeta
@@ -75,7 +76,7 @@ class AudioServiceController(
                 val controller = future.get()
                 when (storeResolvedController(future, controller)) {
                     ControllerStoreResult.Stale -> {
-                        controller.release()
+                        MediaControllerRelease.release(controller)
                         onFailed?.invoke()
                         return@addListener
                     }
@@ -123,7 +124,7 @@ class AudioServiceController(
                 val controller = future.get()
                 when (storeResolvedController(future, controller)) {
                     ControllerStoreResult.Stale -> {
-                        controller.release()
+                        MediaControllerRelease.release(controller)
                         onResult(null)
                         return@addListener
                     }
@@ -332,6 +333,11 @@ class AudioServiceController(
     /**
      * Disconnect from the service and release resources.
      * Must be called when the Activity is destroyed.
+     *
+     * S3270: the media3 teardown itself is always deferred by one looper message
+     * ([MediaControllerRelease]), so this is safe to call from inside a [Player.Listener] callback -
+     * which is where S3164's crash came from. The fields are cleared synchronously, so this
+     * controller reads as disconnected the moment the call returns.
      */
     fun release() {
         if (ownsEnduranceScenario) {
@@ -341,7 +347,7 @@ class AudioServiceController(
         }
         Timber.d("AudioServiceController: releasing")
         synchronized(controllerLock) {
-            controllerFuture?.let { MediaController.releaseFuture(it) }
+            MediaControllerRelease.releaseFuture(controllerFuture, mediaController?.applicationLooper)
             controllerFuture = null
             mediaController = null
         }
@@ -365,7 +371,7 @@ class AudioServiceController(
 
             existingFuture?.let {
                 Timber.d("AudioServiceController: %s - releasing stale controller future", reason)
-                MediaController.releaseFuture(it)
+                MediaControllerRelease.releaseFuture(it, mediaController?.applicationLooper)
                 controllerFuture = null
                 mediaController = null
             }

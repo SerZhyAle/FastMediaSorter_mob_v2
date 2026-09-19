@@ -325,6 +325,27 @@ object WearSettingsRegistry {
             ownership = WearSettingOwnership.PHONE_ONLY,
             exceptionReason = "ADR-3: choosing the picture means opening the gallery and sending a file " +
                 "over the transfer channel; only the two-value mode beside it is light enough for the watch."
+        ),
+        WearSettingScope(
+            field = "dimClockOverlayEnabled",
+            watchPreferenceKey = "wear_dim_clock_overlay_enabled",
+            docScopeId = "wearDimClockOverlay",
+            valueType = TYPE_BOOLEAN,
+            ownership = WearSettingOwnership.PHONE_ONLY,
+            exceptionReason = "S3256 settings shape: one shared toggle authored on the phone and synced " +
+                "to the watch, so the exchange carries it phone to watch only. The watch's Screen row " +
+                "writes the same key locally, and the watch never reports it back - neither " +
+                "GatherWearSettingsUseCase nor MergeWearSettingsReportUseCase names it."
+        ),
+        WearSettingScope(
+            field = "dimClockSecondsVisible",
+            watchPreferenceKey = "wear_dim_clock_seconds_visible",
+            docScopeId = null,
+            valueType = TYPE_BOOLEAN,
+            ownership = WearSettingOwnership.PHONE_ONLY,
+            exceptionReason = "S3256: the seconds cadence rides the phone's dim-clock style " +
+                "(DimClockStyleProvider) rather than a stored watch choice - the watch offers no row " +
+                "for it and only applies what the phone sends."
         )
     )
 
@@ -356,7 +377,16 @@ object WearSettingsRegistry {
         require(unknownMapped.isEmpty()) {
             "WearSettingsRegistry: menu map names unknown field(s) $unknownMapped"
         }
-        val expectedUnmapped = setOf("appLanguage", "backgroundImage", "unitSystem")
+        // S3324: the dim-clock pair sits outside the map because the menu map declares the ORDER the
+        // companion window must mirror, and neither field has a companion row to order against - the
+        // overlay's phone surface is the app's own playback settings screen (S3256).
+        val expectedUnmapped = setOf(
+            "appLanguage",
+            "backgroundImage",
+            "unitSystem",
+            "dimClockOverlayEnabled",
+            "dimClockSecondsVisible"
+        )
         val unmapped = entryFields - mappedFields.toSet()
         require(unmapped == expectedUnmapped) {
             "WearSettingsRegistry: entries outside the menu map are $unmapped, expected $expectedUnmapped"

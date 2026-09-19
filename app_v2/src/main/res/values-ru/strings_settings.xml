@@ -53,7 +53,7 @@
     <string name="settings_general_language_display">Язык и отображение</string>
     <string name="settings_general_network_sync">Сетевая синхронизация</string>
     <string name="settings_general_permissions">Разрешения</string>
-    <string name="settings_general_system">Network and System</string>
+    <string name="settings_general_system">Сеть и система</string>
     <string name="settings_log_current_session_body">Лог текущей сессии (%1$d строк):\n\n%2$s</string>
     <string name="settings_log_empty">Записей в логе не найдено.</string>
     <string name="settings_log_empty_session">Для текущей сессии записи в логе не найдены.</string>
@@ -263,4 +263,17 @@
     <string name="settings_wear_install_guide_button">Как поставить на часы</string>
     <string name="settings_wear_web_portal_button">Всё о часах</string>
     <string name="setting_stopwatch_desc">Показывать секундомер в основном меню и виджете лаунчера</string>
+    <string name="cross_device_transfer_send_to_device">Отправить на моё устройство (Drive)</string>
+    <string name="cross_device_transfer_pending_title">Ожидающие передачи</string>
+    <string name="cross_device_transfer_receive_and_delete">Получить и удалить из облака</string>
+    <string name="cross_device_transfer_receive_and_keep">Получить и оставить в облаке</string>
+    <string name="cross_device_transfer_empty">Для этого устройства ничего нет. Отправьте файл или настройки с другого устройства, чтобы увидеть их здесь.</string>
+    <string name="cross_device_transfer_sending">Загрузка в вашу очередь Drive..</string>
+    <string name="cross_device_transfer_sent">Загружено. Откройте этот экран на другом устройстве, чтобы забрать.</string>
+    <string name="cross_device_transfer_received_files">Сохранено в папку входящих приложения</string>
+    <string name="cross_device_transfer_received_settings">Настройки с другого устройства применены</string>
+    <string name="cross_device_transfer_failed">Передача не завершилась. Проверьте вход в Drive и подключение, затем повторите.</string>
+    <string name="cross_device_transfer_row_subtitle">Входящие файлы и настройки с других устройств, ожидающие в вашем Google Drive</string>
+    <string name="cross_device_transfer_remove_expired">Удалить устаревшие пакеты</string>
+    <string name="cross_device_transfer_expired_removed">Удалено устаревших пакетов: %1$d</string>
 </resources>

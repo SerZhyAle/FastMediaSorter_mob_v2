@@ -73,6 +73,11 @@ class OperationsProgramsManager(
             Timber.d("water flashlight toggle -> $isChecked")
             viewModel.updateSettings(viewModel.settings.value.copy(waterFlashlightEnabled = isChecked))
         }
+        binding.rowEnableSos.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+            Timber.d("sos program toggle -> $isChecked")
+            viewModel.updateSettings(viewModel.settings.value.copy(enableSos = isChecked))
+        }
         binding.rowFlashlightShortcut.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             if (isChecked && !flashlightShortcut.ensureGranted()) {
@@ -121,6 +126,11 @@ class OperationsProgramsManager(
         }
         if (binding.rowWaterFlashlight.isChecked != settings.waterFlashlightEnabled) {
             binding.rowWaterFlashlight.setCheckedSilently(settings.waterFlashlightEnabled)
+        }
+        // No visibility line, unlike the shade shortcut below: the siren and the lit screen work on a
+        // phone with no flash unit, so the program is never absent from a device (S3216).
+        if (binding.rowEnableSos.isChecked != settings.enableSos) {
+            binding.rowEnableSos.setCheckedSilently(settings.enableSos)
         }
         // S2776: hidden where the device has no flash unit, so the row never offers what the hardware
         // cannot do - the same reason the Monitor row above checks its build.

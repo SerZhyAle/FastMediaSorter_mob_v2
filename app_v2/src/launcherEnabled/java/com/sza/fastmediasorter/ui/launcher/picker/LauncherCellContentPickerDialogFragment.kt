@@ -130,7 +130,6 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         super.onConfigurationChanged(newConfig)
         if (_binding == null) return
         SearchableOptionPickerWindow.apply(dialog, binding)
-        Timber.d("S3089: reflow launcher category picker columns=%d", currentColumnCount())
         SearchableOptionPickerController.reflowColumns(binding, currentColumnCount())
     }
 

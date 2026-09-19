@@ -26,6 +26,9 @@ enum class PhoneCameraFailure {
     /** The phone could not ask its owner: notifications are off there. */
     NOT_ASKED,
 
+    /** The phone has nothing armed to serve, so no standing consent applied. */
+    NOT_ARMED,
+
     /** The owner refused the request on the phone. */
     DECLINED,
 
@@ -37,6 +40,15 @@ enum class PhoneCameraFailure {
 
     /** This watch asked for the session to end, and it has. Not a failure - the answer to a stop. */
     STOPPED,
+
+    /**
+     * S3212: the phone is no longer serving - the broadcast ended there.
+     *
+     * Separate from [STOPPED], which says this watch asked for the end. The phone sends nothing when
+     * its owner stops the broadcast himself, so this one is concluded on the watch from a refused
+     * socket on the address the phone was serving a moment ago.
+     */
+    ENDED,
 
     /** The phone is already serving a session, or already being asked for one. */
     BUSY,
@@ -51,6 +63,7 @@ enum class PhoneCameraFailure {
 /** The wire refusal as this screen states it. Total, so a new wire constant cannot go unnamed. */
 fun CameraRefusal.asSessionFailure(): PhoneCameraFailure = when (this) {
     CameraRefusal.NOT_ASKED -> PhoneCameraFailure.NOT_ASKED
+    CameraRefusal.NOT_ARMED -> PhoneCameraFailure.NOT_ARMED
     CameraRefusal.DECLINED -> PhoneCameraFailure.DECLINED
     CameraRefusal.EXPIRED -> PhoneCameraFailure.EXPIRED
     CameraRefusal.CAPTURE_FAILED -> PhoneCameraFailure.CAPTURE_FAILED
@@ -61,6 +74,20 @@ fun CameraRefusal.asSessionFailure(): PhoneCameraFailure = when (this) {
     CameraRefusal.NOT_SUPPORTED -> PhoneCameraFailure.NOT_SUPPORTED
     CameraRefusal.UNKNOWN -> PhoneCameraFailure.UNKNOWN
 }
+
+/**
+ * S3223: the same refusal, read against whether this watch asked for it.
+ *
+ * `STOPPED` is the wire's only word for an ended session, so the phone sends it both as the answer to
+ * a stop and as its own announcement that the broadcast is over. Unasked, it would tell the owner his
+ * watch ended a session he ended on the phone, which [PhoneCameraFailure.ENDED] states correctly.
+ */
+fun CameraRefusal.asSessionFailure(unrequested: Boolean): PhoneCameraFailure =
+    if (unrequested && this == CameraRefusal.STOPPED) {
+        PhoneCameraFailure.ENDED
+    } else {
+        asSessionFailure()
+    }
 
 /**
  * S2551: what the watch knows about the phone's camera session right now.
@@ -79,6 +106,14 @@ sealed interface PhoneCameraSessionState {
 
     /** The phone is serving [url], and offers [lenses]. */
     data class Live(
+        /**
+         * S3223: the id of the command whose ack opened this session.
+         *
+         * Kept because the phone names the same id when it announces the end of the session on its
+         * own, and a live session that had forgotten it left the listener nothing to match that
+         * announcement against.
+         */
+        val requestId: String,
         val url: String,
         val lenses: List<CameraLensDto>,
         val activeLensId: String?,

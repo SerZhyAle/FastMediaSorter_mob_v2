@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.wear.ui.browse
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SelectAll
@@ -12,18 +11,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
+import com.sza.fastmediasorter.wear.ui.common.StandardWearAlertDialog
 import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearActionColumn
-import timber.log.Timber
 
 /**
  * Every action this menu can run, in the order it draws them, each beside what it calls.
@@ -76,6 +72,32 @@ internal data class FileActionsCallbacks(
 )
 
 /**
+ * The allowed operations as menu entries, in this dialog's order and with its labels and icons.
+ *
+ * S3118: shared with the player menu, which draws the same operations inline instead of behind a
+ * second dialog. The order, the wording and the icons are the answer this file already gives, and a
+ * second rendering of them would drift from it a label at a time.
+ */
+@Composable
+internal fun fileOperationActions(
+    allowedOperations: Set<WearFileOperationKind>,
+    callbacks: FileActionsCallbacks
+): List<WearAction> = batchActions(callbacks)
+    .filter { it.first in allowedOperations }
+    .map { (kind, onClick) ->
+        WearAction(
+            label = stringResource(kind.labelRes()),
+            icon = {
+                Icon(
+                    painter = painterResource(kind.iconRes()),
+                    contentDescription = null
+                )
+            },
+            onClick = onClick
+        )
+    }
+
+/**
  * The action menu for the current selection, following the S1833 precedent in `NetworkSourcesScreen`:
  * a long press leads to a menu, and a destructive choice inside it leads to its own confirmation.
  */
@@ -84,20 +106,7 @@ internal fun FileActionsDialog(
     state: FileActionsDialogState,
     callbacks: FileActionsCallbacks
 ) {
-    val operationActions = batchActions(callbacks)
-        .filter { it.first in state.allowedOperations }
-        .map { (kind, onClick) ->
-            WearAction(
-                label = stringResource(kind.labelRes()),
-                icon = {
-                    Icon(
-                        painter = painterResource(kind.iconRes()),
-                        contentDescription = null
-                    )
-                },
-                onClick = onClick
-            )
-        }
+    val operationActions = fileOperationActions(state.allowedOperations, callbacks)
 
     val actions = buildList {
         if (state.selectedCount < state.totalCount) {
@@ -147,40 +156,14 @@ internal fun FileDeleteConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    Alert(
-        title = {
-            Text(
-                text = stringResource(R.string.wear_file_op_delete_confirm, selectedCount),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.title3
-            )
-        },
-        negativeButton = {
-            Chip(
-                onClick = onDismiss,
-                label = {
-                    Text(
-                        text = stringResource(R.string.cancel),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                colors = ChipDefaults.secondaryChipColors()
-            )
-        },
-        positiveButton = {
-            Chip(
-                onClick = onConfirm,
-                label = {
-                    Text(
-                        text = stringResource(R.string.delete),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                colors = ChipDefaults.primaryChipColors()
-            )
-        }
+    StandardWearAlertDialog(
+        show = true,
+        title = stringResource(R.string.wear_file_op_delete_confirm, selectedCount),
+        onConfirm = onConfirm,
+        onDismissRequest = onDismiss,
+        confirmLabel = stringResource(R.string.delete),
+        cancelLabel = stringResource(R.string.cancel),
+        isDestructive = true
     )
 }
 

@@ -400,8 +400,8 @@ if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
 # "checked and found". Every report stamp predating the run start means detekt never executed -
 # the failure is gradle-level (a configuration error, a broken build script, a dead worker) - so
 # the findings verdict with its baseline advice would answer a question this run never asked.
-$reportsRefreshed = @($reportStamps.Values | Where-Object { $_ -and $runStart -and $_ -ge $runStart })
-if ($reportsRefreshed.Count -eq 0) {
+$reportsRefreshed = Get-DetektRefreshedReportCount -Stamps @($reportStamps.Values) -RunStart $runStart
+if ($reportsRefreshed -eq 0) {
     Write-Host "assert-detekt: raw gradle output (the failure happened before detekt wrote any report):" -ForegroundColor Yellow
     $output | Select-Object -Last 40 | ForEach-Object { Write-Host "  $_" }
     $why = 'assert-detekt: CANNOT VERIFY - the gradle run failed before detekt executed (a ' +

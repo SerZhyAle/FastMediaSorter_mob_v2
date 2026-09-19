@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
+import com.sza.fastmediasorter.domain.model.SOURCE_ID_LOCAL
+import com.sza.fastmediasorter.domain.model.SOURCE_ID_NETWORK
+import com.sza.fastmediasorter.domain.model.SOURCE_ID_VOICE_NOTE
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.model.WearFavoriteDeltaItem
 import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
@@ -42,8 +45,13 @@ class ApplyWatchFavoritesDeltaUseCaseTest {
         repo.setFavorites(
             listOf(
                 FavoritesEntity(
-                    uri = "/x/song.mp3", resourceId = 0L, displayName = "song.mp3",
-                    mediaType = 0, size = 0L, lastKnownPath = "/x/song.mp3", dateModified = 0L
+                    uri = "/x/song.mp3",
+                    resourceId = 0L,
+                    displayName = "song.mp3",
+                    mediaType = 0,
+                    size = 0L,
+                    lastKnownPath = "/x/song.mp3",
+                    dateModified = 0L
                 )
             )
         )
@@ -70,6 +78,62 @@ class ApplyWatchFavoritesDeltaUseCaseTest {
         useCase(WearFavoritesDeltaPayload(emptyList()))
         assertTrue(repo.addedFavorites.isEmpty())
         assertFalse(repo.removedUris.any())
+    }
+
+    @Test
+    fun `watch-held item is neither added nor allowed to delete a phone favorite`() = runTest {
+        val watchUri = "content://media/external/images/media/185"
+        repo.setFavorites(
+            listOf(
+                FavoritesEntity(
+                    uri = watchUri,
+                    resourceId = 7L,
+                    displayName = "holiday.png",
+                    mediaType = 1,
+                    size = 4096L,
+                    lastKnownPath = watchUri,
+                    dateModified = 0L
+                )
+            )
+        )
+
+        useCase(
+            WearFavoritesDeltaPayload(
+                listOf(
+                    WearFavoriteDeltaItem(SOURCE_ID_LOCAL, watchUri, isFavorite = false, changedAt = 1L),
+                    WearFavoriteDeltaItem(
+                        SOURCE_ID_VOICE_NOTE,
+                        "content://media/external/audio/media/219",
+                        isFavorite = true,
+                        changedAt = 1L
+                    )
+                )
+            )
+        )
+
+        // S3161: the watch's MediaStore address is not the phone's - the row it names here belongs to
+        // a phone file the owner marked, and unmarking on the watch must not reach it.
+        assertTrue(repo.removedUris.isEmpty())
+        assertTrue(repo.addedFavorites.isEmpty())
+        assertEquals("holiday.png", repo.favorites.single().displayName)
+    }
+
+    @Test
+    fun `network sourced item is still applied`() = runTest {
+        useCase(
+            WearFavoritesDeltaPayload(
+                listOf(
+                    WearFavoriteDeltaItem(
+                        SOURCE_ID_NETWORK,
+                        "smb://nas/music/track.mp3",
+                        isFavorite = true,
+                        changedAt = 5L
+                    )
+                )
+            )
+        )
+
+        assertEquals("smb://nas/music/track.mp3", repo.addedFavorites.single().uri)
     }
 
     @Test

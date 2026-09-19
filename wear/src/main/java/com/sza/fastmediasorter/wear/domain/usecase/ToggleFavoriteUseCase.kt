@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

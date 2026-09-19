@@ -236,7 +236,7 @@ class AudioStandaloneActivity :
         com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
             .setTitle(R.string.cd_playback_speed)
             .setItems(labels) { _, which -> player.setPlaybackSpeed(speeds[which]) }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(this@AudioStandaloneActivity)
     }
 
@@ -294,7 +294,7 @@ class AudioStandaloneActivity :
                     Toast.makeText(this@AudioStandaloneActivity, R.string.menu_sleep_timer, Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(this@AudioStandaloneActivity)
     }
 

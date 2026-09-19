@@ -33,6 +33,11 @@
         Fix   = 'An Activity in your files resolves resources outside the app locale wrapper, so it shows the framework configuration language instead of the one the user chose. Extend BaseActivity, or override attachBaseContext with super.attachBaseContext(LocaleHelper.applyLocale(newBase)). If it genuinely must not wrap its context (the print trampoline is the one such case), add it to scripts/quality/activity-locale-wrapper-baseline.txt with the reason - a row with no reason fails the gate.'
     }
 
+    'quantity-format-seam-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-quantity-format-seam.ps1 -Gate -ChangedFiles "<your,files>"'
+        Fix   = 'A user-facing quantity in your files is formatted past the seam, so the device setting or the locale decides its clock length or its scale instead of the app UnitSystem. Route it through QuantityFormatter (phone) or WearUnitDateTimeFormatter (watch). If it really is an INTERNAL timestamp - a file name, a log stamp, an export field or a parsed input - add the file to scripts/quality/quantity-format-seam-baseline.txt with the reason, because changing one of those breaks parsing or uniqueness. A finding naming PATTERN_* instead is the two modules disagreeing: UnitScale and WearUnitDateTimeFormatter mirror four literals and change in one edit.'
+    }
+
     'ci-cost-map' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-ci-cost-map.ps1'
         Fix   = 'The CI cost map in docs/BUILD_VS_RELEASE.md disagrees with .github/workflows - the workflow file is the truth and the table is what moves. The finding names the workflow, the divergence class (row, jobs, trigger, branch, debug) and which cell to correct.'
@@ -264,6 +269,11 @@
     'suite-tracked' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-suite-tracked.ps1 -Gate -ChangedFiles "<your,files>"'
         Fix   = 'A contract suite you changed exists on this machine only - it is not in the git index, so a fresh clone and the release worktree discover a smaller set and print the same green verdict. Stage it with the `git add` command the gate printed; nothing in the closure path stages for you, and once missed a directory is never picked up again (`git commit -a` stages tracked files only). Exit 2 is a different answer: git could not be asked at all (S2411).'
+    }
+
+    'script-file-size' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-script-file-size.ps1 -Gate -ChangedFiles "<your,files>"'
+        Fix   = 'A repository script in your changed set is above the 2000-line ceiling of CLAUDE.md Rule 2. Extract a self-contained block - run state, wrappers, a family of predicates - into a dot-sourced library beside its siblings in scripts/quality/lib/ and dot-source it back, so the caller`s scope, its $script: state and $LASTEXITCODE stay shared and nothing the script does changes. This is a hard limit and not a ratchet: no baseline absorbs it, because after S3150 no script in the tree is above it. Do not answer it by splitting one long function into two long functions in the same file - the ceiling measures the file.'
     }
 
     'dotsource-tracked' = @{

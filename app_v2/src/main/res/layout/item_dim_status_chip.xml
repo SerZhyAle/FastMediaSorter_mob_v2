@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S3256: One status chip (notification, network, connectivity) in the dim clock overlay. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="@dimen/dim_clock_chip_size"
+    android:layout_height="@dimen/dim_clock_chip_size"
+    android:layout_marginEnd="@dimen/dim_clock_chip_spacing"
+    android:clickable="false"
+    android:focusable="false">
+
+    <ImageView
+        android:id="@+id/dimChipIcon"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:padding="@dimen/dim_clock_chip_padding"
+        android:scaleType="fitCenter"
+        tools:src="@drawable/ic_wifi" />
+
+    <TextView
+        android:id="@+id/dimChipBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:background="@drawable/item_interaction_overlay"
+        android:importantForAccessibility="no"
+        android:includeFontPadding="false"
+        android:paddingStart="@dimen/dim_clock_badge_padding_h"
+        android:paddingEnd="@dimen/dim_clock_badge_padding_h"
+        android:textColor="@color/white"
+        android:textSize="@dimen/dim_clock_badge_text_size"
+        android:visibility="gone"
+        tools:text="3"
+        tools:visibility="visible" />
+
+</FrameLayout>

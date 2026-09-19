@@ -205,12 +205,12 @@ class ImageDrawOverlayManager(
         }
         MaterialAlertDialogBuilder(activity)
             .setView(editText)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 val confirmedFilename = editText.text?.toString()?.trim()
                     ?.takeIf { it.isNotEmpty() } ?: defaultFilename
                 saveCallback?.onSaveRequested(overlayBitmap, confirmedFilename)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 
@@ -873,8 +873,8 @@ class ImageDrawOverlayManager(
             }
             MaterialAlertDialogBuilder(activity)
                 .setView(editText)
-                .setNegativeButton(android.R.string.cancel, null)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.ok) { _, _ ->
                     val text = editText.text?.toString()?.trim().orEmpty()
                     if (text.isEmpty()) return@setPositiveButton
                     val argb = (selectedColorArgb and 0x00FFFFFF) or

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BackupPreference
 
 /**
  * Backup payload serialized to/from JSON for Google Drive backup.
@@ -23,13 +24,18 @@ data class BackupPayload(
     val networkCredentials: List<BackupNetworkCredential>? = null,
     val webAuthSessions: List<BackupWebAuthSession>? = null,
     // S1740: Launcher desktop items (shortcuts, gadgets, sections)
-    val launcherCells: List<BackupLauncherCell>? = null
+    val launcherCells: List<BackupLauncherCell>? = null,
+    // S3130: every stored preference, taken by a loop over the settings store rather than by a
+    // hand-maintained field list, so a setting added later travels without a backup-code edit.
+    val rawSettings: List<BackupPreference>? = null
 ) {
     companion object {
         // S1346: v5->v6 - not a payload-shape change but a trust marker for
         // linkAutoDownloadOpenInPlayer. Pre-v6 backups always persisted `true` (the pre-S0981
         // default), so BackupMapper must not trust that field from a payload below this version.
-        const val CURRENT_VERSION = 6
+        // S3130: v6->v7 - [rawSettings] added. A v6 payload carries no raw section and restores
+        // through the typed section alone, exactly as before.
+        const val CURRENT_VERSION = 7
     }
 }
 
@@ -239,6 +245,9 @@ data class BackupSettings(
     val allAppsSortDescending: Boolean = false,
     // S2384: a backup written before this field existed restores to the current default, not to Off.
     val launcherScreenBlackoutTimeoutSeconds: Int = AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,
+    // S3284: same reasoning - an older backup file restores the shipped default, which is Off.
+    val launcherScreenBlackoutTimeoutOnChargeSeconds: Int =
+        AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_ON_CHARGE_SECONDS,
     // S2632: both fields are introduced now, so NO already-written backup file carries them. A non-null
     // default would therefore reset the user's real setting on every restore from an existing file -
     // the same silent loss this ticket fixes, moved one step later. Nullable means "the writer had no
@@ -344,7 +353,11 @@ data class BackupSettings(
         val wallpaperParticleDensity: Float? = null,
         // S2730: nullable for the same S2632 reason as the three above - an existing backup file predates
         // the switch, and a non-null default would turn the badge off for a user who had turned it on.
-        val showScreenNumber: Boolean? = null
+        val showScreenNumber: Boolean? = null,
+        // S3224: nullable for the same reason - a file written before S3131 carries no key, and a
+        // non-null default would flatten a taller bar the user chose. Restored through the same
+        // MIN_LAUNCHER_TASKBAR_ROWS..MAX_LAUNCHER_TASKBAR_ROWS clamp the store reads with.
+        val taskbarRows: Int? = null
     )
 
     /**
@@ -400,9 +413,16 @@ data class BackupSettings(
         val showProgramsPanelInMainWindow: Boolean = false,
         val programsPanelCollapsed: Boolean = false,
         val showBlackScreenButton: Boolean = false,
+        val dimClockOverlayEnabled: Boolean = false,
         // S2843: nullable for the S2730 reason - an older backup file carries no key here, and a
         // non-null default would silently turn the shade shortcut's notification back off.
-        val flashlightShortcutNotificationEnabled: Boolean? = null
+        val flashlightShortcutNotificationEnabled: Boolean? = null,
+        // S3224: the distress signal and the halves it engages, both nullable for the S2843 reason -
+        // a file written before S3216 carries neither key, and a non-null default would switch the
+        // program off for a user who had asked for it. `sosMode` travels as the enum member name, the
+        // same wire shape the watch and the preset CSV already use.
+        val enableSos: Boolean? = null,
+        val sosMode: String? = null
     )
 
     /** S2648: the streams feature and the streaming cache that serves it. */
@@ -421,15 +441,27 @@ data class BackupSettings(
         val prefetchCacheMultiplier: String? = null,
         // S2843: nullable for the S2730 reason - a backup file written before this ticket carries no
         // key here, and a non-null default would push the class default over a value the user chose.
-        // The broadcast block below is the audio-broadcast session the user tuned; the source device
-        // id is deliberately absent, because it addresses one phone (see BackupSettingsCoverageTest).
+        // The broadcast block below is the broadcast session the user tuned - the master switch, the
+        // audio transport, the camera and microphone source choice and the video quality all travel.
+        // The source device id is deliberately absent, because it addresses one phone (see
+        // BackupSettingsCoverageTest).
         val streamsVisualizeAsMusic: Boolean? = null,
         val broadcastStreamTitle: String? = null,
         val broadcastBitRateBps: Int? = null,
         val broadcastPort: Int? = null,
         val broadcastSampleRateHz: Int? = null,
         val broadcastChannelCount: Int? = null,
-        val broadcastAutoOpenShare: Boolean? = null
+        val broadcastAutoOpenShare: Boolean? = null,
+        // S3163: nullable for the S2730 reason, like the fields above - a backup file written before
+        // this ticket carries no key here.
+        val enableBroadcasting: Boolean? = null,
+        val broadcastCameraEnabled: Boolean? = null,
+        val broadcastMicrophoneEnabled: Boolean? = null,
+        val broadcastMicGainPercent: Int? = null,
+        val broadcastVideoWidth: Int? = null,
+        val broadcastVideoHeight: Int? = null,
+        val broadcastVideoFps: Int? = null,
+        val broadcastVideoBitrateBps: Int? = null
     )
 
     /** S2648: appearance and the general interaction settings that shape every screen. */

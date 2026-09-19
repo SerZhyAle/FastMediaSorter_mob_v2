@@ -67,13 +67,14 @@ import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
+import com.sza.fastmediasorter.wear.ui.common.StandardWearChip
+import com.sza.fastmediasorter.wear.ui.common.StandardWearToggleChip
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_UNTITLED_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
 import com.sza.fastmediasorter.wear.ui.common.WearDialogListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.WearSegmentedToggleRow
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
@@ -82,6 +83,7 @@ import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearBandEdgeOffset
 import com.sza.fastmediasorter.wear.ui.common.wearChoiceRows
 import com.sza.fastmediasorter.wear.ui.common.wearChordInset
+import com.sza.fastmediasorter.wear.ui.common.wearFlowChoiceRows
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
@@ -173,6 +175,7 @@ fun StreamsScreen(
     viewModel: StreamsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    Timber.d("S3259: streams screen shown - refresh footer is StandardWearChip, rows are StreamTileRow")
     // The channel rows are the first items on this screen, so the second row is item 1 (S2466). The
     // counter row S2568 moved into the list is conditional, so a fixed titled anchor would be wrong
     // whenever it is absent - it opens one row higher when it is there, which is where it is read.
@@ -404,7 +407,7 @@ private fun StreamsMainContent(
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                     item {
-                        RefreshFooterChip(
+                        StreamsRefreshFooter(
                             isRefreshing = uiState.isRefreshing,
                             onRefresh = actions.onRefresh
                         )
@@ -564,8 +567,9 @@ private fun ScalingLazyListScope.streamsLoading() {
     }
 }
 
+/** While a refresh runs the footer is a spinner, so the list never offers a second refresh over it. */
 @Composable
-private fun RefreshFooterChip(
+private fun StreamsRefreshFooter(
     isRefreshing: Boolean,
     onRefresh: () -> Unit
 ) {
@@ -574,12 +578,12 @@ private fun RefreshFooterChip(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            CircularProgressIndicator(modifier = Modifier.size(CELL_ICON_SIZE))
         }
     } else {
-        Chip(
+        StandardWearChip(
+            label = stringResource(R.string.wear_streams_refresh),
             onClick = onRefresh,
-            label = { Text(stringResource(R.string.wear_streams_refresh)) },
             icon = {
                 Icon(
                     imageVector = Icons.Filled.Refresh,
@@ -587,8 +591,7 @@ private fun RefreshFooterChip(
                     modifier = Modifier.size(CELL_ICON_SIZE)
                 )
             },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ChipDefaults.secondaryChipColors()
+            primary = false
         )
     }
 }
@@ -775,12 +778,10 @@ private fun StreamSearchDialog(
 }
 
 /**
- * S2819: the kind choice is a single compact toggle row, the facet sections below it stay list rows.
+ * S3102: the type choice uses the settings' full-width radio rows, so every localized label is readable.
  *
- * The dialog no longer takes the screen's view mode: the kind row has one shape by construction, and
- * every facet below is a data-driven set that S1947 pinned to one column regardless of view mode. So
- * nothing here could still read that parameter, and carrying it would leave the grid the owner called
- * unreadable one edit away from returning.
+ * The dialog does not take the screen's view mode: type rows keep one readable shape, and every facet
+ * below is a data-driven set that S1947 pinned to one column regardless of view mode.
  */
 @Composable
 private fun StreamFilterDialog(
@@ -788,6 +789,7 @@ private fun StreamFilterDialog(
     actions: StreamsFilterDialogActions,
     onDismiss: () -> Unit
 ) {
+    Timber.d("S3260: stream filter dialog shown - the kind rows are StandardWearToggleChip")
     Dialog(
         showDialog = true,
         onDismissRequest = onDismiss
@@ -810,34 +812,37 @@ private fun StreamFilterDialog(
                     )
                 }
 
-                item {
-                    WearSegmentedToggleRow(
-                        // S3062: ALL is not a cell - no lit cell means the whole list, and tapping the lit
-                        // cell again returns to it, because a fourth cell does not fit the round dialog.
-                        options = listOf(
-                            StreamFilterKind.VIDEO_ONLY,
-                            StreamFilterKind.AUDIO_ONLY,
-                            StreamFilterKind.OWN
-                        ),
-                        selected = state.selectedFilter,
-                        labelOf = { filter ->
-                            when (filter) {
-                                StreamFilterKind.VIDEO_ONLY ->
-                                    stringResource(R.string.wear_streams_filter_kind_video)
-                                StreamFilterKind.AUDIO_ONLY ->
-                                    stringResource(R.string.wear_streams_filter_kind_audio)
-                                StreamFilterKind.OWN, StreamFilterKind.ALL ->
-                                    stringResource(R.string.wear_streams_filter_kind_own)
-                            }
-                        },
-                        onSelected = { tapped ->
-                            val next = if (tapped == state.selectedFilter) StreamFilterKind.ALL else tapped
-                            actions.onFilterSelected(next)
+                listOf(
+                    StreamFilterKind.ALL,
+                    StreamFilterKind.AUDIO_ONLY,
+                    StreamFilterKind.VIDEO_ONLY,
+                    StreamFilterKind.OWN
+                ).forEach { filter ->
+                    item {
+                        val label = when (filter) {
+                            StreamFilterKind.ALL -> stringResource(R.string.wear_phone_all)
+                            StreamFilterKind.AUDIO_ONLY ->
+                                stringResource(R.string.wear_streams_filter_kind_audio)
+                            StreamFilterKind.VIDEO_ONLY ->
+                                stringResource(R.string.wear_streams_filter_kind_video)
+                            StreamFilterKind.OWN -> stringResource(R.string.wear_streams_filter_kind_own)
                         }
-                    )
+                        StandardWearToggleChip(
+                            label = label,
+                            checked = state.selectedFilter == filter,
+                            onCheckedChange = {
+                                if (state.selectedFilter != filter) {
+                                    Timber.d("S3102: selected stream filter type $filter")
+                                    actions.onFilterSelected(filter)
+                                }
+                            },
+                            radio = true,
+                            accessibilityLabel = "${stringResource(R.string.wear_streams_filter)}: $label"
+                        )
+                    }
                 }
 
-                streamTopicFilterChoices(state, actions, gridFit)
+                streamTopicFilterChoices(state, actions)
                 streamLanguageFilterChoices(state, actions, gridFit)
                 streamCollectionFilterChoices(state, actions, gridFit)
             }
@@ -849,13 +854,20 @@ private fun StreamFilterDialog(
 
 private fun ScalingLazyListScope.streamTopicFilterChoices(
     state: StreamsFilterDialogState,
-    actions: StreamsFilterDialogActions,
-    gridFit: WearChoiceGridFit
+    actions: StreamsFilterDialogActions
 ) {
     if (state.availableTopics.isEmpty()) return
+    val countById = state.availableTopics.associate { it.id to it.channelCount }
     item {
+        val context = LocalContext.current
+        val selectedTopicLabel = state.selectedTopic?.let { selectedTopic ->
+            facetLabelWithCount(
+                WearStreamRubricCatalog.label(context, selectedTopic) ?: selectedTopic,
+                countById[selectedTopic]
+            )
+        } ?: stringResource(R.string.wear_streams_filter_topic_all)
         Text(
-            text = stringResource(R.string.wear_streams_filter_topic_header),
+            text = "${stringResource(R.string.wear_streams_filter_topic_header)}: $selectedTopicLabel",
             style = MaterialTheme.typography.caption1,
             modifier = Modifier
                 .fillMaxWidth()
@@ -863,9 +875,7 @@ private fun ScalingLazyListScope.streamTopicFilterChoices(
             textAlign = TextAlign.Center
         )
     }
-    // Built once per list build rather than searched per row: the lambda below runs for every chip.
-    val countById = state.availableTopics.associate { it.id to it.channelCount }
-    wearChoiceRows(
+    wearFlowChoiceRows(
         options = listOf<String?>(null) + state.availableTopics.map { it.id },
         selected = state.selectedTopic,
         // S2146: only the LABEL is localized and counted. `options` and `selected` stay the raw
@@ -873,11 +883,16 @@ private fun ScalingLazyListScope.streamTopicFilterChoices(
         // would break selection in every locale but English.
         labelOf = { topic ->
             topic?.let {
-                facetLabelWithCount(WearStreamRubricCatalog.label(LocalContext.current, it) ?: it, countById[it])
+                facetLabelWithCount(
+                    WearStreamRubricCatalog.label(LocalContext.current, it) ?: it,
+                    countById[it]
+                )
             } ?: stringResource(R.string.wear_streams_filter_topic_all)
         },
-        onSelected = { actions.onTopicSelected(it) },
-        gridFit = gridFit
+        onSelected = { topic ->
+            Timber.d("S3103: selected stream topic ${topic ?: "all"}")
+            actions.onTopicSelected(topic)
+        }
     )
 }
 
@@ -1044,7 +1059,7 @@ private fun ScalingLazyListScope.streamItems(
 ) {
     if (columns == SINGLE_COLUMN) {
         items(channels, key = { it.url }) { channel ->
-            StreamChip(
+            StreamTileRow(
                 channel = channel,
                 getFaviconTile = getFaviconTile,
                 onClick = { onChannelClick(channel) }
@@ -1065,8 +1080,13 @@ private fun ScalingLazyListScope.streamItems(
     }
 }
 
+/**
+ * S3259: a favicon tile row, never a chip - it draws the station's icon through the module's shared
+ * `SingleColumnTileCell`, which a label-and-icon chip has no slot for. Only the old name said chip,
+ * and that name is what put it on this ticket's migration list.
+ */
 @Composable
-private fun StreamChip(
+private fun StreamTileRow(
     channel: WearStreamChannel,
     getFaviconTile: suspend (Int?) -> Bitmap?,
     onClick: () -> Unit

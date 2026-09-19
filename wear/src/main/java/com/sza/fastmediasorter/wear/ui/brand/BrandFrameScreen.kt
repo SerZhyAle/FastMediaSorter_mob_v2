@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,61 +19,26 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import coil.compose.AsyncImage
 import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
-import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import kotlinx.coroutines.delay
 import timber.log.Timber
 
 /**
  * S1981: how long the frame holds itself, in ms.
  *
- * S2274 removed `windowSplashScreenAnimationDuration` from `values-v31/themes.xml`, so this is no
- * longer mirroring a theme attribute - it is now the sole owner of the beat, kept at its original
- * value so the pause the user already accepts does not change length.
+ * S3228: reduced from 700ms to 300ms to accelerate wear app startup.
  */
-private const val BRAND_FRAME_DURATION_MS = 700L
+private const val BRAND_FRAME_DURATION_MS = 300L
 private val LOGO_SIZE = 72.dp
 private val LOGO_WORDMARK_GAP = 16.dp
-
-private const val MILLIS_PER_SECOND = 1000L
-
-/**
- * S2556: the wall-clock time, re-emitted on every second boundary for as long as this frame is
- * composed - the frame's beat is short, so what the time has to be right about is the instant it
- * appears, not the tick after it.
- *
- * S2795: the clock length comes from the stored measurement system, not from the watch's own
- * 12/24-hour switch - metric means a 24-hour clock everywhere in the app, and this frame is the
- * first thing the owner sees, so it is the first place that has to agree. Keyed on the system, so a
- * value pushed from the phone while the frame is up restarts the tick with the new format.
- */
-@Composable
-private fun currentTimeText(): String {
-    val system = LocalWearUnitSystem.current
-    val formatter = LocalWearDateTimeFormatter.current
-    // Sleeping to the next boundary rather than a flat second: a flat delay lands wherever the first
-    // composition happened to fall, so the shown seconds would trail the device's own by a constant
-    // fraction for the whole life of the frame.
-    // Remembered rather than formatted inline: produceState re-evaluates its initial value on every
-    // recomposition, and this one recomposes once a second for the whole life of the frame.
-    val initial = remember(system) { formatter.formatTime(System.currentTimeMillis(), system, withSeconds = true) }
-    val time = produceState(initial, system) {
-        while (true) {
-            value = formatter.formatTime(System.currentTimeMillis(), system, withSeconds = true)
-            delay(MILLIS_PER_SECOND - System.currentTimeMillis() % MILLIS_PER_SECOND)
-        }
-    }
-    return time.value
-}
 
 /**
  * S1981: the branded first frame - shown once per cold start, before the permissions/navigation
  * branch in `WearApp`, carrying the real "Fast Media Sorter" wordmark the system splash cannot
  * render (its icon slot only accepts a picture, never real text - strategic §4/§5 ADR-2).
  *
- * S2556: the same column now also carries the current time with seconds. The beat is deliberately
- * unchanged - the frame was already holding it, and the time is what makes the hold worth something
- * rather than a reason to hold longer.
+ * S3228: displays the app slogan (`wear_brand_slogan`) instead of the clock, aligned with the
+ * Android phone branding, with a shortened duration for faster startup.
  *
  * Self-dismissing: no interaction is expected, [onTimeout] fires once after
  * [BRAND_FRAME_DURATION_MS] and the caller is responsible for not recomposing this screen again
@@ -84,6 +47,7 @@ private fun currentTimeText(): String {
 @Composable
 fun BrandFrameScreen(onTimeout: () -> Unit) {
     LaunchedEffect(Unit) {
+        Timber.d("S3228: BrandFrameScreen started with slogan")
         delay(BRAND_FRAME_DURATION_MS)
         onTimeout()
     }
@@ -91,7 +55,8 @@ fun BrandFrameScreen(onTimeout: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(Color.Black)
+            .rotaryActionSwallow(),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -121,11 +86,8 @@ fun BrandFrameScreen(onTimeout: () -> Unit) {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = LOGO_WORDMARK_GAP)
             )
-            // S2556: one typography step below the wordmark - the brand is what the frame is for and
-            // the time is what makes the beat worth spending, in that order. Kept inside the same
-            // column so it stays within the round glass the icon and wordmark already fit.
             Text(
-                text = currentTimeText(),
+                text = stringResource(R.string.wear_brand_slogan),
                 style = MaterialTheme.typography.title3,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = LOGO_WORDMARK_GAP)

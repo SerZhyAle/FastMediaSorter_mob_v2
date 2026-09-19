@@ -2,11 +2,14 @@ package com.sza.fastmediasorter.wear.ui.player.video
 
 import android.content.Context
 import android.net.Uri
+import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
+import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
@@ -23,6 +26,7 @@ import com.sza.fastmediasorter.wear.domain.model.displayName
 import com.sza.fastmediasorter.wear.domain.playback.WEAR_PLAYBACK_STALL_TIMEOUT_MS
 import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallPolicy
 import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallWatchdog
+import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -31,6 +35,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.EndPhoneCameraSessionOnStreamErrorUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import com.sza.fastmediasorter.wear.ui.player.common.PlaybackProgressTicker
@@ -39,6 +44,7 @@ import com.sza.fastmediasorter.wear.ui.player.common.PlayerVolumeController
 import com.sza.fastmediasorter.wear.ui.player.common.awaitPanelHide
 import com.sza.fastmediasorter.wear.ui.player.common.backwardSeekTarget
 import com.sza.fastmediasorter.wear.ui.player.common.forwardSeekTarget
+import com.sza.fastmediasorter.wear.ui.player.common.jumpToLive
 import com.sza.fastmediasorter.wear.ui.player.common.pauseForHostStop
 import com.sza.fastmediasorter.wear.ui.player.common.resolveFavoriteIdentity
 import com.sza.fastmediasorter.wear.ui.player.common.togglePlayPause
@@ -61,6 +67,7 @@ private const val PREFS_NAME = "wear_video_prefs"
 private const val KEY_BATTERY_WARNING_SHOWN = "battery_warning_shown"
 private const val MAX_AUTO_HIDE_SECONDS = 600
 private const val MILLIS_PER_SECOND = 1000L
+private const val BITS_PER_KILOBIT = 1000
 
 /**
  * ViewModel for the video player screen.
@@ -75,6 +82,7 @@ class VideoPlayerViewModel @Inject constructor(
     private val playbackSetManager: PlaybackSetManager,
     private val preferencesRepository: WearPreferencesRepository,
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
+    private val endPhoneCameraSessionOnStreamError: EndPhoneCameraSessionOnStreamErrorUseCase,
     private val exoPlayer: ExoPlayer,
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
     private val streamPlaybackSessionFactory: StreamPlaybackSessionFactory,
@@ -94,8 +102,21 @@ class VideoPlayerViewModel @Inject constructor(
 
     private var controlsHideJob: Job? = null
 
+    private var streamSessionStartRealtime: Long = 0L
+    private var streamAccumulatedMs: Long = 0L
+
     private val progressTicker = PlaybackProgressTicker(viewModelScope, exoPlayer) { position ->
-        _uiState.update { it.copy(currentPositionMs = position) }
+        if (_uiState.value.isStream) {
+            val now = SystemClock.elapsedRealtime()
+            val currentElapsed = if (_uiState.value.isPlaying && streamSessionStartRealtime > 0L) {
+                streamAccumulatedMs + (now - streamSessionStartRealtime).coerceAtLeast(0L)
+            } else {
+                streamAccumulatedMs
+            }
+            _uiState.update { it.copy(currentPositionMs = currentElapsed) }
+        } else {
+            _uiState.update { it.copy(currentPositionMs = position) }
+        }
     }
 
     private val volumeController = PlayerVolumeController(
@@ -114,6 +135,13 @@ class VideoPlayerViewModel @Inject constructor(
     private var networkSelection: SelectedMedia? = null
 
     /**
+     * S3212: the address the open direct stream is being pulled from, or null when a file is playing.
+     * A player error carries no address of its own, and it is the address that says whether the
+     * session that just died was the phone's camera.
+     */
+    private var directStreamUri: String? = null
+
+    /**
      * S1838: the slideshow flag decides whether a finished video opens the next file. Held as a field
      * rather than read at STATE_ENDED, because that branch is a player callback and cannot suspend.
      */
@@ -130,6 +158,17 @@ class VideoPlayerViewModel @Inject constructor(
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             Timber.d("onIsPlayingChanged: $isPlaying")
+            if (_uiState.value.isStream) {
+                val now = SystemClock.elapsedRealtime()
+                if (isPlaying) {
+                    streamSessionStartRealtime = now
+                } else {
+                    if (streamSessionStartRealtime > 0L) {
+                        streamAccumulatedMs += (now - streamSessionStartRealtime).coerceAtLeast(0L)
+                        streamSessionStartRealtime = 0L
+                    }
+                }
+            }
             _uiState.update { it.copy(isPlaying = isPlaying) }
             if (isPlaying) {
                 progressTicker.start()
@@ -161,9 +200,10 @@ class VideoPlayerViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            durationMs = exoPlayer.duration.coerceAtLeast(0)
+                            durationMs = if (it.isStream) 0L else exoPlayer.duration.coerceAtLeast(0)
                         )
                     }
+                    refreshStationFormat()
                     publishPlaybackState()
                 }
                 Player.STATE_ENDED -> {
@@ -203,9 +243,37 @@ class VideoPlayerViewModel @Inject constructor(
             updateStallWatch()
         }
 
+        override fun onTracksChanged(tracks: Tracks) {
+            refreshStationFormat()
+        }
+
+        override fun onVideoSizeChanged(videoSize: VideoSize) {
+            if (videoSize.width > 0 && videoSize.height > 0) {
+                val res = "${videoSize.width}x${videoSize.height}"
+                _uiState.update { state ->
+                    if (state.isStream) {
+                        val current = state.station ?: WearStationInfo()
+                        state.copy(station = current.copy(resolution = res))
+                    } else {
+                        state
+                    }
+                }
+            }
+        }
+
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
             streamPlaybackSession.stop()
             Timber.e(error, "ExoPlayer error: ${error.errorCodeName}")
+            // S3212: the phone's camera session ends without a word from the phone, so a dead stream
+            // on its address is the end of it. The screen it was started from states the reason and
+            // offers a fresh start, which a raw error line here could do neither of.
+            if (endPhoneCameraSessionOnStreamError(directStreamUri)) {
+                Timber.d("S3212: phone camera stream died, leaving the player")
+                _uiState.update {
+                    it.copy(isLoading = false, isPlaying = false, closeScreen = true)
+                }
+                return
+            }
             _uiState.update {
                 it.copy(
                     isLoading = false,
@@ -321,6 +389,8 @@ class VideoPlayerViewModel @Inject constructor(
                     WearPlaybackCommand.STOP -> {
                         exoPlayer.stop()
                         streamPlaybackSession.stop()
+                        streamSessionStartRealtime = 0L
+                        streamAccumulatedMs = 0L
                     }
                 }
             }
@@ -359,11 +429,13 @@ class VideoPlayerViewModel @Inject constructor(
      * A set that cannot answer leaves the current file playing rather than stopping on nothing.
      */
     fun skipToNext() {
+        if (_uiState.value.isStream) return
         val next = playbackSetManager.next() ?: return
         playFile(next)
     }
 
     fun skipToPrevious() {
+        if (_uiState.value.isStream) return
         val previous = playbackSetManager.previous() ?: return
         playFile(previous)
     }
@@ -376,10 +448,19 @@ class VideoPlayerViewModel @Inject constructor(
      */
     private fun playFile(file: WearMediaFile) {
         streamPlaybackSession.clear()
+        directStreamUri = null
+        streamSessionStartRealtime = 0L
+        streamAccumulatedMs = 0L
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
         _uiState.update {
-            it.copy(mediaFile = file, currentPositionMs = 0, durationMs = 0, error = null)
+            it.copy(
+                mediaFile = file,
+                currentPositionMs = 0,
+                durationMs = 0,
+                station = null,
+                error = null
+            )
         }
         val selection = networkSelection
         if (selection != null) {
@@ -456,10 +537,22 @@ class VideoPlayerViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = false) }
                 return
             }
-            _uiState.update { it.copy(isLoading = true) }
+            streamSessionStartRealtime = 0L
+            streamAccumulatedMs = 0L
+            directStreamUri = selected.streamUri
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    isStream = true,
+                    durationMs = 0L,
+                    currentPositionMs = 0L,
+                    station = null
+                )
+            }
             val mediaItem = MediaItem.fromUri(Uri.parse(selected.streamUri))
             exoPlayer.setMediaItem(mediaItem)
             exoPlayer.prepare()
+            Timber.d("S3202: direct video stream prepared uri=%s", selected.streamUri)
             _uiState.update { it.copy(isLoading = false) }
             if (!_uiState.value.showBatteryWarning) {
                 exoPlayer.playWhenReady = true
@@ -488,9 +581,46 @@ class VideoPlayerViewModel @Inject constructor(
         )
     }
 
+    /**
+     * S3202: format and codec metadata for the active stream.
+     * Video format provides video codec/resolution/bitrate; audio format provides audio fallback codec/bitrate.
+     */
+    private fun refreshStationFormat() {
+        if (!_uiState.value.isStream) return
+        val vFormat = exoPlayer.videoFormat
+        val aFormat = exoPlayer.audioFormat
+        val videoCodec = WearStationInfo.codecLabel(vFormat?.sampleMimeType)
+        val audioCodec = WearStationInfo.codecLabel(aFormat?.sampleMimeType)
+        val codec = videoCodec ?: audioCodec
+        val res = if (vFormat != null && vFormat.width > 0 && vFormat.height > 0) {
+            "${vFormat.width}x${vFormat.height}"
+        } else {
+            null
+        }
+        val bitrate = (vFormat?.bitrate?.takeIf { it > 0 } ?: aFormat?.bitrate?.takeIf { it > 0 })
+            ?.div(BITS_PER_KILOBIT)
+        _uiState.update { state ->
+            val current = state.station ?: WearStationInfo()
+            state.copy(
+                station = current.copy(
+                    codec = codec ?: current.codec,
+                    resolution = res ?: current.resolution,
+                    bitrateKbps = bitrate ?: current.bitrateKbps
+                )
+            )
+        }
+    }
+
     fun getPlayer(): ExoPlayer = exoPlayer
 
     fun togglePlayPause() = streamPlaybackSession.togglePlayPause(exoPlayer)
+
+    /** S3217: a file has no live edge, so only a direct stream is re-prepared. */
+    fun jumpToLive() {
+        if (!_uiState.value.isStream) return
+        Timber.d("S3217: video player jump to live tapped")
+        streamPlaybackSession.jumpToLive(exoPlayer)
+    }
 
     /**
      * S2166 (ADR-1): this pause stays unconditional while the audio twin of it became conditional.
@@ -508,18 +638,6 @@ class VideoPlayerViewModel @Inject constructor(
                 scheduleHideControls()
             }
         }
-    }
-
-    /**
-     * S2815: blanks the screen without touching playback, and any touch on the black screen calls this
-     * again. The flag lives here rather than in the composition so it survives a recomposition, and it
-     * dies with this view model when the player is left - a screen reopened is never already dark.
-     *
-     * The control panel's own visibility is left alone: the wearer had it open to reach this command,
-     * so the touch that leaves the mode puts the screen back exactly as it was found.
-     */
-    fun toggleDimmed() {
-        _uiState.update { it.copy(isDimmed = !it.isDimmed) }
     }
 
     private fun showControls() {
@@ -554,13 +672,20 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun seekTo(positionMs: Long) {
+        if (_uiState.value.isStream) return
         exoPlayer.seekTo(positionMs)
         _uiState.update { it.copy(currentPositionMs = positionMs) }
     }
 
-    fun seekForward() = seekTo(forwardSeekTarget(exoPlayer))
+    fun seekForward() {
+        if (_uiState.value.isStream) return
+        seekTo(forwardSeekTarget(exoPlayer))
+    }
 
-    fun seekBackward() = seekTo(backwardSeekTarget(exoPlayer))
+    fun seekBackward() {
+        if (_uiState.value.isStream) return
+        seekTo(backwardSeekTarget(exoPlayer))
+    }
 
     fun toggleScaleMode() {
         scaleModeChosen = true
@@ -609,6 +734,7 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun togglePlaybackMode() {
+        if (_uiState.value.isStream) return
         val nextMode = _uiState.value.playbackMode.next()
         val isShuffle = nextMode == WearPlaybackMode.SHUFFLE
         _uiState.update { it.copy(playbackMode = nextMode, isShuffleEnabled = isShuffle) }
@@ -708,9 +834,9 @@ class VideoPlayerViewModel @Inject constructor(
         )
         exoPlayer.pause()
         streamPlaybackSession.stop()
+        streamSessionStartRealtime = 0L
         _uiState.update {
             it.copy(
-                isDimmed = false,
                 isLoading = false,
                 isPlaying = false,
                 error = context.getString(R.string.wear_stream_stalled)

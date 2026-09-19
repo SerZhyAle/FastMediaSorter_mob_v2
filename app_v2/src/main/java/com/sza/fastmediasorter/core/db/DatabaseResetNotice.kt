@@ -99,7 +99,7 @@ object DatabaseResetNotice {
             AlertDialog.Builder(activity)
                 .setTitle(R.string.database_reset_dialog_title)
                 .setMessage(message)
-                .setPositiveButton(android.R.string.ok, null)
+                .setPositiveButton(R.string.ok, null)
                 .showBoundToHost(activity)
         } catch (e: Exception) {
             Timber.w(e, "DatabaseResetNotice: failed to show dialog")

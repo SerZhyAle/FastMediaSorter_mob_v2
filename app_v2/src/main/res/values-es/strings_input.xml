@@ -39,7 +39,7 @@
     <string name="keybinding_input_gamepad_start">Comenzar</string>
     <string name="keybinding_input_mod_alt">Alt</string>
     <string name="keybinding_input_mod_ctrl">Control</string>
-    <string name="keybinding_input_mod_shift">Cambio</string>
+    <string name="keybinding_input_mod_shift">Mayús</string>
     <string name="keybinding_input_mouse_back">Volver al ratón</string>
     <string name="keybinding_input_mouse_forward">Mover el ratón hacia adelante</string>
     <string name="keybinding_input_mouse_left">LMB</string>
@@ -76,7 +76,7 @@
     <string name="keybinding_label_playback_frame_step_forward">Marco: Da un paso adelante</string>
     <string name="keybinding_label_playback_pause">Pausa</string>
     <string name="keybinding_label_playback_pause_play">Pausar / Reproducir</string>
-    <string name="keybinding_label_playback_play">Jugar</string>
+    <string name="keybinding_label_playback_play">Reproducir</string>
     <string name="keybinding_label_playback_repeat_mode">Modo de repetición</string>
     <string name="keybinding_label_playback_slideshow_toggle">Mostrar/Ocultar diapositivas</string>
     <string name="keybinding_label_playback_speed_down">Reduzca la velocidad</string>
@@ -99,9 +99,9 @@
     <string name="keybinding_label_sorting_op_slot_8">Ranura de operación 8</string>
     <string name="keybinding_label_sorting_op_slot_9">Ranura de operación 9</string>
     <string name="keybinding_label_sorting_op_slot_10">Ranura de operación 10</string>
-    <string name="keybinding_label_sorting_paste">Pasta</string>
+    <string name="keybinding_label_sorting_paste">Pegar</string>
     <string name="keybinding_label_sorting_rename">Rebautizar</string>
-    <string name="keybinding_label_sorting_save">Ahorrar</string>
+    <string name="keybinding_label_sorting_save">Guardar</string>
     <string name="keybinding_label_system_exit">Salida</string>
     <string name="keybinding_label_system_redo">Rehacer</string>
     <string name="keybinding_label_system_screenshot">Captura de pantalla</string>
@@ -114,7 +114,7 @@
     <string name="keybinding_label_view_aspect_ratio">Relación de aspecto</string>
     <string name="keybinding_label_view_fit_screen">Ajustar pantalla</string>
     <string name="keybinding_label_view_fullscreen">Pantalla completa</string>
-    <string name="keybinding_label_view_pan">Cacerola</string>
+    <string name="keybinding_label_view_pan">Desplazar</string>
     <string name="keybinding_label_view_rotate">Girar</string>
     <string name="keybinding_label_view_rotation_toggle">Rotación de pantalla</string>
     <string name="keybinding_label_view_zoom_in">Dar un golpe de zoom</string>
@@ -136,7 +136,7 @@
     <string name="keybinding_remap_not_impl">Restablecer todo - próximamente</string>
     <string name="keybinding_remap_reset_all">Restablecer todo</string>
     <string name="keybinding_remap_search_hint">Comandos de búsqueda..</string>
-    <string name="keybinding_row_remap">Remap</string>
+    <string name="keybinding_row_remap">Reasignar</string>
     <string name="keybinding_row_reset">Restablecer a valores predeterminados</string>
     <string name="kbm_help_browse_back">Ir a la carpeta principal</string>
     <string name="kbm_help_browse_open">Abrir carpeta o archivo</string>

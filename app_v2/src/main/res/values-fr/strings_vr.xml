@@ -57,7 +57,7 @@
     <string name="vr_hud_guard_file_ops">Le panneau Fichiers est indisponible en mode immersif. Quittez le mode immersif pour l\'utiliser.</string>
     <string name="vr_hud_immersive_off">Écran plat</string>
     <string name="vr_hud_last_file">Dernier fichier</string>
-    <string name="vr_hud_move_done">Déménagé</string>
+    <string name="vr_hud_move_done">Déplacé</string>
     <string name="vr_hud_paused">En pause</string>
     <string name="vr_hud_playing">Jouant</string>
     <string name="vr_hud_prev_next_hint">← préc. / suiv. →</string>

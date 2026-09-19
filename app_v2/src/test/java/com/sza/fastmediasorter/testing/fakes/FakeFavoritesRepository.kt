@@ -39,6 +39,9 @@ class FakeFavoritesRepository : FavoritesRepository {
     override fun getFileFavorites(): Flow<List<FavoritesEntity>> =
         favoritesFlow.map { list -> list.filter { it.kind == FavoritesEntity.KIND_FILE } }
 
+    override suspend fun getFileFavoritesSync(): List<FavoritesEntity> =
+        favoritesFlow.value.filter { it.kind == FavoritesEntity.KIND_FILE }
+
     override fun isFavorite(uri: String): Flow<Boolean> =
         favoritesFlow.map { list -> list.any { it.uri == uri } }
 

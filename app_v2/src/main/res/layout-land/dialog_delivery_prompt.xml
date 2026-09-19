@@ -64,7 +64,7 @@
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:nextFocusForward="@id/btn_delivery_confirm"
-                android:text="@android:string/cancel" />
+                android:text="@string/cancel" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_delivery_confirm"

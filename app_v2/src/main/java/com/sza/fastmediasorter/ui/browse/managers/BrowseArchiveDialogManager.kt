@@ -73,7 +73,7 @@ class BrowseArchiveDialogManager(
         val dialog = MaterialAlertDialogBuilder(context)
             .setTitle(R.string.archive_dialog_title)
             .setView(root)
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.archive_action_btn, null)
             .showBoundToHost(context)
 
@@ -101,7 +101,7 @@ class BrowseArchiveDialogManager(
         archiveProgressDialog = MaterialAlertDialogBuilder(context)
             .setTitle(R.string.archive_progress_title)
             .setMessage(context.getString(R.string.archive_progress_message, 0, 0, ""))
-            .setNegativeButton(android.R.string.cancel) { _, _ ->
+            .setNegativeButton(R.string.cancel) { _, _ ->
                 onCancelArchive()
             }
             .setCancelable(false)
@@ -127,7 +127,7 @@ class BrowseArchiveDialogManager(
                 showExtractProgressDialog()
                 onExtractArchive(mediaFile)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(context)
     }
 
@@ -155,8 +155,8 @@ class BrowseArchiveDialogManager(
         val dialog = MaterialAlertDialogBuilder(context)
             .setTitle(R.string.protected_archive_password_title)
             .setView(root)
-            .setPositiveButton(android.R.string.ok, null)
-            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.ok, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(context)
 
         dialog?.getButton(android.app.AlertDialog.BUTTON_POSITIVE)?.setOnClickListener {

@@ -36,7 +36,7 @@
     <string name="vr_fops_choose_copy_target">Copiare dove?</string>
     <string name="vr_fops_choose_folder">Scegli un\'altra cartella.</string>
     <string name="vr_fops_choose_move_target">Trasferirsi dove?</string>
-    <string name="vr_fops_close">Vicino</string>
+    <string name="vr_fops_close">Chiudi</string>
     <string name="vr_fops_copy_to">Copia in..</string>
     <string name="vr_fops_delete">Eliminare</string>
     <string name="vr_fops_info">Informazioni sul file</string>
@@ -59,9 +59,9 @@
     <string name="vr_hud_last_file">Ultimo file</string>
     <string name="vr_hud_move_done">Mosso</string>
     <string name="vr_hud_paused">In pausa</string>
-    <string name="vr_hud_playing">Giocando</string>
+    <string name="vr_hud_playing">In riproduzione</string>
     <string name="vr_hud_prev_next_hint">← prec / succ →</string>
-    <string name="vr_hud_recenter_done">Temperato</string>
+    <string name="vr_hud_recenter_done">Ricentrato</string>
     <string name="vr_hud_seek_bwd">Cercare all\'indietro</string>
     <string name="vr_hud_seek_fwd">Guardare avanti</string>
     <string name="vr_hud_volume_percent">Volume %1$d%%</string>

@@ -39,7 +39,7 @@ import timber.log.Timber
 @Composable
 fun AboutSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.ABOUT)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val logReportState by viewModel.logReportState.collectAsStateWithLifecycle()

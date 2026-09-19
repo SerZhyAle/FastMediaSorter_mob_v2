@@ -26,15 +26,24 @@ class LauncherScreenLockManager(
     private val showBlackScreen: () -> Unit,
 ) {
 
-    /** @return true when the device really locked, false when the app-private overlay was raised instead. */
-    fun turnScreenOff(): Boolean {
-        val locked = accessibilityActions.any { it.perform(ScreenshotGestureAction.LOCK_SCREEN) }
+    /**
+     * @param allowSystemLock false keeps the decision inside the app: the overlay is raised even where
+     *   the real lock is reachable. S3285 - the idle countdown passes false while the global
+     *   prevent-sleep hold stands, because handing the desktop to the system lock is exactly the
+     *   system sleep that setting exists to forbid. An explicit gesture still passes true: asking for
+     *   the lock is not being idle.
+     * @return true when the device really locked, false when the app-private overlay was raised instead.
+     */
+    fun turnScreenOff(allowSystemLock: Boolean = true): Boolean {
+        val locked = allowSystemLock &&
+            accessibilityActions.any { it.perform(ScreenshotGestureAction.LOCK_SCREEN) }
         if (!locked) showBlackScreen()
         // The two outcomes look alike on a screenshot and different to the user, so which one ran is the
         // first thing any report about this feature needs; the seam count says why it degraded.
         Timber.d(
-            "LauncherScreenLockManager: screen off requested, systemLock=%b, seams=%d",
+            "LauncherScreenLockManager: screen off requested, systemLock=%b, allowed=%b, seams=%d",
             locked,
+            allowSystemLock,
             accessibilityActions.size,
         )
         return locked

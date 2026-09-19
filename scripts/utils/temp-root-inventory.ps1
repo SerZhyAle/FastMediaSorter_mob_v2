@@ -127,7 +127,7 @@ function Get-TempRootInventory {
     # reach it. Contract: scripts/devtest/lib/device-store-paths.tests/ case E7 fails if a rename
     # reaches the declaration but not this protection.
     . (Join-Path $RepoRoot 'scripts/devtest/lib/device-store-paths.ps1')
-    $fixedDirs.AddRange([string[]]@(@('Lease', 'Registry') | ForEach-Object { Get-DeviceStoreDirName -Store $_ }))
+    $fixedDirs.AddRange([string[]]@(@('Lease', 'Registry', 'State') | ForEach-Object { Get-DeviceStoreDirName -Store $_ }))
     $fixedDirs.AddRange([string[]]@(
         'archive'                          # archive-temp.ps1's own destination - it moves stale entries here.
         'scratch'                          # Rule 10's home for work with no active ticket.
@@ -137,6 +137,7 @@ function Get-TempRootInventory {
         'GRADLE-RUN'                       # builders/check-standard-fast.ps1 - one run-<pid>.json per gradle run, read for orphan detection.
         'TEST-REPORTS'                     # builders/filtered-test-report.ps1.
         'monitor'                          # utils/dev-monitor-writer.ps1 (-OutDir default).
+        'fast-path-signal'                 # the Rule 29 hook .claude/hooks/nudge-check-target-by-change-type.ps1 - one marker per session so the fast-path nudge is said once; pruned after 7 days by the hook itself.
         'metrics'                          # metrics/agent-cost-report.ps1, and the gate journal the profile names.
         'agent-cost'                       # metrics/ticket-cost.ps1 - the per-ticket cost journal ticket-cost.jsonl.
         'sza-forwarders-backup'            # utils/install-sza-forwarders.ps1 - pre-install copy of the replaced local scripts.
@@ -166,8 +167,11 @@ function Get-TempRootInventory {
         'EMPTY-STDIN.txt'                     # utils/start-detached.ps1 - one reusable sentinel, created once.
         'catalog-touch.marker'                # dev/CATALOG/scripts/query.ps1 writes it, the Rule 29 hook guard-catalog-before-kt-search.ps1 reads it, reset-catalog-touch-marker.ps1 removes it at SessionStart. Absent from S3030's census because it exists only between a catalog query and the next session start - an intermittent name is the one a one-shot census cannot see.
         'build-failure-digest.json'           # builders/build-failure-digest.ps1, behind .\a.ps1 bf. Overwritten in place.
+        'detekt-gate-cache.json'              # quality/assert-detekt.ps1 - the clean-run cache keyed by a fingerprint of the analysed set.
+        'standard-surface-snapshot.json'      # release/standard-surface-snapshot.ps1 (-OutFile default), read by release/standard-release-gate.ps1.
         'RELEASE-FREEZE.json'                 # Rule 36's marker. Omitted by the pre-S3030 copy, so a freeze held past the age cutoff could be swept mid-sweep.
         'RELEASE-FREEZE-FINGERPRINTS.json'    # quality/release-scope-fingerprint.ps1 - the freeze's content half, omitted by the same copy.
+        'RELEASE-FREEZE-ENDED.json'           # utils/release-freeze.ps1 - what the last freeze ended as, read by -Verb Status so "no freeze held" can be told apart from "yours ended under you" (S3320). A separate name from the marker on purpose: guard-release-freeze.ps1's hot path is one Test-Path on the marker, and a tombstone there would spawn its child on every Bash call forever.
         'STOP-AGENT-WATCHDOG'                 # operator-created stop flag, read by utils/agent-watchdog.ps1. No script writes it.
         'stream-catalog-liveness.csv'         # streams/collect-stream-candidates.ps1 (-CatalogLivenessReport default).
         'stream-catalog.zip'                  # streams/modules/StreamPublisher.Delivery.ps1.
@@ -192,8 +196,20 @@ function Get-TempRootInventory {
         # a declared non-goal of S3030.
         'check_fast_*.log'
         'build_debug_*.log'
+        # The logcat pattern is retained on different grounds from the three transcripts around it:
+        # it has NO reader. Until S3297 it also had no bound - the five device builders started a
+        # background `adb logcat` stream nobody stopped, and this very declaration is what kept the
+        # accumulation legal at the root while it reached 1.8 GB across 16 files. Each file is now a
+        # bounded per-run snapshot of the install-and-launch window, written by those builders
+        # through devtest/lib/logcat-snapshot.ps1, which terminates on its own.
         'logcat_*.log'
         'lint-typo-activity-*.log'
+        # The stderr sibling of any of the per-run logs above: builders/gradle-progress-watch.ps1
+        # writes "$LogPath.err" beside the log it is watching. Undeclared until S3299, when the gate
+        # reported two live build-run files as dead weight - the writer was there all along, only
+        # the declaration was missing, and a per-run artifact nobody can account for is exactly the
+        # reading this file exists to prevent.
+        '*.log.err'
         'spec-next-session.*.json'            # one per session by design; the writer globs its own siblings to see cross-session state.
         'streams.csv.*.bak'                   # streams/modules/StreamPublisher.Delivery.ps1, -OutDir default temp.
         'stream-catalog-liveness.*.csv'       # timestamped variants of the canonical report above.

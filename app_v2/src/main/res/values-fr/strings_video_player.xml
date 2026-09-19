@@ -13,7 +13,7 @@
     <string name="playback_control_no_subtitles">Aucun sous-titre disponible</string>
     <string name="playback_control_speed_value">Vitesse : %1$.2fx</string>
     <string name="playback_control_tab_audio">Piste audio</string>
-    <string name="playback_control_tab_brightness">Lumière</string>
+    <string name="playback_control_tab_brightness">Luminosité</string>
     <string name="playback_control_tab_hue">TEINTE</string>
     <string name="playback_control_tab_speed">Vitesse</string>
     <string name="playback_control_tab_subtitles">Subs</string>

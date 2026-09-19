@@ -77,7 +77,7 @@ class ScreenCaptureConsentActivity : AppCompatActivity() {
                     acceptDisclosureAndLaunchConsent()
                 }
             }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> finish() }
+            .setNegativeButton(R.string.cancel) { _, _ -> finish() }
             .setOnCancelListener { finish() }
             .showBoundToHost(this@ScreenCaptureConsentActivity)
     }

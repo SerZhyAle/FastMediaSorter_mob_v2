@@ -1,29 +1,29 @@
 package com.sza.fastmediasorter.core.power
 
+import com.sza.fastmediasorter.core.util.PowerPolicyDecision
 import com.sza.fastmediasorter.core.util.PowerPolicyLevel
+import com.sza.fastmediasorter.core.util.PowerPolicyReason
 import com.sza.fastmediasorter.domain.model.PowerSavingTrigger
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * S2536: the level verdict is entirely new behaviour - the module consulted no battery signal at all
- * before this ticket - so there is no prior behaviour to fall back on if an arm is wrong.
- *
- * The unreadable-charge arm in particular cannot be staged on a device on demand, which is why the
- * decision was extracted as a pure function rather than left inside the receiver.
+ * S2536 / S3276: the level and reason verdict test.
  */
 class PowerStateObserverTest {
 
-    private fun levelFor(
+    private fun decisionFor(
         trigger: PowerSavingTrigger,
         chargePercent: Int? = 100,
         osPowerSaveMode: Boolean = false,
-        animationsDisabled: Boolean = false
-    ): PowerPolicyLevel = resolvePowerPolicyLevel(
+        animationsDisabled: Boolean = false,
+        charging: Boolean = false
+    ): PowerPolicyDecision = resolvePowerPolicyDecision(
         trigger = trigger,
         chargePercent = chargePercent,
         osPowerSaveMode = osPowerSaveMode,
-        animationsDisabled = animationsDisabled
+        animationsDisabled = animationsDisabled,
+        charging = charging
     )
 
     @Test
@@ -36,37 +36,54 @@ class PowerStateObserverTest {
 
             assertEquals(
                 "$trigger should be SAVING at its own threshold of $threshold",
-                PowerPolicyLevel.SAVING,
-                levelFor(trigger, chargePercent = threshold)
+                PowerPolicyDecision(PowerPolicyLevel.SAVING, PowerPolicyReason.LOW_BATTERY),
+                decisionFor(trigger, chargePercent = threshold)
             )
             assertEquals(
                 "$trigger should be SAVING below $threshold",
-                PowerPolicyLevel.SAVING,
-                levelFor(trigger, chargePercent = threshold - 1)
+                PowerPolicyDecision(PowerPolicyLevel.SAVING, PowerPolicyReason.LOW_BATTERY),
+                decisionFor(trigger, chargePercent = threshold - 1)
             )
             assertEquals(
                 "$trigger should be NORMAL one percent above $threshold",
-                PowerPolicyLevel.NORMAL,
-                levelFor(trigger, chargePercent = threshold + 1)
+                PowerPolicyDecision(PowerPolicyLevel.NORMAL, PowerPolicyReason.NONE),
+                decisionFor(trigger, chargePercent = threshold + 1)
             )
         }
     }
 
     @Test
     fun `ALWAYS saves at any charge and OFF never saves on charge alone`() {
-        assertEquals(PowerPolicyLevel.SAVING, levelFor(PowerSavingTrigger.ALWAYS, chargePercent = 100))
-        assertEquals(PowerPolicyLevel.SAVING, levelFor(PowerSavingTrigger.ALWAYS, chargePercent = 1))
-        assertEquals(PowerPolicyLevel.NORMAL, levelFor(PowerSavingTrigger.OFF, chargePercent = 1))
-        assertEquals(PowerPolicyLevel.NORMAL, levelFor(PowerSavingTrigger.OFF, chargePercent = 0))
+        assertEquals(
+            PowerPolicyDecision(PowerPolicyLevel.SAVING, PowerPolicyReason.USER_ALWAYS),
+            decisionFor(PowerSavingTrigger.ALWAYS, chargePercent = 100)
+        )
+        assertEquals(
+            PowerPolicyDecision(PowerPolicyLevel.SAVING, PowerPolicyReason.USER_ALWAYS),
+            decisionFor(PowerSavingTrigger.ALWAYS, chargePercent = 1)
+        )
+        assertEquals(
+            PowerPolicyDecision(PowerPolicyLevel.NORMAL, PowerPolicyReason.NONE),
+            decisionFor(PowerSavingTrigger.OFF, chargePercent = 1)
+        )
+        assertEquals(
+            PowerPolicyDecision(PowerPolicyLevel.NORMAL, PowerPolicyReason.NONE),
+            decisionFor(PowerSavingTrigger.OFF, chargePercent = 0)
+        )
     }
 
     @Test
     fun `the OS saver raises SAVING whatever the trigger and the charge`() {
         for (trigger in PowerSavingTrigger.entries) {
+            val expectedReason = if (trigger == PowerSavingTrigger.ALWAYS) {
+                PowerPolicyReason.USER_ALWAYS
+            } else {
+                PowerPolicyReason.SYSTEM_SAVER
+            }
             assertEquals(
                 "the OS power saver should win over $trigger at a full charge",
-                PowerPolicyLevel.SAVING,
-                levelFor(trigger, chargePercent = 100, osPowerSaveMode = true)
+                PowerPolicyDecision(PowerPolicyLevel.SAVING, expectedReason),
+                decisionFor(trigger, chargePercent = 100, osPowerSaveMode = true)
             )
         }
     }
@@ -74,50 +91,69 @@ class PowerStateObserverTest {
     @Test
     fun `the animation switch produces REDUCED and never SAVING`() {
         assertEquals(
-            PowerPolicyLevel.REDUCED,
-            levelFor(PowerSavingTrigger.OFF, chargePercent = 100, animationsDisabled = true)
+            PowerPolicyDecision(PowerPolicyLevel.REDUCED, PowerPolicyReason.ANIMATION_SWITCH),
+            decisionFor(PowerSavingTrigger.OFF, chargePercent = 100, animationsDisabled = true)
         )
         assertEquals(
-            PowerPolicyLevel.REDUCED,
-            levelFor(PowerSavingTrigger.BELOW_20, chargePercent = 100, animationsDisabled = true)
+            PowerPolicyDecision(PowerPolicyLevel.REDUCED, PowerPolicyReason.ANIMATION_SWITCH),
+            decisionFor(PowerSavingTrigger.BELOW_20, chargePercent = 100, animationsDisabled = true)
         )
     }
 
     @Test
     fun `saving outranks the animation switch when both apply`() {
         assertEquals(
-            PowerPolicyLevel.SAVING,
-            levelFor(PowerSavingTrigger.BELOW_20, chargePercent = 5, animationsDisabled = true)
+            PowerPolicyDecision(PowerPolicyLevel.SAVING, PowerPolicyReason.LOW_BATTERY),
+            decisionFor(PowerSavingTrigger.BELOW_20, chargePercent = 5, animationsDisabled = true)
         )
     }
 
     @Test
     fun `an unreadable charge leaves a threshold trigger where it would be without the reading`() {
-        // The dangerous default is the other one: assuming a flat battery would freeze the app on any
-        // device that simply does not report a charge.
         assertEquals(
-            PowerPolicyLevel.NORMAL,
-            levelFor(PowerSavingTrigger.BELOW_30, chargePercent = null)
+            PowerPolicyDecision(PowerPolicyLevel.NORMAL, PowerPolicyReason.NONE),
+            decisionFor(PowerSavingTrigger.BELOW_30, chargePercent = null)
         )
         assertEquals(
-            PowerPolicyLevel.REDUCED,
-            levelFor(PowerSavingTrigger.BELOW_30, chargePercent = null, animationsDisabled = true)
-        )
-        // The two arms that do not consult the charge keep working without it.
-        assertEquals(
-            PowerPolicyLevel.SAVING,
-            levelFor(PowerSavingTrigger.ALWAYS, chargePercent = null)
+            PowerPolicyDecision(PowerPolicyLevel.REDUCED, PowerPolicyReason.ANIMATION_SWITCH),
+            decisionFor(PowerSavingTrigger.BELOW_30, chargePercent = null, animationsDisabled = true)
         )
         assertEquals(
-            PowerPolicyLevel.SAVING,
-            levelFor(PowerSavingTrigger.BELOW_30, chargePercent = null, osPowerSaveMode = true)
+            PowerPolicyDecision(PowerPolicyLevel.SAVING, PowerPolicyReason.USER_ALWAYS),
+            decisionFor(PowerSavingTrigger.ALWAYS, chargePercent = null)
+        )
+        assertEquals(
+            PowerPolicyDecision(PowerPolicyLevel.SAVING, PowerPolicyReason.SYSTEM_SAVER),
+            decisionFor(PowerSavingTrigger.BELOW_30, chargePercent = null, osPowerSaveMode = true)
+        )
+    }
+
+    @Test
+    fun `charging suppresses low battery threshold arm but not system or user always`() {
+        assertEquals(
+            PowerPolicyDecision(PowerPolicyLevel.NORMAL, PowerPolicyReason.NONE),
+            decisionFor(PowerSavingTrigger.BELOW_20, chargePercent = 5, charging = true)
+        )
+        assertEquals(
+            PowerPolicyDecision(PowerPolicyLevel.REDUCED, PowerPolicyReason.ANIMATION_SWITCH),
+            decisionFor(PowerSavingTrigger.BELOW_20, chargePercent = 5, animationsDisabled = true, charging = true)
+        )
+        assertEquals(
+            PowerPolicyDecision(PowerPolicyLevel.SAVING, PowerPolicyReason.SYSTEM_SAVER),
+            decisionFor(PowerSavingTrigger.BELOW_20, chargePercent = 5, osPowerSaveMode = true, charging = true)
+        )
+        assertEquals(
+            PowerPolicyDecision(PowerPolicyLevel.SAVING, PowerPolicyReason.USER_ALWAYS),
+            decisionFor(PowerSavingTrigger.ALWAYS, chargePercent = 100, charging = true)
+        )
+        assertEquals(
+            PowerPolicyDecision(PowerPolicyLevel.NORMAL, PowerPolicyReason.NONE),
+            decisionFor(PowerSavingTrigger.BELOW_30, chargePercent = null, charging = true)
         )
     }
 
     @Test
     fun `no battery level is claimed only after the platform has answered`() {
-        // S2707: the settings row prints this as a statement about the device, so the window before
-        // the first reading must not be announced as a device without a battery.
         assertEquals(false, resolveBatteryLevelUnavailable(batteryIntentSeen = false, chargePercent = null))
         assertEquals(true, resolveBatteryLevelUnavailable(batteryIntentSeen = true, chargePercent = null))
         assertEquals(false, resolveBatteryLevelUnavailable(batteryIntentSeen = true, chargePercent = 42))

@@ -23,4 +23,3 @@ interface WearTouristRepository {
      */
     fun resetSteps()
 }
-

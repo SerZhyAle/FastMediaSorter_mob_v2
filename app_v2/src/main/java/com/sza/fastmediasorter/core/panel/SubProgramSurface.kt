@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.core.panel
 /**
  * The surfaces a sub-program can be offered on (strategic S1736 §5.3).
  *
- * The set is closed at four deliberately. Launcher informer tiles are excluded permanently by
+ * The set is closed at five deliberately. Launcher informer tiles are excluded permanently by
  * ADR-3 - they are not programs - and the OS shortcut surface is moved by S1925, which adds its
  * own constant then. A new surface is a new constant here plus a case in the completeness test,
  * never a new table.
@@ -21,4 +21,7 @@ enum class SubProgramSurface {
 
     /** A launcher desktop cell added automatically when the program is switched on. */
     LAUNCHER_SHORTCUT,
+
+    /** A dynamic Android system shortcut shown from the launcher app icon. */
+    OS_APP_SHORTCUT,
 }

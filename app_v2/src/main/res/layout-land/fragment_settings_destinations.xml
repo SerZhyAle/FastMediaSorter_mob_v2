@@ -1233,6 +1233,21 @@
                             app:str_helpTitle="@string/water_flashlight_help_title"
                             app:str_helpMessage="@string/water_flashlight_help_message" />
 
+                        <!-- S3216: under the water flashlight - the distress signal is the fourth
+                             member of the light family and half of it is a strobe. The row carries the
+                             switch alone; which halves the signal engages is chosen on the SOS screen
+                             itself, because that is a decision taken during the emergency. -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableSos"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_sos"
+                            app:str_title="@string/sos_settings_toggle_title"
+                            app:str_subtitle="@string/sos_settings_toggle_subtitle"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/sos_help_title"
+                            app:str_helpMessage="@string/sos_help_message" />
+
                         <!-- S2776: with the lights, because it switches one of them on - the camera
                              flash - from the notification shade instead of from a screen in this app. -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow

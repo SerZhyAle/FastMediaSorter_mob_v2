@@ -26,7 +26,7 @@
     <string name="scheduled_ops_btn_log">Protokoll</string>
     <string name="scheduled_ops_btn_run_now">Jetzt laufen</string>
     <string name="scheduled_ops_col_condition">Bedingungen</string>
-    <string name="scheduled_ops_col_operation">Betrieb</string>
+    <string name="scheduled_ops_col_operation">Vorgang</string>
     <string name="scheduled_ops_col_schedule">Zeitplan</string>
     <string name="scheduled_ops_col_source">Quelle</string>
     <string name="scheduled_ops_col_target">Ziel</string>
@@ -55,7 +55,7 @@
     <string name="scheduled_ops_op_copy">Kopie</string>
     <string name="scheduled_ops_op_delete">Löschen</string>
     <string name="scheduled_ops_op_move">Bewegen</string>
-    <string name="scheduled_ops_operation">Betrieb</string>
+    <string name="scheduled_ops_operation">Vorgang</string>
     <string name="scheduled_ops_overwrite">Vorhandene Dateien überschreiben</string>
     <string name="scheduled_ops_readonly_source">Die Quelle ist schreibgeschützt.</string>
     <string name="scheduled_ops_save">Speichervorgang</string>

@@ -1,48 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="@dimen/padding_normal">
+    android:fillViewport="true">
 
-    <TextView
-        android:id="@+id/tvControlTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="@dimen/margin_small"
-        android:text="@string/broadcast_control_title"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-        android:textColor="?attr/colorOnSurface" />
-
-    <TextView
-        android:id="@+id/tvListenerCount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="@dimen/margin_normal"
-        android:textAppearance="?attr/textAppearanceBodyLarge"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        tools:text="0 listeners" />
-
-    <FrameLayout
-        android:id="@+id/previewContainer"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@android:color/black"
-        android:layout_marginBottom="@dimen/margin_normal" />
-
-    <!-- PRE-STREAM SETUP CONTAINER -->
     <LinearLayout
-        android:id="@+id/layoutPreStream"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginBottom="@dimen/margin_small">
+        android:padding="@dimen/padding_normal">
 
+        <TextView
+            android:id="@+id/tvControlTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:text="@string/broadcast_control_title"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:textColor="?attr/colorOnSurface" />
+
+        <TextView
+            android:id="@+id/tvListenerCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/margin_normal"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="0 listeners" />
+
+        <FrameLayout
+            android:id="@+id/previewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/broadcast_control_preview_height"
+            android:importantForAccessibility="noHideDescendants"
+            android:background="@android:color/black"
+            android:layout_marginBottom="@dimen/margin_normal" />
+
+        <!-- MODE & CAMERA SELECTION -->
         <TextView
             android:id="@+id/tvModeHeader"
             android:layout_width="wrap_content"
@@ -99,205 +97,255 @@
             android:visibility="gone"
             app:singleSelection="true" />
 
+        <!-- BROADCAST SETTINGS CARD -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardBroadcastSettings"
+            style="?attr/materialCardViewOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_normal">
+
+            <include
+                android:id="@+id/layoutBroadcastSettings"
+                layout="@layout/fragment_settings_broadcast" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- START BROADCAST ACTION (IDLE STATE) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStartBroadcast"
             style="@style/Widget.FastMediaSorter.Button.Filled"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_normal"
             android:minHeight="@dimen/touch_target_min_height"
             android:focusable="true"
             android:clickable="true"
             android:text="@string/broadcast_entry_start"
             app:icon="@drawable/ic_display" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnBroadcastSettings"
-            style="@style/Widget.FastMediaSorter.Button.Outlined"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:minHeight="@dimen/touch_target_min_height"
-            android:focusable="true"
-            android:clickable="true"
-            android:text="@string/broadcast_settings_title"
-            app:icon="@drawable/ic_settings" />
-    </LinearLayout>
-
-    <!-- LIVE STREAM CONTROLS CONTAINER -->
-    <LinearLayout
-        android:id="@+id/layoutLiveControls"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:visibility="gone">
-
+        <!-- LIVE STREAM CONTROLS CONTAINER -->
         <LinearLayout
+            android:id="@+id/layoutLiveControls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:layout_marginBottom="@dimen/margin_small">
+            android:orientation="vertical"
+            android:layout_marginBottom="@dimen/margin_normal"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:layout_marginBottom="@dimen/margin_small">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnToggleCamera"
+                    style="@style/Widget.FastMediaSorter.Button.Tonal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/margin_small"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:nextFocusRight="@+id/btnToggleMic"
+                    android:nextFocusDown="@+id/btnSwitchCamera"
+                    android:text="@string/broadcast_control_camera_on"
+                    app:icon="@drawable/ic_display" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnToggleMic"
+                    style="@style/Widget.FastMediaSorter.Button.Tonal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:nextFocusLeft="@+id/btnToggleCamera"
+                    android:nextFocusDown="@+id/btnScreenOff"
+                    android:text="@string/broadcast_control_mic_on"
+                    app:icon="@drawable/ic_microphone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:layout_marginBottom="@dimen/margin_small">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSwitchCamera"
+                    style="@style/Widget.FastMediaSorter.Button.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/margin_small"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:nextFocusUp="@+id/btnToggleCamera"
+                    android:nextFocusRight="@+id/btnScreenOff"
+                    android:nextFocusDown="@+id/btnSendToWatch"
+                    android:text="@string/broadcast_control_switch_camera"
+                    app:icon="@drawable/ic_camera_switch" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnScreenOff"
+                    style="@style/Widget.FastMediaSorter.Button.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:contentDescription="@string/broadcast_control_screen_off_cd"
+                    android:nextFocusUp="@+id/btnToggleMic"
+                    android:nextFocusLeft="@+id/btnSwitchCamera"
+                    android:nextFocusDown="@+id/btnSendToWatch"
+                    android:text="@string/broadcast_control_screen_off"
+                    app:icon="@drawable/ic_black_screen" />
+            </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnToggleCamera"
+                android:id="@+id/btnSendToWatch"
                 style="@style/Widget.FastMediaSorter.Button.Tonal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_small"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="@dimen/margin_small"
                 android:minHeight="@dimen/touch_target_min_height"
+                android:visibility="gone"
                 android:focusable="true"
                 android:clickable="true"
-                android:nextFocusRight="@+id/btnToggleMic"
-                android:nextFocusDown="@+id/btnSwitchCamera"
-                android:text="@string/broadcast_control_camera_on"
-                app:icon="@drawable/ic_display" />
+                android:nextFocusUp="@+id/btnScreenOff"
+                android:nextFocusDown="@+id/btnStopBroadcast"
+                android:text="@string/stream_action_send_to_watch"
+                app:icon="@drawable/ic_watch" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnToggleMic"
-                style="@style/Widget.FastMediaSorter.Button.Tonal"
+                android:id="@+id/btnStopBroadcast"
+                style="@style/Widget.FastMediaSorter.Button.Destructive"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 android:minHeight="@dimen/touch_target_min_height"
                 android:focusable="true"
                 android:clickable="true"
-                android:nextFocusLeft="@+id/btnToggleCamera"
-                android:nextFocusDown="@+id/btnScreenOff"
-                android:text="@string/broadcast_control_mic_on"
-                app:icon="@drawable/ic_microphone" />
+                android:nextFocusUp="@+id/btnSendToWatch"
+                android:text="@string/broadcast_control_stop"
+                app:icon="@drawable/ic_cancel" />
         </LinearLayout>
 
+        <!-- SHARE & QR PANEL CONTAINER (LIVE STATE) -->
         <LinearLayout
+            android:id="@+id/layoutSharePanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:layout_marginBottom="@dimen/margin_small">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSwitchCamera"
-                style="@style/Widget.FastMediaSorter.Button.Outlined"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_small"
-                android:minHeight="@dimen/touch_target_min_height"
-                android:focusable="true"
-                android:clickable="true"
-                android:nextFocusUp="@+id/btnToggleCamera"
-                android:nextFocusRight="@+id/btnScreenOff"
-                android:nextFocusDown="@+id/btnShareLink"
-                android:text="@string/broadcast_control_switch_camera"
-                app:icon="@drawable/ic_camera_switch" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnScreenOff"
-                style="@style/Widget.FastMediaSorter.Button.Outlined"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="@dimen/touch_target_min_height"
-                android:focusable="true"
-                android:clickable="true"
-                android:contentDescription="@string/broadcast_control_screen_off_cd"
-                android:nextFocusUp="@+id/btnToggleMic"
-                android:nextFocusLeft="@+id/btnSwitchCamera"
-                android:nextFocusDown="@+id/btnSendToWatch"
-                android:text="@string/broadcast_control_screen_off"
-                app:icon="@drawable/ic_black_screen" />
-        </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSendToWatch"
-            style="@style/Widget.FastMediaSorter.Button.Tonal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:minHeight="@dimen/touch_target_min_height"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
             android:visibility="gone"
-            android:focusable="true"
-            android:clickable="true"
-            android:nextFocusUp="@+id/btnScreenOff"
-            android:nextFocusDown="@+id/btnShareLink"
-            android:text="@string/stream_action_send_to_watch"
-            app:icon="@drawable/ic_watch" />
+            android:layout_marginTop="@dimen/margin_small">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnShareLink"
-            style="@style/Widget.FastMediaSorter.Button.Tonal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:minHeight="@dimen/touch_target_min_height"
-            android:focusable="true"
-            android:clickable="true"
-            android:nextFocusUp="@+id/btnSendToWatch"
-            android:nextFocusDown="@+id/btnStopBroadcast"
-            android:text="@string/broadcast_control_share_link"
-            app:icon="@drawable/ic_share" />
+            <ImageView
+                android:id="@+id/ivShareQr"
+                android:layout_width="@dimen/broadcast_control_qr_size"
+                android:layout_height="@dimen/broadcast_control_qr_size"
+                android:contentDescription="@string/broadcast_share_qr_cd"
+                android:layout_marginBottom="@dimen/margin_small" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnStopBroadcast"
-            style="@style/Widget.FastMediaSorter.Button.Destructive"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:minHeight="@dimen/touch_target_min_height"
-            android:focusable="true"
-            android:clickable="true"
-            android:nextFocusUp="@+id/btnShareLink"
-            android:text="@string/broadcast_control_stop"
-            app:icon="@drawable/ic_cancel" />
-    </LinearLayout>
-
-    <!-- SHARE & QR PANEL CONTAINER -->
-    <LinearLayout
-        android:id="@+id/layoutSharePanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:visibility="gone"
-        android:layout_marginTop="@dimen/margin_small">
-
-        <ImageView
-            android:id="@+id/ivShareQr"
-            android:layout_width="@dimen/broadcast_control_qr_size"
-            android:layout_height="@dimen/broadcast_control_qr_size"
-            android:contentDescription="@string/broadcast_share_qr_cd"
-            android:layout_marginBottom="@dimen/margin_small" />
-
-        <TextView
-            android:id="@+id/tvShareUrl"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="?attr/colorOnSurface"
-            android:textIsSelectable="true"
-            android:layout_marginBottom="@dimen/margin_small" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCopyUrl"
-                style="@style/Widget.FastMediaSorter.Button.Outlined"
+            <TextView
+                android:id="@+id/tvShareUrl"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_small"
-                android:text="@string/broadcast_share_copy" />
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:textIsSelectable="true"
+                android:layout_marginBottom="@dimen/margin_small" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCopyUrl"
+                    style="@style/Widget.FastMediaSorter.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/margin_small"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:breakStrategy="simple"
+                    android:hyphenationFrequency="none"
+                    android:paddingStart="@dimen/padding_tiny"
+                    android:paddingEnd="@dimen/padding_tiny"
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="@dimen/broadcast_share_button_text_size_min"
+                    app:autoSizeMaxTextSize="@dimen/broadcast_share_button_text_size_max"
+                    android:nextFocusRight="@id/btnExportFile"
+                    android:text="@string/broadcast_share_copy" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnExportFile"
+                    style="@style/Widget.FastMediaSorter.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/margin_small"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:breakStrategy="simple"
+                    android:hyphenationFrequency="none"
+                    android:paddingStart="@dimen/padding_tiny"
+                    android:paddingEnd="@dimen/padding_tiny"
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="@dimen/broadcast_share_button_text_size_min"
+                    app:autoSizeMaxTextSize="@dimen/broadcast_share_button_text_size_max"
+                    android:nextFocusLeft="@id/btnCopyUrl"
+                    android:nextFocusRight="@id/btnShareSend"
+                    android:text="@string/broadcast_share_export_file" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnShareSend"
+                    style="@style/Widget.FastMediaSorter.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:breakStrategy="simple"
+                    android:hyphenationFrequency="none"
+                    android:paddingStart="@dimen/padding_tiny"
+                    android:paddingEnd="@dimen/padding_tiny"
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="@dimen/broadcast_share_button_text_size_min"
+                    app:autoSizeMaxTextSize="@dimen/broadcast_share_button_text_size_max"
+                    android:nextFocusLeft="@id/btnExportFile"
+                    android:text="@string/broadcast_share_send_link" />
+            </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnShareSend"
-                style="@style/Widget.FastMediaSorter.Button.Outlined"
+                android:id="@+id/btnBroadcastHelp"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/broadcast_share_send_link" />
+                android:layout_gravity="center_horizontal"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:focusable="true"
+                android:clickable="true"
+                android:nextFocusUp="@id/btnCopyUrl"
+                android:text="@string/broadcast_share_help"
+                app:icon="@drawable/ic_info" />
         </LinearLayout>
-    </LinearLayout>
 
-</LinearLayout>
+    </LinearLayout>
+</ScrollView>
+

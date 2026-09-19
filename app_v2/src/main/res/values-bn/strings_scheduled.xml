@@ -5,7 +5,7 @@
     <string name="scheduled_op_enabled_toggle">নির্ধারিত কার্যক্রম সক্ষম/অক্ষম করুন</string>
     <string name="scheduled_op_filter_all">সমস্ত ফাইল</string>
     <string name="scheduled_op_filter_audio">অডিও</string>
-    <string name="scheduled_op_filter_docs">ডাক্তাররা</string>
+    <string name="scheduled_op_filter_docs">নথি</string>
     <string name="scheduled_op_filter_images">ছবি</string>
     <string name="scheduled_op_filter_none">(কিছুই না)</string>
     <string name="scheduled_op_filter_video">ভিডিও</string>

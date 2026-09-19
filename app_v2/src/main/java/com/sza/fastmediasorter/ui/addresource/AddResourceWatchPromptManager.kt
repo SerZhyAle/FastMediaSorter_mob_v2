@@ -37,8 +37,8 @@ internal class AddResourceWatchPromptManager(
             .setTitle(R.string.paired_watch_name_dialog_title)
             // Wired below rather than here so an empty name keeps the dialog open instead of
             // silently creating a resource the list cannot label.
-            .setPositiveButton(android.R.string.ok, null)
-            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.ok, null)
+            .setNegativeButton(R.string.cancel, null)
             .setView(editText)
             .create()
 

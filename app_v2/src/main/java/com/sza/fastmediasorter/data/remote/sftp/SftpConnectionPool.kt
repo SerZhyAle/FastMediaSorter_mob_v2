@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.remote.sftp
 
+import androidx.annotation.WorkerThread
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Session
@@ -121,6 +122,9 @@ class SftpConnectionPool {
 
     // ── Suspend path (FILE_OPS) ──────────────────────────────────────────────────────────────────
 
+    // S3156: the annotation declares to NetworkDataSourceDispatcherDetector that `block` runs on a
+    // background dispatcher, so jsch calls inside a caller's lambda are not reported as unconfined.
+    @WorkerThread
     suspend fun <T> withConnection(
         info: SftpClient.SftpConnectionInfo,
         block: suspend (ChannelSftp) -> Result<T>

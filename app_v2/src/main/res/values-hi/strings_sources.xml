@@ -15,7 +15,7 @@
     <string name="smb_network_unstable">नेटवर्क अस्थिर है - कृपया वाई-फाई की जांच करें।</string>
     <string name="smb_no_shares_found_title">कोई शेयर नहीं मिले</string>
     <string name="smb_password">पासवर्ड</string>
-    <string name="smb_port">पत्तन</string>
+    <string name="smb_port">पोर्ट</string>
     <string name="smb_port_hint">डिफ़ॉल्ट: 445</string>
     <string name="smb_resource_added_readonly">SMB संसाधन जोड़ा गया (केवल पढ़ने के लिए)। लेखन कार्य उपलब्ध नहीं होंगे।</string>
     <string name="smb_resource_added_success">एसएमबी संसाधन सफलतापूर्वक जोड़ा गया</string>
@@ -36,7 +36,7 @@
     <string name="sftp_ftp_folder">एसएफटीपी / एफटीपी</string>
     <string name="sftp_ftp_folder_description">SFTP या FTP रिमोट फ़ोल्डर जोड़ें</string>
     <string name="sftp_ftp_port_hint">एसएफटीपी: 22, एफटीपी: 21</string>
-    <string name="sftp_host">मेज़बान</string>
+    <string name="sftp_host">होस्ट</string>
     <string name="sftp_host_hint">सर्वर आईपी पता</string>
     <string name="sftp_key_invalid">अमान्य SSH निजी कुंजी प्रारूप</string>
     <string name="sftp_key_load_error">कुंजी फ़ाइल लोड करने में विफल</string>
@@ -44,7 +44,7 @@
     <string name="sftp_key_passphrase_hint">यदि कुंजी एन्क्रिप्टेड नहीं है तो इसे खाली छोड़ दें।</string>
     <string name="sftp_load_key">फ़ाइल लोड करें</string>
     <string name="sftp_password">पासवर्ड</string>
-    <string name="sftp_port">पत्तन</string>
+    <string name="sftp_port">पोर्ट</string>
     <string name="sftp_private_key">निजी एसएसएच कुंजी</string>
     <string name="sftp_private_key_hint">कुंजी को पेस्ट करें या कोई फ़ाइल चुनें।</string>
     <string name="sftp_remote_path">दूरस्थ पथ</string>

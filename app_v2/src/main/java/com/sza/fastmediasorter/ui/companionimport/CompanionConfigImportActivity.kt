@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
 import com.sza.fastmediasorter.ui.companionimport.helpers.CompanionConfigImportManager
+import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -49,17 +50,29 @@ class CompanionConfigImportActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         // Only start the import flow once. On recreation (or process restore) do not re-parse and
         // re-confirm - that risks a duplicate import; the user can re-open the attachment instead.
-        if (savedInstanceState != null) {
-            finish()
-            return
+        val firstStart = savedInstanceState == null
+        val uri = if (firstStart) resolveUri() else null
+        when {
+            uri == null -> {
+                if (firstStart) {
+                    Timber.w("CompanionConfigImportActivity: no URI in intent (action=%s)", intent?.action)
+                }
+                finish()
+            }
+            importManager.isBroadcastDescriptor(contentResolver, uri) -> forwardToStreamsImport(uri)
+            else -> loadAndConfirm(uri)
         }
-        val uri = resolveUri()
-        if (uri == null) {
-            Timber.w("CompanionConfigImportActivity: no URI in intent (action=%s)", intent?.action)
-            finish()
-            return
+    }
+
+    /** S3052: same-uid hand-off, so the descriptor reaches the streams import instead of the config parser. */
+    private fun forwardToStreamsImport(uri: Uri) {
+        val forwarded = Intent(this, StreamsActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = uri
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        loadAndConfirm(uri)
+        startActivity(forwarded)
+        finish()
     }
 
     override fun onDestroy() {
@@ -102,7 +115,7 @@ class CompanionConfigImportActivity : AppCompatActivity() {
             .setTitle(R.string.companion_import_title)
             .setView(view)
             .setPositiveButton(R.string.companion_import_action, null)
-            .setNegativeButton(android.R.string.cancel) { _, _ -> finish() }
+            .setNegativeButton(R.string.cancel) { _, _ -> finish() }
             .setOnCancelListener { finish() }
             .create()
         // Custom positive handler so a blank password does not dismiss the dialog and does not clobber
@@ -141,7 +154,7 @@ class CompanionConfigImportActivity : AppCompatActivity() {
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.companion_import_title)
             .setMessage(message)
-            .setPositiveButton(android.R.string.ok) { _, _ -> finish() }
+            .setPositiveButton(R.string.ok) { _, _ -> finish() }
             .setOnCancelListener { finish() }
             .create()
         activeDialog = dialog

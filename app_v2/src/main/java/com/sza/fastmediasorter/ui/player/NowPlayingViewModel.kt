@@ -10,6 +10,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.sza.fastmediasorter.core.playback.MediaControllerRelease
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -140,12 +141,18 @@ class NowPlayingViewModel @Inject constructor(
         }, MoreExecutors.directExecutor())
     }
 
-    /** Disconnect and release MediaController. */
+    /**
+     * Disconnect and release MediaController.
+     *
+     * S3270: the teardown leaves as a looper message, so a dismiss driven from inside a
+     * [Player.Listener] callback cannot remove this controller's record while the session is still
+     * iterating its connected controllers.
+     */
     fun disconnect() {
         Timber.d("NowPlayingViewModel: disconnect")
         stopPositionPoll()
         mediaController?.removeListener(playerListener)
-        controllerFuture?.let { MediaController.releaseFuture(it) }
+        MediaControllerRelease.releaseFuture(controllerFuture, mediaController?.applicationLooper)
         controllerFuture = null
         mediaController = null
     }

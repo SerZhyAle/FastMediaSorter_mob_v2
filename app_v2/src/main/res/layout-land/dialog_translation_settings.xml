@@ -146,7 +146,7 @@
             style="@style/Widget.FastMediaSorter.Button.DialogCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@android:string/cancel" />
+            android:text="@string/cancel" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOk"
@@ -154,7 +154,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/dialog_action_button_gap"
-            android:text="@android:string/ok" />
+            android:text="@string/ok" />
 
     </LinearLayout>
 

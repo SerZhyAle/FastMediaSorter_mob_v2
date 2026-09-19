@@ -6,13 +6,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import androidx.compose.foundation.ScrollState
-import timber.log.Timber
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -34,6 +31,8 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
@@ -46,16 +45,16 @@ import androidx.wear.compose.material.scrollAway
 import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import kotlin.math.sqrt
 
-/** High battery threshold percentage (above 50% is green). */
-private const val BATTERY_HIGH_THRESHOLD = 50
+/** Warning threshold percentage: above it the bar is neutral white (S3100). */
+private const val BATTERY_HIGH_THRESHOLD = 25
 
-/** Low battery threshold percentage (20% or below is red). */
-private const val BATTERY_LOW_THRESHOLD = 20
+/** Critical threshold percentage: at it or below the bar is red (S3100). */
+private const val BATTERY_LOW_THRESHOLD = 10
 
 /** Full battery scale percentage. */
 private const val BATTERY_FULL_PERCENT = 100
 
-private const val BATTERY_COLOR_HIGH_HEX = 0xFF4CAF50L
+private const val BATTERY_COLOR_HIGH_HEX = 0xFFFFFFFFL
 private const val BATTERY_COLOR_MEDIUM_HEX = 0xFFFFC107L
 private const val BATTERY_COLOR_LOW_HEX = 0xFFF44336L
 private const val BATTERY_TRACK_COLOR_HEX = 0x66000000L
@@ -68,6 +67,11 @@ private val BATTERY_TRACK_COLOR = Color(BATTERY_TRACK_COLOR_HEX)
 private val BATTERY_BAR_WIDTH_DP = 36.dp
 private val BATTERY_BAR_HEIGHT_DP = 2.5.dp
 private val BATTERY_BAR_CORNER_RADIUS_DP = 1.25.dp
+private val BATTERY_BAR_GAP_DP = 1.dp
+
+/** Mirrors the library's private TimeTextDefaults padding, which is what the clock sits inside. */
+private val TIME_TEXT_PADDING_DP = 2.dp
+private const val CLOCK_SAMPLE_TEXT = "00:00"
 
 /**
  * Share of the shorter screen edge kept clear of controls on a round display. A chord near the top
@@ -176,7 +180,6 @@ fun WearScreenScaffold(
         pageIndicator = pageIndicator,
         timeText = if (showTimeText) {
             {
-                Timber.d("S3045: WearScreenScaffold top bar rendered with clock and battery level")
                 // S2522: the colour is passed explicitly because the clock does not follow the palette
                 // on its own - the library Scaffold does not wrap this slot in a content colour, so
                 // TimeText resolves to the hardcoded white below LocalContentColor. The theme now
@@ -195,15 +198,27 @@ fun WearScreenScaffold(
                     )
                 )
                 val batteryLevel = rememberBatteryLevel()
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = if (scrollState == null) Modifier else Modifier.scrollAway(scrollState)
+                // S3100: TimeText measures the whole frame - a square CurvedLayout on a round watch, a
+                // fillMaxSize Row on a square one - so a bar stacked beneath it in a Column was placed
+                // past the bottom edge and never drawn. The bar overlays the same frame instead, pushed
+                // down by the clock's own text height.
+                val clockTextHeight = with(LocalDensity.current) {
+                    rememberTextMeasurer().measure(CLOCK_SAMPLE_TEXT, textStyle).size.height.toDp()
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .then(if (scrollState == null) Modifier else Modifier.scrollAway(scrollState))
                 ) {
                     TimeText(
                         timeTextStyle = textStyle
                     )
-                    Spacer(modifier = Modifier.height(1.dp))
-                    WearBatteryBar(batteryLevel = batteryLevel)
+                    WearBatteryBar(
+                        batteryLevel = batteryLevel,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = TIME_TEXT_PADDING_DP + clockTextHeight + BATTERY_BAR_GAP_DP)
+                    )
                 }
             }
         } else {
@@ -442,6 +457,42 @@ fun wearCenteredSquareSide(): Dp {
 }
 
 /**
+ * Where a band stands beneath the centred [wearCenteredSquareSide] panel, and how wide it may be.
+ *
+ * @property bottomOffset distance from the bottom edge of the display to the bottom of the band.
+ * @property maxWidth widest the band may be at that height; [Dp.Infinity] where nothing bounds it.
+ */
+data class WearBandPlacement(val bottomOffset: Dp, val maxWidth: Dp)
+
+/**
+ * Placement of a band of [bandHeight] directly beneath the centred square panel.
+ *
+ * The module's eighth statement about screen shape. A row pinned to the bottom edge of a round display
+ * stands where the chord is shortest, so its ends leave the glass however short the row is - S3189
+ * measured the game counters 242 px from the centre of a 240 px radius. In the STORE view the band
+ * rises until its top meets the panel, and its width is the chord at its bottom edge less
+ * [SQUARE_INSET] on each side, so a band at the arc is not scored as touching it. The ORIGINAL view and
+ * a square screen answer a zero offset and no width bound, which is the row the owner's layout keeps.
+ *
+ * @param bandHeight height of the band, its own padding included.
+ */
+@Composable
+fun wearBelowSquareBand(bandHeight: Dp): WearBandPlacement {
+    val configuration = LocalConfiguration.current
+    val original = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
+    if (!configuration.isScreenRound || original) {
+        return WearBandPlacement(bottomOffset = 0.dp, maxWidth = Dp.Infinity)
+    }
+    val shorterEdge = minOf(configuration.screenWidthDp, configuration.screenHeightDp).dp
+    val bottomOffset = ((shorterEdge - wearCenteredSquareSide()) / 2 - bandHeight).coerceAtLeast(0.dp)
+    val sideClearance = wearChordInset(bottomOffset) + SQUARE_INSET
+    return WearBandPlacement(
+        bottomOffset = bottomOffset,
+        maxWidth = (shorterEdge - sideClearance * 2).coerceAtLeast(0.dp)
+    )
+}
+
+/**
  * Side of the largest square that stays whole when a block of [extraHeight] stands beneath it in
  * the same centered column.
  *
@@ -539,7 +590,11 @@ private fun rememberBatteryLevel(): Int {
 
 /**
  * Small battery charge indicator bar drawn directly below the time text.
- * Width matches clock digits (~36.dp), color reflects battery level (Green/Yellow/Red).
+ *
+ * Width matches clock digits (~36.dp) and the filled share is the charge percentage. The colour is a
+ * warning channel rather than a gauge (S3100): white while the charge is unremarkable, amber at 25%
+ * and below, red at 10% and below, so a glance at the clock carries the state without reading a
+ * number.
  */
 @Composable
 private fun WearBatteryBar(

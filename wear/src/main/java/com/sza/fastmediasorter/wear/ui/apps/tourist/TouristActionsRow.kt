@@ -2,65 +2,112 @@ package com.sza.fastmediasorter.wear.ui.apps.tourist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CompactChip
+import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 
+private val ATHLETE_H_PADDING = 14.dp
+private val ATHLETE_V_PADDING = 6.dp
+private val ROW_SPACING = 6.dp
+private val COLUMN_SPACING = 4.dp
+
 /**
- * S3007 / S3015: Quick action buttons for resetting metrics, toggling athlete mode and locking screen.
+ * S3007 / S3015: Quick action buttons for resetting metrics and entering athlete mode. S3115 moved the
+ * lock control onto the hero panel itself, so this row no longer carries it.
  */
 @Composable
 fun TouristActionsRow(
     onResetTrip: () -> Unit,
     onResetSteps: () -> Unit,
     onToggleAthleteMode: () -> Unit,
-    onLockScreen: () -> Unit,
+    onLaunchSos: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(COLUMN_SPACING),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(ROW_SPACING, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CompactChip(
                 onClick = onResetTrip,
-                label = { Text(stringResource(R.string.wear_tourist_action_reset_trip), fontSize = 10.sp) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.wear_tourist_action_reset_trip),
+                        style = MaterialTheme.typography.caption3,
+                    )
+                },
                 colors = ChipDefaults.secondaryChipColors(),
             )
             CompactChip(
                 onClick = onResetSteps,
-                label = { Text(stringResource(R.string.wear_tourist_action_reset_steps), fontSize = 10.sp) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.wear_tourist_action_reset_steps),
+                        style = MaterialTheme.typography.caption3,
+                    )
+                },
                 colors = ChipDefaults.secondaryChipColors(),
             )
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(ROW_SPACING, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CompactChip(
                 onClick = onToggleAthleteMode,
-                label = { Text("🏃 " + stringResource(R.string.wear_tourist_athlete_mode), fontSize = 10.sp) },
+                label = {
+                    Text(
+                        text = "🏃 " + stringResource(R.string.wear_tourist_athlete_mode),
+                        style = MaterialTheme.typography.caption2,
+                    )
+                },
                 colors = ChipDefaults.primaryChipColors(),
+                contentPadding = PaddingValues(
+                    horizontal = ATHLETE_H_PADDING,
+                    vertical = ATHLETE_V_PADDING,
+                ),
             )
+        }
+        // S3216: a row of its own rather than a fourth chip beside the two resets. The dashboard is
+        // where the owner already is when something goes wrong outdoors, so the distress signal has to
+        // be found without reading - and it must not be the neighbour of a button that zeroes a metric.
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(ROW_SPACING, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             CompactChip(
-                onClick = onLockScreen,
-                label = { Text("🔒 " + stringResource(R.string.wear_tourist_lock_screen), fontSize = 10.sp) },
-                colors = ChipDefaults.secondaryChipColors(),
+                onClick = onLaunchSos,
+                label = {
+                    Text(
+                        text = "🚨 " + stringResource(R.string.wear_tourist_action_sos),
+                        style = MaterialTheme.typography.caption2,
+                    )
+                },
+                colors = ChipDefaults.primaryChipColors(
+                    backgroundColor = colorResource(R.color.color_program_accent_scarlet),
+                ),
+                contentPadding = PaddingValues(
+                    horizontal = ATHLETE_H_PADDING,
+                    vertical = ATHLETE_V_PADDING,
+                ),
             )
         }
     }

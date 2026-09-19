@@ -15,7 +15,7 @@
     <string name="image_edit_grayscale">گرے اسکیل</string>
     <string name="image_edit_negative">منفی</string>
     <string name="image_edit_rotation">گردش</string>
-    <string name="image_edit_saturation">سنترپتی</string>
+    <string name="image_edit_saturation">رنگ کی شدت</string>
     <string name="image_edit_sepia">سیپیا</string>
     <string name="image_edit_title">تصویری ترمیم</string>
     <string name="image_format_label">فارمیٹ: %1$s</string>

@@ -50,6 +50,7 @@ class LauncherHomeViewModelSeedTest {
             isCameraWallpaperAvailable = mockk(relaxed = true),
             savedStateHandle = SavedStateHandle(),
             resolveRouteAvailability = mockk(relaxed = true),
+            powerStateObserver = mockk(relaxed = true),
         )
     }
 
@@ -117,6 +118,7 @@ class LauncherHomeViewModelSeedTest {
             isCameraWallpaperAvailable = mockk(relaxed = true),
             savedStateHandle = SavedStateHandle(),
             resolveRouteAvailability = mockk(relaxed = true),
+            powerStateObserver = mockk(relaxed = true),
         )
 
         viewModel.setActiveScreenIndex(1)

@@ -105,7 +105,6 @@ class WearMediaRepositoryImpl(
         val isImages = preferencesRepository?.isImagesEnabled?.firstOrNull() ?: true
         val isDocs = preferencesRepository?.isDocumentsEnabled?.firstOrNull() ?: true
 
-
         val mediaFiles = mutableListOf<WearMediaFile>()
         if (isAudio) mediaFiles.addAll(queryMediaStore(MediaType.MUSIC))
         if (isVideo) mediaFiles.addAll(queryMediaStore(MediaType.VIDEO))

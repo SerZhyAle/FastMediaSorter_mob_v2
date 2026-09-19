@@ -57,6 +57,13 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.GENERAL,
             "btnResetLauncher"
         ),
+        // S1565: the import/export menu is a dialog on the General tab, opened by rowDataTransfer.
+        DocScopeSurface(
+            R.layout.dialog_data_transfer,
+            "general",
+            SettingsSearchDestination.GENERAL,
+            "rowDataTransfer"
+        ),
         DocScopeSurface(
             R.layout.dialog_edge_gesture_config,
             "gestures",
@@ -322,6 +329,17 @@ object SettingsDocScopeCatalog {
             titleEn = "Player panel auto-hide duration (s)",
             titleRu = "Автоскрытие панели плеера (сек)",
             titleUk = "Автоприховування панелі плеєра (сек)"
+        ),
+        // S3324: the watch's Screen row delivered by S3256. The decision itself is authored on the
+        // phone's playback settings and synced here, so the registry holds it PHONE_ONLY - the row is
+        // still one the owner sees on the watch, which is what this reference lists.
+        WearDocEntry(
+            key = "wearDimClockOverlay",
+            layout = "wear_screen_settings",
+            kind = "TOGGLE_ROW",
+            titleEn = "Show clock and status while dimmed",
+            titleRu = "Выводить часы и состояние во время затемнения",
+            titleUk = "Показувати годинник і стан під час затемнення"
         )
     )
 }

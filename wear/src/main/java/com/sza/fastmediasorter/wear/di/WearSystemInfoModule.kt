@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.di
 
+import com.sza.fastmediasorter.wear.data.wear.AndroidWearSystemInfoReportSender
+import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoReportSender
 import com.sza.fastmediasorter.wear.domain.systeminfo.AppInfoContributor
 import com.sza.fastmediasorter.wear.domain.systeminfo.DeviceInfoContributor
 import com.sza.fastmediasorter.wear.domain.systeminfo.EnvironmentInfoContributor
@@ -70,4 +72,9 @@ abstract class WearSystemInfoModule {
     @Binds
     @IntoSet
     abstract fun bindPhoneLinkContributor(impl: PhoneLinkContributor): WearSystemInfoContributor
+
+    @Binds
+    abstract fun bindSystemInfoReportSender(
+        impl: AndroidWearSystemInfoReportSender
+    ): WearSystemInfoReportSender
 }

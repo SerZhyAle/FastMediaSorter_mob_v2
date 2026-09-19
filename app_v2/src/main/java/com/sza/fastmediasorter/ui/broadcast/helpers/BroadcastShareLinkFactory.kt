@@ -1,10 +1,14 @@
 package com.sza.fastmediasorter.ui.broadcast.helpers
 
+import com.sza.fastmediasorter.BuildConfig
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 object BroadcastShareLinkFactory {
-    private const val PACKAGE_NAME = "com.sza.fastmediasorter"
+    // The intent hint names the SENDING build's own package, not the store id: a hardcoded store id
+    // makes a debug build emit a link only the store build can open, which left the link path
+    // unverifiable on any test device (S3053, device run 2026-09-13).
+    private val PACKAGE_NAME: String = BuildConfig.APPLICATION_ID
     private const val FALLBACK_PAGE =
         "https://serzhyale.github.io/FastMediaSorter_mob_v2/broadcast-import.html"
 

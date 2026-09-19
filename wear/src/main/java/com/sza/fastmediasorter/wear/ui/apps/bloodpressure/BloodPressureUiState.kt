@@ -1,29 +1,49 @@
 package com.sza.fastmediasorter.wear.ui.apps.bloodpressure
 
-import androidx.annotation.StringRes
+import com.sza.fastmediasorter.wear.domain.bloodpressure.PulseWaveRejection
+import com.sza.fastmediasorter.wear.domain.bodysensor.BodySensorUnavailableReason
 import com.sza.fastmediasorter.wear.domain.model.BloodPressureCategory
 import com.sza.fastmediasorter.wear.domain.model.BloodPressureHistoryEntry
 
-private const val DEFAULT_SYSTOLIC = 120
-private const val DEFAULT_DIASTOLIC = 80
+/**
+ * S3113: what the blood-pressure screen is showing at one moment - exactly one of these.
+ *
+ * Each refusal is its own shape because each has its own sentence (strategic §11 criterion 3).
+ */
+sealed interface BloodPressureEstimatePhase {
+
+    data object Idle : BloodPressureEstimatePhase
+
+    data class Capturing(val elapsedMillis: Long, val totalMillis: Long) : BloodPressureEstimatePhase
+
+    /** An estimate - never a measurement - with what it rests on, already rounded for display. */
+    data class Estimated(
+        val systolic: Int,
+        val diastolic: Int,
+        val pulse: Int,
+        val category: BloodPressureCategory,
+        val pairCount: Int,
+        val newestPairAgeDays: Long,
+        val errorSystolic: Int?,
+        val errorDiastolic: Int?
+    ) : BloodPressureEstimatePhase
+
+    data class NotCalibrated(val pairCount: Int, val requiredPairs: Int) : BloodPressureEstimatePhase
+
+    data class Rejected(val reason: PulseWaveRejection) : BloodPressureEstimatePhase
+
+    data class Unavailable(val reason: BodySensorUnavailableReason) : BloodPressureEstimatePhase
+}
 
 /**
- * S3012: UI state for the blood pressure measurement and input screen.
+ * S3012/S3113: UI state of the blood-pressure screen.
  *
- * @param systolicInput current text value for systolic pressure.
- * @param diastolicInput current text value for diastolic pressure.
- * @param canSave whether the current inputs form a valid saveable measurement.
- * @param currentCategory live classification category for the currently entered inputs.
- * @param lastReading the most recent saved measurement from history.
- * @param lastReadingCategory classification category of the last saved measurement.
- * @param errorMessageRes validation error string resource, or null when valid.
+ * @param phase the estimate in progress, its result, or the reason there is none.
+ * @param lastReading the newest history row, shown while no estimate is on screen.
+ * @param canMeasure whether "measure again" could lead anywhere from [phase].
  */
 data class BloodPressureUiState(
-    val systolicInput: String = DEFAULT_SYSTOLIC.toString(),
-    val diastolicInput: String = DEFAULT_DIASTOLIC.toString(),
-    val canSave: Boolean = true,
-    val currentCategory: BloodPressureCategory? = BloodPressureCategory.NORMAL,
+    val phase: BloodPressureEstimatePhase = BloodPressureEstimatePhase.Idle,
     val lastReading: BloodPressureHistoryEntry? = null,
-    val lastReadingCategory: BloodPressureCategory? = null,
-    @StringRes val errorMessageRes: Int? = null
+    val canMeasure: Boolean = false
 )

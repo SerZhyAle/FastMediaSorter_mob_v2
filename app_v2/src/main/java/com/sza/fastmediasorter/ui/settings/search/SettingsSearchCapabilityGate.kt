@@ -101,11 +101,13 @@ class SettingsSearchCapabilityGate @Inject constructor(
         // (launcher bound = standard + noLegal); mirrors GeneralSettingsFragment.setupScreenshotTestButton
         // so search never surfaces it in a release build.
         "btnTakeScreenshotNow" -> BuildConfig.DEBUG && menuScreenshotLaunchers.isNotEmpty()
-        // S1088: the launcher enable toggle + the dialog-entry row moved into the always-available General
+        // S1088: the launcher enable control + the dialog-entry row moved into the always-available General
         // tab; both are GONE when the launcher capability is absent, so mirror that to avoid a dead search
         // hit. The former composition/density rows now live in LauncherSettingsDialogFragment, whose layout
         // is not in the search catalog (SettingsSearchLayoutCatalog), so they no longer need a branch here.
-        "rowLauncherModeEnabled",
+        // S3024 replaced the standalone enable toggle with the primary-window choice; the old
+        // rowLauncherModeEnabled id exists in no layout, so a branch on it could never match.
+        "rowLauncherPrimaryWindow",
         "rowLauncherSettings" -> launcherModeContract.isAvailableInBuild
         // S1170: "add a widget to the launcher desktop" is GONE without the launcher surface, and the
         // owning fragment additionally hides it until launcher mode is actually on. Only the build axis

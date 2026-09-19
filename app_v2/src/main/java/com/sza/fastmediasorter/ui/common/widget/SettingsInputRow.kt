@@ -4,6 +4,7 @@ import android.content.Context
 import android.text.Editable
 import android.text.InputFilter
 import android.text.InputType
+import android.text.TextUtils
 import android.text.TextWatcher
 import android.util.AttributeSet
 import android.view.Gravity
@@ -11,6 +12,7 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -38,12 +40,15 @@ import timber.log.Timber
  * S2786: two opt-in extras. `sir_inline` puts the title and the field on one line, and `sir_entries`
  * offers presets beside a field that stays freely editable. Both default to off, so the row's other
  * call sites keep the stacked, picker-less form.
+ *
+ * S3235: an inline row is also a [LabelColumnRow], so it shares the label column of the
+ * [SettingsValueRowGroup] it sits in instead of starting its caption on an offset of its own.
  */
 class SettingsInputRow @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : LinearLayout(context, attrs, defStyleAttr) {
+) : LinearLayout(context, attrs, defStyleAttr), LabelColumnRow {
 
     private val binding = ViewSettingsInputRowBinding.inflate(LayoutInflater.from(context), this)
 
@@ -62,8 +67,15 @@ class SettingsInputRow @JvmOverloads constructor(
     private var entries: List<CharSequence> = emptyList()
     private var optionsPopup: ListPopupWindow? = null
 
+    // The value the commit listener last saw, so a second commit path for the same text is a no-op
+    // instead of another identical DataStore write (S3234).
+    private var lastCommittedText: String? = null
+
     // MATCH_PARENT keeps the stacked default; sir_fieldMaxWidth turns the inline field into a fixed column.
     private var fieldWidthPx: Int = LayoutParams.MATCH_PARENT
+
+    // Only an inline row has a label column to share - a stacked one draws its caption on its own line.
+    private var inlineLayout: Boolean = false
 
     /**
      * Current input text.
@@ -71,6 +83,8 @@ class SettingsInputRow @JvmOverloads constructor(
     var text: CharSequence
         get() = editText.text?.toString().orEmpty()
         set(value) {
+            // Text pushed in by a host comes from storage, so it counts as already committed.
+            lastCommittedText = value.toString()
             editText.setText(value)
         }
 
@@ -113,12 +127,26 @@ class SettingsInputRow @JvmOverloads constructor(
     }
 
     /**
-     * Registers the listener invoked when the user commits the input - on focus loss or an IME
-     * done/next action. Use this for numeric fields that must validate/clamp the final value
-     * rather than react to every keystroke. Replaces any previous listener.
+     * Registers the listener invoked when the user commits the input - on focus loss, on an IME
+     * done/next/go action or ENTER, and on [commitPending]. Use this for numeric fields that must
+     * validate/clamp the final value rather than react to every keystroke. Replaces any previous
+     * listener.
      */
     fun setOnCommitListener(listener: ((CharSequence) -> Unit)?) {
         commitListener = listener
+    }
+
+    /**
+     * Commits the current text without waiting for focus to leave the field. Tapping a button on the
+     * host screen does not move focus out of an [android.widget.EditText], so a screen that is about to
+     * read the stored value calls this first; otherwise the action runs on the previous value while the
+     * field shows the new one (S3234). A text equal to the last committed one commits nothing.
+     */
+    fun commitPending() {
+        val current = text.toString()
+        if (current == lastCommittedText) return
+        lastCommittedText = current
+        commitListener?.invoke(current)
     }
 
     /**
@@ -159,6 +187,7 @@ class SettingsInputRow @JvmOverloads constructor(
     }
 
     override fun onDetachedFromWindow() {
+        commitPending()
         dismissOptions()
         super.onDetachedFromWindow()
     }
@@ -176,14 +205,31 @@ class SettingsInputRow @JvmOverloads constructor(
 
     private fun bindCommit() {
         editText.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) commitListener?.invoke(text)
+            if (!hasFocus) commitPending()
         }
-        editText.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_NEXT) {
-                commitListener?.invoke(text)
-            }
-            false
+        editText.setOnEditorActionListener { _, actionId, event ->
+            if (!isCommitAction(actionId, event)) return@setOnEditorActionListener false
+            commitPending()
+            hideKeyboard()
+            editText.clearFocus()
+            // Consumed on purpose: an unhandled ENTER falls through to the window and the hosting
+            // Activity closes instead of the value being committed (S3234).
+            true
         }
+    }
+
+    /**
+     * An ENTER from a hardware keyboard arrives as [EditorInfo.IME_NULL] carrying the key event, while
+     * the on-screen keyboard sends its action id; both mean "the value is final".
+     */
+    private fun isCommitAction(actionId: Int, event: KeyEvent?): Boolean {
+        if (actionId in COMMIT_ACTION_IDS) return true
+        return actionId == EditorInfo.IME_NULL && event?.keyCode == KeyEvent.KEYCODE_ENTER
+    }
+
+    private fun hideKeyboard() {
+        val manager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        manager?.hideSoftInputFromWindow(editText.windowToken, 0)
     }
 
     private fun bindHelpClick() {
@@ -257,7 +303,7 @@ class SettingsInputRow @JvmOverloads constructor(
         val picked = entries.getOrNull(position) ?: return
         editText.setText(picked)
         editText.setSelection(editText.text?.length ?: 0)
-        commitListener?.invoke(picked)
+        commitPending()
     }
 
     /**
@@ -267,6 +313,7 @@ class SettingsInputRow @JvmOverloads constructor(
      * (owner ruling 2026-09-01).
      */
     private fun applyInlineLayout() {
+        inlineLayout = true
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         titleLineSpacer.visibility = View.GONE
@@ -283,6 +330,60 @@ class SettingsInputRow @JvmOverloads constructor(
         inlineTailSpacer.updateLayoutParams<LayoutParams> {
             width = 0
             weight = 1f
+            // S3229: a bare View reports the whole AT_MOST spec back, so an unbounded height here grew
+            // the row to the full height of the card it sits in and pushed the screen's actions out.
+            height = 0
+        }
+    }
+
+    /**
+     * Natural width of the title plus its help icon, measured unconstrained so a column width the
+     * group already applied is never fed back to it. A stacked row reports zero: it has no label
+     * column, and a caption on its own line must not widen the one its inline siblings share.
+     */
+    override fun measureLabelNaturalWidth(): Int {
+        if (!inlineLayout) return 0
+        val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        titleView.measure(unbounded, unbounded)
+        var width = titleView.measuredWidth
+        if (helpIcon.visibility == View.VISIBLE) {
+            helpIcon.measure(unbounded, unbounded)
+            width += helpIcon.measuredWidth + resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+        }
+        return width
+    }
+
+    /**
+     * Width the field needs to the right of the label column, gap included. A field pinned by
+     * `sir_fieldMaxWidth` reports that width directly - measuring it unconstrained would return the
+     * text's own appetite rather than the column it was given.
+     */
+    override fun measureTrailingNaturalWidth(): Int {
+        if (!inlineLayout) return 0
+        val gap = resources.getDimensionPixelSize(R.dimen.margin_medium)
+        val field = if (fieldWidthPx > 0) {
+            fieldWidthPx
+        } else {
+            val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+            inputLayout.measure(unbounded, unbounded)
+            inputLayout.measuredWidth
+        }
+        return gap + field
+    }
+
+    /**
+     * Pins the title line to [widthPx] so the field starts where the siblings' values start. Zero
+     * restores the hug-the-content form, which is what the group asks for when no column fits.
+     */
+    override fun applyLabelColumnWidth(widthPx: Int) {
+        if (!inlineLayout) return
+        val column = widthPx > 0
+        titleView.maxLines = if (column) 1 else Int.MAX_VALUE
+        titleView.ellipsize = if (column) TextUtils.TruncateAt.END else null
+        titleLine.updateLayoutParams<LayoutParams> {
+            width = if (column) widthPx else LayoutParams.WRAP_CONTENT
+            weight = 0f
+            marginEnd = resources.getDimensionPixelSize(R.dimen.margin_medium)
         }
     }
 
@@ -335,5 +436,13 @@ class SettingsInputRow @JvmOverloads constructor(
 
     private fun hasHelpPayload(): Boolean {
         return !helpTitleText.isNullOrEmpty() && !helpMessageText.isNullOrEmpty()
+    }
+
+    private companion object {
+        val COMMIT_ACTION_IDS = setOf(
+            EditorInfo.IME_ACTION_DONE,
+            EditorInfo.IME_ACTION_NEXT,
+            EditorInfo.IME_ACTION_GO,
+        )
     }
 }

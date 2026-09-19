@@ -7,6 +7,8 @@ permalink: /docs/howto/scenario-watch-tv.html
 
 > **Level:** Beginner &bull; **Time:** ~10 minutes &bull; **Device:** Wear OS smartwatch
 
+> **Full version only** - this guide is not implemented in the version distributed through Google Play. It applies to the full version, a direct APK download from [Downloads](../DOWNLOADS.md).
+
 [Русский](scenario-watch-tv-ru.md) | [Українська](scenario-watch-tv-uk.md)
 
 FastMedia Wear plays live TV and radio channels straight on your wrist. The watch opens the stream over its own Wi-Fi, so once a channel is on the list you can watch it with the phone in another room, in a bag, or switched off entirely.
@@ -72,7 +74,7 @@ In grid mode, a video channel shows a preview picture before you have ever opene
 2. **Volume:** turn the rotating bezel or crown.
 3. **Seek:** long press the previous or next button. Both buttons stay on screen even for a single channel.
 4. **Frame:** the frame-mode button switches between fitting the whole picture inside the round glass and cropping it to fill the screen. The watch remembers your choice - it survives leaving the player and restarting the app, and the same choice covers your own video files.
-5. **Screen off:** the player menu has a **Screen off** entry. The display goes completely black - no clock, no controls - while the channel keeps playing, and the watch will not fall asleep. Tap anywhere to bring the picture and the controls back exactly as you left them.
+5. **Screen off:** the player menu has a **Screen off** entry. The display goes completely black - no clock, no controls - while the channel keeps playing, and the watch will not fall asleep. A single tap only marks the spot you touched with a small white dot; a double tap, a press and hold, or the watch's own button brings the picture and the controls back exactly as you left them.
 6. **Pin:** the mark on the player pins the channel. Pinned channels are listed first the next time you open Streams: the ones you pinned here on the watch lead, the ones pinned on the phone follow them, and everything else keeps the order your chosen sort gives it. The pin is keyed to the channel address, so it survives a catalogue re-import.
 
 > **Video needs the screen.** Background playback keeps **audio** going after you leave the app - useful for radio channels - but video and slideshows stop when the app leaves the screen. That is deliberate: a video you cannot see only drains the battery.

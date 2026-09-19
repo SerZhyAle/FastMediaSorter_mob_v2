@@ -13,6 +13,7 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.playback.MediaControllerRelease
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import timber.log.Timber
@@ -87,7 +88,7 @@ class AudioToggleTileService : TileService() {
             try {
                 if (future !== controllerFuture) {
                     try {
-                        future.get().release()
+                        MediaControllerRelease.release(future.get())
                     } catch (ignored: Exception) {
                         // ignore release failures of obsolete controllers
                     }
@@ -99,7 +100,7 @@ class AudioToggleTileService : TileService() {
                 // would otherwise be replaced here without release - leaking it and its Player.Listener.
                 mediaController?.let {
                     it.removeListener(tilePlayerListener)
-                    it.release()
+                    MediaControllerRelease.release(it)
                 }
                 mediaController = controller
                 controller.addListener(tilePlayerListener)
@@ -150,11 +151,16 @@ class AudioToggleTileService : TileService() {
         tile.updateTile()
     }
 
+    /**
+     * S3270: the tile's own [Player.Listener] fires on every playback transition, and `onStopListening`
+     * can land inside that dispatch - so the teardown leaves as a looper message rather than removing
+     * this controller's record while the session is still iterating.
+     */
     private fun releaseController() {
         mediaController?.removeListener(tilePlayerListener)
-        mediaController?.release()
+        MediaControllerRelease.release(mediaController)
         mediaController = null
-        controllerFuture?.let { MediaController.releaseFuture(it) }
+        MediaControllerRelease.releaseFuture(controllerFuture)
         controllerFuture = null
     }
 

@@ -13,7 +13,7 @@ class BroadcastLensChipsRenderer(
     private val onLensSelected: (String) -> Unit,
 ) {
 
-    fun render(lensUi: BroadcastEntryManager.LensUi) {
+    fun render(lensUi: BroadcastEntryUi.LensUi) {
         val visibility = if (lensUi.visible) View.VISIBLE else View.GONE
         label.visibility = visibility
         group.visibility = visibility

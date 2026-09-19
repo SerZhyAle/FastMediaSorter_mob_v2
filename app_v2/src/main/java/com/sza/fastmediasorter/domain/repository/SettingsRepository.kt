@@ -28,6 +28,8 @@ interface SettingsRepository {
     suspend fun updateScheduledOperationsPaused(paused: Boolean)
     /** S0473: persists the opt-in statistics flag (also surfaced in [getSettings]). */
     suspend fun setStatisticsEnabled(enabled: Boolean)
+    /** S3256: persists the dim clock overlay toggle. */
+    suspend fun updateDimClockOverlayEnabled(enabled: Boolean)
     suspend fun isTouchZoneHintShown(type: TouchZoneHintType): Boolean
     suspend fun setTouchZoneHintShown(type: TouchZoneHintType, shown: Boolean)
     suspend fun resetAllTouchZoneHints()

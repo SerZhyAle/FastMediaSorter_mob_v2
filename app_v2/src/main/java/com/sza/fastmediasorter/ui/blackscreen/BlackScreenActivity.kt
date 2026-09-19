@@ -36,7 +36,7 @@ class BlackScreenActivity : BaseActivity<ActivityBlackScreenBinding>() {
     }
 
     override fun setupViews() {
-        binding.blackScreenRoot.setOnClickListener { finish() }
+        binding.blackScreenRoot.onExit = { finish() }
     }
 
     override fun observeData() {
@@ -44,11 +44,8 @@ class BlackScreenActivity : BaseActivity<ActivityBlackScreenBinding>() {
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (event.action == MotionEvent.ACTION_DOWN) {
-            finish()
-            return true
-        }
-        return super.onTouchEvent(event)
+        binding.blackScreenRoot.dispatchTouchEvent(event)
+        return true
     }
 
     override fun onGenericMotionEvent(event: MotionEvent): Boolean {
@@ -57,8 +54,11 @@ class BlackScreenActivity : BaseActivity<ActivityBlackScreenBinding>() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        finish()
-        return true
+        if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ESCAPE) {
+            finish()
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun onDestroy() {

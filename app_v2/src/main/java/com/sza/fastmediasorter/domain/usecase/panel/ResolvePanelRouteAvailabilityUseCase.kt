@@ -13,7 +13,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -192,6 +191,11 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // a light and still a lock, and the torch call degrades to a logged no-op.
             InternalRouteCatalog.KEY_WATER_FLASHLIGHT ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.waterFlashlightEnabled)
+            // S3216: the fourth member of the family, and not gated on a camera flash for the water
+            // flashlight's reason - the siren and the lit screen work on a phone without a flash unit,
+            // and the torch half degrades to a logged no-op there.
+            InternalRouteCatalog.KEY_SOS ->
+                Availability(availableInBuild = true, enabledAtRuntime = settings.enableSos)
             // S2211: black screen needs no special capability - always available in build and runtime.
             InternalRouteCatalog.KEY_BLACK_SCREEN ->
                 Availability(availableInBuild = true, enabledAtRuntime = true)

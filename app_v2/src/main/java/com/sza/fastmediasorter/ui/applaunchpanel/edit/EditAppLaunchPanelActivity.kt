@@ -113,7 +113,7 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
                 }
                 dialog.dismiss()
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(this@EditAppLaunchPanelActivity)
     }
 
@@ -157,7 +157,7 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
                 }
                 dialog.dismiss()
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(this@EditAppLaunchPanelActivity)
     }
 
@@ -170,7 +170,7 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
                 viewModel.resetPanel()
                 dialog.dismiss()
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(this@EditAppLaunchPanelActivity)
     }
 
@@ -184,7 +184,7 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
                 viewModel.moveTile(fromSlot, which)
                 dialog.dismiss()
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(this@EditAppLaunchPanelActivity)
     }
 

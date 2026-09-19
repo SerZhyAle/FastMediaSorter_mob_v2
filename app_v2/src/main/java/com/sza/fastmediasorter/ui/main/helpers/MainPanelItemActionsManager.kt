@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
 import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.util.UUID
 
 /**
@@ -44,7 +43,6 @@ class MainPanelItemActionsManager(
     // S0293 Phase 08: launch BrowseActivity for the given resource as a new task so the
     // platform places it in a separate window (Quest 3 panel / DeX desktop / ChromeOS).
     fun openResourceInNewWindow(resourceId: Long) {
-        Timber.d("S3125: opening resource document window")
         val windowId = UUID.randomUUID().toString()
         val intent = Intent(activity, BrowseActivity::class.java).apply {
             putExtra(BrowseActivity.EXTRA_RESOURCE_ID, resourceId)
@@ -61,7 +59,6 @@ class MainPanelItemActionsManager(
 
     /** Launch an activity intent in a separate window (same flags as [openResourceInNewWindow]). */
     fun launchInNewWindow(intent: Intent) {
-        Timber.d("S3125: opening panel document window")
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         activity.startActivity(intent)
     }
@@ -76,7 +73,7 @@ class MainPanelItemActionsManager(
                 val current = currentSettings() ?: return@setPositiveButton
                 activity.lifecycleScope.launch { settingsRepository.updateSettings(apply(current)) }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 
@@ -117,7 +114,7 @@ class MainPanelItemActionsManager(
             .setPositiveButton(R.string.remove_action) { _, _ ->
                 unpinStreamSource(channel.id)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 }

@@ -58,9 +58,15 @@ internal object WearPreferenceKeys {
     val IMAGE_SCALE_MODE = stringPreferencesKey("wear_image_scale_mode")
     val KEEP_SCREEN_AWAKE = booleanPreferencesKey("wear_keep_screen_awake")
     val BACKGROUND_PLAYBACK = booleanPreferencesKey("wear_background_playback")
+    val DIM_CLOCK_OVERLAY_ENABLED = booleanPreferencesKey("wear_dim_clock_overlay_enabled")
+    val DIM_CLOCK_SECONDS_VISIBLE = booleanPreferencesKey("wear_dim_clock_seconds_visible")
     val LAST_USED_RESOURCE = stringPreferencesKey("wear_last_used_resource")
     val LAST_USED_RESOURCE_ID = stringPreferencesKey("wear_last_used_resource_id")
     val LAST_USED_RESOURCES = stringPreferencesKey("wear_last_used_resources")
+
+    // S3116: the mini-program opened last, stored as a WearAppId name. Absent means none has been
+    // opened yet, which the home row reads as the Broadcast entrance it carried before this ticket.
+    val LAST_USED_APP = stringPreferencesKey("wear_last_used_app")
     val STREAMS_SECTION_ENABLED = booleanPreferencesKey("wear_streams_section_enabled")
 
     // S2146: the streams screen's own filter and sort memory. Named per screen, not shared.
@@ -105,6 +111,7 @@ internal object WearPreferenceKeys {
     val APP_LANGUAGE = stringPreferencesKey("wear_app_language")
     val VOICE_NOTE_SEND_POLICY = stringPreferencesKey("wear_voice_note_send_policy")
     val NOTIFICATION_PERMISSION_ASKED = booleanPreferencesKey("wear_notification_permission_asked")
+    val ONBOARDING_COMPLETED = booleanPreferencesKey("wear_onboarding_completed")
     val SETTING_TIMESTAMPS = stringPreferencesKey("wear_setting_timestamps")
     val LAST_SETTINGS_SYNC = longPreferencesKey("wear_settings_last_sync")
 }

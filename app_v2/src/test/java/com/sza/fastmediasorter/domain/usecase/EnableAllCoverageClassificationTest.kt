@@ -53,6 +53,13 @@ class EnableAllCoverageClassificationTest {
         OWN_CONSENT_SURFACE,
 
         /**
+         * Reaching its surface IS the action: the program runs the moment its window opens, so the
+         * switch does not unlock a capability the user then chooses to use - it moves the act itself
+         * one tap away.
+         */
+        STARTS_ON_REACH,
+
+        /**
          * Chooses how something looks or behaves rather than whether it exists; also covers stored UI
          * state, one-shot hint flags, and master switches already on by default.
          */
@@ -320,10 +327,23 @@ class EnableAllCoverageClassificationTest {
                 "enableTranslation",
             ),
             Coverage.PRIVACY_OR_SECURITY to setOf(
+                // S3222: the two broadcast capture switches left this list with the fold into
+                // BroadcastSettings - the walk reads AppSettings' own fields and does not descend into a
+                // group, exactly as it has never seen the launcher booleans. Their S3163 decision stands
+                // (the button must not answer "may this feed leave the device"); what is gone is the
+                // mechanical proof of it, which is a hole this walk has for every grouped boolean.
                 "cameraGeotagEnabled",
                 "enableStatistics",
                 "recordGnssTrack",
                 "secureSensitiveScreens",
+            ),
+            Coverage.STARTS_ON_REACH to setOf(
+                // S3224: SosActivity starts SosService as it resolves its mode, so opening the program
+                // sounds the siren - there is no further step for the user to take. S3216 wrote the same
+                // rule for the default ("an update never puts a siren one tap away from a pocket"), and a
+                // button that answers "everything this build ships" must not answer it for the phone's
+                // distress signal either.
+                "enableSos",
             ),
             Coverage.DESTRUCTIVE_OR_DATA_RISK to setOf(
                 "allowDelete",
@@ -354,7 +374,6 @@ class EnableAllCoverageClassificationTest {
                 // must not appear. A button switching it on everywhere would restore that defect.
                 "allowSeparateWindow",
                 "alwaysShowTouchZonesOverlay",
-                "broadcastAutoOpenShare",
                 "cameraCaptureCopyToClipboard",
                 "cameraCaptureOpenForEditing",
                 "cameraGridEnabled",

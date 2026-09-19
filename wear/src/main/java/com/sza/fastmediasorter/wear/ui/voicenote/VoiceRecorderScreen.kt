@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,8 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.MaterialTheme
@@ -46,13 +45,14 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingErrorReason
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingState
+import com.sza.fastmediasorter.wear.ui.common.StandardWearChip
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
-import com.sza.fastmediasorter.wear.ui.common.WearFitText
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
+import timber.log.Timber
 
 private val SECTION_GAP = 6.dp
 private val STATUS_ICON_SIZE = 32.dp
@@ -83,6 +83,9 @@ fun VoiceRecorderScreen(
         .first { it.permission == Manifest.permission.RECORD_AUDIO }
         .status
         .isGranted
+    LaunchedEffect(Unit) {
+        Timber.d("S3259: voice recorder shown - action chips are StandardWearChip")
+    }
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -141,33 +144,43 @@ private fun RecorderActions(
         verticalArrangement = Arrangement.spacedBy(SECTION_GAP),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        RecorderActionChip(
-            state = uiState.recording,
-            startAllowed = microphoneGranted && uiState.hasRoomToRecord,
-            onStart = onStart,
-            onStop = onStop
+        val stopping = uiState.recording is VoiceRecordingState.Recording
+        StandardWearChip(
+            label = stringResource(
+                if (stopping) R.string.wear_voice_note_stop else R.string.wear_voice_note_start
+            ),
+            onClick = if (stopping) onStop else onStart,
+            icon = { ActionIcon(if (stopping) Icons.Default.Stop else Icons.Default.Mic) },
+            // Finishing refuses both: the container is still being flushed, so a second stop would
+            // race the first and a start would open the microphone over a session that has not let
+            // go of it.
+            enabled = stopping ||
+                (microphoneGranted && uiState.hasRoomToRecord && uiState.recording !is VoiceRecordingState.Finishing)
         )
         // S2161: play-back control visible when idle and a note exists. Hidden while recording
         // so the recording state's own controls stay unambiguous (strategic §5.3).
         val recentNote = uiState.mostRecentNote
         if (uiState.recording is VoiceRecordingState.Idle && recentNote != null) {
-            SecondaryChip(
-                labelRes = R.string.wear_voice_note_play_last,
-                icon = Icons.Default.PlayArrow,
-                onClick = { onPlayNote(recentNote) }
+            StandardWearChip(
+                label = stringResource(R.string.wear_voice_note_play_last),
+                onClick = { onPlayNote(recentNote) },
+                icon = { ActionIcon(Icons.Default.PlayArrow) },
+                primary = false
             )
         }
         if (!microphoneGranted) {
-            SecondaryChip(
-                labelRes = R.string.wear_voice_note_permission_grant,
-                icon = Icons.Default.Mic,
-                onClick = onGrant
+            StandardWearChip(
+                label = stringResource(R.string.wear_voice_note_permission_grant),
+                onClick = onGrant,
+                icon = { ActionIcon(Icons.Default.Mic) },
+                primary = false
             )
         }
-        SecondaryChip(
-            labelRes = R.string.wear_voice_note_open_list,
-            icon = Icons.AutoMirrored.Filled.List,
-            onClick = onOpenList
+        StandardWearChip(
+            label = stringResource(R.string.wear_voice_note_open_list),
+            onClick = onOpenList,
+            icon = { ActionIcon(Icons.AutoMirrored.Filled.List) },
+            primary = false
         )
     }
 }
@@ -230,37 +243,13 @@ private fun RecorderStatus(state: VoiceRecordingState) {
     }
 }
 
+/** The chip's own label names the action; the glyph repeats it for the eye only. */
 @Composable
-private fun RecorderActionChip(
-    state: VoiceRecordingState,
-    startAllowed: Boolean,
-    onStart: () -> Unit,
-    onStop: () -> Unit
-) {
-    val stopping = state is VoiceRecordingState.Recording
-    Chip(
-        onClick = if (stopping) onStop else onStart,
-        // Finishing refuses both: the container is still being flushed, so a second stop would race
-        // the first and a start would open the microphone over a session that has not let go of it.
-        enabled = stopping || (startAllowed && state !is VoiceRecordingState.Finishing),
-        label = {
-            Text(
-                text = stringResource(
-                    if (stopping) R.string.wear_voice_note_stop else R.string.wear_voice_note_start
-                )
-            )
-        },
-        icon = {
-            Icon(
-                imageVector = if (stopping) Icons.Default.Stop else Icons.Default.Mic,
-                // The chip's own label names the action; the glyph repeats it for the eye only.
-                contentDescription = null,
-                modifier = Modifier.size(ACTION_ICON_SIZE)
-            )
-        },
-        // Fills the intrinsic-width column above, so every chip ends up the width of the widest.
-        modifier = Modifier.fillMaxWidth(),
-        colors = ChipDefaults.primaryChipColors()
+private fun ActionIcon(imageVector: ImageVector) {
+    Icon(
+        imageVector = imageVector,
+        contentDescription = null,
+        modifier = Modifier.size(ACTION_ICON_SIZE)
     )
 }
 
@@ -274,35 +263,6 @@ private fun BlockerText(@StringRes textRes: Int) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = TEXT_HORIZONTAL_PADDING)
-    )
-}
-
-@Composable
-private fun SecondaryChip(
-    @StringRes labelRes: Int,
-    icon: ImageVector? = null,
-    onClick: () -> Unit
-) {
-    Chip(
-        onClick = onClick,
-        label = {
-            // S2755: the library Chip pins its own height, so a label the system font scale pushed
-            // onto a second line was drawn cut through the glyphs. Geometry cannot grow here, so the
-            // label is fitted into the one line the chip can draw (strategic ADR-1).
-            WearFitText(text = stringResource(labelRes), style = MaterialTheme.typography.button)
-        },
-        icon = icon?.let {
-            {
-                Icon(
-                    imageVector = it,
-                    contentDescription = null,
-                    modifier = Modifier.size(ACTION_ICON_SIZE)
-                )
-            }
-        },
-        // Fills the intrinsic-width column above, so every chip ends up the width of the widest.
-        modifier = Modifier.fillMaxWidth(),
-        colors = ChipDefaults.secondaryChipColors()
     )
 }
 

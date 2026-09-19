@@ -3,14 +3,16 @@ package com.sza.fastmediasorter.ui.wear
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.commit
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityWearCompanionBinding
 import com.sza.fastmediasorter.ui.settings.fragments.WearSyncSettingsFragment
+import com.sza.fastmediasorter.ui.wear.helpers.WearCompanionHeaderHost
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * S1735: the window the Wear companion opens in, so it can be a sub-program like the calculator.
@@ -33,7 +35,14 @@ import timber.log.Timber
  * every other screen keeps its header anyway.
  */
 @AndroidEntryPoint
-class WearCompanionActivity : AppCompatActivity() {
+class WearCompanionActivity : AppCompatActivity(), WearCompanionHeaderHost {
+
+    private lateinit var binding: ActivityWearCompanionBinding
+
+    // S3185: the toolbar's sync views are handed to the fragment, which owns the view model they drive.
+    override val headerSyncButton: Button get() = binding.wearPushSettings
+    override val headerSyncCaption: TextView get() = binding.wearSyncSettingsStatus
+
     // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.applyLocale(newBase))
@@ -41,7 +50,7 @@ class WearCompanionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding = ActivityWearCompanionBinding.inflate(layoutInflater)
+        binding = ActivityWearCompanionBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

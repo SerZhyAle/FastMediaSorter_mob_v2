@@ -27,7 +27,6 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
-import timber.log.Timber
 
 private val MENU_TITLE_GAP = 8.dp
 private val MENU_GROUP_GAP = 10.dp

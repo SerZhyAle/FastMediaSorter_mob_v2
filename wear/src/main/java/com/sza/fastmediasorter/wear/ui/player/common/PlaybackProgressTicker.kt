@@ -6,7 +6,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /** Twice a second: fast enough for a moving progress bar, slow enough to stay off S1709's budget. */
 private const val PROGRESS_TICK_MS = 500L

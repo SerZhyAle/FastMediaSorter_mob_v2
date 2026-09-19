@@ -34,8 +34,8 @@ class GeneralSettingsImportExportHelper(
         MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.export_settings_confirm_title)
             .setMessage(R.string.export_settings_confirm_message)
-            .setPositiveButton(android.R.string.ok) { _, _ -> exportSettings() }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.ok) { _, _ -> exportSettings() }
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
     }
 
@@ -43,8 +43,8 @@ class GeneralSettingsImportExportHelper(
         MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.import_settings_confirm_title)
             .setMessage(R.string.import_settings_confirm_message)
-            .setPositiveButton(android.R.string.ok) { _, _ -> importSettings() }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.ok) { _, _ -> importSettings() }
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
     }
 

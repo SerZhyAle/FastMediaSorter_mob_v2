@@ -46,7 +46,7 @@ class MainSftpShareManager(private val activity: Activity) {
             .setNeutralButton(R.string.sftp_share_show_qr_action) { _, _ ->
                 onConfirm(!omitPassword.isChecked, ShareMethod.QR)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 }

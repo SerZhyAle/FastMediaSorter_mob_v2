@@ -48,8 +48,18 @@ class LyricsManager(
     private val calculatorEnabledFlow = MutableStateFlow(false)
 
     init {
-        // Lifetime collect: mirrors a setting into an internal flow, no View access and no LifecycleOwner
-        // available here - cancelled with lifecycleScope on destroy, so repeatOnLifecycle is not needed.
+        observeCalculatorSetting()
+    }
+
+    /**
+     * Lifetime collect: mirrors a setting into an internal flow, no View access and no LifecycleOwner
+     * available here - cancelled with lifecycleScope on destroy, so repeatOnLifecycle is not needed.
+     *
+     * S3159: the collect lives in its own method so the suppression that declares that reasoning to
+     * lint covers this observer alone; an unsafe collect added elsewhere in the class is still reported.
+     */
+    @Suppress("UnsafeFlowCollect")
+    private fun observeCalculatorSetting() {
         lifecycleScope.launch {
             settingsRepository.getSettings()
                 .map { it.enableCalculator }

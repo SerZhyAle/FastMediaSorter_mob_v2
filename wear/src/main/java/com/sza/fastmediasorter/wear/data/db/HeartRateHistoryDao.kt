@@ -21,6 +21,16 @@ interface HeartRateHistoryDao {
     @Insert
     suspend fun insert(entry: HeartRateHistoryEntity): Long
 
+    /**
+     * S3112: keeps the [limit] newest rows and deletes the rest. A live session appends a row every
+     * minute, so without a cap the table would grow for as long as the watch keeps the app installed.
+     */
+    @Query(
+        "DELETE FROM heart_rate_history WHERE id NOT IN (" +
+            "SELECT id FROM heart_rate_history ORDER BY timestampMillis DESC LIMIT :limit)"
+    )
+    suspend fun trimToNewest(limit: Int)
+
     @Query("DELETE FROM heart_rate_history")
     suspend fun deleteAll()
 }

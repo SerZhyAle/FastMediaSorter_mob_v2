@@ -406,10 +406,10 @@ class PlayerDrawingSaveHelper(
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.text_editor_action_save)
             .setView(input)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 onConfirm(input.text?.toString()?.trim().orEmpty())
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .create()
 
         dialog.showBoundTo(activity)

@@ -14,6 +14,7 @@ class CaptureFileNamer {
         VIDEO("video"),
         SCREEN_VIDEO("screen_video"),
         VIDEO_FRAME("video_frame"),
+        BROADCAST("broadcast"),
     }
 
     private data class AllocationState(val timestamp: String, val ordinal: Int)

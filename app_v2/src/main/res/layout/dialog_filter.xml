@@ -50,7 +50,7 @@
             android:layout_width="@dimen/control_button_size"
             android:layout_height="@dimen/control_button_size"
             android:layout_marginStart="@dimen/dialog_field_spacing"
-            android:contentDescription="@android:string/cancel"
+            android:contentDescription="@string/cancel"
             app:icon="@drawable/ic_cancel"
             app:iconSize="28dp"
             app:iconTint="?attr/colorOnSurfaceVariant" />

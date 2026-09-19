@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.wear.ui.player.common
 
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionManager
-import timber.log.Timber
 
 /**
  * S2432: play/pause as both watch players do it - a pause always releases the wide channel, and a
@@ -15,6 +14,21 @@ internal fun StreamPlaybackSessionManager.togglePlayPause(player: ExoPlayer) {
     } else if (canStartCurrentStream()) {
         player.play()
     }
+}
+
+/**
+ * S3217: re-prepares the open stream rather than seeking. A paused player leaves its lag inside the
+ * open connection - the watch buffer, the socket and the phone's per-connection pipe - and a progressive
+ * HTTP broadcast has no live window to seek within, so only a new connection starts at the live edge.
+ * A resume the stream session refuses is refused here too, as in [togglePlayPause].
+ */
+internal fun StreamPlaybackSessionManager.jumpToLive(player: ExoPlayer) {
+    val item = player.currentMediaItem ?: return
+    if (!canStartCurrentStream()) return
+    player.stop()
+    player.setMediaItem(item)
+    player.prepare()
+    player.play()
 }
 
 /**

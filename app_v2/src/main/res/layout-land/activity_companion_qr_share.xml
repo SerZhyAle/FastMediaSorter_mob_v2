@@ -72,7 +72,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/resource_margin_16dp"
             android:focusable="true"
-            android:text="@android:string/ok" />
+            android:text="@string/ok" />
 
     </LinearLayout>
 

@@ -363,6 +363,66 @@
 
     <style name="Widget.FastMediaSorter.Button.Icon" parent="Widget.Material3.Button.IconButton" />
 
+    <!-- S3250: the shared surface for every floating player panel - one scrim token and one
+         elevation token instead of a per-panel literal. Applied either through PlayerOverlayPanel
+         (ui/player/views/) or directly on a bar that must stay a LinearLayout for its weights. -->
+    <style name="Widget.FastMediaSorter.Player.OverlayPanel" parent="">
+        <item name="android:background">@color/player_overlay_standard</item>
+        <item name="android:elevation">@dimen/elevation_player_overlay</item>
+    </style>
+
+    <!-- S3250: docked variant - a panel pinned in the layout flow has nothing to cast a shadow on,
+         so it keeps the scrim and drops the elevation rather than inheriting a shadow it cannot use. -->
+    <style name="Widget.FastMediaSorter.Player.OverlayPanel.Docked">
+        <item name="android:elevation">@dimen/dimension_zero</item>
+    </style>
+
+    <!-- S3250: icon button inside a player overlay - the four attributes that were restated on each
+         of the 46 topCommandPanel children plus every overlay toolbar button.
+         parent="" is deliberate and is not the implicit Button.Icon above: this style is applied to
+         ImageButton, and Widget.Material3.Button.IconButton blanks android:background because
+         MaterialButton paints its own - inheriting it would strip the borderless ripple from the
+         whole population. -->
+    <style name="Widget.FastMediaSorter.Button.Icon.Overlay" parent="">
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:scaleType">centerInside</item>
+        <item name="android:padding">@dimen/player_button_padding</item>
+        <item name="tint">@color/selector_player_button_tint</item>
+    </style>
+
+    <!-- Compact variants of the taxonomy above, for an action bar that must keep several labelled
+         buttons on one wrapped, centered row on a phone: default M3 metrics (24dp side padding,
+         8dp icon padding, 14sp) push each button onto a line of its own. Touch height is untouched. -->
+    <style name="Widget.FastMediaSorter.Button.Filled.Compact" parent="Widget.FastMediaSorter.Button.Filled">
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">@dimen/padding_normal</item>
+        <item name="android:paddingEnd">@dimen/padding_normal</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="iconPadding">@dimen/margin_small</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.Button.Tonal.Compact" parent="Widget.FastMediaSorter.Button.Tonal">
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">@dimen/padding_normal</item>
+        <item name="android:paddingEnd">@dimen/padding_normal</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="iconPadding">@dimen/margin_small</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.Button.Outlined.Compact" parent="Widget.FastMediaSorter.Button.Outlined">
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">@dimen/padding_normal</item>
+        <item name="android:paddingEnd">@dimen/padding_normal</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="iconPadding">@dimen/margin_small</item>
+    </style>
+
     <!-- S2179: general-purpose destructive role, distinct from DialogDestructive below. That style is
          scoped to the oversized dialog confirm/cancel pair (S0538/S0684) and would visually dominate a
          standalone screen. This one keeps standard Filled sizing for a destructive action that sits

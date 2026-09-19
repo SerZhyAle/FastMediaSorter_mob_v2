@@ -13,7 +13,7 @@
     <string name="playback_control_no_subtitles">Não há legendas disponíveis.</string>
     <string name="playback_control_speed_value">Velocidade: %1$.2fx</string>
     <string name="playback_control_tab_audio">Faixa de áudio</string>
-    <string name="playback_control_tab_brightness">Luz</string>
+    <string name="playback_control_tab_brightness">Brilho</string>
     <string name="playback_control_tab_hue">MATIZ</string>
     <string name="playback_control_tab_speed">Velocidade</string>
     <string name="playback_control_tab_subtitles">Subs</string>
@@ -71,7 +71,7 @@
     <string name="video_bitrate_label">Taxa de bits: %1$s Mbps</string>
     <string name="video_codec_label">Codec: %1$s</string>
     <string name="video_duration_label">Duração: %1$s</string>
-    <string name="video_framerate_label">Taxa de quadros: 1,2 fps</string>
+    <string name="video_framerate_label">Taxa de quadros: %1$.2f fps</string>
     <string name="video_info_section">Metadados de vídeo</string>
     <string name="video_playback_failed_session_warning">Este arquivo não pôde ser reproduzido anteriormente nesta sessão.</string>
     <string name="video_playback_failed_with_name">Não foi possível reproduzir: %1$s</string>

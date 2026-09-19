@@ -8,12 +8,12 @@
     <string name="image_edit_apply_adjustments">应用调整</string>
     <string name="image_edit_brightness">亮度</string>
     <string name="image_edit_contrast">对比</string>
-    <string name="image_edit_filters">过滤器</string>
+    <string name="image_edit_filters">滤镜</string>
     <string name="image_edit_flip">翻动</string>
     <string name="image_edit_flip_horizontal">翻转 ↔</string>
     <string name="image_edit_flip_vertical">翻转 ↕</string>
     <string name="image_edit_grayscale">灰度</string>
-    <string name="image_edit_negative">消极的</string>
+    <string name="image_edit_negative">负片</string>
     <string name="image_edit_rotation">旋转</string>
     <string name="image_edit_saturation">饱和</string>
     <string name="image_edit_sepia">棕褐色</string>

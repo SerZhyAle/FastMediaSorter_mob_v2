@@ -36,7 +36,42 @@ private const val TOGGLE_OFF_BROWN = 0xFF8D6E63
 private const val GUIDE_ARROW_AMBER = 0xFFFFA000
 
 /**
- * S2161 / S2468 / S2494: the tones this app adds on top of the Wear Material palette.
+ * S3258: the tourist dashboard's metric identity tones.
+ *
+ * Each one answers "which metric is this", not "which scheme is active" - the heart rate reads red on
+ * the hero card and on the athlete card alike, so repainting them per scheme would make two different
+ * metrics indistinguishable at a glance while running.
+ */
+private const val TOURIST_HEART_RATE_RED = 0xFFFF5252
+private const val TOURIST_ACCENT_TEAL = 0xFF00BFA5
+private const val TOURIST_STEPS_AMBER = 0xFFFFAB00
+private const val TOURIST_DISTANCE_BLUE = 0xFF448AFF
+private const val TOURIST_GPS_FIX_GREEN = 0xFF00E676
+
+/**
+ * S3258: sun and compass tones on the tourist hero card.
+ *
+ * Sunrise and sunset are read as warmth, north and south as a physical needle - meanings the user
+ * brings from outside the app, so they must not follow the scheme.
+ */
+private const val TOURIST_SUNRISE_YELLOW = 0xFFFFFF00
+private const val TOURIST_SUNSET_CORAL = 0xFFFF8A80
+private const val COMPASS_NORTH_RED = 0xFFE53935
+private const val COMPASS_SOUTH_GREY = 0xFF9E9E9E
+
+/**
+ * S3258: the athlete canvas and what rides on it.
+ *
+ * The athlete card and the calculator, game and motion-monitor scaffolds keep a true-black canvas in
+ * every scheme, so their foreground cannot come from `onSurface`, which follows the scheme - the hint
+ * amber and the focal digits are dedicated tones for that reason.
+ */
+private const val TOURIST_UNLOCK_HINT_AMBER = 0xFFFFCC00
+private const val CANVAS_TRUE_BLACK = 0xFF000000
+private const val ATHLETE_ON_CANVAS_WHITE = 0xFFFFFFFF
+
+/**
+ * S2161 / S2468 / S2494 / S3258: the tones this app adds on top of the Wear Material palette.
  *
  * Held here rather than as loose top-level values so a second state - a pause, say - extends one
  * type instead of adding one more literal to whichever screen needs it first (strategic 5.5).
@@ -46,9 +81,12 @@ private const val GUIDE_ARROW_AMBER = 0xFFFFA000
  * provide one either. So this companion set is the only place a composable can ask which way round the
  * current scheme is, which the background layer and the clock both have to know.
  *
- * The four state tones stay the same in every scheme on purpose: they report what is happening - a
- * live recording, a switch position, a hint - not which scheme is active, and repainting them per
- * scheme would make a state indistinguishable from an accent.
+ * Every tone here stays the same in every scheme on purpose. The four state tones report what is
+ * happening - a live recording, a switch position, a hint - not which scheme is active, and
+ * repainting them per scheme would make a state indistinguishable from an accent. The tourist metric,
+ * sun and compass tones carry a meaning the user brings from outside the app. The canvas pair paints
+ * a surface that is deliberately black under every scheme, so the scheme-following roles cannot
+ * serve it.
  */
 @Immutable
 data class WearAppColors(
@@ -56,6 +94,18 @@ data class WearAppColors(
     val toggleOn: Color = Color(TOGGLE_ON_BLUE),
     val toggleOff: Color = Color(TOGGLE_OFF_BROWN),
     val guideArrow: Color = Color(GUIDE_ARROW_AMBER),
+    val heartRate: Color = Color(TOURIST_HEART_RATE_RED),
+    val touristAccent: Color = Color(TOURIST_ACCENT_TEAL),
+    val steps: Color = Color(TOURIST_STEPS_AMBER),
+    val distance: Color = Color(TOURIST_DISTANCE_BLUE),
+    val gpsFix: Color = Color(TOURIST_GPS_FIX_GREEN),
+    val sunrise: Color = Color(TOURIST_SUNRISE_YELLOW),
+    val sunset: Color = Color(TOURIST_SUNSET_CORAL),
+    val compassNorth: Color = Color(COMPASS_NORTH_RED),
+    val compassSouth: Color = Color(COMPASS_SOUTH_GREY),
+    val unlockHint: Color = Color(TOURIST_UNLOCK_HINT_AMBER),
+    val canvasBlack: Color = Color(CANVAS_TRUE_BLACK),
+    val athleteOnCanvas: Color = Color(ATHLETE_ON_CANVAS_WHITE),
     val isLight: Boolean = false
 )
 

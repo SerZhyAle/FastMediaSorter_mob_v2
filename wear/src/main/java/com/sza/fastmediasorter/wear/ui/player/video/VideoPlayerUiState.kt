@@ -4,7 +4,7 @@ import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
-import com.sza.fastmediasorter.wear.domain.playback.WearPlayerDisplayHoldPolicy
+import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
 import com.sza.fastmediasorter.wear.util.formatWearDuration
 
 /**
@@ -17,16 +17,12 @@ data class VideoPlayerUiState(
     val isPlaying: Boolean = false,
     /**
      * S2849: `playWhenReady` - whether the session still wants to play, which is not the same as
-     * making a sound. It is what the screen-off hold follows, so a rebuffer does not release the
-     * display while a pause does.
+     * making a sound. The stall watchdog follows it, so a rebuffer is told apart from a pause.
      */
     val isPlaybackRequested: Boolean = false,
     val currentPositionMs: Long = 0,
     val durationMs: Long = 0,
     val showControls: Boolean = true,
-    // S2815: the screen-off mode the audio player has carried since S1683. It is screen state and
-    // nothing else - playback does not know about it, which is the whole point of the mode.
-    val isDimmed: Boolean = false,
     val isShuffleEnabled: Boolean = false,
     val playbackMode: WearPlaybackMode = WearPlaybackMode.SEQUENTIAL,
     val showBatteryWarning: Boolean = false,
@@ -57,6 +53,11 @@ data class VideoPlayerUiState(
      */
     val channelReason: StreamChannelReason? = null,
     /**
+     * S3202: what the live stream says about itself, filled only while [isStream] is true.
+     * Mirrors S3099 audio stream station metadata.
+     */
+    val station: WearStationInfo? = null,
+    /**
      * S2140: the system media volume, read back after each change rather than counted here - same
      * invariant the audio player already keeps (S1701). The player owns no scale of its own: anything
      * else on the watch may move the same stream, and a private copy would drift from what is heard.
@@ -71,22 +72,15 @@ data class VideoPlayerUiState(
      */
     val animationsDisabled: Boolean = false
 ) {
-    /**
-     * S2849: the screen-off sheet holds the watch display only while the session under it still
-     * wants to play. Derived here rather than in the composable, which owns no rules.
-     */
-    val holdsDisplay: Boolean
-        get() = WearPlayerDisplayHoldPolicy.holdsDisplay(isDimmed, isPlaybackRequested)
-
     val positionText: String
-        get() = if (setSize > 0) "${setIndex + 1}/$setSize" else ""
+        get() = if (!isStream && setSize > 0) "${setIndex + 1}/$setSize" else ""
 
     /** A single file is a set of one - there is nowhere to page, so no paging control is offered. */
     val hasSet: Boolean
-        get() = setSize > 1
+        get() = !isStream && setSize > 1
 
     val progress: Float
-        get() = if (durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f
+        get() = if (!isStream && durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f
 
     val currentPositionFormatted: String
         get() = formatWearDuration(currentPositionMs)

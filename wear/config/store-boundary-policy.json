@@ -1,0 +1,234 @@
+{
+  "$comment": [
+    "S3178: the source-controlled boundary between the two Wear artifacts.",
+    "The `standard` flavor is what Google Play distributes and is an ALLOWLIST: a capability is absent from it",
+    "unless it is named under `standardAllowlist`. `noLegal` is the sideload artifact and keeps everything.",
+    "Every noLegal-only category below names the permissions, components and routes that carry it, so returning",
+    "one capability to the store variant is a reviewable edit of this file rather than a silent manifest change.",
+    "Read by scripts/quality/assert-wear-store-boundary.ps1, which judges the two merged manifests against it."
+  ],
+  "policyVersion": 1,
+  "ticket": "S3178",
+  "module": "wear",
+  "storeFlavor": "standard",
+  "sideloadFlavor": "noLegal",
+
+  "standardAllowlist": {
+    "$comment": "The whole surface the first Play publication offers. Nothing outside this list may appear in the standard merged manifest or its route graph.",
+    "permissions": [
+      "android.permission.VIBRATE",
+      "android.permission.WAKE_LOCK"
+    ],
+    "components": [
+      ".MainActivity",
+      ".tile.WearProgramsTileService"
+    ],
+    "routes": [
+      "home",
+      "apps",
+      "settings",
+      "settings/screen",
+      "settings/other",
+      "settings/about",
+      "calculator",
+      "stopwatch",
+      "game",
+      "game_rules",
+      "water_flashlight",
+      "clipboard"
+    ],
+    "capabilities": [
+      "offersStoreSafeMiniPrograms"
+    ],
+    "libraryContributed": {
+      "$comment": "Declarations no source file in this module writes - they arrive from a dependency manifest or from the debug build type. They are allowlisted by name rather than by a wildcard, so a library that starts contributing something sensitive still surfaces as an unnamed declaration.",
+      "permissions": [
+        "android.permission.ACCESS_NETWORK_STATE",
+        "com.sza.fastmediasorter.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+      ],
+      "components": [
+        "androidx.compose.ui.tooling.PreviewActivity",
+        "androidx.activity.ComponentActivity",
+        "androidx.media3.session.BluetoothValidationActivity",
+        "com.google.android.gms.common.api.GoogleApiActivity",
+        "androidx.room.MultiInstanceInvalidationService",
+        "androidx.startup.InitializationProvider",
+        "androidx.profileinstaller.ProfileInstallReceiver"
+      ]
+    }
+  },
+
+  "noLegalOnly": [
+    {
+      "category": "media access",
+      "$comment": "Media read/write and viewing: the watch's own media, the browse graph, the players and the document viewer.",
+      "capability": "offersMediaAccess",
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_AUDIO",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ],
+      "components": [
+        ".service.WearPlaybackService",
+        ".complication.WearLastResourceComplicationService",
+        ".complication.WearFavouritesComplicationService",
+        ".complication.WearNowPlayingComplicationService"
+      ],
+      "routes": [
+        "local_home",
+        "favourites",
+        "local_folder",
+        "browse",
+        "browse_phone",
+        "source_media_type",
+        "audio_player",
+        "video_player",
+        "image_viewer",
+        "document_viewer",
+        "unsupported_file",
+        "settings/media_types",
+        "settings/slideshow"
+      ]
+    },
+    {
+      "category": "microphone and voice notes",
+      "$comment": "The recorder, its foreground microphone session and the note list it writes.",
+      "capability": "offersVoiceRecording",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.USE_FULL_SCREEN_INTENT",
+        "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
+      ],
+      "components": [
+        ".service.VoiceRecordingService",
+        ".ui.listen.ListenRequestActivity"
+      ],
+      "routes": [
+        "quick_voice",
+        "voice_notes",
+        "broadcast",
+        "broadcast_qr"
+      ]
+    },
+    {
+      "category": "remote sources and credentials",
+      "$comment": "Network sources, SMB aliases, credential entry and the stream catalog. Credential entry was already withheld by S2486; here the transport itself goes too.",
+      "capability": "offersRemoteSources",
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.CHANGE_NETWORK_STATE"
+      ],
+      "components": [
+        ".tile.WearResourceTileService",
+        ".tile.WearStreamTileService",
+        ".tile.WearFavouritesTileService"
+      ],
+      "routes": [
+        "network_sources",
+        "add_network_source",
+        "add_smb",
+        "streams",
+        "tile_target_picker",
+        "settings/tile_targets"
+      ]
+    },
+    {
+      "category": "network and device diagnostics",
+      "$comment": "The Network Monitor mini-program, the watch's own system report and the Tourist telemetry dashboard - device and usage data Play treats as sensitive.",
+      "capability": "offersDeviceDiagnostics",
+      "permissions": [
+        "android.permission.ACCESS_WIFI_STATE"
+      ],
+      "components": [],
+      "routes": [
+        "network_monitor",
+        "system_info",
+        "tourist_info"
+      ]
+    },
+    {
+      "category": "device location",
+      "$comment": "The GPS fix the Tourist dashboard is built on - speed, altitude, coordinates, satellites, trip distance and sun times. Its own category rather than a line under diagnostics because Play reviews location against the store description on its own (S2013), and the route it serves is already noLegal-only, so permission and capability leave the store artifact together (S3115).",
+      "capability": "offersDeviceDiagnostics",
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ],
+      "components": [],
+      "routes": []
+    },
+    {
+      "category": "nearby device state",
+      "$comment": "Visible Wi-Fi networks and Bluetooth adapter state, read by the Network Monitor. Separate from the diagnostics category because the permission family is reviewed on its own.",
+      "capability": "offersNearbyDeviceState",
+      "permissions": [
+        "android.permission.NEARBY_WIFI_DEVICES",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT"
+      ],
+      "components": [],
+      "routes": []
+    },
+    {
+      "category": "health body and motion data",
+      "$comment": "Heart rate, blood pressure and activity/motion readings. Already confined by S2457, S2458 and S2995; recorded here so the one policy answers for the whole boundary.",
+      "capability": "offersHealthFeatures",
+      "permissions": [
+        "android.permission.BODY_SENSORS",
+        "android.permission.health.READ_HEART_RATE",
+        "android.permission.ACTIVITY_RECOGNITION"
+      ],
+      "components": [],
+      "routes": [
+        "motion_monitor",
+        "motion_history",
+        "body_sensor",
+        "heart_rate_history",
+        "blood_pressure",
+        "blood_pressure_history"
+      ]
+    },
+    {
+      "category": "screen capture",
+      "$comment": "The phone may ask this watch for a picture of its own screen over the Data Layer. No permission carries it - the component is the whole capability.",
+      "capability": "offersScreenCapture",
+      "permissions": [],
+      "components": [],
+      "routes": []
+    },
+    {
+      "category": "file sharing or transfer",
+      "$comment": "Handing a file to another application on the watch, and moving content between the watch and the paired phone.",
+      "capability": "offersContentTransfer",
+      "permissions": [],
+      "components": [
+        "androidx.core.content.FileProvider"
+      ],
+      "routes": [
+        "sync_transfer",
+        "sync_result",
+        "phone_resource",
+        "phone_home",
+        "phone_camera"
+      ]
+    },
+    {
+      "category": "tiles deeplinks services and receivers",
+      "$comment": "The entry points that reach the categories above without passing through a screen. FOREGROUND_SERVICE is here rather than under one capability because every foreground service this module starts belongs to an excluded category.",
+      "capability": "offersExternalEntryPoints",
+      "permissions": [
+        "android.permission.FOREGROUND_SERVICE"
+      ],
+      "components": [
+        ".data.wear.WatchWearListenerService",
+        ".tile.WearSectionsTileService"
+      ],
+      "routes": []
+    }
+  ]
+}

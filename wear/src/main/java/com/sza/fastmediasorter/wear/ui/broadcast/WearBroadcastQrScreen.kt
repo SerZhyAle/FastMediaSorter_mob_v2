@@ -29,7 +29,7 @@ import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionState
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearStackedSquareSide
-import timber.log.Timber
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 
 private val SECTION_GAP = 8.dp
 private val TEXT_HORIZONTAL_PADDING = 12.dp
@@ -71,7 +71,7 @@ fun WearBroadcastQrScreen(viewModel: WearBroadcastViewModel = hiltViewModel()) {
 
     WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().rotaryActionSwallow(),
             verticalArrangement = Arrangement.spacedBy(SECTION_GAP, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

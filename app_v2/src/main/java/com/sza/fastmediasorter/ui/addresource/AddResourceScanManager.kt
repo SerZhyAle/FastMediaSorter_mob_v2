@@ -90,7 +90,7 @@ internal class AddResourceScanManager(
         val dialog = AlertDialog.Builder(activity)
             .setTitle(R.string.select_folder)
             .setView(dialogView)
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .create()
 
         // S1693: the path-entry group is read through the generated binding rather than by id - S2012
@@ -247,11 +247,11 @@ internal class AddResourceScanManager(
         }
         MaterialAlertDialogBuilder(activity)
             .setMessage(activity.getString(R.string.removable_volume_access_request, volume.displayName))
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 dialog.dismiss()
                 folderPickerLauncher.launch(null)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 
@@ -487,7 +487,7 @@ internal class AddResourceScanManager(
                 Toast.makeText(activity, R.string.folder_selection_limitations, Toast.LENGTH_LONG).show()
                 folderPickerLauncher.launch(null)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .setCancelable(true)
             .showBoundToHost(activity)
     }

@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.wear.di
 
 import com.sza.fastmediasorter.wear.bodysensor.HealthServicesBodySensorDataSource
+import com.sza.fastmediasorter.wear.bodysensor.SamsungRawPpgDataSource
 import com.sza.fastmediasorter.wear.domain.bodysensor.WearBodySensorDataSource
+import com.sza.fastmediasorter.wear.domain.bodysensor.WearPpgDataSource
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -25,4 +27,10 @@ abstract class NoLegalBodySensorModule {
     abstract fun bindWearBodySensorDataSource(
         impl: HealthServicesBodySensorDataSource
     ): WearBodySensorDataSource
+
+    /** S3113: the raw pulse-wave source behind the blood-pressure estimate, unscoped for the same reason. */
+    @Binds
+    abstract fun bindWearPpgDataSource(
+        impl: SamsungRawPpgDataSource
+    ): WearPpgDataSource
 }

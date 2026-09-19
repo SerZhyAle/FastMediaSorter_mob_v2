@@ -89,7 +89,7 @@ class WelcomeEnableAllExplainerDialogFragment : DialogFragment() {
         )
         binding.btnExplainerCancel.setText(
             if (overview) {
-                android.R.string.cancel
+                R.string.cancel
             } else {
                 R.string.welcome_enable_all_default_app_prompt_skip
             }

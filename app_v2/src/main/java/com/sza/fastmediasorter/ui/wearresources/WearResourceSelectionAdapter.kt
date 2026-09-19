@@ -11,6 +11,8 @@ import com.sza.fastmediasorter.databinding.ItemWearResourceSelectionBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.ui.common.recycler.notifyChangedRuns
+import timber.log.Timber
 
 private const val PAYLOAD_SELECTION = "payload_selection"
 
@@ -41,13 +43,11 @@ class WearResourceSelectionAdapter(
     fun setSelectedIds(ids: Set<Long>) {
         val previous = selectedIds
         selectedIds = ids
-        currentList.forEachIndexed { index, item ->
-            if (item is WearResourceAdapterItem.ResourceRow) {
-                val resId = item.resource.id
-                if ((resId in previous) != (resId in ids)) {
-                    notifyItemChanged(index, PAYLOAD_SELECTION)
-                }
-            }
+        Timber.d("S3319: wear resource selection, previous=${previous.size} new=${ids.size} items=$itemCount")
+        // Header rows never match, so a run can only ever span resource rows (S3319).
+        notifyChangedRuns(PAYLOAD_SELECTION) { item ->
+            item is WearResourceAdapterItem.ResourceRow &&
+                (item.resource.id in previous) != (item.resource.id in ids)
         }
     }
 

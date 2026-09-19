@@ -112,42 +112,58 @@ class SubProgramCatalogCompletenessTest {
         assertEveryRouteIsOpenable(SubProgramSurface.LAUNCHER_SHORTCUT)
     }
 
+    @Test
+    fun `every OS_APP_SHORTCUT entry has a route that can be opened`() {
+        assertEveryRouteIsOpenable(SubProgramSurface.OS_APP_SHORTCUT)
+    }
+
+    @Test
+    fun `every sub-program is eligible once for OS app shortcuts`() {
+        val expectedRouteKeys = SubProgramCatalog.all().map { it.routeKey }
+        val shortcutRouteKeys = SubProgramCatalog
+            .forSurface(SubProgramSurface.OS_APP_SHORTCUT)
+            .map { it.routeKey }
+
+        assertEquals(expectedRouteKeys, shortcutRouteKeys)
+        assertEquals(shortcutRouteKeys.size, shortcutRouteKeys.toSet().size)
+    }
+
     /**
-     * S2673: the programs menu draws an entry from the registry plus a presentation row holding the
-     * label, the icon and the menu item id the registry deliberately does not store (ADR-1). An entry
-     * whose row is missing is silently skipped at run time, which is the "present on one surface,
-     * absent from another" failure ADR-4 built this suite to catch.
+     * S2673: the programs menu draws an entry from the registry plus the menu item id the registry
+     * deliberately does not store (ADR-1); since S1736 phase 04 the label and the icon come from
+     * [InternalRouteCatalog] and no longer sit beside that id. An entry whose id is missing is
+     * silently skipped at run time, which is the "present on one surface, absent from another"
+     * failure ADR-4 built this suite to catch.
      */
     @Test
     fun `every PROGRAMS_MENU entry can be drawn by the programs menu`() {
         SubProgramCatalog.forSurface(SubProgramSurface.PROGRAMS_MENU).forEach { entry ->
             assertTrue(
                 "sub-program '${entry.routeKey}' is fit for PROGRAMS_MENU but the menu has no " +
-                    "label/icon/id row for it",
+                    "item id for it",
                 entry.routeKey in MainProgramsMenuCoordinator.PRESENTABLE_ROUTE_KEYS,
             )
         }
     }
 
     /**
-     * S2675: the reverse of the assertion above, and the direction the suite lacked. A presentation
-     * row added without a registry entry is a menu item no other surface can ever learn about, which
+     * S2675: the reverse of the assertion above, and the direction the suite lacked. A menu item id
+     * added without a registry entry is a menu item no other surface can ever learn about, which
      * is the divergence the registry exists to remove (S1736 §2 goal 4).
      *
-     * The four non-registry menu items - streams, VR Cinema, the quick-launch panel and broadcast -
-     * are added by their own `popup.menu.add` calls around the registry loop and never enter
-     * [MainProgramsMenuCoordinator.PRESENTATION], so they fall outside this assertion by
-     * construction rather than by an exception list.
+     * The three non-registry menu items - streams, VR Cinema and the quick-launch panel - are added
+     * by their own `popup.menu.add` calls around the registry loop and never enter the coordinator's
+     * id table, so they fall outside this assertion by construction rather than by an exception list.
      */
     @Test
-    fun `every programs-menu presentation row belongs to a registry entry`() {
+    fun `every programs-menu item id belongs to a registry entry`() {
         val menuEntries = SubProgramCatalog
             .forSurface(SubProgramSurface.PROGRAMS_MENU)
             .map { it.routeKey }
             .toSet()
         MainProgramsMenuCoordinator.PRESENTABLE_ROUTE_KEYS.forEach { routeKey ->
             assertTrue(
-                "route '$routeKey' has a programs-menu label/icon/id row but no registry entry " +
+                "route '$routeKey' has a programs-menu item id but no registry entry " +
                     "fit for PROGRAMS_MENU",
                 routeKey in menuEntries,
             )

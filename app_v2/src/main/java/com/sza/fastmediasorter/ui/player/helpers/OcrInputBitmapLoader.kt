@@ -55,6 +55,5 @@ internal object OcrInputBitmapLoader {
     }
 
     private fun logInput(bitmap: Bitmap) {
-        Timber.d("S3088: OCR input ${bitmap.width}x${bitmap.height}")
     }
 }

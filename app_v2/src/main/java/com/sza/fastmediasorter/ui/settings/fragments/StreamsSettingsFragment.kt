@@ -164,7 +164,7 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
     private fun confirmClearPlayStatuses() {
         MaterialAlertDialogBuilder(requireContext())
             .setMessage(R.string.settings_streams_clear_statuses_confirm)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 viewModel.clearStreamPlayStatuses()
                 Toast.makeText(
                     requireContext(),
@@ -172,7 +172,7 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
                     Toast.LENGTH_SHORT,
                 ).show()
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(this@StreamsSettingsFragment)
     }
 

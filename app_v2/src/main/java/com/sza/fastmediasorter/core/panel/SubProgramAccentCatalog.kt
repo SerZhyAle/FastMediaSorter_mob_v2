@@ -67,6 +67,10 @@ object SubProgramAccentCatalog {
         InternalRouteCatalog.KEY_OCR to R.color.color_program_accent_red,
         InternalRouteCatalog.KEY_TAKE_PHOTO_OCR_TRANSLATE to R.color.color_program_accent_red,
         InternalRouteCatalog.KEY_QUICK_VOICE to R.color.color_program_accent_red,
+        // S3216: red rather than the light family's amber, although the signal is half a strobe. The
+        // palette is narrow by ADR-3 and red is the only tone in it that reads as an alarm, which is
+        // the one thing this program must not be mistaken for at a glance.
+        InternalRouteCatalog.KEY_SOS to R.color.color_program_accent_red,
 
         // Compute and the panel itself.
         InternalRouteCatalog.KEY_CALCULATOR to R.color.color_program_accent_orange,

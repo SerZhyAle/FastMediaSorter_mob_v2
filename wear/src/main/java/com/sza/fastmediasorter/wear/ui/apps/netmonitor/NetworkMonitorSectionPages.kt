@@ -45,7 +45,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearReportDivider
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import timber.log.Timber
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import java.util.Locale
 
 private val TITLE_BOTTOM_PADDING = 6.dp
@@ -71,6 +71,10 @@ data class NetworkMonitorSectionActions(
 
 /**
  * Renders the detail page for the given section inside a scrollable [WearListColumn].
+ *
+ * @param listState remembers its scroll position under a key carrying the SECTION, not the route alone
+ * (S3106): every section is drawn by this one composable behind one route, so a route-only key would
+ * restore the position left in Bluetooth into Wi-Fi.
  */
 @Composable
 fun NetworkMonitorSectionPage(
@@ -79,7 +83,8 @@ fun NetworkMonitorSectionPage(
     canRequestPermissions: Boolean,
     actions: NetworkMonitorSectionActions,
     modifier: Modifier = Modifier,
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState =
+        rememberWearListState(positionKey = "${WearRoutes.NETWORK_MONITOR}/${section.key}")
 ) {
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

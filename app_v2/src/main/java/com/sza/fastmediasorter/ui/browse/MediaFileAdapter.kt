@@ -47,6 +47,8 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseItemOperation
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseItemOperationPolicy
 import com.sza.fastmediasorter.ui.browse.managers.BrowseApkTileBadgeBinder
+import com.sza.fastmediasorter.ui.common.recycler.notifyChangedRuns
+import com.sza.fastmediasorter.ui.common.widget.MediaItemThumbnailBinder
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import timber.log.Timber
@@ -92,6 +94,12 @@ class MediaFileAdapter(
     private var hideGridActionButtons: Boolean = false // Hide quick action buttons in grid mode
     private var fileOpsInOverflowMenu: Boolean = true
     private var isAudioOnlyMode: Boolean = false
+
+    // S3246: the role-scoped Glide entry point (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.2).
+    // Used here only for the plain recycle-time clear() - the per-media-type load() pipeline stays on
+    // thumbnailLoader below, which reads per-adapter closures (scroll state, credentials, settings
+    // flags) a stateless binder cannot carry.
+    private val mediaItemThumbnailBinder = MediaItemThumbnailBinder()
 
     private val thumbnailLoader = AdapterThumbnailLoader(
         getIsScrolling = { isScrolling },
@@ -145,11 +153,7 @@ class MediaFileAdapter(
             newState.playingPath,
             newState.downloadingPath
         ).filterNotNull()
-        currentList.forEachIndexed { index, file ->
-            if (file.path in affectedPaths) {
-                notifyItemChanged(index, PAYLOAD_PLAYBACK_STATE)
-            }
-        }
+        notifyChangedRuns(PAYLOAD_PLAYBACK_STATE) { file -> file.path in affectedPaths }
     }
 
     // Fast scroll detection to skip thumbnail loading during rapid scrolling
@@ -392,24 +396,10 @@ class MediaFileAdapter(
         val oldSelected = selectedPaths
         selectedPaths = paths
 
-        // Optimize updates: only notify changed items
-        // If selection was cleared
-        if (paths.isEmpty() && oldSelected.isNotEmpty()) {
-            currentList.forEachIndexed { index, file ->
-                if (file.path in oldSelected) {
-                    notifyItemChanged(index, PAYLOAD_SELECTION)
-                }
-            }
-            return
-        }
-
-        // If selection was added/changed
-        currentList.forEachIndexed { index, file ->
-            val wasSelected = file.path in oldSelected
-            val isSelected = file.path in paths
-            if (wasSelected != isSelected) {
-                notifyItemChanged(index, PAYLOAD_SELECTION)
-            }
+        // Only positions whose selection state actually flipped are rebound; select-all and
+        // clear-all produce one contiguous run each instead of one notification per item.
+        notifyChangedRuns(PAYLOAD_SELECTION) { file ->
+            (file.path in oldSelected) != (file.path in paths)
         }
     }
 
@@ -617,7 +607,7 @@ class MediaFileAdapter(
                 return
             }
             try {
-                Glide.with(context).clear(binding.ivThumbnail)
+                mediaItemThumbnailBinder.clear(binding.ivThumbnail)
             } catch (e: IllegalArgumentException) {
                 // Catch any remaining edge cases where activity might be destroyed
                 Timber.w("Failed to clear Glide request: ${e.message}")
@@ -1006,7 +996,7 @@ class MediaFileAdapter(
                 return
             }
             try {
-                Glide.with(context).clear(binding.ivThumbnail)
+                mediaItemThumbnailBinder.clear(binding.ivThumbnail)
             } catch (e: IllegalArgumentException) {
                 // Catch any remaining edge cases where activity might be destroyed
                 Timber.w("Failed to clear Glide request: ${e.message}")
@@ -1275,7 +1265,7 @@ class MediaFileAdapter(
                 return
             }
             try {
-                Glide.with(context).clear(binding.ivThumbnail)
+                mediaItemThumbnailBinder.clear(binding.ivThumbnail)
             } catch (e: IllegalArgumentException) {
                 Timber.w("Failed to clear Glide request: ${e.message}")
             }

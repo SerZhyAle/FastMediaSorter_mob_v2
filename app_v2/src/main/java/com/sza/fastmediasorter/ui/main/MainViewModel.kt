@@ -340,7 +340,7 @@ class MainViewModel @Inject constructor(
 
                 updateState { it.copy(resources = resources) }
 
-                appShortcutsManager.updateRecentResourceShortcuts()
+                appShortcutsManager.requestRefresh()
             } catch (e: Exception) {
                 Timber.e(e, "Error loading resources")
                 handleError(e)

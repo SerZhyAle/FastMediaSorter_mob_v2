@@ -32,6 +32,11 @@ class GoogleDriveAuthCoordinator(
 ) {
 
     private val driveScopes: Set<GoogleScope> = setOf(GoogleScope.DRIVE, GoogleScope.DRIVE_READONLY)
+
+    // S3040: appdata is minted on its own rather than added to driveScopes above - a session that
+    // consented before S3040 still mints browsing tokens, and only the transfer queue fails.
+    private val appDataScopes: Set<GoogleScope> = setOf(GoogleScope.DRIVE_APPDATA)
+
     private val tokenMutex = Mutex()
 
     @Volatile private var cachedAccessToken: String? = null
@@ -90,6 +95,32 @@ class GoogleDriveAuthCoordinator(
             cachedAccessToken = null
         }
         token
+    }
+
+    /**
+     * S3040: a token carrying `drive.appdata`, for the cross-device transfer queue only.
+     *
+     * The browser session's token already covers the whole consented scope set, so that path is
+     * reused as is; the GMS path mints a second, appdata-only token and never touches the cached
+     * browsing token, which other Drive calls read synchronously.
+     */
+    suspend fun fetchAppDataAccessToken(): String? {
+        val browserSessionToken = if (!gmsOnlyMode && browserAuthManager.hasActiveSession()) {
+            browserAuthManager.getFreshAccessToken()
+        } else {
+            null
+        }
+        return browserSessionToken ?: resolveAppDataTokenWithoutSession()
+    }
+
+    private suspend fun resolveAppDataTokenWithoutSession(): String? {
+        val bound = identityRepository.state.value as? PrimaryGoogleAccountState.Bound
+        val gmsToken = if (bound == null) null else identityRepository.getAccessToken(appDataScopes)?.token
+        return when {
+            gmsToken != null -> gmsToken
+            !gmsOnlyMode && browserAuthManager.ensureActiveFromStored() -> browserAuthManager.getFreshAccessToken()
+            else -> null
+        }
     }
 
     /**

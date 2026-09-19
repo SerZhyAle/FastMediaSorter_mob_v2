@@ -24,7 +24,6 @@ class MainStartWindowRedirectManager(
             !isResumingAudio() &&
             startWindowManager.isEnabled()
         val startWindow = if (eligible) contract.startWindowIntent(activity) else null
-        Timber.d("S3123: start-window redirect eligible=%s", startWindow != null)
         startWindow?.let {
             activity.startActivity(it)
             activity.finish()

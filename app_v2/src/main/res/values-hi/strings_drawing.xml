@@ -3,7 +3,7 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="draw_color_custom_cd">अनुकूलित रंग</string>
-    <string name="draw_overflow_save_inplace">बचाना</string>
+    <string name="draw_overflow_save_inplace">सहेजें</string>
     <string name="draw_overflow_save_new">के रूप रक्षित करें..</string>
     <string name="draw_overflow_settings">सेटिंग्स</string>
     <string name="draw_overflow_undo_all">सभी को पूर्ववत करें</string>
@@ -18,7 +18,7 @@
     <string name="draw_save_ok_toast">सहेजा गया</string>
     <string name="draw_save_remote_failed">फ़ोल्डर तक नहीं पहुँच पा रहे हैं। आपकी ड्राइंग इसी डिवाइस पर है - कृपया दोबारा सेव करने का प्रयास करें।</string>
     <string name="draw_settings_brush_size">ब्रश का आकार</string>
-    <string name="draw_settings_opacity">अस्पष्टता</string>
+    <string name="draw_settings_opacity">अपारदर्शिता</string>
     <string name="draw_settings_text_large">बड़ा</string>
     <string name="draw_settings_text_medium">मध्यम</string>
     <string name="draw_settings_text_size">टेक्स्ट का साइज़</string>

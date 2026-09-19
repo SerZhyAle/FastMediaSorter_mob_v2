@@ -794,7 +794,7 @@ class EpubViewerManager(
         com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
             .setTitle(R.string.epub_reader_settings)
             .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 // Apply pending values to class fields on OK (C-1 fix)
                 currentReaderTheme = pendingTheme
                 currentFontFamily = pendingFontFamily
@@ -807,7 +807,7 @@ class EpubViewerManager(
                 reloadCurrentChapter()
 
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(context)
     }
 

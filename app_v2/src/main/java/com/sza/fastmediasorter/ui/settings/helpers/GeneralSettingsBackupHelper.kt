@@ -126,7 +126,7 @@ class GeneralSettingsBackupHelper(
             .setTitle(R.string.restore_confirm_title)
             .setMessage(fragment.getString(R.string.restore_confirm_message, info.createdAt, info.deviceModel, info.resourceCount, info.favoritesCount))
             .setPositiveButton(R.string.restore_from_google_drive) { _, _ -> backupViewModel.confirmRestore() }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> backupViewModel.resetState() }
+            .setNegativeButton(R.string.cancel) { _, _ -> backupViewModel.resetState() }
             .setOnCancelListener { backupViewModel.resetState() }
             .showBoundTo(fragment)
     }
@@ -158,7 +158,7 @@ class GeneralSettingsBackupHelper(
             MaterialAlertDialogBuilder(fragment.requireContext())
                 .setTitle(R.string.resource_share_export_title)
                 .setMessage(R.string.resource_share_credentials_warning)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
+                .setPositiveButton(R.string.ok) { _, _ ->
                     try {
                         exportResourcesLauncher.launch("fms_resources.${ResourceShareFormat.EXTENSION}")
                     } catch (e: ActivityNotFoundException) {
@@ -166,7 +166,7 @@ class GeneralSettingsBackupHelper(
                         showBackupSnackbar(fragment.getString(R.string.resource_share_export_failed))
                     }
                 }
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .showBoundTo(fragment)
         }
         binding.btnImportResources.setOnClickListener {
@@ -231,7 +231,7 @@ class GeneralSettingsBackupHelper(
                 MaterialAlertDialogBuilder(fragment.requireContext())
                     .setTitle(R.string.resource_share_export_title)
                     .setMessage(fragment.getString(R.string.resource_share_export_success, state.exported, state.skipped))
-                    .setPositiveButton(android.R.string.ok, null)
+                    .setPositiveButton(R.string.ok, null)
                     .showBoundTo(fragment)
                 backupViewModel.resetExportResState()
             }
@@ -254,7 +254,7 @@ class GeneralSettingsBackupHelper(
                 MaterialAlertDialogBuilder(fragment.requireContext())
                     .setTitle(R.string.resource_share_import_title)
                     .setMessage(fragment.getString(R.string.resource_share_import_success, state.created, state.updated, state.skipped))
-                    .setPositiveButton(android.R.string.ok, null)
+                    .setPositiveButton(R.string.ok, null)
                     .showBoundTo(fragment)
                 backupViewModel.resetImportResState()
             }
@@ -271,7 +271,7 @@ class GeneralSettingsBackupHelper(
             .setTitle(R.string.export_fav_success_title)
             .setMessage(R.string.export_fav_success_message)
             .setPositiveButton(R.string.share) { _, _ -> shareFavoritesFile(filePath) }
-            .setNegativeButton(android.R.string.ok, null)
+            .setNegativeButton(R.string.ok, null)
             .showBoundTo(fragment)
     }
 
@@ -287,7 +287,7 @@ class GeneralSettingsBackupHelper(
                 val strategy = if (radioSkip.isChecked) FavoritesConflictStrategy.SKIP else FavoritesConflictStrategy.OVERWRITE
                 backupViewModel.confirmFavoritesImport(uri, strategy)
             }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> backupViewModel.resetImportFavState() }
+            .setNegativeButton(R.string.cancel) { _, _ -> backupViewModel.resetImportFavState() }
             .setOnCancelListener { backupViewModel.resetImportFavState() }
             .showBoundTo(fragment)
     }
@@ -302,7 +302,7 @@ class GeneralSettingsBackupHelper(
         MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.import_fav_success_title)
             .setMessage(message)
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.ok, null)
             .showBoundTo(fragment)
     }
 
@@ -317,7 +317,7 @@ class GeneralSettingsBackupHelper(
             .setTitle(R.string.resource_share_import_title)
             .setMessage(message)
             .setPositiveButton(R.string.resource_share_import_action) { _, _ -> backupViewModel.confirmResourceImport(state.uri) }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> backupViewModel.resetImportResState() }
+            .setNegativeButton(R.string.cancel) { _, _ -> backupViewModel.resetImportResState() }
             .setOnCancelListener { backupViewModel.resetImportResState() }
             .showBoundTo(fragment)
     }

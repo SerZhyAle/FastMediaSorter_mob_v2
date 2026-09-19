@@ -163,8 +163,8 @@ class LauncherResourceActionManager(
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.resource_share_export_title)
             .setMessage(R.string.resource_share_credentials_warning)
-            .setPositiveButton(android.R.string.ok) { _, _ -> runExport(resource) }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.ok) { _, _ -> runExport(resource) }
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 

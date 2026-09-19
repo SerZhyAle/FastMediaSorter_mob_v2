@@ -263,4 +263,17 @@
     <string name="settings_wear_install_guide_button">घड़ी पर कैसे इंस्टॉल करें</string>
     <string name="settings_wear_web_portal_button">घड़ी के बारे में सब कुछ</string>
     <string name="setting_stopwatch_desc">मुख्य मेनू और लॉन्चर विजेट में स्टॉपवॉच दिखाएँ</string>
+    <string name="cross_device_transfer_send_to_device">मेरे डिवाइस पर भेजें (Drive)</string>
+    <string name="cross_device_transfer_pending_title">लंबित डिवाइस स्थानांतरण</string>
+    <string name="cross_device_transfer_receive_and_delete">प्राप्त करें और क्लाउड से हटाएं</string>
+    <string name="cross_device_transfer_receive_and_keep">प्राप्त करें और क्लाउड में रखें</string>
+    <string name="cross_device_transfer_empty">इस डिवाइस के लिए कुछ भी प्रतीक्षा में नहीं है। इसे यहां देखने के लिए किसी अन्य डिवाइस से फ़ाइल या सेटिंग्स भेजें।</string>
+    <string name="cross_device_transfer_sending">आपकी Drive कतार में अपलोड हो रहा है..</string>
+    <string name="cross_device_transfer_sent">अपलोड हो गया। इसे लेने के लिए अपने दूसरे डिवाइस पर यह स्क्रीन खोलें।</string>
+    <string name="cross_device_transfer_received_files">ऐप के इनकमिंग फ़ोल्डर में सहेजा गया</string>
+    <string name="cross_device_transfer_received_settings">दूसरे डिवाइस की सेटिंग्स लागू कर दी गई हैं</string>
+    <string name="cross_device_transfer_failed">स्थानांतरण पूरा नहीं हुआ। Drive साइन-इन और कनेक्शन जांचें, फिर दोबारा कोशिश करें।</string>
+    <string name="cross_device_transfer_row_subtitle">आपके अन्य डिवाइस से आने वाली फ़ाइलें और सेटिंग्ज़, आपके Google Drive में प्रतीक्षारत</string>
+    <string name="cross_device_transfer_remove_expired">समय-समाप्त पैकेट हटाएँ</string>
+    <string name="cross_device_transfer_expired_removed">समय-समाप्त पैकेट हटाए गए: %1$d</string>
 </resources>

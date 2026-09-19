@@ -71,6 +71,8 @@ data class SettingsUiState(
     val geometryMode: WearGeometryMode = WearGeometryMode.STORE,
     /** S2773: false in the published variant, where the switch is deliberately withheld (ADR-3). */
     val offersGeometryModeSwitch: Boolean = false,
+    /** S3256: clock and status overlay on dimmed screen. */
+    val dimClockOverlayEnabled: Boolean = false,
 
     /** S2093: epoch-millis the two sides last agreed, or 0 when they never have. */
     val lastSyncedAtEpochMillis: Long = 0L,

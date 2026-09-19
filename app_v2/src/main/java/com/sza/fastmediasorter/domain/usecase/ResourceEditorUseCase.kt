@@ -407,7 +407,6 @@ class ResourceEditorUseCase @Inject constructor(
                     updateVerificationStatus(resourceId, ResourceVerificationStatus.NEEDS_ATTENTION)
                 }
             } catch (error: CancellationException) {
-                Timber.d("S3134: post-save verification cancelled for resourceId=$resourceId")
                 throw error
             } catch (error: Exception) {
                 Timber.w(error, "Post-save verification failed for resourceId=$resourceId")

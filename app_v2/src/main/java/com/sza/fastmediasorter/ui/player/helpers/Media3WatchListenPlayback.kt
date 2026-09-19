@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
@@ -29,13 +31,24 @@ class Media3WatchListenPlayback @Inject constructor(
     private var onDropped: (() -> Unit)? = null
     private var onEndedElsewhere: (() -> Unit)? = null
 
+    /**
+     * S3164: the session's own looper, so an outward callback leaves the library's event loop.
+     *
+     * Both callbacks end the whole listening session, which stops the player, clears its playlist and
+     * releases the controller - every one of those a re-entrant call into a `MediaSession` that is
+     * still iterating its connected controllers. The one that crashed was the release: it removes the
+     * controller's record mid-loop and the next statement of `dispatchOnPlayerInfoChanged` dereferences
+     * it. Handing the teardown to the next message keeps all three outside the loop.
+     */
+    private var dispatchHandler: Handler? = null
+
     /** STATE_IDLE is also where a source starts from, so only an IDLE after READY is an end. */
     private var reachedReady = false
 
     private val sessionListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
             Timber.i(error, "The watch's audio stream dropped")
-            onDropped?.invoke()
+            afterDispatch { onDropped?.invoke() }
         }
 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -63,9 +76,16 @@ class Media3WatchListenPlayback @Inject constructor(
         this.onEndedElsewhere = onEndedElsewhere
         reachedReady = false
         audioController.playAudio(Uri.parse(url), mimeType = LISTEN_MIME_TYPE) { player ->
+            dispatchHandler = Handler(player.applicationLooper)
             player.addListener(sessionListener)
             onPlaying()
         }
+    }
+
+    /** Runs [block] on the next message of the player's looper - never inside the event being handled. */
+    private fun afterDispatch(block: () -> Unit) {
+        val handler = dispatchHandler ?: Handler(Looper.getMainLooper())
+        handler.post(block)
     }
 
     /**
@@ -74,13 +94,15 @@ class Media3WatchListenPlayback @Inject constructor(
      */
     private fun reportEndedElsewhere() {
         Timber.i("Playback of the watch's stream ended outside the listening session")
-        onEndedElsewhere?.invoke()
+        afterDispatch { onEndedElsewhere?.invoke() }
     }
 
     override fun stop() {
         // Detached before the player is touched, so this stop is never reported back as one from elsewhere.
         onDropped = null
         onEndedElsewhere = null
+        dispatchHandler?.removeCallbacksAndMessages(null)
+        dispatchHandler = null
         audioController.player?.let { player ->
             player.removeListener(sessionListener)
             player.stop()

@@ -65,6 +65,8 @@
 | `.\a.ps1 faw`  | Fast instrumented-test compile check, **`wear` module** (S2355) |
 | `.\a.ps1 fwm`  | Connected Room migration test run on watch, **`wear` module** (S2355) |
 | `.\a.ps1 flr`  | Fast lint-rules detector test suite (`:lint-rules:test`); `-Tests <filter>` narrows it |
+| `.\a.ps1 fl`   | Android lint, **`app_v2`** (`:app_v2:lintStandardDebug`); runs long, background it (S3155) |
+| `.\a.ps1 flw`  | Android lint, **`wear`** (`:wear:lintStandardDebug`); runs long, background it (S3155) |
 | `.\a.ps1 dc`   | Clean + debug build |
 | `.\a.ps1 cls`  | Clean Gradle caches |
 | `.\a.ps1 ss`   | Show unresolved specs (`sca-specs`) |
@@ -146,6 +148,21 @@ reaches `rowExportAll` - pass `-Exact` when one name is the beginning of another
 the identifier beside every label, and `uidump -Ids` additionally lists the nodes that carry no
 label at all - a switch or an icon with nothing but an id was invisible to the tool before S1879.
 `tap-label` stays correct where there is no id to aim at, which is most of Compose on the watch.
+
+**A screen that never idles cannot be dumped at all, and no wrapper change fixes it (S3289).** All
+three tree verbs run `uiautomator dump`, which waits for 500 ms with no accessibility event anywhere
+on the device, budget 10 s, and offers no flag to shorten or skip that wait - `uiautomator help` on
+the device lists only `--verbose` and `--compressed`. A window carrying a live readout emits a
+content-change event about every 100 ms, which is `ViewRootImpl`'s own coalescing floor, so the gap
+never arrives; the app's player was measured at 100-101 ms while playing on `RFCR110NBQJ`. The
+refusal is exit **7** and it names this, because the old advice - let the screen settle and re-run -
+is false for a screen that by construction will not settle. It costs one retry rather than three:
+each refused attempt blocks for the full idle budget, measured 11.10 s, so the old budget spent
+~35 s to learn nothing. A transient refusal while a window settles after a tap is the other regime
+and the single retry is what clears it (measured: 2 refusals in 15 calls, the next call through).
+What works on an undumpable screen is `shot`, and the same screen once the readout stops. Reading
+the tree from `dumpsys activity top` instead was measured and refused - `dev/REFUTED_APPROACHES.md`;
+the app-side cure is carried by S3293.
 
 `clip-check` reads the glass outline from the device (`mRoundedCorners` in `dumpsys window
 displays`), so the round watch (radius 240 on 480x480 - a circle) and the phone (radius 105 on
@@ -282,6 +299,8 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests
 - `gbp` collects the standard Baseline Profile through the `nonMinifiedRelease` generation flow.
 - Wrapper scripts: `scripts/builders/run-standard-macrobenchmark.ps1` and `scripts/builders/generate-standard-baseline-profile.ps1`.
 - Expect JSON results and Perfetto traces under `benchmark/build/outputs/connected_android_test_additional_output/<variant>/connected/<device_id>/`.
+- Judge a run against a previous one with `scripts/quality/compare-macrobenchmark-runs.ps1 -Baseline <previous>.json -Candidate <new>.json`: it applies `scripts/quality/macrobenchmark-budgets.json` and exits 1 on a regression, 2 when it cannot verify (S3322).
+- Compile the module's Kotlin without a device with `scripts/builders/compile-benchmark-module.ps1` - the phone fast checks compile `app_v2` and never touch a benchmark file (S3322).
 - See `docs/PERFETTO_PLAYBOOK.md` for thresholds, output interpretation, and Perfetto escalation rules.
 
 ### Streams-catalog performance checkpoints (S1502)
@@ -565,6 +584,19 @@ The record carries the mark (package, module, flavor, build type, version pair, 
 
 **Marks are facts, never permissions.** `docs/DEVICE_FLEET.md` stays the only authority for what a device permits; the registry records what happened. Read-only verbs never create the store directory, so a probe or the monitor can look without leaving artifacts. The monitor page renders the park in a devices section fed by the page writer, which reads both device stores itself - the snapshot collector and the terminal renderer are canon-harness forwarders (S2402), so the section is page-only by design. `device-ready.ps1 -WithRegistry` attaches the mark to a ready answer behind the same opt-in discipline as `-ClaimFree`.
 
+#### Device state journal - S3201
+
+The registry records what was installed; the state journal records what a test **changed** and must put back. One file per device under `temp/DEVICE.STATE/<serial>.json` (same declaration, `scripts/devtest/lib/device-store-paths.ps1`), keyed by `ro.serialno` because the watch's wireless adb id changes every session. It holds the original `wm density` and `wm size` overrides, `font_scale`, any `settings` key a run wrote, and the app's `files/datastore/` files as hashes with a byte copy beside the journal.
+
+```powershell
+# Open a device run: restore leftovers of an unclosed run, then snapshot
+pwsh -NoProfile -File scripts/devtest/adb.ps1 state-begin -DeviceId <id>
+# Close it: put every drifted value back, one RESTORED line each; exit 13 = a value did not come back
+pwsh -NoProfile -File scripts/devtest/adb.ps1 state-check -DeviceId <id>
+```
+
+`adb.ps1 font-scale -Scale` and `adb.ps1 shell -Cmd` with `wm density|wm size|settings put|delete` record the original before they run, so a change made outside an open run is still put back by the next `state-begin`. `/spec-test-device` and `wear-prerelease-walk.ps1` open and close the journal themselves. A DataStore file goes back after a force-stop, through `/data/local/tmp` and `run-as cp`; that route needs a debuggable build.
+
 #### Agent chat - S2372
 
 The fourth coordination layer, and the only one with no rights: it grants nothing, forbids nothing and owns nothing - it tells. The locks, queues and leases answer "busy or free"; the chat answers "busy with what, since when, and is the holder still talking".
@@ -575,6 +607,8 @@ Two streams, deliberately separate, under `temp/AGENT-CHAT/` (one file per messa
 - `findings/` - a result: a measurement, an answer, an environment state. Carries a `topic`, evidence (command, exit code, artifact) and a **scope** - up to 16 repository paths whose change makes it wrong. A finding is dead when anything in its scope was written after it, when its TTL passed (default `SpecTicket.TicketCeilingMinutes`, 480), or when the device it names is not in `adb devices` (adb missing counts as gone). The clock is never the truth; the scope is. Measured 2026-09-02: enumerating `app_v2/src` (4,881 files) costs 241 ms, against the 14-47 s a fast check a finding lets a session skip costs (S2935 re-measured `fg` at 47 s on 2026-09-11; S2451 had it at 32 s).
 
 Who writes, without costing a token: `Enter-AgentLock` / `Exit-AgentLock` (`lock`), `enter-code-lock.ps1` and `Enter-BuildLockOrExit` when queued (`wait`), `ticket-lease.ps1` (`ticket`), `update.ps1` (`status`), `post-change.ps1` (`verdict`), `assert-release-scope-gates.ps1` on green (finding `gates:release-scope`, scope `app_v2/src`, `wear/src`, `scripts`, `docs`, etc.), `device-ready.ps1` on READY (finding `device:<serial>`, TTL 60, carrying its canonical request string, dies with the serial), and the `post-agent-chat-session.ps1` hook at session start and end (`session`). The model owes three lines: a phase start (`/spec-dev`), a stage boundary (`/spec-all`), giving work up (`-Kind abandon`).
+
+**The runner consoles read it too.** A `claude -p` child prints its one line when the ticket ENDS and `.claude/runner/silent-mode.md` forbids it any narration before that, so an `r0`..`r3` console used to sit blank for the whole 30-60 minutes of a pipeline, which reads exactly like a hang. `scripts/utils/watch-agent-progress.ps1` is started beside the runner by `a.ps1` (`-NoNewWindow`, so it writes into that same console, and `-ParentPid`, so it dies with it) and tails `progress/` for the kinds that mean progress - `status`, `verdict`, `phase`, `ticket`, `abandon`, `note` - skipping `lock` and `session`, which fire several times per step and say nothing about where the pipeline is. A pass prints at most `-MaxLinesPerPass` lines and counts the rest; ten quiet minutes print one still-working line. Scope comes from `FMS_QUEUE_INSTANCE`, which `a.ps1` now exports before launching a runner (`mono`, `a`, `b`, `c`): every descendant inherits it, `agent-identity.ps1` stamps it into each record as `agent.instance`, and so three parallel runners each print their own work and none prints a sibling's. Before this nothing set that variable and every record read `instance -`. Run it bare in a spare window for all instances at once. Read-only and best-effort by construction: it holds no lock, writes nothing, and a malformed record skips that record rather than ending the watch - nothing may depend on its output (Rule 34).
 
 Who reads, and where: the refusal is the moment - `enter-code-lock.ps1` (exit 4) and `ticket-lease.ps1 -Verb Claim` (exit 3) print the holder's last three lines under their own verdict; `spec-next-preflight.ps1` adds `last_chat` to every `leased_ids` entry; `monitor-spec-queue.ps1` (`.\a.ps1 rm`) has an "agent chat" section. Nothing polls.
 
@@ -730,6 +764,26 @@ The domain set lives in `locks.domains` of `.sza-profile.json` and nowhere else 
 
 The lock window text above superseded "release it right after", which had been the whole of the rule until 2026-09-03 and did not say after *what*.
 
+### How much runs at once - the concurrency bound (S3308)
+
+The locks above order work that already exists; nothing decided how much of it there should be. Until this ticket the level was set by two hands that could not see each other - lanes started deliberately with `a.ps1 r1`/`r2`/`r3`, and sessions opened beside them - so the total was never anybody's number. Measured over 2026-09-17..19: up to **11 simultaneous sessions**, `check_fast_app_v2_Code` running a median **~50 s** against the **14.1 s** `docs/BUILD_TEST_FAST_PATH.md` documents for `a.ps1 fk`, and **40** domain queue entries in the window. The idle half of the old argument had already been paid off - 64 runner runs, **0** of them moving no status - so the price of concurrency here is build time, not wasted runs.
+
+The bound is one declared block, `concurrency` in `.sza-profile.json`, and nothing else configures it:
+
+- `maxSessions` - the owner's ruling of 2026-09-19, currently 6.
+- `activeAgentWindowMinutes` - how recently an agent must have acted to count. **Active is the owner's definition of 2026-09-19**: it talked in the chat, wrote a file or ran a script inside that window. A hung agent, an interrupted one, one stopped by usage limits, one that finished its task and sits idle, and one the owner has declared dead are all out of the count - the bound measures load, and an open window is not load. This is why the count is of recent activity and not of running processes: 12 agent processes were live on 2026-09-19 while the chat showed 7 that had acted at all.
+- `idleRunSharePercentMax` - the share of runner runs that moved no status, above which more lanes buy nothing.
+- `fastCheckLagSecondsMax` - how far past its documented duration the phone code fast check may run. 14.1 s of lag is the check taking twice the documented figure.
+- `holdSecondsMax` - the age at which a Rule 23 domain hold is reported as having outlived its edit window.
+
+- `loadWindowMinutes` / `loadMinSamples` - how recently, and over how many runs, the two measured sides are read when a lane is being started.
+
+**The launcher reads load over the short window, never over the summary's 24-hour default.** "Is this machine loaded" is a question about now, and a median taken across a day the machine was loaded keeps answering yes long after it went quiet: the first lane started under this rule, on 2026-09-19, was refused at 39.6 s of lag on a machine that had run no fast check for an hour. A window holding fewer than `loadMinSamples` checks refuses nothing - it is not evidence of a busy machine or a quiet one. The summary itself still defaults to 24 hours, because an audit is asking the opposite question.
+
+`a.ps1 r1`/`r2`/`r3` read that block before starting and **exit 4** naming the bound crossed, with the measured value beside the declared one. `r0` is exempt: MONO is one agent alone, which is the opposite of adding load. The measured side comes from `scripts/utils/measure-process-throughput.ps1`, which sweeps the three journals that were already being written - the runner's run rows, `temp/metrics/gate-executions.jsonl` and the fast-check logs - and answers any window with the five values plus the model each policy actually produced, a warning for a declared policy that never ran, and the long-hold report below. Nothing swept them before, so every process audit re-mined the same corpus by hand and its numbers died with the conversation.
+
+**A hold that outlived its edit window is now reported, not discovered afterwards.** Rule 23 releases a domain at the last file a step writes. On 2026-09-19 one `Code.Scripts` hold ran at least 41 minutes with no release, against 4 to 418 seconds for every other hold of that domain in the same stretch, and alone produced the window's longest wait - 747 s served by a neighbouring session. The summary pairs acquire and release events from the agent progress records and the queue handoffs, prints every hold past `holdSecondsMax` with its domain, holder and duration, and carries **an acquire with no release as `still held`** rather than dropping it for having no end stamp - that shape is precisely what a dropped hold looks like. The longest wait printed beside a hold is a lower bound: the grant itself is not journalled, so a waiter that took a ticket during the hold is credited only with the time up to the hold's end.
+
 ### The temp/ root inventory (S3030)
 
 `temp/` root holds three kinds of content, and `scripts/utils/archive-temp.ps1` has always said so in
@@ -841,10 +895,47 @@ every lock and lease, at the `SpecTicket` timings; and an absolute expiry stampe
 Take, default four hours and refused above the `SpecTicket` ceiling. A reader that finds a dead or
 expired marker reports it as absent and deletes it in the same call, so an abandoned freeze costs the
 next session one line of output instead of a standoff (S2761 records that failure mode for the code
-lock). Liveness is deliberately **not** a pid test: the process running Take exits the moment Take
+lock). That deletion lifts the queue stand-down the freeze requested as well, which for a while only
+`Release` did: on 2026-09-19 the package-39 marker expired at 08:39 and `temp/STOP-SPEC-QUEUE` stayed
+behind carrying its `stoppedQueue`, and since `run-spec-queue.ps1` reads that flag before its first
+ranking and refuses to start beside a live headless child, every lane started and did nothing for six
+hours on a decision nobody had made. The three ends have to be interchangeable in their effects, not
+only in the marker they remove. `.\a.ps1 r0`-`r3` read the freeze before starting for the same reason:
+a lane start is the one moment where nothing else would. Liveness is deliberately **not** a pid test: the process running Take exits the moment Take
 returns - the same reason `lock-status.ps1` prints "acquiring process - exits at acquire, not the
 holder" - and `Test-AgentIdentityProcessAlive` answers false for a session-guid owner by design, which
 is what a Claude session has, so either shortcut would report every live freeze as dead.
+
+**Which signal the second end reads, and the 45 minutes it used to be worth (S3320).** Owner liveness
+is `Get-AgentTicketLiveness` at the `SpecTicket` timings, and that function ranks a ticket's own
+`lastSeenAt` heartbeat **above** the owning session's transcript, because a heartbeat is written by the
+polling waiter that owns the ticket. A freeze has no waiter: `Take` stamped `lastSeenAt` once and
+nothing refreshed it, so the dead heartbeat shadowed the live transcript the same `Take` had just
+resolved, and every freeze became evictable **45 minutes after Take** - whatever `-Hours` said, and
+however alive its owner was. Any reader evicts, including the `-Verb Status -Json` child
+`guard-release-freeze.ps1` spawns in a **sibling** session, so the freeze was deleted by a stranger's
+ticket claim on the way to that claim being allowed. Measured 2026-09-19 against a fixture tree:
+heartbeat 60 minutes old, expiry three hours out, owner transcript written one second earlier ->
+`held=false`, `endedBy=dead-owner`, marker gone. That is exactly how the package-39 sweep lost a freeze
+taken at 03:37 and found it absent at 04:39. The marker now presents the **newest** of its heartbeat
+and its owner's transcript to the liveness function, judging a copy so nothing on disk is made to look
+younger than it is, and the owner's own reads rewrite the stamp - which is the only signal left in a
+runtime where `CLAUDE_TRANSCRIPT_PATH` is unset, as it is here. Raising a heartbeat can only keep a
+freeze alive, never evict one earlier, so the eviction half is untouched: an owner with no signal at all
+is still cleared on the spot. Both directions are pinned in
+`scripts/utils/release-freeze.tests/Run-Tests.ps1` (E16, E17).
+
+**"No freeze held" is two different pieces of news.** A tree that was never frozen and a sweep whose
+freeze ended underneath it read identically, which is why the package-39 loss was noticed only by a
+ticket claim that should have been refused. A cleared freeze now leaves
+`temp/RELEASE-FREEZE-ENDED.json` - owner, reason, `takenAt`, `endedAt`, `endedBy`, and the name of the
+session that cleared it, which is rarely the owner. `-Verb Status` reads it and names the end, adding
+"every gate cleared since then was measured on an unprotected tree" when the owner is the caller;
+`-Json` carries `endedBy`, `endedAt` and `wasMine`; a `Release` with nothing held reports it too, since
+the sweep's closing call is the likeliest moment it finds out. `Take` and `Release` remove it. It is a
+second file rather than a field on the marker because `guard-release-freeze.ps1`'s hot path is one
+`Test-Path` on the marker name, and a tombstone living there would spawn that hook's child process on
+every Bash call in every session forever after the first sweep.
 
 **Convergence honesty, which needs no co-operation at all.**
 `scripts/quality/release-scope-fingerprint.ps1` records what the judged tree looked like when the
@@ -862,6 +953,20 @@ every sibling archives into it - which re-runs `assert-archive-artefacts` alone.
 Contract suites: `scripts/utils/release-freeze.tests/Run-Tests.ps1`,
 `scripts/quality/release-scope-fingerprint.tests/Run-Tests.ps1`,
 `.claude/hooks/tests/Run-GuardReleaseFreeze-Tests.ps1`.
+
+### Mono mode - one agent alone on the project (S3158)
+
+Every coordination mechanism above - the domains, the ticket lease, device leases, the agent chat - orders an agent against its siblings. When the owner runs exactly one agent, each of them is a model turn spent ordering against nobody: a lease claim and release per ticket, an enter and exit per edit step, a chat line per stage or phase, a chat read at every refusal. MONO removes those turns by declaration.
+
+**Entry points.** `/spec-all -m <Sxxxx>` and `/spec-code -m <Sxxxx>` for one ticket; `.\a.ps1 r0` for a chain, which is `scripts/utils/run-mono-queue.ps1` handing over to `run-spec-queue.ps1` as instance `mono` (`runner.instances.mono` in `.sza-profile.json`, silent like a/b/c) with the prompt `/spec-all -m {id}`. The skip list and the delegation context `mono=1` live in `.claude/reference/mono-mode.md` and nowhere else.
+
+**What the run skips.** The ticket lease (the preamble runs `-NoLease`), `enter-code-lock.ps1` / `exit-code-lock.ps1` / `wait-for-lock-turn.ps1`, device leases and `device-ready.ps1 -ClaimFree`, and every model-posted or model-read chat line after the start. Nothing is checked or waited for: `r0` does not look for another runner, and a red build, a changed file or a busy domain is the run's own, never a sibling's.
+
+**The one start call, and why it drops state unconditionally.** `scripts/utils/mono-mode.ps1 -Verb Start` prints the chat history once, drops every ticket lease (`ticket-lease.ps1 -Verb Clean -Force`) and every lock and queue (`clear-agent-lock.ps1 -Name Build|Code -Force`), and posts one journal note. The harness is consumed here (section "The process harness comes from the canon"), so a gradle wrapper still takes its build domain through `Enter-BuildLockOrExit` and a closure still releases through its backstop. Uncontended that costs milliseconds and no model turn; behind a lock left by a dead session it would be a wait, which the mode rules out. Judging the leftovers' liveness first is the check MONO removes, so `-Force` is not a shortcut but the definition. `-DryRun` lists and drops nothing; `-Stores Leases` is how the contract suite stays off the real lock files, which have no fixture root.
+
+**No marker.** Nothing is written for other sessions to respect and no hook refuses them: the declaration is that there are none. Running a MONO run beside a leased one is a misuse the mode does not defend against.
+
+Suite: `scripts/utils/mono-mode.tests/Run-Tests.ps1` (fixture roots `FMS_TICKET_LEASE_ROOT`, `FMS_AGENT_CHAT_ROOT`).
 
 ### Shared-state mutation audit (S0703)
 
@@ -896,6 +1001,32 @@ For Kotlin and XML-resource changes, the unfiltered `neuroslop-gate` is the sole
 `doc-icons-sync-gate` runs only when the changed set includes a document-icon input: `docs/icons/doc-icon-map.json`, generated `docs/icons/doc/` assets, an icon generator, `index*.html`, `docs/howto/index*.md`, `docs/DOCS_MAP.md` or `docs/SETTINGS_REFERENCE*.md`. It is skipped for unrelated documentation edits. Run `pwsh -NoProfile -File scripts/quality/assert-doc-icons-sync.ps1 -Gate` to reproduce a failure; regenerate the assets and checked surfaces named by the report before closing again.
 
 Regenerating those assets needs one Python dependency, and it lives in the repo venv the exporter already looks for (`.venv/Scripts/python.exe`), not on the machine: `.venv\Scripts\python.exe -m pip install -r scripts/docs/lib/requirements.txt`. The rasterizer is `resvg-py`, whose pip wheels carry the renderer compiled in. It replaced `cairosvg` in S1964 for exactly that reason - `cairosvg` has no native code of its own and dlopens a system `libcairo`, which on Windows only exists if GTK or some unrelated application installed it. Nobody ever installed it deliberately, nothing recorded that it was needed, and the day the machine no longer had it the exporter stopped mid-run and blocked a ticket (S1931). Do not go back to a backend that resolves its native half outside `.venv`.
+
+### The closure ledger - one gate batch per ticket per set of bytes - S3301
+
+`scripts/post-change.ps1` judges file content but used to hold no memory of having judged it, so a ticket whose edits arrive in fragments paid for the whole batch once per fragment. Measured 2026-09-18 on the S3193 run: two closures 69 seconds apart over the same six files, `39577 ms` then `27532 ms`, four build-domain round-trips instead of two, and not one new judgement out of the second pass.
+
+The ledger is `temp/metrics/post-change-closures.jsonl`, written by `scripts/quality/lib/post-change-closure-ledger.ps1`. After a **clean** `PASS` the facade appends a record: the ticket, the change type, the module, the `-ScopeToFile` mode, the `HEAD` revision, and per changed file its path, length and SHA-256. At the start of the next run it looks for a record satisfying all six conditions:
+
+1. Same `-Target`, and it has the `Sxxxx` shape - a closure without a ticket has no boundary for reuse to live inside.
+2. The recorded run ended in a clean `PASS`. `PASS WITH ADVISORIES` means a gate saw something it could not attribute, which is a reason to look again; `FAIL` writes nothing at all.
+3. Same change type, module and `-ScopeToFile` mode.
+4. Same `HEAD`.
+5. This run's changed set is covered by the record file for file, with identical length and hash; its deleted set is a subset of the record's. A set carrying one member the record never saw does not qualify.
+6. The record is inside the reuse window (45 minutes; `FMS_POSTCHANGE_REUSE_WINDOW_MIN` overrides it).
+
+On a hit the gate batch does not run - `Invoke-Gate`, `Invoke-AdvisoryStep`, `Invoke-FixedInputGate` and `Start-PooledGate` all short-circuit, so nothing is started in a thread either - and the verdict says whose it is:
+
+```text
+post-change: PASS (REUSED from run a84027b32b91, 74s ago over 6 unchanged file(s); gate batch not re-run, 241 ms)
+  Same ticket, same bytes, same HEAD, clean PASS - re-run with -NoReuse to judge them again.
+```
+
+The bare word `PASS` is never printed for a reused verdict: this run judged nothing, and the run it names is the one whose protocol file holds the evidence.
+
+Everything unknown means "run the batch". A missing, unreadable or malformed ledger, an unreadable file in the set, a parse failure on any record - each of them is a miss, never an error, and a ledger write that fails is swallowed: the ledger can cost the next run its shortcut and nothing else. Turn it off with `-NoReuse` for one run or `FMS_POSTCHANGE_NO_REUSE=1` for a session.
+
+This is not a cache of gate verdicts across tickets, and it never makes a closure cheaper the first time. It removes exactly one thing: paying twice for the same bytes inside one ticket.
 
 ### Static analysis (detekt + ktlint) - S0720
 
@@ -1590,10 +1721,12 @@ The app declares thirteen interface locales in `app_v2/src/main/res/xml/locales_
 2. Closing a ticket that touched a strings file prints the `new-lexeme-count` advisory. Also not a refusal.
 3. The pre-release sweep runs step `0.8`, which **is** the refusal. Each module keeps its own translator-ready file: `temp/S1627/app_v2/new_lexemes_en.txt` for the phone and `temp/S1627/wear/new_lexemes_en.txt` for the watch. Send each non-empty file to the external translation service, import the phone result with `locale-bulk-import.ps1` and the watch result with the same command plus `-Module wear`, then re-run the step until it is 0.
 
-Five facts a reader cannot derive from the commands:
+Six facts a reader cannot derive from the commands:
 
 - **The refusal sits at the release, not at the ticket, by owner decision (strategic ADR-2).** Nothing ships between releases, so translating each key the day it is written buys the user nothing while costing ten translations per ticket; one batch per release costs one round trip for all of them.
-- **A missing translation is an absent key, never an English copy (ADR-6, S1190).** Android falls back to English on its own, so a partial locale is a shippable state. This is why the producer asks each locale's resource file which keys it carries, rather than comparing values.
+- **A missing translation is an absent key, never an English copy (ADR-6, S1190), and since S3304 that is enforced rather than stated.** Android falls back to English on its own, so a partial locale is a shippable state - and an English copy is strictly worse than the absent key, because it renders the same words while reading as translated to every counting tool. Presence and freshness are still answered from the key set and the registry; the fourth count compares the localized value against the English source and reports equality as untranslated. It had to exist: a copied value satisfies all three of the older counts, so the gate was blind to it by construction. Measured on `physical_flashlight_title` - `values-ar`, `values-fr`, `values-hi` and `values-b+zh+Hans` all shipped `Camera flashlight` under the same stamp `4937533679a78582` the two genuinely translated locales carried, and the gate named none of them. The same enforcement sits at the writing end: `seed-locale-tranche.ps1` omits a map value equal to its English source and stamps nothing for it, which is what its own header had promised since S1190.
+- **The English-identical count runs on twelve locales, not ten, and is exempted by a checked-in list rather than by a heuristic (S3304).** Lagging is a best-effort policy, so presence and freshness are asked only of the ten machine-translated locales; "this value IS the English source" is a defect in `ru` and `uk` too, and only the default locale is excluded, since its values are the source. Legitimate identicals - brand names, acronyms, units, pure format tokens - live in `scripts/quality/locale-identical-allowlist.json`, and an allow-listed key is exempt from all four counts, absence included. The list is checked in because the obvious heuristic does not discriminate: "identical to English and carrying a Latin word of three letters" scored 383 rows in `de` and 90 in `ru`, a locale the owner authors and keeps complete. It was seeded once, mechanically, from the keys whose ONLY gap was an English value - 633 in `app_v2` and 136 in `wear`, 747 after the union - so turning the count on changed no verdict on the day it landed; re-derive it with `list-new-lexemes.ps1 -IdenticalKeysPath <file>` pointed at a non-existent `-AllowlistPath`. It shrinks as `S3305` lands real translations, and a key that is also absent or stale somewhere is deliberately left out, so seeding can never retire a gap the other three counts already report.
+- **An allow-list entry is scoped to locales, because the property is per (key, locale) and not per key (S3309).** An entry is a bare key name, which entitles every locale exactly as before, or an object naming the entitled ones - `{"key": "camera_mode_photo", "locales": ["fr", "it"]}`. The distinction is not decorative: measured on the live tree 2026-09-19, 517 of the 646 allow-listed units the corpus matches are SPLIT, some locales having translated them and others carrying the English verbatim, so a key-level entry is wrong for one of the two groups it covers - `camera_mode_photo` is legitimately "Photo" in French and an untranslated leftover in Arabic. `Test-LocaleIdenticalAllowlisted` therefore takes a **mandatory** `-Locale`, which is what stops a call site from restoring the old key-level answer by omitting an argument; the one question that is genuinely key-level, "does the list mention this key at all", is `Test-LocaleIdenticalAllowlistHasKey` and is asked only by the reviewer's dump. Narrowing an existing entry is not hand work: `review-locale-identical-allowlist.ps1` writes `allowlist-keep-scoped.txt` beside its TSV, each key already scoped to the locales that carry the English verbatim today, and `-Keep` reads that grammar back (`key`, `key: fr it`, `key: fr,it`). Until this landed there was no lever in the project that could say "fr is entitled to this one, ar is not", so every untranslated leftover sharing a key with a legitimate identical was permanently invisible to the release gate.
 - **Provenance is tracked per module, and the gate runs once per module (S1858).** `scripts/quality/locale-source-fingerprints.json` addresses a unit as `module|set|file|key[|slot]`. It has to: `app_v2` and `wear` each ship `src/main/res/values/strings.xml` and share 14 key names, 6 of them with different English text, so an unqualified identity gave the two modules one slot with room for one hash. Whichever module imported last won it, and the gate then measured the other module's text against the wrong hash and called six translated keys untranslated - unfixable by re-importing, because re-importing only moved the red to the other module. A registry written before that split declares no schema version, reads as v1 and is refused with exit 2 until `scripts/quality/migrate-locale-fingerprints-module.ps1` rewrites it; a v1 store read as v2 would reproduce the same false report with nothing left to explain it.
 - **Provenance is written by whoever writes the text, so a direct seed is self-sufficient (S2327).** `scripts/utils/seed-locale-tranche.ps1` stamps the registry for every unit it translated from the supplied map, and `locale-bulk-import.ps1` no longer does it after the fact. A run that writes a locale file and no fingerprint produces a key the producer still reports as untranslated, however complete the file is - measured on S2320, where adding 20 registry entries by hand removed the key from the report without touching one byte of locale text. The importer could not get this right from where it stood: the accept-or-reject decision is per key and it saw one exit code per source file, so it stamped keys the seeder had rejected - and under `-Merge` a rejected replacement leaves the previously shipped translation in place, which turned the stamp into fresh provenance for stale text. Nothing is stamped for a `-Merge` passthrough, a rejected key or a `-DryRun`: none of them produced new text.
 - **Every write to the registry goes through `Edit-LocaleSourceFingerprints`, and the lock covers the read (S3008).** The store is one JSON document and every writer rewrites it whole, so a writer that loaded the file before another writer's save and saved after it discards every identity the other added. Nothing reports it: both processes exit 0 and each prints its own stamp count. Measured on the r37 import round - a ten-locale import of 146 lexemes reported `accepted 146 | rejected 0`, wrote every value correctly, and 145 of the 146 stamps for `de` were gone when the gate re-ran a moment later; the single survivor was the one key stamped from a different source file by a separate process. Locking the save alone would not have helped, because the stale snapshot forms at the read - which is why the transaction in `scripts/quality/lib/locale-fingerprints.ps1` opens a mutex keyed on the store path, reads inside it, hands the caller that fresh map to mutate, saves and releases. A seventh writer added later inherits the ordering by calling it; a writer that calls `Get-` and `Save-` in a pair does not, and there is no longer a reason to. `Code.Scripts` was the wrong instrument for this and was rejected: Rule 23's domain governs edits to script files, not runtime use of a data file, and `set-android-string.ps1` runs many times per ticket from sessions already holding `Code.Phone`. Contract suite: `scripts/quality.tests/locale-fingerprints-concurrency.Tests.ps1`, which spawns two overlapping writers and fails against a lock-free library.
@@ -1637,6 +1770,23 @@ Three facts a reader cannot derive from the commands:
 - **`optional: true` is judged by what it is attached to, not by where it appears.** On a navigation `tapOn` whose target genuinely varies - a system permission dialog, a skippable onboarding page - it is correct and stays. On `assertVisible` / `assertNotVisible` it turns the proof into a no-op that passes either way, so the gate tracks the enclosing command opener rather than matching the line on its own.
 - **A regex selector does not fail loudly, it fails silently.** Maestro does not reliably match `id: ".*settings.*"`, so the step never fires and the flow proceeds green. This is why the rule is mechanical: a reviewer reading the YAML sees an intention that the runtime never carries out.
 - **Every exemption names its reason and its exit condition.** `$exemptRelativePaths` in the gate holds `_shared/permissions.yaml` permanently (a fragment of nothing but optional permission taps, which the convention sanctions) and the two `device_only/3d-video-*.yaml` flows temporarily, pending S1618 - they drive a "Playback Settings" dialog that is unreachable from the player UI, so their regex selectors cannot be replaced with real ids because those ids do not exist.
+
+## THE LINT BASELINES (S3155)
+
+Two files, one per Android module: `app_v2/lint-baseline.xml` and `wear/lint-baseline.xml`. Each records findings the project has **accepted**, so lint can keep failing the build on anything new. Both modules run `abortOnError = true`.
+
+**Lint runs locally through `.\a.ps1 fl` (app_v2) and `.\a.ps1 flw` (wear)**, both wrapping `scripts/builders/check-lint.ps1`. Before S3155 no target invoked lint at all - `fk`, `fkn`, `fc`, `fr`, `fg` and `fu` every one exit 0 without a single lint task - so CI was the only place the check ran and 479 app_v2 errors plus 116 wear errors accumulated unseen. Both targets run long; background them.
+
+**What is in a baseline and why:**
+
+- `NetworkDataSourceDispatcher` - 419 rows in app_v2, 30 in wear. Recorded, not fixed: the detector resolves callers only inside one file and only through a private method, so it cannot see a dispatcher switch made by a caller elsewhere, and the count measures that blind spot. **Carrier: S3156.**
+- `UiContextLeak` - six rows in app_v2, on three `@Singleton` classes holding `View` fields. A real architectural finding, not an artifact; the fields are cleared on teardown, and deciding between rescoping, `WeakReference` or the status quo is a DI and lifecycle change. **Carrier: S3157.**
+
+Nothing else is in either baseline by choice. Every other error class S3155 met was fixed in code or carries an in-source `@SuppressLint` with a written reason, which is the rule: a suppression states what makes the call safe, at the call, where the next reader will find it. A baseline row says only "accepted", so it needs a carrier ticket to mean anything.
+
+**Regenerating.** `check-lint.ps1 -Module <app_v2|wear> -Regenerate` locally, or the `regenerate-lint-baseline` dispatch of `.github/workflows/android-ci.yml` for both modules at once - that job is the only environment running the same lint version and dependency mode CI judges with. **Regeneration is always the last step, never the first:** it records whatever is currently failing as accepted, so running it before the real defects are fixed is exactly how a genuine bug becomes an invisible baseline row.
+
+**A declared baseline that does not exist gets created.** Lint writes it and then fails the build with `Aborting build since new baseline file was created` - a blanket regeneration arrived at by configuration rather than by choice, and indistinguishable from a deliberate one afterwards. It happened once here, on the first wear run, writing all 199 findings. `android.experimental.lint.missingBaselineIsEmptyBaseline=true` in `gradle.properties` closes that door: a missing baseline now means an empty one, lint reports everything and writes nothing. The two regeneration paths above each override the flag for their own invocation, because they are the callers that do want the file.
 
 ## DEBUG PROBE INVARIANT (both directions)
 
@@ -1951,6 +2101,35 @@ script.
   `AGENTS.md` section 9.1 where non-Claude runtimes read it.
 
 
+## THE DEVICE BUILD IS A FULL REBUILD, AND ITS SILENCE IS NORMAL (S3290)
+
+`scripts/builders/build-standard-device.ps1` always passes `--no-build-cache --rerun-tasks
+-Pkotlin.incremental=false` (S3094), because the APK it produces is installed on a phone seconds
+later and must not carry a Hilt component from one build paired with consumers from another. The
+price is that nothing is ever up to date: the run measured 2026-09-18 reported `BUILD SUCCESSFUL in
+4m 51s`, **49 actionable tasks, 49 executed**.
+
+Most of that wall clock is silence, and the silence is not a symptom:
+
+- Gradle's plain console prints `> Task :x` when a task **starts** and nothing more until it ends.
+- `mergeExtDexStandardDebug`, `kspStandardDebugKotlin`, `compileStandardDebugKotlin` (1m 22s) and
+  `dexBuilderStandardDebug` each run for minutes without printing a character.
+- The Kotlin daemon's CPU total is not a progress signal. It climbs only on the two Kotlin tasks -
+  measured 3418 -> 3554 s - and sits at exactly 3554 s through `hiltJavaCompile`,
+  `transformClassesWithAsm` and `dexBuilder`. Reading that flat total as proof of death is what
+  ended two healthy runs before the APK existed.
+
+So the wait now reports itself. `scripts/builders/gradle-progress-watch.ps1` streams Gradle's output
+live and, after 60 seconds with no new line, prints one heartbeat naming the running task, how long
+it has been silent, the elapsed build time and the CPU-second delta of every JVM over 500 MB. A run
+that passes the 45-minute ceiling is stopped and the script exits **124**, the code `timeout(1)`
+uses. Rule 35 bounds what the ceiling may kill: the Gradle **client** this call started, never the
+daemon, which is shared with every other session and cancels the build itself once the client
+disconnects. Contract suite: `scripts/builders/gradle-progress-watch.tests/Run-Tests.ps1`.
+
+The same shape as `fms.unitTestTimeoutMinutes` in `gradle.properties` (S2585) and for the same
+reason - a wrapper that waits forever holds its build domain forever.
+
 ## BUILD TYPES
 
 | Type | minify | shrink | debuggable | appId suffix | notes |
@@ -2128,7 +2307,7 @@ An unsliced debug APK carries architectures the target device never executes: st
 
 - **Who passes it:** the debug builders that do not need Chaquopy - `build-standard-debug.ps1`, `build-debug.PS1` (behind `a.ps1 d/db/dav/dq`) and `build-debug-clean.PS1`. Nothing else does.
 - **noLegal cannot be split, and this is not an oversight.** AGP refuses `ndk.abiFilters` alongside `splits.abi`; Chaquopy refuses their absence (`Variant 'noLegalDebug': Chaquopy requires ndk.abiFilters`). A flavor carrying the Python runtime can be filtered or split, never both, so noLegal stays one `arm64-v8a` APK - the shape ruled for on 2026-08-23. `build-nolegal-debug.ps1` passes no property, and `build-debug.PS1` withholds it whenever Chaquopy is on.
-- **Who deliberately does not:** every release path. A release still emits one all-architecture APK per flavor, because the GitHub asset is what IzzyOnDroid globs (S0215) and a single-architecture one would shrink the device set the release reaches - canon hard invariant 2.
+- **Who deliberately does not:** every release path. A release emits one unsliced APK per flavor carrying that flavor's own ABI set (settled by S2067), because the GitHub asset is what IzzyOnDroid globs (S0215) and a single-architecture one would shrink the device set the release reaches - canon hard invariant 2.
 - **What it changes:** `splits.abi` turns on with `include("arm64-v8a", "x86_64")`, and every flavor's `ndk.abiFilters` is skipped. Both, not either: AGP refuses the two mechanisms together (`Conflicting configuration: '..' in ndk abiFilters cannot be present when splits abi filters are set`), and it checks **every** variant at configuration time, so one unconditional filter anywhere in `build.gradle.kts` breaks every split build.
 - **vr is excluded by the builders, not by the DSL.** `build-debug.PS1` refuses the flag for a vr task, because an x86_64 vr APK would carry no OpenXR native - the loader AAR ships arm64 only.
 - **Play is untouched.** `android.splits` is ignored when building a bundle, and `bundle.abi.enableSplit` already defaults to true, so the AAB was always per-ABI.

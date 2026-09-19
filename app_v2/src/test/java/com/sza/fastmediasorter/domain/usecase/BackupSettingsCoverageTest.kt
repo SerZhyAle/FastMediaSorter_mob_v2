@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BroadcastSettings
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureSettings
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import org.junit.Assert.assertEquals
@@ -34,7 +35,8 @@ class BackupSettingsCoverageTest {
          */
         val GROUP_TYPES: Set<Class<*>> = setOf(
             LauncherSettings::class.java,
-            ScreenshotGestureSettings::class.java
+            ScreenshotGestureSettings::class.java,
+            BroadcastSettings::class.java
         )
 
         /**
@@ -67,6 +69,8 @@ class BackupSettingsCoverageTest {
             // Deliberately excluded - the value is real, but it belongs to one device or one person.
             // Opaque per-lens capture memory; lens ids address one device's hardware.
             "cameraLensSettings",
+            // Camera lens selected for video broadcast; lens ids address one device's hardware.
+            "cameraLensId",
             // Screen-capture consent, given on a device by the person holding it. A restored "already
             // accepted" would suppress a warning that person never saw.
             "screenCaptureDisclosureAccepted",
@@ -79,7 +83,8 @@ class BackupSettingsCoverageTest {
             // S2843: this phone's stable identity as a broadcast source. Restored onto a second phone
             // it would give two sources one identity, and a receiver that scanned either of them would
             // keep overwriting one catalog entry instead of holding two.
-            "broadcastSourceDeviceId",
+            // S3222: a leaf of the `broadcast` group, so the walk reports it under its unprefixed name.
+            "sourceDeviceId",
 
             // Derived, session-scoped or dead - there is nothing durable to carry.
             // A content:// URI whose read permission was granted to this install and does not travel.
@@ -150,7 +155,8 @@ class BackupSettingsCoverageTest {
     private fun modelGroups(): List<Pair<Any, String>> = listOf(
         AppSettings() to "",
         LauncherSettings() to "launcher",
-        ScreenshotGestureSettings() to "screenshotGesture"
+        ScreenshotGestureSettings() to "screenshotGesture",
+        BroadcastSettings() to "broadcast"
     )
 
     /**

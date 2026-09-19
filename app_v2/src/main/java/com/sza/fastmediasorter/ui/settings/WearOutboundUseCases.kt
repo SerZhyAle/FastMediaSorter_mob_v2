@@ -7,6 +7,8 @@ import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
 import com.sza.fastmediasorter.domain.usecase.StartWatchListeningUseCase
 import com.sza.fastmediasorter.domain.usecase.StopWatchListeningUseCase
 import com.sza.fastmediasorter.domain.usecase.SyncWithWatchUseCase
+import com.sza.fastmediasorter.domain.usecase.wear.RequestWatchScreenshotUseCase
+import com.sza.fastmediasorter.domain.usecase.wear.SendClipboardTextToWatchUseCase
 import javax.inject.Inject
 
 /**
@@ -30,5 +32,11 @@ class WearOutboundUseCases @Inject constructor(
     // S2550: the listen pair shares this group's direction and its failure mode - an unreachable
     // watch - and joining it here is what keeps the view model off the ceiling above.
     val startListening: StartWatchListeningUseCase,
-    val stopListening: StopWatchListeningUseCase
+    val stopListening: StopWatchListeningUseCase,
+    // S3109: the clipboard push shares this group's direction and its failure mode - an unreachable
+    // watch - so it joins here rather than taking the view model back onto the constructor ceiling.
+    val sendClipboardText: SendClipboardTextToWatchUseCase,
+    // S3110: the screenshot ask shares this group's direction and its failure mode - an unreachable
+    // watch - so it joins here for the same reason the clipboard push did.
+    val requestWatchScreenshot: RequestWatchScreenshotUseCase
 )

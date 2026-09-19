@@ -37,6 +37,7 @@ import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSettingsDivergence
 import com.sza.fastmediasorter.domain.model.WearSettingsFieldIssue
 import com.sza.fastmediasorter.domain.model.WearSettingsPayloadDecoder
+import com.sza.fastmediasorter.domain.model.WearSettingsRegistry
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
@@ -50,6 +51,7 @@ import com.sza.fastmediasorter.domain.usecase.ReceiveWatchFileUseCase
 import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
 import com.sza.fastmediasorter.service.helpers.WearCastRequestHandler
 import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
+import com.sza.fastmediasorter.ui.sos.SosCommandFromWatchHandler
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -86,6 +88,12 @@ class PhoneWearListenerService : WearableListenerService() {
 
     @Inject lateinit var wearLogReportReceiver: WearLogReportReceiver
 
+    @Inject lateinit var wearSystemInfoReportReceiver: WearSystemInfoReportReceiver
+
+    @Inject lateinit var wearClipboardTextReceiver: WearClipboardTextReceiver
+
+    @Inject lateinit var wearScreenshotAckReceiver: WearScreenshotAckReceiver
+
     @Inject lateinit var openOnPhoneNotifier: OpenOnPhoneNotifier
 
     @Inject lateinit var receiveWatchFileUseCase: ReceiveWatchFileUseCase
@@ -103,6 +111,10 @@ class PhoneWearListenerService : WearableListenerService() {
     @Inject lateinit var phoneCameraSessionCommandManager: PhoneCameraSessionCommandManager
 
     @Inject lateinit var wearCastRequestHandler: WearCastRequestHandler
+
+    // S3216: starting a siren is a decision with a precondition - the owner's switch - so it lives in a
+    // collaborator like the cast and camera handlers above rather than in this class's dispatch.
+    @Inject lateinit var sosCommandFromWatchHandler: SosCommandFromWatchHandler
 
     // S2462: built from the injected Gson rather than injected itself - it carries no state and no
     // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
@@ -130,8 +142,48 @@ class PhoneWearListenerService : WearableListenerService() {
                 wearCastRequestHandler.handle(event.sourceNodeId, event.data)
             WearDataLayerPaths.CAST_STOP ->
                 wearCastRequestHandler.handleStop(event.sourceNodeId, event.data)
+            else -> onWatchContentMessageReceived(event)
+        }
+    }
+
+    /**
+     * The routes on which the watch hands this phone something to keep - a log, a system report, a
+     * clipboard (S3109).
+     *
+     * Its own half rather than three more branches above, for the reason the transfer half already
+     * records: one `when` over every route passes detekt's complexity ceiling, and the ceiling is
+     * right because the list only ever grows. The split is by subject, so a fourth thing the watch
+     * hands over lands here rather than wherever there is room.
+     */
+    private fun onWatchContentMessageReceived(event: MessageEvent) {
+        when (event.path) {
             WearDataLayerPaths.LOG_REPORT_REQUEST ->
                 handleLogReport(event.sourceNodeId, event.data)
+            WearDataLayerPaths.SYSTEM_INFO_REPORT ->
+                handleSystemInfoReport(event.sourceNodeId, event.data)
+            // Launched inline rather than through a handler of its own: this class sits on detekt's
+            // function ceiling, and the receiver is what the branch would delegate to anyway.
+            WearDataLayerPaths.CLIPBOARD_TEXT_FROM_WATCH ->
+                applicationScope.launch {
+                    wearClipboardTextReceiver.handle(event.sourceNodeId, event.data)
+                }
+            WearDataLayerPaths.CLIPBOARD_TEXT_FROM_PHONE_ACK ->
+                applicationScope.launch { wearClipboardTextReceiver.publishAck(event.data) }
+            WearDataLayerPaths.SCREENSHOT_REQUEST_ACK ->
+                applicationScope.launch { wearScreenshotAckReceiver.publishAck(event.data) }
+            else -> onTransferMessageReceived(event)
+        }
+    }
+
+    /**
+     * The second half of the same dispatch - the file, stream and session routes.
+     *
+     * Split off because one `when` over every route this phone answers passes detekt's complexity
+     * ceiling, and the ceiling is right: the list only ever grows. The split is by subject, so a new
+     * route lands in the half it belongs to rather than wherever there is room.
+     */
+    private fun onTransferMessageReceived(event: MessageEvent) {
+        when (event.path) {
             WearDataLayerPaths.STREAM_TRANSFER_ACK -> handleStreamTransferAck(event.data)
             WearDataLayerPaths.FILE_TRANSFER_ACK -> handleFileTransferAck(event.data)
             WearDataLayerPaths.FILE_TRANSFER_META -> handleFileTransferMeta(event.data)
@@ -142,6 +194,14 @@ class PhoneWearListenerService : WearableListenerService() {
                 phoneCameraSessionCommandManager.handleStop(event.sourceNodeId, event.data)
             WearDataLayerPaths.CAMERA_VIEW_SWITCH ->
                 phoneCameraSessionCommandManager.handleSwitch(event.sourceNodeId, event.data)
+            // S3216: the distress-signal routes are matched by the handler rather than by two branches
+            // here. This class is AT detekt's 40-function ceiling, so a third dispatch half of its own
+            // would not compile clean, and the handler is what a branch would delegate to anyway. An
+            // unrecognised route still ends quietly, because the handler answers false and nothing reads
+            // the answer.
+            else -> applicationScope.launch {
+                sosCommandFromWatchHandler.handle(event.path, event.data)
+            }
         }
     }
 
@@ -357,7 +417,12 @@ class PhoneWearListenerService : WearableListenerService() {
      * key this build does not know are the normal shape of two devices on different versions, so they
      * stay at debug rather than crying wolf on every exchange with an older watch.
      */
-    private fun logSettingsDivergences(divergences: List<WearSettingsDivergence>) {
+    private fun logSettingsDivergences(reported: List<WearSettingsDivergence>) {
+        // S3184: the watch inherits PHONE_ONLY fields and never reports them back, so their absence is
+        // the contract working, not a skew - counting it logged a false two-field divergence every sync.
+        val divergences = reported.filterNot {
+            it.issue == WearSettingsFieldIssue.MISSING && it.field in WearSettingsRegistry.phoneOnlyFields
+        }
         if (divergences.isEmpty()) return
         val mistyped = divergences.filter { it.issue == WearSettingsFieldIssue.WRONG_TYPE }
         if (mistyped.isNotEmpty()) {
@@ -432,6 +497,12 @@ class PhoneWearListenerService : WearableListenerService() {
     private fun handleLogReport(nodeId: String, data: ByteArray) {
         applicationScope.launch {
             wearLogReportReceiver.handle(nodeId, data)
+        }
+    }
+
+    private fun handleSystemInfoReport(nodeId: String, data: ByteArray) {
+        applicationScope.launch {
+            wearSystemInfoReportReceiver.handle(nodeId, data)
         }
     }
 

@@ -103,8 +103,8 @@ class ResourcePasswordManager(
         val dialog = MaterialAlertDialogBuilder(context)
             .setTitle(title)
             .setView(dialogView)
-            .setPositiveButton(android.R.string.ok, null) // Set to null to override click
-            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.ok, null) // Set to null to override click
+            .setNegativeButton(R.string.cancel, null)
             .create()
         
         dialog.setOnShowListener {

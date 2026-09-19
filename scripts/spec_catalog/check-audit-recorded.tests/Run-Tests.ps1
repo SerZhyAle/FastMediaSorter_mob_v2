@@ -68,9 +68,7 @@ function Invoke-Gate([string]$id) {
 }
 
 # ---------------------------------------------------------------------------
-# Anchor the positive cases in live data. Each is resolved by SEARCHING the catalog rather than by
-# hardcoding an id: a suite pinned to S2226 starts lying the day that ticket is archived. The
-# negative case cannot be live data because this very gate prevents an unaudited Verified spec.
+# Anchor the positive cases in live data when available, augmented by sandbox fixtures.
 # ---------------------------------------------------------------------------
 $verified = @(& $selectPs1 -Status Verified -Format json | ConvertFrom-Json)
 $plainId = $null
@@ -79,25 +77,24 @@ foreach ($r in $verified) {
     $abs = Join-Path $repoRoot ($r.file -replace '/', [IO.Path]::DirectorySeparatorChar)
     if (-not (Test-Path -LiteralPath $abs -PathType Leaf)) { continue }
     $text = Get-Content -LiteralPath $abs -Raw -Encoding UTF8
-    if (-not $plainId -and $text -match '(?m)^##\s+Last\s+Audit\b') { $plainId = $r.id; continue }
-    if (-not $numberedId -and $text -match '(?m)^##\s+\d+\.\s*Last\s+Audit\b') { $numberedId = $r.id; continue }
-}
-if (-not $plainId -or -not $numberedId) {
-    Write-Host "Cannot anchor the live positive cases (plain=$plainId numbered=$numberedId)." -ForegroundColor Yellow
-    Write-Host "The catalog no longer holds a Verified spec with each accepted audit heading shape - re-point this suite." -ForegroundColor Yellow
-    exit 2
+    if (-not $plainId -and $text -match '(?m)^##\s+Last\s+Audit\b') { $plainId = $r.id }
+    if (-not $numberedId -and $text -match '(?m)^##\s+\d+\.\s*Last\s+Audit\b') { $numberedId = $r.id }
 }
 
 Write-Host "check-audit-recorded regression suite" -ForegroundColor Cyan
 
-$a = Invoke-Gate $plainId
-Assert-That "A. plain '## Last Audit' passes ($plainId)" ($a.Code -eq 0) "exit $($a.Code): $($a.Text)"
+if ($plainId) {
+    $a = Invoke-Gate $plainId
+    Assert-That "A (live). plain '## Last Audit' passes ($plainId)" ($a.Code -eq 0) "exit $($a.Code): $($a.Text)"
+}
 
-$b = Invoke-Gate $numberedId
-Assert-That "B. numbered '## N. Last Audit' passes ($numberedId)" ($b.Code -eq 0) "exit $($b.Code): $($b.Text)"
+if ($numberedId) {
+    $b = Invoke-Gate $numberedId
+    Assert-That "B (live). numbered '## N. Last Audit' passes ($numberedId)" ($b.Code -eq 0) "exit $($b.Code): $($b.Text)"
+}
 
 # ---------------------------------------------------------------------------
-# Fixture cases C-E. Sandbox journal + fixture spec bodies under temp/scratch/.
+# Fixture cases C-E (and positive fixtures). Sandbox journal + fixture spec bodies under temp/scratch/.
 # ---------------------------------------------------------------------------
 $sandboxDir = Join-Path $repoRoot ('temp/scratch/check-audit-recorded-sandbox-{0}' -f $PID)
 $fixtureDir = Join-Path $sandboxDir 'specs'
@@ -109,6 +106,8 @@ try {
     # Ids from the FIXED reserved block far above the live maximum, never from next-id.ps1: a
     # generated id can collide with one a sibling session is allocating right now (S1490).
     $fixtures = @(
+        @{ Id = 'S9991'; Slug = 'audit-heading-plain-pass'; Body = "# Fixture`n`n**Status:** Verified`n`n## Last Audit`n`nPASS 2026-09-01 verified.`n" }
+        @{ Id = 'S9992'; Slug = 'audit-heading-numbered-pass'; Body = "# Fixture`n`n**Status:** Verified`n`n## 6. Last Audit`n`nPASS 2026-09-01 verified.`n" }
         @{ Id = 'S9994'; Slug = 'audit-heading-absent'; Body = "# Fixture`n`n**Status:** Verified`n" }
         @{ Id = 'S9995'; Slug = 'audit-heading-empty-body'; Body = "# Fixture`n`n**Status:** Implemented`n`n## Last Audit`n`n## Next section`n`ncontent`n" }
         @{ Id = 'S9996'; Slug = 'audit-heading-rule-only'; Body = "# Fixture`n`n**Status:** Implemented`n`n## Last Audit`n`n---`n" }
@@ -127,6 +126,12 @@ try {
 
     $env:FMS_SPEC_CATALOG_DIR = $sandboxDir
     $env:FMS_SKIP_RELEASE_QUEUE = '1'
+
+    $aBox = Invoke-Gate 'S9991'
+    Assert-That "A (sandbox). plain '## Last Audit' passes" ($aBox.Code -eq 0) "exit $($aBox.Code): $($aBox.Text)"
+
+    $bBox = Invoke-Gate 'S9992'
+    Assert-That "B (sandbox). numbered '## 6. Last Audit' passes" ($bBox.Code -eq 0) "exit $($bBox.Code): $($bBox.Text)"
 
     $c = Invoke-Gate 'S9994'
     Assert-That 'C. no audit block fails' ($c.Code -eq 1) "exit $($c.Code): $($c.Text)"

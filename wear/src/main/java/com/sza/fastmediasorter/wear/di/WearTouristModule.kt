@@ -21,4 +21,3 @@ abstract class WearTouristModule {
         impl: AndroidWearTouristRepository,
     ): WearTouristRepository
 }
-

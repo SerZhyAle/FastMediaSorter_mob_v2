@@ -29,11 +29,11 @@ class StandbyCameraSessionConsentPolicyTest {
     }
 
     @Test
-    fun `nothing armed refuses with NOT_ASKED`() = runTest {
+    fun `nothing armed refuses with NOT_ARMED`() = runTest {
         val policy = StandbyCameraSessionConsentPolicy(FakeController(BroadcastState.Idle))
 
         assertEquals(
-            CameraConsentOutcome.Refused(WearCameraRefusal.NOT_ASKED),
+            CameraConsentOutcome.Refused(WearCameraRefusal.NOT_ARMED),
             policy.requestConsent("req-1")
         )
     }
@@ -45,7 +45,7 @@ class StandbyCameraSessionConsentPolicyTest {
         )
 
         assertEquals(
-            CameraConsentOutcome.Refused(WearCameraRefusal.NOT_ASKED),
+            CameraConsentOutcome.Refused(WearCameraRefusal.NOT_ARMED),
             policy.requestConsent("req-1")
         )
     }

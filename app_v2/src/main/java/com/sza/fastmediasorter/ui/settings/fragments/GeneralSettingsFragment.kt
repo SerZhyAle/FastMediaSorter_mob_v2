@@ -8,13 +8,14 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.launcher.LauncherPrimaryWindowManager
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
-import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.power.PowerStateObserver
@@ -23,6 +24,7 @@ import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.DeviceStorageState
+import com.sza.fastmediasorter.domain.model.transfer.TransferDataKind
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
 import com.sza.fastmediasorter.domain.usecase.CredentialAuditor
@@ -33,10 +35,11 @@ import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
-import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.ui.settings.DataTransferDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.auth.AuthSessionsActivity
+import com.sza.fastmediasorter.ui.settings.cloud.CrossDevicePacketListDialogFragment
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsActionHelpers
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsBackupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCacheHelper
@@ -55,6 +58,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.UnusedCredentialsHelper
 import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoDialogManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 // S1161: extends BaseSettingsFragment so the two-column grid for collapsed groups is installed here too.
@@ -81,15 +85,15 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     @Inject lateinit var powerStateObserver: PowerStateObserver
 
     @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
+
     @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
 
-    // S1088: gate + role plumbing for the System-launcher enable toggle relocated into General -> Interface.
+    // S1088 / S3024: gate + role plumbing and primary window policy for the General -> Interface settings.
     @Inject lateinit var launcherModeContract: LauncherModeContract
 
     @Inject lateinit var launcherRoleManager: LauncherRoleManager
 
-    @Inject lateinit var launcherStartWindowManager: LauncherStartWindowManager
-
+    @Inject lateinit var launcherPrimaryWindowManager: LauncherPrimaryWindowManager
 
     // S1052: empty except on standard + noLegal (shared capture engine binds the menu launcher).
     // Gates the debug-only screenshot-test button relocated into the General-tab debug section.
@@ -101,7 +105,8 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     @Inject lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
 
     // S0391: gate decides whether the cloud group toggle row is visible on this flavor.
-    @Inject lateinit var remoteSourceAvailabilityGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+    @Inject lateinit var remoteSourceAvailabilityGate:
+        com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 
     // S1190: asks Play for the chosen interface language before the switch is applied.
     @Inject lateinit var languageSplitInstaller: com.sza.fastmediasorter.core.util.LanguageSplitInstaller
@@ -165,7 +170,9 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         }
 
     private val exportResourcesLauncher: androidx.activity.result.ActivityResultLauncher<String> =
-        registerForActivityResult(ActivityResultContracts.CreateDocument(com.sza.fastmediasorter.domain.model.ResourceShareFormat.MIME_TYPE)) { uri ->
+        registerForActivityResult(
+            ActivityResultContracts.CreateDocument(com.sza.fastmediasorter.domain.model.ResourceShareFormat.MIME_TYPE)
+        ) { uri ->
             uri?.let { backupViewModel.exportAllResources(it) }
         }
 
@@ -226,7 +233,11 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         )
     }
     private val googleAccountHelper by lazy {
-        com.sza.fastmediasorter.ui.settings.helpers.GoogleAccountSettingsHelper(this, googleAccountViewModel, cctChecker)
+        com.sza.fastmediasorter.ui.settings.helpers.GoogleAccountSettingsHelper(
+            this,
+            googleAccountViewModel,
+            cctChecker
+        )
     }
     private val prefetchHelper by lazy {
         GeneralSettingsPrefetchHelper(binding, viewModel, this, streamingCacheRepository)
@@ -243,6 +254,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             { isUpdatingSpinner = it },
             capabilityAvailability,
             powerStateObserver.batteryLevelUnavailable,
+            powerStateObserver.decision,
         )
     }
     private val viewSetupHelper by lazy {
@@ -261,10 +273,15 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             languageSplitInstaller = languageSplitInstaller,
         )
     }
+
     // S0328: color theme spinner (Auto/Light/Dark) in General → Interface, after the language spinner.
     private val colorThemeHelper by lazy {
         com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsColorThemeHelper(
-            binding, viewModel, this, { isUpdatingSpinner }, { isUpdatingSpinner = it }
+            binding,
+            viewModel,
+            this,
+            { isUpdatingSpinner },
+            { isUpdatingSpinner = it }
         )
     }
     private val profileHelper by lazy {
@@ -276,7 +293,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             this,
             launcherModeContract,
             launcherRoleManager,
-            launcherStartWindowManager,
+            launcherPrimaryWindowManager,
             launcherRoleLauncher,
         )
     }
@@ -292,6 +309,8 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         super.onViewCreated(view, savedInstanceState)
         setupGmsBanner()
         setupSavedAuthorizationsRow()
+        setupDataTransferRow()
+        setupCrossDeviceQueueRow()
         logHelper.setupVersionInfo()
         // S0200 Phase 06: bind the new Google Account card after the layout is inflated.
         // S1693: stays findViewById - the card is included TWICE in this layout (bare includes, no
@@ -369,10 +388,64 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         launcherHelper.handleLauncherRoleDeepLink()
     }
 
+    // S3292/S3295: leaving the screen does not move focus out of the freely typeable icon-size and
+    // sync-interval fields, so their typed values would be thrown away unread. Commit here, while
+    // the binding is still alive.
+    override fun onPause() {
+        viewSetupHelper.commitPendingIconSize()
+        viewSetupHelper.commitPendingSyncInterval()
+        super.onPause()
+    }
+
     override fun onDestroyView() {
         observersHelper.dismissManualSyncProgressDialog()
         super.onDestroyView()
         _binding = null
+    }
+
+    // S1565: one call, and nothing more. Which kinds and which media the menu offers is
+    // DataTransferMenuManager's decision, made inside the dialog.
+    private fun setupDataTransferRow() {
+        binding.rowDataTransfer.setOnRowClickListener {
+            DataTransferDialogFragment().show(
+                parentFragmentManager,
+                DataTransferDialogFragment.TAG
+            )
+        }
+        observeStagedTransferDocument()
+    }
+
+    // S3040: the pending-packet queue lives in the same App data card as the S1565 menu - the
+    // strategic section 0 anchor "Settings -> Data / Cloud Transfer". Sending settings happens
+    // inside the queue dialog, so the card keeps exactly two entries.
+    private fun setupCrossDeviceQueueRow() {
+        binding.rowCrossDevicePackets.setOnRowClickListener {
+            Timber.d("S3040: cross-device queue row tapped, opening packet list")
+            CrossDevicePacketListDialogFragment().show(
+                parentFragmentManager,
+                CrossDevicePacketListDialogFragment.TAG
+            )
+        }
+    }
+
+    /**
+     * S1565: favorites and resources are applied through a preview the user answers, so the menu
+     * stages those bytes as a document and hands it here. Strategic 5.1 requires the Drive path to
+     * reach the same preview as a device file, which is what these two calls are.
+     */
+    private fun observeStagedTransferDocument() {
+        parentFragmentManager.setFragmentResultListener(
+            DataTransferDialogFragment.RESULT_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val raw = bundle.getString(DataTransferDialogFragment.RESULT_URI)
+            val uri = raw?.toUri() ?: return@setFragmentResultListener
+            when (bundle.getString(DataTransferDialogFragment.RESULT_KIND)) {
+                TransferDataKind.FAVORITES.name -> backupViewModel.previewFavoritesImport(uri)
+                TransferDataKind.RESOURCES.name -> backupViewModel.previewResourceImport(uri)
+                else -> Timber.w("Staged transfer document arrived for a kind that has no preview flow")
+            }
+        }
     }
 
     // S0255: Wire the saved-authorizations row inside the new "Authorization" group.
@@ -406,11 +479,19 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         binding.tvGmsSettingsLink.visibility = View.VISIBLE
         binding.tvGmsSettingsLink.setOnClickListener {
             try {
-                startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,
-                    android.net.Uri.parse("market://details?id=com.google.android.gms")))
+                startActivity(
+                    android.content.Intent(
+                        android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("market://details?id=com.google.android.gms")
+                    )
+                )
             } catch (e: Exception) {
-                startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,
-                    android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")))
+                startActivity(
+                    android.content.Intent(
+                        android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")
+                    )
+                )
             }
         }
     }
@@ -443,8 +524,13 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
         fun updateLayoutParams(view: View, isHorizontal: Boolean) {
             val params = view.layoutParams as LinearLayout.LayoutParams
-            if (isHorizontal) { params.width = 0; params.weight = 1f }
-            else { params.width = ViewGroup.LayoutParams.MATCH_PARENT; params.weight = 0f }
+            if (isHorizontal) {
+                params.width = 0
+                params.weight = 1f
+            } else {
+                params.width = ViewGroup.LayoutParams.MATCH_PARENT
+                params.weight = 0f
+            }
             view.layoutParams = params
         }
 

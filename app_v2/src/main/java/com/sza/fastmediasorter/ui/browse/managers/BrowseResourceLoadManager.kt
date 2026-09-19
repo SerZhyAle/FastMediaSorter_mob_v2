@@ -245,7 +245,6 @@ class BrowseResourceLoadManager(
             )) {
                 is BrowseCacheManager.CacheCheckResult.UseCache -> {
                     if (cacheResult.files.isEmpty()) {
-                        Timber.d("S3126: empty cache rescan for resource=${resource.id}")
                     } else {
                     var filteredFiles = if (resource.scanSubdirectories) {
                         cacheResult.files

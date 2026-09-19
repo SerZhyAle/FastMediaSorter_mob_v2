@@ -15,7 +15,7 @@
     <string name="smb_network_unstable">الشبكة غير مستقرة - يرجى التحقق من اتصال Wi-Fi.</string>
     <string name="smb_no_shares_found_title">لم يتم العثور على أسهم</string>
     <string name="smb_password">كلمة المرور</string>
-    <string name="smb_port">ميناء</string>
+    <string name="smb_port">المنفذ</string>
     <string name="smb_port_hint">القيمة الافتراضية: 445</string>
     <string name="smb_resource_added_readonly">تمت إضافة مورد SMB (للقراءة فقط). لن تكون عمليات الكتابة متاحة.</string>
     <string name="smb_resource_added_success">تمت إضافة مورد الشركات الصغيرة والمتوسطة بنجاح</string>
@@ -36,7 +36,7 @@
     <string name="sftp_ftp_folder">SFTP / FTP</string>
     <string name="sftp_ftp_folder_description">إضافة مجلدات SFTP أو FTP عن بُعد</string>
     <string name="sftp_ftp_port_hint">SFTP: 22، FTP: 21</string>
-    <string name="sftp_host">يستضيف</string>
+    <string name="sftp_host">المضيف</string>
     <string name="sftp_host_hint">عنوان IP للخادم</string>
     <string name="sftp_key_invalid">تنسيق مفتاح SSH خاص غير صالح</string>
     <string name="sftp_key_load_error">فشل تحميل ملف المفتاح</string>
@@ -44,7 +44,7 @@
     <string name="sftp_key_passphrase_hint">اترك هذا الحقل فارغًا إذا لم يكن المفتاح مشفرًا.</string>
     <string name="sftp_load_key">تحميل الملف</string>
     <string name="sftp_password">كلمة المرور</string>
-    <string name="sftp_port">ميناء</string>
+    <string name="sftp_port">المنفذ</string>
     <string name="sftp_private_key">مفتاح SSH خاص</string>
     <string name="sftp_private_key_hint">ألصق المفتاح أو اختر ملفًا.</string>
     <string name="sftp_remote_path">المسار البعيد</string>

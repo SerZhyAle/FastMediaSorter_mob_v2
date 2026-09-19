@@ -46,9 +46,11 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockStyleProvider
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.WearBackgroundDeliveryState
 import com.sza.fastmediasorter.ui.settings.WearBackgroundPreview
@@ -289,7 +291,12 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         coercePanelAutoHide(watchSettings?.panelAutoHideSeconds ?: DEFAULT_PANEL_AUTO_HIDE_SECONDS)
     )
 
-    fun payload(context: Context? = null, unitSystem: UnitSystem? = null) = WearSettingsPayload(
+    fun payload(
+        context: Context? = null,
+        unitSystem: UnitSystem? = null,
+        settings: AppSettings? = null,
+        dimClockStyleProvider: DimClockStyleProvider? = null
+    ) = WearSettingsPayload(
         audioEnabled = audioEnabled,
         videoEnabled = videoEnabled,
         imagesEnabled = imagesEnabled,
@@ -308,7 +315,10 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         panelAutoHideSeconds = panelAutoHideSeconds,
         // S2731: no companion-window row exists for this field (PHONE_ONLY, no companionRowTag) - it
         // rides the phone's current AppSettings the same way appLanguage rides the current locale.
-        unitSystem = unitSystem?.name
+        unitSystem = unitSystem?.name,
+        // S3256: Dim screen clock and status overlay toggle and seconds visibility
+        dimClockOverlayEnabled = settings?.dimClockOverlayEnabled,
+        dimClockSecondsVisible = dimClockStyleProvider?.secondsVisible
     )
 }
 

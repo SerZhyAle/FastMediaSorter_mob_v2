@@ -169,7 +169,14 @@ Assert-Equal 'deleted layout widens manifest back' $true (Test-SettingsManifestI
 # the tree actually carries a reference divergence, which is a transient state belonging to another
 # ticket. These assertions fail if the trigger goes back to a path prefix, or if exit 3 stops being
 # downgraded - the two halves of the defect this ticket removed.
-$postChange = [System.IO.File]::ReadAllText((Join-Path $repoRoot 'scripts/post-change.ps1'))
+# S3150: the closure is the facade plus the two libraries it dot-sources, so the wiring is read off
+# all three - the input map is loaded by the changed-set library and the trigger is evaluated in the
+# facade, and which file holds which is not what these assertions are about.
+$postChange = (@(
+        'scripts/post-change.ps1',
+        'scripts/quality/lib/post-change-step-runners.ps1',
+        'scripts/quality/lib/post-change-changed-set.ps1'
+    ) | ForEach-Object { [System.IO.File]::ReadAllText((Join-Path $repoRoot $_)) }) -join [Environment]::NewLine
 Assert-Equal 'facade reads the shared input map'     $true ($postChange -match 'lib/settings-doc-inputs\.ps1')
 Assert-Equal 'facade trigger uses the predicate'     $true ($postChange -match 'Test-SettingsDocArtifactInput')
 Assert-Equal "facade no longer prefixes 'docs/settings/'" $false ($postChange -match "Test-AnyChangedFile 'docs/settings/'")

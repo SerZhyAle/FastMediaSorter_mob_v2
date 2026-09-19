@@ -108,7 +108,12 @@ param(
     # S3151: restore the per-gate PASS lines. Off by default because a passing closure returned
     # about 650 tokens per call that nobody acted on; every line still goes to the run's protocol
     # file. FMS_POSTCHANGE_VERBOSE=1 turns on both this and -ShowSkips.
-    [switch]$ShowPasses
+    [switch]$ShowPasses,
+    # S3301: run the gate batch even when the closure ledger says these exact bytes already passed
+    # it. Declared, not read from $args, because an undeclared switch is silently swallowed and the
+    # run would proceed under the opposite of what the caller asked for (S2703).
+    # FMS_POSTCHANGE_NO_REUSE=1 is the same refusal for a whole session.
+    [switch]$NoReuse
 )
 
 $ErrorActionPreference = "Stop"
@@ -245,346 +250,9 @@ else {
 
 $totalSw = [System.Diagnostics.Stopwatch]::StartNew()
 
-# S1338: every advisory gate that found something lands here, so the final
-# verdict can report what it could not attribute instead of swallowing it.
-$script:AdvisoryFindings = @()
-
-# S1598: every FATAL gate failure lands here instead of ending the process on the
-# spot. Fail-fast made one set of defects cost several full runs of the facade:
-# 215 failed runs in the week of 2026-08-05, median 8 turns from a failed run to
-# the next one, because each run could only ever name the first thing wrong.
-$script:FatalFindings = @()
-
-# S1937: steps that did not apply to this change. Collected instead of printed one per line -
-# a closure skips more steps than it runs, and each printed line stays in the session context
-# for every later request. The summary keeps every name, so "why did detekt not run" is still
-# answerable; -ShowSkips restores the per-step reason.
-$script:SkippedSteps = @()
-
-# S3151: per-gate lines go to a protocol file; the console gets them only on request.
-$script:ConsoleVerbose = $env:FMS_POSTCHANGE_VERBOSE -eq '1'
-$script:ConsolePasses = $ShowPasses -or $script:ConsoleVerbose
-$script:ConsoleSkips = $ShowSkips -or $script:ConsoleVerbose
-$script:PassedCount = 0
-$script:ProtocolPath = Join-Path $root ("temp/metrics/post-change-runs/{0}-{1}.log" -f (Get-Date -Format 'yyyyMMdd-HHmmss'), $PID)
-
-function Write-ProtocolLine([string]$Line) {
-    try {
-        $dir = Split-Path -Parent $script:ProtocolPath
-        if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
-        Add-Content -LiteralPath $script:ProtocolPath -Value $Line -Encoding utf8
-    }
-    catch {
-        # The protocol is a convenience copy; the verdict and the telemetry journal do not depend on it.
-        Write-Host "  [protocol] WARN - not written: $($_.Exception.Message)" -ForegroundColor Yellow
-    }
-}
-
-function Write-ProtocolPointer {
-    if (Test-Path -LiteralPath $script:ProtocolPath) {
-        Write-Host "protocol: $($script:ProtocolPath)" -ForegroundColor DarkGray
-    }
-}
-
-# S3151: a gate child prints its own report, which used to reach the console on every clean run.
-# It is buffered per step; the wrapper prints the buffer when the step fails or turns advisory,
-# verbose mode streams it live, and the protocol file always receives it.
-$script:CaptureLines = [System.Collections.Generic.List[string]]::new()
-function Invoke-CapturedAction([scriptblock]$Action) {
-    $script:CaptureLines = [System.Collections.Generic.List[string]]::new()
-    try {
-        & $Action *>&1 | ForEach-Object {
-            $captureText = "$_"
-            $script:CaptureLines.Add($captureText)
-            if ($script:ConsolePasses) { Write-Host $captureText }
-        }
-    }
-    finally {
-        if ($script:CaptureLines.Count -gt 0) {
-            Write-ProtocolLine (($script:CaptureLines | ForEach-Object { "    $_" }) -join [Environment]::NewLine)
-        }
-    }
-}
-
-function Write-CapturedOutput {
-    if ($script:ConsolePasses) { return }
-    foreach ($captureText in $script:CaptureLines) { Write-Host $captureText }
-}
-
-# S1598: label -> @{ Repro = '<command that runs this gate alone>'; Fix = '<what to do>' }.
-# Data, not prose in the facade, so registering a new gate never edits the output
-# logic (owner input). A label with no entry prints without a hint - not an error;
-# assert-gate-hints-sync.ps1 is what keeps the two sets in step.
-$script:GateHints = @{}
-$hintFile = Join-Path $root "scripts/quality/gate-recovery-hints.psd1"
-if (Test-Path $hintFile) {
-    try { $script:GateHints = Import-PowerShellDataFile -LiteralPath $hintFile }
-    catch { Write-Host "  [gate-hints] WARN - unreadable: $($_.Exception.Message)" -ForegroundColor Yellow }
-}
-
-function Send-PostChangeChatVerdict {
-    # S2372: the closure verdict is a moment sibling sessions want to see. A child process keeps the
-    # facade decoupled from the lock library; best effort keeps a chat failure from touching the verdict.
-    param([Parameter(Mandatory)][string]$Verdict)
-    try {
-        $cli = Join-Path $PSScriptRoot 'utils\agent-chat.ps1'
-        if (-not (Test-Path -LiteralPath $cli)) { return }
-        $exe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
-        $note = "post-change $Verdict ($resolvedChangeType) $Target - $Description"
-        & $exe -NoProfile -File $cli -Verb Post -Kind verdict -Note $note *> $null
-    }
-    catch { }
-}
-
-function Get-GateHint([string]$Label) {
-    if ($script:GateHints.ContainsKey($Label)) { return $script:GateHints[$Label] }
-    return $null
-}
-
-function Write-StepResult(
-    [string]$Label,
-    [ValidateSet('PASS', 'FAIL', 'SKIP')][string]$Status,
-    [int]$ElapsedMs,
-    [string]$Details = '',
-    [int]$ExitCode = 0,
-    # Advisory SKIP lines carry what the gate found, so they print even on a quiet run.
-    [switch]$AlwaysShow
-) {
-    Write-GateTelemetryRecord -Runner 'post-change' -Gate $Label -Status $Status `
-        -ExitCode $ExitCode -ElapsedMs ([Math]::Max($ElapsedMs, 0))
-    if ($Status -eq 'PASS') { $script:PassedCount++ }
-
-    $color = switch ($Status) {
-        'PASS' { 'Green' }
-        'FAIL' { 'Red' }
-        default { 'DarkGray' }
-    }
-
-    $message = "  [$Label] $Status"
-    if ($ElapsedMs -ge 0) {
-        $message += " ($ElapsedMs ms)"
-    }
-    if (-not [string]::IsNullOrWhiteSpace($Details)) {
-        $message += " - $Details"
-    }
-
-    Write-ProtocolLine $message
-    $show = switch ($Status) {
-        'FAIL' { $true }
-        'PASS' { $script:ConsolePasses }
-        default { $script:ConsoleSkips -or $AlwaysShow }
-    }
-    if ($show) { Write-Host $message -ForegroundColor $color }
-}
-
-# A pooled gate ran before its call site was reached, so the wrapper's stopwatch measured the wait.
-# The child's own measurement is the one the gate-frequency report needs.
-function Get-StepElapsedMs([System.Diagnostics.Stopwatch]$Stopwatch) {
-    $pooled = Get-PooledElapsedMs
-    if ($null -ne $pooled) { return [int]$pooled }
-    return [int]$Stopwatch.Elapsed.TotalMilliseconds
-}
-
-function Invoke-Step([string]$Label, [scriptblock]$Action) {
-    $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    Reset-PooledElapsedMs
-
-    try {
-        $global:LASTEXITCODE = 0
-        Invoke-CapturedAction $Action
-        $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
-        if ($exitCode -ne 0) {
-            throw "exit $exitCode"
-        }
-
-        $sw.Stop()
-        Write-StepResult -Label $Label -Status PASS -ElapsedMs (Get-StepElapsedMs $sw)
-    }
-    catch {
-        $sw.Stop()
-        Write-CapturedOutput
-        $exitCode = if ($LASTEXITCODE -and [int]$LASTEXITCODE -ne 0) { [int]$LASTEXITCODE } else { 1 }
-        $reason = $_.Exception.Message
-        if ($reason -eq "exit $exitCode") {
-            $reason = "child exit code $exitCode"
-        }
-
-        Write-StepResult -Label $Label -Status FAIL -ElapsedMs (Get-StepElapsedMs $sw) `
-            -Details $reason -ExitCode $exitCode
-        Write-ProtocolPointer
-        exit $exitCode
-    }
-}
-
-# S1598: the gate wrapper. Same verdict surface as Invoke-Step, but a failure is
-# recorded and the run continues, so ONE run names every gate the changed set
-# breaks. Certification is unchanged: Test-FatalFindings barricades the mutating
-# steps and exits 1, so a failed run still writes no changelog row and no catalog
-# index. Invoke-Step stays for those mutating steps, where "cannot go on" is real.
-# S2612: check-standard-fast.ps1 returns 4 for "queued, not my turn" - a short, foreground-scale
-# check that found its build domain busy and refused rather than blocking past the caller's 120 s
-# timeout. Nothing was inspected and nothing is wrong, which is this script's exit 2, not its exit 1:
-# the contract at the top of this file is explicit that "found a defect" and "did not look" are
-# different answers, and Invoke-Gate would otherwise turn the refusal into a FatalFinding and report
-# a red closure over a lock somebody else legitimately held.
-#
-# Aborting outright is safe here because every gate runs BEFORE the first mutating step, so this
-# writes no changelog row, no capability record and no catalog entry - the run is simply repeatable
-# once the domain frees up.
-function Stop-ClosureOnQueuedBuild([int]$ExitCode, [string]$Label) {
-    if ($ExitCode -ne 4) { return }
-    # Called inside a captured gate action: Write-Host would land in the step buffer and die with
-    # the process, and the queue handoff the child printed must reach the caller.
-    if (-not $script:ConsolePasses) { foreach ($captureText in $script:CaptureLines) { [Console]::Out.WriteLine($captureText) } }
-    [Console]::Out.WriteLine('')
-    [Console]::Out.WriteLine("post-change: could not verify - '$Label' was QUEUED behind another session's build, not run.")
-    [Console]::Out.WriteLine("  Nothing was inspected and nothing was written. Your place in the build queue is taken.")
-    [Console]::Out.WriteLine("  Wait for the turn in the background with the command the check printed above, then re-run this closure.")
-    exit 2
-}
-
-function Invoke-Gate([string]$Label, [scriptblock]$Action) {
-    $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    Reset-PooledElapsedMs
-
-    try {
-        $global:LASTEXITCODE = 0
-        Invoke-CapturedAction $Action
-        $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
-        if ($exitCode -ne 0) {
-            throw "exit $exitCode"
-        }
-
-        $sw.Stop()
-        Write-StepResult -Label $Label -Status PASS -ElapsedMs (Get-StepElapsedMs $sw)
-    }
-    catch {
-        $sw.Stop()
-        Write-CapturedOutput
-        $exitCode = if ($LASTEXITCODE -and [int]$LASTEXITCODE -ne 0) { [int]$LASTEXITCODE } else { 1 }
-        $reason = $_.Exception.Message
-        if ($reason -eq "exit $exitCode") {
-            $reason = "child exit code $exitCode"
-        }
-
-        Write-StepResult -Label $Label -Status FAIL -ElapsedMs (Get-StepElapsedMs $sw) `
-            -Details $reason -ExitCode $exitCode
-        $hint = Get-GateHint $Label
-        if ($hint) {
-            if ($hint.Repro) { Write-Host "      repro: $($hint.Repro)" -ForegroundColor Yellow }
-            if ($hint.Fix) { Write-Host "      fix:   $($hint.Fix)" -ForegroundColor Yellow }
-        }
-        $script:FatalFindings += [pscustomobject]@{ Label = $Label; ExitCode = $exitCode }
-    }
-}
-
-# S1598: the barrier. Called immediately before the first mutating step, so the
-# accumulated failures end the run exactly where fail-fast used to end it - with
-# nothing written. Exit 1 means "found a defect", per the exit contract above.
-# S2326: the read-only gates are started together and consumed at their own call sites, so the
-# printed sequence, the exit codes and the fail-fast barrier stay identical while the wall clock
-# drops. The mechanism and the two rules that keep it honest live in the library, which is
-# dot-sourced rather than inlined so scripts/quality.tests can execute it.
-. (Join-Path $root 'scripts/quality/lib/gate-pool.ps1')
-
-function Test-FatalFindings {
-    if ($script:FatalFindings.Count -eq 0) { return }
-
-    Write-Host ''
-    Write-SkippedSummary
-    Write-Host "post-change: FAIL ($($script:FatalFindings.Count) gate(s), $resolvedChangeType)" -ForegroundColor Red
-    Send-PostChangeChatVerdict -Verdict "FAIL ($($script:FatalFindings.Count) gate(s))"
-    foreach ($finding in $script:FatalFindings) {
-        Write-Host "  failed: $($finding.Label) (exit $($finding.ExitCode))" -ForegroundColor Red
-        $hint = Get-GateHint $finding.Label
-        if ($hint -and $hint.Repro) { Write-Host "      repro: $($hint.Repro)" -ForegroundColor Yellow }
-    }
-    Write-Host "  Nothing was written: no changelog row, no catalog sync. Fix the above and re-run." -ForegroundColor Red
-    Write-ProtocolPointer
-    exit 1
-}
-
-function Skip-Step([string]$Label, [string]$Reason) {
-    $script:SkippedSteps += [pscustomobject]@{ Label = $Label; Reason = $Reason }
-    # Write-StepResult records the journal row and the protocol line, and prints only on request.
-    Write-StepResult -Label $Label -Status SKIP -ElapsedMs 0 -Details $Reason
-}
-
-# S1937: one line for the whole not-applicable set, printed before the verdict on the failing
-# and advisory paths so a failed closure still shows what never ran.
-function Write-SkippedSummary {
-    if ($script:ConsoleSkips -or $script:SkippedSteps.Count -eq 0) { return }
-    $names = ($script:SkippedSteps | ForEach-Object { $_.Label }) -join ', '
-    Write-Host "  skipped ($($script:SkippedSteps.Count), not applicable to this change): $names" -ForegroundColor DarkGray
-    Write-Host '  reasons: re-run with -ShowSkips' -ForegroundColor DarkGray
-}
-
-# S0826: like Invoke-Step but non-fatal. A project-wide gate that cannot attribute its
-# failure to THIS change (today only icon-inventory-sync; the count-ratchet gates moved to
-# FATAL per-file deltas in S0848/S0850) is reported as a WARN under -ScopeToFile and the
-# facade keeps going instead of aborting the close. The operator still sees it.
-function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action, [string]$AdvisoryDetails) {
-    $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    try {
-        $global:LASTEXITCODE = 0
-        Invoke-CapturedAction $Action
-        $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
-        $sw.Stop()
-        if ($exitCode -ne 0) {
-            # Most advisory gates are project-wide ratchets whose finding may belong to another
-            # ticket's WIP. A caller that knows better (the preflight judges YOUR files only)
-            # passes its own wording, so the verdict line never misdescribes what was found.
-            $details = if ($AdvisoryDetails) { $AdvisoryDetails } else { "advisory (project-wide ratchet; not attributed to your change - verify your files manually)" }
-            Write-CapturedOutput
-            Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details $details -AlwaysShow
-            $script:AdvisoryFindings += "$Label (exit $exitCode)"
-        }
-        else {
-            Write-StepResult -Label $Label -Status PASS -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
-        }
-    }
-    catch {
-        $sw.Stop()
-        Write-CapturedOutput
-        Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details "advisory (gate error: $($_.Exception.Message))" -AlwaysShow
-        $script:AdvisoryFindings += "$Label (gate error)"
-    }
-}
-
-# S2824: the call site for a fixed-input gate - one that reads a short, enumerated list of source
-# files and judges one rule between them. Given the changed set it answers 3 for "a divergence
-# stands in the tree, but no file I read is in that set", which is an advisory here: its author is
-# another session, and charging this closure for it made CLAUDE.md section 12's promise false for
-# these gates exactly as S1889/S1895 did for the ticket-log gate. Codes 1 and 2 stay fatal.
-#
-# The child runs OUTSIDE the wrapper because the verdict shape is chosen from its exit code and
-# Invoke-AdvisoryStep's catch turns any exception into a SKIP - raising one for code 1 would
-# downgrade this change's own divergence instead of scoping it. The pooled duration is carried
-# across by hand, because Invoke-Gate's Reset-PooledElapsedMs would otherwise leave the wrapper's
-# own near-zero stopwatch in the telemetry that measure-gate-frequency.ps1 ranks gates by.
-function Invoke-FixedInputGate([string]$Label, [string[]]$Argv, [string]$GateScript) {
-    Invoke-CapturedAction { Invoke-GateChild @Argv }
-    $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
-    $elapsedMs = Get-PooledElapsedMs
-    # Replayed inside the verdict wrapper below, which captures it again and prints it only on red.
-    $childLines = @($script:CaptureLines)
-
-    if ($exitCode -eq 3) {
-        Invoke-AdvisoryStep $Label { $childLines | ForEach-Object { Write-Host $_ }; $global:LASTEXITCODE = 3 } `
-            -AdvisoryDetails ("a divergence stands in the tree between files this change never opened, so this " +
-                "closure is not charged for it - its author owns it. Run $GateScript with no -ChangedFiles for " +
-                "the project-wide verdict.")
-        return
-    }
-
-    # Restored INSIDE the action: Invoke-Gate opens with Reset-PooledElapsedMs, so a value set
-    # before the call is wiped before the step result reads it.
-    Invoke-Gate $Label {
-        $childLines | ForEach-Object { Write-Host $_ }
-        if ($null -ne $elapsedMs) { Set-PooledElapsedMs $elapsedMs }
-        $global:LASTEXITCODE = $exitCode
-    }
-}
+# S3150: the run state and every step/gate wrapper live in this library. Dot-sourced, not invoked:
+# they own the $script: state the barrier and the verdict read, in this scope.
+. (Join-Path $root 'scripts/quality/lib/post-change-step-runners.ps1')
 
 $resolvedChangeType = if ($PSBoundParameters.ContainsKey('ChangeType')) {
     $ChangeType
@@ -602,119 +270,20 @@ else {
     'Kotlin'
 }
 
-# S1372: every path-keyed gate used to test the FIRST path the caller named, so a
-# multi-file close silently skipped any gate whose trigger file was not first, while still printing
-# a clean PASS. Two confirmed occurrences: S1363 (script-cheatsheet-sync skipped over a new .ps1)
-# and S1370 (all-features skipped over docs/ALL_FEATURES.jsonl, in the same run where
-# document-registry DID see it). Applicability is a property of the changed SET, not of one member.
-$normChangedFiles = @($changedFiles | ForEach-Object { ($_ -replace '\\', '/') -replace '^\./', '' })
-function Test-AnyChangedFile([string]$Pattern) {
-    foreach ($candidate in $normChangedFiles) {
-        if ($candidate -match $Pattern) { return $true }
-    }
-    return $false
-}
-function Get-FirstChangedFileMatch([string]$Pattern) {
-    foreach ($candidate in $normChangedFiles) {
-        if ($candidate -match $Pattern) { return $candidate }
-    }
-    return $null
-}
+# S3301: the closure ledger. Dot-sourced above the first applicability test, because the reuse
+# answer is what several of those tests are conditioned on. Measured 2026-09-18 on the S3193 run:
+# two closures 69 s apart over the same six files, the second spending 27532 ms to reach the
+# verdict the first had already reached over the same bytes.
+. (Join-Path $root 'scripts/quality/lib/post-change-closure-ledger.ps1')
+if ($NoReuse) { $env:FMS_POSTCHANGE_NO_REUSE = '1' }
+$closureFingerprint = Get-ClosureFingerprint -RepositoryRoot $root -Changed $changedFiles -Deleted $deletedFiles `
+    -ChangeType $resolvedChangeType -Module $Module -Scoped ([bool]$ScopeToFile)
+$closureReuse = Find-ReusableClosure -Target $Target -Fingerprint $closureFingerprint
+if ($closureReuse) { Enable-ClosureReuse $closureReuse }
 
-# S1915: the flavors each module declares, spelled exactly as check-standard-fast.ps1 accepts them.
-# S2090: wear grew its own two-flavor dimension, so the candidate list is per module.
-# S2121: the list itself moved to scripts/utils/gradle-modules.ps1 - it was declared here AND in
-# check-standard-fast.ps1, and the copies had already started to drift.
-. (Join-Path $root 'scripts/utils/gradle-modules.ps1')
-
-# S2355: every Room database in the repository, one row each. The migration predicates below are
-# built from this rather than from literal path fragments, so a third database is a row in
-# scripts/quality/lib/room-databases.ps1 and not another edit here.
-. (Join-Path $root 'scripts/quality/lib/room-databases.ps1')
-$roomDatabaseRows = @(Get-RoomDatabaseRegistry -RepoRoot $root)
-
-# S2604: the settings-doc gate's five stages each read a different input, and the trigger below
-# used to test a bare 'docs/settings/' prefix - so device-profile-nonpresettable.json, which feeds
-# no stage of this gate at all, ran four checks that cannot see it and then failed the close on the
-# project-wide reference stage. The per-stage input map lives beside the gate so the trigger here
-# and the gate's own delta predicates cannot drift apart (S1621).
-. (Join-Path $root 'scripts/quality/lib/settings-doc-inputs.ps1')
-
-function Test-PathUnderDir([string]$Candidate, [string]$Directory) {
-    if ([string]::IsNullOrWhiteSpace($Directory)) { return $false }
-    $prefix = ($Directory -replace '\\', '/').TrimEnd('/')
-    return $Candidate -eq $prefix -or $Candidate.StartsWith("$prefix/")
-}
-
-function Get-RoomRowsForChangedFiles([string[]]$Fields) {
-    # Which registered databases the changed set actually touches. Returns rows, not a boolean, so
-    # the caller can name the module it is about to judge - the whole point of S2355 is that a
-    # verdict identifies the database it read.
-    $matched = [System.Collections.Generic.List[object]]::new()
-    foreach ($row in $roomDatabaseRows) {
-        foreach ($candidate in $normChangedFiles) {
-            $hit = $false
-            foreach ($field in $Fields) {
-                $value = $row.RelativePaths.$field
-                if ($field -eq 'RegistrationFile') {
-                    if ($candidate -eq ($value -replace '\\', '/')) { $hit = $true }
-                }
-                elseif (Test-PathUnderDir $candidate $value) { $hit = $true }
-                if ($hit) { break }
-            }
-            if ($hit) { $matched.Add($row); break }
-        }
-    }
-    # Emit the rows one at a time and let every CALL SITE wrap the call in @(). Returning the
-    # collection instead is what broke this on its first real run: `return ,$matched.ToArray()`
-    # survives an unwrapped `.Count`, but `@(..)` around it yields a one-element array whose single
-    # element is the EMPTY array - so a changed set matching no database reported Count 1, the
-    # androidTest gate ran anyway, and `$_.Module` failed on an Object[]. Emitting keeps both forms
-    # honest: no match is 0 rows, one match is 1 row.
-    foreach ($row in $matched) { $row }
-}
-
-function Get-ResourceLinkFlavors([string]$TargetModule) {
-    # Which variants have to link before the changed set counts as proven. A resource under
-    # src/<flavor>/res is compiled into that flavor alone, so linking it as `standard` renders a
-    # verdict about a variant that never sees the file - the same false green S1807 found when a
-    # phone target was quoted as proof under a wear change.
-    #
-    # S2090: wear used to be answered here with a flat @('Standard'), before the source sets were read
-    # at all, because it had one variant and the builder refused any -Flavor. Both premises are gone,
-    # and leaving the shortcut would close a wear/src/noLegal/res change green without ever linking it -
-    # exactly the false green this gate exists to prevent (S1881).
-    $candidates = @(Get-GradleModuleFlavors -Name $TargetModule)
-    # S2121: an empty answer is a real one - watchface declares no flavor dimension, and its task name
-    # carries no variant segment at all. The caller invokes the builder without -Flavor for it.
-    if ($candidates.Count -eq 0) { return @() }
-
-    # S2121: only THIS module's paths may select a flavor. Before, every path in the changed set was
-    # scanned for every module, so a set spanning two modules offered each of them the other's source
-    # sets - harmless while the gate only ever ran for one declared module, wrong the moment it runs
-    # for the set it derived.
-    $modulePrefix = (Get-GradleModule -Name $TargetModule).PathPrefix
-
-    # src/main, src/debug and every other non-flavor source set ship inside the default variant,
-    # so it is always linked; the loop only ever ADDS flavors on top of it.
-    $selected = [System.Collections.Generic.List[string]]::new()
-    $selected.Add($candidates[0])
-
-    foreach ($candidate in $normChangedFiles) {
-        if ($candidate -notlike "$modulePrefix*") { continue }
-        if ($candidate -match '(^|/)src/([^/]+)/') {
-            $sourceSet = $Matches[2]
-            foreach ($flavor in $candidates) {
-                # -eq on strings is case-insensitive here, which is what lets `vr` select `Vr`.
-                if ($sourceSet -eq $flavor -and -not $selected.Contains($flavor)) { $selected.Add($flavor) }
-            }
-        }
-    }
-    return $selected.ToArray()
-}
-
-$docIconRoutingFile = Join-Path $root 'scripts/quality/lib/doc-icon-gate-routing.ps1'
-. $docIconRoutingFile
+# S3150: the normalized changed set, its predicates and the registries they read. Dot-sourced here,
+# above the first applicability test, so every predicate resolves in this scope.
+. (Join-Path $root 'scripts/quality/lib/post-change-changed-set.ps1')
 
 $hasJvmSource = Test-AnyChangedFile '(^|/)src/.*\.(kt|java)$'
 $hasXmlResource = Test-AnyChangedFile '(^|/)src/.*\.xml$'
@@ -734,7 +303,10 @@ $runsStringsAudit = $isResourceChange -and $hasStringResource
 $runsStringFormatGate = $isResourceChange -and $hasStringResource
 $runsTicketLogAudit = $isCodeChange
 $runsAcceptanceProbeGate = Test-AnyChangedFile 'scripts/(quality/(assert-ticket-acceptance-probes|lib/ticket-acceptance-probes)|spec_catalog/update)\.ps1$'
-$runsDetektPreflight = $resolvedChangeType -in @('Kotlin', 'Mixed')
+# S3301: the detekt pair is the one gate family whose first half runs through Invoke-Step, which
+# stays live under reuse because the mutating steps use it too - so the reuse answer is folded into
+# the predicate instead.
+$runsDetektPreflight = ($resolvedChangeType -in @('Kotlin', 'Mixed')) -and -not $closureReuse
 $runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling')
 # S1075: same trigger as doc-pins-sync - drift enters via a Gradle bump (Config) or a
 # hand edit to dev/TECH_REQUIREMENTS.md (Doc). Checks the doc pins the generator does not own.
@@ -864,6 +436,12 @@ $runsListenerSymmetryGate = $isCodeChange
 # framework configuration language instead of the one the user chose. Narrow trigger: the subject is
 # an app_v2 Kotlin source file, so a wear-only or resource-only change never pays for it.
 $runsActivityLocaleWrapperGate = Test-AnyChangedFile '^app_v2/src/[^/]+/java/.*\.kt$'
+# S2870/S3101 quantity-format-seam gate. A user-facing quantity formatted by a call site of its own
+# hands the clock length and the scale back to the device or the locale, which is what the app's
+# UnitSystem decides. Fires on a Kotlin source file in either module and on a strings or layout
+# resource, which are the three shapes the gate reads.
+$runsQuantityFormatSeamGate = (Test-AnyChangedFile '^(app_v2|wear)/src/[^/]+/java/.*\.kt$') -or
+    (Test-AnyChangedFile '^(app_v2|wear)/src/[^/]+/res/.*\.xml$')
 # S0918 orientation-implied-feature gate. Fires only when a manifest is touched - an
 # activity that pins screenOrientation implies a required screen.* hardware feature,
 # which shrinks Google Play device reach unless src/main declares it not-required.
@@ -1365,6 +943,20 @@ else {
     Skip-Step "dotsource-tracked" "not applicable - no .ps1 among the changed files"
 }
 
+# S3150: the Rule 2 file-size ceiling, held over the repository's own scripts. For .kt the number is
+# read by reviewers; for a .ps1 nothing measured it, so this facade itself crossed it unnoticed and
+# was caught by hand while another ticket closed. Keyed on the same predicate as the gate above,
+# because a changed .ps1 is exactly the file whose size this closure can be charged for.
+if ($runsDotSourceTrackedGate) {
+    Invoke-Gate "script-file-size" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-script-file-size.ps1") `
+            -Gate -Quiet -ChangedFiles ($changedFiles -join ',')
+    }
+}
+else {
+    Skip-Step "script-file-size" "not applicable - no .ps1 among the changed files"
+}
+
 # S0826: a project-wide gate without per-file delta support runs advisory (warn, non-fatal)
 # under -ScopeToFile; fatal otherwise. Since S0850 only icon-inventory-sync still uses this -
 # the count-ratchet gates all judge FATAL per-file deltas.
@@ -1498,6 +1090,8 @@ $argvListenerSymmetry = @('-NoProfile', '-File', (Join-Path $root "scripts/quali
 if ($ScopeToFile) { $argvListenerSymmetry += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvActivityLocaleWrapper = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-activity-locale-wrapper.ps1"), '-Gate')
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvActivityLocaleWrapper += @('-ChangedFiles', ($changedFiles -join ',')) }
+$argvQuantityFormatSeam = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-quantity-format-seam.ps1"), '-Gate')
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvQuantityFormatSeam += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvAllFeatures = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1"), '-Gate', '-Quiet')
 $argvHowToPaths = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-howto-settings-paths.ps1"), '-Gate')
 $argvScriptCheatsheet = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-script-cheatsheet-sync.ps1"), '-Gate', '-Quiet')
@@ -1528,6 +1122,7 @@ if ($runsDialogCancelGate) { Start-PooledGate @argvDialogCancel }
 if ($runsRtlLayoutGate) { Start-PooledGate @argvRtlLayout }
 if ($runsListenerSymmetryGate) { Start-PooledGate @argvListenerSymmetry }
 if ($runsActivityLocaleWrapperGate) { Start-PooledGate @argvActivityLocaleWrapper }
+if ($runsQuantityFormatSeamGate) { Start-PooledGate @argvQuantityFormatSeam }
 if ($runsAllFeaturesGate) { Start-PooledGate @argvAllFeatures }
 if ($runsHowToPathGate) { Start-PooledGate @argvHowToPaths }
 if ($runsScriptCheatsheetGate) { Start-PooledGate @argvScriptCheatsheet }
@@ -1622,6 +1217,16 @@ if ($runsActivityLocaleWrapperGate) {
 }
 else {
     Skip-Step "activity-locale-wrapper-gate" "not applicable - no changed file is an app_v2 Kotlin source"
+}
+
+if ($runsQuantityFormatSeamGate) {
+    # S3101: stays FATAL under -ScopeToFile. The baseline names every internal-timestamp file with its
+    # reason, so a changed file is either routed through the seam or explicitly excused - there is no
+    # pre-existing debt for this change to be judged against.
+    Invoke-Gate "quantity-format-seam-gate" { Invoke-GateChild @argvQuantityFormatSeam }
+}
+else {
+    Skip-Step "quantity-format-seam-gate" "not applicable - no changed file is a module source or resource"
 }
 
 if ($runsAllFeaturesGate) {
@@ -1864,7 +1469,8 @@ else {
 # -ChangedFiles form to scope it by; the gate itself is a no-op (exit 0, "not applicable") for
 # any runtime that is not Codex and for a ticket with no matching rollout, so this call cannot
 # turn an ordinary Claude Code, Gemini or ZCode closure into a failure.
-$codexHygieneTicketId = if ($Description -match '(S\d{4})') { $Matches[1] } else { $null }
+# S3177: -Target too - Codex closed S3103 with the id in -Target only, and the gate was skipped.
+$codexHygieneTicketId = if ("$Target $Description" -match '(S\d{4})') { $Matches[1] } else { $null }
 if ($codexHygieneTicketId) {
     Invoke-AdvisoryStep "codex-transcript-hygiene-gate" {
         & pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-codex-transcript-hygiene.ps1") -Id $codexHygieneTicketId
@@ -2088,7 +1694,12 @@ elseif ($runsDetektGate) {
             $global:LASTEXITCODE = 2
             return
         }
-        $r = Receive-Job -Job $detektJob -Wait -AutoRemoveJob
+        # S3266: no -Wait here. Wait-Job above already proved a terminal state, so the result is
+        # sitting in the job's streams - while -Wait joins a second time under no ceiling of its own,
+        # which is where a closure hung for 52 minutes on 2026-09-18 with the detekt verdict cached
+        # 23 s in. -AutoRemoveJob is legal only beside -Wait, so the removal is explicit.
+        $r = Receive-Job -Job $detektJob
+        try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
         $script:detektJob = $null
         if ($r -and -not [string]::IsNullOrWhiteSpace($r.Output)) {
             Write-Host ($r.Output.TrimEnd())
@@ -2278,9 +1889,43 @@ Invoke-Step "dev-log" {
 if ($Target -match '^S\d{4}$') {
     # Silent by contract: the ledger is read later through the recorder's Summary verb, and printing
     # it here would add to the agent context it measures. A recorder failure never changes the verdict.
-    & $pwsh -NoProfile -File (Join-Path $root "scripts/metrics/ticket-cost.ps1") -Verb Record -Id $Target *> $null
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "post-change: ticket-cost record exited $LASTEXITCODE for $Target (verdict unaffected)" -ForegroundColor Yellow
+    #
+    # S3219: and neither may a recorder that never finishes. On 2026-09-17 a closure reached
+    # "[dev-log] PASS (991 ms)" and stopped there for ~20 minutes on 5.22 CPU-seconds - every gate
+    # green, every mutating step already done, two live pwsh processes on near-zero CPU. This call is
+    # the only thing that runs between that line and the verdict, and it was awaited with no bound, so
+    # a stall inside it (or inside the python extractor it launches over the runtime transcript tree)
+    # cost the whole session its result. Bounded now: -NonInteractive turns an unexpected mandatory-
+    # parameter prompt into a failure instead of a blocking read (S2610's failure mode), the streams go
+    # to the run's protocol directory instead of being discarded, and the child is killed at the cap.
+    $recorderTimeoutMs = 120000
+    $recorderLog = "$($script:ProtocolPath).ticket-cost.log"
+    try {
+        $recorderDir = Split-Path -Parent $recorderLog
+        if (-not (Test-Path -LiteralPath $recorderDir)) { New-Item -ItemType Directory -Force -Path $recorderDir | Out-Null }
+        $recorder = Start-Process -FilePath $pwsh -PassThru -NoNewWindow -RedirectStandardOutput $recorderLog `
+            -RedirectStandardError "$recorderLog.err" `
+            -ArgumentList @('-NoProfile', '-NonInteractive', '-File',
+                (Join-Path $root "scripts/metrics/ticket-cost.ps1"), '-Verb', 'Record', '-Id', $Target)
+        # Touching Handle before the child exits is what keeps ExitCode readable afterwards.
+        $null = $recorder.Handle
+        if (-not $recorder.WaitForExit($recorderTimeoutMs)) {
+            try { $recorder.Kill($true) } catch { }
+            $null = $recorder.WaitForExit(3000)
+            Write-Host ("post-change: ticket-cost record for $Target did not finish in " +
+                "$([int]($recorderTimeoutMs / 1000))s - killed (verdict unaffected, see $recorderLog)") -ForegroundColor Yellow
+        }
+        elseif ($recorder.ExitCode -ne 0) {
+            Write-Host "post-change: ticket-cost record exited $($recorder.ExitCode) for $Target (verdict unaffected)" -ForegroundColor Yellow
+        }
+        else {
+            # A clean recorder has nothing to say (silent by contract), so its two capture files are
+            # pure clutter - kept only when the run went wrong and someone will read them.
+            Remove-Item -LiteralPath $recorderLog, "$recorderLog.err" -Force -ErrorAction SilentlyContinue
+        }
+    }
+    catch {
+        Write-Host "post-change: ticket-cost record could not run for $Target - $($_.Exception.Message) (verdict unaffected)" -ForegroundColor Yellow
     }
 }
 
@@ -2306,9 +1951,21 @@ if ($script:AdvisoryFindings.Count -gt 0) {
     Send-PostChangeChatVerdict -Verdict "PASS WITH ADVISORIES ($($script:AdvisoryFindings.Count)), $elapsedMs ms"
     Write-ProtocolPointer
 }
+elseif ($closureReuse) {
+    # S3301: never the bare word PASS. This run judged nothing - it reports a verdict another run
+    # earned, and names it, so a reader can go and read that run's protocol.
+    Write-Host ("post-change: PASS (REUSED from run $($closureReuse.RunId), $($closureReuse.AgeSec)s ago over " +
+        "$($closureReuse.Files) unchanged file(s); gate batch not re-run, $elapsedMs ms)") -ForegroundColor Green
+    Write-Host "  Same ticket, same bytes, same HEAD, clean PASS - re-run with -NoReuse to judge them again." -ForegroundColor DarkGray
+    Send-PostChangeChatVerdict -Verdict "PASS (reused from $($closureReuse.RunId)), $elapsedMs ms"
+}
 else {
     Write-Host ("post-change: PASS ($resolvedChangeType, $elapsedMs ms, $($script:PassedCount) passed, " +
         "$($script:SkippedSteps.Count) skipped)") -ForegroundColor Green
     Send-PostChangeChatVerdict -Verdict "PASS, $elapsedMs ms"
+    # Only a clean PASS is worth remembering: an advisory finding is a gate reporting something it
+    # could not attribute to this change, which is a reason for the next run to look again.
+    Add-ClosureLedgerRecord -Target $Target -Fingerprint $closureFingerprint `
+        -RunId (Get-GateTelemetryRunId) -ElapsedMs $elapsedMs -Protocol $script:ProtocolPath
 }
 exit 0

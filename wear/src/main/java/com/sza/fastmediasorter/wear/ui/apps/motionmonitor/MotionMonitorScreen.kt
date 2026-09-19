@@ -42,6 +42,8 @@ import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
@@ -59,7 +61,7 @@ private val CAPTION_TOP_PADDING = 2.dp
 @Composable
 fun MotionMonitorScreen(
     viewModel: MotionMonitorViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState(),
+    listState: ScalingLazyListState = rememberWearListState(positionKey = WearRoutes.MOTION_MONITOR),
     onHistoryClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -73,10 +75,14 @@ fun MotionMonitorScreen(
         }
     }
 
+    // S3111: the one screen after the calculator and the game to pin an opaque container. It is a dense
+    // grid of small figures read at a glance, and a moving or photographic backdrop competes with every
+    // one of them; black also keeps the captions' contrast independent of the chosen wallpaper.
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
-        positionIndicator = { PositionIndicator(listState) }
+        positionIndicator = { PositionIndicator(listState) },
+        background = WearAppTheme.colors.canvasBlack
     ) {
         WearListColumn(
             modifier = Modifier.fillMaxSize(),
@@ -87,6 +93,15 @@ fun MotionMonitorScreen(
 
             item { GroupTitle(R.string.wear_motion_monitor_group_activity) }
             items(state.activity) { row -> StreamRow(row) }
+
+            // S3111: the grant sits inside the group whose rows read "Activity access not granted",
+            // not at the end of the screen behind four unrelated actions - the refusal and its cure
+            // have to be readable in one glance.
+            if (state.canRequestPermission && requestable.isNotEmpty()) {
+                item {
+                    GrantChip(onClick = { permissionsState.launchMultiplePermissionRequest() })
+                }
+            }
 
             item { GroupTitle(R.string.wear_motion_monitor_group_motion) }
             items(state.motion) { row -> StreamRow(row) }
@@ -118,12 +133,6 @@ fun MotionMonitorScreen(
                         labelRes = R.string.motion_btn_history_analytics,
                         onClick = onHistoryClick
                     )
-                }
-            }
-
-            if (state.canRequestPermission && requestable.isNotEmpty()) {
-                item {
-                    GrantChip(onClick = { permissionsState.launchMultiplePermissionRequest() })
                 }
             }
         }
@@ -225,11 +234,14 @@ private fun GrantChip(onClick: () -> Unit) {
     CompactChip(
         onClick = onClick,
         label = { Text(stringResource(R.string.wear_motion_monitor_grant)) },
-        modifier = Modifier.fillMaxWidth(),
         colors = ChipDefaults.secondaryChipColors()
     )
 }
 
+/**
+ * S3111: no `fillMaxWidth`. A button is as wide as its own label and no wider, and the list's own
+ * `horizontalAlignment` - `CenterHorizontally` on `ScalingLazyColumn` - is what centres it on the watch.
+ */
 @Composable
 private fun ActionChip(
     @StringRes labelRes: Int,
@@ -238,7 +250,6 @@ private fun ActionChip(
     CompactChip(
         onClick = onClick,
         label = { Text(stringResource(labelRes)) },
-        modifier = Modifier.fillMaxWidth(),
         colors = ChipDefaults.secondaryChipColors()
     )
 }

@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.wear.data.db.BloodPressureHistoryDao
 import com.sza.fastmediasorter.wear.data.db.BloodPressureHistoryEntity
 import com.sza.fastmediasorter.wear.data.db.toDomain
 import com.sza.fastmediasorter.wear.domain.model.BloodPressureHistoryEntry
+import com.sza.fastmediasorter.wear.domain.model.BloodPressureSource
 import com.sza.fastmediasorter.wear.domain.repository.BloodPressureHistoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -19,12 +20,14 @@ class BloodPressureHistoryRepositoryImpl @Inject constructor(
     private val dao: BloodPressureHistoryDao
 ) : BloodPressureHistoryRepository {
 
-    override suspend fun save(systolic: Int, diastolic: Int) {
+    override suspend fun save(systolic: Int, diastolic: Int, source: BloodPressureSource, pulse: Int?) {
         dao.insert(
             BloodPressureHistoryEntity(
                 systolic = systolic,
                 diastolic = diastolic,
-                timestampMillis = System.currentTimeMillis()
+                timestampMillis = System.currentTimeMillis(),
+                source = source.name,
+                pulse = pulse
             )
         )
     }

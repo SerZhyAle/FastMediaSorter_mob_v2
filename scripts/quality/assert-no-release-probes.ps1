@@ -1,15 +1,20 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's src/main.
+    S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's shipping source sets.
 
 .DESCRIPTION
     The phone release (/skill-release Step 12c) archives shipped tickets and deletes their probes
     in the same sweep. The watch release (/skill-release-wear) has no equivalent step, so a watch
-    release ships every Timber.d("Sxxxx: probe in wear/src/main to wear:production.
+    release ships every Timber.d("Sxxxx: probe in the wear release source sets to wear:production.
 
-    This gate refuses to pass while any probe of the form Timber.d("Sxxxx: ..") exists in the named
-    module's src/main tree, regardless of ticket status. Unlike assert-no-ticket-logs.ps1, which
+    The scan covers every source set under <module>/src that a release variant compiles: main plus
+    the flavor sets (standard, noLegal). Test and debug sets are excluded because no release variant
+    compiles them. S2689: scanning src/main alone passed a tree whose only standard-flavor probe sat in
+    wear/src/standard, i.e. in exactly the variant the store receives.
+
+    This gate refuses to pass while any probe of the form Timber.d("Sxxxx: ..") exists in those
+    source sets, regardless of ticket status. Unlike assert-no-ticket-logs.ps1, which
     allows probes whose ticket is in BlockNeedUserTest (correct for the per-closure invariant),
     this gate treats ALL probes as release blockers: a release build must carry no probe code at all.
 
@@ -22,7 +27,7 @@
     assert-no-ticket-logs.ps1 (S1621).
 
 .PARAMETER Module
-    The module whose src/main tree to scan. 'wear' is the intended target; 'app_v2' is accepted
+    The module whose release source sets to scan. 'wear' is the intended target; 'app_v2' is accepted
     and always exits 0, because the phone release handles its own probes via Step 12c.
 
 .PARAMETER Quiet
@@ -58,12 +63,17 @@ if ($Module -eq 'app_v2') {
 }
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$scanRoot = Join-Path $repoRoot "$Module/src/main"
+$srcRoot = Join-Path $repoRoot "$Module/src"
+$scanRoot = Join-Path $srcRoot 'main'
 
 if (-not (Test-Path -LiteralPath $scanRoot)) {
     Write-Error "assert-no-release-probes: module src/main not found at $scanRoot" -ErrorAction Continue
     exit 2
 }
+
+# A test or debug source set never reaches a release variant; every other set under src/ may.
+$scanRoots = @(Get-ChildItem -LiteralPath $srcRoot -Directory |
+    Where-Object { $_.Name -notmatch '^(test|androidTest)' -and $_.Name -notmatch '(?i)debug' })
 
 # S1621: dot-source the shared probe library so the opener, probe-form and call-span helpers are
 # the same ones assert-no-ticket-logs.ps1 uses. Two independent probe definitions would let this
@@ -80,7 +90,7 @@ $probeRx = Get-TimberProbeFormRegex
 
 $findings = [System.Collections.Generic.List[object]]::new()
 
-$files = Get-ChildItem -LiteralPath $scanRoot -Recurse -File -Filter '*.kt' -ErrorAction SilentlyContinue |
+$files = $scanRoots | ForEach-Object { Get-ChildItem -LiteralPath $_.FullName -Recurse -File -Filter '*.kt' -ErrorAction SilentlyContinue } |
     Where-Object { $_.FullName -notmatch '[\\/](build|\.gradle|\.kotlin)[\\/]' }
 
 foreach ($file in $files) {
@@ -125,7 +135,7 @@ foreach ($file in $files) {
 $actual = $findings.Count
 
 if (-not $Quiet -and $actual -gt 0) {
-    Write-Host "Release probes in $Module/src/main:`n"
+    Write-Host ("Release probes in {0}/src/{{{1}}}:`n" -f $Module, (($scanRoots | ForEach-Object Name) -join ','))
     foreach ($f in ($findings | Sort-Object File, Line)) {
         Write-Host ("  {0}:{1}  [{2}]  {3}" -f $f.File, $f.Line, $f.Ticket, $f.Text)
     }
@@ -134,7 +144,7 @@ if (-not $Quiet -and $actual -gt 0) {
     Write-Host "  then re-run the pre-release sweep. A release build must carry no probe code."
 }
 
-Write-Host ("assert-no-release-probes: expected: 0 | actual: {0} release probe(s) in {1}/src/main" -f $actual, $Module)
+Write-Host ("assert-no-release-probes: expected: 0 | actual: {0} release probe(s) in {1}/src/{{{2}}}" -f $actual, $Module, (($scanRoots | ForEach-Object Name) -join ','))
 
 if ($actual -gt 0) { exit 1 }
 exit 0

@@ -64,8 +64,8 @@ class DrawSettingsDialog(
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.draw_settings_title)
             .setView(view)
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.ok) { _, _ ->
                 // Persist brush size (SeekBar 0..35 → 1..36)
                 DrawEditorPrefs.setBrushSize(activity, seek.progress + 1)
 

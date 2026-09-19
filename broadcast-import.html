@@ -11,20 +11,25 @@
     <main class="hero">
         <h1>Open live broadcast</h1>
         <p>This broadcast needs Fast Media Sorter on Android.</p>
-        <a class="btn btn-primary" id="open-app" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter">Open Fast Media Sorter</a>
-        <p id="status">If the app is installed, opening it now..</p>
+        <a class="btn btn-primary" id="open-app" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter">Open in Fast Media Sorter</a>
+        <a class="btn" id="install-app" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter">Install Fast Media Sorter</a>
+        <p id="status">Tap "Open in Fast Media Sorter" if the app is already installed.</p>
     </main>
     <script>
         (function () {
             var payload = new URLSearchParams(location.hash.slice(1)).get('payload');
+            var status = document.getElementById('status');
+            var openApp = document.getElementById('open-app');
             if (!payload) {
-                document.getElementById('status').textContent = 'This broadcast link is incomplete.';
+                status.textContent = 'This broadcast link is incomplete - ask the sender to share it again.';
+                openApp.hidden = true;
                 return;
             }
-            var appLink = 'fmsbcast://import?payload=' + encodeURIComponent(payload);
-            var openApp = document.getElementById('open-app');
-            openApp.href = appLink;
-            location.replace(appLink);
+            // Reaching this page means Android could not resolve the intent:// link, so the app is
+            // most likely absent. Never auto-navigate to fmsbcast:// - an unresolvable custom scheme
+            // replaces this document and leaves the user with a browser error and no install route
+            // (measured on Pixel_9/Chrome, S3053). The app attempt stays an explicit tap.
+            openApp.href = 'fmsbcast://import?payload=' + encodeURIComponent(payload);
         }());
     </script>
 </body>

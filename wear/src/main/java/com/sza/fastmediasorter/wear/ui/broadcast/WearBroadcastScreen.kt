@@ -1,7 +1,13 @@
 package com.sza.fastmediasorter.wear.ui.broadcast
 
 import android.Manifest
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.os.Build
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ErrorOutline
@@ -50,10 +57,10 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastFailure
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionState
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
+import com.sza.fastmediasorter.wear.ui.common.WearDimOverlay
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import com.sza.fastmediasorter.wear.ui.player.common.PlayerDimOverlay
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import timber.log.Timber
 
@@ -87,9 +94,15 @@ fun WearBroadcastScreen(
     viewModel: WearBroadcastViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val batteryOptimized by viewModel.batteryOptimized.collectAsStateWithLifecycle()
     val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
     val permissionsState = rememberMultiplePermissionsState(broadcastPermissions())
     var dimmed by rememberSaveable { mutableStateOf(false) }
+    // The system screen reports nothing useful in its result, so the answer is read back off the
+    // platform once the owner returns rather than taken from the result code.
+    val batteryExemptionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { viewModel.refreshBatteryOptimization() }
     // Only the microphone gates the broadcast. A denied POST_NOTIFICATIONS costs the ongoing
     // notification and its stop action, which the screen still offers - it must not block the feature.
     val microphoneGranted = permissionsState.permissions
@@ -117,6 +130,19 @@ fun WearBroadcastScreen(
             if (!microphoneGranted) {
                 item { BlockerText(textRes = R.string.wear_voice_note_permission_required) }
             }
+            if (batteryOptimized && state !is WearBroadcastSessionState.Live) {
+                item { BatteryOptimizationNotice() }
+                item {
+                    ActionChip(
+                        labelRes = R.string.wear_battery_optimization_grant,
+                        icon = Icons.Default.BatteryAlert,
+                        primary = false,
+                        onClick = {
+                            launchFirstAvailable(batteryExemptionLauncher, viewModel.batteryOptimizationIntents())
+                        }
+                    )
+                }
+            }
             item {
                 BroadcastActions(
                     state = state,
@@ -132,7 +158,7 @@ fun WearBroadcastScreen(
             }
         }
         if (dimmed) {
-            PlayerDimOverlay(
+            WearDimOverlay(
                 onExit = {
                     dimmed = false
                 }
@@ -247,6 +273,47 @@ private fun IdleActions(microphoneGranted: Boolean, onStart: () -> Unit, onGrant
             primary = true,
             onClick = onGrant
         )
+    }
+}
+
+/**
+ * S3265: says what battery saving costs a broadcast before the owner starts one. It is an offer and
+ * never a gate - a broadcast runs without the exemption, it just may not survive a long doze window.
+ */
+@Composable
+private fun BatteryOptimizationNotice() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(R.string.wear_battery_optimization_title),
+            style = MaterialTheme.typography.caption1,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = TEXT_HORIZONTAL_PADDING)
+        )
+        BlockerText(textRes = R.string.wear_battery_optimization_desc)
+    }
+}
+
+/**
+ * Wear firmwares differ on which battery screen exists, so the list is walked instead of one intent
+ * being trusted: a missing screen must leave the owner on the broadcast screen, not crash it.
+ */
+private fun launchFirstAvailable(
+    launcher: ManagedActivityResultLauncher<Intent, ActivityResult>,
+    intents: List<Intent>
+) {
+    for (intent in intents) {
+        try {
+            Timber.d("S3265: trying battery exemption screen %s", intent.action)
+            launcher.launch(intent)
+            return
+        } catch (notFound: ActivityNotFoundException) {
+            Timber.w(notFound, "No system screen answers %s on this watch", intent.action)
+        }
     }
 }
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,13 +27,14 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.R
-import timber.log.Timber
 
 // Declared as consts because detekt's MagicNumber is active on this module's main sources and
 // exempts a constant declaration but not a property one.
 private const val AFFORDANCE_TOUCH_TARGET_DP = 40
 private const val AFFORDANCE_GLYPH_DP = 24
 private val AFFORDANCE_EDGE_SHIFT = 6.dp
+private val AFFORDANCE_HALF_GLYPH_DP = (AFFORDANCE_GLYPH_DP / 2).dp
+private val AFFORDANCE_EXTRA_OUTWARD_SHIFT = 8.dp
 
 /**
  * Size of the control a caller has to place. Published because the edge inset that puts it against
@@ -40,10 +42,15 @@ private val AFFORDANCE_EDGE_SHIFT = 6.dp
  */
 val WearBackAffordanceSize = AFFORDANCE_TOUCH_TARGET_DP.dp
 
-/** The left inset shared by every floating navigation affordance. */
+/** The rim inset shared by the navigation affordance (left) and the screen-off command (right). */
 @Composable
 fun wearBackAffordanceInset(): Dp =
-    (wearSideBandInset(WearBackAffordanceSize) - AFFORDANCE_EDGE_SHIFT).coerceAtLeast(0.dp)
+    (
+        wearSideBandInset(WearBackAffordanceSize) -
+            AFFORDANCE_EDGE_SHIFT -
+            AFFORDANCE_HALF_GLYPH_DP -
+            AFFORDANCE_EXTRA_OUTWARD_SHIFT
+        ).coerceAtLeast(0.dp)
 
 /**
  * What the affordance does on the screen it stands on; it decides sign, announcement and meaning
@@ -111,6 +118,34 @@ fun WearBackAffordance(
                 modifier = Modifier.size(AFFORDANCE_GLYPH_DP.dp)
             )
         }
+    }
+}
+
+/**
+ * S3098: the screen-off command, standing at the opposite edge of the same box as [WearBackAffordance]
+ * and on exactly the routes that draw it. The owner named those screens by the mark already on them -
+ * the back arrow at the middle of the left rim - so this one mirrors it rather than declaring a route
+ * list of its own, which would drift apart from that predicate at the first new screen.
+ *
+ * The glyph is aligned at the END of the box for the mirrored reason the navigation mark is aligned at
+ * its start: centring spends half the 16 dp between the 40 dp touch target and the 24 dp glyph pushing
+ * the mark inwards, away from the rim the owner asked it to stand against. The finger keeps the full
+ * target, which grows inwards where there is nothing at this height.
+ */
+@Composable
+fun WearScreenOffAffordance(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        contentAlignment = Alignment.CenterEnd,
+        modifier = modifier
+            .size(WearBackAffordanceSize)
+            .nonSwallowingClickable(onClick = {
+                onClick()
+            })
+    ) {
+        VectorGlyph(icon = Icons.Filled.DarkMode, labelRes = R.string.wear_screen_off)
     }
 }
 

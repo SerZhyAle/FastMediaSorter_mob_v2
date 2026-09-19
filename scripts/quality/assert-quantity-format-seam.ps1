@@ -14,6 +14,11 @@
       - java.text.SimpleDateFormat / java.time.DateTimeFormatter.ofPattern
       - android.text.format.DateFormat.getTimeFormat / .getDateFormat / .is24HourFormat
       - java.text.DateFormat.getDateTimeInstance / .getDateInstance / .getTimeInstance
+      - android.text.format.DateUtils.formatDateTime, which reads the DEVICE's own 12/24-hour setting.
+        DateUtils.formatElapsedTime is deliberately NOT refused: it renders a DURATION, and a duration
+        has no metric and no imperial form - the stopwatch widget is its only caller.
+      - the four date and time patterns diverging between UnitScale (app_v2) and
+        WearUnitDateTimeFormatter (wear), whose identity was held only by a pair of KDoc comments
       - a layout declaring BOTH android:format12Hour and android:format24Hour on one view, which hands
         the 12/24-hour choice back to the DEVICE - the exact behaviour ADR-2 replaced
       - a resource value ending in a hardcoded speed or altitude unit (" km/h", " mph", " m", " ft")
@@ -65,8 +70,22 @@ $kotlinPatterns = @(
     'DateFormat\.is24HourFormat\s*\(',
     'DateFormat\.getDateTimeInstance\s*\(',
     'DateFormat\.getDateInstance\s*\(',
-    'DateFormat\.getTimeInstance\s*\('
+    'DateFormat\.getTimeInstance\s*\(',
+    'DateUtils\.formatDateTime\s*\('
 )
+
+# S3101: the two modules share no source, so the four patterns are written twice. A divergence here is
+# the watch and the phone rendering the same instant differently, which no other check would notice.
+$patternMirror = @{
+    Phone = 'app_v2/src/main/java/com/sza/fastmediasorter/domain/model/UnitScale.kt'
+    Watch = 'wear/src/main/java/com/sza/fastmediasorter/wear/core/util/WearUnitDateTimeFormatter.kt'
+    Names = @(
+        'PATTERN_DATE_METRIC',
+        'PATTERN_TIME_METRIC',
+        'PATTERN_DATE_IMPERIAL',
+        'PATTERN_TIME_IMPERIAL'
+    )
+}
 
 $missingRoots = @($sourceRoots | Where-Object { -not (Test-Path (Join-Path $repoRoot $_)) })
 if ($missingRoots.Count -gt 0) {
@@ -143,6 +162,40 @@ foreach ($file in $stringsFiles) {
         if ($key -like 'unit_*') { continue }
         if ($line -match '(%\d+\$[ds]|%s|%d)\s*(km/h|mph|ft)\s*<') {
             Add-Finding -RelativePath $relative -LineNumber $lineNumber -Detail "string '$key' hardcodes a unit the seam decides"
+        }
+    }
+}
+
+function Get-PatternLiterals {
+    param([string]$AbsolutePath)
+    $literals = [ordered]@{}
+    foreach ($line in Get-Content $AbsolutePath) {
+        foreach ($name in $patternMirror.Names) {
+            if ($line -match "$name\s*(?::\s*String)?\s*=\s*`"([^`"]*)`"") {
+                $literals[$name] = $Matches[1]
+            }
+        }
+    }
+    return $literals
+}
+
+$phonePatternFile = Join-Path $repoRoot $patternMirror.Phone
+$watchPatternFile = Join-Path $repoRoot $patternMirror.Watch
+# Under -ChangedFiles the mirror is judged only when the change touches one of its two sides: the
+# author of another ticket's set cannot answer for a divergence they did not write.
+$mirrorInScope = -not $scopePaths -or
+    ($scopePaths -contains $patternMirror.Phone) -or
+    ($scopePaths -contains $patternMirror.Watch)
+if ($mirrorInScope -and (Test-Path $phonePatternFile) -and (Test-Path $watchPatternFile)) {
+    $phonePatterns = Get-PatternLiterals -AbsolutePath $phonePatternFile
+    $watchPatterns = Get-PatternLiterals -AbsolutePath $watchPatternFile
+    foreach ($name in $patternMirror.Names) {
+        $phoneValue = if ($phonePatterns.Contains($name)) { $phonePatterns[$name] } else { $null }
+        $watchValue = if ($watchPatterns.Contains($name)) { $watchPatterns[$name] } else { $null }
+        if ($phoneValue -ne $watchValue) {
+            $findings.Add(
+                "$($patternMirror.Watch):1 - $name is '$watchValue' on the watch and '$phoneValue' on the phone"
+            )
         }
     }
 }

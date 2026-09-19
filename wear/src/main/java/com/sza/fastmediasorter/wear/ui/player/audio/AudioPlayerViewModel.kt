@@ -8,8 +8,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Metadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.extractor.metadata.icy.IcyHeaders
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.FAVORITE_ITEM_KIND_STREAM
@@ -29,6 +31,7 @@ import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSession
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSessionState
 import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallPolicy
 import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallWatchdog
+import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -46,6 +49,7 @@ import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastManager
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerVolumeController
 import com.sza.fastmediasorter.wear.ui.player.common.backwardSeekTarget
 import com.sza.fastmediasorter.wear.ui.player.common.forwardSeekTarget
+import com.sza.fastmediasorter.wear.ui.player.common.jumpToLive
 import com.sza.fastmediasorter.wear.ui.player.common.resolveFavoriteIdentity
 import com.sza.fastmediasorter.wear.ui.player.common.togglePlayPause
 import com.sza.fastmediasorter.wear.ui.player.common.wearPlaybackStatePayload
@@ -59,6 +63,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+
+/** S3099: ICY and `Format` both state a bitrate in bits per second; the glass shows kbps. */
+private const val BITS_PER_KILOBIT = 1000
 
 /**
  * ViewModel for the audio player screen.
@@ -164,6 +171,29 @@ class AudioPlayerViewModel @Inject constructor(
             }
         }
 
+        /**
+         * S3099: the ICY headers a station sends with the stream - its name, genre and declared
+         * bitrate. They arrive once, at the head of the stream, and never again.
+         */
+        override fun onMetadata(metadata: Metadata) {
+            val headers = (0 until metadata.length())
+                .map(metadata::get)
+                .filterIsInstance<IcyHeaders>()
+                .firstOrNull() ?: return
+            Timber.d("S3099: icy headers name=${headers.name} genre=${headers.genre} bitrate=${headers.bitrate}")
+            _uiState.update { state ->
+                val current = state.station ?: WearStationInfo()
+                state.copy(
+                    station = current.copy(
+                        name = headers.name ?: current.name,
+                        genre = headers.genre ?: current.genre,
+                        bitrateKbps = headers.bitrate.takeIf { it > 0 }?.div(BITS_PER_KILOBIT)
+                            ?: current.bitrateKbps
+                    )
+                )
+            }
+        }
+
         override fun onPlaybackStateChanged(playbackState: Int) {
             when (playbackState) {
                 Player.STATE_READY -> {
@@ -173,6 +203,7 @@ class AudioPlayerViewModel @Inject constructor(
                             durationMs = exoPlayer.duration.coerceAtLeast(0)
                         )
                     }
+                    refreshStationFormat()
                     publishPlaybackState()
                 }
                 Player.STATE_ENDED -> {
@@ -466,7 +497,10 @@ class AudioPlayerViewModel @Inject constructor(
             mediaFile = file,
             albumArtUrl = file.albumArt?.toString(),
             trackTitle = file.title?.takeIf { it.isNotBlank() },
-            artistName = file.artist?.takeIf { it.isNotBlank() }
+            artistName = file.artist?.takeIf { it.isNotBlank() },
+            // S3099: the station line describes the stream that is open, so it cannot survive a move
+            // to another one - a stale name is worse than an empty row.
+            station = null
         )
 
     /**
@@ -486,6 +520,28 @@ class AudioPlayerViewModel @Inject constructor(
                     if (state.mediaFile?.id == file.id) state.copy(albumArtUrl = url) else state
                 }
             }
+        }
+    }
+
+    /**
+     * S3099: what the decoder ended up with, as the fallback under the ICY headers - a station that
+     * sends no headers at all still has a codec and, usually, a bitrate. The header value wins where
+     * both exist, because it is what the station says it broadcasts.
+     */
+    private fun refreshStationFormat() {
+        val format = exoPlayer.audioFormat
+        if (!_uiState.value.isStream || format == null) return
+        val codec = WearStationInfo.codecLabel(format.sampleMimeType)
+        val bitrate = format.bitrate.takeIf { it > 0 }?.div(BITS_PER_KILOBIT)
+        Timber.d("S3099: stream format mime=${format.sampleMimeType} bitrate=${format.bitrate}")
+        _uiState.update { state ->
+            val current = state.station ?: WearStationInfo()
+            state.copy(
+                station = current.copy(
+                    bitrateKbps = current.bitrateKbps ?: bitrate,
+                    codec = codec ?: current.codec
+                )
+            )
         }
     }
 
@@ -602,6 +658,13 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     fun togglePlayPause() = streamPlaybackSession.togglePlayPause(exoPlayer)
+
+    /** S3217: a file has no live edge, so only a direct stream is re-prepared. */
+    fun jumpToLive() {
+        if (!_uiState.value.isStream) return
+        Timber.d("S3217: audio player jump to live tapped")
+        streamPlaybackSession.jumpToLive(exoPlayer)
+    }
 
     /**
      * S1701: writes the new order to settings and lets the collector above publish it back, so the

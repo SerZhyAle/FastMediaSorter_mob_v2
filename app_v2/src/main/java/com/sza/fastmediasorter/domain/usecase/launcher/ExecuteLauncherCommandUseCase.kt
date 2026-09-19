@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.ContactsContract
+import com.sza.fastmediasorter.core.AppShortcutsManager
 import com.sza.fastmediasorter.core.panel.AppLaunchPanelRouteIntents
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
@@ -22,6 +23,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.util.resolveActivityCompat
 import com.sza.fastmediasorter.widget.StreamPlayLaunchActivity
+import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -38,6 +40,7 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     private val journal: LauncherJournalRepository,
     private val appShortcutDataSource: AppShortcutDataSource,
     private val toggleRadioTarget: ToggleRadioTargetUseCase,
+    private val appShortcuts: Lazy<AppShortcutsManager>,
 ) {
 
     suspend fun launch(command: LauncherCellCommand, screenOnly: Boolean = false): Boolean {
@@ -66,7 +69,11 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             // false here also keeps it out of the launch journal, which records openings.
             is LauncherCellCommand.Section -> false
         }
-        if (started) journal.record(command)
+        if (started) {
+            journal.record(command)
+            // S1925: the long-press menu is ranked by this journal, so a new entry reorders it.
+            appShortcuts.get().requestRefresh()
+        }
         return started
     }
 

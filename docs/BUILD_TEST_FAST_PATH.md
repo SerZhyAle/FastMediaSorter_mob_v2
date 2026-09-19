@@ -38,7 +38,7 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 
 | Target | Wall clock | Verdict |
 | --- | ---: | --- |
-| `a.ps1 fg` (fast static gates, 63 gates concurrent since S2451) | 47 s | foreground |
+| `a.ps1 fg` (fast static gates, 64 gates concurrent since S2451) | 79 s | foreground |
 <!-- S2612 moved this measurement out of CLAUDE.md Rule 6, which was at its always-loaded ceiling.
      `fg` is the one target that ever crossed the 120 s threshold: 45 gates running one at a time
      reached 142.8 s and were preempted into the background twice, delivering the verdict the way
@@ -56,6 +56,8 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 | `a.ps1 dq` | 18.4 s | foreground |
 | `a.ps1 faw` (S2355, compile wear instrumented set) | ~15 s | foreground |
 | `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
+| `a.ps1 fl` (S3155, Android lint on app_v2) | ~4 min on the CI runner | background |
+| `a.ps1 flw` (S3155, Android lint on wear) | not measured locally | background |
 | `a.ps1 fam` (S2306, migration tests ON a device) | not measured | background |
 | `a.ps1 fwm` (S2355, wear migration tests ON a device) | not measured | background |
 
@@ -168,6 +170,14 @@ Neither needs `:app_v2` to build, so a closure touching `benchmark/src/main/Andr
 the 2.4 s row and nothing more. Before S2123 it paid nothing and proved nothing: the registry recorded
 the module as having no resource-processing task, which was a verdict about the guessed name
 `:benchmark:processDebugResources` rather than about the module.
+
+A change to the module's **Kotlin** is compiled by `scripts/builders/compile-benchmark-module.ps1`
+(S3322), which runs `:benchmark:compileBenchmarkReleaseKotlin` under `Build.Phone` - measured 4 s on a
+warm daemon, foreground. `fk` / `fkn` / `fc` compile `app_v2` and exit 0 without touching a benchmark
+file, so quoting one of them under a `benchmark/` change records a verdict about the other module, the
+same trap the wear targets carry. The module offers three Kotlin compile variants -
+`BenchmarkBenchmark`, `BenchmarkRelease`, `NonMinifiedBenchmark` - and no Debug one, so a bare
+`:benchmark:compileBenchmarkKotlin` is refused as ambiguous rather than run.
 
 The OCR overlay bench rows were measured on 2026-08-26 (S1782), warm daemon, `app_v2`. Both benches live
 in the test source set, so nothing here ships in an APK:

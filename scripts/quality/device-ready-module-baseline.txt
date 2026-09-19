@@ -13,7 +13,7 @@ scripts/devtest/maestro-run.ps1 # header cites the probe for binary-discovery an
 scripts/devtest/prerelease-configure.ps1 # comment says adb resolution mirrors the probe's
 scripts/devtest/maestro/README.md # says the runner's exit codes mirror the probe's
 .claude/skills/run-fastmediasorter/SKILL.md # gotcha note that adb is not on PATH and the probe auto-discovers it
-.claude/reference/spec-next.md # lists what session-bootstrap composes; the actual args live in .sza-profile.json
+.claude/reference/spec-do.md # lists what session-bootstrap composes; the actual args live in .sza-profile.json
 .claude/commands/spec-code.md # names the probe as FORBIDDEN for the whole run - the opposite of a call site
 .claude/reference/spec-dev.md # states what the verify-smoke branch does with a `ready: false` payload; the invocation is in .claude/commands/spec-dev.md
 scripts/devtest/adb.ps1 # header cites the probe for adb auto-discovery and exit-code parity; its own -Module is an install-time guard, unrelated

@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.addresource.helpers
 
 import android.content.Context
-import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
@@ -31,7 +30,6 @@ class CreatedResourcePinManager @Inject constructor(
      * [context] must be the visible Activity rather than the application: the composed icon resolves
      * theme attributes, and an application context would resolve them against the wrong theme.
      */
-    @StringRes
     suspend fun pinCreatedResources(context: Context, resourceIds: List<Long>): Int? {
         var anyUnsupported = false
         resourceIds.forEach { id ->

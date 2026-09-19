@@ -27,34 +27,60 @@ class LauncherSectionActionsManager(
 
     fun show(cellUi: LauncherCellUi): Boolean {
         val sheet = LauncherSectionActionsSheet()
-        sheet.items = listOf(
-            LauncherSectionActionsSheet.ActionItem(
-                action = LauncherSectionActionsSheet.Action.RENAME,
-                label = activity.getString(R.string.launcher_section_action_rename),
-                iconResId = R.drawable.ic_rename,
-            ),
-            LauncherSectionActionsSheet.ActionItem(
-                action = LauncherSectionActionsSheet.Action.RESORT,
-                label = activity.getString(R.string.launcher_section_action_resort),
-                iconResId = R.drawable.ic_sort,
-            ),
-            LauncherSectionActionsSheet.ActionItem(
-                action = LauncherSectionActionsSheet.Action.DELETE,
-                label = activity.getString(R.string.launcher_section_action_delete),
-                iconResId = R.drawable.ic_delete,
-            ),
-        )
+        sheet.items = buildList {
+            add(
+                LauncherSectionActionsSheet.ActionItem(
+                    action = LauncherSectionActionsSheet.Action.RENAME,
+                    label = activity.getString(R.string.launcher_section_action_rename),
+                    iconResId = R.drawable.ic_rename,
+                ),
+            )
+            add(
+                LauncherSectionActionsSheet.ActionItem(
+                    action = LauncherSectionActionsSheet.Action.RESORT,
+                    label = activity.getString(R.string.launcher_section_action_resort),
+                    iconResId = R.drawable.ic_sort,
+                ),
+            )
+            // S3204: reordering belongs to desktop editing, where touch and mouse drag the whole section.
+            // These rows are the same move for input that cannot aim a drop - keyboard, D-pad, TalkBack.
+            if (viewModel.editMode.value) addAll(moveItems())
+            add(
+                LauncherSectionActionsSheet.ActionItem(
+                    action = LauncherSectionActionsSheet.Action.DELETE,
+                    label = activity.getString(R.string.launcher_section_action_delete),
+                    iconResId = R.drawable.ic_delete,
+                ),
+            )
+        }
         sheet.onItemClick = { action ->
             when (action) {
                 LauncherSectionActionsSheet.Action.RENAME -> openRenameDialog(cellUi)
                 LauncherSectionActionsSheet.Action.RESORT ->
                     viewModel.resortSection(cellUi.cell.id, currentColumns())
+                LauncherSectionActionsSheet.Action.MOVE_UP ->
+                    viewModel.swapSectionWithNeighbour(cellUi.cell.id, moveUp = true)
+                LauncherSectionActionsSheet.Action.MOVE_DOWN ->
+                    viewModel.swapSectionWithNeighbour(cellUi.cell.id, moveUp = false)
                 LauncherSectionActionsSheet.Action.DELETE -> confirmDelete(cellUi)
             }
         }
         sheet.show(activity.supportFragmentManager, SHEET_TAG)
         return true
     }
+
+    private fun moveItems(): List<LauncherSectionActionsSheet.ActionItem> = listOf(
+        LauncherSectionActionsSheet.ActionItem(
+            action = LauncherSectionActionsSheet.Action.MOVE_UP,
+            label = activity.getString(R.string.move_up),
+            iconResId = R.drawable.ic_arrow_upward,
+        ),
+        LauncherSectionActionsSheet.ActionItem(
+            action = LauncherSectionActionsSheet.Action.MOVE_DOWN,
+            label = activity.getString(R.string.move_down),
+            iconResId = R.drawable.ic_arrow_downward,
+        ),
+    )
 
     private fun confirmDelete(cellUi: LauncherCellUi) {
         val desktop = viewModel.cells.value.map { it.cell }

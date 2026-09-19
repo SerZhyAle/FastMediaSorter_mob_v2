@@ -175,7 +175,7 @@ class OperationsDestinationsManager(
                     Toast.LENGTH_SHORT
                 ).show()
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
     }
 

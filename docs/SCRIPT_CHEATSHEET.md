@@ -324,6 +324,7 @@ scripts/post-change.ps1
     -RegistryAck         [String[]]
     -ShowSkips           [SwitchParameter]
     -ShowPasses          [SwitchParameter]
+    -NoReuse             [SwitchParameter]
   Exit: 0 every gate that ran passed. The verdict line reads either
 ```
 
@@ -468,6 +469,21 @@ scripts/all_features/scan_surface.ps1
     -Quiet          [SwitchParameter]
 ```
 
+### set-wear-flavors.ps1
+Set or clear the `wearFlavors` axis on existing ALL_FEATURES records (S3264).
+
+```
+scripts/all_features/set-wear-flavors.ps1
+  Set or clear the `wearFlavors` axis on existing ALL_FEATURES records (S3264).
+  Params:
+    -Ids          (req)  [String]
+    -WearFlavors         [String] = ''
+    -Clear               [SwitchParameter]
+    -NoLegal             [SwitchParameter]
+    -Quiet               [SwitchParameter]
+  Exit: 0 - every requested id was updated (or already carried the requested value).; 1 - invalid arguments, or an inventory line that cannot be rebuilt.; 2 - an id was not found in the inventory; nothing was written.
+```
+
 ### validate.ps1
 Validate the ALL_FEATURES inventory (docs/ALL_FEATURES.jsonl) against the schema rules.
 
@@ -523,6 +539,8 @@ scripts/builders/build-debug-device.ps1
   Build, install, and launch debug build on connected device
   Params:
     -AutoVersion         [SwitchParameter] = $true
+    -DeviceId            [String] = $env:ANDROID_SERIAL
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-debug.PS1
@@ -589,7 +607,9 @@ Build Legacy Debug APK and Install on Device
 ```
 scripts/builders/build-legacy-device.ps1
   Build Legacy Debug APK and Install on Device
-  (no param block)
+  Params:
+    -DeviceId         [String] = $env:ANDROID_SERIAL
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-legacy-release.ps1
@@ -616,7 +636,9 @@ Build Lite Debug APK and Install on Device
 ```
 scripts/builders/build-lite-device.ps1
   Build Lite Debug APK and Install on Device
-  (no param block)
+  Params:
+    -DeviceId         [String] = $env:ANDROID_SERIAL
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-lite-release.ps1
@@ -645,7 +667,9 @@ Build NoLegal Debug APK and Install on Device (phone or Quest via ADB)
 ```
 scripts/builders/build-nolegal-device.ps1
   Build NoLegal Debug APK and Install on Device (phone or Quest via ADB)
-  (no param block)
+  Params:
+    -DeviceId         [String] = $env:ANDROID_SERIAL
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-nolegal-release.ps1
@@ -681,7 +705,9 @@ Build Photos Debug APK and Install on Device
 ```
 scripts/builders/build-photos-device.ps1
   Build Photos Debug APK and Install on Device
-  (no param block)
+  Params:
+    -DeviceId         [String] = $env:ANDROID_SERIAL
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-photos-release.ps1
@@ -726,7 +752,9 @@ Build Standard Debug APK and Install on Device
 ```
 scripts/builders/build-standard-device.ps1
   Build Standard Debug APK and Install on Device
-  (no param block)
+  Params:
+    -DeviceId         [String] = $env:ANDROID_SERIAL
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.; 124 - the build passed its wall-clock ceiling and was stopped (S3290).
 ```
 
 ### build-standard-release.ps1
@@ -802,6 +830,19 @@ scripts/builders/check-lint-rules.ps1
   Exit: 0 - the suite ran and passed.; 2 - the run reported success but produced no test-result XML, so nothing was actually
 ```
 
+### check-lint.ps1
+Runs Android lint for one module: :app_v2:lintStandardDebug or :wear:lintStandardDebug.
+
+```
+scripts/builders/check-lint.ps1
+  Runs Android lint for one module: :app_v2:lintStandardDebug or :wear:lintStandardDebug.
+  Params:
+    -Module      (req)  [String]  {app_v2|wear}
+    -Regenerate         [SwitchParameter]
+    -Quiet              [SwitchParameter]
+  Exit: 0 - lint ran and found no error above the baseline; or, under -Regenerate, the baseline was
+```
+
 ### check-standard-fast.ps1
 Fast per-module, per-flavor Gradle check - compile, resources, unit tests, instrumented tests on a connected device (-Mode ConnectedAndroidTest, the only mode needing one) or assemble. Defaults to app_v2. Every module in scripts/utils/gradle-modules.ps1 is accepted, including one with no flavor dimension, whose task names carry no variant segment (:watchface:processDebugResources).
 
@@ -829,6 +870,19 @@ Gradle caches clean script (project-level)
 scripts/builders/clean-gradle-caches.ps1
   Gradle caches clean script (project-level)
   (no param block)
+```
+
+### compile-benchmark-module.ps1
+Compiles the :benchmark module's Kotlin without a device.
+
+```
+scripts/builders/compile-benchmark-module.ps1
+  Compiles the :benchmark module's Kotlin without a device.
+  Params:
+    -Variant            [String] = "BenchmarkRelease"
+    -DryRun             [SwitchParameter]
+    -GradleArgs         [String[]]
+  Exit: 0 - the module's Kotlin compiled; 1 - gradle failed (compile error, or the variant does not exist - gradle names the candidates); 2 - refused: the Build.Phone domain is held by another session (Enter-BuildLockOrExit exits on its own)
 ```
 
 ### compile-vp9-classes.ps1
@@ -869,6 +923,15 @@ scripts/builders/get-last-build-failure.ps1
   Params:
     -LogPath          [String]
     -MaxLines         [Int32] = 200
+```
+
+### gradle-progress-watch.ps1
+Runs a Gradle invocation that prints signs of life while a long task says nothing.
+
+```
+scripts/builders/gradle-progress-watch.ps1
+  Runs a Gradle invocation that prints signs of life while a long task says nothing.
+  (no param block)
 ```
 
 ### gradle-run-verdict.ps1
@@ -995,6 +1058,18 @@ scripts/builders/filtered-test-report.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\builders\gradle-progress-watch.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S3290) - regression suite for scripts/builders/gradle-progress-watch.ps1.
+
+```
+scripts/builders/gradle-progress-watch.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S3290) - regression suite for scripts/builders/gradle-progress-watch.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
 ## scripts\builders\gradle-run-verdict.tests
 
 ### Run-Tests.ps1
@@ -1054,38 +1129,41 @@ Generic ad-hoc adb swiss-army for fast manual work with connected emulators / de
 scripts/devtest/adb.ps1
   Generic ad-hoc adb swiss-army for fast manual work with connected emulators / devices.
   Params:
-    -Verb               [String] = 'help'
-    -DeviceId           [String]
-    -Package            [String]
-    -Release            [SwitchParameter]
-    -Tail               [Int32] = 200
-    -Grep               [String]
-    -Apk                [String]
-    -Flavor             [String] = 'standard'  {standard|lite|photos|legacy|noLegal}
-    -Module             [String] = 'app_v2'  {app_v2|wear}
-    -X                  [Int32]
-    -Y                  [Int32]
-    -X2                 [Int32]
-    -Y2                 [Int32]
-    -Duration           [Int32] = 300
-    -Text               [String]
-    -Key                [String]
-    -Cmd                [String]
-    -Remote             [String]
-    -Local              [String]
-    -Latest             [SwitchParameter]
-    -Label              [String]
-    -Exact              [SwitchParameter]
-    -ResourceId         [String]
-    -Ids                [SwitchParameter]
-    -Index              [Int32] = 1
-    -OutDir             [String]
-    -Json               [SwitchParameter]
-    -Strict             [SwitchParameter]
-    -Scale              [Double]
-    -Axis               [Double]
-    -Repeat             [Int32] = 1
-    -Yes                [SwitchParameter]
+    -Verb                 [String] = 'help'
+    -DeviceId             [String]
+    -Package              [String]
+    -Release              [SwitchParameter]
+    -Tail                 [Int32] = 200
+    -Grep                 [String]
+    -Apk                  [String]
+    -Flavor               [String] = 'standard'  {standard|lite|photos|legacy|noLegal}
+    -Module               [String] = 'app_v2'  {app_v2|wear}
+    -X                    [Int32]
+    -Y                    [Int32]
+    -X2                   [Int32]
+    -Y2                   [Int32]
+    -Duration             [Int32] = 300
+    -Text                 [String]
+    -Key                  [String]
+    -Cmd                  [String]
+    -Remote               [String]
+    -Local                [String]
+    -Latest               [SwitchParameter]
+    -Label                [String]
+    -Exact                [SwitchParameter]
+    -ResourceId           [String]
+    -Ids                  [SwitchParameter]
+    -Index                [Int32] = 1
+    -OutDir               [String]
+    -Json                 [SwitchParameter]
+    -Strict               [SwitchParameter]
+    -Scale                [Double]
+    -Axis                 [Double]
+    -Repeat               [Int32] = 1
+    -Yes                  [SwitchParameter]
+    -GeometryMode         [String]  {ORIGINAL|STORE}
+    -ScreenDp             [Int32]
+    -NoRestore            [SwitchParameter]
   Exit: 0 - OK; 1 - adb not found, or bad arguments; 2 - no online device; 3 - multiple online devices and -DeviceId not supplied (for verbs needing a device); 4 - target package not installed (for app verbs); 5 - a destructive verb was refused: `clear` (removed), or `wipe-data`/`uninstall` without -Yes.
 ```
 
@@ -1357,6 +1435,28 @@ scripts/devtest/ui-sweep-seed.ps1
   Exit: 0 - corpus generated (unless skipped), pushed, handed to MediaStore, and the three media-read
 ```
 
+### ui-sweep-walk.ps1
+S2380 - walk the declared phone screen catalog across the run matrix, capture a frame plus a node tree for every screen in every combination, and journal an explicit outcome for each row.
+
+```
+scripts/devtest/ui-sweep-walk.ps1
+  S2380 - walk the declared phone screen catalog across the run matrix, capture a frame plus a node tree for every screen in every combination, and journal an explicit outcome for each row.
+  Params:
+    -DeviceId                       [String]
+    -DeviceMap                      [String]
+    -Subset                         [String]
+    -Only                           [String]
+    -OutDir                         [String] = 'temp/S2380/sweep'
+    -Matrix                         [String]
+    -Profiles                       [String]
+    -Screens                        [String]
+    -SettleMs                       [Int32] = 1200
+    -MaxScrolls                     [Int32] = 12
+    -RehomeAfterUnreachable         [Int32] = 2
+    -Json                           [SwitchParameter]
+  Exit: 0 - every declared combination walked: every row observed or legitimately skipped; 1 - at least one product defect observed - a screen opened and its expected token was absent; 2 - could not verify: at least one row is unreachable, manual or a run-level refusal
+```
+
 ### wear-ink-clip.ps1
 S2757 - judge a captured frame the way a Play reviewer does: is anything DRAWN outside the glass.
 
@@ -1580,12 +1680,21 @@ scripts/devtest/lib/device-form-factor.ps1
   (no param block)
 ```
 
+### device-state-journal.ps1
+The device state journal: what a test changed on a device, and what it was before (S3201).
+
+```
+scripts/devtest/lib/device-state-journal.ps1
+  The device state journal: what a test changed on a device, and what it was before (S3201).
+  (no param block)
+```
+
 ### device-store-paths.ps1
-Declares WHERE the two device stores live and HOW a serial becomes a file name (S3036).
+Declares WHERE the device stores live and HOW a serial becomes a file name (S3036).
 
 ```
 scripts/devtest/lib/device-store-paths.ps1
-  Declares WHERE the two device stores live and HOW a serial becomes a file name (S3036).
+  Declares WHERE the device stores live and HOW a serial becomes a file name (S3036).
   (no param block)
 ```
 
@@ -1598,12 +1707,30 @@ scripts/devtest/lib/find-adb.ps1
   (no param block)
 ```
 
+### logcat-snapshot.ps1
+Bounded logcat snapshot for the builders that install and launch what they just built (S3297).
+
+```
+scripts/devtest/lib/logcat-snapshot.ps1
+  Bounded logcat snapshot for the builders that install and launch what they just built (S3297).
+  (no param block)
+```
+
 ### prerelease-package-guard.ps1
 S2709 - decide whether `pm list packages` reported an exact package as installed.
 
 ```
 scripts/devtest/lib/prerelease-package-guard.ps1
   S2709 - decide whether `pm list packages` reported an exact package as installed.
+  (no param block)
+```
+
+### target-device.ps1
+Shared target-device resolver for the builders that install what they just built (S3169).
+
+```
+scripts/devtest/lib/target-device.ps1
+  Shared target-device resolver for the builders that install what they just built (S3169).
   (no param block)
 ```
 
@@ -1652,6 +1779,18 @@ scripts/devtest/lib/wear-walk-position.ps1
   (no param block)
 ```
 
+## scripts\devtest\lib\device-state-journal.tests
+
+### Run-Tests.ps1
+Contract suite for scripts/devtest/lib/device-state-journal.ps1 (S3201).
+
+```
+scripts/devtest/lib/device-state-journal.tests/Run-Tests.ps1
+  Contract suite for scripts/devtest/lib/device-state-journal.ps1 (S3201).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
 ## scripts\devtest\lib\device-store-paths.tests
 
 ### Run-Tests.ps1
@@ -1660,6 +1799,30 @@ Contract tests for scripts/devtest/lib/device-store-paths.ps1 (S3036).
 ```
 scripts/devtest/lib/device-store-paths.tests/Run-Tests.ps1
   Contract tests for scripts/devtest/lib/device-store-paths.ps1 (S3036).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\devtest\lib\logcat-snapshot.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/devtest/lib/logcat-snapshot.ps1 (S3297).
+
+```
+scripts/devtest/lib/logcat-snapshot.tests/Run-Tests.ps1
+  Contract tests for scripts/devtest/lib/logcat-snapshot.ps1 (S3297).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\devtest\lib\target-device.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/devtest/lib/target-device.ps1 (S3169).
+
+```
+scripts/devtest/lib/target-device.tests/Run-Tests.ps1
+  Contract tests for scripts/devtest/lib/target-device.ps1 (S3169).
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
@@ -3152,11 +3315,11 @@ scripts/quality/assert-no-orphan-merged-resources.ps1
 ```
 
 ### assert-no-release-probes.ps1
-S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's src/main.
+S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's shipping source sets.
 
 ```
 scripts/quality/assert-no-release-probes.ps1
-  S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's src/main.
+  S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's shipping source sets.
   Params:
     -Module  (req)  [String]  {app_v2|wear}
     -Quiet          [SwitchParameter]
@@ -3444,6 +3607,21 @@ scripts/quality/assert-script-described.ps1
   Exit: 0 - both counts at or below their ceilings, or -Report was given; 1 - either count rose above its ceiling; 2 - cannot verify: a script root or a baseline file is missing or unreadable
 ```
 
+### assert-script-file-size.ps1
+S3150: a repository PowerShell script must stay under the CLAUDE.md Rule 2 file-size ceiling.
+
+```
+scripts/quality/assert-script-file-size.ps1
+  S3150: a repository PowerShell script must stay under the CLAUDE.md Rule 2 file-size ceiling.
+  Params:
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String]
+    -MaxLines             [Int32] = 2000
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 every judged script is within the ceiling (or a finding stands without -Gate).; 1 a judged script is above the ceiling, with -Gate.; 2 could not verify - the repository root or every discovery root is unreadable.
+```
+
 ### assert-script-parses.ps1
 Refuses a .ps1 in the scanned roots that the PowerShell parser cannot read at all.
 
@@ -3693,11 +3871,12 @@ S3151: refuse a Trivial ticket whose changed set outgrew the Trivial checklist.
 scripts/quality/assert-trivial-scope.ps1
   S3151: refuse a Trivial ticket whose changed set outgrew the Trivial checklist.
   Params:
-    -Id               [String] = ''
-    -Files            [String] = ''
-    -Deleted          [String] = ''
-    -RepoRoot         [String] = ''
-  Exit: 0 trivial-scope: PASS - the set fits the checklist.; 1 trivial-scope: ESCALATE - the set outgrew it; the ticket continues on the Simple path.; 2 bad invocation - no -Files, no readable `trivial` profile key, or not a git work tree.
+    -Id                     [String] = ''
+    -Files                  [String] = ''
+    -Deleted                [String] = ''
+    -RepoRoot               [String] = ''
+    -RecordBaseline         [SwitchParameter]
+  Exit: 0 trivial-scope: PASS - the set fits the checklist, or the baseline was recorded.; 1 trivial-scope: ESCALATE - the set outgrew it; the ticket continues on the Simple path.; 2 bad invocation - no -Files, -RecordBaseline without -Id, no readable `trivial` profile
 ```
 
 ### assert-ui-sweep-catalog.ps1
@@ -3820,6 +3999,22 @@ scripts/quality/assert-wear-settings-parity.ps1
   Exit: 0 - parity holds; or a divergence was reported without -Gate, matching the advisory shape of; 1 - a divergence was found and -Gate was passed.; 2 - a source file could not be read (a registry, a payload, the watch preferences, the doc
 ```
 
+### assert-wear-store-boundary.ps1
+S3178: judge the two Wear merged manifests against wear/config/store-boundary-policy.json.
+
+```
+scripts/quality/assert-wear-store-boundary.ps1
+  S3178: judge the two Wear merged manifests against wear/config/store-boundary-policy.json.
+  Params:
+    -PolicyPath               [String]
+    -StandardManifest         [String]
+    -NoLegalManifest          [String]
+    -RequireArtifacts         [SwitchParameter]
+    -Quiet                    [SwitchParameter]
+    -Help                     [SwitchParameter]
+  Exit: 0 both artifacts agree with the policy.; 1 at least one boundary violation. The Wear release does not ship until it is fixed.; 2 cannot verify - the policy file is missing or unreadable, or a merged manifest is absent
+```
+
 ### assert-wear-walk-contract.ps1
 S2547 - binds the declared watch pre-release walk to the wear module it claims to walk.
 
@@ -3922,6 +4117,20 @@ scripts/quality/audit-stale-suppressions.ps1
   Exit: 0 - the verb completed.; 2 - could not verify: missing argument, manifest, report or log; a log with no warning line; a
 ```
 
+### compare-macrobenchmark-runs.ps1
+Compares two macrobenchmark result files against the committed budgets and fails on a regression.
+
+```
+scripts/quality/compare-macrobenchmark-runs.ps1
+  Compares two macrobenchmark result files against the committed budgets and fails on a regression.
+  Params:
+    -Baseline   (req)  [String]
+    -Candidate  (req)  [String]
+    -Budgets           [String] = "$PSScriptRoot\macrobenchmark-budgets.json"
+    -Json              [SwitchParameter]
+  Exit: 0 - every budgeted record is within its budget; 1 - at least one record regressed beyond its budget; 2 - cannot verify: a file is missing or unparseable, the budget file is invalid, or no budgeted
+```
+
 ### detekt-preflight.ps1
 
 ```
@@ -3954,6 +4163,20 @@ scripts/quality/detekt-scoped.ps1
   Exit: 0 - the analyser ran and found nothing new in the named files (or there were none to check).; 1 - the analyser ran and found at least one new finding; each is printed. Never returned in
 ```
 
+### explain-last-failure.ps1
+Explains the red verdict you just got - the one command the hook names (S3288).
+
+```
+scripts/quality/explain-last-failure.ps1
+  Explains the red verdict you just got - the one command the hook names (S3288).
+  Params:
+    -Last                [Int32] = 1
+    -Session             [SwitchParameter]
+    -Journal             [String]
+    -GateJournal         [String]
+  Exit: 0 the question was answered - including "no failures recorded", which is an answer.; 2 a journal exists and could not be read.
+```
+
 ### generate-toolchain-pins.ps1
 Generate canonical toolchain version pins from the build configuration.
 
@@ -3973,10 +4196,11 @@ Attribute a Codex session rollout transcript: context growth, tool-output size, 
 scripts/quality/measure-codex-transcript.ps1
   Attribute a Codex session rollout transcript: context growth, tool-output size, and the S3141 hygiene flags (oversized inline reads, truncated output, sleep-polling, cross-ticket reads) for one call sequence.
   Params:
-    -Id           [String]
-    -Path         [String]
-    -Json         [SwitchParameter]
-  Exit: 0 - ran to completion, whatever the outcome (including `found: false`).; 2 - cannot verify: an explicit -Path does not exist, or a found file does not parse as
+    -Id                 [String]
+    -Path               [String]
+    -Json               [SwitchParameter]
+    -StageCheck         [SwitchParameter]
+  Exit: 0 - ran to completion, whatever the outcome (including `found: false`); with -StageCheck,
 ```
 
 ### measure-file-touch-frequency.ps1
@@ -4213,6 +4437,16 @@ scripts/quality.tests/locale-fingerprints.Tests.ps1
   (no param block)
 ```
 
+### locale-identical-allowlist.Tests.ps1
+requires -Version 7.0
+
+```
+scripts/quality.tests/locale-identical-allowlist.Tests.ps1
+  requires -Version 7.0
+  (no param block)
+  Exit: 0 - every assertion passed.; 1 - at least one assertion failed.
+```
+
 ### Run-Tests.ps1
 S2126: entry point for the quality.tests suite - runs each sibling *.Tests.ps1 in its own process.
 
@@ -4233,12 +4467,30 @@ scripts/quality.tests/seed-locale-fingerprints.Tests.ps1
   Exit: 0 every assertion passed.; 1 at least one assertion failed.
 ```
 
+### set-android-string-reaffirm.Tests.ps1
+set-android-string-reaffirm.Tests.ps1 (S3306) - regression tests for -ReaffirmTranslation.
+
+```
+scripts/quality.tests/set-android-string-reaffirm.Tests.ps1
+  set-android-string-reaffirm.Tests.ps1 (S3306) - regression tests for -ReaffirmTranslation.
+  (no param block)
+```
+
 ### set-android-string-remove.Tests.ps1
 set-android-string-remove.Tests.ps1 (S1568) - regression tests for the removal branch.
 
 ```
 scripts/quality.tests/set-android-string-remove.Tests.ps1
   set-android-string-remove.Tests.ps1 (S1568) - regression tests for the removal branch.
+  (no param block)
+```
+
+### set-android-string-sourceset.Tests.ps1
+set-android-string-sourceset.Tests.ps1 (S3315) - regression tests for -SourceSet addressing.
+
+```
+scripts/quality.tests/set-android-string-sourceset.Tests.ps1
+  set-android-string-sourceset.Tests.ps1 (S3315) - regression tests for -SourceSet addressing.
   (no param block)
 ```
 
@@ -4639,6 +4891,18 @@ scripts/quality/audit-stale-suppressions.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\compare-macrobenchmark-runs.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S3322) - regression suite for scripts/quality/compare-macrobenchmark-runs.ps1.
+
+```
+scripts/quality/compare-macrobenchmark-runs.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S3322) - regression suite for scripts/quality/compare-macrobenchmark-runs.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
 ## scripts\quality\detekt-scoped.tests
 
 ### Run-Tests.ps1
@@ -4659,6 +4923,18 @@ scripts/quality/detekt-scoped.tests/Run-Tests.ps1
 ```
 scripts/quality/doc-icon-gate-routing.tests/Run-Tests.ps1
   (no param block)
+```
+
+## scripts\quality\explain-last-failure.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality/explain-last-failure.ps1
+
+```
+scripts/quality/explain-last-failure.tests/Run-Tests.ps1
+  Subject: scripts/quality/explain-last-failure.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
 
 ## scripts\quality\lib
@@ -4838,6 +5114,34 @@ scripts/quality/lib/nested-worktrees.ps1
   (no param block)
 ```
 
+### post-change-changed-set.ps1
+S3150: the changed-set half of scripts/post-change.ps1 - the normalized path set, the predicates
+
+```
+scripts/quality/lib/post-change-changed-set.ps1
+  S3150: the changed-set half of scripts/post-change.ps1 - the normalized path set, the predicates
+  (no param block)
+```
+
+### post-change-closure-ledger.ps1
+S3301: the closure ledger - what scripts/post-change.ps1 remembers about what it already judged.
+
+```
+scripts/quality/lib/post-change-closure-ledger.ps1
+  S3301: the closure ledger - what scripts/post-change.ps1 remembers about what it already judged.
+  (no param block)
+```
+
+### post-change-step-runners.ps1
+S3150: the step and gate execution surface of scripts/post-change.ps1 - run state, the protocol
+
+```
+scripts/quality/lib/post-change-step-runners.ps1
+  S3150: the step and gate execution surface of scripts/post-change.ps1 - run state, the protocol
+  (no param block)
+  Exit: 215 failed runs in the week of 2026-08-05, median 8 turns from a failed run to
+```
+
 ### room-databases.ps1
 Dot-source library: the registry of every Room database in the repository, one row per database.
 
@@ -4893,6 +5197,15 @@ scripts/quality/lib/ticket-acceptance-probes.ps1
   (no param block)
 ```
 
+### tool-failure-journal.ps1
+The record behind a red script verdict - one row per failing invocation (S3288).
+
+```
+scripts/quality/lib/tool-failure-journal.ps1
+  The record behind a red script verdict - one row per failing invocation (S3288).
+  (no param block)
+```
+
 ### wear-vocabulary-parsers.ps1
 Extracts the mirrored phone/watch wire vocabularies out of Kotlin sources.
 
@@ -4912,6 +5225,18 @@ scripts/quality/lib/room-databases.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2355) - regression suite for the Room database registry.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\lib\tool-failure-journal.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality/lib/tool-failure-journal.ps1
+
+```
+scripts/quality/lib/tool-failure-journal.tests/Run-Tests.ps1
+  Subject: scripts/quality/lib/tool-failure-journal.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
 
 ## scripts\quality\measure-gate-frequency.tests
@@ -5066,6 +5391,22 @@ scripts/release/clear-play-track-release.ps1
     -AllowNonDraft         [SwitchParameter]
     -Package               [String] = 'com.sza.fastmediasorter'
   Exit: 0 - the track was cleared (or, without -Confirm, the dry run reported what it would clear); 1 - refused: the track carries a non-draft release and -AllowNonDraft was not given; 2 - could not verify: no virtual environment, no service-account key, or the API call failed; 3 - nothing to do: the track already holds no release records
+```
+
+### cluster-registry.ps1
+cluster-registry.ps1 (S3286) - read and write the Play Vitals crash-cluster registry from a command line.
+
+```
+scripts/release/cluster-registry.ps1
+  cluster-registry.ps1 (S3286) - read and write the Play Vitals crash-cluster registry from a command line.
+  Params:
+    -Verb            (req)  [String]  {Lookup|Register|Set|List}
+    -ClusterId              [String]
+    -TicketId               [String]
+    -TicketStatus           [String]
+    -State                  [String]  {open|fixed-unpublished|fixed-published}
+    -FixVersionCode         [String]
+  Exit: 0 the verb succeeded (Lookup: the cluster is registered).; 1 Lookup: the cluster is not registered. Register: the cluster is already registered.; 2 the call could not be served - a missing argument, an unknown cluster on Set, an unwritable registry.
 ```
 
 ### extract-release-notes.ps1
@@ -5356,6 +5697,15 @@ replace the text between a begin and an end marker comment. Dot-source it.
 ```
 scripts/release/lib/marked-region.ps1
   replace the text between a begin and an end marker comment. Dot-source it.
+  (no param block)
+```
+
+### play-vitals-cluster-registry.ps1
+play-vitals-cluster-registry.ps1 (S3286) - the cluster-id index the Play vitals filer dedups on. Dot-source it.
+
+```
+scripts/release/lib/play-vitals-cluster-registry.ps1
+  play-vitals-cluster-registry.ps1 (S3286) - the cluster-id index the Play vitals filer dedups on. Dot-source it.
   (no param block)
 ```
 
@@ -6511,6 +6861,7 @@ scripts/utils/batch-set-android-string.ps1
   Params:
     -JsonPath  (req)  [String]
     -DryRun           [SwitchParameter]
+  Exit: 0 - every entry was written, or was skipped as invalid.; 1 - unusable input (missing or unparseable JSON), or at least one entry failed to write. The
 ```
 
 ### build-research-dossier.ps1
@@ -6542,15 +6893,16 @@ S3151: capture a Draft ticket from a slug and the owner's verbatim text in one c
 scripts/utils/capture-draft.ps1
   S3151: capture a Draft ticket from a slug and the owner's verbatim text in one call.
   Params:
-    -Slug               [String] = ''
-    -Text               [String]
-    -TextFile           [String] = ''
-    -Attach             [String] = ''
-    -Tier               [Int32] = 3  {range 0..4}
-    -Priority           [Int32] = -1
-    -DedupQuery         [String] = ''
-    -RepoRoot           [String] = ''
-  Exit: 0 ticket created, or -WhatIf finished its dedup report.; 1 the catalog refused the insert or the spec file could not be written.; 2 bad invocation - invalid slug, no text or both text forms, missing attachment or template.
+    -Slug                         [String] = ''
+    -Text                         [String]
+    -TextFile                     [String] = ''
+    -Attach                       [String] = ''
+    -Tier                         [Int32] = 3  {range 0..4}
+    -Priority                     [Int32] = -1
+    -DedupQuery                   [String] = ''
+    -AllowClosedDuplicate         [SwitchParameter]
+    -RepoRoot                     [String] = ''
+  Exit: 0 ticket created, or -WhatIf finished its dedup report.; 1 the catalog refused the insert or the spec file could not be written.; 2 bad invocation - invalid slug, no text or both text forms, missing attachment or template.; 3 refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
 ```
 
 ### check-typo-lint.ps1
@@ -6932,12 +7284,14 @@ S1627: lists the English UI text that does not yet reach all thirteen declared l
 scripts/utils/list-new-lexemes.ps1
   S1627: lists the English UI text that does not yet reach all thirteen declared locales.
   Params:
-    -Module                   [String] = 'app_v2'
-    -SourceSet                [String[]] = @('main', 'vr', 'noLegal')
-    -BaselinePath             [String]
-    -FingerprintsPath         [String]
-    -OutDir                   [String]
-    -Quiet                    [SwitchParameter]
+    -Module                    [String] = 'app_v2'
+    -SourceSet                 [String[]] = @('main', 'vr', 'noLegal')
+    -BaselinePath              [String]
+    -FingerprintsPath          [String]
+    -AllowlistPath             [String]
+    -IdenticalKeysPath         [String]
+    -OutDir                    [String]
+    -Quiet                     [SwitchParameter]
   Exit: 0 - every unit reaches all thirteen locales, or the only gaps are baselined.; 1 - unusable input: the export failed, or its sidecar could not be read.; 3 - new untranslated text exists; the produced files name it.
 ```
 
@@ -7027,6 +7381,21 @@ scripts/utils/measure-concurrent-build.ps1
   Exit: 0 - measurement completed; read the CSV and the summary line for the result, which may
 ```
 
+### measure-process-throughput.ps1
+Summarises development throughput over a window from the journals that are already written.
+
+```
+scripts/utils/measure-process-throughput.ps1
+  Summarises development throughput over a window from the journals that are already written.
+  Params:
+    -Since               [DateTime] = (Get-Date).AddDays(-1)
+    -Until               [DateTime] = [datetime]::MaxValue
+    -StrongModel         [String] = 'opus'
+    -Root                [String]
+    -Json                [SwitchParameter]
+  Exit: 0 - the window was summarised; 2 - could not verify: an input journal or the datasheet is absent or unreadable
+```
+
 ### monitor_git.ps1
 
 ```
@@ -7048,6 +7417,22 @@ scripts/utils/monitor-spec-queue.ps1
     -RepoRoot                [String] = ''
     -Help                    [SwitchParameter]
   Exit: 2 - the repository layout could not be read (temp/ missing, journals unreadable).
+```
+
+### mono-mode.ps1
+The one start step of a MONO run (S3158): read the agent chat once, drop every leftover lease, lock and queue, post one journal note.
+
+```
+scripts/utils/mono-mode.ps1
+  The one start step of a MONO run (S3158): read the agent chat once, drop every leftover lease, lock and queue, post one journal note.
+  Params:
+    -Verb    (req)  [String]  {Start}
+    -Ticket         [String] = ''
+    -Note           [String] = 'MONO start'
+    -Stores         [String[]] = @('Leases', 'Locks')  {Leases|Locks}
+    -DryRun         [SwitchParameter]
+    -Last           [Int32] = 20  {range 1..400}
+  Exit: 0 started - leftovers dropped (or listed under -DryRun).; 2 a store could not be read or cleared - the forwarder named on the line before failed.
 ```
 
 ### normalize-all-features-areas.ps1
@@ -7227,6 +7612,22 @@ scripts/utils/repoint-doc-locale-references.ps1
     -Scope            [String] = 'Scripts'  {Scripts|Phone}
 ```
 
+### review-locale-identical-allowlist.ps1
+S3305: dumps the locale-identical allow-list with the evidence needed to judge each entry, and rewrites it from a reviewed keep-list.
+
+```
+scripts/utils/review-locale-identical-allowlist.ps1
+  S3305: dumps the locale-identical allow-list with the evidence needed to judge each entry, and rewrites it from a reviewed keep-list.
+  Params:
+    -Module                  [String] = 'app_v2'
+    -SourceSet               [String[]] = @('main', 'vr', 'noLegal')
+    -AllowlistPath           [String]
+    -CorpusIndexPath         [String]
+    -OutDir                  [String]
+    -Keep                    [String]
+  Exit: 0 - the dump was written, or -Keep rewrote the allow-list.; 1 - unusable input: the allow-list, the corpus or the keep-list could not be read.
+```
+
 ### run-maestro-smoke.ps1
 Run Maestro tests
 
@@ -7249,6 +7650,16 @@ scripts/utils/run-maestro-stress.ps1
     -Monitor           [SwitchParameter]
     -Report            [SwitchParameter]
     -SkipBuild         [SwitchParameter]
+```
+
+### run-mono-queue.ps1
+`.\a.ps1 r0` - the release queue for the one MONO agent (S3158): a fresh process per ticket, each running `/spec-all -m <id>`.
+
+```
+scripts/utils/run-mono-queue.ps1
+  `.\a.ps1 r0` - the release queue for the one MONO agent (S3158): a fresh process per ticket, each running `/spec-all -m <id>`.
+  (no param block)
+  Exit: 2 the MONO start could not clear a store (mono-mode.ps1's own code), or the runner forwarder
 ```
 
 ### run-spec-queue.ps1
@@ -7349,6 +7760,7 @@ scripts/utils/seed-locale-tranche.ps1
     -MapPath                  [String]
     -KeyPrefix                [String]
     -FingerprintsPath         [String]
+    -AllowlistPath            [String]
     -Merge                    [SwitchParameter]
     -DumpSource               [SwitchParameter]
     -DryRun                   [SwitchParameter]
@@ -7362,24 +7774,26 @@ Surgical editor for Android <string> resources: set / add / get / remove / renam
 scripts/utils/set-android-string.ps1
   Surgical editor for Android <string> resources: set / add / get / remove / rename / list.
   Params:
-    -Action                   [String] = 'set'  {set|add|get|remove|rename|list|move|audit}
-    -Module                   [String] = 'app_v2'
-    -Locale                   [String]
-    -Key                      [String]
-    -Value                    [String]
-    -En                       [String]
-    -Ru                       [String]
-    -Uk                       [String]
-    -Translations             [Hashtable]
-    -NewKey                   [String]
-    -File                     [String] = 'strings.xml'
-    -Prefix                   [String]
-    -KeyList                  [String]
-    -ExpectedOldValue         [String]
-    -CreateIfMissing          [SwitchParameter]
-    -DryRun                   [SwitchParameter]
-    -Force                    [SwitchParameter]
-  Exit: 0 - the requested action completed.; 1 - invalid arguments, a lockstep/parity precondition failed, or the value carries markup this
+    -Action                      [String] = 'set'  {set|add|get|remove|rename|list|move|audit}
+    -Module                      [String] = 'app_v2'
+    -SourceSet                   [String] = 'main'
+    -Locale                      [String]
+    -Key                         [String]
+    -Value                       [String]
+    -En                          [String]
+    -Ru                          [String]
+    -Uk                          [String]
+    -Translations                [Hashtable]
+    -NewKey                      [String]
+    -File                        [String] = 'strings.xml'
+    -Prefix                      [String]
+    -KeyList                     [String]
+    -ExpectedOldValue            [String]
+    -CreateIfMissing             [SwitchParameter]
+    -DryRun                      [SwitchParameter]
+    -Force                       [SwitchParameter]
+    -ReaffirmTranslation         [SwitchParameter]
+  Exit: 0 - the requested action completed.; 1 - invalid arguments, a lockstep/parity precondition failed, a -ReaffirmTranslation precondition
 ```
 
 ### set-android-strings.ps1
@@ -7407,7 +7821,8 @@ Prepares the Android device with a structured test media layout for pre-release 
 ```
 scripts/utils/setup_test_media.ps1
   Prepares the Android device with a structured test media layout for pre-release manual testing.
-  (no param block)
+  Params:
+    -DeviceId         [String]
 ```
 
 ### setup_test_vr.ps1
@@ -7520,6 +7935,26 @@ scripts/utils/wait-for-ticket-work.ps1
   Exit: 0 - work is available now; the marker names the kind (impl / device-drain) and the ticket.; 3 - required preflight script is missing.; 4 - usage error.
 ```
 
+### watch-agent-progress.ps1
+Prints a queue runner's progress to its own console, live, from the agent chat progress stream.
+
+```
+scripts/utils/watch-agent-progress.ps1
+  Prints a queue runner's progress to its own console, live, from the agent chat progress stream.
+  Params:
+    -Instance                 [String] = ''
+    -IntervalSeconds          [Int32] = 15
+    -Kinds                    [String[]] = @('status', 'verdict', 'phase', 'ticket', 'abandon', 'note')
+    -ParentPid                [Int32] = 0
+    -Since                    [Int32] = 0
+    -MaxLinesPerPass          [Int32] = 8
+    -HeartbeatMinutes         [Int32] = 10
+    -Once                     [SwitchParameter]
+    -RepoRoot                 [String] = ''
+    -Help                     [SwitchParameter]
+  Exit: 2 = the agent chat progress directory cannot be located.
+```
+
 ### withdraw-lock-ticket.ps1
 Withdraw this session's own place in a lock queue, in one domain or across a whole type.
 
@@ -7545,7 +7980,7 @@ scripts/utils/write-codex-handoff.ps1
     -GateVerdict              [String] = 'not recorded'
     -AuditManualState         [String] = 'not recorded'
     -NextAction               [String] = 'not stated'
-  Exit: 0 - handoff file written.; 2 - invalid arguments, or -Id does not resolve in the spec catalog.; 4 - no LEASE-HANDOFF file found for -Id under temp/LEASE-HANDOFF/.
+  Exit: 0 - handoff file written.; 2 - invalid arguments, or -Id does not resolve in the spec catalog.
 ```
 
 ## scripts\utils\agent-chat.tests
@@ -7700,6 +8135,30 @@ scripts/utils/invoke-isolated-stdout.tests/Run-Tests.ps1
   Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - could not verify - the runner script is missing.
 ```
 
+## scripts\utils\measure-process-throughput.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/utils/measure-process-throughput.ps1 (S3308).
+
+```
+scripts/utils/measure-process-throughput.tests/Run-Tests.ps1
+  Contract tests for scripts/utils/measure-process-throughput.ps1 (S3308).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\utils\mono-mode.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/utils/mono-mode.ps1 - the MONO start step (S3158).
+
+```
+scripts/utils/mono-mode.tests/Run-Tests.ps1
+  Contract tests for scripts/utils/mono-mode.ps1 - the MONO start step (S3158).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
 ## scripts\utils\preflight-checks.tests
 
 ### Run-Tests.ps1
@@ -7827,6 +8286,18 @@ scripts/utils/start-detached.tests/Run-Tests.ps1
   Regression suite for scripts/utils/start-detached.ps1 (S2400).
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\utils\watch-agent-progress.tests
+
+### Run-Tests.ps1
+Regression tests for the runner progress watcher: what it prints, and what it hides.
+
+```
+scripts/utils/watch-agent-progress.tests/Run-Tests.ps1
+  Regression tests for the runner progress watcher: what it prints, and what it hides.
+  (no param block)
+  Exit: 0 - every case passed.; 1 - a case failed.; 2 - the sandbox could not be prepared.
 ```
 
 ## scripts\wear

@@ -14,7 +14,7 @@
     <string name="audio_cache_size_warning_message">تستهلك ذاكرة التخزين المؤقت للصوت مساحة تخزين كبيرة. هل تريد حذف الملفات القديمة لتحرير مساحة؟</string>
     <string name="audio_cache_size_warning_title">ذاكرة تخزين مؤقتة صوتية كبيرة</string>
     <string name="audio_channels_label">القنوات: %1$s</string>
-    <string name="audio_channels_mono">كثرة الوحيدات</string>
+    <string name="audio_channels_mono">أحادي</string>
     <string name="audio_channels_stereo">ستيريو</string>
     <string name="audio_codec_label">ترميز الصوت: %1$s</string>
     <string name="audio_cover_art">غلاف الألبوم الصوتي</string>
@@ -32,7 +32,7 @@
     <string name="audio_lossless_value_lossless">بدون فقدان للجودة</string>
     <string name="audio_lossless_value_lossy">فقدان البيانات</string>
     <string name="audio_replaygain_album_label">ReplayGain (ألبوم): %1$.2f ديسيبل</string>
-    <string name="audio_replaygain_track_label">مستوى إعادة التشغيل (للمسار): 0.2 ديسيبل</string>
+    <string name="audio_replaygain_track_label">مستوى إعادة التشغيل (للمسار): %1$.2f ديسيبل</string>
     <string name="audio_sample_rate_label">معدل أخذ العينات: %1$d هرتز</string>
     <string name="audio_size_limit">الحد الأقصى لحجم ملف الصوت</string>
     <string name="audio_size_limits">حدود حجم الملفات الصوتية (كيلوبايت)</string>

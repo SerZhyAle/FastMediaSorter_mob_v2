@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.wear
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -40,6 +41,11 @@ class OpenOnPhoneNotifier @Inject constructor(
      * criterion 9). [token] is not read - it only keeps two pending opens of different files from
      * collapsing onto one `PendingIntent`.
      */
+    // S3155: the notify() below is already guarded twice - a POST_NOTIFICATIONS check earlier in this
+    // function, and the runCatching that absorbs a grant revoked between that check and the post, as
+    // its own comment records. Lint accepts neither form, so it reports MissingPermission on the one
+    // call in the file that cannot throw out of here.
+    @SuppressLint("MissingPermission")
     fun notifyPendingOpen(token: String, displayName: String, target: Uri): Boolean {
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) {
