@@ -76,7 +76,6 @@ fun VoiceNoteListScreen(
     val listState = rememberWearListState(positionKey = WearRoutes.VOICE_NOTES)
     var deleteFor by remember { mutableStateOf<VoiceNote?>(null) }
     LaunchedEffect(Unit) {
-        Timber.d("S3259: voice note list shown - dialog OK rows are the standard alert action chip")
     }
 
     WearScreenScaffold(

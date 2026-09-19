@@ -31,7 +31,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 
@@ -41,7 +40,6 @@ fun ScreenSettingsScreen(
     listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.SCREEN)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    Timber.d("S3260: screen settings shown - mode, scheme, geometry and keep-awake rows are StandardWearToggleChip")
     val displayModeLabel = stringResource(R.string.screen_settings_view_mode)
     val fileListLabel = stringResource(R.string.screen_settings_file_list_view)
 

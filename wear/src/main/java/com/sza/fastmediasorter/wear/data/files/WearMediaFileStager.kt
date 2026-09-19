@@ -77,7 +77,6 @@ class WearMediaFileStager @Inject constructor(
             return null
         }
         val target = File(holder, file.name)
-        Timber.d("S3183: staging %s as %s", file.name, target.absolutePath)
         return try {
             context.contentResolver.openInputStream(file.uri)?.use { input ->
                 target.outputStream().use { output -> input.copyTo(output) }

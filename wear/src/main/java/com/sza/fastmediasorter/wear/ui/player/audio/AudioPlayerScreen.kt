@@ -110,7 +110,6 @@ import com.sza.fastmediasorter.wear.ui.player.common.playerPrimaryRowColumns
 import com.sza.fastmediasorter.wear.ui.player.common.rememberPlayerFileActionEntries
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
-import timber.log.Timber
 import java.util.Locale
 
 /** Keeps white text readable over the animation, made 33% more visible per S1866. */
@@ -394,7 +393,6 @@ private fun AudioPlayerContent(
                 actions = actions,
                 paddings = PlayerColumnPaddings(trackInfoPadding, commandRowPadding),
                 onOpenMenu = {
-                    Timber.d("S3120: audio menu opened without the pin or favourite the row draws")
                     showMenu = true
                 }
             )

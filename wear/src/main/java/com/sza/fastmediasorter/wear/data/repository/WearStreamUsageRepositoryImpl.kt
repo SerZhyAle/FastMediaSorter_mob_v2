@@ -62,7 +62,6 @@ class WearStreamUsageRepositoryImpl @Inject constructor(
      * the two copies disagree. The map the projection wants is built on the way out instead.
      */
     private fun read(): List<WearStreamUsage> {
-        Timber.d("S3199: stream usage read with narrowed catch")
         return try {
             val json = prefs.getString(KEY_USAGE, null) ?: return emptyList()
             val type = TypeToken.getParameterized(List::class.java, WearStreamUsage::class.java).type

@@ -83,8 +83,6 @@ fun WearOnboardingScreen(
         advance()
     }
     val step = if (page >= introPages) steps.getOrNull(page - introPages) else null
-    Timber.d("S3225: onboarding page %d of %d, step=%s", page, pageCount, step?.step)
-    Timber.d("S3259: onboarding page actions are StandardWearChip")
 
     // A group granted earlier - a reinstall that kept runtime grants - is not asked again.
     LaunchedEffect(page) {

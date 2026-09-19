@@ -451,7 +451,6 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     }
 
     private fun applyKeepScreenAwake() {
-        Timber.d("S3285: keep-screen-awake ${this::class.simpleName} hold=$keepScreenAwakeDecision")
         if (keepScreenAwakeDecision) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {

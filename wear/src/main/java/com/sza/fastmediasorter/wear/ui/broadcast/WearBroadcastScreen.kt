@@ -308,7 +308,6 @@ private fun launchFirstAvailable(
 ) {
     for (intent in intents) {
         try {
-            Timber.d("S3265: trying battery exemption screen %s", intent.action)
             launcher.launch(intent)
             return
         } catch (notFound: ActivityNotFoundException) {

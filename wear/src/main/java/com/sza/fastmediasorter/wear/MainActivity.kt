@@ -1104,7 +1104,6 @@ private fun RecordLastUsedAppEffect(
 ) {
     LaunchedEffect(currentRoute) {
         val program = currentRoute?.let(WearLaunchRoutes::appIdForRoute) ?: return@LaunchedEffect
-        Timber.d("S3116: recording opened program %s", program)
         recordLastUsedApp(program)
     }
 }
@@ -1171,7 +1170,6 @@ private fun navigateGuarded(navController: NavHostController, route: String) {
 private fun navigateReplacingContent(navController: NavHostController, route: String) {
     val replaced = navController.currentBackStackEntry?.destination
         ?.takeIf { WearRoutes.isContentRoute(it.route) }
-    Timber.d("S3213: opening content route %s, replacing %s", route, replaced?.route)
     navController.navigate(route) {
         replaced?.let { popUpTo(it.id) { inclusive = true } }
         launchSingleTop = true

@@ -307,7 +307,6 @@ class PhoneResourceViewModel @Inject constructor(
                 val outcome = phoneResourceClient.requestThumbnail(itemToken)
                 val attempts = (thumbnailAttempts[itemToken] ?: 0) + 1
                 thumbnailAttempts[itemToken] = attempts
-                Timber.d("S3190: thumb %s -> %s, attempt %d", itemToken, outcome::class.simpleName, attempts)
                 val thumbnail = when {
                     outcome is PhoneResourceOutcome.Page ->
                         outcome.page.items.orEmpty().firstOrNull()?.toWearThumbnail() ?: WearThumbnail.Unavailable

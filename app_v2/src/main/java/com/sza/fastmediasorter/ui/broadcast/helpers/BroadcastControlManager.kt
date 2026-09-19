@@ -427,7 +427,6 @@ class BroadcastControlManager @Inject constructor(
                 CaptureFileNamer.CaptureKind.BROADCAST,
                 BROADCAST_DESCRIPTOR_EXTENSION
             )
-            Timber.d("S3240: broadcast descriptor export name=$descriptorName")
             exportFileLauncher.launch(descriptorName)
         }
 

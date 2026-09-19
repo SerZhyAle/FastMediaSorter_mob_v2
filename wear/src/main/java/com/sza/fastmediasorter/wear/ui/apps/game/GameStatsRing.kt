@@ -23,7 +23,6 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.game.GameStats
 import com.sza.fastmediasorter.wear.ui.common.WearCaptionScale
 import com.sza.fastmediasorter.wear.ui.common.wearBelowSquareBand
-import timber.log.Timber
 
 /** Clearance from the glass for the row as a whole; the counters inside it are laid out as one. */
 private val COUNTER_EDGE_PADDING = 2.dp
@@ -63,7 +62,6 @@ fun GameStatsRing(stats: GameStats, levelNumber: Int, modifier: Modifier = Modif
     val lineHeight = with(LocalDensity.current) { (WearCaptionScale.Floor * COUNTER_LINE_HEIGHT_FACTOR).toDp() }
     val placement = wearBelowSquareBand(lineHeight + COUNTER_EDGE_PADDING * 2)
     LaunchedEffect(placement) {
-        Timber.d("S3189: game counter band bottomOffset=${placement.bottomOffset} maxWidth=${placement.maxWidth}")
     }
     Box(modifier = modifier.fillMaxSize()) {
         Row(

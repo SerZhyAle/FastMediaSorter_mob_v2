@@ -28,7 +28,6 @@ object NetworkMonitorActions {
     }
 
     private fun openSettingsIntent(context: Context, action: String) {
-        Timber.d("S3199: openSettingsIntent %s", action)
         try {
             val intent = Intent(action).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

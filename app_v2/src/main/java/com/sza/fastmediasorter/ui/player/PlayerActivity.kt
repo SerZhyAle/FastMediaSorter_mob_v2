@@ -102,7 +102,6 @@ class PlayerActivity :
 
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         val binding = ActivityPlayerUnifiedBinding.inflate(layoutInflater)
-        Timber.d("S3293: player unified layout bound with a11y marks")
         return binding
     }
 

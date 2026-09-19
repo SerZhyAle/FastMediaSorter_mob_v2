@@ -174,7 +174,6 @@ class HomeViewModel @Inject constructor(
      */
     private fun availableApp(id: WearAppId?): WearApp? {
         val app = id?.let { stored -> WearAppCatalog.apps(capabilities).firstOrNull { it.id == stored } }
-        Timber.d("S3116: home row program stored=%s offered=%s", id, app?.id)
         return app
     }
 

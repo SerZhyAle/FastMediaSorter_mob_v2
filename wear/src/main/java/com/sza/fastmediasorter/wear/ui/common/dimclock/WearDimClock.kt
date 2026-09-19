@@ -55,7 +55,6 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
 import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 private const val SECONDS_CADENCE_MS = 1000L
@@ -132,7 +131,6 @@ fun WearDimClock(
     val dateText = remember(nowMillis, unitSystem) {
         val baseDate = dateTimeFormatter.formatDate(nowMillis, unitSystem)
         val weekday = dateTimeFormatter.formatWeekday(nowMillis)
-        Timber.d("S3326: dim clock weekday=$weekday routed through WearUnitDateTimeFormatter seam")
         "$baseDate, $weekday"
     }
 

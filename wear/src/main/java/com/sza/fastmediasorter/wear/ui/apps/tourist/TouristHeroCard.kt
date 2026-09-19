@@ -31,7 +31,6 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.StandardWearCard
 import com.sza.fastmediasorter.wear.ui.common.WearHeroShape
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
-import timber.log.Timber
 import java.util.Locale
 
 // The card contributes the standard 10/8 inset, so only the missing 4dp of the panel's original
@@ -53,8 +52,6 @@ fun TouristHeroCard(
     modifier: Modifier = Modifier,
 ) {
     val lockDescription = stringResource(R.string.wear_tourist_lock_screen)
-    Timber.d("S3258: tourist hero card drawn from theme roles and WearAppTheme tokens")
-    Timber.d("S3261: tourist hero card drawn as StandardWearCard")
     StandardWearCard(
         modifier = modifier,
         cornerShape = WearHeroShape,

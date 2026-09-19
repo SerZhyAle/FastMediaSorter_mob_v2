@@ -180,7 +180,6 @@ class AudioPlayerViewModel @Inject constructor(
                 .map(metadata::get)
                 .filterIsInstance<IcyHeaders>()
                 .firstOrNull() ?: return
-            Timber.d("S3099: icy headers name=${headers.name} genre=${headers.genre} bitrate=${headers.bitrate}")
             _uiState.update { state ->
                 val current = state.station ?: WearStationInfo()
                 state.copy(
@@ -533,7 +532,6 @@ class AudioPlayerViewModel @Inject constructor(
         if (!_uiState.value.isStream || format == null) return
         val codec = WearStationInfo.codecLabel(format.sampleMimeType)
         val bitrate = format.bitrate.takeIf { it > 0 }?.div(BITS_PER_KILOBIT)
-        Timber.d("S3099: stream format mime=${format.sampleMimeType} bitrate=${format.bitrate}")
         _uiState.update { state ->
             val current = state.station ?: WearStationInfo()
             state.copy(
@@ -662,7 +660,6 @@ class AudioPlayerViewModel @Inject constructor(
     /** S3217: a file has no live edge, so only a direct stream is re-prepared. */
     fun jumpToLive() {
         if (!_uiState.value.isStream) return
-        Timber.d("S3217: audio player jump to live tapped")
         streamPlaybackSession.jumpToLive(exoPlayer)
     }
 

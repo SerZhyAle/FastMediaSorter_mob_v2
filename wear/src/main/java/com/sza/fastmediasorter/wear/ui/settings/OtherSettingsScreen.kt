@@ -38,7 +38,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsStepperCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 import kotlin.math.abs
 
 private const val THREE_SECONDS = 3
@@ -82,7 +81,6 @@ fun OtherSettingsScreen(
     listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.OTHER)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    Timber.d("S3260: other settings shown - switches and the voice note radio pair are StandardWearToggleChip")
     val items = otherSettingsItems(uiState = uiState, viewModel = viewModel)
 
     WearScreenScaffold(

@@ -21,7 +21,6 @@ import com.sza.fastmediasorter.wear.domain.game.GameLevelState
 import com.sza.fastmediasorter.wear.domain.game.GamePosition
 import com.sza.fastmediasorter.wear.domain.game.GameStatus
 import com.sza.fastmediasorter.wear.ui.theme.LocalWearAppColors
-import timber.log.Timber
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -97,7 +96,6 @@ fun GameBoardCanvas(
     capturedBy: GameEnemyType? = null,
     capturedByPosition: GamePosition? = null
 ) {
-    Timber.d("S3107: exit cell drawn as diamond")
     val palette = BoardPalette(
         floor = MaterialTheme.colors.surface,
         wall = MaterialTheme.colors.onSurfaceVariant,

@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.domain.model.transfer.TransferMedium
 import com.sza.fastmediasorter.ui.settings.helpers.DataTransferMenuManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -148,7 +147,6 @@ class DataTransferDialogFragment : DialogFragment() {
 
     private fun openActions(kind: TransferDataKind) {
         val view = binding ?: return
-        Timber.d("S1565: action pane opened, its escape labelled from the app's own strings")
         selectedKind = kind
         view.tvSelectedKind.setText(titleOf(kind))
         view.paneKinds.visibility = View.GONE
@@ -167,7 +165,6 @@ class DataTransferDialogFragment : DialogFragment() {
         view.progressTransfer.visibility = if (running) View.VISIBLE else View.GONE
         val message = messageOf(state)
         if (state is DataTransferUiState.Exported) {
-            Timber.d("S1565: export finished, the kind named as a quoted noun that needs no agreement")
         }
         view.tvTransferStatus.text = message.orEmpty()
         view.layoutTransferStatus.visibility = if (message == null) View.GONE else View.VISIBLE

@@ -105,10 +105,8 @@ class BlackScreenOverlayManager(
             applyDimMode(activity, clockEnabled = false)
             return
         }
-        Timber.d("S3321: phone dim overlay shown, settings read dispatched off-main")
         scope.launch {
             val clockEnabled = readDimClockEnabled(activity)
-            Timber.d("S3321: phone dim mode resolved, clockEnabled=$clockEnabled visible=$isVisible")
             // hide() may have won the race while the read was in flight.
             if (isVisible) applyDimMode(activity, clockEnabled)
         }
@@ -120,7 +118,6 @@ class BlackScreenOverlayManager(
         } else {
             setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
         }
-        Timber.d("S3256: phone black screen overlay shown, clockEnabled=$clockEnabled")
     }
 
     private fun addClockView(activity: Activity) {

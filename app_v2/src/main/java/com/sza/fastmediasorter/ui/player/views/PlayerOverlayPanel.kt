@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.FrameLayout
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * Shared container for the player's floating overlay surfaces (draw toolbar, translation card,
@@ -25,6 +24,5 @@ class PlayerOverlayPanel @JvmOverloads constructor(
     R.style.Widget_FastMediaSorter_Player_OverlayPanel,
 ) {
     init {
-        Timber.d("S3250: PlayerOverlayPanel inflated")
     }
 }

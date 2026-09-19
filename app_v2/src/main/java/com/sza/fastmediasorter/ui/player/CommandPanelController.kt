@@ -167,7 +167,6 @@ class CommandPanelController(
 
     /** Setup all command panel button click listeners */
     fun setupCommandPanelControls() {
-        Timber.d("S3250: command panel controls bound after the shared overlay icon style restyle")
         binding.btnBack.setOnClickListener {
             callback.onBackClicked()
         }

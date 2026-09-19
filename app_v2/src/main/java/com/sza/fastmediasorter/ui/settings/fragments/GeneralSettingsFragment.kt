@@ -420,7 +420,6 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     // inside the queue dialog, so the card keeps exactly two entries.
     private fun setupCrossDeviceQueueRow() {
         binding.rowCrossDevicePackets.setOnRowClickListener {
-            Timber.d("S3040: cross-device queue row tapped, opening packet list")
             CrossDevicePacketListDialogFragment().show(
                 parentFragmentManager,
                 CrossDevicePacketListDialogFragment.TAG

@@ -94,7 +94,6 @@ import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 
@@ -120,7 +119,6 @@ fun PhoneResourceScreen(
     val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
 
     val openOutcome by viewModel.openOutcome.collectAsStateWithLifecycle()
-    Timber.d("S3259: phone resource screen shown - single-column rows are EntryTileRow")
 
     // Back walks the folder trail first; only the root hands Back back to navigation.
     BackHandler(enabled = true) {

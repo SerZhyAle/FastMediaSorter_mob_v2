@@ -21,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -125,13 +124,11 @@ class BroadcastBlankScreenManager @Inject constructor(
      * the settings Activity and come back to a session this manager outlived.
      */
     private fun resolveDimMode(activity: AppCompatActivity) {
-        Timber.d("S3321: broadcast blank screen shown, settings read dispatched off-main")
         activity.lifecycleScope.launch {
             val clockEnabled = settingsRepository.get().getSettings()
                 .flowOn(Dispatchers.IO)
                 .first()
                 .dimClockOverlayEnabled
-            Timber.d("S3321: broadcast dim mode resolved, clockEnabled=$clockEnabled")
             applyDimMode(activity, clockEnabled)
         }
     }

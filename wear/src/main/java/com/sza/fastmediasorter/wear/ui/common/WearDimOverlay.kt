@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.lerp
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -87,7 +86,6 @@ internal fun WearDimOverlay(
         val preferencesRepository = entryPoint.preferencesRepository()
         val dimClockOverlayEnabled by preferencesRepository.dimClockOverlayEnabled.collectAsStateWithLifecycle(initialValue = false)
         if (dimClockOverlayEnabled) {
-            Timber.d("S3256: watch dim overlay composed with dim clock enabled")
             WearDimClock(
                 preferencesRepository = preferencesRepository,
                 powerStateObserver = entryPoint.powerStateObserver(),
@@ -120,7 +118,6 @@ internal fun WearDimOverlay(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { point ->
-                        Timber.d("S3200: dim overlay tap ring started")
                         tapMark = point
                         scope.launch {
                             tapProgress.snapTo(0f)

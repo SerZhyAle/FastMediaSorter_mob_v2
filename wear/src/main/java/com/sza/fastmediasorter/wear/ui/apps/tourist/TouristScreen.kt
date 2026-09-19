@@ -37,7 +37,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 private val TILE_SPACING = 4.dp
 
@@ -86,9 +85,6 @@ fun TouristScreen(
                 (metric != TouristMetricType.BODY_TEMPERATURE || telemetry.hasBodyTemperatureSensor)
         }
     }
-
-    Timber.d("S3227: tourist screen location permission=${telemetry.hasLocationPermission}")
-    Timber.d("S3115: tourist tiles=${secondaryMetrics.size} locked=${state.isScreenLocked}")
 
     val promoteMetric: (TouristMetricType) -> Unit = { metricType ->
         viewModel.selectMetric(metricType)

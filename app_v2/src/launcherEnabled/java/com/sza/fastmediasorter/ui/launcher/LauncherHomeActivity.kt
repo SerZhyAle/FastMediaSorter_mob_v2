@@ -87,7 +87,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
@@ -531,7 +530,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // hold is re-read at each timeout, so dropping it (power saving, or the user turning it off)
         // hands the idle path back to the real lock without restarting the launcher.
         idleScreenOffManager = LauncherIdleScreenOffManager {
-            Timber.d("S3285: launcher idle elapsed, hold=$isKeepingScreenAwake")
             screenLockManager.turnScreenOff(allowSystemLock = !isKeepingScreenAwake)
         }
         idleScreenOffManager.onStart()
@@ -737,7 +735,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 viewModel.screenBlackoutTimeoutOnChargeSeconds,
             ) { onBattery, onCharge -> onBattery to onCharge },
         ) { (onBattery, onCharge) ->
-            Timber.d("S3284: launcher timeouts battery=%ds, onCharge=%ds", onBattery, onCharge)
             idleScreenOffManager.updateTimeouts(onBattery, onCharge)
         }
         collectOnLifecycle(viewModel.chargingConnected) { charging ->

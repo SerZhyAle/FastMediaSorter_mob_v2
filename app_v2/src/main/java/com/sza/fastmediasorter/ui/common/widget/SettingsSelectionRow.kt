@@ -369,7 +369,6 @@ class SettingsSelectionRow @JvmOverloads constructor(
     private fun applyTextGroupWidth() {
         val hug = hugContentRequested && subtitleView.visibility == View.GONE
         if (hugContentRequested && !hug) {
-            Timber.d("S1565: navigation row keeps its stretched text group so the subtitle wraps")
         }
         binding.ssrTextGroup.updateLayoutParams<LayoutParams> {
             width = if (hug) LayoutParams.WRAP_CONTENT else 0

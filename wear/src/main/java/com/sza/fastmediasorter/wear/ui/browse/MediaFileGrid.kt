@@ -37,7 +37,6 @@ import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import com.sza.fastmediasorter.wear.util.fileSizeParts
 import com.sza.fastmediasorter.wear.util.formatWearDuration
-import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private const val GRID_CAPTION_LINES = 2
@@ -203,7 +202,6 @@ private fun MediaFileChip(
 internal fun captionOverCover(mimeType: String?): Boolean {
     val overCover = mimeType?.startsWith(AUDIO_PREFIX) == true
     if (overCover) {
-        Timber.d("S3119: audio grid cell draws its caption over the cover")
     }
     return overCover
 }

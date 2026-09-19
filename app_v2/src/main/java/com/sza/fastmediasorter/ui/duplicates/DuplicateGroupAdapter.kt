@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.domain.model.DuplicateGroup
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.ui.common.dragselect.DragSelectTouchListener
 import com.sza.fastmediasorter.ui.common.recycler.notifyChangedRuns
-import timber.log.Timber
 
 private const val PAYLOAD_SELECTION = "payload_selection"
 
@@ -172,7 +171,6 @@ class DuplicateGroupAdapter(
 
         // Rebinds only the checkbox of files whose membership flipped between the two selections.
         fun refreshSelection(old: Set<String>, new: Set<String>) {
-            Timber.d("S3319: duplicates selection refresh, old=${old.size} new=${new.size} items=$itemCount")
             notifyChangedRuns(PAYLOAD_SELECTION) { file ->
                 (file.path in old) != (file.path in new)
             }

@@ -23,7 +23,6 @@ import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 
 /**
  * Where a wear list stands the moment it opens, counted in lazy items (S2466, owner ruling 2026-09-04).
@@ -149,7 +148,6 @@ private fun WearListPositionMemory(
         val saved = store.peek(positionKey) ?: return@LaunchedEffect
         snapshotFlow { state.layoutInfo.totalItemsCount }.first { it > saved.index }
         state.scrollToItem(saved.index, saved.offset)
-        Timber.d("S3106: wear list '$positionKey' restored to index=${saved.index}")
         settled.value = true
     }
 
@@ -159,7 +157,6 @@ private fun WearListPositionMemory(
             val offset = state.centerItemScrollOffset
             if (settled.value && state.layoutInfo.totalItemsCount > 0) {
                 store.save(positionKey, index, offset)
-                Timber.d("S3106: wear list '$positionKey' saved index=$index")
             }
         }
     }

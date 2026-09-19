@@ -29,7 +29,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsStepperCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private const val THREE_SECONDS = 3
 private const val FIVE_SECONDS = 5
@@ -54,7 +53,6 @@ fun SlideshowSettingsScreen(
     listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.SLIDESHOW)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    Timber.d("S3260: slideshow settings shown - the enable row is StandardWearToggleChip")
 
     // S1949: both controls declare full width - `enable_slideshow` measures 35 characters in
     // Portuguese, past the 32-character threshold, and the stepper carries its value on the same

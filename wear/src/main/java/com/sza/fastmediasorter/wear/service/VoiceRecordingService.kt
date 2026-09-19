@@ -244,7 +244,6 @@ class VoiceRecordingService : Service() {
             return
         }
         sessionWakeLock = wearPower.acquirePartialWakeLock(WearPowerManager.SESSION_WAKE_LOCK_TAG)
-        Timber.d("S3265: session wake lock held=%s", sessionWakeLock?.isHeld == true)
     }
 
     private fun releaseSessionWakeLock() {

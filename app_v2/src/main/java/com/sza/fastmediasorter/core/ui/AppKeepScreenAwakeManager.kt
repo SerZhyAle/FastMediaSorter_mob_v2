@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,7 +50,6 @@ class AppKeepScreenAwakeManager @Inject constructor(
         // S2536: the same stand-down BaseActivity applies, for the hosts that do not inherit it. The
         // level is read here rather than cached with preventSleep so a resume after the charge
         // recovered gets the current answer without this class observing the level itself.
-        Timber.d("S3285: plain host ${activity::class.simpleName}, preventSleep=$preventSleep")
         if (KeepScreenAwakePolicy.shouldKeepScreenAwake(preventSleep)) {
             activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {

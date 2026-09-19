@@ -59,7 +59,6 @@ class RenameDialog(
         super.onCreate(savedInstanceState)
         binding = DialogRenameBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        Timber.d("S3303: rename labels ${context.getString(R.string.cancel)} / ${context.getString(R.string.ok)}")
 
         setupUI()
     }
@@ -72,19 +71,19 @@ class RenameDialog(
                 files.size,
                 sourceFolderName
             )
-            
+
             if (files.size == 1) {
                 // Single file rename
                 tilFileName.visibility = android.view.View.VISIBLE
                 rvFileNames.visibility = android.view.View.GONE
-                
+
                 etFileName.setText(files.first().name)
                 etFileName.setSelection(files.first().nameWithoutExtension.length)
-                
+
                 etFileName.addTextChangedListener {
                     tilFileName.error = null
                 }
-                
+
                 etFileName.requestFocus()
                 etFileName.postDelayed({
                     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
@@ -107,7 +106,7 @@ class RenameDialog(
                     }
                 }, 200)
             }
-            
+
             btnCancel.setOnClickListenerDebounced { dismiss() }
             btnApply.setOnClickListenerDebounced { renameFiles() }
         }
@@ -126,14 +125,14 @@ class RenameDialog(
 
     private fun renameSingleFile() {
         val newName = binding.etFileName.text.toString().trim()
-        
+
         if (newName.isEmpty()) {
             binding.tilFileName.error = context.getString(R.string.rename_file_name_empty)
             return
         }
-        
+
         val file = files.first()
-        
+
         if (newName == file.name) {
             dismiss()
             return
@@ -152,7 +151,7 @@ class RenameDialog(
             try {
                 val operation = FileOperation.Rename(file, newName)
                 val result = fileOperationUseCase.execute(operation)
-                
+
                 when (result) {
                     is FileOperationResult.Success -> {
                         Toast.makeText(
@@ -160,7 +159,7 @@ class RenameDialog(
                             context.getString(R.string.renamed_n_files, 1),
                             Toast.LENGTH_SHORT
                         ).show()
-                        
+
                         // For network paths, manually construct new path
                         val filePath = file.path
                         val newFile = if (filePath.startsWith("smb://") || filePath.startsWith("sftp://") || filePath.startsWith("ftp://")) {
@@ -176,7 +175,7 @@ class RenameDialog(
                             File(file.parent, newName)
                         }
                         onComplete(oldPath, newFile)
-                        
+
                         dismiss()
                     }
                     is FileOperationResult.Failure -> {

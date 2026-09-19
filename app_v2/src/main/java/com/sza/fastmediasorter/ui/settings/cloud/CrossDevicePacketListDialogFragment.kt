@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceTransferOption
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * S3040: the packets other devices left in the user's Drive queue, with the two accept options.
@@ -46,7 +45,6 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Timber.d("S3040: packet queue dialog opened, refreshing pending packets")
         binding.btnCrossDevicePacketsClose.setOnClickListener { dismiss() }
         binding.btnCrossDeviceRemoveExpired.setOnClickListener { viewModel.removeExpiredPackets() }
         binding.btnCrossDeviceSendSettings.setOnClickListener { viewModel.sendSettings() }

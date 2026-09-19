@@ -56,7 +56,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 // S2007, owner ruling 2026-08-26: half the interactive minimum, deliberately. S1965 had raised this
 // to 48.dp because the KDoc and docs/WEAR_OS_STATUS.md both said 48 and the constant alone stood out
@@ -170,8 +169,6 @@ fun CalculatorScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
-        Timber.d("S3192: calculator screen displayed")
-        Timber.d("S3258: calculator canvas painted from WearAppTheme.colors.canvasBlack")
     }
     val keypadScrollState = rememberScrollState()
     val clipboard = LocalClipboardManager.current

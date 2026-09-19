@@ -33,7 +33,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
-import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 6.dp
 private val SECTION_PADDING = 8.dp
@@ -121,7 +120,6 @@ private fun ScreenTitle() {
 
 @Composable
 private fun LastReadingCard(reading: BloodPressureHistoryEntry) {
-    Timber.d("S3261: blood pressure last reading drawn as StandardWearCard")
     StandardWearCard(
         modifier = Modifier.padding(horizontal = SECTION_PADDING, vertical = CARD_VERTICAL_INSET)
     ) {

@@ -70,7 +70,6 @@ fun PermissionsSettingsScreen(
 ) {
     val rows by viewModel.rows.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    Timber.d("S3226: permissions settings screen with %d row(s)", rows.size)
 
     // The answer can change in another window - App Info, or the system dialog itself - so it is read
     // again on every return rather than kept from the last composition.
@@ -82,7 +81,6 @@ fun PermissionsSettingsScreen(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { results ->
         Timber.i("Permissions settings answer: %s", results)
-        Timber.d("S3226: permission request answered")
         viewModel.refresh()
         if (results.values.any { !it } && !context.canStillAsk(results.keys)) {
             context.openAppInfo()

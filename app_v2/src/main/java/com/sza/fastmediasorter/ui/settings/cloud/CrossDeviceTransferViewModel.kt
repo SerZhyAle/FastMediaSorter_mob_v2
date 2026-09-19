@@ -119,7 +119,6 @@ class CrossDeviceTransferViewModel @Inject constructor(
      * name must stay [TransferDataKind.SETTINGS] - it is resolved by exact name there.
      */
     fun sendSettings() {
-        Timber.d("S3040: sending local settings as a cross-device packet")
         _state.update { it.copy(loading = true) }
         viewModelScope.launch {
             val sent = buildTransferPayload(TransferDataKind.SETTINGS).fold(

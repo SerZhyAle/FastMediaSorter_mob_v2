@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import com.sza.fastmediasorter.wear.ui.common.LocalWearRotaryFocusStack
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S1683: the bezel's action arrives as a lambda and this file never learns what it does. The owner
@@ -64,7 +63,6 @@ fun rememberRotaryFocus(): FocusRequester {
     val owned = stack == null || stack.isTop(token)
     LaunchedEffect(owned) {
         if (owned) {
-            Timber.d("S3263: rotary focus claimed by the top consumer")
             focusRequester.requestFocus()
         }
     }
@@ -89,7 +87,6 @@ fun Modifier.rotaryActionSteps(
     val haptic = LocalHapticFeedback.current
     return this.rotaryAction(focusRequester) { delta ->
         accumulator.add(delta) { step ->
-            Timber.d("S3263: rotary detent emitted at 48f with haptics=$hapticFeedbackEnabled")
             if (hapticFeedbackEnabled) {
                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             }

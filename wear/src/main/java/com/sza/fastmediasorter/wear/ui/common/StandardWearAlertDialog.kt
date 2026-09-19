@@ -15,7 +15,6 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
-import timber.log.Timber
 
 /**
  * The standard full-screen alert of the watch module, drawn with the typography and button styling
@@ -47,8 +46,6 @@ fun StandardWearAlertDialog(
 ) {
     if (!show) return
     LaunchedEffect(title) {
-        Timber.d("S3262: standard wear alert '$title' - destructive=$isDestructive, cancel=${cancelLabel != null}")
-        Timber.d("S3303: wear alert labels $confirmLabel / $cancelLabel")
     }
 
     val titleSlot: @Composable ColumnScope.() -> Unit = {

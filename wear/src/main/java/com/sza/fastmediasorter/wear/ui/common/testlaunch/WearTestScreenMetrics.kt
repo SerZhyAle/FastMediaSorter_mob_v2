@@ -6,7 +6,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 private const val DP_PER_DENSITY_UNIT = 160
@@ -45,7 +44,6 @@ fun rememberWearTestScreenMetrics(screenDp: Int?): WearTestScreenMetrics {
                 smallestScreenWidthDp = minOf(screenWidthDp, screenHeightDp)
                 densityDpi = (density * DP_PER_DENSITY_UNIT).roundToInt()
             }
-            Timber.d("S3201: test screen scale $screenDp dp density=$density width=${configuration.screenWidthDp}dp")
             WearTestScreenMetrics(Density(density, baseDensity.fontScale), configuration)
         }
     }
