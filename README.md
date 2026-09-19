@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.9151.928 (September 2026)
+## What's New in v2.60.9191.534 (September 2026)
 
 **New:**
-Live broadcast from the phone to the paired watch, Video / Audio / Own stream categories on the watch, lens choice and camera mute in a camera broadcast, theme-aware launcher icons, Google app shortcuts on the default desktop, an app icon that opens the resource manager, a resource speed dashboard in Tools.
+Cross-device file transfer over Google Drive, an SOS distress signal from the phone, a more complete settings backup with file/Drive import and export, app-icon shortcuts that reach sub-programs, a fuller starter desktop with preset profiles and start-panel rows, faster desktop editing with edge-hold drag and whole-section reordering, launcher window choice and a separate charging screen timeout, one broadcast screen with camera preview and a remembered lens choice, a dedicated broadcast settings section that survives a backup restore, easier broadcast hand-off via a descriptor file and import link, and a dimmed player that still shows the clock.
 
 **Fixed:**
-Stuttering scroll in large image folders, unstable background audio notifications, a screen closing on rotation, keyboard navigation in an empty browser list, leaving a network folder with a space in its name, WAV files not recognised as audio, the separate player window not opening as its own task, launcher edit mode breaking on a theme change, stitched OCR lines drawn as one, a collapsed translator gadget, icon assignment on native-digit locales, vague companion connection failures, the watch settings mirror in the store build, watch sync from the phone hanging, synthetic resource browsing errors.
+Zero-byte thumbnails, a non-blocking open-source licences list, an accessibility announcement flood on player and broadcast screens, kept grid icon size and background sync interval settings, SOS and taskbar height surviving a backup restore, full-screen Prevent Sleep coverage, animations restoring correctly after charging, dialog buttons following the app language, and accurate broadcast title and bit rate reporting.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
