@@ -266,12 +266,13 @@
     <string name="cross_device_transfer_pending_title">Pending device transfers</string>
     <string name="cross_device_transfer_receive_and_delete">Receive and delete from cloud</string>
     <string name="cross_device_transfer_receive_and_keep">Receive and keep in cloud</string>
-    <string name="cross_device_transfer_clear_queue">Clear pending queue</string>
     <string name="cross_device_transfer_empty">Nothing is waiting for this device. Send a file or settings from another device to see it here.</string>
     <string name="cross_device_transfer_sending">Uploading to your Drive queue..</string>
     <string name="cross_device_transfer_sent">Uploaded. Open this screen on your other device to pick it up.</string>
     <string name="cross_device_transfer_received_files">Saved to the app incoming folder</string>
     <string name="cross_device_transfer_received_settings">Settings from the other device have been applied</string>
     <string name="cross_device_transfer_failed">The transfer did not finish. Check the Drive sign-in and the connection, then try again.</string>
-    <string name="cross_device_transfer_queue_cleared">Queue cleared: %1$d packet(s) removed</string>
+    <string name="cross_device_transfer_row_subtitle">Incoming files and settings from your other devices, waiting in your Google Drive</string>
+    <string name="cross_device_transfer_remove_expired">Remove expired packets</string>
+    <string name="cross_device_transfer_expired_removed">Expired packets removed: %1$d</string>
 </resources>

@@ -35,7 +35,8 @@ class DuplicatesFragment : Fragment() {
     private lateinit var adapter: DuplicateGroupAdapter
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentDuplicatesBinding.inflate(inflater, container, false)
@@ -93,11 +94,14 @@ class DuplicatesFragment : Fragment() {
         binding.fabDeleteSelected.setOnClickListener {
             val count = viewModel.state.value.selectedFilePaths.size
             if (count > 0 && isAdded) {
-                MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
+                MaterialAlertDialogBuilder(
+                    requireContext(),
+                    R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive
+                )
                     .setTitle(R.string.duplicate_delete_title)
                     .setMessage(getString(R.string.duplicate_delete_message, count))
                     .setPositiveButton(R.string.delete) { _, _ -> viewModel.deleteSelectedFiles() }
-                    .setNegativeButton(android.R.string.cancel, null)
+                    .setNegativeButton(R.string.cancel, null)
                     .showBoundTo(this@DuplicatesFragment)
             }
         }
@@ -148,13 +152,13 @@ class DuplicatesFragment : Fragment() {
                 binding.layoutResults.visibility = View.VISIBLE
                 adapter.selectedFilePaths = state.selectedFilePaths
                 adapter.submitList(result.groups)
-                
+
                 val wastedText = getString(
                     R.string.duplicate_wasted_bytes,
                     formatFileSize(requireContext(), result.totalWastedBytes)
                 )
                 binding.tvSummary.text = getString(R.string.duplicate_groups_summary, result.groups.size, wastedText)
-                
+
                 val selectedCount = state.selectedFilePaths.size
                 if (selectedCount > 0) {
                     binding.fabDeleteSelected.visibility = View.VISIBLE
@@ -186,7 +190,7 @@ class DuplicatesFragment : Fragment() {
                 else -> {}
             }
         } else if (state.result == null) {
-             binding.layoutSetup.visibility = View.VISIBLE
+            binding.layoutSetup.visibility = View.VISIBLE
         }
     }
 
@@ -199,7 +203,9 @@ class DuplicatesFragment : Fragment() {
         // Прикреплённый ресурс (из которого открыли меню) выводим первым
         val sorted = if (pinnedId != null) {
             resources.sortedByDescending { it.id == pinnedId }
-        } else resources
+        } else {
+            resources
+        }
         sorted.forEach { resource ->
             val chip = Chip(requireContext()).apply {
                 text = "${resource.name} (${resource.type})"
@@ -221,12 +227,18 @@ class DuplicatesFragment : Fragment() {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.duplicate_scan_start)
                     .setMessage(R.string.duplicate_scan_network_warning)
-                    .setPositiveButton(android.R.string.ok) { dialog: android.content.DialogInterface, _: Int -> viewModel.startScanConfirmed() }
-                    .setNegativeButton(android.R.string.cancel, null)
+                    .setPositiveButton(
+                        R.string.ok
+                    ) { dialog: android.content.DialogInterface, _: Int -> viewModel.startScanConfirmed() }
+                    .setNegativeButton(R.string.cancel, null)
                     .showBoundTo(this@DuplicatesFragment)
             }
             is DuplicatesEvent.ShowError -> Toast.makeText(requireContext(), event.message, Toast.LENGTH_SHORT).show()
-            is DuplicatesEvent.FileDeleted -> Toast.makeText(requireContext(), R.string.friendly_copy_success_generic, Toast.LENGTH_SHORT).show()
+            is DuplicatesEvent.FileDeleted -> Toast.makeText(
+                requireContext(),
+                R.string.friendly_copy_success_generic,
+                Toast.LENGTH_SHORT
+            ).show()
             is DuplicatesEvent.ScanComplete -> {
                 // Режим «Найти и удалить»: автоматически запускаем удаление без дополнительного подтверждения
                 if (viewModel.autoDeleteMode && viewModel.state.value.selectedFilePaths.isNotEmpty()) {

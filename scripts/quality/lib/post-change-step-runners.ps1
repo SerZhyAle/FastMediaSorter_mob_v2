@@ -25,6 +25,13 @@ $script:FatalFindings = @()
 # answerable; -ShowSkips restores the per-step reason.
 $script:SkippedSteps = @()
 
+# S3301: set by the closure ledger when this run`s changed set was already judged clean by a
+# recent run of the same closure over the same bytes. Declared here rather than in the ledger
+# because the wrappers below are what read it, and a consumer that never loads the ledger must
+# still parse and behave exactly as before.
+$script:ClosureReuseActive = $false
+$script:ClosureReuseRecord = $null
+
 # S3151: per-gate lines go to a protocol file; the console gets them only on request.
 $script:ConsoleVerbose = $env:FMS_POSTCHANGE_VERBOSE -eq '1'
 $script:ConsolePasses = $ShowPasses -or $script:ConsoleVerbose
@@ -208,6 +215,10 @@ function Stop-ClosureOnQueuedBuild([int]$ExitCode, [string]$Label) {
 }
 
 function Invoke-Gate([string]$Label, [scriptblock]$Action) {
+    if ($script:ClosureReuseActive) {
+        Skip-Step $Label "reused: run $($script:ClosureReuseRecord.RunId) passed this gate over the same bytes $($script:ClosureReuseRecord.AgeSec)s ago"
+        return
+    }
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     Reset-PooledElapsedMs
 
@@ -288,6 +299,10 @@ function Write-SkippedSummary {
 # FATAL per-file deltas in S0848/S0850) is reported as a WARN under -ScopeToFile and the
 # facade keeps going instead of aborting the close. The operator still sees it.
 function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action, [string]$AdvisoryDetails) {
+    if ($script:ClosureReuseActive) {
+        Skip-Step $Label "reused: run $($script:ClosureReuseRecord.RunId) passed this gate over the same bytes $($script:ClosureReuseRecord.AgeSec)s ago"
+        return
+    }
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     try {
         $global:LASTEXITCODE = 0
@@ -327,6 +342,13 @@ function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action, [string]$Advi
 # across by hand, because Invoke-Gate's Reset-PooledElapsedMs would otherwise leave the wrapper's
 # own near-zero stopwatch in the telemetry that measure-gate-frequency.ps1 ranks gates by.
 function Invoke-FixedInputGate([string]$Label, [string[]]$Argv, [string]$GateScript) {
+    # S3301: short-circuited here as well as in the two wrappers below, because this one runs its
+    # child BEFORE it decides which wrapper reports the verdict - reaching Invoke-Gate too late to
+    # save the work.
+    if ($script:ClosureReuseActive) {
+        Skip-Step $Label "reused: run $($script:ClosureReuseRecord.RunId) passed this gate over the same bytes $($script:ClosureReuseRecord.AgeSec)s ago"
+        return
+    }
     Invoke-CapturedAction { Invoke-GateChild @Argv }
     $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
     $elapsedMs = Get-PooledElapsedMs

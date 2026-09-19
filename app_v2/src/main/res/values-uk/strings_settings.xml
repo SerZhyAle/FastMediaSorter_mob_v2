@@ -267,12 +267,13 @@
     <string name="cross_device_transfer_pending_title">Очікувані передачі</string>
     <string name="cross_device_transfer_receive_and_delete">Отримати й видалити з хмари</string>
     <string name="cross_device_transfer_receive_and_keep">Отримати й залишити у хмарі</string>
-    <string name="cross_device_transfer_clear_queue">Очистити чергу</string>
     <string name="cross_device_transfer_empty">Для цього пристрою нічого немає. Надішліть файл або налаштування з іншого пристрою, щоб побачити їх тут.</string>
     <string name="cross_device_transfer_sending">Завантаження у вашу чергу Drive..</string>
     <string name="cross_device_transfer_sent">Завантажено. Відкрийте цей екран на іншому пристрої, щоб забрати.</string>
     <string name="cross_device_transfer_received_files">Збережено в папку вхідних застосунку</string>
     <string name="cross_device_transfer_received_settings">Налаштування з іншого пристрою застосовано</string>
     <string name="cross_device_transfer_failed">Передавання не завершилось. Перевірте вхід у Drive та підключення, потім повторіть.</string>
-    <string name="cross_device_transfer_queue_cleared">Чергу очищено: видалено пакетів - %1$d</string>
+    <string name="cross_device_transfer_row_subtitle">Вхідні файли та налаштування з інших пристроїв, що очікують у вашому Google Drive</string>
+    <string name="cross_device_transfer_remove_expired">Видалити застарілі пакети</string>
+    <string name="cross_device_transfer_expired_removed">Видалено застарілих пакетів: %1$d</string>
 </resources>

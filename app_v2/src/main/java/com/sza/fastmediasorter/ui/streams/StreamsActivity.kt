@@ -1342,7 +1342,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(if (isImport) R.string.streams_import else R.string.streams_add)
             .setView(dialogBinding.root)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 val url = dialogBinding.etUrl.text?.toString().orEmpty().trim()
                 if (isImport) {
                     viewModel.onImport(url)
@@ -1351,7 +1351,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     if (url.isNotEmpty()) writeTrackPreference(url)
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .create()
         DialogKeyboardDelegate.applyTo(dialog) {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
@@ -1467,7 +1467,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 viewModel.onSort(modes[which])
                 d.dismiss()
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .create()
         // Single-choice list dismisses itself on pick; Escape-dismiss is the only added contract.
         DialogKeyboardDelegate.applyTo(dialog) {}

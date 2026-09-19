@@ -126,7 +126,9 @@ class WearSettingsPayloadDecoder(private val gson: Gson = Gson()) {
             "fieldTimestamps" to JsonKind.OBJECT,
             "capabilities" to JsonKind.OBJECT,
             "panelAutoHideSeconds" to JsonKind.NUMBER,
-            "unitSystem" to JsonKind.STRING
+            "unitSystem" to JsonKind.STRING,
+            "dimClockOverlayEnabled" to JsonKind.BOOLEAN,
+            "dimClockSecondsVisible" to JsonKind.BOOLEAN
         )
 
         /** Every contract key, for a caller that has no decode result and must assume the old behaviour. */

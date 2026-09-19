@@ -22,7 +22,6 @@
     <string name="game_how_to_play">How to play?</string>
     <string name="game_level">Level %1$d</string>
     <string name="game_loading">Loading game..</string>
-    <string name="game_menu_label">Play mini-game</string>
     <string name="game_move_down">Move down</string>
     <string name="game_move_left">Move left</string>
     <string name="game_move_right">Move right</string>

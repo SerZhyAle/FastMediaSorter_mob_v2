@@ -24,7 +24,6 @@
     <string name="game_how_to_play">কীভাবে খেলতে হয়?</string>
     <string name="game_level">স্তর %1$d</string>
     <string name="game_loading">গেম লোড হচ্ছে।</string>
-    <string name="game_menu_label">মিনি-গেম খেলুন</string>
     <string name="game_move_down">নিচে নামুন</string>
     <string name="game_move_left">বাম দিকে সরান</string>
     <string name="game_move_right">ডানদিকে সরান</string>

@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
 import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.util.UUID
 
 /**
@@ -74,7 +73,7 @@ class MainPanelItemActionsManager(
                 val current = currentSettings() ?: return@setPositiveButton
                 activity.lifecycleScope.launch { settingsRepository.updateSettings(apply(current)) }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 
@@ -115,7 +114,7 @@ class MainPanelItemActionsManager(
             .setPositiveButton(R.string.remove_action) { _, _ ->
                 unpinStreamSource(channel.id)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 }

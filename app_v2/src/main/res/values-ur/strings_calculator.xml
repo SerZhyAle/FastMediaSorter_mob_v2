@@ -33,7 +33,7 @@
     <string name="calculator_fn_cot">سی ٹی جی (کوٹن)</string>
     <string name="calculator_fn_div">DIV (انٹیجر)</string>
     <string name="calculator_fn_factorial">n! (حقیقی)</string>
-    <string name="calculator_fn_ln">ln (nat. log)</string>
+    <string name="calculator_fn_ln">ln (قدرتی لاگ)</string>
     <string name="calculator_fn_log10">log₁₀ (لاگ)</string>
     <string name="calculator_fn_mod">موڈ (باقی)</string>
     <string name="calculator_fn_power">xʸ (پاور)</string>

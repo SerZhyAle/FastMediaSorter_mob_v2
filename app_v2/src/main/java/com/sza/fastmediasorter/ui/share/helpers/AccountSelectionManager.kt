@@ -64,7 +64,7 @@ class AccountSelectionManager(
             .setSingleChoiceItems(labels, defaultIndex) { _, which ->
                 selectedIndex = which
             }
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 val chosen = accounts[selectedIndex]
                 Timber.i("AccountSelectionManager: user selected host=%s accountId=%s", host, chosen.accountId)
                 activity.lifecycleScope.launch {
@@ -72,7 +72,7 @@ class AccountSelectionManager(
                     onSelected(chosen)
                 }
             }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> onCancelled() }
+            .setNegativeButton(R.string.cancel) { _, _ -> onCancelled() }
             .setOnCancelListener { onCancelled() }
             .showBoundToHost(activity)
     }

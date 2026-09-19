@@ -1018,6 +1018,36 @@ function Get-SourceRules {
                 -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
                 -ExcludeNames @('view_form_checkbox_row.xml') `
                 -FailMessage 'new raw MaterialCheckBox outside the canonical wrapper (S2193). Use com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow (docs/ARCHITECTURE.md Pattern B - subtitle is optional) instead of a hand-rolled checkbox.'),
+        # S3303: a user-visible label taken from a framework resource. @android:string/* and
+        # android.R.string.* live in framework-res.apk, so they resolve against the system DISPLAY
+        # locale, while the app - which declares android:localeConfig - resolves its own resources
+        # from the user's ordered language list. On a device where those two differ the label arrives
+        # in the wrong language, which is what the owner read on 2026-09-18: an English "Cancel" on a
+        # fully Russian screen. Both baselines are 0 because the ticket's sweep emptied the tree
+        # (28 layout attributes, 175 Kotlin references across both modules).
+        #
+        # Why a gate and not review: the defect is invisible wherever the display locale matches the
+        # app locale, which is every development machine and every emulator this repo builds against.
+        # Nobody can see it, so nothing but a rule can refuse it.
+        (New-RegexRule -Name 'framework-label-string-xml' `
+                -Pattern ([regex]'android:[A-Za-z]+="@android:string/') `
+                -Extensions @('.xml') `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
+                -FailMessage 'new user-visible label taken from a framework string resource (S3303). Use the app''s own key - @string/cancel, @string/ok, @string/back - because @android:string/* follows the system display locale and renders in the wrong language on a device whose app locale differs.'),
+        # Same defect, code side, and the larger half of it: 168 of the 175 Kotlin references were
+        # AlertDialog button labels. Both modules share one rule rather than splitting phone from
+        # wear the way the animation and cancellation rules do, because the subject is a single
+        # reference habit with one correct replacement in either module, and both baselines are 0 -
+        # there is no per-module debt for a cleanup in one to hide behind.
+        (New-RegexRule -Name 'framework-label-string-kt' `
+                -Pattern ([regex]'android\.R\.string\.') `
+                -Extensions @('.kt') `
+                -Roots @('app_v2/src', 'wear/src') `
+                -PathFilter '^(app_v2|wear)/src/' `
+                -FailMessage 'new user-visible label taken from a framework string resource (S3303). Use the module''s own R.string key instead of android.R.string.*, which follows the system display locale and renders in the wrong language on a device whose app locale differs. The wear module carries its own copies - add the key there if it is missing, and classify the collision in scripts/quality/wear-mirrored-strings.psd1.'),
         # S2328: the caption/value split. The only structural rule in this family - see the four
         # forms in Get-CaptionValueSplitHits above and ADR-4 in PLAN/S2328 for why a regex cannot
         # do it. Roots add the values directory for the style form, and PathFilter pins that half to

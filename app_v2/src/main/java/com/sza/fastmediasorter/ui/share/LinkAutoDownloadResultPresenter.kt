@@ -246,7 +246,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
         AlertDialog.Builder(hostActivity)
             .setTitle(R.string.s0117_batch_dialog_title)
             .setMessage(lines.joinToString("\n"))
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.ok, null)
             .showBoundToHost(hostActivity)
     }
 
@@ -341,7 +341,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
             .setPositiveButton(R.string.s0200_cct_unavailable_retry) { _, _ ->
                 if (cctChecker.isAvailable()) onRetry() else showCctUnavailableDialog(hostActivity, onRetry)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(hostActivity)
     }
 

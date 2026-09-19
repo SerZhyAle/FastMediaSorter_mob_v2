@@ -15,7 +15,7 @@ internal class BrowseFeedbackDialogManager(
         val dialogBuilder = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.error_title)
             .setMessage(message)
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.ok, null)
 
         if (!details.isNullOrBlank()) {
             dialogBuilder.setNeutralButton(R.string.show_details) { _, _ ->
@@ -44,7 +44,7 @@ internal class BrowseFeedbackDialogManager(
             .setPositiveButton(activity.getString(R.string.sign_in_now)) { _, _ ->
                 callbacks.onCloudSignInRequested(provider)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .setNeutralButton(activity.getString(R.string.remove_resource)) { _, _ ->
                 onRemoveResource()
             }

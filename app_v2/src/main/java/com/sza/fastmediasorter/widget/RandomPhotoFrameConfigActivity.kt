@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.databinding.ActivityResourceLaunchWidgetConfigBinding
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
@@ -36,8 +35,6 @@ class RandomPhotoFrameConfigActivity : BaseActivity<ActivityResourceLaunchWidget
 
     override fun getViewBinding(): ActivityResourceLaunchWidgetConfigBinding =
         ActivityResourceLaunchWidgetConfigBinding.inflate(layoutInflater)
-
-    override fun keepScreenAwakeFor(settings: AppSettings): Boolean = false
 
     @Suppress("unused")
     private val multimodalInputSurface: UiSurface = UiSurface.WIDGET_CONFIG

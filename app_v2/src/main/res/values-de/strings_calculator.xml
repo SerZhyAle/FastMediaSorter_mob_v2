@@ -33,7 +33,7 @@
     <string name="calculator_fn_cot">ctg (cotan)</string>
     <string name="calculator_fn_div">DIV (Ganzzahl)</string>
     <string name="calculator_fn_factorial">n! (Fakultät)</string>
-    <string name="calculator_fn_ln">ln (nat. log)</string>
+    <string name="calculator_fn_ln">ln (nat. Log.)</string>
     <string name="calculator_fn_log10">log₁₀ (Log)</string>
     <string name="calculator_fn_mod">mod (remain)</string>
     <string name="calculator_fn_power">xʸ (Potenz)</string>

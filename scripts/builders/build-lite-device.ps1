@@ -120,11 +120,17 @@ if (!(Test-Path -Path $logDir)) {
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $logFile = "$logDir\logcat_lite_$timestamp.log"
 
-# Start logcat capture in background
-Write-Host "Starting logcat capture in background to $logFile..." -ForegroundColor Yellow
-$logcatProcess = Start-Process -FilePath $adb -ArgumentList "-s", $targetSerial, "logcat", "-v", "threadtime" -RedirectStandardOutput $logFile -NoNewWindow -PassThru
-Write-Host "Logcat capture running in background (PID: $($logcatProcess.Id))" -ForegroundColor Green
-Write-Host "To stop: Stop-Process -Id $($logcatProcess.Id)" -ForegroundColor Cyan
+# Capture the install-and-launch window the `logcat -c` above cleared for, then stop. S3297: the
+# background stream this replaces was started after `am start`, so it never held the launch it was
+# meant to record, and nothing ever stopped it.
+. "$PSScriptRoot\..\devtest\lib\logcat-snapshot.ps1"
+$snapshot = Save-DeviceLogcatSnapshot -Adb $adb -Serial $targetSerial -Path $logFile
+if ($snapshot.Ok) {
+    Write-Host "Logcat snapshot: $($snapshot.Lines) line(s) -> $($snapshot.Path)" -ForegroundColor Green
+}
+else {
+    Write-Host "Logcat snapshot failed: $($snapshot.Message)" -ForegroundColor Yellow
+}
 }
 finally {
     Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')

@@ -9,8 +9,15 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.common.widget.DimOverlayView
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockOverlayView
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockStyleProvider
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimStatusContentProvider
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
+import dagger.Lazy
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,6 +33,9 @@ import javax.inject.Singleton
 @Singleton
 class BroadcastBlankScreenManager @Inject constructor(
     private val controller: BroadcastSourceController,
+    private val settingsRepository: Lazy<SettingsRepository>,
+    private val dimClockStyleProvider: Lazy<DimClockStyleProvider>,
+    private val dimStatusContentProvider: Lazy<DimStatusContentProvider>,
 ) {
     private var blanked = false
 
@@ -36,6 +46,7 @@ class BroadcastBlankScreenManager @Inject constructor(
     // activity's own OnBackPressedDispatcher for the callback.
     private var hostRoot: WeakReference<View>? = null
     private var overlay: WeakReference<View>? = null
+    private var dimClockView: WeakReference<DimClockOverlayView>? = null
     private var backCallback: WeakReference<OnBackPressedCallback>? = null
 
     /** True while the current session must blank rather than sleep, which is also what labels the button. */
@@ -71,12 +82,16 @@ class BroadcastBlankScreenManager @Inject constructor(
     fun detach() {
         hostRoot = null
         overlay = null
+        dimClockView = null
         backCallback = null
     }
 
     private fun show(activity: AppCompatActivity) {
         if (overlay?.get() != null) return
         val content = hostRoot?.get()?.parent as? ViewGroup ?: return
+
+        val clockEnabled = runBlocking { settingsRepository.get().getSettings().first().dimClockOverlayEnabled }
+
         // Added above the screen's root rather than inside either orientation layout: the overlay must cover
         // the inset padding those layouts apply, and both orientations then need no duplicate view.
         val view = DimOverlayView(activity).apply {
@@ -91,6 +106,21 @@ class BroadcastBlankScreenManager @Inject constructor(
             ),
         )
         overlay = WeakReference(view)
+
+        if (clockEnabled) {
+            val clockView = DimClockOverlayView(activity).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+                bind(dimClockStyleProvider.get(), dimStatusContentProvider.get(), null)
+            }
+            content.addView(clockView)
+            dimClockView = WeakReference(clockView)
+        } else {
+            setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
+        }
+
         SystemBarsManager(activity).enterFullscreenMode()
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
         activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -100,15 +130,32 @@ class BroadcastBlankScreenManager @Inject constructor(
     private fun hide(activity: AppCompatActivity) {
         blanked = false
         backCallback?.get()?.isEnabled = false
+
+        dimClockView?.get()?.let { clock ->
+            (clock.parent as? ViewGroup)?.removeView(clock)
+        }
+        dimClockView = null
+
         overlay?.get()?.let { view ->
             (view.parent as? ViewGroup)?.removeView(view)
         }
         overlay = null
+
+        setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
+        setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
+
         // S3157: built here rather than kept in a field, which would be an Activity held for the process
         // lifetime that the UiContextLeak detector cannot see. exitFullscreenMode() has no early return on
         // its own isFullscreenMode, so a fresh instance restores the bars exactly as a retained one did.
         SystemBarsManager(activity).exitFullscreenMode()
-        setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
+    }
+
+    /**
+     * S3256: overrides window screenBrightness to zero when dimmed screen clock is disabled,
+     * and restores to default on un-dim. Never touches Settings.System (S1796 ADR-2).
+     */
+    private fun setScreenBrightness(activity: AppCompatActivity, value: Float) {
+        activity.window.attributes = activity.window.attributes.apply { screenBrightness = value }
     }
 
     private fun setButtonBacklight(activity: AppCompatActivity, value: Float) {

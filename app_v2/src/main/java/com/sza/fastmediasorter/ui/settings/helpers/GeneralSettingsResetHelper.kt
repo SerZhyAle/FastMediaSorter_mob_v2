@@ -26,7 +26,7 @@ class GeneralSettingsResetHelper(
         AlertDialog.Builder(fragment.requireContext())
             .setTitle(R.string.remember_file_list_help_title)
             .setMessage(R.string.remember_file_list_help_message)
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.ok, null)
             .showBoundTo(fragment)
     }
 
@@ -34,8 +34,8 @@ class GeneralSettingsResetHelper(
         MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.reset_settings_title)
             .setMessage(R.string.reset_settings_message)
-            .setPositiveButton(android.R.string.ok) { _, _ -> resetSettingsToDefaults() }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.ok) { _, _ -> resetSettingsToDefaults() }
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
     }
 
@@ -43,8 +43,8 @@ class GeneralSettingsResetHelper(
         MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.reset_general_section_title)
             .setMessage(R.string.reset_general_section_message)
-            .setPositiveButton(android.R.string.ok) { _, _ -> resetGeneralSection() }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.ok) { _, _ -> resetGeneralSection() }
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
     }
 
@@ -52,7 +52,7 @@ class GeneralSettingsResetHelper(
         MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.reset_smb_connections_title)
             .setMessage(R.string.reset_smb_connections_message)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 binding.btnResetSmbConnections.isEnabled = false
                 binding.btnResetSmbConnections.text = fragment.getString(R.string.please_wait)
                 fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
@@ -74,7 +74,7 @@ class GeneralSettingsResetHelper(
                     }
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
     }
 

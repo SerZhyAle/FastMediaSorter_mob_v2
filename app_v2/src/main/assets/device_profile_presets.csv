@@ -213,6 +213,7 @@
 "launcherTopStatusStripMode","TRUE","","","","","","","","","",""
 "launcherForeignNotificationsEnabled","","","","","","","","","","",""
 "launcherScreenBlackoutTimeoutSeconds","30","30","300","0","300","0","300","60","300","60",""
+"launcherScreenBlackoutTimeoutOnChargeSeconds","0","0","0","0","0","0","0","0","0","0",""
 "frontFlashlightEnabled","FALSE","FALSE","FALSE","TRUE","FALSE","TRUE","FALSE","FALSE","FALSE","FALSE",""
 "waterFlashlightEnabled","","","","","","","","","","",""
 "mirrorEnabled","TRUE","TRUE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE","FALSE",""

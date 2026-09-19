@@ -329,6 +329,17 @@
                         app:sdr_subtitle="@string/launcher_settings_screen_timeout_subtitle"
                         app:sdr_title="@string/launcher_settings_screen_timeout_title" />
 
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowLauncherScreenTimeoutOnCharge"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_inline="true"
+                        app:sdr_subtitle="@string/launcher_settings_screen_timeout_on_charge_subtitle"
+                        app:sdr_title="@string/launcher_settings_screen_timeout_on_charge_title" />
+
                 </LinearLayout>
 
                 <!-- 5. Gestures group -->
@@ -559,7 +570,9 @@
                     android:paddingBottom="@dimen/margin_small">
 
                     <!-- S2730: was a six-entry dropdown until the wallpaper gained its own screen; the row
-                         now opens that screen and shows the number of desktop screens as its value. -->
+                         now opens that screen and shows the number of desktop screens as its value.
+                         The title must keep naming the wallpaper: this row is its only entry point, and a
+                         rename to screens alone already made the whole wallpaper section unfindable once. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                         android:id="@+id/rowLauncherWallpaper"
                         android:layout_width="match_parent"
@@ -567,7 +580,7 @@
                         android:layout_marginTop="@dimen/margin_tiny"
                         android:layout_marginBottom="@dimen/margin_small"
                         app:ssr_navMode="true"
-                        app:ssr_title="@string/launcher_settings_screens_title" />
+                        app:ssr_title="@string/launcher_screens_wallpaper_title" />
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                         android:id="@+id/rowLauncherWidgetBackdropAlpha"

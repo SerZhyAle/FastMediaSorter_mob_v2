@@ -33,7 +33,7 @@
     <string name="calculator_fn_cot">सीटीजी (कोटैन)</string>
     <string name="calculator_fn_div">DIV (पूर्णांक)</string>
     <string name="calculator_fn_factorial">n! (फैक्टोरियल)</string>
-    <string name="calculator_fn_ln">ln (nat. log)</string>
+    <string name="calculator_fn_ln">ln (प्राकृतिक लघुगणक)</string>
     <string name="calculator_fn_log10">log₁₀ (लॉग)</string>
     <string name="calculator_fn_mod">मॉड (शेष)</string>
     <string name="calculator_fn_power">xʸ (घात)</string>

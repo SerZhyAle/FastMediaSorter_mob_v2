@@ -133,7 +133,7 @@ class GeneralSettingsPrefetchHelper(
                 AlertDialog.Builder(ctx)
                     .setTitle(R.string.pref_streaming_clear_now)
                     .setMessage(ctx.getString(R.string.streaming_cache_empty))
-                    .setPositiveButton(android.R.string.ok, null)
+                    .setPositiveButton(R.string.ok, null)
                     .showBoundTo(fragment)
                 return@launch
             }

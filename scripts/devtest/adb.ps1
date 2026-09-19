@@ -46,7 +46,9 @@
                          lists the nodes named by an id alone (-Json: file, nodes[]). A refused
                          dump is retried and the read repeats until two consecutive trees agree,
                          so the listing describes the current screen even where the accessibility
-                         tree lags it by seconds (S3238; tap-id and tap-label read the same way)
+                         tree lags it by seconds (S3238; tap-id and tap-label read the same way).
+                         A screen carrying a live readout cannot be dumped at all and is refused
+                         after one retry rather than three (S3289 - see exit code 7)
     tap-id               locate a node by its resource-id and tap the centre of its bounds:
                          -ResourceId <short-or-full> [-Exact] [-Index N]. PREFER THIS over tap-label:
                          a label is translated and an id is not, so a label-aimed call passes on the
@@ -150,7 +152,12 @@
         Nothing was executed on the device
     6 - `pull`: the remote path does not exist on the device. Distinct from 7 because "the file was
         never written" and "the transfer failed" call for different next moves
-    7 - the underlying adb command returned non-zero
+    7 - the underlying adb command returned non-zero. For the three tree verbs it also covers the
+        one refusal no wrapper can work around: `uiautomator dump` waits for 500 ms with no
+        accessibility event anywhere on the device, budget 10 s, and offers no flag to shorten or
+        skip that wait, so a window that emits a content-change event every ~100 ms is undumpable
+        for as long as its readout is live (S3289). The refusal names it and costs one retry, not
+        three - each refused attempt blocks for the full 10 s budget
     8 - `tap-label` / `tap-id`: no visible node carried that label or that resource-id, so NOTHING
         was tapped. Distinct from 7 because "the screen does not show it" and "the tap failed" call
         for different next moves - the first usually means an animation was still running, the
@@ -741,11 +748,44 @@ function Remove-StateJournal {
 # the same reason pull/push live in this script at all (S1578) - MSYS rewrites /sdcard/x into a path
 # inside the Git installation, and adb then reports a missing remote object.
 # S3238: on the Samsung fleet one dump is not a verdict. `uiautomator dump` refuses while it cannot
-# reach an idle UI ('could not get idle state' - One UI accessibility traffic never settles under a
-# sweep's call cadence), and the tree it does produce can lag the glass by seconds, so a tap aimed
-# from a stale tree hits a screen that is gone. The dump call is therefore retried a bounded number
-# of times, and -Stable re-dumps until two consecutive reads agree, which is what makes a single
-# uidump / tap-id / tap-label answer describe the screen the caller is looking at.
+# reach an idle UI ('could not get idle state'), and the tree it does produce can lag the glass by
+# seconds, so a tap aimed from a stale tree hits a screen that is gone. The dump call is therefore
+# retried a bounded number of times, and -Stable re-dumps until two consecutive reads agree, which is
+# what makes a single uidump / tap-id / tap-label answer describe the screen the caller is looking at.
+#
+# S3289 measured what that idle wait actually is and split the refusal in two. The dump calls
+# UiAutomation.waitForIdle with a 500 ms quiet window and a 10 s budget; idle means no accessibility
+# event of ANY type from ANY package reached the connection, and the command exposes no flag to
+# shorten or skip it (`uiautomator help` lists only --verbose and --compressed). Two regimes follow,
+# and they need different budgets:
+#   transient - a window settling after a tap. Measured on RFCR110NBQJ: 2 refusals in 15 calls, the
+#               next call through, so the state lives ~22 s. One retry clears it.
+#   permanent - a window carrying a live readout. The same phone's player emits a content-change
+#               event every 100-101 ms while a stream plays, which is ViewRootImpl's own coalescing
+#               floor, so the 500 ms of quiet never arrives and the screen is undumpable for as long
+#               as the readout runs. Retrying cannot help, and each refused attempt blocks for the
+#               full 10 s budget (measured 11.10 s and 11.09 s), so three attempts burn ~35 s to
+#               learn nothing.
+# The idle refusal is therefore capped at one retry; every other failure answer keeps the full
+# budget, because those are cheap and a different cause. The cure is app-side (S3293), and the one
+# uiautomator-free tree source was measured unusable in S3289 - see dev/REFUTED_APPROACHES.md.
+$script:UiTreeIdleRefusal = 'could not get idle state'
+$script:UiTreeIdleAttempts = 2
+
+# Why a refused dump is not something to wait out, in the words the caller needs at the moment of
+# refusal. Kept beside the constants above so the two never drift.
+function Get-UiTreeIdleRefusalText {
+    param([int]$Attempts, [string]$LastOut)
+    return ("uiautomator refused with 'could not get idle state' in $Attempts attempt(s); last answer was: " +
+        "$($LastOut.Trim()). The dump waits for 500 ms with no accessibility event anywhere on the device " +
+        "(budget 10 s) and has no flag to shorten or skip that wait. A window carrying a live readout - the " +
+        "player while audio plays, the broadcast screen while broadcasting - emits a content-change event about " +
+        "every 100 ms and never leaves that gap, so this screen will not dump however long you wait (S3289, " +
+        "measured on RFCR110NBQJ). What works instead: `shot` for a screenshot, and this same screen once the " +
+        "readout stops. There is no wrapper workaround - the app-side cure is S3293, and dumpsys was measured " +
+        "unusable as a second tree source (dev/REFUTED_APPROACHES.md)")
+}
+
 function Get-UiTree {
     param([string]$Id, [string]$Destination, [int]$Attempts = 3, [switch]$Stable)
     $remote = '/sdcard/_fms_tree.xml'
@@ -755,16 +795,22 @@ function Get-UiTree {
     # and `shot` uses this same remote path - so without this line a refused dump silently pulls the
     # previous screen's tree and every verb above reports confidently about a frame that is gone.
     $lastOut = ''
-    for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+    $sawIdleRefusal = $false
+    $budget = $Attempts
+    for ($attempt = 1; $attempt -le $budget; $attempt++) {
         Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
         $lastOut = (Invoke-Adb $Id @('shell', 'uiautomator', 'dump', $remote) -AllowFail) -join ' '
         if ($lastOut -match 'dumped to') { break }
-        if ($attempt -lt $Attempts) { Start-Sleep -Milliseconds ($retryDelayMs * $attempt) }
+        if ($lastOut -match $script:UiTreeIdleRefusal) {
+            $sawIdleRefusal = $true
+            if ($budget -gt $script:UiTreeIdleAttempts) { $budget = $script:UiTreeIdleAttempts }
+        }
+        if ($attempt -lt $budget) { Start-Sleep -Milliseconds ($retryDelayMs * $attempt) }
     }
     if ($lastOut -notmatch 'dumped to') {
-        Fail 7 ("uiautomator produced no tree in $Attempts attempt(s); last answer was: $($lastOut.Trim()). It " +
-            "refuses while the window is still animating or its accessibility traffic never idles ('could not " +
-            "get idle state') - let the screen settle and re-run")
+        if ($sawIdleRefusal) { Fail 7 (Get-UiTreeIdleRefusalText -Attempts $budget -LastOut $lastOut) }
+        Fail 7 ("uiautomator produced no tree in $budget attempt(s); last answer was: $($lastOut.Trim()). It " +
+            "refuses while the window is still animating - let the screen settle and re-run")
     }
     Invoke-Adb $Id @('pull', $remote, $Destination) -AllowFail | Out-Null
     Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
@@ -783,10 +829,15 @@ function Get-UiTree {
     # is the audit artifact and must match what this function returns - and a read that never
     # settles is reported, not silently passed off as current.
     $settled = $false
+    $wentNonIdle = $false
     for ($read = 2; $read -le $Attempts; $read++) {
         Start-Sleep -Milliseconds $stableDelayMs
         Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
         $dumpOut = (Invoke-Adb $Id @('shell', 'uiautomator', 'dump', $remote) -AllowFail) -join ' '
+        # A readout that went live between the first read and this one will refuse every remaining
+        # read for 10 s each and can never agree with anything (S3289). The first tree is already on
+        # disk and is the best answer available, so stop paying for confirmation that cannot come.
+        if ($dumpOut -match $script:UiTreeIdleRefusal) { $wentNonIdle = $true; break }
         if ($dumpOut -notmatch 'dumped to') { continue }
         $nextFile = "$Destination.next"
         Invoke-Adb $Id @('pull', $remote, $nextFile) -AllowFail | Out-Null
@@ -798,7 +849,10 @@ function Get-UiTree {
         $previous = $current
     }
     Set-Content -LiteralPath $Destination -Value $previous -NoNewline -Encoding UTF8
-    if (-not $settled) {
+    if ($wentNonIdle) {
+        Write-Host ("NOTE the screen stopped idling before the read could be confirmed on $Id - the listing is " +
+            "the first tree and may lag the screen (S3289: a live readout blocks every further dump)") -ForegroundColor Yellow
+    } elseif (-not $settled) {
         Write-Host "NOTE the tree did not settle after $Attempts reads on $Id - the listing may lag the screen" -ForegroundColor Yellow
     }
     try { return [xml]$previous } catch { Fail 7 "the node tree at $Destination is not valid XML: $($_.Exception.Message)" }

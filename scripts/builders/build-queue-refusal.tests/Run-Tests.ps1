@@ -191,6 +191,28 @@ Assert-That "report names the budget" ($text -match "budget $(Get-BuildQueueBudg
 # and the waiter exits at once, so the lock would read as dead on arrival.
 Assert-That "report does not offer -Acquire for a build domain" (-not ($text -match '-Acquire')) $text
 
+# S3300: the -BlockThrough clause is the caller's to claim. Printed unconditionally it advertised a
+# flag belonging to check-standard-fast.ps1 under every facade that spawns it and forwards its
+# stdout, and following it cost a run (post-change.ps1, 2026-09-18, exit 2 'unrecognized argument').
+Assert-That "an unnamed entry point gets no -BlockThrough clause" `
+    (-not ($text -match '-BlockThrough')) $text
+
+$namedReport = (Format-BuildQueueRefusalReport -BlockingDomain 'build.phone' -BlockingState $busyState[0] `
+    -Reason 'r' -BlockThroughScript 'scripts/builders/check-standard-fast.ps1') -join "`n"
+Assert-That "a named entry point gets the -BlockThrough clause beside its own name" `
+    ($namedReport -match '-BlockThrough when you invoke scripts/builders/check-standard-fast\.ps1') $namedReport
+Assert-That "the named form still carries the env-var escape" `
+    ($namedReport -match 'FMS_LOCK_BLOCK=1') $namedReport
+
+# The clause says a forwarding facade does not accept the flag. That sentence is a claim about
+# post-change.ps1, so it is pinned here: the day the facade declares the parameter this fails and the
+# wording gets revisited, instead of going stale silently the way the original hint did.
+$facadeAst = [System.Management.Automation.Language.Parser]::ParseFile(
+    (Join-Path $repoRoot 'scripts/post-change.ps1'), [ref]$null, [ref]$null)
+$facadeParams = @($facadeAst.ParamBlock.Parameters | ForEach-Object { $_.Name.VariablePath.UserPath })
+Assert-That "post-change.ps1 still does not declare -BlockThrough" `
+    (-not ($facadeParams -contains 'BlockThrough')) ($facadeParams -join ', ')
+
 $queueHeadReport = (Format-BuildQueueRefusalReport -BlockingDomain 'build.phone' `
     -BlockingState (Get-State $freeLock $foreignHead)[0] -Reason 'r') -join "`n"
 Assert-That "queue-head refusal names the session that holds the turn" `

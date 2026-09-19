@@ -161,12 +161,21 @@ private fun keepAwakeItem(
     viewModel: SettingsViewModel
 ): List<WearSettingsItem> {
     val keepAwakeLabel = stringResource(R.string.screen_settings_keep_awake)
+    val dimClockLabel = stringResource(R.string.dim_clock_overlay_toggle)
     return listOf(
         WearSettingsItem { narrow ->
             StandardWearToggleChip(
                 label = keepAwakeLabel,
                 checked = uiState.keepScreenAwakeOutsidePlayers,
                 onCheckedChange = { viewModel.toggleKeepScreenAwakeOutsidePlayers() },
+                narrow = narrow
+            )
+        },
+        WearSettingsItem { narrow ->
+            StandardWearToggleChip(
+                label = dimClockLabel,
+                checked = uiState.dimClockOverlayEnabled,
+                onCheckedChange = { viewModel.toggleDimClockOverlayEnabled() },
                 narrow = narrow
             )
         }

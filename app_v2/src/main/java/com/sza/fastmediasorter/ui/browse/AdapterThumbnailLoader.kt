@@ -761,8 +761,15 @@ class AdapterThumbnailLoader(
         generatedPlaceholder: BitmapDrawable,
         isScrolling: Boolean,
     ) {
-        if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
-            Timber.v("Skipping local image thumbnail for ${file.name} (cached as failed)")
+        // S3287: a zero-length file fails MediaMetadataRetriever with -22, and the local arm's onLoadFailed
+        // never reaches markThumbnailAsFailed, so the doomed decode is reissued on every recycle. The size
+        // is already known to the row, so refuse before Glide is asked at all. Folded into the cached-failure
+        // branch rather than added above it: this function is at its two-return budget, and the guard must
+        // write the cache only on the bind that discovers the file, not on every rebind that reads it.
+        val cachedFailure = NetworkFileDataFetcher.isThumbnailFailed(file.path)
+        if (file.size <= 0L || cachedFailure) {
+            if (!cachedFailure) NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
+            Timber.v("Skipping local image thumbnail for ${file.name} (zero-byte or cached as failed)")
             showGeneratedPlaceholder(imageView, file)
             return
         }
@@ -1022,8 +1029,13 @@ class AdapterThumbnailLoader(
         }
         // S1968: the local arm never consulted the negative cache the network arm three branches up
         // already used, so a doomed frame extraction was reissued on every rebind.
-        if (NetworkFileDataFetcher.isVideoFailed(file.path)) {
-            Timber.v("Skipping local video thumbnail for ${file.name} (cached as failed)")
+        // S3287: a zero-length file still paid for that discovery - measured seven `setDataSource(fd)
+        // return(-22)` round trips to MediaPlayerService on the first bind before the listener cached it.
+        // The size is known to the row, so the extraction is refused outright.
+        val cachedFailure = NetworkFileDataFetcher.isVideoFailed(file.path)
+        if (file.size <= 0L || cachedFailure) {
+            if (!cachedFailure) NetworkFileDataFetcher.markVideoAsFailed(file.path)
+            Timber.v("Skipping local video thumbnail for ${file.name} (zero-byte or cached as failed)")
             showGeneratedPlaceholder(imageView, file)
             return
         }

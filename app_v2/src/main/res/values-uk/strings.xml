@@ -1266,7 +1266,7 @@
 
     <!-- Injected missing keys 2026-03-08 -->
     <string name="and_more_files">і ще %d файлів</string>
-    <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
+    <string name="background_audio_setting_summary">Продовжувати відтворення аудіо, коли застосунок згорнуто</string>
     <string name="cursor_position">Ln %1$d, Col %2$d</string>
     <string name="default_icon_size_value">96</string>
     <string name="default_sync_interval_minutes">240</string>
@@ -2190,7 +2190,6 @@
     <string name="camera_capture_microphone_muted">Запис без звуку</string>
     <string name="camera_mode_photo">Фото</string>
     <string name="camera_mode_video">Відео</string>
-    <string name="quick_camera_menu_label">Камера</string>
     <string name="camera_control_pause">Пауза</string>
     <string name="camera_control_resume">Продовжити</string>
     <string name="camera_gallery_preview">Перегляд останнього знімка</string>
@@ -2286,7 +2285,6 @@
     <string name="statistics_metric_ocr_scans">Розпізнано текстів</string>
     <string name="app_launch_panel_route_calculator">Калькулятор</string>
     <string name="app_launch_panel_route_game">Міні-гра</string>
-    <string name="app_launch_panel_route_ocr">Фото-OCR-переклад</string>
     <string name="app_launch_panel_route_streams">Трансляції</string>
     <string name="app_launch_panel_route_favorites">Вибране</string>
     <string name="app_launch_panel_os_settings">Налаштування</string>
@@ -3847,8 +3845,6 @@
     <string name="camera_session_consent_notification_title">Годинник просить показати камеру</string>
     <string name="camera_session_consent_notification_text">Дозволити годиннику дивитися з камери та мікрофона цього телефона.</string>
     <string name="camera_session_consent_allow">Дозволити</string>
-    <string name="launcher_screens_screen_title">Екрани лаунчера</string>
-    <string name="launcher_settings_screens_title">Екрани лаунчера</string>
     <string name="launcher_screens_section_screens">Екрани</string>
     <string name="launcher_screens_show_number_title">Показувати номер екрана</string>
     <string name="launcher_screens_show_number_hint">Номер малюється поверх будь-яких шпалер під час гортання екранів. Не залежить від того, увімкнена анімація чи ні.</string>
@@ -3870,7 +3866,7 @@
     <string name="broadcast_failed_encoder">Не вдалося почати мовлення: на пристрої немає доступного аудіокодера</string>
     <string name="broadcast_failed_capture">Мовлення перервано: захоплення звуку зупинено</string>
     <string name="broadcast_permission_microphone_required">Для мовлення потрібен доступ до мікрофона</string>
-    <string name="broadcast_permission_notifications_required">Для мовлення потрібен доступ до сповіщень, інакше потік не працюватиме у фоні</string>
+    <string name="broadcast_permission_notifications_required">Для мовлення потрібен доступ до сповіщень, інакше мовлення не працюватиме у фоні</string>
     <string name="settings_suppress_wear_media_takeover">Пригнічувати медіа-керування на годиннику</string>
     <string name="settings_suppress_wear_media_takeover_summary">Не показувати системний екран керування плеєром телефона на годиннику Wear OS</string>
     <string name="broadcast_import_refreshed">Трансляцію оновлено: нова адреса</string>
@@ -3914,9 +3910,7 @@
     <string name="settings_streams_visualize_as_music_summary">Натискання на радіостанцію відкриває повноекранний програвач із візуалізацією замість нижньої міні-панелі.</string>
     <string name="translation_unavailable_device_licence">Переклад не ліцензовано для цього типу пристроїв</string>
     <string name="broadcast_entry_title">Мовлення</string>
-    <string name="broadcast_entry_description">Пристрій почне передавати звук мікрофона в локальну мережу. Кожен, у кого є посилання, зможе слухати, доки ви не зупините мовлення.</string>
     <string name="broadcast_entry_start">Почати мовлення</string>
-    <string name="broadcast_entry_live">Мовлення триває</string>
     <string name="shortcut_broadcast_short">Мовлення</string>
     <string name="shortcut_broadcast_long">Мовлення</string>
     <string name="tile_broadcast_label">Мовлення</string>
@@ -4064,7 +4058,7 @@
     <string name="launcher_primary_window_resource_manager_desc">Відкривати керування файлами та ресурсами напряму</string>
     <string name="setting_launcher_primary_window_title">Основне стартове вікно</string>
     <string name="setting_launcher_primary_window_desc">Вибір режиму: домашній екран пристрою, робочий стіл усередині програми або Менеджер ресурсів</string>
-    <string name="broadcast_default_stream_title">Потік з телефона</string>
+    <string name="broadcast_default_stream_title">Мовлення з телефона</string>
     <string name="broadcast_share_help">Як це дивитися</string>
     <string name="sos_title">Аварійний сигнал SOS</string>
     <string name="sos_hint">Сирена та стробоскоп повторюють сигнал SOS за Морзе. Парний годинник теж подає сигнал, якщо він на зв\'язку.</string>
@@ -4093,7 +4087,7 @@
     <string name="data_transfer_medium_file_desc">Вибрати файл на цьому пристрої</string>
     <string name="data_transfer_medium_drive_desc">Використати файл у підключеному акаунті Google Drive</string>
     <string name="data_transfer_progress">Переносимо %1$s..</string>
-    <string name="data_transfer_export_done">%1$s вивантажено.</string>
+    <string name="data_transfer_export_done">Вивантажено: «%1$s».</string>
     <string name="data_transfer_import_done">Готово. Додано %1$d, оновлено %2$d, пропущено %3$d.</string>
     <string name="data_transfer_error_drive">Не вдалося звернутися до Google Drive. Перевірте з\'єднання та чи підключено акаунт Google у налаштуваннях, потім повторіть.</string>
     <string name="data_transfer_error_no_file">У Google Drive поки немає файлу «%1$s». Спочатку вивантажте його з іншого пристрою.</string>
@@ -4101,4 +4095,11 @@
     <string name="data_transfer_error_empty">У розділі «%1$s» поки нічого вивантажувати.</string>
     <string name="data_transfer_error_unreadable">Не вдалося прочитати файл. Виберіть його знову або інший.</string>
     <string name="data_transfer_error_unwritable">Не вдалося записати в це місце. Виберіть інший файл і повторіть.</string>
+    <string name="launcher_screens_wallpaper_title">Екрани та шпалери</string>
+    <string name="dim_clock_overlay_toggle">Показувати годинник і стан під час затемнення</string>
+    <string name="dim_clock_status_cd">Годинник і стан на затемненому екрані</string>
+    <string name="launcher_settings_screen_timeout_on_charge_title">Таймаут екрана під час заряджання</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle">Гасить екран у разі неактивності, доки підключено зарядку</string>
+    <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Таймаут екрана під час заряджання</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Гасить екран у разі неактивності, доки підключено зарядку. Ця збірка не може блокувати пристрій.</string>
 </resources>

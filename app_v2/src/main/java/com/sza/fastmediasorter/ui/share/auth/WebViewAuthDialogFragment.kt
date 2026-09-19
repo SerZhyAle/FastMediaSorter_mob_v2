@@ -296,7 +296,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
                     }
                 }
             }
-            .setNegativeButton(android.R.string.cancel) { _, _ ->
+            .setNegativeButton(R.string.cancel) { _, _ ->
                 emitResultAndDismiss(saved = false)
             }
             .setOnCancelListener {

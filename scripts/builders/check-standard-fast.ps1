@@ -274,8 +274,11 @@ $queueVerdict = Test-BuildQueueRefusal -HoldClass (Get-BuildHoldClass -Mode $Mod
 if ($queueVerdict.ShouldRefuse) {
     $queueTickets = New-AgentLockTicketSet -Name 'Build' -Reason $lockReason -Domains $buildDomains
     $queueHandoff = Save-AgentLockTicketHandoff -Tickets $queueTickets -Reason $lockReason
+    # S3300: this script is the only one that declares -BlockThrough, and it names itself rather
+    # than letting the builder guess - the refusal is read under whatever facade spawned this run.
     $queueReport = Format-BuildQueueRefusalReport -BlockingDomain $queueVerdict.BlockingDomain `
-        -BlockingState $queueVerdict.BlockingState -Reason $lockReason -HandoffPath $queueHandoff
+        -BlockingState $queueVerdict.BlockingState -Reason $lockReason -HandoffPath $queueHandoff `
+        -BlockThroughScript 'scripts/builders/check-standard-fast.ps1'
     # A refused run would otherwise leave no trace at all: the log is written after the acquire, so
     # measure-build-lock-wait.ps1 - which reconstructs the whole queue from these files - would count
     # a refusal as a run that never happened. It writes a header with `Queued:` where an acquired run

@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import com.sza.fastmediasorter.domain.repository.RawAuthSession
-import timber.log.Timber
 import java.net.HttpCookie
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -297,6 +296,7 @@ object BackupMapper {
             allAppsSortOrder = settings.allAppsSortOrder,
             allAppsSortDescending = settings.allAppsSortDescending,
             launcherScreenBlackoutTimeoutSeconds = settings.launcherScreenBlackoutTimeoutSeconds,
+            launcherScreenBlackoutTimeoutOnChargeSeconds = settings.launcherScreenBlackoutTimeoutOnChargeSeconds,
             // S2632: absent from BackupSettings until now, so a restore silently reset both.
             launcherTrayShowSpeed = settings.launcherTrayShowSpeed,
             launcherAnimationPalette = settings.launcherAnimationPalette,
@@ -543,6 +543,7 @@ object BackupMapper {
             allAppsSortOrder = backup.allAppsSortOrder.gsonSafe(current.allAppsSortOrder),
             allAppsSortDescending = backup.allAppsSortDescending,
             screenBlackoutTimeoutSeconds = backup.launcherScreenBlackoutTimeoutSeconds,
+            screenBlackoutTimeoutOnChargeSeconds = backup.launcherScreenBlackoutTimeoutOnChargeSeconds,
             // null in a backup written before S2632 - preserve what the device already has.
             trayShowSpeed = backup.launcherTrayShowSpeed ?: current.launcherTrayShowSpeed,
             animationPalette = backup.launcherAnimationPalette ?: current.launcherAnimationPalette,

@@ -42,7 +42,7 @@
             android:clickable="true"
             android:focusable="true"
             android:nextFocusRight="@+id/btnDeleteCopies"
-            android:text="@android:string/cancel" />
+            android:text="@string/cancel" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDeleteCopies"

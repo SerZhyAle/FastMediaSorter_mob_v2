@@ -2,18 +2,25 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.text.InputType
 import android.widget.FrameLayout
+import androidx.annotation.StringRes
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
 import com.sza.fastmediasorter.util.showBoundTo
+import timber.log.Timber
 
 /**
- * Owns the screen-timeout row and restores its stored value after an abandoned custom entry.
+ * Owns the two screen-timeout rows and restores their stored values after an abandoned custom entry.
  *
- * @param systemActionsAvailable whether this build can reach a real device lock. S2384: the row promises
+ * S3284 added the second row: the same countdown, applied while the charger is connected. Both rows
+ * share this class because they share every rule - the preset list, the custom-seconds dialog and the
+ * restore-on-cancel behaviour - and a second copy would drift from the first at the next change.
+ *
+ * @param systemActionsAvailable whether this build can reach a real device lock. S2384: a row promises
  * two different things depending on it - a locked device, or an app-drawn black surface over a lit
  * screen - and a caption that named only the first would be read as a defect wherever the second happens.
  */
@@ -27,12 +34,10 @@ class LauncherScreenTimeoutSettingsManager(
 ) {
     fun setupRow() {
         binding.rowLauncherScreenTimeout.setOnItemSelectedListener { index ->
-            if (isUpdating()) return@setOnItemSelectedListener
-            val presets = AppSettings.LAUNCHER_SCREEN_TIMEOUT_PRESETS
-            when {
-                index in presets.indices -> updateTimeout(presets[index])
-                index == presets.size -> showCustomTimeoutDialog()
-            }
+            onIndexSelected(index, onCharge = false)
+        }
+        binding.rowLauncherScreenTimeoutOnCharge.setOnItemSelectedListener { index ->
+            onIndexSelected(index, onCharge = true)
         }
     }
 
@@ -44,14 +49,40 @@ class LauncherScreenTimeoutSettingsManager(
                 R.string.launcher_settings_screen_timeout_subtitle_no_lock
             },
         )
+        // The on-charge row keeps its own no-lock caption rather than borrowing the row above's: the two
+        // sit next to each other, and one shared sentence made them read as the same setting twice
+        // (observed on the test phone, 2026-09-18, where no lock service is reachable).
+        binding.rowLauncherScreenTimeoutOnCharge.setSubtitle(
+            if (systemActionsAvailable) {
+                R.string.launcher_settings_screen_timeout_on_charge_subtitle
+            } else {
+                R.string.launcher_settings_screen_timeout_on_charge_subtitle_no_lock
+            },
+        )
+        renderRow(binding.rowLauncherScreenTimeout, settings.launcherScreenBlackoutTimeoutSeconds)
+        renderRow(
+            binding.rowLauncherScreenTimeoutOnCharge,
+            settings.launcherScreenBlackoutTimeoutOnChargeSeconds,
+        )
+    }
+
+    private fun onIndexSelected(index: Int, onCharge: Boolean) {
+        if (isUpdating()) return
         val presets = AppSettings.LAUNCHER_SCREEN_TIMEOUT_PRESETS
-        val seconds = settings.launcherScreenBlackoutTimeoutSeconds
+        when {
+            index in presets.indices -> updateTimeout(presets[index], onCharge)
+            index == presets.size -> showCustomTimeoutDialog(onCharge)
+        }
+    }
+
+    private fun renderRow(row: SettingsDropdownRow, seconds: Int) {
+        val presets = AppSettings.LAUNCHER_SCREEN_TIMEOUT_PRESETS
         val customLabel = if (seconds !in presets && seconds > 0) {
             host.getString(R.string.launcher_settings_screen_timeout_custom_format, seconds)
         } else {
             host.getString(R.string.launcher_settings_screen_timeout_custom)
         }
-        binding.rowLauncherScreenTimeout.setEntries(
+        row.setEntries(
             listOf(
                 host.getText(R.string.launcher_settings_screen_timeout_off),
                 host.getText(R.string.launcher_settings_screen_timeout_5s),
@@ -62,14 +93,12 @@ class LauncherScreenTimeoutSettingsManager(
                 customLabel,
             ),
         )
-        binding.rowLauncherScreenTimeout.setSelection(
-            presets.indexOf(seconds).takeIf { it >= 0 } ?: presets.size,
-        )
+        row.setSelection(presets.indexOf(seconds).takeIf { it >= 0 } ?: presets.size)
     }
 
-    private fun showCustomTimeoutDialog() {
+    private fun showCustomTimeoutDialog(onCharge: Boolean) {
         val context = host.requireContext()
-        val current = currentSettings().launcherScreenBlackoutTimeoutSeconds
+        val current = storedSeconds(currentSettings(), onCharge)
         val input = TextInputEditText(context).apply {
             inputType = InputType.TYPE_CLASS_NUMBER
             setText(current.takeIf { it > 0 }?.toString().orEmpty())
@@ -83,20 +112,39 @@ class LauncherScreenTimeoutSettingsManager(
             addView(input)
         }
         MaterialAlertDialogBuilder(context)
-            .setTitle(R.string.launcher_settings_screen_timeout_dialog_title)
+            .setTitle(dialogTitleRes(onCharge))
             .setView(container)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 input.text?.toString()?.trim()?.toIntOrNull()?.takeIf { it > 0 }
-                    ?.let(::updateTimeout)
+                    ?.let { seconds -> updateTimeout(seconds, onCharge) }
                     ?: render(currentSettings())
             }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> render(currentSettings()) }
+            .setNegativeButton(R.string.cancel) { _, _ -> render(currentSettings()) }
             .setOnCancelListener { render(currentSettings()) }
             .showBoundTo(host)
     }
 
-    private fun updateTimeout(seconds: Int) {
+    @StringRes
+    private fun dialogTitleRes(onCharge: Boolean): Int = if (onCharge) {
+        R.string.launcher_settings_screen_timeout_on_charge_dialog_title
+    } else {
+        R.string.launcher_settings_screen_timeout_dialog_title
+    }
+
+    private fun storedSeconds(settings: AppSettings, onCharge: Boolean): Int = if (onCharge) {
+        settings.launcherScreenBlackoutTimeoutOnChargeSeconds
+    } else {
+        settings.launcherScreenBlackoutTimeoutSeconds
+    }
+
+    private fun updateTimeout(seconds: Int, onCharge: Boolean) {
+        Timber.d("S3284: timeout row wrote %ds, onCharge=%b", seconds, onCharge)
         val current = currentSettings()
-        updateSettings(current.withLauncher { copy(screenBlackoutTimeoutSeconds = seconds) })
+        val updated = if (onCharge) {
+            current.withLauncher { copy(screenBlackoutTimeoutOnChargeSeconds = seconds) }
+        } else {
+            current.withLauncher { copy(screenBlackoutTimeoutSeconds = seconds) }
+        }
+        updateSettings(updated)
     }
 }

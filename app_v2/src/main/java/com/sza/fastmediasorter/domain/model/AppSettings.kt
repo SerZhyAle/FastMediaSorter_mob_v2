@@ -427,6 +427,8 @@ data class AppSettings(
 
     // S0050: Black Screen mode - show/hide the black-screen toolbar button in audio/video players
     val showBlackScreenButton: Boolean = false,
+    // S3256: Dim screen clock and status overlay on dimmed phone/watch screen
+    val dimClockOverlayEnabled: Boolean = false,
 
     // S0028: Multi-window mode - allow opening Browse/Player in a separate window
     val allowSeparateWindow: Boolean = false,
@@ -508,6 +510,8 @@ data class AppSettings(
     val allAppsSortOrder: String get() = launcher.allAppsSortOrder
     val allAppsSortDescending: Boolean get() = launcher.allAppsSortDescending
     val launcherScreenBlackoutTimeoutSeconds: Int get() = launcher.screenBlackoutTimeoutSeconds
+    val launcherScreenBlackoutTimeoutOnChargeSeconds: Int
+        get() = launcher.screenBlackoutTimeoutOnChargeSeconds
     val launcherWidgetBackdropAlpha: Float get() = launcher.widgetBackdropAlpha
     val launcherWeatherLastLocation: String get() = launcher.weatherLastLocation
     val launcherStepsResetCount: Long get() = launcher.stepsResetCount
@@ -648,6 +652,16 @@ data class AppSettings(
          * a profile.
          */
         const val DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS = 30
+
+        /**
+         * S3284: the launcher never blacks out on its own while the charger is attached.
+         *
+         * Off rather than a copy of [DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS] because a plugged-in
+         * device is the case the owner wants the desktop readable in - a dock, a car head unit, a
+         * bedside stand - and the on-charge timeout fully overrides the battery one, so a non-zero
+         * default would change behaviour for every existing install that never opens the new row.
+         */
+        const val DEFAULT_LAUNCHER_SCREEN_TIMEOUT_ON_CHARGE_SECONDS = 0
 
         /** S0404: selectable launcher grid densities (see [launcherDensityFactor]). */
         val LAUNCHER_DENSITY_OPTIONS = listOf(0.75f, 1.0f, 1.25f, 1.5f)

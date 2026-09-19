@@ -82,7 +82,7 @@
     <string name="launcher_gadget_network_indicator">नेटवर्क संकेतक</string>
     <string name="launcher_gadget_network_indicator_pick_title">कौन सा संकेतक दिखाना है</string>
     <string name="widget_front_flashlight_label">सामने टॉर्च</string>
-    <string name="widget_front_flashlight_description">Turns the screen into a lamp in one tap</string>
+    <string name="widget_front_flashlight_description">एक टैप में स्क्रीन को लैंप में बदल देता है</string>
     <string name="widget_stopwatch_label">स्टॉपवॉच</string>
     <string name="widget_stopwatch_description">होम स्क्रीन से माप शुरू और बंद करें</string>
 </resources>

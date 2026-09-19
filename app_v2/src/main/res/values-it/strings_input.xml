@@ -69,7 +69,7 @@
     <string name="keybinding_label_navigation_seek_forward_30s">Cerca Avanti 30 secondi</string>
     <string name="keybinding_label_navigation_seek_forward_5s">Cerca in avanti 5 secondi</string>
     <string name="keybinding_label_navigation_seek_macro_backward">Cercare Macro all\'indietro</string>
-    <string name="keybinding_label_navigation_seek_macro_forward">Seek Macro Forward</string>
+    <string name="keybinding_label_navigation_seek_macro_forward">Avanzamento macro</string>
     <string name="keybinding_label_navigation_seek_micro_backward">Cerca Micro all\'indietro</string>
     <string name="keybinding_label_navigation_seek_micro_forward">Seek Microfor</string>
     <string name="keybinding_label_playback_frame_step_backward">Passo indietro del frame</string>

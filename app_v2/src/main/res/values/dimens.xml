@@ -962,4 +962,14 @@
     <dimen name="tourist_primary_text_size_land">64sp</dimen>
     <dimen name="tourist_coords_text_size">36sp</dimen>
     <dimen name="tourist_coords_text_size_land">32sp</dimen>
+
+    <!-- S3256: Dim screen clock and status overlay dimensions -->
+    <dimen name="launcher_cell_outline_width">1dp</dimen>
+    <dimen name="dim_clock_padding">16dp</dimen>
+    <dimen name="dim_clock_chip_size">24dp</dimen>
+    <dimen name="dim_clock_chip_padding">2dp</dimen>
+    <dimen name="dim_clock_chip_spacing">6dp</dimen>
+    <dimen name="dim_clock_battery_text_size">12sp</dimen>
+    <dimen name="dim_clock_date_text_size">14sp</dimen>
+    <dimen name="dim_clock_time_text_size">48sp</dimen>
 </resources>

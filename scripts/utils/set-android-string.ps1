@@ -86,14 +86,42 @@
     Prints the planned change without writing.
 
 .PARAMETER Force
-    'remove' only. Proceeds even though the key is still referenced. The reference scan still runs and still
+    'remove': proceeds even though the key is still referenced. The reference scan still runs and still
     prints - only the refusal is waived.
+    '-ReaffirmTranslation': proceeds although the locale's value is byte-identical to the English one.
+    The identical-value check still runs and still prints - only the refusal is waived.
+
+.PARAMETER ReaffirmTranslation
+    'set' only. Records that an EXISTING translation was re-read by a human and is still faithful to the
+    current English text, by refreshing that (key, locale) pair's entry in
+    scripts/quality/locale-source-fingerprints.json. It is the answer to an English reword, which changes
+    the English fingerprint and so marks every other locale stale in list-new-lexemes.ps1 even when the
+    translations are still correct (S3306).
+
+    It never writes a strings.xml - that is the whole invariant. A plain 'set' that happens to match the
+    file exits on the '[no change]' path without touching the store, and threading the reaffirmation
+    through that path would mean a mistyped -Value silently rewrites the very string it claims to
+    certify. So -ReaffirmTranslation reads, verifies and refuses; it does not edit resources.
+
+    -Locale takes one tag or a comma-separated list ('es,pt,fr'): one EN reword invalidates every locale
+    at once, and a human who re-read six of them has one action to record, not six.
+
+    It refuses, naming the locale, rather than certifying something nobody read:
+      - without -Key, or for a key absent from values/strings*.xml (no English source to fingerprint);
+      - for a key absent from the locale's own strings*.xml, or holding an empty value;
+      - for en/ru/uk - the store tracks only the best-effort locales, and English is the source;
+      - when -Value is passed and differs from the value on disk (drop -ReaffirmTranslation to WRITE it);
+      - when -Value is passed with more than one locale, which cannot be one value;
+      - when the locale's value is byte-identical to the English one and the key is not in
+        scripts/quality/locale-identical-allowlist.json - the signature of a locale nobody translated.
+        -Force waives this one refusal, for the keys that are legitimately identical.
+    Every locale is verified before any is written, so a refused pair cannot leave the rest half-certified.
 
 .NOTES
     Exit codes:
       0 - the requested action completed.
-      1 - invalid arguments, a lockstep/parity precondition failed, or the value carries markup this
-          editor will not silently escape (thrown).
+      1 - invalid arguments, a lockstep/parity precondition failed, a -ReaffirmTranslation precondition
+          failed, or the value carries markup this editor will not silently escape (thrown).
       3 - 'remove' refused: the key is still referenced under <module>/src. Pass -Force to override.
           In -KeyList batch mode this means AT LEAST ONE key was refused; the rest of the list was
           still applied. A partially refused batch never exits 0.
@@ -117,6 +145,10 @@
 .EXAMPLE
     # Snapshot the per-locale key union (before/after a migration) to prove no loss:
     pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Action audit
+
+.EXAMPLE
+    # The English text was reworded; these six translations were re-read and still fit:
+    pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Key settings_broadcast_stream_title -Locale 'es,pt,ar,fr,it,zh-Hans' -ReaffirmTranslation
 #>
 [CmdletBinding()]
 param(
@@ -151,7 +183,8 @@ param(
     [string]$ExpectedOldValue,
     [switch]$CreateIfMissing,
     [switch]$DryRun,
-    [switch]$Force
+    [switch]$Force,
+    [switch]$ReaffirmTranslation
 )
 
 Set-StrictMode -Version Latest
@@ -244,15 +277,31 @@ if ($valueBound -and -not [string]::IsNullOrEmpty($Value)) {
 $localeDirByTag = @{}
 foreach ($tag in $declaredLocaleTags) { $localeDirByTag[$tag] = Get-LocaleResourceDir -Tag $tag }
 
+# Every action but the reaffirmation addresses exactly one locale, so the list form is admitted only
+# there - splitting unconditionally would turn a typo'd '-Locale es,' on a write path into a silent
+# single-locale write instead of the "unknown locale" it is today.
+$requestedLocales = @()
 if ($Locale) {
-    # Resolve case-insensitively so '-Locale zh-hans' still finds the declared 'zh-Hans'.
-    # Select-Object, not [0]: StrictMode turns indexing an empty result into an index-out-of-bounds
-    # error that would mask the real "unknown locale" message.
-    $resolvedLocale = $declaredLocaleTags | Where-Object { $_ -ieq $Locale.Trim() } | Select-Object -First 1
-    if (-not $resolvedLocale) {
-        throw "Unknown locale '$Locale'. Declared locales: $($declaredLocaleTags -join ', ')."
+    # The outer @() is load-bearing: PowerShell unrolls the value of an if-expression, so a one-element
+    # array assigned this way arrives as a bare String, and .Count below then fails under StrictMode.
+    $requestedTags = @(if ($ReaffirmTranslation) { @($Locale -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }) } else { @($Locale.Trim()) })
+    if ($requestedTags.Count -eq 0) {
+        throw "-Locale is empty. Declared locales: $($declaredLocaleTags -join ', ')."
     }
-    $Locale = $resolvedLocale
+    foreach ($requestedTag in $requestedTags) {
+        # Resolve case-insensitively so '-Locale zh-hans' still finds the declared 'zh-Hans'.
+        # Select-Object, not [0]: StrictMode turns indexing an empty result into an index-out-of-bounds
+        # error that would mask the real "unknown locale" message.
+        $resolvedLocale = $declaredLocaleTags | Where-Object { $_ -ieq $requestedTag } | Select-Object -First 1
+        if (-not $resolvedLocale) {
+            throw "Unknown locale '$requestedTag'. Declared locales: $($declaredLocaleTags -join ', ')."
+        }
+        if ($requestedLocales -contains $resolvedLocale) {
+            throw "Locale '$resolvedLocale' is listed more than once in -Locale."
+        }
+        $requestedLocales += $resolvedLocale
+    }
+    $Locale = $requestedLocales[0]
 }
 
 function Test-KeySyntax([string]$k) {
@@ -571,6 +620,73 @@ function Invoke-Set {
     }
 }
 
+# ----- S3306: re-affirm an existing translation after an English reword -----
+#
+# The store keyed by Get-LocaleUnitId records WHICH English text a translation was made from. Reword
+# the English and every locale's recorded hash stops matching, so list-new-lexemes.ps1 reports the pair
+# as needing work - correctly, because nobody has yet looked at whether the old translation still fits.
+# When a human looks and the answer is "it still fits", this is how that verdict is written down.
+#
+# It deliberately shares nothing with Invoke-Set's write path beyond the helpers: reaffirmation must not
+# be able to edit a resource, and the only way to guarantee that is to never reach Save-File.
+function Invoke-ReaffirmTranslation {
+    if ($Action -ne 'set') { throw "-ReaffirmTranslation belongs to -Action set, not '$Action'." }
+    if (-not $Key) { throw "-ReaffirmTranslation requires -Key." }
+    if ($requestedLocales.Count -eq 0) { throw "-ReaffirmTranslation requires -Locale (one tag, or a comma-separated list)." }
+    if ($CreateIfMissing) { throw "-CreateIfMissing cannot be combined with -ReaffirmTranslation: there is nothing to create, only an existing translation to re-affirm." }
+    if ($expectedOldBound) { throw "-ExpectedOldValue cannot be combined with -ReaffirmTranslation: -Value already acts as the guard." }
+    if ($valueBound -and $requestedLocales.Count -gt 1) { throw "-Value cannot be combined with more than one locale - '$($requestedLocales -join ', ')' cannot share one value. Drop -Value to re-affirm each locale's value as it stands on disk." }
+    Test-KeySyntax $Key
+
+    $enHit = Find-Key (Get-LocaleDir 'values') $Key
+    if (-not $enHit) { throw "Key '$Key' is not declared in any values/strings*.xml of module '$Module'. There is no English source to fingerprint." }
+    $enValue = ConvertFrom-XmlText $enHit.Raw
+    $enHash = Get-EnglishStringFingerprint $enValue
+    $unitId = Get-LocaleUnitId -Module $Module -Set main -File $enHit.File.Name -Key $Key
+
+    $identicalAllowlist = Get-LocaleIdenticalAllowlist
+
+    # Every locale is resolved and judged before a single one is recorded. A six-locale call that
+    # refuses on the fifth must certify none of them, or the operator is left reading an exit code to
+    # find out which half of his verdict landed.
+    $plan = @()
+    foreach ($tag in $requestedLocales) {
+        if (Test-StrictLocale -Tag $tag) {
+            throw "Locale '$tag' is owner-authored and is not tracked in the fingerprint store - only the best-effort locales are. English is the source the store fingerprints."
+        }
+        $localeHit = Find-Key (Get-LocaleDir $localeDirByTag[$tag]) $Key
+        if (-not $localeHit) { throw "Key '$Key' is not declared in any strings*.xml of locale '$tag'. Translate it before re-affirming it." }
+        $localeValue = ConvertFrom-XmlText $localeHit.Raw
+        if ([string]::IsNullOrWhiteSpace($localeValue)) { throw "Key '$Key' in locale '$tag' holds an empty value. An empty string is not a translation that can be re-affirmed." }
+        if ($valueBound -and $localeValue -cne $Value) {
+            throw "Value mismatch for '$Key' in locale '$tag'.`nOn disk: $localeValue`nPassed:  $Value`n-ReaffirmTranslation never writes a resource. Drop it to write the new value, or pass the value as it stands."
+        }
+        # S3309: the allow-list entitles a key in named locales, not everywhere, so the guard asks
+        # about the locale being re-affirmed rather than about the key alone.
+        if ($localeValue -ceq $enValue -and -not $Force -and -not (Test-LocaleIdenticalAllowlisted -Key $Key -Locale $tag -Allowlist $identicalAllowlist)) {
+            throw "Key '$Key' in locale '$tag' is byte-identical to the English text - the signature of a string nobody translated. Translate it, add it to scripts/quality/locale-identical-allowlist.json if it is legitimately identical, or pass -Force to re-affirm it anyway."
+        }
+        $plan += @{ Tag = $tag; Value = $localeValue; File = $localeHit.File.Name }
+    }
+
+    foreach ($entry in $plan) {
+        if ($DryRun) { Write-Host "[dry-run] would re-affirm $($entry.Tag):$Key ($($entry.File)) against EN fingerprint $enHash" -ForegroundColor Cyan }
+        else { Write-Host "[reaffirmed] $($entry.Tag):$Key fingerprint updated to $enHash." -ForegroundColor Green }
+        Write-Host "  EN:  $enValue" -ForegroundColor DarkGray
+        Write-Host "  $($entry.Tag.ToUpperInvariant()): $($entry.Value)" -ForegroundColor DarkGray
+    }
+    if ($DryRun) { return }
+
+    # One edit for the whole list: Edit-LocaleSourceFingerprints re-reads inside its lock, so N calls
+    # would be N read-modify-writes of a 4.7 MB document where one suffices.
+    Edit-LocaleSourceFingerprints -Mutate {
+        param($fps)
+        foreach ($entry in $plan) {
+            Update-LocaleSourceFingerprint -Fingerprints $fps -Locale $entry.Tag -Identity $unitId -Hash $enHash
+        }
+    } | Out-Null
+}
+
 # Skeleton for a freshly created thematic file, matching the locale's strings.xml BOM/EOL.
 function New-ThematicSkeleton([string]$refPath) {
     $ref = [System.IO.File]::ReadAllText($refPath)
@@ -711,9 +827,16 @@ function Invoke-Audit {
     exit 0
 }
 
+if ($ReaffirmTranslation -and $Action -ne 'set') {
+    throw "-ReaffirmTranslation belongs to -Action set, not '$Action'."
+}
+
 switch ($Action) {
 
-    'set' { Invoke-Set; exit 0 }
+    'set' {
+        if ($ReaffirmTranslation) { Invoke-ReaffirmTranslation } else { Invoke-Set }
+        exit 0
+    }
 
     'move' { Invoke-Move }
 

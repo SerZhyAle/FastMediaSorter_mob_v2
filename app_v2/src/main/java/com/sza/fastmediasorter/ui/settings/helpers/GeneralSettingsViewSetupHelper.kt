@@ -2,7 +2,9 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.content.Intent
 import android.view.ContextThemeWrapper
+import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.core.view.isVisible
@@ -28,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import kotlin.math.roundToInt
 import kotlin.reflect.KMutableProperty0
 
 /** Owns the entire setupViews() body: switch/spinner/input setup + button wiring. */
@@ -52,6 +55,10 @@ class GeneralSettingsViewSetupHelper(
     private val logHelper get() = actionHelpers.logHelper
     private val resetHelper get() = actionHelpers.resetHelper
 
+    // S3295: held rather than constructed inline, so onPause() has a commit point for the freely
+    // typeable sync-interval field.
+    private val syncSetupHelper by lazy { GeneralSettingsSyncSetupHelper(hostContext, isUpdatingSpinner) }
+
     // S2601: the setup order is observable - every group below installs listeners that read the same
     // viewModel.settings, so the delegated groups keep the exact positions their inline versions held.
     fun setup() {
@@ -63,7 +70,7 @@ class GeneralSettingsViewSetupHelper(
         setupIconSizeInput()
         setupNetworkParallelism()
         setupCacheSizeInput()
-        GeneralSettingsSyncSetupHelper(hostContext, isUpdatingSpinner).setup()
+        syncSetupHelper.setup()
         GeneralSettingsDefaultCredentialsSetupHelper(hostContext).setup()
         GeneralSettingsLinkButtonsSetupHelper(hostContext).setup()
         setupActionButtons()
@@ -399,7 +406,7 @@ class GeneralSettingsViewSetupHelper(
     }
 
     private fun setupIconSizeInput() {
-        val iconSizeOptions = (32..256 step 8).map { it.toString() }.toTypedArray()
+        val iconSizeOptions = (ICON_SIZE_MIN..ICON_SIZE_MAX step ICON_SIZE_STEP).map { it.toString() }.toTypedArray()
         val iconSizeAdapter = ArrayAdapter(
             fragment.requireContext(),
             android.R.layout.simple_dropdown_item_1line,
@@ -419,21 +426,48 @@ class GeneralSettingsViewSetupHelper(
             }
         }
         binding.etIconSize.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus && !isUpdatingSpinner.get()) {
-                val size = binding.etIconSize.text.toString().toIntOrNull()
-                if (size != null && size in 32..256 && (size - 32) % 8 == 0) {
-                    val current = viewModel.settings.value
-                    if (current.defaultIconSize != size) {
-                        viewModel.updateSettings(current.copy(defaultIconSize = size))
-                    }
-                } else {
-                    binding.etIconSize.setText(
-                        fragment.getString(R.string.number_format, viewModel.settings.value.defaultIconSize),
-                        false
-                    )
-                }
-            }
+            if (!hasFocus) commitPendingIconSize()
         }
+        binding.etIconSize.setOnEditorActionListener { view, actionId, event ->
+            // S3295: the ACTION_DOWN filter this listener carried since S3292 made the ENTER path
+            // dead - the field declares no imeOptions, so TextView delivers ENTER as IME_NULL on
+            // ACTION_UP. Focus loss and onPause still committed, which is why it went unseen.
+            val isCommit = actionId == EditorInfo.IME_ACTION_DONE ||
+                actionId == EditorInfo.IME_ACTION_NEXT ||
+                actionId == EditorInfo.IME_ACTION_GO ||
+                event?.keyCode == KeyEvent.KEYCODE_ENTER
+            if (!isCommit) return@setOnEditorActionListener false
+            commitPendingIconSize()
+            view.clearFocus()
+            true
+        }
+    }
+
+    /**
+     * Commits whatever stands in the icon-size field. The field is freely typeable but used to persist
+     * only on focus loss, so leaving the screen threw the typed number away without a word (S3292).
+     * A value off the 32..256 step-8 grid is snapped rather than rejected, and the snapped number is
+     * written back so the field always shows what the store holds.
+     */
+    fun commitPendingIconSize() {
+        if (isUpdatingSpinner.get()) return
+        val current = viewModel.settings.value
+        val typed = binding.etIconSize.text.toString().toIntOrNull()
+        val size = typed?.let { snapIconSize(it) } ?: current.defaultIconSize
+        if (size != current.defaultIconSize) {
+            viewModel.updateSettings(current.copy(defaultIconSize = size))
+        }
+        if (typed != size) {
+            binding.etIconSize.setText(fragment.getString(R.string.number_format, size), false)
+        }
+    }
+
+    fun commitPendingSyncInterval() = syncSetupHelper.commitPendingInterval()
+
+    private fun snapIconSize(value: Int): Int {
+        val clamped = value.coerceIn(ICON_SIZE_MIN, ICON_SIZE_MAX)
+        val steps = ((clamped - ICON_SIZE_MIN).toDouble() / ICON_SIZE_STEP).roundToInt()
+        return ICON_SIZE_MIN + steps * ICON_SIZE_STEP
     }
 
     private fun setupActionButtons() {
@@ -490,5 +524,11 @@ class GeneralSettingsViewSetupHelper(
             binding.rowDebugLogMirror.setCheckedSilently(enabled)
             isUpdatingSpinner.set(false)
         }
+    }
+
+    private companion object {
+        const val ICON_SIZE_MIN = 32
+        const val ICON_SIZE_MAX = 256
+        const val ICON_SIZE_STEP = 8
     }
 }

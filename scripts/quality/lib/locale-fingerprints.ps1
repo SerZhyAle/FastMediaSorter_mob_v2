@@ -20,11 +20,26 @@
     other's provenance and the gate reported the other module's keys as untranslated. Build the
     identity only through Get-LocaleUnitId - five call sites concatenating it by hand is how the
     format drifted in the first place.
+
+    S3304: provenance alone cannot tell a translation from a copy of the English source, because a
+    stamp answers the question "which English text was this written against" and never "is this text
+    English". The two members added here answer the second question - Get-LocaleFileUnitValues reads
+    a locale file's actual values, and the locale-identical allow-list names the keys entitled to
+    equal their English source (brand names, acronyms, units, pure format tokens). Both are consumed
+    by list-new-lexemes.ps1 and seed-locale-tranche.ps1; neither is stored in the fingerprint
+    registry, so an allow-list entry is a reviewable line in a diff rather than a flag buried in a
+    4 MB generated document.
+
+    S3310: both stores are replaced through Save-LocaleStoreFileAtomic, which retries a denied move
+    and removes its temporary on every failing path. Never write a store with a bare
+    WriteAllText-plus-Move pair again - that is the shape that left a resource value on disk under
+    its old fingerprint and a gitignored temporary beside the store.
 #>
 
 Set-StrictMode -Version Latest
 
 $script:LocaleFingerprintsDefaultPath = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'quality/locale-source-fingerprints.json'
+$script:LocaleIdenticalAllowlistDefaultPath = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'quality/locale-identical-allowlist.json'
 
 # Bumped when the identity format changes. A store written before S1858 is version 1 and its
 # unqualified identities cannot be read as module-qualified ones, so readers must refuse it.
@@ -76,6 +91,360 @@ function Get-LocaleSourceFingerprintsPath {
     param([string]$Path)
     if ($Path) { return $Path }
     return $script:LocaleFingerprintsDefaultPath
+}
+
+function Get-LocaleIdenticalAllowlistPath {
+    param([string]$Path)
+    if ($Path) { return $Path }
+    return $script:LocaleIdenticalAllowlistDefaultPath
+}
+
+function Clear-LocaleStoreOrphanedTemp {
+    <#
+    .SYNOPSIS
+        S3310: removes stale "<store>.<pid>.tmp" debris left beside a store by a killed writer.
+    .DESCRIPTION
+        Save-LocaleStoreFileAtomic tidies up after itself, but a process killed between its write and
+        its move cannot. Such a temporary matches *.tmp in .gitignore, so it never reaches a diff -
+        two were found sitting in scripts/quality/ at the start of the S3305 batch, one of them left
+        by an earlier session. A live writer's temporary exists for milliseconds, so an hour of age
+        sits far outside any window in which one could still be in use, this process's own included.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$TargetPath,
+        [int]$OlderThanMinutes = 60
+    )
+
+    $dir = Split-Path -Parent $TargetPath
+    if (-not $dir -or -not (Test-Path -LiteralPath $dir)) { return }
+
+    $cutoff = (Get-Date).AddMinutes(-$OlderThanMinutes)
+    $pattern = (Split-Path -Leaf $TargetPath) + '.*.tmp'
+    foreach ($stale in @(Get-ChildItem -LiteralPath $dir -Filter $pattern -File | Where-Object { $_.LastWriteTime -lt $cutoff })) {
+        try {
+            Remove-Item -LiteralPath $stale.FullName -Force
+        } catch {
+            # The save this ran after already succeeded, so failing to tidy must not turn a written
+            # document into an error the caller has to handle - it is reported and dropped.
+            Write-Warning "locale-fingerprints: could not remove orphaned temporary $($stale.FullName) - $_"
+        }
+    }
+}
+
+function Save-LocaleStoreFileAtomic {
+    <#
+    .SYNOPSIS
+        S3310: writes one store document beside its target and replaces the target with it.
+    .DESCRIPTION
+        Both savers in this library go through here, so the S3008 temp-file-plus-move discipline has
+        one implementation and one failure story.
+
+        [System.IO.File]::Move(.., $true) fails with "Access to the path is denied" while another
+        process holds the DESTINATION open without FILE_SHARE_DELETE - a scanner or an indexer
+        re-reading the 4.7 MB store it has just seen change. Get-LocaleFingerprintsMutexName cannot
+        prevent that, because the holder is not a writer of this project: the S3305 batch was
+        strictly sequential in a MONO run and one of its 199 saves still threw. That is why the cure
+        is a bounded retry rather than more locking.
+
+        Two consequences of that throw went unhandled, and they are what this function exists for.
+        The temporary was orphaned, silently, because *.tmp is gitignored. And the caller had already
+        written the resource value, leaving a NEW translation under its OLD fingerprint - precisely
+        the state list-new-lexemes.ps1 reports as stale. The finally block removes the temporary on
+        every path, and the final error names that half-landed state rather than leaving the operator
+        to infer it from an exit code.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$TargetPath,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Content,
+        [int]$Attempts = 5,
+        [int]$InitialDelayMs = 50
+    )
+
+    $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+    # The pid in the name keeps two writers' temporaries apart even where a mutex already orders them.
+    $tempPath = "$TargetPath.$PID.tmp"
+    try {
+        [System.IO.File]::WriteAllText($tempPath, $Content, $utf8NoBom)
+
+        $delayMs = $InitialDelayMs
+        for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+            try {
+                [System.IO.File]::Move($tempPath, $TargetPath, $true)
+                Clear-LocaleStoreOrphanedTemp -TargetPath $TargetPath
+                return
+            } catch [System.IO.IOException], [System.UnauthorizedAccessException] {
+                if ($attempt -eq $Attempts) {
+                    throw ("locale-fingerprints: could not replace $TargetPath after $Attempts attempt(s) - " +
+                        "$($_.Exception.Message) Another process is holding the destination open. The temporary " +
+                        "has been removed, so the store still holds its previous contents - but anything the " +
+                        "caller wrote just before this call, a resource value above all, is now on disk WITHOUT " +
+                        "its fingerprint. Re-run the same call to stamp it.")
+                }
+                Start-Sleep -Milliseconds $delayMs
+                $delayMs = $delayMs * 2
+            }
+        }
+    }
+    finally {
+        # Debris from a failed write or a failed move; a successful move consumed it. Removing it must
+        # never mask the real failure, so a second error here is reported and dropped, not thrown over
+        # the first.
+        if (Test-Path -LiteralPath $tempPath) {
+            try { Remove-Item -LiteralPath $tempPath -Force }
+            catch { Write-Warning "locale-fingerprints: could not remove the temporary $tempPath - $_" }
+        }
+    }
+}
+
+function New-LocaleIdenticalAllowlistScope {
+    <#
+    .SYNOPSIS
+        Builds the locale scope of one allow-list entry from whatever the caller has.
+    .DESCRIPTION
+        S3309: an entry entitles a key in EVERY locale ($null) or in a named set. An empty or absent
+        locale list is read as "every locale" rather than as "no locale", because that is the shape a
+        hand-edited object degrades to and the strict reading would silently retire the entry.
+    .OUTPUTS
+        $null for an unscoped entry, otherwise HashSet[string] of locale tags.
+    #>
+    param($Locales)
+
+    if ($null -eq $Locales) { return $null }
+    $tags = @($Locales | ForEach-Object { [string]$_ } | Where-Object { $_.Trim() } | ForEach-Object { $_.Trim() })
+    if ($tags.Count -eq 0) { return $null }
+
+    $set = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($tag in $tags) { [void]$set.Add($tag) }
+    return , $set
+}
+
+function Get-LocaleIdenticalAllowlist {
+    <#
+    .SYNOPSIS
+        Loads the checked-in allow-list of keys allowed to be English-identical.
+    .DESCRIPTION
+        S3309: an entry is a bare key name, entitling every locale, or an object naming the entitled
+        ones - {"key": "camera_mode_photo", "locales": ["fr", "it"]}. The property is per (key,
+        locale): a key can be a legitimate identical in French and an untranslated leftover in
+        Arabic, and a key-level list is wrong for one of the two groups it covers.
+    .OUTPUTS
+        OrderedDictionary of key name -> $null (every locale) or HashSet[string] of locale tags.
+    #>
+    param([string]$Path)
+
+    # S3306: the comma operator on every return path. PowerShell unrolls an enumerable on return, so
+    # an EMPTY container arrives at the caller as $null - which is the normal case, because the
+    # allow-list file is optional. Every caller then passes $null into the mandatory -Allowlist and
+    # dies on the binding, not on anything it was testing.
+    $resolvedPath = Get-LocaleIdenticalAllowlistPath -Path $Path
+    $map = [ordered]@{}
+    if (-not (Test-Path -LiteralPath $resolvedPath)) {
+        return , $map
+    }
+
+    $raw = Get-Content -LiteralPath $resolvedPath -Raw -Encoding UTF8
+    if ([string]::IsNullOrWhiteSpace($raw)) {
+        return , $map
+    }
+
+    try {
+        # S3304: @() rather than an -is [array] test. ConvertFrom-Json unrolls, so a one-key
+        # allow-list arrives as a bare String, the branch never runs and the single exemption is
+        # silently dropped - which reads exactly like the key not being listed at all. Measured on a
+        # fixture holding ["s3304_brand"]: the key was omitted from the seeded locale file although
+        # it was the only thing on the list.
+        foreach ($item in @($raw | ConvertFrom-Json)) {
+            if ($item -is [string]) {
+                if ($item) { $map[$item] = $null }
+                continue
+            }
+            if ($null -eq $item) { continue }
+            # Property access through PSObject: the library runs under Set-StrictMode -Version
+            # Latest, where naming a property a hand-edited object does not carry throws instead of
+            # yielding $null, and a malformed entry must degrade, not kill the run.
+            $keyProp = $item.PSObject.Properties['key']
+            $name = if ($keyProp) { [string]$keyProp.Value } else { '' }
+            if (-not $name) { continue }
+            $localesProp = $item.PSObject.Properties['locales']
+            $scope = New-LocaleIdenticalAllowlistScope -Locales $(if ($localesProp) { $localesProp.Value } else { $null })
+            # A key repeated across entries keeps the widest scope it was given anywhere: two entries
+            # for one key are a hand-edit accident, and narrowing on the second would drop an
+            # entitlement the first one granted.
+            if ($map.Contains($name) -and $null -eq $map[$name]) { continue }
+            if ($map.Contains($name) -and $null -ne $scope) {
+                foreach ($tag in $map[$name]) { [void]$scope.Add($tag) }
+            }
+            $map[$name] = $scope
+        }
+    } catch {
+        Write-Warning "locale-fingerprints: failed to parse allowlist at $resolvedPath - returning empty set: $_"
+        $map = [ordered]@{}
+    }
+
+    return , $map
+}
+
+function Save-LocaleIdenticalAllowlist {
+    <#
+    .SYNOPSIS
+        Saves the allow-list of English-identical keys to JSON in sorted order.
+    .DESCRIPTION
+        Accepts what Get-LocaleIdenticalAllowlist returns, and also a plain list of key names, which
+        saves as unscoped entries. An unscoped entry is written as a bare string so the file stays
+        readable and diffable for the majority of entries that need no scope.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]$Allowlist,
+        [string]$Path
+    )
+
+    $resolvedPath = Get-LocaleIdenticalAllowlistPath -Path $Path
+    $dir = Split-Path -Parent $resolvedPath
+    if (-not (Test-Path -LiteralPath $dir)) {
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    }
+
+    $scopeByKey = [ordered]@{}
+    if ($Allowlist -is [System.Collections.IDictionary]) {
+        foreach ($name in $Allowlist.Keys) { $scopeByKey[[string]$name] = $Allowlist[$name] }
+    } else {
+        foreach ($name in @($Allowlist)) {
+            if ($name -is [string] -and $name) { $scopeByKey[$name] = $null }
+        }
+    }
+
+    $entries = foreach ($name in @($scopeByKey.Keys | Sort-Object -Unique)) {
+        $scope = $scopeByKey[$name]
+        if ($null -eq $scope) { $name }
+        else { [pscustomobject]@{ key = $name; locales = @($scope | Sort-Object) } }
+    }
+
+    # -AsArray, not -Depth alone: ConvertTo-Json emits a bare scalar for a one-element collection, so
+    # a single-entry allow-list would be written as a string and read back as nothing.
+    $json = @($entries) | ConvertTo-Json -Depth 3 -AsArray
+    Save-LocaleStoreFileAtomic -TargetPath $resolvedPath -Content ($json + "`n")
+}
+
+function Test-LocaleIdenticalAllowlistHasKey {
+    <#
+    .SYNOPSIS
+        Checks if the allow-list mentions a key at all, whatever the entry's locale scope.
+    .DESCRIPTION
+        For the reviewer's dump, which lists every entry and prints its scope as evidence. Judging
+        whether a VALUE is entitled is Test-LocaleIdenticalAllowlisted's job and needs a locale.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Key,
+        [Parameter(Mandatory = $true)]$Allowlist
+    )
+
+    if ($null -eq $Allowlist) { return $false }
+    if ($Allowlist -is [System.Collections.IDictionary]) { return $Allowlist.Contains($Key) }
+    return $Allowlist.Contains($Key)
+}
+
+function Test-LocaleIdenticalAllowlisted {
+    <#
+    .SYNOPSIS
+        Checks if a key is allowed to equal its English source IN ONE LOCALE.
+    .DESCRIPTION
+        S3309: -Locale is mandatory on purpose. The predicate used to answer per key, which is wrong
+        for 517 of the 646 allow-listed units measured on 2026-09-19 - some locales translated them,
+        others carry the English verbatim. An optional locale would let a call site keep the old
+        key-level answer by omitting one argument, which is exactly the regression this shape exists
+        to make impossible: a forgotten locale now fails parameter binding instead.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Key,
+        [Parameter(Mandatory = $true)][string]$Locale,
+        [Parameter(Mandatory = $true)]$Allowlist
+    )
+
+    if ($null -eq $Allowlist) { return $false }
+    if (-not ($Allowlist -is [System.Collections.IDictionary])) {
+        # A legacy key-level container (a HashSet of names) carries no scope, so every locale it
+        # names is entitled - the pre-S3309 reading, kept so a caller holding one is not silently
+        # told "no".
+        return $Allowlist.Contains($Key)
+    }
+    if (-not $Allowlist.Contains($Key)) { return $false }
+
+    $scope = $Allowlist[$Key]
+    if ($null -eq $scope) { return $true }
+    return $scope.Contains($Locale)
+}
+
+# The element grammar of a resource file, matched here exactly as locale-bulk-export.ps1 matches the
+# English source - a unit is a <string>, one <item quantity=".."> of a <plurals>, or one positional
+# <item> of a <string-array>. Reading a locale file with a different grammar would address slots the
+# exporter never numbered, so the value comparison below would silently compare nothing.
+$script:LocaleElementRx = [regex]'(?s)<(string|plurals|string-array)\s+name="([^"]+)"([^>]*)>(.*?)</\1>'
+$script:LocalePluralItemRx = [regex]'(?s)<item\s+quantity="([^"]+)"[^>]*>(.*?)</item>'
+$script:LocaleArrayItemRx = [regex]'(?s)<item[^>]*>(.*?)</item>'
+
+function Get-LocaleUnitSlotKey {
+    <#
+    .SYNOPSIS
+        Addresses one unit inside a single resource file, as "<key>|<slot>".
+    .DESCRIPTION
+        S3304: narrower than Get-LocaleUnitId, which addresses a unit across the whole repository.
+        A value comparison happens inside one file that is already fixed by module, set and file, so
+        the identity that indexes it carries only what still varies. The slot is empty for a
+        <string> and is the quantity or the zero-based position for the two container kinds, exactly
+        as locale-bulk-export.ps1 records it in its sidecar.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Key,
+        [AllowEmptyString()][string]$Slot
+    )
+
+    return "$Key|$Slot"
+}
+
+function Get-LocaleFileUnitValues {
+    <#
+    .SYNOPSIS
+        S3304: decodes one resource file into slot key -> plain localized text.
+    .DESCRIPTION
+        The plain text comes out through ConvertFrom-ResourceBody, the same normalizer that produces
+        the `en` field every fingerprint is taken from. That is what makes an equality test between
+        the two meaningful: comparing raw element bodies instead would call a locale value different
+        from English over an escaping difference alone, and equal over a decoded entity.
+    .OUTPUTS
+        Hashtable of "<key>|<slot>" -> plain text. An absent file yields an empty map.
+    #>
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $values = @{}
+    if (-not (Test-Path -LiteralPath $Path)) { return $values }
+
+    $text = Get-Content -LiteralPath $Path -Raw -Encoding UTF8
+    foreach ($element in $script:LocaleElementRx.Matches($text)) {
+        $kind = $element.Groups[1].Value
+        $key = $element.Groups[2].Value
+        $body = $element.Groups[4].Value
+        switch ($kind) {
+            'plurals' {
+                foreach ($item in $script:LocalePluralItemRx.Matches($body)) {
+                    $slotKey = Get-LocaleUnitSlotKey -Key $key -Slot $item.Groups[1].Value
+                    $values[$slotKey] = ConvertFrom-ResourceBody $item.Groups[2].Value
+                }
+            }
+            'string-array' {
+                $slot = 0
+                foreach ($item in $script:LocaleArrayItemRx.Matches($body)) {
+                    $slotKey = Get-LocaleUnitSlotKey -Key $key -Slot ([string]$slot)
+                    $values[$slotKey] = ConvertFrom-ResourceBody $item.Groups[1].Value
+                    $slot++
+                }
+            }
+            default {
+                $values[(Get-LocaleUnitSlotKey -Key $key -Slot '')] = ConvertFrom-ResourceBody $body
+            }
+        }
+    }
+
+    return $values
 }
 
 function Get-LocaleUnitId {
@@ -212,15 +581,11 @@ function Save-LocaleSourceFingerprints {
     }
 
     $json = $orderedRoot | ConvertTo-Json -Depth 5
-    $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
     # S3008: write beside the target and move over it, so a writer killed mid-save leaves either the
     # whole old document or the whole new one. Writing 4.7 MB in place leaves a third state - a
     # truncated file - which Get-LocaleSourceFingerprints parses as empty and every reader then reads
-    # as "no locale was ever translated". The pid in the name keeps two writers' temporaries apart
-    # even though Edit-LocaleSourceFingerprints already orders them.
-    $tempPath = "$resolvedPath.$PID.tmp"
-    [System.IO.File]::WriteAllText($tempPath, $json + "`n", $utf8NoBom)
-    [System.IO.File]::Move($tempPath, $resolvedPath, $true)
+    # as "no locale was ever translated".
+    Save-LocaleStoreFileAtomic -TargetPath $resolvedPath -Content ($json + "`n")
 }
 
 function Get-LocaleFingerprintsMutexName {

@@ -124,6 +124,7 @@ internal object BackupSettingsGroupMapper {
         showProgramsPanelInMainWindow = settings.showProgramsPanelInMainWindow,
         programsPanelCollapsed = settings.programsPanelCollapsed,
         showBlackScreenButton = settings.showBlackScreenButton,
+        dimClockOverlayEnabled = settings.dimClockOverlayEnabled,
         flashlightShortcutNotificationEnabled = settings.flashlightShortcutNotificationEnabled,
         enableSos = settings.enableSos,
         sosMode = settings.sosMode.name
@@ -356,6 +357,7 @@ internal object BackupSettingsGroupMapper {
             showProgramsPanelInMainWindow = backup.showProgramsPanelInMainWindow,
             programsPanelCollapsed = backup.programsPanelCollapsed,
             showBlackScreenButton = backup.showBlackScreenButton,
+            dimClockOverlayEnabled = backup.dimClockOverlayEnabled,
             flashlightShortcutNotificationEnabled = backup.flashlightShortcutNotificationEnabled
                 ?: flashlightShortcutNotificationEnabled,
             enableSos = backup.enableSos ?: enableSos,

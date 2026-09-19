@@ -636,6 +636,19 @@
                         app:ssr_title="@string/data_transfer_row_title"
                         app:ssr_subtitle="@string/data_transfer_row_subtitle" />
 
+                    <!-- S3040: the cross-device packet queue entry. It sits beside the S1565 transfer
+                         menu because both live at the strategic section 0 anchor "Settings -> Data /
+                         Cloud Transfer" - one exports by name, one runs the pending-packet queue. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowCrossDevicePackets"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:ssr_navMode="true"
+                        app:ssr_title="@string/cross_device_transfer_pending_title"
+                        app:ssr_subtitle="@string/cross_device_transfer_row_subtitle" />
+
                     <!-- Reset All Settings - destructive action, placed at the very end of the Backup & Export section. -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
@@ -740,7 +753,9 @@
                             <!-- Sync interval dropdown. Orientation parity with landscape (S0616). -->
                             <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSyncInterval" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="@dimen/settings_dropdown_compact_width" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/sync_interval">
 
-                                <AutoCompleteTextView android:id="@+id/actvSyncInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sync_interval" android:inputType="number" android:text="@string/default_sync_interval_minutes" android:textSize="@dimen/toggler_title_text_size" />
+                                <!-- S3295: imeOptions makes the keyboard send IME_ACTION_DONE. Without it the
+                                     Samsung IME swallows its own Enter key and the commit listener never runs. -->
+                                <AutoCompleteTextView android:id="@+id/actvSyncInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sync_interval" android:imeOptions="actionDone" android:inputType="number" android:text="@string/default_sync_interval_minutes" android:textSize="@dimen/toggler_title_text_size" />
 
                             </com.google.android.material.textfield.TextInputLayout>
 

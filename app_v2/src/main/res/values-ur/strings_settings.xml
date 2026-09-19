@@ -267,12 +267,10 @@
     <string name="cross_device_transfer_pending_title">زیر التوا آلہ منتقلیاں</string>
     <string name="cross_device_transfer_receive_and_delete">وصول کریں اور کلاؤڈ سے حذف کریں</string>
     <string name="cross_device_transfer_receive_and_keep">وصول کریں اور کلاؤڈ میں رکھیں</string>
-    <string name="cross_device_transfer_clear_queue">زیر التوا قطار صاف کریں</string>
     <string name="cross_device_transfer_empty">اس آلے کے لیے کچھ بھی منتظر نہیں۔ اسے یہاں دیکھنے کے لیے کسی دوسرے آلے سے فائل یا ترتیبات بھیجیں۔</string>
     <string name="cross_device_transfer_sending">آپ کی Drive قطار میں اپ لوڈ ہو رہا ہے..</string>
     <string name="cross_device_transfer_sent">اپ لوڈ ہو گیا۔ اسے لینے کے لیے اپنے دوسرے آلے پر یہ اسکرین کھولیں۔</string>
     <string name="cross_device_transfer_received_files">ایپ کے آنے والے فولڈر میں محفوظ ہو گیا</string>
     <string name="cross_device_transfer_received_settings">دوسرے آلے کی ترتیبات لاگو کر دی گئی ہیں</string>
     <string name="cross_device_transfer_failed">منتقلی مکمل نہیں ہوئی۔ Drive سائن ان اور کنکشن جانچیں، پھر دوبارہ کوشش کریں۔</string>
-    <string name="cross_device_transfer_queue_cleared">قطار صاف ہو گئی: %1$d پیکٹ ہٹا دیے گئے</string>
 </resources>

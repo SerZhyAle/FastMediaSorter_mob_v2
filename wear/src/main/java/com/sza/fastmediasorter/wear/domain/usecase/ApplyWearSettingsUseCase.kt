@@ -122,6 +122,12 @@ class ApplyWearSettingsUseCase @Inject constructor(
         apply(resolver, "panelAutoHideSeconds", payload.panelAutoHideSeconds) {
             preferencesRepository.setPanelAutoHideSeconds(it)
         }
+        apply(resolver, "dimClockOverlayEnabled", payload.dimClockOverlayEnabled) {
+            preferencesRepository.setDimClockOverlayEnabled(it)
+        }
+        apply(resolver, "dimClockSecondsVisible", payload.dimClockSecondsVisible) {
+            preferencesRepository.setDimClockSecondsVisible(it)
+        }
     }
 
     // S1814: the language is a PHONE_ONLY registry entry, so it is inherited rather than merged - the

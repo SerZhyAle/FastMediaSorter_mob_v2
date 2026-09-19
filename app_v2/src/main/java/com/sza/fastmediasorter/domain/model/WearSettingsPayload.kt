@@ -69,7 +69,10 @@ data class WearSettingsPayload(
     // raised (ADR-1) - a hard version check would turn a mismatched pair into a refusal to sync.
     @SerializedName("appVersionName") val appVersionName: String? = null,
     // S2505: player panel auto-hide duration in seconds.
-    @SerializedName("panelAutoHideSeconds") val panelAutoHideSeconds: Int? = null
+    @SerializedName("panelAutoHideSeconds") val panelAutoHideSeconds: Int? = null,
+    // S3256: Dim screen clock and status overlay toggle and seconds visibility
+    @SerializedName("dimClockOverlayEnabled") val dimClockOverlayEnabled: Boolean? = null,
+    @SerializedName("dimClockSecondsVisible") val dimClockSecondsVisible: Boolean? = null
 ) {
     /**
      * S2000: the watch's `WearBackgroundMode` entries, mirrored as strings.

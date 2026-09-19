@@ -22,9 +22,9 @@ import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-@AndroidEntryPoint
 // S1161: see GeneralSettingsFragment - the collapsed-group grid is installed by the base class, so every
 // settings tab gets the landscape columns rather than only Management.
+@AndroidEntryPoint
 class MediaSettingsFragment : BaseSettingsFragment() {
 
     /**
@@ -46,7 +46,7 @@ class MediaSettingsFragment : BaseSettingsFragment() {
     private var _binding: FragmentSettingsMediaContainerBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
-    
+
     // S0535: unified collapsible groups - one orchestrator + consolidated store replaces the
     // fragment-local section state machine; lazy child-fragment attach is kept via the expand hook.
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
@@ -102,10 +102,13 @@ class MediaSettingsFragment : BaseSettingsFragment() {
 
     private fun setupResetSection() {
         binding.btnResetMediaSection.setOnClickListener {
-            MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
+            MaterialAlertDialogBuilder(
+                requireContext(),
+                R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive
+            )
                 .setTitle(R.string.reset_media_section_title)
                 .setMessage(R.string.reset_media_section_message)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
+                .setPositiveButton(R.string.ok) { _, _ ->
                     viewModel.resetMediaSection()
                     Toast.makeText(
                         requireContext(),
@@ -113,7 +116,7 @@ class MediaSettingsFragment : BaseSettingsFragment() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .showBoundTo(this@MediaSettingsFragment)
         }
     }
@@ -127,24 +130,72 @@ class MediaSettingsFragment : BaseSettingsFragment() {
     private fun buildSections(): List<MediaChildSection> {
         val vrFragment = if (vrMediaSection.isAvailable) vrMediaSection.createFragment() else null
         return listOf(
-            MediaChildSection(binding.headerImages, binding.containerImages, "media__images", false, "media_images",
-                if (mediaCapabilities.supportsImages) ({ ImagesSettingsFragment() }) else null),
-            MediaChildSection(binding.headerVideo, binding.containerVideo, "media__video", false, "media_video",
-                if (mediaCapabilities.supportsVideo) ({ VideoSettingsFragment() }) else null),
+            MediaChildSection(
+                binding.headerImages,
+                binding.containerImages,
+                "media__images",
+                false,
+                "media_images",
+                if (mediaCapabilities.supportsImages) ({ ImagesSettingsFragment() }) else null
+            ),
+            MediaChildSection(
+                binding.headerVideo,
+                binding.containerVideo,
+                "media__video",
+                false,
+                "media_video",
+                if (mediaCapabilities.supportsVideo) ({ VideoSettingsFragment() }) else null
+            ),
             // S0249: VR section defaults to expanded (preserved across the unification).
-            MediaChildSection(binding.headerVr, binding.containerVr, "media__vr", true, "media_vr",
-                if (vrFragment != null) ({ vrFragment }) else null),
-            MediaChildSection(binding.headerAudio, binding.containerAudio, "media__audio", false, "media_audio",
-                if (mediaCapabilities.supportsAudio) ({ AudioSettingsFragment() }) else null),
-            MediaChildSection(binding.headerDocuments, binding.containerDocuments, "media__documents", false, "media_documents",
-                if (mediaCapabilities.supportsDocuments) ({ DocumentsSettingsFragment() }) else null),
-            MediaChildSection(binding.headerOther, binding.containerOther, "media__other", false, "media_other",
-                { OtherMediaSettingsFragment() }),
-            MediaChildSection(binding.headerStreams, binding.containerStreams, "media__streams", false, "media_streams",
-                if (capabilityAvailability.isStreamsAvailable()) ({ StreamsSettingsFragment() }) else null),
+            MediaChildSection(
+                binding.headerVr,
+                binding.containerVr,
+                "media__vr",
+                true,
+                "media_vr",
+                if (vrFragment != null) ({ vrFragment }) else null
+            ),
+            MediaChildSection(
+                binding.headerAudio,
+                binding.containerAudio,
+                "media__audio",
+                false,
+                "media_audio",
+                if (mediaCapabilities.supportsAudio) ({ AudioSettingsFragment() }) else null
+            ),
+            MediaChildSection(
+                binding.headerDocuments,
+                binding.containerDocuments,
+                "media__documents",
+                false,
+                "media_documents",
+                if (mediaCapabilities.supportsDocuments) ({ DocumentsSettingsFragment() }) else null
+            ),
+            MediaChildSection(
+                binding.headerOther,
+                binding.containerOther,
+                "media__other",
+                false,
+                "media_other",
+                { OtherMediaSettingsFragment() }
+            ),
+            MediaChildSection(
+                binding.headerStreams,
+                binding.containerStreams,
+                "media__streams",
+                false,
+                "media_streams",
+                if (capabilityAvailability.isStreamsAvailable()) ({ StreamsSettingsFragment() }) else null
+            ),
             // S2817: Broadcast section - immediately after Streams, gated by the same seam as the menu item.
-            MediaChildSection(binding.headerBroadcast, binding.containerBroadcast, "media__broadcast", false, "media_broadcast",
-                if (broadcastSourceController.isAvailable) ({ BroadcastSettingsFragment() }) else null),
+            MediaChildSection(
+                binding.headerBroadcast,
+                binding.containerBroadcast,
+                "media__broadcast",
+                false,
+                "media_broadcast",
+                if (broadcastSourceController.isAvailable) ({ BroadcastSettingsFragment() }) else null
+            ),
         )
     }
 
@@ -184,7 +235,7 @@ class MediaSettingsFragment : BaseSettingsFragment() {
         ensureChildAttached(section.container.id, section.tag, factory)
         section.header.setExpanded(true)
     }
-    
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

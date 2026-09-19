@@ -228,7 +228,7 @@
     <string name="setup_content_first_toast">पहले सामग्री सेट करें..</string>
     <string name="prevent_sleep">स्लीप रोकें</string>
     <string name="pref_disable_animations_title">एनिमेशन अक्षम करें</string>
-    <string name="pref_disable_animations_desc">Turn off visual transition and decorative animations</string>
+    <string name="pref_disable_animations_desc">दृश्य संक्रमण और सजावटी एनिमेशन बंद करें</string>
     <string name="small_controls">संक्षिप्त प्लेयर बटन</string>
     <string name="compact_elements">संक्षिप्त तत्व</string>
     <string name="enable_favorites">पसंदीदा चालू करें</string>
@@ -1824,7 +1824,6 @@
     <string name="camera_capture_microphone_muted">बिना ध्वनि रिकॉर्डिंग</string>
     <string name="camera_mode_photo">फ़ोटो</string>
     <string name="camera_mode_video">वीडियो</string>
-    <string name="quick_camera_menu_label">कैमरा</string>
     <string name="camera_control_pause">ठहराएँ</string>
     <string name="camera_control_resume">जारी रखें</string>
     <string name="camera_gallery_preview">अंतिम कैप्चर देखें</string>
@@ -1920,7 +1919,6 @@
     <string name="statistics_metric_ocr_scans">पहचाना गया टेक्स्ट</string>
     <string name="app_launch_panel_route_calculator">कैलकुलेटर</string>
     <string name="app_launch_panel_route_game">मिनी-गेम</string>
-    <string name="app_launch_panel_route_ocr">फ़ोटो OCR अनुवाद</string>
     <string name="app_launch_panel_route_streams">स्ट्रीम</string>
     <string name="app_launch_panel_route_favorites">पसंदीदा</string>
     <string name="app_launch_panel_os_settings">सेटिंग</string>
@@ -2876,7 +2874,7 @@
     <string name="launcher_gadget_media_video_window">वीडियो विंडो</string>
     <string name="launcher_gadget_media_document_window">दस्तावेज़ विंडो</string>
     <string name="launcher_gadget_media_image_window">छवि विंडो</string>
-    <string name="launcher_settings_import_system_shortcuts_title">Import all installed apps</string>
+    <string name="launcher_settings_import_system_shortcuts_title">सभी इंस्टॉल किए गए ऐप्स आयात करें</string>
     <string name="launcher_settings_import_system_shortcuts_success">सभी इंस्टॉल किए गए ऐप्स आयात किए गए</string>
     <string name="launcher_gadget_media_document_open">रीडर में खोलने के लिए टैप करें</string>
     <string name="launcher_edit_streams_loading">स्ट्रीम लोड हो रही हैं..</string>
@@ -2893,7 +2891,7 @@
     <string name="launcher_section_actions_title">सेक्शन क्रियाएं</string>
     <string name="launcher_section_action_rename">सेक्शन का नाम बदलें</string>
     <string name="front_flashlight_title">फ्रंट फ्लैशलाइट</string>
-    <string name="physical_flashlight_title">Camera flashlight</string>
+    <string name="physical_flashlight_title">कैमरा टॉर्च</string>
     <string name="front_flashlight_settings_toggle_title">फ्रंट फ्लैशलाइट</string>
     <string name="front_flashlight_settings_toggle_subtitle">स्क्रीन को ही लैंप में बदलें</string>
     <string name="front_flashlight_help_title">फ्रंट फ्लैशलाइट</string>
@@ -3000,7 +2998,7 @@
     <string name="network_monitor_action_ping">गुनगुनाहट</string>
     <string name="network_monitor_action_traceroute">ट्रेसरूट</string>
     <string name="network_monitor_console_heading">कंसोल आउटपुट</string>
-    <string name="network_monitor_console_empty">Results will appear here..</string>
+    <string name="network_monitor_console_empty">परिणाम यहाँ दिखाई देंगे..</string>
     <string name="network_monitor_action_clear">स्पष्ट</string>
     <string name="network_monitor_action_copy">प्रतिलिपि</string>
     <string name="network_monitor_subnet_scan_heading">सबनेट स्कैन</string>
@@ -3012,24 +3010,24 @@
     <string name="wear_companion_add_open_resource">वॉच जोड़ें या खोलें</string>
     <string name="share_target_title_watch">Watch</string>
     <string name="share_target_desc_watch">फ़ाइल को अपनी जोड़ी गई घड़ी पर दिखाएँ</string>
-    <string name="share_target_help_watch">Sends the file to your paired watch and opens it there. Works with photos, GIFs, video and audio up to 32 MB. The app on the watch must be open.</string>
+    <string name="share_target_help_watch">फ़ाइल को आपकी युग्मित घड़ी पर भेजता है और वहीं खोलता है। 32 MB तक की फ़ोटो, GIF, वीडियो और ऑडियो के साथ काम करता है। घड़ी पर ऐप खुला होना चाहिए।</string>
     <string name="share_target_watch_opened">आपकी घड़ी पर खोला गया.</string>
-    <string name="share_target_watch_unavailable">No paired watch found. Check that the watch is connected.</string>
+    <string name="share_target_watch_unavailable">कोई युग्मित घड़ी नहीं मिली। जाँचें कि घड़ी कनेक्ट है।</string>
     <string name="share_target_watch_no_reply">घड़ी ने जवाब नहीं दिया. इसे करीब लाएँ और पुनः प्रयास करें।</string>
     <string name="share_target_watch_app_not_open">अपनी घड़ी पर ऐप खोलें, फिर दोबारा भेजें।</string>
-    <string name="share_target_watch_unsupported">Your watch cannot show this type of file.</string>
+    <string name="share_target_watch_unsupported">आपकी घड़ी इस प्रकार की फ़ाइल नहीं दिखा सकती।</string>
     <string name="share_target_watch_too_large">फ़ाइल 32 एमबी से बड़ी है - घड़ी के लिए बहुत बड़ी।</string>
     <string name="launcher_section_desktop">Desktop</string>
-    <string name="launcher_edit_streams_narrow_prompt">Type two characters, or pick a topic or language</string>
-    <string name="launcher_edit_streams_too_many">%1$d channels match - refine the search</string>
+    <string name="launcher_edit_streams_narrow_prompt">दो अक्षर टाइप करें, या कोई विषय या भाषा चुनें</string>
+    <string name="launcher_edit_streams_too_many">%1$d चैनल मेल खाते हैं - खोज को सीमित करें</string>
     <string name="launcher_gadget_stream_window">Stream window</string>
     <string name="launcher_gadget_stream_window_stopped">Stopped</string>
     <string name="launcher_gadget_world_clock">World clock</string>
-    <string name="launcher_gadget_world_clock_actions">World clock. Tap to open the clock app, long press to change the time zone</string>
-    <string name="launcher_gadget_world_clock_no_zone">Pick a time zone</string>
+    <string name="launcher_gadget_world_clock_actions">विश्व घड़ी। घड़ी ऐप खोलने के लिए टैप करें, समय क्षेत्र बदलने के लिए देर तक दबाएँ</string>
+    <string name="launcher_gadget_world_clock_no_zone">समय क्षेत्र चुनें</string>
     <string name="launcher_world_clock_zone_title">समय क्षेत्र</string>
-    <string name="ext_vlc_engine_title">Extended Video Playback</string>
-    <string name="ext_vlc_engine_desc">Plays video files and disc images the built-in player cannot open. One-time download of about 44 MB.</string>
+    <string name="ext_vlc_engine_title">विस्तारित वीडियो प्लेबैक</string>
+    <string name="ext_vlc_engine_desc">ऐसी वीडियो फ़ाइलें और डिस्क इमेज चलाता है जिन्हें अंतर्निहित प्लेयर नहीं खोल सकता। लगभग 44 MB का एक बार का डाउनलोड।</string>
     <string name="calculator_display_content_description">परिणाम। कॉपी करने के लिए टैप करें, किसी नंबर को पेस्ट करने के लिए देर तक दबाएं</string>
     <string name="calculator_action_settings">कैलकुलेटर सेटिंग्स</string>
     <string name="calculator_settings_title">Calculator settings</string>
@@ -3348,7 +3346,7 @@
     <string name="mirror_capture_error_save">कैप्चर लिया गया लेकिन फ़ोल्डर में सहेजा नहीं जा सका</string>
     <string name="streams_logo_prompt_title">स्टेशन के लोगो</string>
     <string name="broadcast_notification_title">ऑडियो प्रसारित हो रहा है</string>
-    <string name="broadcast_notification_text">लाइव ऑडियो स्ट्रीम सक्रिय है</string>
+    <string name="broadcast_notification_text">लाइव ऑडियो प्रसारण सक्रिय है</string>
     <string name="broadcast_action_stop">रोकें</string>
     <string name="broadcast_channel_name">ऑडियो प्रसारण</string>
     <string name="broadcast_channel_description">चल रहे ऑडियो प्रसारणों की सूचनाएँ</string>
@@ -3423,8 +3421,6 @@
     <string name="camera_session_consent_notification_title">आपकी घड़ी यह कैमरा देखना चाहती है</string>
     <string name="camera_session_consent_notification_text">घड़ी को इस फ़ोन का कैमरा और माइक्रोफ़ोन देखने दें.</string>
     <string name="camera_session_consent_allow">अनुमति दें</string>
-    <string name="launcher_screens_screen_title">लॉन्चर स्क्रीन</string>
-    <string name="launcher_settings_screens_title">लॉन्चर स्क्रीन</string>
     <string name="launcher_screens_section_screens">स्क्रीन</string>
     <string name="launcher_screens_show_number_title">स्क्रीन नंबर दिखाएं</string>
     <string name="launcher_screens_show_number_hint">स्क्रीन के बीच पेज करते समय नंबर किसी भी वॉलपेपर के ऊपर दिखाया जाता है. यह इस पर निर्भर नहीं करता कि एनिमेशन चालू है या नहीं.</string>
@@ -3445,8 +3441,8 @@
     <string name="broadcast_failed_network">लाइव ब्रॉडकास्ट शुरू नहीं हो सका: डिवाइस नेटवर्क पोर्ट नहीं खोल सका</string>
     <string name="broadcast_failed_encoder">लाइव ब्रॉडकास्ट शुरू नहीं हो सका: इस डिवाइस में कोई ऑडियो एन्कोडर उपलब्ध नहीं है</string>
     <string name="broadcast_failed_capture">लाइव ब्रॉडकास्ट बंद हो गया: ऑडियो कैप्चर बाधित हुआ</string>
-    <string name="broadcast_permission_microphone_required">ऑडियो स्ट्रीम करने के लिए लाइव ब्रॉडकास्ट को माइक्रोफ़ोन एक्सेस चाहिए</string>
-    <string name="broadcast_permission_notifications_required">स्ट्रीम चालू रखने के लिए लाइव ब्रॉडकास्ट को नोटिफिकेशन एक्सेस चाहिए</string>
+    <string name="broadcast_permission_microphone_required">ऑडियो भेजने के लिए लाइव ब्रॉडकास्ट को माइक्रोफ़ोन एक्सेस चाहिए</string>
+    <string name="broadcast_permission_notifications_required">प्रसारण चालू रखने के लिए लाइव ब्रॉडकास्ट को नोटिफिकेशन एक्सेस चाहिए</string>
     <string name="settings_suppress_wear_media_takeover">वॉच पर मीडिया कंट्रोल न दिखाएं</string>
     <string name="settings_suppress_wear_media_takeover_summary">Wear OS सिस्टम को फोन प्लेयर को वॉच पर मीडिया-कंट्रोल स्क्रीन के रूप में दिखाने से रोकें</string>
     <string name="broadcast_import_refreshed">ब्रॉडकास्ट को नए पते के साथ अपडेट किया गया</string>
@@ -3457,7 +3453,7 @@
     <string name="settings_broadcast_audio_format">ऑडियो फॉर्मेट</string>
     <string name="settings_broadcast_mic_gain">माइक्रोफ़ोन गेन</string>
     <string name="settings_broadcast_auto_share">शेयर स्क्रीन अपने आप खोलें</string>
-    <string name="settings_broadcast_stream_title">स्ट्रीम शीर्षक</string>
+    <string name="settings_broadcast_stream_title">प्रसारण शीर्षक</string>
     <string name="unit_speed_mph">%1$s mph</string>
     <string name="unit_speed_kmh_spoken">%1$s किलोमीटर प्रति घंटा</string>
     <string name="unit_speed_mph_spoken">%1$s मील प्रति घंटा</string>
@@ -3485,9 +3481,7 @@
     <string name="settings_streams_visualize_as_music_summary">रेडियो स्टेशन पर टैप करने से नीचे के मिनी-कंट्रोल की जगह विज़ुअलाइज़ेशन वाला फुल-स्क्रीन प्लेयर खुलता है.</string>
     <string name="translation_unavailable_device_licence">इस प्रकार के डिवाइस के लिए ट्रांसलेशन लाइसेंस प्राप्त नहीं है</string>
     <string name="broadcast_entry_title">लाइव ब्रॉडकास्ट</string>
-    <string name="broadcast_entry_description">इस डिवाइस के माइक्रोफ़ोन ऑडियो को अपने लोकल नेटवर्क पर शेयर करना शुरू करें. लिंक रखने वाला कोई भी व्यक्ति तब तक सुन सकता है जब तक आप इसे बंद नहीं करते.</string>
     <string name="broadcast_entry_start">ब्रॉडकास्ट शुरू करें</string>
-    <string name="broadcast_entry_live">ब्रॉडकास्ट लाइव है</string>
     <string name="shortcut_broadcast_short">ब्रॉडकास्ट</string>
     <string name="shortcut_broadcast_long">लाइव ब्रॉडकास्ट</string>
     <string name="tile_broadcast_label">लाइव ब्रॉडकास्ट</string>
@@ -3588,7 +3582,7 @@
     <string name="streams_filter_media_own">अपने</string>
     <string name="streams_media_filter_own">केवल मैन्युअल रूप से जोड़ी गई स्ट्रीम दिखाएँ</string>
     <string name="broadcast_notification_video_title">वीडियो ब्रॉडकास्ट हो रहा है</string>
-    <string name="broadcast_notification_video_text">लाइव कैमरा स्ट्रीम सक्रिय है</string>
+    <string name="broadcast_notification_video_text">लाइव कैमरा प्रसारण सक्रिय है</string>
     <string name="broadcast_control_blank_screen">काली स्क्रीन</string>
     <string name="broadcast_control_blank_screen_cd">प्रसारण चलते रहने तक ऐप को काली स्क्रीन से ढकें</string>
     <string name="broadcast_share_save_failed">फ़ाइल सहेजी नहीं जा सकी</string>
@@ -3632,7 +3626,7 @@
         <item>@string/launcher_primary_window_desktop_title</item>
         <item>@string/launcher_primary_window_resource_manager_title</item>
     </string-array>
-    <string name="broadcast_default_stream_title">फ़ोन स्ट्रीम</string>
+    <string name="broadcast_default_stream_title">फ़ोन प्रसारण</string>
     <string name="broadcast_share_help">इसे कैसे देखें</string>
     <string name="sos_title">SOS आपातकालीन संकेत</string>
     <string name="sos_hint">सायरन और स्ट्रोब मोर्स SOS पैटर्न दोहराते हैं। सीमा के भीतर होने पर युग्मित घड़ी भी संकेत देती है।</string>
@@ -3647,4 +3641,26 @@
     <string name="sos_help_title">SOS आपातकालीन संकेत</string>
     <string name="sos_help_message">अलार्म चैनल पर तेज़ सायरन, पिछली फ़्लैश और झिलमिलाती स्क्रीन के साथ मोर्स SOS पैटर्न दोहराता है। ध्वनि, प्रकाश या दोनों चुनें। इसे यहां शुरू करने पर युग्मित घड़ी पर भी शुरू होता है, और किसी एक को रोकने पर दोनों रुक जाते हैं। संकेत 30 मिनट बाद स्वयं समाप्त हो जाता है ताकि बैटरी और फ़्लैश सुरक्षित रहें।</string>
     <string name="tourist_action_sos">SOS संकेत</string>
+    <string name="data_transfer_row_title">डेटा इंपोर्ट और एक्सपोर्ट करें</string>
+    <string name="data_transfer_row_subtitle">सेटिंग, पसंदीदा, पिन की गई स्ट्रीम और संसाधन - किसी फ़ाइल में या Google Drive पर</string>
+    <string name="data_transfer_dialog_title">डेटा इंपोर्ट और एक्सपोर्ट करें</string>
+    <string name="data_transfer_kind_settings">सेटिंग</string>
+    <string name="data_transfer_kind_favorites">पसंदीदा</string>
+    <string name="data_transfer_kind_streams">पिन की गई स्ट्रीम</string>
+    <string name="data_transfer_kind_resources">संसाधन</string>
+    <string name="data_transfer_direction_export">एक्सपोर्ट</string>
+    <string name="data_transfer_direction_import">इंपोर्ट</string>
+    <string name="data_transfer_medium_file">डिवाइस की फ़ाइल</string>
+    <string name="data_transfer_medium_drive">Google Drive</string>
+    <string name="data_transfer_medium_file_desc">इस डिवाइस पर कोई फ़ाइल चुनें</string>
+    <string name="data_transfer_medium_drive_desc">जुड़े हुए Google Drive खाते की फ़ाइल इस्तेमाल करें</string>
+    <string name="data_transfer_progress">%1$s ट्रांसफ़र हो रहा है..</string>
+    <string name="data_transfer_export_done">%1$s एक्सपोर्ट हो गया।</string>
+    <string name="data_transfer_import_done">हो गया। %1$d जोड़े गए, %2$d अपडेट हुए, %3$d छोड़े गए।</string>
+    <string name="data_transfer_error_drive">Google Drive से कनेक्ट नहीं हो सका। कनेक्शन जाँचें और देखें कि सेटिंग में कोई Google खाता जुड़ा है, फिर दोबारा कोशिश करें।</string>
+    <string name="data_transfer_error_no_file">Google Drive में अभी कोई %1$s फ़ाइल नहीं है। पहले दूसरे डिवाइस से उसे एक्सपोर्ट करें।</string>
+    <string name="data_transfer_error_incompatible">इस फ़ाइल में दूसरी तरह का डेटा है, या यह ऐप के नए वर्शन से आई है। कुछ भी नहीं बदला गया।</string>
+    <string name="data_transfer_error_empty">%1$s में एक्सपोर्ट करने के लिए अभी कुछ नहीं है।</string>
+    <string name="data_transfer_error_unreadable">वह फ़ाइल पढ़ी नहीं जा सकी। उसे दोबारा चुनें या कोई दूसरी चुनें।</string>
+    <string name="data_transfer_error_unwritable">उस जगह पर लिखा नहीं जा सका। कोई दूसरी फ़ाइल चुनकर दोबारा कोशिश करें।</string>
 </resources>

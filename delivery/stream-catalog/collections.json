@@ -11815,6 +11815,18 @@
         {
           "url": "http://23543.live.streamtheworld.com/CAPE_TALK_SC",
           "order": 222
+        },
+        {
+          "url": "http://20133.live.streamtheworld.com:3690/FM702_SC",
+          "order": 223
+        },
+        {
+          "url": "http://22333.live.streamtheworld.com/FM947AAC_SC",
+          "order": 224
+        },
+        {
+          "url": "https://vm65162.streamerr.co/listen/mirchi/radio.mp3",
+          "order": 225
         }
       ]
     },
@@ -27377,6 +27389,10 @@
         {
           "url": "https://radio-hls.mdr.de/hls/live/2112913/mdr-991101-0-hls/index.m3u8",
           "order": 2321
+        },
+        {
+          "url": "http://d141.rndfnk.com/ard/rbb/radioeins/live/mp3/128/stream.mp3?cid=01FC1WH12KJ93TCQPDSE2E5PZ9&sid=3JOfW1eL3yzIi7oB4YbRHhdkFLg&token=-KUXTXHyZccUM8laaUzvldLiS3Mk_Yg6q1AILUO9gQA&tvf=4p6vOh_K1RhkMTQxLnJuZGZuay5jb20",
+          "order": 2322
         }
       ]
     },

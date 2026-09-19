@@ -146,7 +146,7 @@
       "destination": "MEDIA",
       "layout": "fragment_settings_broadcast",
       "kind": "INPUT_ROW",
-      "titleEn": "Stream title",
+      "titleEn": "Broadcast title",
       "titleRu": "Название вещания",
       "titleUk": "Назва мовлення"
     },
@@ -1486,9 +1486,9 @@
       "destination": "GENERAL",
       "layout": "dialog_data_transfer",
       "kind": "BUTTON",
-      "titleEn": "Cancel",
-      "titleRu": "Отмена",
-      "titleUk": "Скасувати"
+      "titleEn": "Back",
+      "titleRu": "Назад",
+      "titleUk": "Назад"
     },
     {
       "key": "btnUnusedCredentials",
@@ -1649,6 +1649,16 @@
       "titleEn": "Compact elements",
       "titleRu": "Компактные элементы (глобально)",
       "titleUk": "Компактні елементи (глобально)"
+    },
+    {
+      "key": "rowCrossDevicePackets",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Pending device transfers",
+      "titleRu": "Ожидающие передачи",
+      "titleUk": "Очікувані передачі"
     },
     {
       "key": "rowDataTransfer",
@@ -2771,6 +2781,16 @@
       "titleUk": "Автовимкнення екрана"
     },
     {
+      "key": "rowLauncherScreenTimeoutOnCharge",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Screen timeout when on charge",
+      "titleRu": "Таймаут экрана при зарядке",
+      "titleUk": "Таймаут екрана під час заряджання"
+    },
+    {
       "key": "rowLauncherShowPinned",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -2916,9 +2936,9 @@
       "destination": "GENERAL",
       "layout": "dialog_launcher_settings",
       "kind": "SELECTION_ROW",
-      "titleEn": "Launcher screens",
-      "titleRu": "Экраны лаунчера",
-      "titleUk": "Екрани лаунчера"
+      "titleEn": "Screens and wallpaper",
+      "titleRu": "Экраны и обои",
+      "titleUk": "Екрани та шпалери"
     },
     {
       "key": "rowLauncherWidgetBackdropAlpha",
@@ -3199,6 +3219,16 @@
       "titleEn": "Confirm delete",
       "titleRu": "Подтверждать удаление",
       "titleUk": "Підтверджувати видалення"
+    },
+    {
+      "key": "rowDimClockOverlay",
+      "sectionId": "playback",
+      "destination": "PLAYBACK",
+      "layout": "fragment_settings_playback",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show clock and status while dimmed",
+      "titleRu": "выводить часы и состояние во время затемнения",
+      "titleUk": "Показувати годинник і стан під час затемнення"
     },
     {
       "key": "rowDisableNineZone",

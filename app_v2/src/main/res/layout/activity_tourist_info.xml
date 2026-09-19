@@ -193,7 +193,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOpenMap"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/Widget.FastMediaSorter.Button.Tonal.Compact"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:icon="@drawable/ic_map"
@@ -201,7 +201,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnShareLocation"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/Widget.FastMediaSorter.Button.Tonal.Compact"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:icon="@drawable/ic_share"
@@ -209,7 +209,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnResetTrip"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            style="@style/Widget.FastMediaSorter.Button.Outlined.Compact"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:icon="@drawable/ic_refresh"
@@ -220,6 +220,7 @@
              more of them. Its accent is the red the programs list already gives the program. -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSos"
+            style="@style/Widget.FastMediaSorter.Button.Filled.Compact"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/color_program_accent_red"

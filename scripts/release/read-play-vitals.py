@@ -265,6 +265,10 @@ def normalize_issue(issue):
     last = issue.get("lastAppVersion") or {}
     return {
         "name": issue.get("name"),
+        # The Play console cluster id, the only exact key two reads of the same crash share (S3286).
+        # `name` is apps/{package}/errorIssues/{clusterId}; a name without a slash yields the whole
+        # string, which is harmless because the dedup only ever matches an id against itself.
+        "clusterId": (issue.get("name") or "").rsplit("/", 1)[-1] or None,
         "type": issue.get("type"),
         "cause": issue.get("cause"),
         "location": issue.get("location"),

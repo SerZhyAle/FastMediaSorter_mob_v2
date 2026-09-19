@@ -44,6 +44,9 @@ class LauncherSettingsStoreTest {
         // S2384: idle screen-off ships on at 30 seconds. Pinned as a literal for the same reason the
         // backdrop alpha below is - reading the constant the store reads would pin nothing.
         assertEquals(30, values.screenBlackoutTimeoutSeconds)
+        // S3284: the on-charge countdown ships off, so a plugged-in desktop stays lit. Literal for the
+        // same reason as the line above.
+        assertEquals(0, values.screenBlackoutTimeoutOnChargeSeconds)
         // S2320: the shared launcher backdrop starts at 25% opacity, so a fresh install reads its
         // surfaces as plates over the wallpaper. Pinned as a literal - reading the constant the store
         // itself reads would compare it with itself and pin nothing.
@@ -252,6 +255,7 @@ class LauncherSettingsStoreTest {
                 wallpaperImagePath = "/storage/emulated/0/wall.png",
                 allAppsSortDescending = true,
                 screenBlackoutTimeoutSeconds = 45,
+                screenBlackoutTimeoutOnChargeSeconds = 120,
                 widgetBackdropAlpha = 0.25f,
                 weatherLastLocation = "50.45,30.52,Kyiv",
                 animationPalette = AppSettings.ANIMATION_PALETTE_GREEN,
@@ -290,6 +294,10 @@ class LauncherSettingsStoreTest {
         assertEquals(
             settings.launcherScreenBlackoutTimeoutSeconds,
             values.screenBlackoutTimeoutSeconds,
+        )
+        assertEquals(
+            settings.launcherScreenBlackoutTimeoutOnChargeSeconds,
+            values.screenBlackoutTimeoutOnChargeSeconds,
         )
         assertEquals(settings.launcherWidgetBackdropAlpha, values.widgetBackdropAlpha, 0.0f)
         assertEquals(settings.launcherTaskbarPlacement, values.taskbarPlacement)

@@ -71,7 +71,7 @@
     <string name="keybinding_label_navigation_seek_macro_backward">Recherche de macro en arrière</string>
     <string name="keybinding_label_navigation_seek_macro_forward">Chercher Macro Forward</string>
     <string name="keybinding_label_navigation_seek_micro_backward">Recherche micro en arrière</string>
-    <string name="keybinding_label_navigation_seek_micro_forward">Seek Micro Forward</string>
+    <string name="keybinding_label_navigation_seek_micro_forward">Avance micro</string>
     <string name="keybinding_label_playback_frame_step_backward">Cadre Pas en arrière</string>
     <string name="keybinding_label_playback_frame_step_forward">Cadre Pas en avant</string>
     <string name="keybinding_label_playback_pause">Pause</string>

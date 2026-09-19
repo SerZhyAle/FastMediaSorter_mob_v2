@@ -254,7 +254,7 @@ private fun ConnectionTestDialog(
                 onConfirm = onDismiss,
                 onDismissRequest = onDismiss,
                 message = stringResource(R.string.testing_connection),
-                confirmLabel = stringResource(android.R.string.ok),
+                confirmLabel = stringResource(R.string.ok),
                 cancelLabel = null,
                 content = {
                     CircularProgressIndicator(
@@ -272,7 +272,7 @@ private fun ConnectionTestDialog(
                 title = state.sourceName,
                 onConfirm = onDismiss,
                 onDismissRequest = onDismiss,
-                confirmLabel = stringResource(android.R.string.ok),
+                confirmLabel = stringResource(R.string.ok),
                 cancelLabel = null,
                 content = {
                     Text(

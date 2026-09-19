@@ -227,7 +227,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             .setPositiveButton(R.string.profile_picker_select) { _, _ ->
                 viewModel.confirmProfilePresetReapply(type)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(this@WelcomeActivity)
     }
 

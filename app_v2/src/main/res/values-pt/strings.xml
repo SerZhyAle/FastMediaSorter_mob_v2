@@ -1830,7 +1830,6 @@
     <string name="camera_capture_microphone_muted">A gravar sem som</string>
     <string name="camera_mode_photo">Foto</string>
     <string name="camera_mode_video">Vídeo</string>
-    <string name="quick_camera_menu_label">Câmera</string>
     <string name="camera_control_pause">Pausa</string>
     <string name="camera_control_resume">Retomar</string>
     <string name="camera_gallery_preview">Ver a última captura</string>
@@ -1926,7 +1925,6 @@
     <string name="statistics_metric_ocr_scans">Texto reconhecido</string>
     <string name="app_launch_panel_route_calculator">Calculadora</string>
     <string name="app_launch_panel_route_game">Minijogo</string>
-    <string name="app_launch_panel_route_ocr">Tradução de fotos por OCR</string>
     <string name="app_launch_panel_route_streams">Transmissões</string>
     <string name="app_launch_panel_route_favorites">Favoritos</string>
     <string name="app_launch_panel_os_settings">Configurações</string>
@@ -3431,8 +3429,6 @@
     <string name="camera_session_consent_notification_title">Seu relógio quer ver esta câmera</string>
     <string name="camera_session_consent_notification_text">Permita que o relógio veja a câmera e o microfone deste telefone.</string>
     <string name="camera_session_consent_allow">Permitir</string>
-    <string name="launcher_screens_screen_title">Ecrãs do launcher</string>
-    <string name="launcher_settings_screens_title">Ecrãs do launcher</string>
     <string name="launcher_screens_section_screens">Ecrãs</string>
     <string name="launcher_screens_show_number_title">Mostrar número do ecrã</string>
     <string name="launcher_screens_show_number_hint">O número aparece sobre qualquer imagem de fundo enquanto muda de ecrã. Isto não depende de a animação estar ativada.</string>
@@ -3493,9 +3489,7 @@
     <string name="settings_streams_visualize_as_music_summary">Tocar numa estação de rádio abre o leitor em ecrã inteiro com visualização, em vez do mini-controlo inferior.</string>
     <string name="translation_unavailable_device_licence">A tradução não está licenciada para este tipo de dispositivo</string>
     <string name="broadcast_entry_title">Difusão em direto</string>
-    <string name="broadcast_entry_description">Comece a partilhar o áudio do microfone deste dispositivo na sua rede local. Qualquer pessoa com a ligação pode ouvir até parar a difusão.</string>
     <string name="broadcast_entry_start">Iniciar difusão</string>
-    <string name="broadcast_entry_live">A difusão está no ar</string>
     <string name="shortcut_broadcast_short">Difusão</string>
     <string name="shortcut_broadcast_long">Difusão em direto</string>
     <string name="tile_broadcast_label">Difusão em direto</string>
@@ -3655,4 +3649,26 @@
     <string name="sos_help_title">Sinal de emergência SOS</string>
     <string name="sos_help_message">Repete o padrão SOS em morse com uma sirene alta no canal de alarme, o flash traseiro e um ecrã intermitente. Escolha som, luz ou ambos. Iniciá-lo aqui também o inicia no relógio emparelhado, e parar um deles para ambos. O sinal termina sozinho ao fim de 30 minutos para que a bateria e o flash o suportem.</string>
     <string name="tourist_action_sos">Sinal SOS</string>
+    <string name="data_transfer_row_title">Importar e exportar dados</string>
+    <string name="data_transfer_row_subtitle">Configurações, favoritos, transmissões fixadas e recursos - para um arquivo ou para o Google Drive</string>
+    <string name="data_transfer_dialog_title">Importar e exportar dados</string>
+    <string name="data_transfer_kind_settings">Configurações</string>
+    <string name="data_transfer_kind_favorites">Favoritos</string>
+    <string name="data_transfer_kind_streams">Transmissões fixadas</string>
+    <string name="data_transfer_kind_resources">Recursos</string>
+    <string name="data_transfer_direction_export">Exportar</string>
+    <string name="data_transfer_direction_import">Importar</string>
+    <string name="data_transfer_medium_file">Arquivo do dispositivo</string>
+    <string name="data_transfer_medium_drive">Google Drive</string>
+    <string name="data_transfer_medium_file_desc">Escolher um arquivo neste dispositivo</string>
+    <string name="data_transfer_medium_drive_desc">Usar o arquivo da conta do Google Drive conectada</string>
+    <string name="data_transfer_progress">Transferindo %1$s..</string>
+    <string name="data_transfer_export_done">%1$s exportado.</string>
+    <string name="data_transfer_import_done">Concluído. Adicionados %1$d, atualizados %2$d, ignorados %3$d.</string>
+    <string name="data_transfer_error_drive">Não foi possível acessar o Google Drive. Verifique a conexão e se há uma conta do Google conectada nas configurações e tente de novo.</string>
+    <string name="data_transfer_error_no_file">Ainda não há nenhum arquivo %1$s no Google Drive. Exporte-o primeiro no outro dispositivo.</string>
+    <string name="data_transfer_error_incompatible">Este arquivo contém outro tipo de dados ou vem de uma versão mais recente do aplicativo. Nada foi alterado.</string>
+    <string name="data_transfer_error_empty">Ainda não há nada para exportar em %1$s.</string>
+    <string name="data_transfer_error_unreadable">Não foi possível ler esse arquivo. Selecione-o novamente ou escolha outro.</string>
+    <string name="data_transfer_error_unwritable">Não foi possível gravar nesse local. Escolha outro arquivo e tente de novo.</string>
 </resources>

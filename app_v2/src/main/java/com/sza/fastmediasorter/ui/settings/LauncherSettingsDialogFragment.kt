@@ -415,11 +415,11 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             )
                 .setTitle(R.string.launcher_settings_reset_title)
                 .setView(content.root)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
+                .setPositiveButton(R.string.ok) { _, _ ->
                     val index = densityIndexOrDefault(content.rowResetDensity.getSelectedIndex())
                     launcherViewModel.resetToDefaults(AppSettings.LAUNCHER_DENSITY_OPTIONS[index])
                 }
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .showBoundTo(this@LauncherSettingsDialogFragment)
         }
     }

@@ -36,6 +36,7 @@
             android:id="@+id/previewContainer"
             android:layout_width="match_parent"
             android:layout_height="@dimen/broadcast_control_preview_height"
+            android:importantForAccessibility="noHideDescendants"
             android:background="@android:color/black"
             android:layout_marginBottom="@dimen/margin_normal" />
 

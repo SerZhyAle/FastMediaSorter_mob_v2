@@ -31,6 +31,12 @@ import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sza.fastmediasorter.wear.ui.common.dimclock.WearDimClock
+import com.sza.fastmediasorter.wear.ui.common.dimclock.WearDimClockEntryPoint
+import dagger.hilt.android.EntryPointAccessors
+
 /** How long the acknowledgement ring takes to spread out and fade after a single tap - slow on purpose. */
 private const val TAP_MARK_DURATION_MS = 1400
 
@@ -64,9 +70,32 @@ private val TAP_MARK_STROKE = 2.dp
  * S3098 moved it out of the player package entirely and renamed it: the navigation host raises the
  * same sheet from any ordinary screen, so an overlay named after the players would have been a false
  * name at a false address for the screen that now calls it most.
+ *
+ * S3256: displays clock and status overlay when [WearAppearancePreferences.dimClockOverlayEnabled] is on.
  */
 @Composable
-internal fun WearDimOverlay(onExit: () -> Unit) {
+internal fun WearDimOverlay(
+    onExit: () -> Unit,
+    clock: @Composable () -> Unit = {
+        val context = LocalContext.current
+        val entryPoint = remember(context) {
+            EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                WearDimClockEntryPoint::class.java
+            )
+        }
+        val preferencesRepository = entryPoint.preferencesRepository()
+        val dimClockOverlayEnabled by preferencesRepository.dimClockOverlayEnabled.collectAsStateWithLifecycle(initialValue = false)
+        if (dimClockOverlayEnabled) {
+            Timber.d("S3256: watch dim overlay composed with dim clock enabled")
+            WearDimClock(
+                preferencesRepository = preferencesRepository,
+                powerStateObserver = entryPoint.powerStateObserver(),
+                systemInfoDataSource = entryPoint.systemInfoDataSource()
+            )
+        }
+    }
+) {
     val exitDesc = stringResource(R.string.wear_screen_off_exit_hint)
     var tapMark by remember { mutableStateOf<Offset?>(null) }
     // Starts finished so nothing is drawn before the first tap. animateTo cancels a running animation,
@@ -119,5 +148,7 @@ internal fun WearDimOverlay(onExit: () -> Unit) {
                 }
             }
             .semantics { contentDescription = exitDesc }
-    )
+    ) {
+        clock()
+    }
 }

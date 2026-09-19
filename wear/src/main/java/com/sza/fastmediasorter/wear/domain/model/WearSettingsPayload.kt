@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.model
 
+import com.google.gson.annotations.SerializedName
+
 /**
  * Payload for receiving Wear companion settings pushed from the phone.
  * Fields mirror the setters in WearPreferencesRepository.
@@ -63,5 +65,8 @@ data class WearSettingsPayload(
     // raised (ADR-1) - a hard version check would turn a mismatched pair into a refusal to sync.
     val appVersionName: String? = null,
     // S2505: player panel auto-hide duration in seconds.
-    val panelAutoHideSeconds: Int? = null
+    val panelAutoHideSeconds: Int? = null,
+    // S3256: Dim screen clock and status overlay toggle and seconds visibility
+    @SerializedName("dimClockOverlayEnabled") val dimClockOverlayEnabled: Boolean? = null,
+    @SerializedName("dimClockSecondsVisible") val dimClockSecondsVisible: Boolean? = null
 )

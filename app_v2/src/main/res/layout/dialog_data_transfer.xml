@@ -130,15 +130,29 @@
                 android:nextFocusDown="@+id/btnTransferBack"
                 app:icon="@drawable/ic_cloud_download" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTransferBack"
-                style="@style/Widget.FastMediaSorter.Button.DialogCancel"
-                android:layout_width="wrap_content"
+            <!-- S1565: the escape carries its own container so the pane is not measured from it.
+                 It is the only child that is not match_parent, and a wrap_content child is the one
+                 LinearLayout counts towards a wrap_content parent's width - the match_parent
+                 siblings contribute their margins only - so the action pane took this button's
+                 width and the button rendered as an unreadable pill. The label is the app's own
+                 string, not @android:string/cancel: framework resources follow the system display
+                 locale rather than the per-app one, so that reference reads "Cancel" in English on
+                 a Russian screen (S2930 measured the same split on this phone). -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_small"
-                android:focusable="true"
-                android:nextFocusUp="@+id/btnImportFromDrive"
-                android:text="@android:string/cancel" />
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTransferBack"
+                    style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:nextFocusUp="@+id/btnImportFromDrive"
+                    android:text="@string/back" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout

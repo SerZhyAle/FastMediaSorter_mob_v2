@@ -39,6 +39,7 @@ import com.sza.fastmediasorter.ui.settings.DataTransferDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.auth.AuthSessionsActivity
+import com.sza.fastmediasorter.ui.settings.cloud.CrossDevicePacketListDialogFragment
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsActionHelpers
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsBackupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCacheHelper
@@ -253,6 +254,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             { isUpdatingSpinner = it },
             capabilityAvailability,
             powerStateObserver.batteryLevelUnavailable,
+            powerStateObserver.decision,
         )
     }
     private val viewSetupHelper by lazy {
@@ -308,6 +310,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         setupGmsBanner()
         setupSavedAuthorizationsRow()
         setupDataTransferRow()
+        setupCrossDeviceQueueRow()
         logHelper.setupVersionInfo()
         // S0200 Phase 06: bind the new Google Account card after the layout is inflated.
         // S1693: stays findViewById - the card is included TWICE in this layout (bare includes, no
@@ -385,6 +388,15 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         launcherHelper.handleLauncherRoleDeepLink()
     }
 
+    // S3292/S3295: leaving the screen does not move focus out of the freely typeable icon-size and
+    // sync-interval fields, so their typed values would be thrown away unread. Commit here, while
+    // the binding is still alive.
+    override fun onPause() {
+        viewSetupHelper.commitPendingIconSize()
+        viewSetupHelper.commitPendingSyncInterval()
+        super.onPause()
+    }
+
     override fun onDestroyView() {
         observersHelper.dismissManualSyncProgressDialog()
         super.onDestroyView()
@@ -395,13 +407,25 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     // DataTransferMenuManager's decision, made inside the dialog.
     private fun setupDataTransferRow() {
         binding.rowDataTransfer.setOnRowClickListener {
-            Timber.d("S1565: data transfer row tapped, opening the transfer menu")
             DataTransferDialogFragment().show(
                 parentFragmentManager,
                 DataTransferDialogFragment.TAG
             )
         }
         observeStagedTransferDocument()
+    }
+
+    // S3040: the pending-packet queue lives in the same App data card as the S1565 menu - the
+    // strategic section 0 anchor "Settings -> Data / Cloud Transfer". Sending settings happens
+    // inside the queue dialog, so the card keeps exactly two entries.
+    private fun setupCrossDeviceQueueRow() {
+        binding.rowCrossDevicePackets.setOnRowClickListener {
+            Timber.d("S3040: cross-device queue row tapped, opening packet list")
+            CrossDevicePacketListDialogFragment().show(
+                parentFragmentManager,
+                CrossDevicePacketListDialogFragment.TAG
+            )
+        }
     }
 
     /**

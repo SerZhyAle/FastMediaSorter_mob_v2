@@ -229,11 +229,11 @@ class ScheduledOperationDialog(
             com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                 .setTitle(context.getString(R.string.scheduled_ops_col_schedule))
                 .setView(row)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
+                .setPositiveButton(R.string.ok) { _, _ ->
                     b.etIntervalHours.setText(pickerHours.value.toString())
                     b.etIntervalMinutes.setText(pickerMinutes.value.toString().padStart(2, '0'))
                 }
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .showBoundToHost(context)
         }
     }

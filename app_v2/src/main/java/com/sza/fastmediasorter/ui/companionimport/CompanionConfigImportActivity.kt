@@ -115,7 +115,7 @@ class CompanionConfigImportActivity : AppCompatActivity() {
             .setTitle(R.string.companion_import_title)
             .setView(view)
             .setPositiveButton(R.string.companion_import_action, null)
-            .setNegativeButton(android.R.string.cancel) { _, _ -> finish() }
+            .setNegativeButton(R.string.cancel) { _, _ -> finish() }
             .setOnCancelListener { finish() }
             .create()
         // Custom positive handler so a blank password does not dismiss the dialog and does not clobber
@@ -154,7 +154,7 @@ class CompanionConfigImportActivity : AppCompatActivity() {
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.companion_import_title)
             .setMessage(message)
-            .setPositiveButton(android.R.string.ok) { _, _ -> finish() }
+            .setPositiveButton(R.string.ok) { _, _ -> finish() }
             .setOnCancelListener { finish() }
             .create()
         activeDialog = dialog

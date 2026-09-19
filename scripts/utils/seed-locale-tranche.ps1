@@ -12,6 +12,21 @@
     defeating Android's resource fallback - and that fallback is the whole reason a partial locale
     is a shipped state rather than a defect (strategic ADR-6).
 
+    S3304: that promise is now enforced rather than merely documented. A map is free to return the
+    English source for a key - a bulk translation service does it routinely - and until this ticket
+    such a value was written to the locale file AND stamped, because the text did come from the map
+    and was written, which is literally what the stamping rule below says. The result satisfied
+    every check list-new-lexemes.ps1 had, so the copy was invisible to the release gate: measured on
+    physical_flashlight_title, ar, fr, hi and zh-Hans all shipped "Camera flashlight" under a stamp
+    identical to the two locales that really translated it. A supplied value equal to its English
+    source is therefore treated as no translation at all - the key is omitted and nothing is
+    stamped, exactly as for a key the map does not carry. Omission is render-equivalent, since
+    Android falls back to the default locale and shows the same words.
+
+    Keys entitled to equal their English source - brand names, acronyms, units, pure format tokens -
+    are named in scripts/quality/locale-identical-allowlist.json and are written and stamped as
+    before.
+
     Placeholders are checked rather than trusted: a translation whose format-token multiset differs
     from the English one is rejected and omitted, because a dropped or retyped %1$s survives the
     build and crashes at format time in front of the user.
@@ -99,6 +114,10 @@
     ad-hoc grep does - a multi-line or markup-carrying element slips through and the key is simply
     absent from the tranche with nothing reporting it.
 
+.PARAMETER AllowlistPath
+    Keys allowed to equal their English source. Default scripts/quality/locale-identical-allowlist.json.
+    Its absence is not an error - an empty allow-list exempts nothing, which is the strict reading.
+
 .PARAMETER FingerprintsPath
     Override the locale fingerprint registry this run stamps. Defaults to the shipped
     scripts/quality/locale-source-fingerprints.json; tests point it at a scratch file so they never
@@ -140,6 +159,7 @@ param(
     [string]$MapPath,
     [string]$KeyPrefix,
     [string]$FingerprintsPath,
+    [string]$AllowlistPath,
     [switch]$Merge,
     [switch]$DumpSource,
     [switch]$DryRun
@@ -196,6 +216,48 @@ function ConvertTo-XmlText([AllowEmptyString()][string]$Text) {
 
 function Get-FormatSignature([AllowEmptyString()][string]$Text) {
     return (([regex]::Matches($Text, '%(\d+\$)?[a-zA-Z]') | ForEach-Object { $_.Value } | Sort-Object) -join '|')
+}
+
+function Test-PlainTextEqual([AllowEmptyString()][string]$Left, [AllowEmptyString()][string]$Right) {
+    <# Both sides through the normalizer the corpus and the registry already agree on, then ordinal. #>
+    return [string]::Equals((ConvertFrom-ResourceBody $Left), (ConvertFrom-ResourceBody $Right), [System.StringComparison]::Ordinal)
+}
+
+function Test-EnglishIdenticalValue([string]$Kind, [AllowEmptyString()][string]$Body, $Value) {
+    <#
+        S3304: true when the supplied value carries no translation at all - every unit of it equals
+        its English counterpart. A type mismatch answers false so the existing rejection below, which
+        names the expected shape, stays the one that reports it. A container the map extends past the
+        English source answers false too: the extra item is text the English does not have, so the
+        value as a whole is not a copy.
+    #>
+    switch ($Kind) {
+        'string' {
+            if ($Value -isnot [string]) { return $false }
+            return (Test-PlainTextEqual $Body $Value)
+        }
+        'plurals' {
+            if ($Value -isnot [hashtable] -or $Value.Count -eq 0) { return $false }
+            $englishItems = @{}
+            foreach ($item in [regex]::Matches($Body, '(?s)<item\s+quantity="([^"]+)"[^>]*>(.*?)</item>')) {
+                $englishItems[$item.Groups[1].Value] = $item.Groups[2].Value
+            }
+            foreach ($quantity in $Value.Keys) {
+                if (-not $englishItems.ContainsKey($quantity)) { return $false }
+                if (-not (Test-PlainTextEqual $englishItems[$quantity] ([string]$Value[$quantity]))) { return $false }
+            }
+            return $true
+        }
+        default {
+            if ($Value -isnot [array] -or $Value.Count -eq 0) { return $false }
+            $englishItems = @([regex]::Matches($Body, '(?s)<item[^>]*>(.*?)</item>') | ForEach-Object { $_.Groups[1].Value })
+            if ($Value.Count -gt $englishItems.Count) { return $false }
+            for ($i = 0; $i -lt $Value.Count; $i++) {
+                if (-not (Test-PlainTextEqual $englishItems[$i] ([string]$Value[$i]))) { return $false }
+            }
+            return $true
+        }
+    }
 }
 
 # Android's inline styling tags are markup, not text: escaping them would turn <b>Always</b> into
@@ -307,6 +369,10 @@ $out.Add('     Untranslated keys are absent on purpose - Android falls back to E
 $out.Add('<resources>')
 
 $rejected = [System.Collections.Generic.List[string]]::new()
+# Not a rejection: the map was readable and the key was eligible, there was simply nothing in it to
+# write. It is reported separately and does not move the exit code, exactly as a key the map omits.
+$englishIdentical = [System.Collections.Generic.List[string]]::new()
+$allowlist = Get-LocaleIdenticalAllowlist -Path $AllowlistPath
 $eligible = [System.Collections.Generic.HashSet[string]]::new()
 $written = 0
 
@@ -340,6 +406,16 @@ foreach ($element in $elements) {
         continue
     }
     $value = $map[$name]
+
+    # S3309: judged against THIS tranche's locale. An entry may entitle the key in some locales only,
+    # and the key-level answer let one locale's legitimate identical wave another locale's copy past.
+    if (-not (Test-LocaleIdenticalAllowlisted -Key $name -Locale $Locale -Allowlist $allowlist)) {
+        if (Test-EnglishIdenticalValue $kind $body $value) {
+            [void]$englishIdentical.Add($name)
+            Add-CarriedFallback $name
+            continue
+        }
+    }
 
     if ($kind -eq 'string') {
         if ($value -isnot [string]) { [void]$rejected.Add("$name (expected a string for <string>)"); Add-CarriedFallback $name; continue }
@@ -394,8 +470,9 @@ foreach ($key in $map.Keys) {
 }
 
 $out.Add('</resources>')
-Write-Host "seed-locale-tranche: $Locale <- $SourceSet/values/$SourceFile | eligible $($eligible.Count) | written $written | rejected $($rejected.Count)"
+Write-Host "seed-locale-tranche: $Locale <- $SourceSet/values/$SourceFile | eligible $($eligible.Count) | written $written | rejected $($rejected.Count) | english-identical $($englishIdentical.Count)"
 foreach ($reason in $rejected) { Write-Host "  rejected: $reason" }
+foreach ($name in $englishIdentical) { Write-Host "  english-identical, omitted and not stamped: $name" }
 
 if ($DryRun) {
     Write-Host "seed-locale-tranche: -DryRun, nothing written to $outPath"

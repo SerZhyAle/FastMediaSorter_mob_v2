@@ -38,6 +38,15 @@
     Symptom searched in the catalog first; up to five hits print as `dedup:` lines. With -WhatIf
     nothing is created, so the caller can decide on the hits.
 
+    A hit whose status is CLOSED - the list is `grammar.closedStatuses` in .sza-profile.json - stops
+    the capture with exit 3 and names that ticket, because the defect behind the symptom is already
+    fixed in the tree and the capture would be the sixth duplicate of a ticket archived the same day.
+    A hit that is still open only prints, as before.
+
+.PARAMETER AllowClosedDuplicate
+    Capture anyway after a closed-status hit. The escape for a genuine regression: the old defect
+    really did come back, and the new ticket is a report rather than a duplicate.
+
 .PARAMETER RepoRoot
     Project root whose catalog receives the ticket. Defaults to this repository; the contract
     suite passes a fixture.
@@ -46,6 +55,8 @@
       0  ticket created, or -WhatIf finished its dedup report.
       1  the catalog refused the insert or the spec file could not be written.
       2  bad invocation - invalid slug, no text or both text forms, missing attachment or template.
+      3  refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
+         genuine regression.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/utils/capture-draft.ps1 -Slug bugfix-grid-crash -TextFile temp/scratch/draft-bugfix-grid-crash.txt
@@ -60,6 +71,7 @@ param(
     [int]$Tier = 3,
     [int]$Priority = -1,
     [string]$DedupQuery = '',
+    [switch]$AllowClosedDuplicate,
     [string]$RepoRoot = ''
 )
 
@@ -104,6 +116,23 @@ if ($DedupQuery) {
     if ($LASTEXITCODE -eq 0 -and $json) { $hits = @(($json | Out-String) | ConvertFrom-Json) }
     foreach ($hit in @($hits | Select-Object -First 5)) {
         Write-Host "dedup: $($hit.id) $($hit.status) $($hit.name)"
+    }
+
+    # The set is declared in the profile rather than written out here: a status added to the
+    # vocabulary later must widen or narrow this refusal deliberately, not by whatever this body
+    # happened to list on the day it was written.
+    $closedStatuses = @()
+    $profilePath = Join-Path $RepoRoot '.sza-profile.json'
+    if (Test-Path -LiteralPath $profilePath) {
+        try { $closedStatuses = @((Get-Content -LiteralPath $profilePath -Raw | ConvertFrom-Json).grammar.closedStatuses) }
+        catch { $closedStatuses = @() }
+    }
+
+    $closedHit = @($hits | Where-Object { $closedStatuses -contains [string]$_.status }) | Select-Object -First 1
+    if ($closedHit -and -not $AllowClosedDuplicate) {
+        Write-Host "capture-draft: refused - $($closedHit.id) already carries this symptom and is $($closedHit.status)."
+        Write-Host "capture-draft: nothing was written. If the defect genuinely came back, re-run with -AllowClosedDuplicate."
+        exit 3
     }
 }
 if (-not $PSCmdlet.ShouldProcess($Slug, 'capture Draft ticket')) { exit 0 }

@@ -13,8 +13,15 @@
 #
 # Every write goes through scripts/spec_catalog/insert.ps1 - never into the catalog journal itself - and
 # the spec body comes from .claude/templates/strategic-spec.md the way /spec-draft step 5 renders it.
+#
+# S3286 adds a SECOND dedup key beside the name, because the name one is blind in exactly one place: once
+# the release archives a vitals ticket, the crash behind it is still reported by Play until a build carrying
+# the fix has been in the field, so the next red run files it again. The crash-cluster id is the only exact
+# key the two reads share, and docs/play-vitals-cluster-registry.jsonl is where it is written down.
 
 Set-StrictMode -Version Latest
+
+. (Join-Path $PSScriptRoot 'play-vitals-cluster-registry.ps1')
 
 $script:PlayVitalsQueueStatuses = @(
     'Draft', 'Approved', 'Tactical', 'In Progress', 'Partial', 'Broken',
@@ -41,12 +48,44 @@ function Get-PlayVitalsTicketName {
     return "$($cut.TrimEnd('-'))-$hash"
 }
 
+function Get-PlayVitalsClusterOwners {
+    [CmdletBinding()]
+    param(
+        [AllowEmptyCollection()] [AllowNull()] [object[]] $ErrorIssues,
+        [AllowEmptyCollection()] [AllowNull()] [object[]] $ClusterRegistry
+    )
+    # Two counts and the owners, so the caller can tell "every reported cluster is owned" from "some are".
+    $owners = [System.Collections.Generic.List[object]]::new()
+    $total = 0
+    foreach ($issue in $ErrorIssues) {
+        if ($null -eq $issue) { continue }
+        $clusterId = "$(Get-ClusterRegistryField -Entry $issue -Name 'clusterId')".Trim()
+        if (-not $clusterId) { continue }
+        $total++
+        $entry = Find-ClusterRegistryEntry -Registry $ClusterRegistry -ClusterId $clusterId
+        if ($null -ne $entry) { $owners.Add($entry) }
+    }
+    return [pscustomobject] @{ Total = $total; Owners = $owners.ToArray() }
+}
+
 function Get-PlayVitalsFilingPlan {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)] [AllowEmptyCollection()] [object[]] $Findings,
-        [Parameter(Mandatory)] [AllowEmptyCollection()] [object[]] $Records
+        [Parameter(Mandatory)] [AllowEmptyCollection()] [object[]] $Records,
+        [AllowEmptyCollection()] [AllowNull()] [object[]] $ClusterRegistry = @(),
+        [AllowEmptyCollection()] [AllowNull()] [object[]] $ErrorIssues = @()
     )
+    # Cluster pre-pass (S3286). A finding is refused only when the snapshot reported at least one error
+    # issue and EVERY one of them is already owned by a ticket: a single unowned cluster means the red band
+    # carries something nobody has looked at, and that ticket must still be filed.
+    $clusters = Get-PlayVitalsClusterOwners -ErrorIssues $ErrorIssues -ClusterRegistry $ClusterRegistry
+    $allClustersOwned = $clusters.Total -gt 0 -and $clusters.Owners.Count -eq $clusters.Total
+    $clusterReason = ''
+    if ($allClustersOwned) {
+        $first = $clusters.Owners[0]
+        $clusterReason = "every reported crash cluster is already registered (e.g. $(Get-ClusterRegistryField -Entry $first -Name 'clusterId') -> $(Get-ClusterRegistryField -Entry $first -Name 'ticketId'), $(Get-ClusterRegistryField -Entry $first -Name 'ticketStatus'), state $(Get-ClusterRegistryField -Entry $first -Name 'state'))"
+    }
     $plan = [System.Collections.Generic.List[object]]::new()
     $seen = @{}
     foreach ($finding in $Findings) {
@@ -69,6 +108,11 @@ function Get-PlayVitalsFilingPlan {
                 $action = 'skip'
                 $reason = "ticket status '$($record.status)' is not one this filer knows"
             }
+        }
+        # An 'append' is never downgraded: an open ticket still needs its evidence line.
+        if ($action -eq 'file' -and $allClustersOwned) {
+            $action = 'skip'
+            $reason = $clusterReason
         }
         $plan.Add([pscustomobject] @{
             Action       = $action
@@ -176,6 +220,35 @@ function Invoke-PlayVitalsCatalogCli {
     return @($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { "$_" })
 }
 
+function Register-PlayVitalsClusters {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] [string] $ProjectRoot,
+        [AllowEmptyCollection()] [AllowNull()] [object[]] $ErrorIssues,
+        [Parameter(Mandatory)] [string] $TicketId,
+        [string] $TicketStatus = 'Draft'
+    )
+    # Written at filing time and nowhere else: a registry populated later would leave exactly the window
+    # this ticket exists to close - the read that happens between the fix and the release.
+    $registryPath = Get-ClusterRegistryPath -ProjectRoot $ProjectRoot
+    $added = 0
+    foreach ($issue in $ErrorIssues) {
+        if ($null -eq $issue) { continue }
+        $clusterId = "$(Get-ClusterRegistryField -Entry $issue -Name 'clusterId')".Trim()
+        if (-not $clusterId) { continue }
+        $existing = Find-ClusterRegistryEntry -Registry (Read-ClusterRegistry -Path $registryPath) -ClusterId $clusterId
+        if ($null -ne $existing) { continue }
+        $null = Add-ClusterRegistryEntry -Path $registryPath -Entry @{
+            clusterId    = $clusterId
+            ticketId     = $TicketId
+            ticketStatus = $TicketStatus
+            state        = 'open'
+        }
+        $added++
+    }
+    return $added
+}
+
 function Invoke-PlayVitalsFiling {
     [CmdletBinding()]
     param(
@@ -184,8 +257,13 @@ function Invoke-PlayVitalsFiling {
         [Parameter(Mandatory)] $Snapshot,
         [int] $TopIssues = 5,
         [Parameter(Mandatory)] [string] $MeasuredDate,
+        [AllowEmptyCollection()] [AllowNull()] [object[]] $ErrorIssues = @(),
         [string] $Today = ([DateTime]::UtcNow.ToString('yyyy-MM-dd'))
     )
+    if ($null -eq $ErrorIssues -or $ErrorIssues.Count -eq 0) {
+        $issueProperty = $Snapshot.PSObject.Properties['errorIssues']
+        $ErrorIssues = if ($null -eq $issueProperty) { @() } else { @($issueProperty.Value | Where-Object { $null -ne $_ }) }
+    }
     $results = [System.Collections.Generic.List[object]]::new()
     foreach ($item in $Plan) {
         switch ($item.Action) {
@@ -203,6 +281,7 @@ function Invoke-PlayVitalsFiling {
                 $spec = ConvertTo-PlayVitalsSpec -Template $template -Id $id -Name $item.Name -Finding $item.Finding -Evidence $evidence -Today $Today
                 $specPath = Join-Path $ProjectRoot "PLAN/${id}_$($item.Name).md"
                 [System.IO.File]::WriteAllText($specPath, $spec, [System.Text.UTF8Encoding]::new($false))
+                $null = Register-PlayVitalsClusters -ProjectRoot $ProjectRoot -ErrorIssues $ErrorIssues -TicketId $id -TicketStatus 'Draft'
                 $results.Add([pscustomobject] @{ Action = 'filed'; Id = $id; Name = $item.Name; Note = $item.Reason })
             }
             'append' {
@@ -213,6 +292,9 @@ function Invoke-PlayVitalsFiling {
                 }
                 $line = Get-PlayVitalsEvidenceLine -Finding $item.Finding -Date $MeasuredDate
                 $why = Add-PlayVitalsEvidence -Path $specPath -Line $line -Date $MeasuredDate
+                # The clusters belong to the ticket that took the evidence, whichever run first saw them.
+                $null = Register-PlayVitalsClusters -ProjectRoot $ProjectRoot -ErrorIssues $ErrorIssues `
+                    -TicketId $item.RecordId -TicketStatus $item.RecordStatus
                 if ($why) {
                     $results.Add([pscustomobject] @{ Action = 'skipped'; Id = $item.RecordId; Name = $item.Name; Note = $why })
                 } else {

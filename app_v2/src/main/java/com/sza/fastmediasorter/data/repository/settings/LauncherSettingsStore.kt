@@ -98,6 +98,8 @@ object LauncherSettingsStore {
     private val KEY_ALL_APPS_SORT_DESCENDING = booleanPreferencesKey("all_apps_sort_descending")
     private val KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS =
         intPreferencesKey("launcher_screen_blackout_timeout_seconds")
+    private val KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_ON_CHARGE_SECONDS =
+        intPreferencesKey("launcher_screen_blackout_timeout_on_charge_seconds")
     private val KEY_LAUNCHER_WIDGET_BACKDROP_ALPHA = floatPreferencesKey("launcher_widget_backdrop_alpha")
     private val KEY_LAUNCHER_WEATHER_LAST_LOCATION =
         stringPreferencesKey("launcher_weather_last_location")
@@ -187,15 +189,22 @@ object LauncherSettingsStore {
         coerce: (Float) -> Float,
     ): Float = coerce(getOrDefault(key, default))
 
+    /**
+     * S1741/S2384/S3284: one stored blackout timeout, non-negative (0 = Off).
+     *
+     * The default is what a fresh install reads, because nothing has been written to the preference
+     * yet - so the two timeouts must not share one, and each caller names its own.
+     */
+    private fun Preferences.readTimeoutSeconds(key: Preferences.Key<Int>, default: Int): Int =
+        getOrDefault(key, default).coerceAtLeast(0)
+
     private fun readCoreValues(preferences: Preferences): LauncherSettings = LauncherSettings(
         // S2320: reads the canonical default rather than a literal - this line carried its own copy of
         // the old 1.0f and would have kept a fresh install on the previous density after it moved.
         densityFactor = preferences
             .getOrDefault(KEY_LAUNCHER_DENSITY_FACTOR, AppSettings.DEFAULT_LAUNCHER_DENSITY_FACTOR),
-        screenCount = preferences.getOrDefault(
-            KEY_LAUNCHER_SCREEN_COUNT,
-            DEFAULT_LAUNCHER_SCREEN_COUNT
-        ).coerceIn(MIN_LAUNCHER_SCREEN_COUNT, MAX_LAUNCHER_SCREEN_COUNT),
+        screenCount = preferences.getOrDefault(KEY_LAUNCHER_SCREEN_COUNT, DEFAULT_LAUNCHER_SCREEN_COUNT)
+            .coerceIn(MIN_LAUNCHER_SCREEN_COUNT, MAX_LAUNCHER_SCREEN_COUNT),
         showScreenNumber = preferences.getOrDefault(
             KEY_LAUNCHER_SHOW_SCREEN_NUMBER,
             AppSettings.DEFAULT_LAUNCHER_SHOW_SCREEN_NUMBER,
@@ -257,14 +266,14 @@ object LauncherSettingsStore {
         allAppsSortOrder = InstalledAppSortOrder
             .fromNameOrDefault(preferences[KEY_ALL_APPS_SORT_ORDER]).name,
         allAppsSortDescending = preferences.getOrDefault(KEY_ALL_APPS_SORT_DESCENDING, false),
-        // S1741/S2384: non-negative seconds (0 = Off). The fallback is what a fresh install reads,
-        // because nothing has been written to the preference yet.
-        screenBlackoutTimeoutSeconds = preferences
-            .getOrDefault(
-                KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS,
-                AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,
-            )
-            .coerceAtLeast(0),
+        screenBlackoutTimeoutSeconds = preferences.readTimeoutSeconds(
+            KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS,
+            AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,
+        ),
+        screenBlackoutTimeoutOnChargeSeconds = preferences.readTimeoutSeconds(
+            KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_ON_CHARGE_SECONDS,
+            AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_ON_CHARGE_SECONDS,
+        ),
         // S1748: the widget backdrop opacity stored as a float, with the default matching the app's
         // launcher setting rows and the last chosen value surviving a restart.
         // S2320: snapped to the option list on read, so an install carrying an alpha S2320 removed
@@ -344,6 +353,8 @@ object LauncherSettingsStore {
         preferences[KEY_ALL_APPS_SORT_DESCENDING] = settings.allAppsSortDescending
         preferences[KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS] =
             settings.launcherScreenBlackoutTimeoutSeconds
+        preferences[KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_ON_CHARGE_SECONDS] =
+            settings.launcherScreenBlackoutTimeoutOnChargeSeconds
         preferences[KEY_LAUNCHER_WIDGET_BACKDROP_ALPHA] = settings.launcherWidgetBackdropAlpha
         preferences[KEY_LAUNCHER_WEATHER_LAST_LOCATION] = settings.launcherWeatherLastLocation
         preferences[KEY_LAUNCHER_STEPS_RESET_COUNT] = settings.launcherStepsResetCount

@@ -268,12 +268,10 @@
     <string name="cross_device_transfer_pending_title">Transferts d\'appareil en attente</string>
     <string name="cross_device_transfer_receive_and_delete">Recevoir et supprimer du cloud</string>
     <string name="cross_device_transfer_receive_and_keep">Recevoir et conserver dans le cloud</string>
-    <string name="cross_device_transfer_clear_queue">Vider la file d\'attente</string>
     <string name="cross_device_transfer_empty">Rien n\'attend pour cet appareil. Envoyez un fichier ou des paramètres depuis un autre appareil pour les voir ici.</string>
     <string name="cross_device_transfer_sending">Envoi vers votre file d\'attente Drive..</string>
     <string name="cross_device_transfer_sent">Envoyé. Ouvrez cet écran sur votre autre appareil pour le récupérer.</string>
     <string name="cross_device_transfer_received_files">Enregistré dans le dossier de réception de l\'application</string>
     <string name="cross_device_transfer_received_settings">Les paramètres de l\'autre appareil ont été appliqués</string>
     <string name="cross_device_transfer_failed">Le transfert ne s\'est pas terminé. Vérifiez la connexion à Drive et le réseau, puis réessayez.</string>
-    <string name="cross_device_transfer_queue_cleared">File d\'attente vidée : %1$d paquet(s) supprimé(s)</string>
 </resources>

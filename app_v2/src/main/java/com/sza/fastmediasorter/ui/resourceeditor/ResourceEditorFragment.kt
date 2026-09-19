@@ -560,7 +560,7 @@ class ResourceEditorFragment : Fragment() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.warning_title)
             .setMessage(message)
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.ok, null)
             .showBoundTo(this@ResourceEditorFragment)
     }
 

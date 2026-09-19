@@ -4,10 +4,14 @@ import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketManifest
+import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePayloadKind
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceTransferOption
+import com.sza.fastmediasorter.domain.model.transfer.TransferDataKind
+import com.sza.fastmediasorter.domain.usecase.transfer.BuildTransferPayloadUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.CleanExpiredCrossDevicePacketsUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.GetPendingCrossDevicePacketsUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.ReceiveCrossDevicePacketUseCase
+import com.sza.fastmediasorter.domain.usecase.transfer.SendCrossDevicePacketUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +30,9 @@ sealed interface CrossDeviceQueueNotice {
 
     data object ReceivedSettings : CrossDeviceQueueNotice
 
-    data class QueueCleared(val removed: Int) : CrossDeviceQueueNotice
+    data object SettingsSent : CrossDeviceQueueNotice
+
+    data class ExpiredRemoved(val removed: Int) : CrossDeviceQueueNotice
 }
 
 /** S3040: the queue screen's whole state - what is offered, whether a call is in flight, what to say. */
@@ -37,7 +43,8 @@ data class CrossDeviceQueueUiState(
 )
 
 /**
- * S3040: drives the pending-packet list, the two accept options and the manual queue purge.
+ * S3040: drives the pending-packet list, the two accept options, the manual expiry purge and the
+ * send-my-settings upload.
  *
  * The local device name is read here rather than passed in from the dialog: it is the one piece of
  * identity every call needs, and the domain layer deliberately has none.
@@ -46,7 +53,9 @@ data class CrossDeviceQueueUiState(
 class CrossDeviceTransferViewModel @Inject constructor(
     private val getPendingPackets: GetPendingCrossDevicePacketsUseCase,
     private val receivePacket: ReceiveCrossDevicePacketUseCase,
-    private val cleanExpiredPackets: CleanExpiredCrossDevicePacketsUseCase
+    private val cleanExpiredPackets: CleanExpiredCrossDevicePacketsUseCase,
+    private val buildTransferPayload: BuildTransferPayloadUseCase,
+    private val sendPacket: SendCrossDevicePacketUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CrossDeviceQueueUiState())
@@ -84,17 +93,52 @@ class CrossDeviceTransferViewModel @Inject constructor(
         }
     }
 
-    fun clearQueue() {
+    /**
+     * S3040: the manual counterpart of the TTL purge that runs on sync - it drops packets older than
+     * [CrossDevicePacketManifest.DEFAULT_TTL_DAYS] and nothing else. A packet still inside its TTL
+     * belongs to the device that sent it and is claimed per row, never swept from here.
+     */
+    fun removeExpiredPackets() {
         _state.update { it.copy(loading = true) }
         viewModelScope.launch {
             cleanExpiredPackets()
                 .onSuccess { removed ->
                     _state.update {
-                        it.copy(loading = false, notice = CrossDeviceQueueNotice.QueueCleared(removed))
+                        it.copy(loading = false, notice = CrossDeviceQueueNotice.ExpiredRemoved(removed))
                     }
                     refresh()
                 }
-                .onFailure { error -> failed(error, "clearing the cross-device queue") }
+                .onFailure { error -> failed(error, "removing expired cross-device packets") }
+        }
+    }
+
+    /**
+     * S3040: export the local settings through the same builder the S1565 menu uses, then leave
+     * them in the Drive queue as a broadcast packet any of the user's devices may claim. The
+     * receiver applies the bytes through [ReceiveCrossDevicePacketUseCase], so the payload file
+     * name must stay [TransferDataKind.SETTINGS] - it is resolved by exact name there.
+     */
+    fun sendSettings() {
+        Timber.d("S3040: sending local settings as a cross-device packet")
+        _state.update { it.copy(loading = true) }
+        viewModelScope.launch {
+            val sent = buildTransferPayload(TransferDataKind.SETTINGS).fold(
+                onSuccess = { bytes ->
+                    sendPacket(
+                        payloadKind = CrossDevicePayloadKind.SETTINGS,
+                        senderDeviceName = localDeviceName,
+                        targetDeviceName = null,
+                        payloadBytes = mapOf(TransferDataKind.SETTINGS.driveFileName to bytes)
+                    )
+                },
+                onFailure = { error -> Result.failure(error) }
+            )
+            sent.fold(
+                onSuccess = {
+                    _state.update { it.copy(loading = false, notice = CrossDeviceQueueNotice.SettingsSent) }
+                },
+                onFailure = { error -> failed(error, "sending the settings packet") }
+            )
         }
     }
 

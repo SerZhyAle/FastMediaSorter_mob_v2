@@ -101,7 +101,9 @@ class PlayerActivity :
     }
 
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
-        return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
+        val binding = ActivityPlayerUnifiedBinding.inflate(layoutInflater)
+        Timber.d("S3293: player unified layout bound with a11y marks")
+        return binding
     }
 
     internal val viewModel: PlayerViewModel by viewModels()

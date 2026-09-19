@@ -1,0 +1,2 @@
+{"_comment": "Cluster-to-ticket registry for Play Vitals crash dedup (S3286). One JSON object per line. Machine-written by scripts/release/lib/play-vitals-cluster-registry.ps1, never hand-edited."}
+{"clusterId":"8210bf01b4d65c648a82dbf47e0df6ef","ticketId":"S3281","ticketStatus":"Verified","fixVersionCode":null,"state":"fixed-unpublished","registeredUtc":"2026-09-18T16:32:23Z","updatedUtc":"2026-09-18T16:32:23Z"}

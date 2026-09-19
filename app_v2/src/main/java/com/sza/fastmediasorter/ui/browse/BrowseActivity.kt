@@ -539,9 +539,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // an already-shown Favorites list picks up channel logos without waiting for a scroll/rebind.
     private fun loadFaviconCoords() {
         lifecycleScope.launch {
-            faviconCoords = faviconAtlasStore.coords()
-            if (::initializer.isInitialized) {
-                val adapter = initializer.mediaFileAdapter
+            val coords = faviconAtlasStore.coords()
+            faviconCoords = coords
+            // S3282: this repaint used to run on every Browse open, queuing an adapter op over
+            // every row of the bound list. Only a non-empty atlas can change what a row paints.
+            if (coords.isEmpty() || !::initializer.isInitialized) return@launch
+            val adapter = initializer.mediaFileAdapter
+            if (adapter.itemCount > 0) {
                 adapter.notifyItemRangeChanged(0, adapter.itemCount)
             }
         }

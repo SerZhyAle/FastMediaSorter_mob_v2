@@ -108,7 +108,12 @@ param(
     # S3151: restore the per-gate PASS lines. Off by default because a passing closure returned
     # about 650 tokens per call that nobody acted on; every line still goes to the run's protocol
     # file. FMS_POSTCHANGE_VERBOSE=1 turns on both this and -ShowSkips.
-    [switch]$ShowPasses
+    [switch]$ShowPasses,
+    # S3301: run the gate batch even when the closure ledger says these exact bytes already passed
+    # it. Declared, not read from $args, because an undeclared switch is silently swallowed and the
+    # run would proceed under the opposite of what the caller asked for (S2703).
+    # FMS_POSTCHANGE_NO_REUSE=1 is the same refusal for a whole session.
+    [switch]$NoReuse
 )
 
 $ErrorActionPreference = "Stop"
@@ -265,6 +270,17 @@ else {
     'Kotlin'
 }
 
+# S3301: the closure ledger. Dot-sourced above the first applicability test, because the reuse
+# answer is what several of those tests are conditioned on. Measured 2026-09-18 on the S3193 run:
+# two closures 69 s apart over the same six files, the second spending 27532 ms to reach the
+# verdict the first had already reached over the same bytes.
+. (Join-Path $root 'scripts/quality/lib/post-change-closure-ledger.ps1')
+if ($NoReuse) { $env:FMS_POSTCHANGE_NO_REUSE = '1' }
+$closureFingerprint = Get-ClosureFingerprint -RepositoryRoot $root -Changed $changedFiles -Deleted $deletedFiles `
+    -ChangeType $resolvedChangeType -Module $Module -Scoped ([bool]$ScopeToFile)
+$closureReuse = Find-ReusableClosure -Target $Target -Fingerprint $closureFingerprint
+if ($closureReuse) { Enable-ClosureReuse $closureReuse }
+
 # S3150: the normalized changed set, its predicates and the registries they read. Dot-sourced here,
 # above the first applicability test, so every predicate resolves in this scope.
 . (Join-Path $root 'scripts/quality/lib/post-change-changed-set.ps1')
@@ -287,7 +303,10 @@ $runsStringsAudit = $isResourceChange -and $hasStringResource
 $runsStringFormatGate = $isResourceChange -and $hasStringResource
 $runsTicketLogAudit = $isCodeChange
 $runsAcceptanceProbeGate = Test-AnyChangedFile 'scripts/(quality/(assert-ticket-acceptance-probes|lib/ticket-acceptance-probes)|spec_catalog/update)\.ps1$'
-$runsDetektPreflight = $resolvedChangeType -in @('Kotlin', 'Mixed')
+# S3301: the detekt pair is the one gate family whose first half runs through Invoke-Step, which
+# stays live under reuse because the mutating steps use it too - so the reuse answer is folded into
+# the predicate instead.
+$runsDetektPreflight = ($resolvedChangeType -in @('Kotlin', 'Mixed')) -and -not $closureReuse
 $runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling')
 # S1075: same trigger as doc-pins-sync - drift enters via a Gradle bump (Config) or a
 # hand edit to dev/TECH_REQUIREMENTS.md (Doc). Checks the doc pins the generator does not own.
@@ -1932,9 +1951,21 @@ if ($script:AdvisoryFindings.Count -gt 0) {
     Send-PostChangeChatVerdict -Verdict "PASS WITH ADVISORIES ($($script:AdvisoryFindings.Count)), $elapsedMs ms"
     Write-ProtocolPointer
 }
+elseif ($closureReuse) {
+    # S3301: never the bare word PASS. This run judged nothing - it reports a verdict another run
+    # earned, and names it, so a reader can go and read that run's protocol.
+    Write-Host ("post-change: PASS (REUSED from run $($closureReuse.RunId), $($closureReuse.AgeSec)s ago over " +
+        "$($closureReuse.Files) unchanged file(s); gate batch not re-run, $elapsedMs ms)") -ForegroundColor Green
+    Write-Host "  Same ticket, same bytes, same HEAD, clean PASS - re-run with -NoReuse to judge them again." -ForegroundColor DarkGray
+    Send-PostChangeChatVerdict -Verdict "PASS (reused from $($closureReuse.RunId)), $elapsedMs ms"
+}
 else {
     Write-Host ("post-change: PASS ($resolvedChangeType, $elapsedMs ms, $($script:PassedCount) passed, " +
         "$($script:SkippedSteps.Count) skipped)") -ForegroundColor Green
     Send-PostChangeChatVerdict -Verdict "PASS, $elapsedMs ms"
+    # Only a clean PASS is worth remembering: an advisory finding is a gate reporting something it
+    # could not attribute to this change, which is a reason for the next run to look again.
+    Add-ClosureLedgerRecord -Target $Target -Fingerprint $closureFingerprint `
+        -RunId (Get-GateTelemetryRunId) -ElapsedMs $elapsedMs -Protocol $script:ProtocolPath
 }
 exit 0

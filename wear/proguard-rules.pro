@@ -191,3 +191,15 @@
 -keepclassmembernames enum com.sza.fastmediasorter.wear.ui.streams.StreamSortOrder {
     <fields>;
 }
+# S3283: two more that store a constant name, on two different grounds. BloodPressureSource is a Room
+# column - BloodPressureHistoryEntity keeps `source` as the member name and reads it back with
+# `fromStored`, degrading to MANUAL, so a rename rewrites the origin of measurements already on the
+# watch. SosMode is the receiving half of the phone's Data Layer command: the payload is the member name
+# and nothing else, decoded by WatchWearListenerService with `fromNameOrDefault`, so a rename on either
+# side turns a siren request into the default mode instead of a failure.
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.BloodPressureSource {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.SosMode {
+    <fields>;
+}

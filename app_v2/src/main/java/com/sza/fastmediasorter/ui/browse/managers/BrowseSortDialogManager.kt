@@ -48,7 +48,7 @@ internal class BrowseSortDialogManager(
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.sort_by_title)
             .setView(dialogBinding.root)
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .create()
 
         dialogBinding.rvSortOptions.layoutManager = GridLayoutManager(activity, 2)

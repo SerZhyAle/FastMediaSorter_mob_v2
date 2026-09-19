@@ -41,7 +41,7 @@ object MediaUnavailableDialog {
             .setTitle(titleRes)
             .setMessage(activity.getString(messageRes, fileName))
             .setPositiveButton(R.string.retry) { _, _ -> onRetry() }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> onDismiss() }
+            .setNegativeButton(R.string.cancel) { _, _ -> onDismiss() }
             .setOnCancelListener { onDismiss() }
         if (offerRemoveFavorite) {
             builder.setNeutralButton(R.string.streams_remove_from_favorites) { _, _ -> onRemoveFromFavorites() }

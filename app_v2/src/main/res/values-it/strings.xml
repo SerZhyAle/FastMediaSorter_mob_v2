@@ -1831,7 +1831,6 @@
     <string name="camera_capture_microphone_muted">Registrazione senza audio</string>
     <string name="camera_mode_photo">Foto</string>
     <string name="camera_mode_video">Video</string>
-    <string name="quick_camera_menu_label">Telecamera</string>
     <string name="camera_control_pause">Pausa</string>
     <string name="camera_control_resume">Riprendi</string>
     <string name="camera_gallery_preview">Vedi ultimo scatto</string>
@@ -1927,7 +1926,6 @@
     <string name="statistics_metric_ocr_scans">Testo riconosciuto</string>
     <string name="app_launch_panel_route_calculator">Calcolatrice</string>
     <string name="app_launch_panel_route_game">Mini-gioco</string>
-    <string name="app_launch_panel_route_ocr">Traduzione OCR delle foto</string>
     <string name="app_launch_panel_route_streams">Stream</string>
     <string name="app_launch_panel_route_favorites">Preferiti</string>
     <string name="app_launch_panel_os_settings">Impostazioni</string>
@@ -3065,14 +3063,14 @@
     <string name="wear_received_upload_notif_channel">File dall\'orologio</string>
     <string name="wear_received_upload_notif_progress">Salvataggio di %1$s in %2$s</string>
     <string name="wear_received_upload_notif_success">%1$s salvato in %2$s</string>
-    <string name="wear_received_upload_notif_unreachable">Cannot reach %2$s. %1$s is waiting on your phone - try again when the resource is available.</string>
-    <string name="wear_received_upload_notif_failed">Could not save %1$s to %2$s. The file is waiting on your phone - check the resource and try again.</string>
-    <string name="open_on_phone_notification_title">Open from your watch</string>
+    <string name="wear_received_upload_notif_unreachable">Impossibile raggiungere %2$s. %1$s è in attesa sul telefono - riprova quando la risorsa sarà disponibile.</string>
+    <string name="wear_received_upload_notif_failed">Impossibile salvare %1$s in %2$s. Il file è in attesa sul telefono - controlla la risorsa e riprova.</string>
+    <string name="open_on_phone_notification_title">Apri dal tuo orologio</string>
     <string name="open_on_phone_notification_text">Tocca per aprire %1$s</string>
-    <string name="open_on_phone_channel_name">Open from watch</string>
+    <string name="open_on_phone_channel_name">Apri dall\'orologio</string>
     <string name="wear_settings_audio_desc">Abilita la riproduzione audio e la sincronizzazione con l\'orologio</string>
     <string name="wear_settings_video_desc">Abilita la riproduzione video e la sincronizzazione per guardarli</string>
-    <string name="wear_settings_images_desc">Enable image viewing and sync to watch</string>
+    <string name="wear_settings_images_desc">Attiva la visualizzazione delle immagini e la sincronizzazione con l\'orologio</string>
     <string name="wear_settings_slideshow_desc">Avanza automaticamente la presentazione di immagini sull\'orologio</string>
     <string name="wear_settings_album_art_desc">Scarica la copertina per i file multimediali sull\'orologio</string>
     <string name="wear_settings_keep_awake_desc">Impedisci allo schermo dell\'orologio di dormire all\'esterno dei giocatori</string>
@@ -3126,16 +3124,16 @@
     <string name="launcher_translator_language_settings">Apri le impostazioni di traduzione</string>
     <string name="launcher_section_action_delete">Delete Section</string>
     <string name="launcher_section_action_resort">Sezione Riordina</string>
-    <string name="launcher_section_delete_confirm_title">Delete this section?</string>
+    <string name="launcher_section_delete_confirm_title">Eliminare questa sezione?</string>
     <string name="launcher_section_delete_confirm_message">Ciò eliminerà la sezione e le scorciatoie al suo interno (%1$d). Puoi aggiungerli di nuovo in seguito.</string>
-    <string name="launcher_stream_overlay_play_pause">Play or pause</string>
+    <string name="launcher_stream_overlay_play_pause">Riproduci o metti in pausa</string>
     <string name="launcher_stream_overlay_mute">Mute</string>
     <string name="launcher_stream_overlay_stop">Stop</string>
     <string name="launcher_stream_overlay_pip">Immagine nell\'immagine</string>
     <string name="launcher_stream_overlay_fullscreen">A schermo intero</string>
     <string name="launcher_settings_double_tap_lock_title">Tocca due volte per bloccare lo schermo</string>
     <string name="launcher_settings_double_tap_lock_subtitle">Tocca due volte lo spazio vuoto sul desktop per bloccare lo schermo o oscuralo se il blocco del dispositivo non è disponibile</string>
-    <string name="launcher_stream_add_desktop_window">Add window to desktop</string>
+    <string name="launcher_stream_add_desktop_window">Aggiungi finestra al desktop</string>
     <string name="launcher_stream_desktop_window_added">Finestra aggiunta al desktop</string>
     <string name="launcher_stream_desktop_window_no_space">Nessuno spazio libero sul desktop</string>
     <string name="physical_flashlight_unavailable">La torcia della fotocamera non è disponibile. Riprova.</string>
@@ -3357,7 +3355,7 @@
     <string name="mirror_capture_error_save">Lo scatto è stato eseguito ma non è stato possibile salvarlo nella cartella</string>
     <string name="streams_logo_prompt_title">Loghi delle stazioni</string>
     <string name="broadcast_notification_title">Trasmissione audio in corso</string>
-    <string name="broadcast_notification_text">Il flusso audio dal vivo è attivo</string>
+    <string name="broadcast_notification_text">La trasmissione audio dal vivo è attiva</string>
     <string name="broadcast_action_stop">Ferma</string>
     <string name="broadcast_channel_name">Trasmissione audio</string>
     <string name="broadcast_channel_description">Notifiche per le trasmissioni audio in corso</string>
@@ -3432,8 +3430,6 @@
     <string name="camera_session_consent_notification_title">Il tuo orologio vuole vedere questa fotocamera</string>
     <string name="camera_session_consent_notification_text">Consenti all\'orologio di vedere la fotocamera e il microfono di questo telefono.</string>
     <string name="camera_session_consent_allow">Consenti</string>
-    <string name="launcher_screens_screen_title">Schermate del launcher</string>
-    <string name="launcher_settings_screens_title">Schermate del launcher</string>
     <string name="launcher_screens_section_screens">Schermate</string>
     <string name="launcher_screens_show_number_title">Mostra il numero di schermata</string>
     <string name="launcher_screens_show_number_hint">Il numero viene disegnato sopra qualsiasi sfondo mentre scorri tra le schermate. Non dipende dal fatto che l\'animazione sia attiva.</string>
@@ -3466,7 +3462,7 @@
     <string name="settings_broadcast_audio_format">Formato audio</string>
     <string name="settings_broadcast_mic_gain">Guadagno microfono</string>
     <string name="settings_broadcast_auto_share">Apri automaticamente la schermata di condivisione</string>
-    <string name="settings_broadcast_stream_title">Titolo del flusso</string>
+    <string name="settings_broadcast_stream_title">Titolo della trasmissione</string>
     <string name="unit_speed_mph">%1$s mph</string>
     <string name="unit_speed_kmh_spoken">%1$s chilometri all\'ora</string>
     <string name="unit_speed_mph_spoken">%1$s miglia all\'ora</string>
@@ -3494,9 +3490,7 @@
     <string name="settings_streams_visualize_as_music_summary">Un tocco su una stazione radio apre il player a schermo intero con la visualizzazione invece del mini controllo in basso.</string>
     <string name="translation_unavailable_device_licence">La traduzione non è concessa in licenza per questo tipo di dispositivo</string>
     <string name="broadcast_entry_title">Trasmissione dal vivo</string>
-    <string name="broadcast_entry_description">Avvia la condivisione dell\'audio del microfono di questo dispositivo sulla tua rete locale. Chiunque abbia il link può ascoltare finché non la fermi.</string>
     <string name="broadcast_entry_start">Avvia trasmissione</string>
-    <string name="broadcast_entry_live">La trasmissione è in diretta</string>
     <string name="shortcut_broadcast_short">Trasmissione</string>
     <string name="shortcut_broadcast_long">Trasmissione dal vivo</string>
     <string name="tile_broadcast_label">Trasmissione dal vivo</string>
@@ -3597,7 +3591,7 @@
     <string name="streams_filter_media_own">Propri</string>
     <string name="streams_media_filter_own">Mostra solo gli stream aggiunti manualmente</string>
     <string name="broadcast_notification_video_title">Trasmissione video</string>
-    <string name="broadcast_notification_video_text">Lo stream live della fotocamera è attivo</string>
+    <string name="broadcast_notification_video_text">La trasmissione della fotocamera dal vivo è attiva</string>
     <string name="broadcast_control_blank_screen">Schermo nero</string>
     <string name="broadcast_control_blank_screen_cd">Copri l\'app con uno schermo nero mentre la trasmissione continua</string>
     <string name="broadcast_share_save_failed">Impossibile salvare il file</string>
@@ -3641,7 +3635,7 @@
         <item>@string/launcher_primary_window_desktop_title</item>
         <item>@string/launcher_primary_window_resource_manager_title</item>
     </string-array>
-    <string name="broadcast_default_stream_title">Streaming del telefono</string>
+    <string name="broadcast_default_stream_title">Trasmissione del telefono</string>
     <string name="broadcast_share_help">Come guardarlo</string>
     <string name="sos_title">Segnale di emergenza SOS</string>
     <string name="sos_hint">La sirena e lo stroboscopio ripetono il segnale SOS in morse. Anche l\'orologio associato segnala quando è nel raggio d\'azione.</string>
@@ -3656,4 +3650,26 @@
     <string name="sos_help_title">Segnale di emergenza SOS</string>
     <string name="sos_help_message">Ripete il segnale SOS in morse con una sirena ad alto volume sul canale di allarme, il flash posteriore e lo schermo lampeggiante. Scegli suono, luce o entrambi. Avviarlo qui lo avvia anche sull\'orologio associato, e fermarne uno ferma entrambi. Il segnale si interrompe da solo dopo 30 minuti perché la batteria e il flash lo superino.</string>
     <string name="tourist_action_sos">Segnale SOS</string>
+    <string name="data_transfer_row_title">Importa ed esporta i dati</string>
+    <string name="data_transfer_row_subtitle">Impostazioni, preferiti, stream fissati e risorse - in un file o su Google Drive</string>
+    <string name="data_transfer_dialog_title">Importa ed esporta i dati</string>
+    <string name="data_transfer_kind_settings">Impostazioni</string>
+    <string name="data_transfer_kind_favorites">Preferiti</string>
+    <string name="data_transfer_kind_streams">Stream fissati</string>
+    <string name="data_transfer_kind_resources">Risorse</string>
+    <string name="data_transfer_direction_export">Esporta</string>
+    <string name="data_transfer_direction_import">Importa</string>
+    <string name="data_transfer_medium_file">File sul dispositivo</string>
+    <string name="data_transfer_medium_drive">Google Drive</string>
+    <string name="data_transfer_medium_file_desc">Scegli un file su questo dispositivo</string>
+    <string name="data_transfer_medium_drive_desc">Usa il file nell\'account Google Drive collegato</string>
+    <string name="data_transfer_progress">Trasferimento di %1$s..</string>
+    <string name="data_transfer_export_done">%1$s esportato.</string>
+    <string name="data_transfer_import_done">Fatto. Aggiunti %1$d, aggiornati %2$d, ignorati %3$d.</string>
+    <string name="data_transfer_error_drive">Impossibile raggiungere Google Drive. Controlla la connessione e che nelle impostazioni sia collegato un account Google, poi riprova.</string>
+    <string name="data_transfer_error_no_file">In Google Drive non c\'è ancora nessun file %1$s. Esportalo prima dall\'altro dispositivo.</string>
+    <string name="data_transfer_error_incompatible">Questo file contiene un altro tipo di dati oppure proviene da una versione più recente dell\'app. Non è stato modificato nulla.</string>
+    <string name="data_transfer_error_empty">In %1$s non c\'è ancora nulla da esportare.</string>
+    <string name="data_transfer_error_unreadable">Impossibile leggere quel file. Selezionalo di nuovo o scegline un altro.</string>
+    <string name="data_transfer_error_unwritable">Impossibile scrivere in quella posizione. Scegli un altro file e riprova.</string>
 </resources>

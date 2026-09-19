@@ -252,7 +252,7 @@ private fun RenameFailedDialog(onDismiss: () -> Unit) {
         title = stringResource(R.string.wear_voice_note_rename_failed),
         onConfirm = onDismiss,
         onDismissRequest = onDismiss,
-        confirmLabel = stringResource(android.R.string.ok),
+        confirmLabel = stringResource(R.string.ok),
         cancelLabel = null
     )
 }
@@ -288,7 +288,7 @@ private fun SendResultDialog(
         title = stringResource(sendResultLabelOf(result)),
         onConfirm = onDismiss,
         onDismissRequest = onDismiss,
-        confirmLabel = stringResource(android.R.string.ok),
+        confirmLabel = stringResource(R.string.ok),
         cancelLabel = null
     )
 }
@@ -310,7 +310,7 @@ private fun ResetNoticeDialog(
         title = stringResource(R.string.wear_database_reset_notice, recoveredNotes),
         onConfirm = onDismiss,
         onDismissRequest = onDismiss,
-        confirmLabel = stringResource(android.R.string.ok),
+        confirmLabel = stringResource(R.string.ok),
         cancelLabel = null
     )
 }

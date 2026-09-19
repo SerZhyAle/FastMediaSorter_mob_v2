@@ -24,7 +24,6 @@
     <string name="game_how_to_play">Wie spielt man?</string>
     <string name="game_level">Level %1$d</string>
     <string name="game_loading">Spiel wird geladen..</string>
-    <string name="game_menu_label">Spiele das Minispiel</string>
     <string name="game_move_down">Nach unten schieben</string>
     <string name="game_move_left">Nach links bewegen</string>
     <string name="game_move_right">Nach rechts bewegen</string>

@@ -183,6 +183,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "stereoAmbiguityBestGuess" -> settings.copy(stereoAmbiguityBestGuess = raw.toBool())
             "resumeOnNextLaunch" -> settings.copy(resumeOnNextLaunch = raw.toBool())
             "showBlackScreenButton" -> settings.copy(showBlackScreenButton = raw.toBool())
+            "dimClockOverlayEnabled" -> settings.copy(dimClockOverlayEnabled = raw.toBool())
             "programFollowSystemRotation" -> settings.copy(programFollowSystemRotation = raw.toBool())
             "playerFollowSystemRotation" -> settings.copy(playerFollowSystemRotation = raw.toBool())
             "playerRotationSensorEnabled" -> settings.copy(playerRotationSensorEnabled = raw.toBool())
@@ -438,6 +439,11 @@ class DeviceProfilePresetApplier @Inject constructor(
                 raw.trim().toIntOrNull()?.coerceAtLeast(
                     0
                 )?.let { s.withLauncher { copy(screenBlackoutTimeoutSeconds = it) } }
+            }
+            "launcherScreenBlackoutTimeoutOnChargeSeconds" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().toIntOrNull()?.coerceAtLeast(
+                    0
+                )?.let { s.withLauncher { copy(screenBlackoutTimeoutOnChargeSeconds = it) } }
             }
             "launcherWidgetBackdropAlpha" -> applyLauncherField(field, raw, settings) { s ->
                 raw.trim().toFloatOrNull()?.coerceIn(

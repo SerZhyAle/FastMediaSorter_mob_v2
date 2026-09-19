@@ -663,3 +663,12 @@
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.tourist.TouristTileType {
     <fields>;
 }
+# S3283: the SOS mode is persisted by member name on three independent paths, and every one of them
+# degrades to a default rather than throwing. ProgramsSettingsStore writes `sosMode.name` into DataStore
+# and restores it with `fromNameOrDefault`; BackupSettingsGroupMapper stamps the same name into a backup
+# file another build will read; and the watch command carries that name as the whole Data Layer payload,
+# decoded on the other side by the wear module's own SosMode - which has its own rule in wear's file,
+# because one module is one R8 run.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.sos.SosMode {
+    <fields>;
+}

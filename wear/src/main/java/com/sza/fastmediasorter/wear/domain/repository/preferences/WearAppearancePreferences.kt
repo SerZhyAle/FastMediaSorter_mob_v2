@@ -43,6 +43,14 @@ interface WearAppearancePreferences {
     val keepScreenAwakeOutsidePlayers: Flow<Boolean>
     suspend fun setKeepScreenAwakeOutsidePlayers(enabled: Boolean)
 
+    /** S3256: whether the dim clock and status overlay is shown while dimmed. */
+    val dimClockOverlayEnabled: Flow<Boolean>
+    suspend fun setDimClockOverlayEnabled(enabled: Boolean)
+
+    /** S3256: whether the dim clock shows seconds (synced from phone). */
+    val dimClockSecondsVisible: Flow<Boolean>
+    suspend fun setDimClockSecondsVisible(visible: Boolean)
+
     /** S1718: watch screen auto-rotation setting. Default: false (forbidden). */
     val isAutoRotationEnabled: Flow<Boolean>
     suspend fun setAutoRotationEnabled(enabled: Boolean)

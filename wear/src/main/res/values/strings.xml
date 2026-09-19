@@ -934,4 +934,7 @@
     <string name="wear_battery_optimization_title">Battery saving may stop the broadcast</string>
     <string name="wear_battery_optimization_desc">Let the app keep working in the background so the sound does not cut out.</string>
     <string name="wear_battery_optimization_grant">Allow background work</string>
+    <string name="dim_clock_overlay_toggle">Show clock and status while dimmed</string>
+    <string name="dim_clock_status_cd">Clock and status on the dimmed screen</string>
+    <string name="ok">OK</string>
 </resources>

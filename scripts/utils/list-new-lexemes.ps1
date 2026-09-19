@@ -14,15 +14,31 @@
         only place that decides what counts as translatable text at all. A value marked
         translatable="false", a glyph, a layout literal such as "1/1" or "3D", a value carrying
         escaped markup - none of those reach the export, so none of them can be reported here.
-      - A unit is untranslated in a locale on any of three counts: that locale's resource file
-        lacks the key; it carries the key but the fingerprint registry has no provenance for it; or
-        the provenance it does carry names a different English source text than the one in the tree
-        today. The third count is what makes a REWORDED string visible (S1824) - the key is present
+      - A unit is untranslated in a locale on any of four counts: that locale's resource file
+        lacks the key; it carries the key but the fingerprint registry has no provenance for it; the
+        provenance it does carry names a different English source text than the one in the tree
+        today; or every one of those passes and the localized value is still the English text
+        itself. The third count is what makes a REWORDED string visible (S1824) - the key is present
         in all ten locales and every value looks filled in, yet each one translates a sentence the
         English no longer says. Judging presence alone would ship that stale wording silently, which
         is what the whole registry exists to prevent; do not re-describe this check as a key check.
         Ten locales are checked rather than one reference locale, because the rule being enforced
         says thirteen: a key that landed in German and nowhere else is still untranslated.
+      - The fourth count is S3304's, and it exists because the first three are all satisfied by a
+        locale file holding the English source verbatim: the key is there and the stamp names the
+        very text that was copied. Measured on physical_flashlight_title before S3294 fixed it, ar,
+        fr, hi and zh-Hans all read "Camera flashlight" while six locales carried the identical hash
+        4937533679a78582, and this command named none of them. An English copy is worse than an
+        absent key rather than equal to it: absence lets Android fall back to the default locale,
+        which renders the same glyphs, while the copy additionally reads as translated to every
+        counting tool including this one.
+      - Legitimate identicals are exempt through scripts/quality/locale-identical-allowlist.json,
+        which names brand names, acronyms, units and pure format tokens - GIF, VPN, Google Drive,
+        Mbps. An allow-listed key is not reported on ANY of the four counts, absence included,
+        because "this text is the same in every language" answers the presence question too. The
+        list is checked in rather than derived from a text-shape heuristic: the crude "identical to
+        English and carrying a Latin word" probe scored 383 rows in de and 90 in ru, a locale the
+        owner authors, so the metric cannot separate a brand from an untranslated leftover.
       - Everything named in the baseline is subtracted. That file holds the identities already
         untranslated when this command was written, so a pre-existing gap cannot be reported as a
         new one; see scripts/quality/locale-untranslated-baseline.txt for what shrinks it.
@@ -44,6 +60,20 @@
 
 .PARAMETER BaselinePath
     Identity list to subtract. Default scripts/quality/locale-untranslated-baseline.txt.
+
+.PARAMETER AllowlistPath
+    Keys allowed to equal their English source. Default scripts/quality/locale-identical-allowlist.json.
+    Its absence is not an error - an empty allow-list exempts nothing, which is the strict reading.
+    An entry is a bare key name, entitling every locale, or an object naming the entitled ones
+    ({"key": "camera_mode_photo", "locales": ["fr", "it"]}); the entitlement is judged per locale, so
+    a key French may legitimately leave in English is still reported for Arabic (S3309).
+
+.PARAMETER IdenticalKeysPath
+    Write the keys whose ONLY gap is an English-identical value to this file, one per line, sorted.
+    This is how scripts/quality/locale-identical-allowlist.json was seeded and how it is re-derived:
+    run with -AllowlistPath pointed at a file that does not exist, and the output is exactly the
+    corpus the fourth count newly sees. A key that is also absent or stale somewhere is left out, so
+    seeding from this file can never retire a gap the other three counts already report.
 
 .PARAMETER OutDir
     Directory for the produced files. Default temp/S1627/<module>.
@@ -70,6 +100,8 @@ param(
     [string[]]$SourceSet = @('main', 'vr', 'noLegal'),
     [string]$BaselinePath,
     [string]$FingerprintsPath,
+    [string]$AllowlistPath,
+    [string]$IdenticalKeysPath,
     [string]$OutDir,
     [switch]$Quiet
 )
@@ -110,6 +142,12 @@ if ($records.Count -eq 0) {
 }
 
 $bestEffort = @(Get-SupportedLocales -Module $Module | Where-Object { -not (Test-StrictLocale -Tag $_) })
+# The English-identical count runs wider than the other three, on every declared locale but the
+# default one (S3304). Presence and freshness are a best-effort policy - a machine-translated locale
+# is allowed to lag - while "this value IS the English source" is a defect in any locale, and the
+# owner-authored ru scored 90 such rows to the crude probe. The default locale is excluded because
+# its values are the English source; comparing it against itself would report the whole corpus.
+$identicalLocales = @(Get-SupportedLocales -Module $Module | Where-Object { (Get-LocaleResourceDir -Tag $_) -ne 'values' })
 $keyRx = [regex]'<(?:string|plurals|string-array)\s+name="([^"]+)"'
 $presentCache = @{}
 
@@ -132,32 +170,83 @@ function Get-PresentKeys([string]$Set, [string]$File, [string]$Tag) {
     return , $keys
 }
 
+$valueCache = @{}
+
+function Get-LocaleValues([string]$Set, [string]$File, [string]$Tag) {
+    <# Slot key -> plain localized text for one locale's copy of one resource file. #>
+    $cacheKey = "$Set|$File|$Tag"
+    if ($valueCache.ContainsKey($cacheKey)) { return $valueCache[$cacheKey] }
+
+    $path = Join-Path $repoRoot "$Module/src/$Set/res/$(Get-LocaleResourceDir -Tag $Tag)/$File"
+    $values = Get-LocaleFileUnitValues -Path $path
+    $valueCache[$cacheKey] = $values
+    return $values
+}
+
 $fingerprints = Get-LocaleSourceFingerprints -Path $FingerprintsPath
+$allowlist = Get-LocaleIdenticalAllowlist -Path $AllowlistPath
+$identicalHits = 0
 
 $missingByIdentity = [ordered]@{}
+$structuralByIdentity = [ordered]@{}
+$identicalByIdentity = [ordered]@{}
+$identityKeys = @{}
 foreach ($record in $records) {
     $identity = Get-LocaleUnitId -Module $Module -Set $record.set -File $record.file -Key $record.key
     $unitId = Get-LocaleUnitId -Module $Module -Set $record.set -File $record.file -Key $record.key -Slot ([string]$record.slot)
     $enHash = Get-EnglishStringFingerprint -Text ([string]$record.en)
 
-    $missingForThisRecord = [System.Collections.Generic.List[string]]::new()
+    # An allow-listed key is exempt from every count, absence included - see the header. S3309: the
+    # entitlement is asked per locale, inside the loops below, because an entry may name only some of
+    # them; asking once per record here is what made a legitimate French identical hide an
+    # untranslated Arabic one under the same key.
+    $slotKey = Get-LocaleUnitSlotKey -Key ([string]$record.key) -Slot ([string]$record.slot)
+
+    # Kept apart rather than merged on the spot, because the grandfather seed below has to tell a key
+    # that is ONLY English-identical from one that is also absent or stale somewhere. Allow-listing
+    # the second kind would retire a gap this command already reports.
+    $structuralForThisRecord = [System.Collections.Generic.List[string]]::new()
+    $identicalForThisRecord = [System.Collections.Generic.List[string]]::new()
+
     foreach ($tag in $bestEffort) {
+        if (Test-LocaleIdenticalAllowlisted -Key ([string]$record.key) -Locale $tag -Allowlist $allowlist) { continue }
         $hasKey = (Get-PresentKeys $record.set $record.file $tag).Contains($record.key)
         if (-not $hasKey) {
-            $missingForThisRecord.Add($tag)
+            $structuralForThisRecord.Add($tag)
         } elseif (-not ($fingerprints.ContainsKey($tag) -and $fingerprints[$tag].ContainsKey($unitId))) {
-            $missingForThisRecord.Add($tag)
+            $structuralForThisRecord.Add($tag)
         } elseif ($fingerprints[$tag][$unitId] -ne $enHash) {
-            $missingForThisRecord.Add($tag)
+            $structuralForThisRecord.Add($tag)
         }
     }
 
-    if (-not $missingByIdentity.Contains($identity)) {
-        $missingByIdentity[$identity] = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($tag in $identicalLocales) {
+        if (Test-LocaleIdenticalAllowlisted -Key ([string]$record.key) -Locale $tag -Allowlist $allowlist) { continue }
+        if ($structuralForThisRecord.Contains($tag)) { continue }
+        # Ordinal comparison of two values that came through the same normalizer, so an escaping
+        # difference alone never reads as a translation and a decoded entity never reads as a copy.
+        $localized = Get-LocaleValues $record.set $record.file $tag
+        if (-not $localized.ContainsKey($slotKey)) { continue }
+        if ([string]::Equals([string]$localized[$slotKey], [string]$record.en, [System.StringComparison]::Ordinal)) {
+            $identicalForThisRecord.Add($tag)
+            $identicalHits++
+        }
     }
-    foreach ($m in $missingForThisRecord) {
+
+    foreach ($bucket in @($missingByIdentity, $structuralByIdentity, $identicalByIdentity)) {
+        if (-not $bucket.Contains($identity)) {
+            $bucket[$identity] = [System.Collections.Generic.HashSet[string]]::new()
+        }
+    }
+    foreach ($m in $structuralForThisRecord) {
         [void]$missingByIdentity[$identity].Add($m)
+        [void]$structuralByIdentity[$identity].Add($m)
     }
+    foreach ($m in $identicalForThisRecord) {
+        [void]$missingByIdentity[$identity].Add($m)
+        [void]$identicalByIdentity[$identity].Add($m)
+    }
+    $identityKeys[$identity] = [string]$record.key
 }
 
 $baselineIdentities = [System.Collections.Generic.HashSet[string]]::new()
@@ -209,8 +298,24 @@ $indexBody = if ($index.Count -gt 0) { ($index -join "`n") + "`n" } else { '' }
 [System.IO.File]::WriteAllText($textPath, $body, $utf8)
 [System.IO.File]::WriteAllText($indexPath, $indexBody, $utf8)
 
+if ($IdenticalKeysPath) {
+    $identicalOnly = @(
+        $identicalByIdentity.Keys |
+            Where-Object { $identicalByIdentity[$_].Count -gt 0 -and $structuralByIdentity[$_].Count -eq 0 } |
+            ForEach-Object { $identityKeys[$_] } |
+            Sort-Object -Unique
+    )
+    $identicalDir = Split-Path -Parent $IdenticalKeysPath
+    if ($identicalDir -and -not (Test-Path -LiteralPath $identicalDir)) {
+        New-Item -ItemType Directory -Path $identicalDir -Force | Out-Null
+    }
+    $identicalBody = if ($identicalOnly.Count -gt 0) { ($identicalOnly -join "`n") + "`n" } else { '' }
+    [System.IO.File]::WriteAllText($IdenticalKeysPath, $identicalBody, $utf8)
+    Write-Host "list-new-lexemes: wrote $IdenticalKeysPath - $($identicalOnly.Count) key(s) whose only gap is an English-identical value"
+}
+
 $distinctKeys = @($survivors | ForEach-Object { Get-LocaleUnitId -Module $Module -Set $_.set -File $_.file -Key $_.key } | Select-Object -Unique)
-Write-Host "list-new-lexemes: new untranslated keys $($distinctKeys.Count) | lines $($lines.Count) | corpus $($records.Count) | baselined $($baselineIdentities.Count) | locales checked $($bestEffort.Count)"
+Write-Host "list-new-lexemes: new untranslated keys $($distinctKeys.Count) | lines $($lines.Count) | corpus $($records.Count) | baselined $($baselineIdentities.Count) | english-identical $identicalHits | allow-listed $($allowlist.Count) | locales checked $($bestEffort.Count)"
 
 if (-not $Quiet) {
     foreach ($identity in $distinctKeys) {

@@ -49,7 +49,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.databinding.ActivityNetworkMonitorWidgetConfigBinding
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
@@ -83,8 +82,6 @@ class NetworkMonitorWidgetConfigActivity : BaseActivity<ActivityNetworkMonitorWi
 
     override fun getViewBinding(): ActivityNetworkMonitorWidgetConfigBinding =
         ActivityNetworkMonitorWidgetConfigBinding.inflate(layoutInflater)
-
-    override fun keepScreenAwakeFor(settings: AppSettings): Boolean = false
 
     /** S0289 Phase 09: multimodal surface marker - widget config activity. */
     @Suppress("unused")

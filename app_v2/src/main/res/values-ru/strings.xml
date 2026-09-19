@@ -1269,7 +1269,7 @@
 
     <!-- Injected missing keys 2026-03-08 -->
     <string name="and_more_files">и ещё %d файлов</string>
-    <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
+    <string name="background_audio_setting_summary">Продолжать воспроизведение аудио при свёрнутом приложении</string>
     <string name="cursor_position">Ln %1$d, Col %2$d</string>
     <string name="default_icon_size_value">96</string>
     <string name="default_sync_interval_minutes">240</string>
@@ -2217,7 +2217,6 @@
     <string name="camera_capture_microphone_muted">Запись без звука</string>
     <string name="camera_mode_photo">Фото</string>
     <string name="camera_mode_video">Видео</string>
-    <string name="quick_camera_menu_label">Камера</string>
     <string name="camera_control_pause">Пауза</string>
     <string name="camera_control_resume">Продолжить</string>
     <string name="camera_gallery_preview">Просмотр последнего снимка</string>
@@ -2313,7 +2312,6 @@
     <string name="statistics_metric_ocr_scans">Распознано текстов</string>
     <string name="app_launch_panel_route_calculator">Калькулятор</string>
     <string name="app_launch_panel_route_game">Мини-игра</string>
-    <string name="app_launch_panel_route_ocr">Фото-OCR-перевод</string>
     <string name="app_launch_panel_route_streams">Трансляции</string>
     <string name="app_launch_panel_route_favorites">Избранное</string>
     <string name="app_launch_panel_os_settings">Настройки</string>
@@ -3862,8 +3860,6 @@
     <string name="camera_session_consent_notification_title">Часы просят показать камеру</string>
     <string name="camera_session_consent_notification_text">Разрешить часам смотреть с камеры и микрофона этого телефона.</string>
     <string name="camera_session_consent_allow">Разрешить</string>
-    <string name="launcher_screens_screen_title">Экраны лаунчера</string>
-    <string name="launcher_settings_screens_title">Экраны лаунчера</string>
     <string name="launcher_screens_section_screens">Экраны</string>
     <string name="launcher_screens_show_number_title">Показывать номер экрана</string>
     <string name="launcher_screens_show_number_hint">Номер рисуется поверх любых обоев при листании экранов. Не зависит от того, включена ли анимация.</string>
@@ -3885,7 +3881,7 @@
     <string name="broadcast_failed_encoder">Не удалось начать вещание: на устройстве нет доступного аудиокодера</string>
     <string name="broadcast_failed_capture">Вещание прервано: захват звука остановлен</string>
     <string name="broadcast_permission_microphone_required">Для вещания нужен доступ к микрофону</string>
-    <string name="broadcast_permission_notifications_required">Для вещания нужен доступ к уведомлениям, иначе поток не сможет работать в фоне</string>
+    <string name="broadcast_permission_notifications_required">Для вещания нужен доступ к уведомлениям, иначе вещание не сможет работать в фоне</string>
     <string name="settings_suppress_wear_media_takeover">Подавлять медиа-управление на часах</string>
     <string name="settings_suppress_wear_media_takeover_summary">Не показывать системный экран управления плеером телефона на часах Wear OS</string>
     <string name="broadcast_import_refreshed">Трансляция обновлена: новый адрес</string>
@@ -3929,9 +3925,7 @@
     <string name="settings_streams_visualize_as_music_summary">Нажатие на радиостанцию открывает полноэкранный проигрыватель с визуализацией вместо нижней мини-панели.</string>
     <string name="translation_unavailable_device_licence">Перевод не лицензирован для этого типа устройств</string>
     <string name="broadcast_entry_title">Вещание</string>
-    <string name="broadcast_entry_description">Устройство начнёт передавать звук микрофона в локальную сеть. Любой, у кого есть ссылка, сможет слушать, пока вы не остановите вещание.</string>
     <string name="broadcast_entry_start">Начать вещание</string>
-    <string name="broadcast_entry_live">Вещание идёт</string>
     <string name="shortcut_broadcast_short">Вещание</string>
     <string name="shortcut_broadcast_long">Вещание</string>
     <string name="tile_broadcast_label">Вещание</string>
@@ -4015,7 +4009,7 @@
     <string name="broadcast_control_switch_camera">Сменить камеру</string>
     <string name="broadcast_control_screen_off">Погасить экран</string>
     <string name="broadcast_control_share_link">Ссылка и QR-код</string>
-    <string name="broadcast_control_stop">Остановить эфир</string>
+    <string name="broadcast_control_stop">Остановить вещание</string>
     <string name="broadcast_control_listeners">Слушателей: %d</string>
     <string name="broadcast_control_listeners_cd">Подключено слушателей: %d</string>
     <string name="broadcast_control_screen_off_cd">Выключить экран без остановки вещания</string>
@@ -4079,7 +4073,7 @@
     <string name="launcher_primary_window_resource_manager_desc">Открывать управление файлами и ресурсами напрямую</string>
     <string name="setting_launcher_primary_window_title">Основное стартовое окно</string>
     <string name="setting_launcher_primary_window_desc">Выбор режима: домашний экран устройства, рабочий стол внутри программы или Менеджер ресурсов</string>
-    <string name="broadcast_default_stream_title">Поток с телефона</string>
+    <string name="broadcast_default_stream_title">Вещание с телефона</string>
     <string name="broadcast_share_help">Как это смотреть</string>
     <string name="sos_title">Аварийный сигнал SOS</string>
     <string name="sos_hint">Сирена и стробоскоп повторяют сигнал SOS по Морзе. Парные часы подают сигнал тоже, если они на связи.</string>
@@ -4108,7 +4102,7 @@
     <string name="data_transfer_medium_file_desc">Выбрать файл на этом устройстве</string>
     <string name="data_transfer_medium_drive_desc">Использовать файл в подключённом аккаунте Google Drive</string>
     <string name="data_transfer_progress">Переносим %1$s..</string>
-    <string name="data_transfer_export_done">%1$s выгружены.</string>
+    <string name="data_transfer_export_done">Выгружено: «%1$s».</string>
     <string name="data_transfer_import_done">Готово. Добавлено %1$d, обновлено %2$d, пропущено %3$d.</string>
     <string name="data_transfer_error_drive">Не удалось обратиться к Google Drive. Проверьте соединение и что в настройках подключён аккаунт Google, затем повторите.</string>
     <string name="data_transfer_error_no_file">В Google Drive пока нет файла «%1$s». Сначала выгрузите его с другого устройства.</string>
@@ -4116,4 +4110,11 @@
     <string name="data_transfer_error_empty">В разделе «%1$s» пока нечего выгружать.</string>
     <string name="data_transfer_error_unreadable">Не удалось прочитать файл. Выберите его снова или другой.</string>
     <string name="data_transfer_error_unwritable">Не удалось записать в это место. Выберите другой файл и повторите.</string>
+    <string name="launcher_screens_wallpaper_title">Экраны и обои</string>
+    <string name="dim_clock_overlay_toggle">выводить часы и состояние во время затемнения</string>
+    <string name="dim_clock_status_cd">Часы и состояние на затемнённом экране</string>
+    <string name="launcher_settings_screen_timeout_on_charge_title">Таймаут экрана при зарядке</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle">Гасит экран при неактивности, пока подключена зарядка</string>
+    <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Таймаут экрана при зарядке</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Гасит экран при неактивности, пока подключена зарядка. Эта сборка не может блокировать устройство.</string>
 </resources>

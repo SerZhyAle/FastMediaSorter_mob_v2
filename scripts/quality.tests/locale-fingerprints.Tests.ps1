@@ -130,6 +130,50 @@ Assert-Equal "wear keeps its own hash" $wearHash $collisionLoaded['de'][$wearId]
 
 if (Test-Path -LiteralPath $collisionPath) { Remove-Item -LiteralPath $collisionPath -Force }
 
+Write-Host "`n=== Test 6: a contended store replace retries, cleans up and reports (S3310) ===" -ForegroundColor Cyan
+# The defect this ticket exists for. One Move out of 199 sequential saves in the S3305 batch threw
+# "Access to the path is denied" because a process outside this project held the destination open.
+# Nothing retried it, the temporary was orphaned under a gitignored name, and the resource value the
+# caller had already written was left on disk carrying its old fingerprint.
+$retryPath = Join-Path $repoRoot 'temp/scratch/test-fps-retry.json'
+$retryDir = Split-Path -Parent $retryPath
+$retryLeaf = Split-Path -Leaf $retryPath
+function Get-RetryTempCount { @(Get-ChildItem -LiteralPath $retryDir -Filter "$retryLeaf.*.tmp" -File).Count }
+
+Save-LocaleStoreFileAtomic -TargetPath $retryPath -Content "{}`n"
+Assert-Equal "Store written through the atomic saver" $true (Test-Path -LiteralPath $retryPath)
+Assert-Equal "No temporary survives a successful save" 0 (Get-RetryTempCount)
+
+# FileShare.Read excludes Delete, so MoveFileEx cannot replace the destination while this handle
+# lives - the same sharing violation a scanner or an indexer produces, made deterministic.
+$holder = [System.IO.File]::Open($retryPath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+$caught = $null
+try {
+    Save-LocaleStoreFileAtomic -TargetPath $retryPath -Content "{}`n" -Attempts 4 -InitialDelayMs 40
+} catch {
+    $caught = $_
+}
+$sw.Stop()
+$holder.Dispose()
+
+Assert-Equal "A held destination fails rather than silently losing the write" $true ($null -ne $caught)
+Assert-Equal "The error names the store it could not replace" $true ([string]$caught -like "*$retryLeaf*")
+Assert-Equal "The error says the fingerprint did not land" $true ([string]$caught -like '*WITHOUT*')
+# 40 + 80 + 160 ms of backoff separate four attempts; a save that never retried returns at once.
+Assert-Equal "The move was retried, not abandoned on the first denial" $true ($sw.ElapsedMilliseconds -ge 280)
+Assert-Equal "No temporary is orphaned by a failed save" 0 (Get-RetryTempCount)
+
+# A writer killed between its write and its move cannot clean up after itself; the next successful
+# save does, because the debris is gitignored and would otherwise never reach a diff.
+$orphan = Join-Path $retryDir "$retryLeaf.999999.tmp"
+[System.IO.File]::WriteAllText($orphan, 'debris')
+(Get-Item -LiteralPath $orphan).LastWriteTime = (Get-Date).AddHours(-2)
+Save-LocaleStoreFileAtomic -TargetPath $retryPath -Content "{}`n"
+Assert-Equal "A stale orphaned temporary is swept by the next save" $false (Test-Path -LiteralPath $orphan)
+
+if (Test-Path -LiteralPath $retryPath) { Remove-Item -LiteralPath $retryPath -Force }
+
 Write-Host "`n=== Summary ===" -ForegroundColor Cyan
 Write-Host "PASS: $script:pass | FAIL: $script:fail"
 if ($script:fail -gt 0) { exit 1 }

@@ -33,7 +33,7 @@
     <string name="calculator_fn_cot">ctg (cotan)</string>
     <string name="calculator_fn_div">DIV (পূর্ণসংখ্যা)</string>
     <string name="calculator_fn_factorial">n! (ফ্যাক্টোরিয়াল)</string>
-    <string name="calculator_fn_ln">ln (nat. log)</string>
+    <string name="calculator_fn_ln">ln (স্বাভাবিক লগ)</string>
     <string name="calculator_fn_log10">log₁₀ (লগ)</string>
     <string name="calculator_fn_mod">মোড (থাকা)</string>
     <string name="calculator_fn_power">xʸ (ঘাত)</string>

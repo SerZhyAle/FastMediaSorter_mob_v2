@@ -2,6 +2,7 @@
 <!-- S3040: the pending cross-device packet queue (Settings -> Data / Cloud transfer).
      Every view id must mirror layout-land/dialog_cross_device_packets.xml (one ViewBinding). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -32,7 +33,18 @@
         android:layout_height="@dimen/dialog_list_max_height"
         android:layout_marginBottom="@dimen/margin_small"
         android:choiceMode="none"
-        android:nextFocusDown="@+id/btnCrossDeviceClearQueue" />
+        android:nextFocusDown="@+id/btnCrossDeviceSendSettings" />
+
+    <!-- S3040: runs while the settings packet upload (or any queue call) is in flight. -->
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progressCrossDeviceSend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:indicatorSize="@dimen/settings_icon_size" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -42,20 +54,30 @@
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCrossDeviceClearQueue"
+            android:id="@+id/btnCrossDeviceSendSettings"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:nextFocusRight="@+id/btnCrossDeviceRemoveExpired"
+            android:text="@string/cross_device_transfer_send_to_device" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCrossDeviceRemoveExpired"
             style="@style/Widget.FastMediaSorter.Button.DialogDestructive"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/margin_small"
+            android:nextFocusLeft="@+id/btnCrossDeviceSendSettings"
             android:nextFocusRight="@+id/btnCrossDevicePacketsClose"
-            android:text="@string/cross_device_transfer_clear_queue" />
+            android:text="@string/cross_device_transfer_remove_expired" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCrossDevicePacketsClose"
             style="@style/Widget.FastMediaSorter.Button.DialogCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:nextFocusLeft="@+id/btnCrossDeviceClearQueue"
+            android:nextFocusLeft="@+id/btnCrossDeviceRemoveExpired"
             android:text="@string/close" />
 
     </LinearLayout>

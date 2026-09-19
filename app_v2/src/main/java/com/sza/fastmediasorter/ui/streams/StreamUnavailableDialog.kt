@@ -40,7 +40,7 @@ object StreamUnavailableDialog {
             .setTitle(titleRes)
             .setMessage(activity.getString(messageRes, channelTitle))
             .setPositiveButton(R.string.retry) { _, _ -> onRetry() }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> onDismiss() }
+            .setNegativeButton(R.string.cancel) { _, _ -> onDismiss() }
             .setOnCancelListener { onDismiss() }
         if (!offline) {
             // Removal is offered only for a failure that is the channel's own: during an outage every

@@ -71,7 +71,7 @@ class ResourceImportActivity : AppCompatActivity() {
             .setTitle(R.string.resource_share_import_title)
             .setMessage(message)
             .setPositiveButton(R.string.resource_share_import_action) { _, _ -> runImport(uri) }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> finish() }
+            .setNegativeButton(R.string.cancel) { _, _ -> finish() }
             .setOnCancelListener { finish() }
             .showBoundToHost(this@ResourceImportActivity)
     }
@@ -94,7 +94,7 @@ class ResourceImportActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.resource_share_import_title)
             .setMessage(message)
-            .setPositiveButton(android.R.string.ok) { _, _ -> finish() }
+            .setPositiveButton(R.string.ok) { _, _ -> finish() }
             .setOnCancelListener { finish() }
             .showBoundToHost(this@ResourceImportActivity)
     }

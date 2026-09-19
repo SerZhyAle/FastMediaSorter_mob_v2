@@ -245,6 +245,9 @@ data class BackupSettings(
     val allAppsSortDescending: Boolean = false,
     // S2384: a backup written before this field existed restores to the current default, not to Off.
     val launcherScreenBlackoutTimeoutSeconds: Int = AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,
+    // S3284: same reasoning - an older backup file restores the shipped default, which is Off.
+    val launcherScreenBlackoutTimeoutOnChargeSeconds: Int =
+        AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_ON_CHARGE_SECONDS,
     // S2632: both fields are introduced now, so NO already-written backup file carries them. A non-null
     // default would therefore reset the user's real setting on every restore from an existing file -
     // the same silent loss this ticket fixes, moved one step later. Nullable means "the writer had no
@@ -410,6 +413,7 @@ data class BackupSettings(
         val showProgramsPanelInMainWindow: Boolean = false,
         val programsPanelCollapsed: Boolean = false,
         val showBlackScreenButton: Boolean = false,
+        val dimClockOverlayEnabled: Boolean = false,
         // S2843: nullable for the S2730 reason - an older backup file carries no key here, and a
         // non-null default would silently turn the shade shortcut's notification back off.
         val flashlightShortcutNotificationEnabled: Boolean? = null,

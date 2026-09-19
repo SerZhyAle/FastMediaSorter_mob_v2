@@ -46,7 +46,7 @@
     <string name="keybinding_input_mouse_middle">MMB</string>
     <string name="keybinding_input_mouse_right">RMB</string>
     <string name="keybinding_label_audio_cycle_subtitle">Zyklus Untertitel</string>
-    <string name="keybinding_label_audio_cycle_track">Cycle Audio Track</string>
+    <string name="keybinding_label_audio_cycle_track">Audiospur wechseln</string>
     <string name="keybinding_label_audio_mute">Stumm</string>
     <string name="keybinding_label_audio_subtitle_delay">Untertitelverzögerung</string>
     <string name="keybinding_label_audio_volume_down">Lautstärke verringern</string>
@@ -66,12 +66,12 @@
     <string name="keybinding_label_navigation_previous_file">Vorherige Datei</string>
     <string name="keybinding_label_navigation_seek_backward_30s">Suche die Rückwärts-30er</string>
     <string name="keybinding_label_navigation_seek_backward_5s">Suche rückwärts 5er</string>
-    <string name="keybinding_label_navigation_seek_forward_30s">Seek Forward 30s</string>
-    <string name="keybinding_label_navigation_seek_forward_5s">Seek Forward 5s</string>
+    <string name="keybinding_label_navigation_seek_forward_30s">30 s vorspulen</string>
+    <string name="keybinding_label_navigation_seek_forward_5s">5 s vorspulen</string>
     <string name="keybinding_label_navigation_seek_macro_backward">Makro-Rückwärtssuche</string>
     <string name="keybinding_label_navigation_seek_macro_forward">Makro-Vorwärtsstrategie</string>
     <string name="keybinding_label_navigation_seek_micro_backward">Suche nach Mikro-Rückwärts</string>
-    <string name="keybinding_label_navigation_seek_micro_forward">Seek Micro Forward</string>
+    <string name="keybinding_label_navigation_seek_micro_forward">Mikro-Vorlauf</string>
     <string name="keybinding_label_playback_frame_step_backward">Rahmen Schritt zurück</string>
     <string name="keybinding_label_playback_frame_step_forward">Rahmenschritt nach vorne</string>
     <string name="keybinding_label_playback_pause">Pause</string>

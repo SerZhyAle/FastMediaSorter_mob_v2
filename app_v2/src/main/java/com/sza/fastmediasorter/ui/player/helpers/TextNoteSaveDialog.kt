@@ -66,7 +66,7 @@ object TextNoteSaveDialog {
                     onConfirm(chosen)
                 }
             }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> onCancel() }
+            .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
             .setOnCancelListener { onCancel() }
             .create()
 

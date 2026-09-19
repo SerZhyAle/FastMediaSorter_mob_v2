@@ -24,7 +24,6 @@
     <string name="game_how_to_play">كيف تلعب؟</string>
     <string name="game_level">المستوى %1$d</string>
     <string name="game_loading">جارٍ تحميل اللعبة..</string>
-    <string name="game_menu_label">العب لعبة مصغرة</string>
     <string name="game_move_down">انزل لأسفل</string>
     <string name="game_move_left">تحرك يسارًا</string>
     <string name="game_move_right">تحرك يميناً</string>

@@ -262,7 +262,7 @@ class InternetSectionFragment : Fragment() {
             .setPositiveButton(R.string.network_monitor_action_continue) { _, _ ->
                 viewModel.onConfirmationAccepted()
             }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> viewModel.onConfirmationDismissed() }
+            .setNegativeButton(R.string.cancel) { _, _ -> viewModel.onConfirmationDismissed() }
             .setOnCancelListener { viewModel.onConfirmationDismissed() }
             .showBoundTo(this)
     }

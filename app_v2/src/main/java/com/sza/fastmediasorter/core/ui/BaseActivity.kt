@@ -25,10 +25,8 @@ import com.sza.fastmediasorter.core.input.GamepadNavigationTranslator
 import com.sza.fastmediasorter.core.input.TvKeyRouter
 import com.sza.fastmediasorter.core.input.TvNavAction
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
-import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
-import com.sza.fastmediasorter.core.util.PowerPolicyLevel
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.common.ActivityMouseDispatchHelper
 import com.sza.fastmediasorter.ui.common.backgroundop.BackgroundOperationBarAttachManager
@@ -269,10 +267,17 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     // player hosts' override is deliberately not gated here: dropping the hold mid-video would blank
     // the screen during playback, which is a functional break rather than an economy.
     protected open fun keepScreenAwakeFor(settings: AppSettings): Boolean =
-        settings.preventSleep && AnimationPolicy.level != PowerPolicyLevel.SAVING
+        KeepScreenAwakePolicy.shouldKeepScreenAwake(settings.preventSleep)
 
     // Cached decision so onCreate/onResume can re-apply the flag synchronously between settings emissions.
     private var keepScreenAwakeDecision: Boolean = true
+
+    /**
+     * S3285: the hold this window currently applies, for a subclass whose own behaviour depends on it.
+     * The launcher reads it to decide whether an idle desktop may be handed to the system lock at all:
+     * while the hold stands, the app owes the user its own dimming instead.
+     */
+    protected val isKeepingScreenAwake: Boolean get() = keepScreenAwakeDecision
 
     // S1045: subclasses exposing credentials override to true so the secure flag is applied when the
     // user setting is ON. Default false clears the flag for ordinary screens.
@@ -446,6 +451,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     }
 
     private fun applyKeepScreenAwake() {
+        Timber.d("S3285: keep-screen-awake ${this::class.simpleName} hold=$keepScreenAwakeDecision")
         if (keepScreenAwakeDecision) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {

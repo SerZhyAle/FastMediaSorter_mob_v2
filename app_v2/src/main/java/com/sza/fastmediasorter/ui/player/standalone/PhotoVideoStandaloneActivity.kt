@@ -311,8 +311,8 @@ class PhotoVideoStandaloneActivity :
                     com.google.android.material.dialog.MaterialAlertDialogBuilder(this@PhotoVideoStandaloneActivity)
                         .setTitle(R.string.download_translation_model_title)
                         .setMessage(getString(R.string.download_translation_model_message, languageName))
-                        .setPositiveButton(android.R.string.ok) { _, _ -> onConfirm() }
-                        .setNegativeButton(android.R.string.cancel) { _, _ -> onCancel() }
+                        .setPositiveButton(R.string.ok) { _, _ -> onConfirm() }
+                        .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
                         .setOnCancelListener { onCancel() }
                         .showBoundTo(this@PhotoVideoStandaloneActivity)
                 }
@@ -492,7 +492,7 @@ class PhotoVideoStandaloneActivity :
                     Toast.makeText(this@PhotoVideoStandaloneActivity, R.string.menu_sleep_timer, Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(this@PhotoVideoStandaloneActivity)
     }
     private var trackSelectionManager: VideoTrackSelectionManager? = null

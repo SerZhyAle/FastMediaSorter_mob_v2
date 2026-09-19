@@ -592,21 +592,70 @@ if ($releaseCommands -contains $Command) {
     }
 }
 
-# A queue-runner instance starting up cleans stale ticket leases first (same effect as `ul`).
+$queueRunnerStartCommands = @('r1', 'r2', 'r3')
+
+# S3308. How much runs at once was set by two unconnected hands - lanes started deliberately here,
+# and sessions opened beside them - so neither hand could see the total. The bound is declared once
+# in .sza-profile.json and read here, and it counts every active agent rather than only the lanes,
+# because the larger half of the load was never the lanes. r0 is exempt: MONO is one agent alone,
+# which is the opposite of adding load.
 #
-# The lease a killed r1/r2/r3 child leaves behind is not swept by ordinary liveness: that check
-# reads a QUIET session, not a dead one, so a lease from a process that no longer exists still
-# looks live for SessionStaleMinutes (45 min - see the 'ul' entry above). Without this, restarting
-# the instance that was just killed - or starting a sibling - ranks the ticket as still held and
-# skips it, which is indistinguishable from "marked done" to whoever is waiting on it. Clean tells
-# the two apart (a running child, a held lock still vouch for a lease; nothing else does), so
-# running it here is free when every lease is genuinely live and frees a real one immediately when
-# it is not. Best-effort: a failed cleanup must not block the runner from starting - the lease
-# would still be swept by its own staleness window eventually.
-#
+# Active is the owner's definition of 2026-09-19: an agent that talked, wrote a file or ran a script
+# inside the profile's window. A hung, interrupted, limit-stopped, finished or owner-declared-dead
+# agent is not load and does not count, which is why an open process is not what gets counted here.
+if ($queueRunnerStartCommands -contains $Command) {
+    $concurrency = $null
+    $profilePath = Join-Path $ProjectRoot '.sza-profile.json'
+    if (Test-Path $profilePath) {
+        try { $concurrency = (Get-Content -LiteralPath $profilePath -Raw | ConvertFrom-Json).concurrency } catch { $concurrency = $null }
+    }
+
+    if ($concurrency) {
+        $crossed = @()
+
+        $windowMinutes = if ($concurrency.activeAgentWindowMinutes) { [double]$concurrency.activeAgentWindowMinutes } else { 2 }
+        $cutoff = (Get-Date).AddMinutes(-$windowMinutes)
+        $lastSeen = @{}
+        foreach ($record in @(Get-ChildItem -Path (Join-Path $ProjectRoot 'temp\AGENT-CHAT') -Filter '*.json' -File -Recurse -ErrorAction SilentlyContinue)) {
+            if ($record.LastWriteTime -lt $cutoff) { continue }
+            try { $parsed = Get-Content -LiteralPath $record.FullName -Raw | ConvertFrom-Json } catch { continue }
+            $agentId = [string]$parsed.agent.id
+            if (-not $agentId) { continue }
+            $lastSeen[$agentId] = $true
+        }
+        $activeAgents = $lastSeen.Count
+        if ($concurrency.maxSessions -and $activeAgents -ge [int]$concurrency.maxSessions) {
+            $crossed += "active agents $activeAgents at or past the declared maximum $($concurrency.maxSessions)"
+        }
+
+        $summaryScript = Join-Path $ProjectRoot 'scripts\utils\measure-process-throughput.ps1'
+        if (Test-Path $summaryScript) {
+            try { $summary = & pwsh -NoProfile -File $summaryScript -Json | ConvertFrom-Json } catch { $summary = $null }
+            if ($summary) {
+                if ($null -ne $summary.idleRunShare -and $concurrency.idleRunSharePercentMax -and
+                    $summary.idleRunShare -gt [double]$concurrency.idleRunSharePercentMax) {
+                    $crossed += "idle run share $($summary.idleRunShare) % past the declared $($concurrency.idleRunSharePercentMax) %"
+                }
+                if ($null -ne $summary.fastCheckLag -and $concurrency.fastCheckLagSecondsMax -and
+                    $summary.fastCheckLag -gt [double]$concurrency.fastCheckLagSecondsMax) {
+                    $crossed += "fast check lag $($summary.fastCheckLag) s past the declared $($concurrency.fastCheckLagSecondsMax) s"
+                }
+            }
+        }
+
+        if ($crossed.Count -gt 0) {
+            Write-Host "Refusing to start another lane - the concurrency bound is crossed:" -ForegroundColor Red
+            foreach ($reason in $crossed) { Write-Host "  $reason" -ForegroundColor Red }
+            Write-Host "Read the window with: pwsh -NoProfile -File scripts/utils/measure-process-throughput.ps1" -ForegroundColor DarkGray
+            Write-Host "The bound is declared in .sza-profile.json under 'concurrency'." -ForegroundColor DarkGray
+            exit 4
+        }
+    }
+}
+
 # The instance name each runner stamps on its own process tree, and the progress watcher
-# started beside it. r0's MONO chain takes no lease, so it is absent from the cleanup set below but
-# present in both maps - it needs the console progress at least as much, being one agent alone.
+# started beside it. r0's MONO chain takes no lease, so it is absent from the lease cleanup below
+# but present in both maps - it needs the console progress at least as much, being one agent alone.
 $queueRunnerInstanceNames = @{ 'r0' = 'mono'; 'r1' = 'a'; 'r2' = 'b'; 'r3' = 'c' }
 $queueRunnerProgressProc = $null
 if ($queueRunnerInstanceNames.ContainsKey($Command)) {
@@ -637,7 +686,17 @@ if ($queueRunnerInstanceNames.ContainsKey($Command)) {
     }
 }
 
-$queueRunnerStartCommands = @('r1', 'r2', 'r3')
+# A queue-runner instance starting up cleans stale ticket leases first (same effect as `ul`).
+#
+# The lease a killed r1/r2/r3 child leaves behind is not swept by ordinary liveness: that check
+# reads a QUIET session, not a dead one, so a lease from a process that no longer exists still
+# looks live for SessionStaleMinutes (45 min - see the 'ul' entry above). Without this, restarting
+# the instance that was just killed - or starting a sibling - ranks the ticket as still held and
+# skips it, which is indistinguishable from "marked done" to whoever is waiting on it. Clean tells
+# the two apart (a running child, a held lock still vouch for a lease; nothing else does), so
+# running it here is free when every lease is genuinely live and frees a real one immediately when
+# it is not. Best-effort: a failed cleanup must not block the runner from starting - the lease
+# would still be swept by its own staleness window eventually.
 if ($queueRunnerStartCommands -contains $Command) {
     $leaseCleanScript = Join-Path $ProjectRoot 'scripts\spec_catalog\ticket-lease.ps1'
     if (Test-Path $leaseCleanScript) {

@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceTransferOption
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 /**
  * S3040: the packets other devices left in the user's Drive queue, with the two accept options.
@@ -45,8 +46,10 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Timber.d("S3040: packet queue dialog opened, refreshing pending packets")
         binding.btnCrossDevicePacketsClose.setOnClickListener { dismiss() }
-        binding.btnCrossDeviceClearQueue.setOnClickListener { viewModel.clearQueue() }
+        binding.btnCrossDeviceRemoveExpired.setOnClickListener { viewModel.removeExpiredPackets() }
+        binding.btnCrossDeviceSendSettings.setOnClickListener { viewModel.sendSettings() }
         binding.listCrossDevicePackets.setOnItemClickListener { _, _, position, _ ->
             shownPackets.getOrNull(position)?.let(::askReceiveOption)
         }
@@ -68,7 +71,9 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
         )
         binding.tvCrossDevicePacketsEmpty.visibility =
             if (state.packets.isEmpty() && !state.loading) View.VISIBLE else View.GONE
-        binding.btnCrossDeviceClearQueue.isEnabled = !state.loading
+        binding.progressCrossDeviceSend.visibility = if (state.loading) View.VISIBLE else View.GONE
+        binding.btnCrossDeviceSendSettings.isEnabled = !state.loading
+        binding.btnCrossDeviceRemoveExpired.isEnabled = !state.loading
         state.notice?.let { notice ->
             Snackbar.make(binding.root, noticeText(notice), Snackbar.LENGTH_LONG).show()
             viewModel.consumeNotice()
@@ -85,8 +90,9 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
         CrossDeviceQueueNotice.Failed -> getString(R.string.cross_device_transfer_failed)
         CrossDeviceQueueNotice.ReceivedFiles -> getString(R.string.cross_device_transfer_received_files)
         CrossDeviceQueueNotice.ReceivedSettings -> getString(R.string.cross_device_transfer_received_settings)
-        is CrossDeviceQueueNotice.QueueCleared ->
-            getString(R.string.cross_device_transfer_queue_cleared, notice.removed)
+        CrossDeviceQueueNotice.SettingsSent -> getString(R.string.cross_device_transfer_sent)
+        is CrossDeviceQueueNotice.ExpiredRemoved ->
+            getString(R.string.cross_device_transfer_expired_removed, notice.removed)
     }
 
     /**

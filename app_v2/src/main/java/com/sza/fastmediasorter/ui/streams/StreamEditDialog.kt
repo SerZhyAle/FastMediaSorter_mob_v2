@@ -83,7 +83,7 @@ object StreamEditDialog {
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.streams_edit_dialog_title)
             .setView(binding.root)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 val kindOverride = when (binding.toggleMediaKind.checkedButtonId) {
                     R.id.btnKindAudio -> "AUDIO"
                     R.id.btnKindVideo -> "VIDEO"
@@ -94,7 +94,7 @@ object StreamEditDialog {
                 // The preference is keyed by URL, so it follows whatever URL the row ends up with.
                 if (editedUrl.isNotEmpty()) writeTrackPreference(editedUrl)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .create()
         DialogKeyboardDelegate.applyTo(dialog) {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()

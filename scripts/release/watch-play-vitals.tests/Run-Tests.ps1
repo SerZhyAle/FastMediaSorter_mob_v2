@@ -2,7 +2,8 @@
 #
 # Subjects: scripts/release/read-play-vitals.py, scripts/release/read-play-vitals.ps1,
 #           scripts/release/lib/play-vitals-verdict.ps1, scripts/release/watch-play-vitals.ps1,
-#           scripts/release/lib/marked-region.ps1, scripts/release/lib/play-vitals-filing.ps1
+#           scripts/release/lib/marked-region.ps1, scripts/release/lib/play-vitals-filing.ps1,
+#           scripts/release/lib/play-vitals-cluster-registry.ps1
 #
 # Why this suite exists at all: the Reporting API is disabled on the service account's project
 # (PLAN/S2917_play-vitals-monitor/research/02), so no part of the loop can be rehearsed against live data.
@@ -24,7 +25,9 @@
 #   * the records move no byte outside their markers, -Check writes nothing, a failed read writes
 #     nothing, a missing marker writes neither document,
 #   * one red run files one Draft through a SANDBOX catalog, the next day appends one evidence line,
-#     the same day appends nothing - and the real PLAN/spec-catalog.jsonl is never written.
+#     the same day appends nothing - and the real PLAN/spec-catalog.jsonl is never written,
+#   * the cluster registry round-trips its five operations, and a red finding whose every reported crash
+#     cluster already belongs to a ticket is refused while one unowned cluster still files (S3286).
 #
 # Usage:  pwsh -NoProfile -File scripts/release/watch-play-vitals.tests/Run-Tests.ps1
 #
@@ -120,6 +123,12 @@ Assert-That 'R4 the error issue keeps its console link and last versionCode' `
     (@($snap.errorIssues).Count -eq 1 -and $snap.errorIssues[0].issueUri -like 'https://play.google.com/console/*' -and
      $snap.errorIssues[0].lastAppVersionCode -eq '260902195' -and $snap.source -eq 'fixture') `
     "issues=$(@($snap.errorIssues).Count)"
+
+$issueName = "$($snap.errorIssues[0].name)"
+Assert-That 'R-CID the cluster id survives normalisation as the last segment of the issue name' `
+    ($snap.errorIssues[0].clusterId -and $issueName.EndsWith("/$($snap.errorIssues[0].clusterId)") -and
+     $snap.errorIssues[0].clusterId -notmatch '/') `
+    "name=$issueName clusterId=$($snap.errorIssues[0].clusterId)"
 
 # --- R5..R6: refusal classification through the shipped describe_http_error() ---
 $lines = Invoke-ReaderPython @"
@@ -496,6 +505,90 @@ try {
     Remove-Item -LiteralPath $sb -Recurse -Force -ErrorAction SilentlyContinue
 }
 Assert-That 'F10 the real catalog was not written by the suite' (@(Get-Content -LiteralPath $realCatalog).Count -eq $realCatalogLines) "before=$realCatalogLines"
+
+Write-Host 'watch-play-vitals.tests - cluster registry'
+
+# S3286: the second dedup key. Every case runs against a registry file in its own temp directory, so the
+# real docs/play-vitals-cluster-registry.jsonl is never opened for writing by the suite.
+. (Join-Path $repoRoot 'scripts/release/lib/play-vitals-cluster-registry.ps1')
+$realRegistry = Join-Path $repoRoot 'docs/play-vitals-cluster-registry.jsonl'
+$realRegistryHash = if (Test-Path -LiteralPath $realRegistry) { (Get-FileHash -LiteralPath $realRegistry).Hash } else { '' }
+$registryRoot = Join-Path $repoRoot ("temp/scratch/watch-play-vitals-tests/registry-{0}" -f [guid]::NewGuid().ToString('N'))
+$null = New-Item -ItemType Directory -Force -Path (Join-Path $registryRoot 'docs')
+try {
+    # The sandbox registry starts at the real file's HEADER only: the cases below count rows, and the real
+    # file grows a row every time a vitals run files a ticket.
+    $regPath = Get-ClusterRegistryPath -ProjectRoot $registryRoot
+    $header = @(Get-Content -LiteralPath $realRegistry | Where-Object { $_ -like '*_comment*' })
+    Set-Content -LiteralPath $regPath -Value $header -Encoding utf8NoBOM
+
+    Assert-That 'CR1 a registry holding only the comment line reads as empty' `
+        (@(Read-ClusterRegistry -Path $regPath).Count -eq 0) "count=$(@(Read-ClusterRegistry -Path $regPath).Count)"
+
+    $null = Add-ClusterRegistryEntry -Path $regPath -Entry @{ clusterId = '8210bf01b4d65c648a82dbf47e0df6ef'; ticketId = 'S9071' }
+    $rows = @(Read-ClusterRegistry -Path $regPath)
+    Assert-That 'CR2 an added entry reads back with its id, ticket, default state and a UTC stamp' `
+        ($rows.Count -eq 1 -and $rows[0].clusterId -eq '8210bf01b4d65c648a82dbf47e0df6ef' -and $rows[0].ticketId -eq 'S9071' -and
+         $rows[0].state -eq 'open' -and $rows[0].ticketStatus -eq 'Draft' -and
+         "$($rows[0].registeredUtc)" -match '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$') `
+        "rows=$($rows | ConvertTo-Json -Compress)"
+
+    Assert-That 'CR3 a known cluster is found and an unknown one is $null' `
+        ((Find-ClusterRegistryEntry -Registry $rows -ClusterId '8210bf01b4d65c648a82dbf47e0df6ef').ticketId -eq 'S9071' -and
+         $null -eq (Find-ClusterRegistryEntry -Registry $rows -ClusterId 'ffffffffffffffffffffffffffffffff')) `
+        'lookup mismatch'
+
+    $updated = Update-ClusterRegistryEntry -Path $regPath -ClusterId '8210bf01b4d65c648a82dbf47e0df6ef' `
+        -Fields @{ state = 'fixed-unpublished'; fixVersionCode = '260815194' }
+    $rows = @(Read-ClusterRegistry -Path $regPath)
+    Assert-That 'CR4 an update moves the state and the fix versionCode and keeps registeredUtc ISO' `
+        ($updated.state -eq 'fixed-unpublished' -and $rows.Count -eq 1 -and $rows[0].state -eq 'fixed-unpublished' -and
+         $rows[0].fixVersionCode -eq '260815194' -and
+         "$($rows[0].registeredUtc)" -match '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$' -and
+         "$($rows[0].updatedUtc)" -match '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$') `
+        "rows=$($rows | ConvertTo-Json -Compress)"
+
+    $null = Add-ClusterRegistryEntry -Path $regPath -Entry @{ clusterId = 'aaaa1111bbbb2222'; ticketId = 'S9072'; state = 'fixed-published' }
+    $rows = @(Read-ClusterRegistry -Path $regPath)
+    Assert-That 'CR5 a second cluster appends without touching the first, and the header line survives' `
+        ($rows.Count -eq 2 -and $rows[0].ticketId -eq 'S9071' -and $rows[0].state -eq 'fixed-unpublished' -and
+         $rows[1].ticketId -eq 'S9072' -and $rows[1].state -eq 'fixed-published' -and
+         (Get-Content -LiteralPath $regPath -TotalCount 1) -like '*_comment*') `
+        "rows=$($rows.Count)"
+
+    # --- FD1..FD3: the filing plan with the cluster key in play ---
+    function New-TestIssue([string] $ClusterId) {
+        return [pscustomobject] @{ clusterId = $ClusterId; name = "apps/com.sza.fastmediasorter/errorIssues/$ClusterId"
+            type = 'CRASH'; cause = 'java.lang.IllegalStateException'; location = 'BaseActivity.getBinding' }
+    }
+    $knownCluster = '8210bf01b4d65c648a82dbf47e0df6ef'
+
+    $plan = @(Get-PlayVitalsFilingPlan -Findings @($crashFinding) -Records @() -ClusterRegistry @() -ErrorIssues @((New-TestIssue $knownCluster)))
+    Assert-That 'FD1 an empty registry leaves the baseline untouched -> file' ($plan[0].Action -eq 'file') "action=$($plan[0].Action) reason=$($plan[0].Reason)"
+
+    $plan = @(Get-PlayVitalsFilingPlan -Findings @($crashFinding) -Records @() -ClusterRegistry $rows -ErrorIssues @((New-TestIssue $knownCluster)))
+    Assert-That 'FD2 a registered cluster refuses the new ticket -> skip naming the owner' `
+        ($plan[0].Action -eq 'skip' -and $plan[0].Reason -like '*already registered*' -and $plan[0].Reason -like '*S9071*') `
+        "action=$($plan[0].Action) reason=$($plan[0].Reason)"
+
+    $plan = @(Get-PlayVitalsFilingPlan -Findings @($crashFinding) -Records @() -ClusterRegistry $rows -ErrorIssues @((New-TestIssue 'cccc3333dddd4444')))
+    Assert-That 'FD3 a registry for another cluster is no false positive -> file' ($plan[0].Action -eq 'file') "action=$($plan[0].Action) reason=$($plan[0].Reason)"
+
+    $plan = @(Get-PlayVitalsFilingPlan -Findings @($crashFinding) -Records @() -ClusterRegistry $rows `
+        -ErrorIssues @((New-TestIssue $knownCluster), (New-TestIssue 'cccc3333dddd4444')))
+    Assert-That 'FD4 one unowned cluster among owned ones still files - the red band carries something new' `
+        ($plan[0].Action -eq 'file') "action=$($plan[0].Action) reason=$($plan[0].Reason)"
+
+    $plan = @(Get-PlayVitalsFilingPlan -Findings @($crashFinding) `
+        -Records @([pscustomobject] @{ id = 'S9004'; name = $crashName; status = 'Draft'; file = 'PLAN/S9004_x.md' }) `
+        -ClusterRegistry $rows -ErrorIssues @((New-TestIssue $knownCluster)))
+    Assert-That 'FD5 an open ticket still takes its evidence line - append is never downgraded' `
+        ($plan[0].Action -eq 'append' -and $plan[0].RecordId -eq 'S9004') "action=$($plan[0].Action)"
+} finally {
+    Remove-Item -LiteralPath $registryRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+$realRegistryAfter = if (Test-Path -LiteralPath $realRegistry) { (Get-FileHash -LiteralPath $realRegistry).Hash } else { '' }
+Assert-That 'CR6 the real cluster registry was not written by the suite' ($realRegistryAfter -eq $realRegistryHash) "before=$realRegistryHash after=$realRegistryAfter"
 
 Write-Host 'watch-play-vitals.tests - scheduler'
 

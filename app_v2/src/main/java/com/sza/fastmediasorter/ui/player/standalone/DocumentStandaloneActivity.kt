@@ -23,7 +23,6 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.github.chrisbanes.photoview.OnSingleFlingListener
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.share.SharePrintHost
@@ -52,6 +51,7 @@ import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -153,8 +153,8 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                     com.google.android.material.dialog.MaterialAlertDialogBuilder(this@DocumentStandaloneActivity)
                         .setTitle(R.string.download_translation_model_title)
                         .setMessage(getString(R.string.download_translation_model_message, languageName))
-                        .setPositiveButton(android.R.string.ok) { _, _ -> onConfirm() }
-                        .setNegativeButton(android.R.string.cancel) { _, _ -> onCancel() }
+                        .setPositiveButton(R.string.ok) { _, _ -> onConfirm() }
+                        .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
                         .setOnCancelListener { onCancel() }
                         .showBoundTo(this@DocumentStandaloneActivity)
                 }

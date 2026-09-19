@@ -2,8 +2,9 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 #
 # EXIT CODES
-#   0 - built, installed and launched on the resolved device.
-#   1 - APK not found after a successful build, or no unambiguous target device.
+#   0   - built, installed and launched on the resolved device.
+#   1   - APK not found after a successful build, or no unambiguous target device.
+#   124 - the build passed its wall-clock ceiling and was stopped (S3290).
 #   other - the exit code of the failing gradle, adb install or adb launch call.
 
 param(
@@ -43,12 +44,35 @@ $logDir = "$projectRoot\temp"
 # S3094: this APK is installed immediately, so it must not reuse outputs that can leave the
 # Hilt-generated component out of step with its consumers.
 . "$PSScriptRoot\gradle-run-verdict.ps1"
+. "$PSScriptRoot\gradle-progress-watch.ps1"
 $freshArtifactArgs = @(Get-FreshGeneratedArtifactBuildArgs)
-& $gradlew :app_v2:assembleStandardDebug "-Pfms.versionCode=$versionCodeInt" "-Pfms.versionName=$versionName" "-Pchaquopy.enabled=false" --configuration-cache @freshArtifactArgs
 
-if ($LASTEXITCODE -ne 0) {
+# S3290: the cost of those flags, stated before the wait rather than after it. Two runs were
+# abandoned as hung while they were executing normally, because nothing said what a normal wait
+# looks like here.
+Write-Host "Every task re-runs from scratch: $($freshArtifactArgs -join ' ') (S3094)." -ForegroundColor Yellow
+Write-Host "A full run measured 4m 51s on 2026-09-18 - 49 tasks, none up to date. Several of them" -ForegroundColor Yellow
+Write-Host "print nothing from start to finish, so silence under a named task is the normal shape." -ForegroundColor Yellow
+
+$gradleArgs = @(
+    ':app_v2:assembleStandardDebug',
+    "-Pfms.versionCode=$versionCodeInt",
+    "-Pfms.versionName=$versionName",
+    '-Pchaquopy.enabled=false',
+    '--configuration-cache'
+) + $freshArtifactArgs
+
+$buildLogPath = Join-Path $logDir ("build_debug_device_standard_{0}.log" -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
+$run = Invoke-GradleWithProgress -GradleWrapper $gradlew -Arguments $gradleArgs -LogPath $buildLogPath
+
+if ($run.TimedOut) {
+    Write-Host "`nBuild stopped at the ceiling inside $($run.LastTask). Transcript: $buildLogPath" -ForegroundColor Red
+    exit $run.ExitCode
+}
+
+if ($run.ExitCode -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red
-    exit $LASTEXITCODE
+    exit $run.ExitCode
 }
 
 # Resolve actual APK path from AGP output metadata
@@ -124,11 +148,17 @@ if (!(Test-Path -Path $logDir)) {
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $logFile = "$logDir\logcat_standard_$timestamp.log"
 
-# Start logcat capture in background
-Write-Host "Starting logcat capture in background to $logFile..." -ForegroundColor Yellow
-$logcatProcess = Start-Process -FilePath $adb -ArgumentList "-s", $targetSerial, "logcat", "-v", "threadtime" -RedirectStandardOutput $logFile -NoNewWindow -PassThru
-Write-Host "Logcat capture running in background (PID: $($logcatProcess.Id))" -ForegroundColor Green
-Write-Host "To stop: Stop-Process -Id $($logcatProcess.Id)" -ForegroundColor Cyan
+# Capture the install-and-launch window the `logcat -c` above cleared for, then stop. S3297: the
+# background stream this replaces was started after `am start`, so it never held the launch it was
+# meant to record, and nothing ever stopped it.
+. "$PSScriptRoot\..\devtest\lib\logcat-snapshot.ps1"
+$snapshot = Save-DeviceLogcatSnapshot -Adb $adb -Serial $targetSerial -Path $logFile
+if ($snapshot.Ok) {
+    Write-Host "Logcat snapshot: $($snapshot.Lines) line(s) -> $($snapshot.Path)" -ForegroundColor Green
+}
+else {
+    Write-Host "Logcat snapshot failed: $($snapshot.Message)" -ForegroundColor Yellow
+}
 
 }
 finally {

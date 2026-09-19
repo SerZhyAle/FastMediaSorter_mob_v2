@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S3256: Dim screen clock and status overlay layout.
+     Contains:
+     1) Notification chips row (top)
+     2) Clock time and date (TextClocks styled identical to ClockGadget)
+     3) Status row (battery in rounded rectangle + charging indication, network/connection chips)
+     Anchored at top-left with window insets safe bounds applied at runtime.
+     Touches must fall through to DimOverlayView. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="false"
+    android:focusable="false">
+
+    <LinearLayout
+        android:id="@+id/dimClockContentBlock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:clickable="false"
+        android:focusable="false"
+        android:orientation="vertical"
+        android:padding="@dimen/dim_clock_padding">
+
+        <!-- Notification chip row above the clock (hidden when empty) -->
+        <LinearLayout
+            android:id="@+id/dimNotificationsRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:clickable="false"
+            android:focusable="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <!-- Clock Time (OutlinedTextClock for high contrast on black background) -->
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextClock
+            android:id="@+id/dimClockTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:ellipsize="end"
+            android:focusable="false"
+            android:maxLines="1"
+            android:textColor="@color/white"
+            android:textSize="@dimen/dim_clock_time_text_size"
+            android:textStyle="bold"
+            app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+            tools:ignore="UnusedAttribute"
+            tools:text="14:32" />
+
+        <!-- Clock Date (OutlinedTextClock with weekday and short date) -->
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextClock
+            android:id="@+id/dimClockDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:clickable="false"
+            android:ellipsize="end"
+            android:focusable="false"
+            android:maxLines="1"
+            android:textColor="@color/white"
+            android:textSize="@dimen/dim_clock_date_text_size"
+            app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+            tools:ignore="UnusedAttribute"
+            tools:text="Fri, Sep 18" />
+
+        <!-- Status row: battery rectangle + network/connectivity chips -->
+        <LinearLayout
+            android:id="@+id/dimStatusRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:clickable="false"
+            android:focusable="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Battery box: rounded rectangle with fill color by charge percent, charging bolt prefix -->
+            <FrameLayout
+                android:id="@+id/dimBatteryBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/dim_clock_chip_spacing"
+                android:background="@drawable/dim_clock_battery_outline"
+                android:clickable="false"
+                android:focusable="false"
+                android:paddingStart="6dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="6dp"
+                android:paddingBottom="2dp">
+
+                <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+                    android:id="@+id/dimBatteryLevelText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/dim_clock_battery_text_size"
+                    android:textStyle="bold"
+                    app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                    tools:text="⚡ 85%" />
+
+            </FrameLayout>
+
+            <!-- Network and connectivity chips container -->
+            <LinearLayout
+                android:id="@+id/dimNetworkChipsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:focusable="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

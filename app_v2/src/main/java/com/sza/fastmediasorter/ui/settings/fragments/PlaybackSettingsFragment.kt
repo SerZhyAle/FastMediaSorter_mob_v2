@@ -3,29 +3,24 @@ package com.sza.fastmediasorter.ui.settings.fragments
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsPlaybackBinding
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
-import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
@@ -178,10 +173,11 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(current.copy(defaultShowCommandPanel = isChecked))
         }
 
-        binding.rowPlayerPanelAutoHide.text = getString(R.string.number_format, viewModel.settings.value.playerPanelAutoHideSeconds)
+        binding.rowPlayerPanelAutoHide.text =
+            getString(R.string.number_format, viewModel.settings.value.playerPanelAutoHideSeconds)
         binding.rowPlayerPanelAutoHide.setOnCommitListener { value ->
-            val seconds = value.toString().toIntOrNull() ?: 15
-            val clampedSeconds = seconds.coerceIn(1, 600)
+            val seconds = value.toString().toIntOrNull() ?: AUTO_HIDE_SECONDS_DEFAULT
+            val clampedSeconds = seconds.coerceIn(AUTO_HIDE_SECONDS_MIN, AUTO_HIDE_SECONDS_MAX)
             if (seconds != clampedSeconds) {
                 binding.rowPlayerPanelAutoHide.text = getString(R.string.number_format, clampedSeconds)
             }
@@ -201,6 +197,12 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(showBlackScreenButton = isChecked))
+        }
+
+        binding.rowDimClockOverlay.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(dimClockOverlayEnabled = isChecked))
         }
 
         binding.rowShowPlayerHint.setOnCheckedChangeListener { isChecked ->
@@ -243,7 +245,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             )
                 .setTitle(R.string.reset_playback_section_title)
                 .setMessage(R.string.reset_playback_section_message)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
+                .setPositiveButton(R.string.ok) { _, _ ->
                     viewModel.resetPlaybackSection()
                     Toast.makeText(
                         requireContext(),
@@ -251,7 +253,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .showBoundTo(this@PlaybackSettingsFragment)
         }
 
@@ -284,6 +286,17 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         // Help for big buttons mode is now inline on rowBigButtonsMode (folded by SettingsToggleRow).
     }
 
+    // Both fields are edited by hand, so a rewrite while the user is typing would fight the caret -
+    // each one is written back only when the stored value and the shown text actually differ.
+    private fun applyIntervalFields(slideshowInterval: Int, autoHideSeconds: Int) {
+        if (binding.etSlideshowInterval.text.toString().toIntOrNull() != slideshowInterval) {
+            binding.etSlideshowInterval.text = getString(R.string.number_format, slideshowInterval)
+        }
+        if (binding.rowPlayerPanelAutoHide.text.toString().toIntOrNull() != autoHideSeconds) {
+            binding.rowPlayerPanelAutoHide.text = getString(R.string.number_format, autoHideSeconds)
+        }
+    }
+
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
             isUpdatingFromSettings = true
@@ -292,17 +305,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             // -1 (unselected), preserving the legacy behaviour for modes the selector omits.
             binding.spinnerSortMode.setSelection(PLAYBACK_SORT_MODES.indexOf(settings.defaultSortMode))
 
-            // Slideshow interval
-            val currentSlideshow = binding.etSlideshowInterval.text.toString().toIntOrNull()
-            if (currentSlideshow != settings.slideshowInterval) {
-                binding.etSlideshowInterval.text = getString(R.string.number_format, settings.slideshowInterval)
-            }
-
-            // Player panel auto-hide duration
-            val currentAutoHide = binding.rowPlayerPanelAutoHide.text.toString().toIntOrNull()
-            if (currentAutoHide != settings.playerPanelAutoHideSeconds) {
-                binding.rowPlayerPanelAutoHide.text = getString(R.string.number_format, settings.playerPanelAutoHideSeconds)
-            }
+            applyIntervalFields(settings.slideshowInterval, settings.playerPanelAutoHideSeconds)
 
             // Switches (only update if value changed; setCheckedSilently avoids listener re-entry)
             if (binding.rowPlayToEnd.isChecked != settings.playToEndInSlideshow) {
@@ -330,6 +333,9 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             }
             if (binding.rowShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
                 binding.rowShowBlackScreenButton.setCheckedSilently(settings.showBlackScreenButton)
+            }
+            if (binding.rowDimClockOverlay.isChecked != settings.dimClockOverlayEnabled) {
+                binding.rowDimClockOverlay.setCheckedSilently(settings.dimClockOverlayEnabled)
             }
             if (binding.rowSmallControls.isChecked != settings.showSmallControls) {
                 binding.rowSmallControls.setCheckedSilently(settings.showSmallControls)
@@ -486,7 +492,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.battery_optimization_hint_title)
             .setMessage(R.string.battery_optimization_hint_message)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 prefs.edit().putBoolean(KEY_HAS_SHOWN_BATTERY_HINT, true).apply()
             }
             .setCancelable(false)
@@ -531,6 +537,10 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             SortMode.SIZE_DESC,
             SortMode.MANUAL,
         )
+
+        private const val AUTO_HIDE_SECONDS_DEFAULT = 15
+        private const val AUTO_HIDE_SECONDS_MIN = 1
+        private const val AUTO_HIDE_SECONDS_MAX = 600
 
         // S0577: re-used from AudioSettingsFragment - same prefs file/key so the one-shot battery hint
         // is not re-shown after the block moved tabs.

@@ -59,7 +59,8 @@ class RenameDialog(
         super.onCreate(savedInstanceState)
         binding = DialogRenameBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        
+        Timber.d("S3303: rename labels ${context.getString(R.string.cancel)} / ${context.getString(R.string.ok)}")
+
         setupUI()
     }
 

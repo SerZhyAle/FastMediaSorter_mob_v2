@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.core.util
 import java.util.concurrent.CopyOnWriteArraySet
 
 /**
- * S2250 / S2536: the single process-wide answer to "may this animate", fed by one subscription to
+ * S2250 / S2536 / S3276: the single process-wide answer to "may this animate", fed by one subscription to
  * the power state observer in the application class.
  *
  * Animation sites live in custom views, adapters and helper managers with no ViewModel and no
@@ -23,11 +23,18 @@ import java.util.concurrent.CopyOnWriteArraySet
 object AnimationPolicy {
 
     @Volatile
-    private var currentLevel: PowerPolicyLevel = PowerPolicyLevel.NORMAL
+    private var currentDecision: PowerPolicyDecision = PowerPolicyDecision(
+        PowerPolicyLevel.NORMAL,
+        PowerPolicyReason.NONE
+    )
 
     /** The level in force right now. */
     val level: PowerPolicyLevel
-        get() = currentLevel
+        get() = currentDecision.level
+
+    /** S3276: The reason in force right now. */
+    val reason: PowerPolicyReason
+        get() = currentDecision.reason
 
     /**
      * True when transitions and decorative animators may run.
@@ -42,14 +49,14 @@ object AnimationPolicy {
      * stops ornament only; [PowerPolicyLevel.SAVING] leaves only bounded state feedback, so a
      * continuous [AnimationIntent.AMBIENT] redraw freezes to a static frame too.
      */
-    fun mayAnimate(intent: AnimationIntent): Boolean = when (currentLevel) {
+    fun mayAnimate(intent: AnimationIntent): Boolean = when (currentDecision.level) {
         PowerPolicyLevel.NORMAL -> true
         PowerPolicyLevel.REDUCED -> intent != AnimationIntent.DECORATIVE
         PowerPolicyLevel.SAVING -> intent == AnimationIntent.FUNCTIONAL
     }
 
     /**
-     * S2536: fired after the level actually changed, so a site already holding a frozen frame can ask
+     * S2536: fired after the level or reason actually changed, so a site already holding a frozen frame can ask
      * again and resume.
      *
      * The synchronous read above is what draw paths use and it stays the primary interface; this is
@@ -67,9 +74,9 @@ object AnimationPolicy {
         listeners.remove(listener)
     }
 
-    fun update(level: PowerPolicyLevel) {
-        if (currentLevel == level) return
-        currentLevel = level
+    fun update(decision: PowerPolicyDecision) {
+        if (currentDecision == decision) return
+        currentDecision = decision
         listeners.forEach { it() }
     }
 }

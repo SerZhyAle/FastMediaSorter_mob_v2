@@ -117,7 +117,6 @@ class DataTransferViewModel @Inject constructor(
     ) {
         // Strategic §3.2 forbids a second operation on a data set already in flight.
         if (!inFlight.add(kind)) return
-        Timber.d("S1565: transfer started for one kind and medium")
         _state.value = DataTransferUiState.InProgress(kind, medium)
         viewModelScope.launch {
             // The kind is released in `finally` so an escape nothing modelled as a Result - and a

@@ -675,7 +675,7 @@
     <string name="wear_broadcast_idle_caption">Вещать с микрофона часов слушателям в той же сети Wi-Fi</string>
     <string name="wear_broadcast_start">Начать вещание</string>
     <string name="wear_broadcast_starting">Запуск..</string>
-    <string name="wear_broadcast_live_label">В эфире</string>
+    <string name="wear_broadcast_live_label">Вещание идёт</string>
     <string name="wear_broadcast_active_description">Микрофон открыт, часы ведут вещание</string>
     <string name="wear_broadcast_stop">Остановить</string>
     <string name="wear_broadcast_share_qr">Показать QR-код</string>
@@ -908,8 +908,8 @@
     <string name="blood_pressure_measuring_description">Идёт измерение давления, осталось %1$d секунд. Держите руку неподвижно</string>
     <string name="blood_pressure_pulse">Пульс %1$d</string>
     <string name="wear_jump_to_live">К прямому эфиру</string>
-    <string name="wear_phone_camera_failed_not_armed">Запустите трансляцию камеры на телефоне</string>
-    <string name="wear_phone_camera_ended">Телефон остановил трансляцию</string>
+    <string name="wear_phone_camera_failed_not_armed">Запустите вещание камеры на телефоне</string>
+    <string name="wear_phone_camera_ended">Телефон остановил вещание</string>
     <string name="wear_app_sos">SOS</string>
     <string name="wear_sos_arming_hint">Выберите, чем подавать сигнал</string>
     <string name="wear_sos_mode_all">Звук и свет</string>
@@ -934,4 +934,7 @@
     <string name="wear_battery_optimization_title">Экономия батареи может прервать вещание</string>
     <string name="wear_battery_optimization_desc">Разрешите приложению работать в фоне, чтобы звук не прерывался.</string>
     <string name="wear_battery_optimization_grant">Разрешить работу в фоне</string>
+    <string name="dim_clock_overlay_toggle">выводить часы и состояние во время затемнения</string>
+    <string name="dim_clock_status_cd">Часы и состояние на затемнённом экране</string>
+    <string name="ok">ОК</string>
 </resources>

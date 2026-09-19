@@ -149,6 +149,21 @@ the identifier beside every label, and `uidump -Ids` additionally lists the node
 label at all - a switch or an icon with nothing but an id was invisible to the tool before S1879.
 `tap-label` stays correct where there is no id to aim at, which is most of Compose on the watch.
 
+**A screen that never idles cannot be dumped at all, and no wrapper change fixes it (S3289).** All
+three tree verbs run `uiautomator dump`, which waits for 500 ms with no accessibility event anywhere
+on the device, budget 10 s, and offers no flag to shorten or skip that wait - `uiautomator help` on
+the device lists only `--verbose` and `--compressed`. A window carrying a live readout emits a
+content-change event about every 100 ms, which is `ViewRootImpl`'s own coalescing floor, so the gap
+never arrives; the app's player was measured at 100-101 ms while playing on `RFCR110NBQJ`. The
+refusal is exit **7** and it names this, because the old advice - let the screen settle and re-run -
+is false for a screen that by construction will not settle. It costs one retry rather than three:
+each refused attempt blocks for the full idle budget, measured 11.10 s, so the old budget spent
+~35 s to learn nothing. A transient refusal while a window settles after a tap is the other regime
+and the single retry is what clears it (measured: 2 refusals in 15 calls, the next call through).
+What works on an undumpable screen is `shot`, and the same screen once the readout stops. Reading
+the tree from `dumpsys activity top` instead was measured and refused - `dev/REFUTED_APPROACHES.md`;
+the app-side cure is carried by S3293.
+
 `clip-check` reads the glass outline from the device (`mRoundedCorners` in `dumpsys window
 displays`), so the round watch (radius 240 on 480x480 - a circle) and the phone (radius 105 on
 1080x2340 - a rounded rectangle) are one rule with no hardcoded geometry. It classifies rather than
@@ -928,6 +943,32 @@ For Kotlin and XML-resource changes, the unfiltered `neuroslop-gate` is the sole
 
 Regenerating those assets needs one Python dependency, and it lives in the repo venv the exporter already looks for (`.venv/Scripts/python.exe`), not on the machine: `.venv\Scripts\python.exe -m pip install -r scripts/docs/lib/requirements.txt`. The rasterizer is `resvg-py`, whose pip wheels carry the renderer compiled in. It replaced `cairosvg` in S1964 for exactly that reason - `cairosvg` has no native code of its own and dlopens a system `libcairo`, which on Windows only exists if GTK or some unrelated application installed it. Nobody ever installed it deliberately, nothing recorded that it was needed, and the day the machine no longer had it the exporter stopped mid-run and blocked a ticket (S1931). Do not go back to a backend that resolves its native half outside `.venv`.
 
+### The closure ledger - one gate batch per ticket per set of bytes - S3301
+
+`scripts/post-change.ps1` judges file content but used to hold no memory of having judged it, so a ticket whose edits arrive in fragments paid for the whole batch once per fragment. Measured 2026-09-18 on the S3193 run: two closures 69 seconds apart over the same six files, `39577 ms` then `27532 ms`, four build-domain round-trips instead of two, and not one new judgement out of the second pass.
+
+The ledger is `temp/metrics/post-change-closures.jsonl`, written by `scripts/quality/lib/post-change-closure-ledger.ps1`. After a **clean** `PASS` the facade appends a record: the ticket, the change type, the module, the `-ScopeToFile` mode, the `HEAD` revision, and per changed file its path, length and SHA-256. At the start of the next run it looks for a record satisfying all six conditions:
+
+1. Same `-Target`, and it has the `Sxxxx` shape - a closure without a ticket has no boundary for reuse to live inside.
+2. The recorded run ended in a clean `PASS`. `PASS WITH ADVISORIES` means a gate saw something it could not attribute, which is a reason to look again; `FAIL` writes nothing at all.
+3. Same change type, module and `-ScopeToFile` mode.
+4. Same `HEAD`.
+5. This run's changed set is covered by the record file for file, with identical length and hash; its deleted set is a subset of the record's. A set carrying one member the record never saw does not qualify.
+6. The record is inside the reuse window (45 minutes; `FMS_POSTCHANGE_REUSE_WINDOW_MIN` overrides it).
+
+On a hit the gate batch does not run - `Invoke-Gate`, `Invoke-AdvisoryStep`, `Invoke-FixedInputGate` and `Start-PooledGate` all short-circuit, so nothing is started in a thread either - and the verdict says whose it is:
+
+```text
+post-change: PASS (REUSED from run a84027b32b91, 74s ago over 6 unchanged file(s); gate batch not re-run, 241 ms)
+  Same ticket, same bytes, same HEAD, clean PASS - re-run with -NoReuse to judge them again.
+```
+
+The bare word `PASS` is never printed for a reused verdict: this run judged nothing, and the run it names is the one whose protocol file holds the evidence.
+
+Everything unknown means "run the batch". A missing, unreadable or malformed ledger, an unreadable file in the set, a parse failure on any record - each of them is a miss, never an error, and a ledger write that fails is swallowed: the ledger can cost the next run its shortcut and nothing else. Turn it off with `-NoReuse` for one run or `FMS_POSTCHANGE_NO_REUSE=1` for a session.
+
+This is not a cache of gate verdicts across tickets, and it never makes a closure cheaper the first time. It removes exactly one thing: paying twice for the same bytes inside one ticket.
+
 ### Static analysis (detekt + ktlint) - S0720
 
 A standalone static gate over Kotlin sources - detekt's code-smell/complexity rules plus the ktlint formatting ruleset. It is deliberately NOT wired into `assemble*`, so it never changes the runtime artifact or slows a normal build. Runs lexically (no type resolution), so it is fast and needs no full compile.
@@ -1621,10 +1662,12 @@ The app declares thirteen interface locales in `app_v2/src/main/res/xml/locales_
 2. Closing a ticket that touched a strings file prints the `new-lexeme-count` advisory. Also not a refusal.
 3. The pre-release sweep runs step `0.8`, which **is** the refusal. Each module keeps its own translator-ready file: `temp/S1627/app_v2/new_lexemes_en.txt` for the phone and `temp/S1627/wear/new_lexemes_en.txt` for the watch. Send each non-empty file to the external translation service, import the phone result with `locale-bulk-import.ps1` and the watch result with the same command plus `-Module wear`, then re-run the step until it is 0.
 
-Five facts a reader cannot derive from the commands:
+Six facts a reader cannot derive from the commands:
 
 - **The refusal sits at the release, not at the ticket, by owner decision (strategic ADR-2).** Nothing ships between releases, so translating each key the day it is written buys the user nothing while costing ten translations per ticket; one batch per release costs one round trip for all of them.
-- **A missing translation is an absent key, never an English copy (ADR-6, S1190).** Android falls back to English on its own, so a partial locale is a shippable state. This is why the producer asks each locale's resource file which keys it carries, rather than comparing values.
+- **A missing translation is an absent key, never an English copy (ADR-6, S1190), and since S3304 that is enforced rather than stated.** Android falls back to English on its own, so a partial locale is a shippable state - and an English copy is strictly worse than the absent key, because it renders the same words while reading as translated to every counting tool. Presence and freshness are still answered from the key set and the registry; the fourth count compares the localized value against the English source and reports equality as untranslated. It had to exist: a copied value satisfies all three of the older counts, so the gate was blind to it by construction. Measured on `physical_flashlight_title` - `values-ar`, `values-fr`, `values-hi` and `values-b+zh+Hans` all shipped `Camera flashlight` under the same stamp `4937533679a78582` the two genuinely translated locales carried, and the gate named none of them. The same enforcement sits at the writing end: `seed-locale-tranche.ps1` omits a map value equal to its English source and stamps nothing for it, which is what its own header had promised since S1190.
+- **The English-identical count runs on twelve locales, not ten, and is exempted by a checked-in list rather than by a heuristic (S3304).** Lagging is a best-effort policy, so presence and freshness are asked only of the ten machine-translated locales; "this value IS the English source" is a defect in `ru` and `uk` too, and only the default locale is excluded, since its values are the source. Legitimate identicals - brand names, acronyms, units, pure format tokens - live in `scripts/quality/locale-identical-allowlist.json`, and an allow-listed key is exempt from all four counts, absence included. The list is checked in because the obvious heuristic does not discriminate: "identical to English and carrying a Latin word of three letters" scored 383 rows in `de` and 90 in `ru`, a locale the owner authors and keeps complete. It was seeded once, mechanically, from the keys whose ONLY gap was an English value - 633 in `app_v2` and 136 in `wear`, 747 after the union - so turning the count on changed no verdict on the day it landed; re-derive it with `list-new-lexemes.ps1 -IdenticalKeysPath <file>` pointed at a non-existent `-AllowlistPath`. It shrinks as `S3305` lands real translations, and a key that is also absent or stale somewhere is deliberately left out, so seeding can never retire a gap the other three counts already report.
+- **An allow-list entry is scoped to locales, because the property is per (key, locale) and not per key (S3309).** An entry is a bare key name, which entitles every locale exactly as before, or an object naming the entitled ones - `{"key": "camera_mode_photo", "locales": ["fr", "it"]}`. The distinction is not decorative: measured on the live tree 2026-09-19, 517 of the 646 allow-listed units the corpus matches are SPLIT, some locales having translated them and others carrying the English verbatim, so a key-level entry is wrong for one of the two groups it covers - `camera_mode_photo` is legitimately "Photo" in French and an untranslated leftover in Arabic. `Test-LocaleIdenticalAllowlisted` therefore takes a **mandatory** `-Locale`, which is what stops a call site from restoring the old key-level answer by omitting an argument; the one question that is genuinely key-level, "does the list mention this key at all", is `Test-LocaleIdenticalAllowlistHasKey` and is asked only by the reviewer's dump. Narrowing an existing entry is not hand work: `review-locale-identical-allowlist.ps1` writes `allowlist-keep-scoped.txt` beside its TSV, each key already scoped to the locales that carry the English verbatim today, and `-Keep` reads that grammar back (`key`, `key: fr it`, `key: fr,it`). Until this landed there was no lever in the project that could say "fr is entitled to this one, ar is not", so every untranslated leftover sharing a key with a legitimate identical was permanently invisible to the release gate.
 - **Provenance is tracked per module, and the gate runs once per module (S1858).** `scripts/quality/locale-source-fingerprints.json` addresses a unit as `module|set|file|key[|slot]`. It has to: `app_v2` and `wear` each ship `src/main/res/values/strings.xml` and share 14 key names, 6 of them with different English text, so an unqualified identity gave the two modules one slot with room for one hash. Whichever module imported last won it, and the gate then measured the other module's text against the wrong hash and called six translated keys untranslated - unfixable by re-importing, because re-importing only moved the red to the other module. A registry written before that split declares no schema version, reads as v1 and is refused with exit 2 until `scripts/quality/migrate-locale-fingerprints-module.ps1` rewrites it; a v1 store read as v2 would reproduce the same false report with nothing left to explain it.
 - **Provenance is written by whoever writes the text, so a direct seed is self-sufficient (S2327).** `scripts/utils/seed-locale-tranche.ps1` stamps the registry for every unit it translated from the supplied map, and `locale-bulk-import.ps1` no longer does it after the fact. A run that writes a locale file and no fingerprint produces a key the producer still reports as untranslated, however complete the file is - measured on S2320, where adding 20 registry entries by hand removed the key from the report without touching one byte of locale text. The importer could not get this right from where it stood: the accept-or-reject decision is per key and it saw one exit code per source file, so it stamped keys the seeder had rejected - and under `-Merge` a rejected replacement leaves the previously shipped translation in place, which turned the stamp into fresh provenance for stale text. Nothing is stamped for a `-Merge` passthrough, a rejected key or a `-DryRun`: none of them produced new text.
 - **Every write to the registry goes through `Edit-LocaleSourceFingerprints`, and the lock covers the read (S3008).** The store is one JSON document and every writer rewrites it whole, so a writer that loaded the file before another writer's save and saved after it discards every identity the other added. Nothing reports it: both processes exit 0 and each prints its own stamp count. Measured on the r37 import round - a ten-locale import of 146 lexemes reported `accepted 146 | rejected 0`, wrote every value correctly, and 145 of the 146 stamps for `de` were gone when the gate re-ran a moment later; the single survivor was the one key stamped from a different source file by a separate process. Locking the save alone would not have helped, because the stale snapshot forms at the read - which is why the transaction in `scripts/quality/lib/locale-fingerprints.ps1` opens a mutex keyed on the store path, reads inside it, hands the caller that fresh map to mutate, saves and releases. A seventh writer added later inherits the ordering by calling it; a writer that calls `Get-` and `Save-` in a pair does not, and there is no longer a reason to. `Code.Scripts` was the wrong instrument for this and was rejected: Rule 23's domain governs edits to script files, not runtime use of a data file, and `set-android-string.ps1` runs many times per ticket from sessions already holding `Code.Phone`. Contract suite: `scripts/quality.tests/locale-fingerprints-concurrency.Tests.ps1`, which spawns two overlapping writers and fails against a lock-free library.
@@ -1998,6 +2041,35 @@ script.
   line - so the caller completing its call is still the real cure, which is why the rule sits in
   `AGENTS.md` section 9.1 where non-Claude runtimes read it.
 
+
+## THE DEVICE BUILD IS A FULL REBUILD, AND ITS SILENCE IS NORMAL (S3290)
+
+`scripts/builders/build-standard-device.ps1` always passes `--no-build-cache --rerun-tasks
+-Pkotlin.incremental=false` (S3094), because the APK it produces is installed on a phone seconds
+later and must not carry a Hilt component from one build paired with consumers from another. The
+price is that nothing is ever up to date: the run measured 2026-09-18 reported `BUILD SUCCESSFUL in
+4m 51s`, **49 actionable tasks, 49 executed**.
+
+Most of that wall clock is silence, and the silence is not a symptom:
+
+- Gradle's plain console prints `> Task :x` when a task **starts** and nothing more until it ends.
+- `mergeExtDexStandardDebug`, `kspStandardDebugKotlin`, `compileStandardDebugKotlin` (1m 22s) and
+  `dexBuilderStandardDebug` each run for minutes without printing a character.
+- The Kotlin daemon's CPU total is not a progress signal. It climbs only on the two Kotlin tasks -
+  measured 3418 -> 3554 s - and sits at exactly 3554 s through `hiltJavaCompile`,
+  `transformClassesWithAsm` and `dexBuilder`. Reading that flat total as proof of death is what
+  ended two healthy runs before the APK existed.
+
+So the wait now reports itself. `scripts/builders/gradle-progress-watch.ps1` streams Gradle's output
+live and, after 60 seconds with no new line, prints one heartbeat naming the running task, how long
+it has been silent, the elapsed build time and the CPU-second delta of every JVM over 500 MB. A run
+that passes the 45-minute ceiling is stopped and the script exits **124**, the code `timeout(1)`
+uses. Rule 35 bounds what the ceiling may kill: the Gradle **client** this call started, never the
+daemon, which is shared with every other session and cancels the build itself once the client
+disconnects. Contract suite: `scripts/builders/gradle-progress-watch.tests/Run-Tests.ps1`.
+
+The same shape as `fms.unitTestTimeoutMinutes` in `gradle.properties` (S2585) and for the same
+reason - a wrapper that waits forever holds its build domain forever.
 
 ## BUILD TYPES
 

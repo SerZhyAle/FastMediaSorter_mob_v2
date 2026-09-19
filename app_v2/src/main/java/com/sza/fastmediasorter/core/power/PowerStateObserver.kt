@@ -11,16 +11,20 @@ import android.os.Bundle
 import android.os.PowerManager
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.util.PowerPolicyDecision
 import com.sza.fastmediasorter.core.util.PowerPolicyLevel
+import com.sza.fastmediasorter.core.util.PowerPolicyReason
 import com.sza.fastmediasorter.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -53,8 +57,11 @@ class PowerStateObserver @Inject constructor(
 
     private val powerManager = ContextCompat.getSystemService(context, PowerManager::class.java)
 
-    private val mutableLevel = MutableStateFlow(PowerPolicyLevel.NORMAL)
-    val level: StateFlow<PowerPolicyLevel> = mutableLevel.asStateFlow()
+    private val mutableDecision = MutableStateFlow(PowerPolicyDecision(PowerPolicyLevel.NORMAL, PowerPolicyReason.NONE))
+    val decision: StateFlow<PowerPolicyDecision> = mutableDecision.asStateFlow()
+    val level: StateFlow<PowerPolicyLevel> = decision
+        .map { it.level }
+        .stateIn(scope, SharingStarted.Eagerly, PowerPolicyLevel.NORMAL)
 
     /**
      * S2707: true only once the platform has answered about the battery and had nothing to report.
@@ -67,6 +74,16 @@ class PowerStateObserver @Inject constructor(
     private val mutableBatteryLevelUnavailable = MutableStateFlow(false)
     val batteryLevelUnavailable: StateFlow<Boolean> = mutableBatteryLevelUnavailable.asStateFlow()
 
+    /**
+     * S3284: whether power is connected, wired or wireless.
+     *
+     * Published from the receiver this class already owns rather than from a second one registered by
+     * a screen: `ACTION_BATTERY_CHANGED` is sticky, so a consumer that registers its own gets the same
+     * value at the cost of a duplicate registration for as long as that screen lives.
+     */
+    private val mutableCharging = MutableStateFlow(false)
+    val chargingConnected: StateFlow<Boolean> = mutableCharging.asStateFlow()
+
     @Volatile
     private var trigger: PowerSavingTrigger = PowerSavingTrigger.DEFAULT
 
@@ -76,6 +93,9 @@ class PowerStateObserver @Inject constructor(
     /** Null while the battery cannot be read, which leaves the threshold arm unsatisfied. */
     @Volatile
     private var chargePercent: Int? = null
+
+    @Volatile
+    private var charging: Boolean = false
 
     /** Separates "the platform reports no level" from "no reading has arrived yet". */
     @Volatile
@@ -101,14 +121,17 @@ class PowerStateObserver @Inject constructor(
     }
 
     private fun recompute() {
+        mutableCharging.value = charging
         mutableBatteryLevelUnavailable.value =
             resolveBatteryLevelUnavailable(batteryIntentSeen, chargePercent)
-        mutableLevel.value = resolvePowerPolicyLevel(
+        val decision = resolvePowerPolicyDecision(
             trigger = trigger,
             chargePercent = chargePercent,
             osPowerSaveMode = osPowerSaveMode,
-            animationsDisabled = animationsDisabled
+            animationsDisabled = animationsDisabled,
+            charging = charging
         )
+        mutableDecision.value = decision
     }
 
     private fun startObserving() {
@@ -119,6 +142,7 @@ class PowerStateObserver @Inject constructor(
                     Intent.ACTION_BATTERY_CHANGED -> {
                         batteryIntentSeen = true
                         chargePercent = readChargePercent(intent)
+                        charging = readCharging(intent)
                     }
                     PowerManager.ACTION_POWER_SAVE_MODE_CHANGED ->
                         osPowerSaveMode = powerManager?.isPowerSaveMode ?: false
@@ -140,8 +164,11 @@ class PowerStateObserver @Inject constructor(
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
         registeredReceiver = listener
-        if (sticky != null) batteryIntentSeen = true
-        chargePercent = sticky?.let(::readChargePercent)
+        if (sticky != null) {
+            batteryIntentSeen = true
+            chargePercent = readChargePercent(sticky)
+            charging = readCharging(sticky)
+        }
         osPowerSaveMode = powerManager?.isPowerSaveMode ?: false
         recompute()
     }
@@ -185,34 +212,46 @@ private fun readChargePercent(intent: Intent): Int? {
     return if (rawLevel < 0 || scale <= 0) null else rawLevel * PERCENT_SCALE / scale
 }
 
-/**
- * S2536: the whole verdict, as a pure function so every arm is testable without a device.
- *
- * An unreadable [chargePercent] leaves the threshold arm unsatisfied rather than assuming a flat
- * battery - guessing the wrong way here would freeze the app on a device that simply does not report
- * its charge.
- */
+private fun readCharging(intent: Intent): Boolean {
+    val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, UNKNOWN_BATTERY_FIELD)
+    return plugged > 0
+}
+
 /**
  * S2707: whether the device has ANSWERED that it has no usable battery level.
  *
- * A pure function for the same reason [resolvePowerPolicyLevel] is one: the difference between the
+ * A pure function for the same reason [resolvePowerPolicyDecision] is one: the difference between the
  * two null cases is invisible to the compiler and can only be proved by a test.
  */
 internal fun resolveBatteryLevelUnavailable(batteryIntentSeen: Boolean, chargePercent: Int?): Boolean =
     batteryIntentSeen && chargePercent == null
 
-internal fun resolvePowerPolicyLevel(
+/**
+ * S2536 / S3276: the whole verdict as a pure function, returning [PowerPolicyDecision].
+ *
+ * Connected power (charging = true) clears only the app's own threshold, while [PowerSavingTrigger.ALWAYS]
+ * and [osPowerSaveMode] still raise [PowerPolicyLevel.SAVING]. An unreadable [chargePercent] leaves the
+ * threshold arm unsatisfied.
+ */
+internal fun resolvePowerPolicyDecision(
     trigger: PowerSavingTrigger,
     chargePercent: Int?,
     osPowerSaveMode: Boolean,
-    animationsDisabled: Boolean
-): PowerPolicyLevel {
+    animationsDisabled: Boolean,
+    charging: Boolean = false
+): PowerPolicyDecision {
     val threshold = trigger.thresholdPercent
-    val belowThreshold = threshold != null && chargePercent != null && chargePercent <= threshold
-    val saving = trigger == PowerSavingTrigger.ALWAYS || osPowerSaveMode || belowThreshold
+    val belowThreshold = threshold != null && chargePercent != null && chargePercent <= threshold && !charging
     return when {
-        saving -> PowerPolicyLevel.SAVING
-        animationsDisabled -> PowerPolicyLevel.REDUCED
-        else -> PowerPolicyLevel.NORMAL
+        trigger == PowerSavingTrigger.ALWAYS ->
+            PowerPolicyDecision(PowerPolicyLevel.SAVING, PowerPolicyReason.USER_ALWAYS)
+        osPowerSaveMode ->
+            PowerPolicyDecision(PowerPolicyLevel.SAVING, PowerPolicyReason.SYSTEM_SAVER)
+        belowThreshold ->
+            PowerPolicyDecision(PowerPolicyLevel.SAVING, PowerPolicyReason.LOW_BATTERY)
+        animationsDisabled ->
+            PowerPolicyDecision(PowerPolicyLevel.REDUCED, PowerPolicyReason.ANIMATION_SWITCH)
+        else ->
+            PowerPolicyDecision(PowerPolicyLevel.NORMAL, PowerPolicyReason.NONE)
     }
 }

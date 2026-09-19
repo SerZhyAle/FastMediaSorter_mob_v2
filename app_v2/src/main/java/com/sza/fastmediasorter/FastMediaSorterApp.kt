@@ -259,7 +259,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             // No distinctUntilChanged: a StateFlow already conflates, and applying it here is a
             // deprecated no-op. AnimationPolicy.update ignores a repeat of the current level anyway,
             // which is what keeps the listeners below from firing on every battery tick.
-            powerStateObserver.get().level.collect { level -> AnimationPolicy.update(level) }
+            powerStateObserver.get().decision.collect { decision -> AnimationPolicy.update(decision) }
         }
 
         // S2776: the shade shortcut for the camera flashlight follows one setting, and this is where

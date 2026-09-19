@@ -47,7 +47,7 @@ _Generated from the app. Do not edit by hand._
 | Sync Now | Triggers an immediate manual sync with configured remote resources. |
 | About system | Displays device and app version information useful for troubleshooting. |
 | Screenshot test | Takes a screenshot of the app right away using the built-in capture flow. |
-| Cancel | Closes the action list and returns to the list of data kinds. |
+| Back | Closes the action list and returns to the list of data kinds. |
 | Unused credentials | Shows how many saved network passwords and keys no resource uses any more, and removes them after a confirmation that lists them. The row is hidden while there are none. |
 | User Guide | Opens the full user guide for the app. |
 | Icon size for grid (pixels) | Sets the thumbnail icon size in pixels for grid view. |
@@ -64,6 +64,7 @@ _Generated from the app. Do not edit by hand._
 | Swipe left action | Sets the action executed when swiping left on a file in the file browser. |
 | Swipe right action | Sets the action executed when swiping right on a file in the file browser. |
 | Compact elements | Reduces the padding and size of all list elements globally, fitting more items on screen. |
+| Pending device transfers | Opens the queue of files and settings your other devices left in your Google Drive, and sends this device's settings to them as a new packet. |
 | Import and export data | Opens the import and export menu for settings, favorites, pinned streams and resources. |
 | Mirror log to opened folder | Copies the debug log into the folder currently open in the viewer, so a reproduction can be picked up without digging into the app sandbox. Off by default; debug builds only. |
 | Open browse in grid view | Opens the file browser in grid view by default instead of list view. |
@@ -204,6 +205,7 @@ _Available in: Standard, Legacy, VR_
 | Always show touch zones overlay | Keeps the touch zone grid permanently visible over the player instead of showing it only on tap. |
 | Big Buttons Mode | Enlarges the player control buttons for easier tapping on large or touch-only screens. |
 | Confirm delete | Shows a confirmation dialog before deleting a file from inside the player. |
+| Show clock and status while dimmed | Draws the clock and status line over the dimmed player screen, so the time stays readable while the picture is blacked out. |
 | Disable 9-zone tracking | Turns off the 9-zone touch grid; the fullscreen player switches to a simpler 3-zone layout (previous / zoom / next) with a left-edge command-panel area. |
 | Background Playback | Keeps audio playing when you leave the app or lock the screen. |
 | Enable Picture-in-Picture | Enables Picture-in-Picture mode so the video continues in a floating window when you leave the player. |
@@ -341,6 +343,7 @@ _Settings -> General -> System launcher settings_
 | Change home screen | Opens Android's default-launcher chooser to switch the system home screen. |
 | Hide system status bar | Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar. |
 | Screen timeout | Turns the screen off after a chosen period of inactivity on the launcher desktop - locking the device where a system lock is reachable, or showing a black screen where it is not. On by default after 30 seconds; presets of 5 to 300 seconds, a custom number of seconds, or never (off). Car head unit and photo-frame profiles start with never. |
+| Screen timeout when on charge | Turns the screen off after a chosen period of inactivity while the charger is connected, wired or wireless. It replaces the ordinary screen timeout for as long as power is attached; off by default, so a charging device keeps the desktop lit. Same choices as the screen timeout above: presets of 5 to 300 seconds, a custom number of seconds, or never (off). |
 | Show pinned apps | Shows pinned apps on the launcher desktop. |
 | Show recent apps | Shows recently used apps on the launcher desktop. |
 | Show status tray | Master switch for the launcher's tray block; the switches below it decide which indicators the block contains. |
@@ -355,7 +358,7 @@ _Settings -> General -> System launcher settings_
 | SIM 2 signal | Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device. |
 | Transfer speed | Shows device-wide download and upload transfer speeds in the launcher status area as two separate cells; updates once per second when enabled. |
 | Wi-Fi Hotspot | Shows or hides the Wi-Fi hotspot status indicator in the launcher taskbar tray. |
-| Launcher screens | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, your own image, a live frame from a device camera, or an instant photo the camera takes anew every time you return to the launcher. Both camera entries appear only on devices that have a camera, and choosing either asks for the camera permission and then for a lens. The live frame stops whenever the desktop leaves the screen; the instant photo releases the camera as soon as its picture is taken, and keeps only the newest one. |
+| Screens and wallpaper | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, your own image, a live frame from a device camera, or an instant photo the camera takes anew every time you return to the launcher. Both camera entries appear only on devices that have a camera, and choosing either asks for the camera permission and then for a lens. The live frame stops whenever the desktop leaves the screen; the instant photo releases the camera as soon as its picture is taken, and keeps only the newest one. |
 | Widget backdrop opacity | Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 25% default). |
 | Grid density | Chooses the icon density the launcher reset lays the starter set out at; it opens on the density your device profile suggests. |
 | Number of screens | Sets how many desktop screens the launcher has, so pinned icons and widgets can be spread across several pages instead of one. |

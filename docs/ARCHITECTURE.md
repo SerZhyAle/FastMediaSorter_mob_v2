@@ -449,9 +449,25 @@ Launcher Mode turns the app into an Android home screen: a cell desktop, a botto
 
 **The shortcut sync follows the toggle in both directions (S2664).** `SyncEnabledToolShortcutsUseCase` compares the launchable sub-program set against its own stored baseline: a route that became launchable gains a cell, a route that stopped being launchable loses every cell carrying it in both stored orientations, and the baseline is then **replaced** by the launchable set rather than unioned with it. Replacement is what makes the removal half work at all - a union baseline only ever grows, so the "no longer launchable" difference would be empty on every pass after the first. Placement is section-addressed: a new cell enters the `app_functions` section through `addCellInSection`, which grows that section rather than refusing when it is full, and falls back to the first free slot only on a desktop that carries no such section, which is one seeded before the section existed. The cost is deliberate: a shortcut the user deleted by hand returns while the feature is still switched on, because presence is a function of the toggle alone.
 
-**One table names the sub-programs, and not every surface reads it yet.** `SubProgramCatalog` holds each internal route's key, order, surfaces, paired widget and switch-off action, and `SubProgramCatalogCompletenessTest` fails when a surface cannot resolve an entry it must render. It is the source for the quick-access panel seed (`SeedDefaultAppLaunchPanelUseCase`), the internal-route picker, the widget catalogue's pairing (`HomeWidgetCatalog`), the starter desktop's App-functions section, and the shortcut sync above. The medium-screen App-functions budget holds every registry shortcut, while compact screens retain their proportional list limit. Two consumers are still hand-written, and each is ticketed rather than described here as done: the programs menu takes only its accent colours from the table and keeps its own item list and order (S2673), and the gadget registry now carries a seed decision for every key, enforced by the starter-set parity test (S2672).
+**One table names the sub-programs.** `SubProgramCatalog` is the source for the shortcut sync above, the starter desktop's App-functions section, the quick-access panel seed (`SeedDefaultAppLaunchPanelUseCase`), the internal-route picker and the widget catalogue's pairing (`HomeWidgetCatalog`). The medium-screen App-functions budget holds every registry shortcut, while compact screens retain their proportional list limit. The table itself is described once, under "Sub-Program Registry" below. The gadget registry is the neighbour that is deliberately not in it: it carries a seed decision per key, enforced by the starter-set parity test (S2672).
 
 Related specs: S0404 (the founding ADR set, archived), S1103 (cell actions), S1170 (widget-to-gadget bridge), S1415 (tray composition), S1461 (this section), S1587 (per-section seeding floor and content-first order), S1895 (surface colours and the contrast gate), S1930 (per-instance widgets on the desktop), S2026 and S2215 (task placement), S2309 (starter layout composed per screen class), S2382 (the first seed places launchable features only). Launcher classes are indexed in the class catalog under the `launcher` sector.
+
+## Sub-Program Registry
+
+FMS ships about two dozen small programs of its own - the calculator, the stopwatch, the mini-game, the network monitor, the recorder, the lights, seven camera routes, the watch companion. `SubProgramCatalog` (`core/panel/`) is the one list of them, and every surface that offers a sub-program derives its composition from that list instead of holding one.
+
+**What the registry owns, and only that.** A `SubProgramEntry` states which route key is a sub-program at all, its `order` in the one sequence every surface shows, the `surfaces` it is eligible for, the `widgetKey` it pairs with, and the `disable` that switches it off. It stores no name, no icon, no intent and no availability: the label, the icon and the launch intent come from `InternalRouteCatalog.byKey(routeKey)`, and whether the program exists in this build and is switched on comes from `ResolvePanelRouteAvailabilityUseCase`. Copying either into the entry would recreate the second copy the registry exists to remove - which is exactly what the programs menu did until S1736 phase 04 took its label and icon table away.
+
+**Route keys are the vocabulary.** They are already persisted on user devices inside launcher cell targets and quick-access tile targets (ADR-1), so a widget key or a menu id maps onto a route key rather than the other way round.
+
+**The surfaces.** `SubProgramSurface` names five: `PROGRAMS_MENU` (the main-window dropdown and the programs panel that replays its population), `QUICK_ACCESS_PANEL`, `WIDGET` (the in-app picker that pins one of our home-screen widgets), `LAUNCHER_SHORTCUT` (a desktop cell added when the program is switched on) and `OS_APP_SHORTCUT` (the dynamic shortcuts under a long press on the app icon, moved by S1925 and read today by `ResolveLauncherCommandLabelUseCase`). Launcher informer tiles - the clock, the weather - are excluded permanently by ADR-3: they are not programs, nothing launches them, and half the entry's fields would be inapplicable to half its rows.
+
+**Adding one.** A new sub-program is one entry here and no surface edit. A new surface is a new `SubProgramSurface` constant plus a case in `SubProgramCatalogCompletenessTest`, never a new table - that suite is what turns "present on one surface, silently absent from another" from a device report into a build failure (ADR-4).
+
+**Two recorded exceptions, both in the programs menu.** VR Cinema has no flat intent - its menu item runs a resource picker bound to `MainActivity` - so it stays outside the registry rather than gaining an invented entry point. Menu item ids stay hand-assigned in `MainProgramsMenuCoordinator`: seven manager classes and the programs panel dispatch taps on them, so an id derived from the registry's order would move under every insertion.
+
+Related specs: S1736 (this registry), S1925 (the OS-shortcut surface, which reads it), S2673 / S2889 (the programs menu's move onto it).
 
 ## Performance & Resource Optimization
 
@@ -492,6 +508,14 @@ Optional background elements like widget receivers (`AppWidgetProvider`) should 
       DONT_KILL_APP
   )
   ```
+
+### 5. Prevent-Sleep Hold (MANDATORY, S3285)
+
+`FLAG_KEEP_SCREEN_ON` follows the global `preventSleep` setting on **every** screen, and the decision is stated once - `KeepScreenAwakePolicy.shouldKeepScreenAwake(preventSleep, level)` in `core/ui/`, which is `preventSleep && level != PowerPolicyLevel.SAVING` (S2536: the hold stands down in the power-saving level).
+
+- **Two appliers, one decision.** `BaseActivity` applies it to its own subclasses through `keepScreenAwakeFor(settings)`; `AppKeepScreenAwakeManager`, registered as an `ActivityLifecycleCallbacks` in `FastMediaSorterApp`, applies it to every host that does not inherit `BaseActivity` (the transparent App Launch Panel among them) and skips the ones that do.
+- **Never override `keepScreenAwakeFor` to `false`.** A screen that opts out ignores the user's setting with nothing failing - the four widget-config screens and the Network Monitor did exactly that until S3285 removed them. An override to `true` is the sanctioned direction, for a surface whose whole purpose is to stay lit (mirror, SOS, flashlight, black screen) or whose own dependent setting also holds it (the player family, S0438).
+- **The launcher dims by itself rather than letting the system sleep.** While the hold stands, `LauncherHomeActivity` passes `allowSystemLock = false` into `LauncherScreenLockManager.turnScreenOff`, so an elapsed idle countdown raises the desktop's own black-screen overlay instead of the real device lock. An explicit double-tap still asks for the lock; being idle is not asking for it.
 
 ## Collapsible Section Groups (MANDATORY)
 

@@ -253,8 +253,11 @@ Assert-That 'fresh artifact args leave configuration cache to the caller' `
 (-not ($freshArgs -match 'configuration-cache')) "args=$($freshArgs -join ' ')"
 
 $deviceBuilder = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/builders/build-standard-device.ps1') -Raw
+# S3290 moved the invocation from a bare `& $gradlew .. @freshArtifactArgs` splat into the progress
+# watcher, which takes its argument vector as an array - so the assertion follows the args into that
+# array instead of demanding the splat token. The claim is unchanged: the flags reach Gradle.
 Assert-That 'device builder passes the fresh artifact args to Gradle' `
-($deviceBuilder -match 'Get-FreshGeneratedArtifactBuildArgs' -and $deviceBuilder -match '@freshArtifactArgs') `
+($deviceBuilder -match 'Get-FreshGeneratedArtifactBuildArgs' -and $deviceBuilder -match '\$gradleArgs\s*=[\s\S]*\$freshArtifactArgs') `
 'build-standard-device.ps1 does not use the fresh artifact args'
 
 # --- JUnit report outcome (S1464) --------------------------------------------------------------

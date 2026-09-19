@@ -34,7 +34,7 @@ class StreamBroadcastImportManager(
             .setItems(options) { _, which ->
                 if (which == OPTION_QR) onScanQrRequested() else onPickFileRequested()
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(activity)
     }
 

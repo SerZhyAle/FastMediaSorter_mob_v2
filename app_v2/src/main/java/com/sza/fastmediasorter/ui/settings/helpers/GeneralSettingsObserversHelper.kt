@@ -7,9 +7,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
-import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.LocaleHelper
-import com.sza.fastmediasorter.core.util.PowerPolicyLevel
+import com.sza.fastmediasorter.core.util.PowerPolicyDecision
+import com.sza.fastmediasorter.core.util.PowerPolicyReason
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BrowseSwipeDirection
@@ -33,6 +33,7 @@ class GeneralSettingsObserversHelper(
     // S2707: passed in rather than taken from the ViewModel, whose constructor detekt already excuses
     // at 22 parameters - a 23rd would grow accepted debt to carry one read-only device fact.
     private val batteryLevelUnavailable: StateFlow<Boolean>,
+    private val powerDecision: StateFlow<PowerPolicyDecision>,
 ) {
     private var manualSyncProgressDialog: MaterialProgressDialog? = null
 
@@ -52,11 +53,9 @@ class GeneralSettingsObserversHelper(
     }
 
     /**
-     * S2536: selection plus the reason the mode is active right now.
+     * S2536 / S3276: selection plus the reason the mode is active right now.
      *
-     * The subtitle names the CAUSE rather than only the fact. Without it a user whose animation just
-     * stopped has no way to tell an economy from a fault, and the likeliest next step is a bug report
-     * or a reinstall.
+     * The subtitle names the CAUSE derived from [PowerPolicyDecision] rather than re-inferring it.
      */
     private fun bindPowerSavingRow(trigger: PowerSavingTrigger) {
         val row = binding.rowPowerSaving ?: return
@@ -70,11 +69,18 @@ class GeneralSettingsObserversHelper(
             // can never raise the level, so the guard below would swallow the one message that says so.
             threshold != null && batteryLevelUnavailable.value ->
                 context.getString(R.string.pref_power_saving_state_no_battery)
-            AnimationPolicy.level != PowerPolicyLevel.SAVING -> null
-            trigger == PowerSavingTrigger.ALWAYS -> context.getString(R.string.pref_power_saving_state_always)
-            threshold != null -> context.getString(R.string.pref_power_saving_state_low_battery, threshold)
-            // SAVING with neither of those means the platform raised it, not this app.
-            else -> context.getString(R.string.pref_power_saving_state_system_saver)
+            else -> when (powerDecision.value.reason) {
+                PowerPolicyReason.USER_ALWAYS -> context.getString(R.string.pref_power_saving_state_always)
+                PowerPolicyReason.LOW_BATTERY -> {
+                    if (threshold != null) {
+                        context.getString(R.string.pref_power_saving_state_low_battery, threshold)
+                    } else {
+                        null
+                    }
+                }
+                PowerPolicyReason.SYSTEM_SAVER -> context.getString(R.string.pref_power_saving_state_system_saver)
+                PowerPolicyReason.NONE, PowerPolicyReason.ANIMATION_SWITCH -> null
+            }
         }
         val base = context.getString(R.string.pref_power_saving_desc)
         row.setSubtitle(if (state == null) base else "$base\n$state")
@@ -84,6 +90,9 @@ class GeneralSettingsObserversHelper(
         // S2707: the flag settles after the first battery broadcast, which can arrive once this
         // screen is already open, so the row is redrawn rather than bound once from the settings flow.
         fragment.viewLifecycleOwner.collectOnLifecycle(batteryLevelUnavailable) {
+            bindPowerSavingRow(viewModel.settings.value.powerSavingTrigger)
+        }
+        fragment.viewLifecycleOwner.collectOnLifecycle(powerDecision) {
             bindPowerSavingRow(viewModel.settings.value.powerSavingTrigger)
         }
 

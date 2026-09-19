@@ -589,4 +589,84 @@ if ($loud.Console -notmatch '\[gate-a\] PASS' -or $loud.Console -notmatch '\[gat
 }
 Remove-Item -LiteralPath $quietDir -Recurse -Force -ErrorAction SilentlyContinue
 
+# --- S3301: the closure ledger -----------------------------------------------------------------
+# The facade may now report a verdict it did not earn, so what has to be proved is the opposite of
+# the usual gate test: not that reuse happens, but that it refuses to happen on any difference.
+$ledgerPath = Join-Path $repoRoot 'scripts/quality/lib/post-change-closure-ledger.ps1'
+if (-not (Test-Path -LiteralPath $ledgerPath)) { throw "The closure ledger '$ledgerPath' is absent." }
+if ($facadeFile -notmatch 'post-change-closure-ledger\.ps1') {
+    throw 'The facade does not dot-source the closure ledger, so the library is orphaned.'
+}
+
+$runnersSource = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/quality/lib/post-change-step-runners.ps1') -Raw
+foreach ($wrapper in @('Invoke-Gate', 'Invoke-AdvisoryStep', 'Invoke-FixedInputGate')) {
+    if ($runnersSource -notmatch "(?s)function $wrapper\([^)]*\)\s*\{[^}]*ClosureReuseActive") {
+        throw "$wrapper does not short-circuit on an active reuse, so the batch still runs."
+    }
+}
+$poolSource = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/quality/lib/gate-pool.ps1') -Raw
+if ($poolSource -notmatch '(?s)function Start-PooledGate\s*\{[^}]*ClosureReuseActive') {
+    throw 'Start-PooledGate does not honour an active reuse, so pooled gates still run in threads.'
+}
+# Condition 2: a run that ended with an advisory finding must leave no record behind.
+if ($facadeFile -notmatch '(?s)Send-PostChangeChatVerdict -Verdict "PASS, \$elapsedMs ms".*?Add-ClosureLedgerRecord') {
+    throw 'The ledger record is not written from the clean-PASS branch alone.'
+}
+
+$ledgerDir = Join-Path $repoRoot 'temp/S3301/ledger-tests'
+Remove-Item -LiteralPath $ledgerDir -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path $ledgerDir | Out-Null
+. $ledgerPath
+$ledgerJournal = Join-Path $ledgerDir 'closures.jsonl'
+function Get-ClosureLedgerPath { return $ledgerJournal }
+
+$fileA = Join-Path $ledgerDir 'a.txt'
+$fileB = Join-Path $ledgerDir 'b.txt'
+Set-Content -LiteralPath $fileA -Value 'alpha' -Encoding utf8 -NoNewline
+Set-Content -LiteralPath $fileB -Value 'beta' -Encoding utf8 -NoNewline
+
+$env:FMS_POSTCHANGE_NO_REUSE = $null
+$pairPrint = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt', 'b.txt') -ChangeType 'Doc' -Module 'app_v2' -Scoped $true
+if ($pairPrint.files.Count -ne 2) { throw 'The fingerprint did not stamp both files of the set.' }
+Add-ClosureLedgerRecord -Target 'S9901' -Fingerprint $pairPrint -RunId 'testrun00001' -ElapsedMs 1234 -Protocol 'none'
+
+$sameSet = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt', 'b.txt') -ChangeType 'Doc' -Module 'app_v2' -Scoped $true
+if (-not (Find-ReusableClosure -Target 'S9901' -Fingerprint $sameSet)) {
+    throw 'An unchanged set under the same ticket did not match its own record.'
+}
+$subset = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt') -ChangeType 'Doc' -Module 'app_v2' -Scoped $true
+if (-not (Find-ReusableClosure -Target 'S9901' -Fingerprint $subset)) {
+    throw 'A subset of an already-judged set did not match; condition 5 rejects what it should accept.'
+}
+if (Find-ReusableClosure -Target 'S9902' -Fingerprint $sameSet) {
+    throw 'A record written under one ticket was reused under another.'
+}
+$otherType = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt', 'b.txt') -ChangeType 'Mixed' -Module 'app_v2' -Scoped $true
+if (Find-ReusableClosure -Target 'S9901' -Fingerprint $otherType) { throw 'A different ChangeType was reused.' }
+$unscoped = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt', 'b.txt') -ChangeType 'Doc' -Module 'app_v2' -Scoped $false
+if (Find-ReusableClosure -Target 'S9901' -Fingerprint $unscoped) { throw 'A different -ScopeToFile mode was reused.' }
+
+Set-Content -LiteralPath $fileB -Value 'beta!' -Encoding utf8 -NoNewline
+$changedSet = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt', 'b.txt') -ChangeType 'Doc' -Module 'app_v2' -Scoped $true
+if (Find-ReusableClosure -Target 'S9901' -Fingerprint $changedSet) {
+    throw 'One changed byte in the set still matched the record.'
+}
+$widerSet = Get-ClosureFingerprint -RepositoryRoot $ledgerDir -Changed @('a.txt', 'closures.jsonl') -ChangeType 'Doc' -Module 'app_v2' -Scoped $true
+if (Find-ReusableClosure -Target 'S9901' -Fingerprint $widerSet) {
+    throw 'A set carrying a file the record never saw was reused.'
+}
+
+$env:FMS_POSTCHANGE_NO_REUSE = '1'
+if (Find-ReusableClosure -Target 'S9901' -Fingerprint $subset) { throw 'FMS_POSTCHANGE_NO_REUSE did not suppress the lookup.' }
+Add-ClosureLedgerRecord -Target 'S9903' -Fingerprint $subset -RunId 'testrun00002' -ElapsedMs 1 -Protocol 'none'
+$env:FMS_POSTCHANGE_NO_REUSE = $null
+if (Find-ReusableClosure -Target 'S9903' -Fingerprint $subset) { throw 'A record was written while reuse was disabled.' }
+
+$env:FMS_POSTCHANGE_REUSE_WINDOW_MIN = '0'
+if ((Get-ClosureLedgerWindowMinutes) -ne $script:ClosureLedgerDefaultWindowMinutes) {
+    throw 'A non-positive window override was accepted instead of falling back to the default.'
+}
+$env:FMS_POSTCHANGE_REUSE_WINDOW_MIN = $null
+Remove-Item -LiteralPath $ledgerDir -Recurse -Force -ErrorAction SilentlyContinue
+
 Write-Output "post-change tests: PASS ($($labels.Count) routed labels with hints)"

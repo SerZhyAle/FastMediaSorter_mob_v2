@@ -385,7 +385,6 @@ class BroadcastControlManager @Inject constructor(
     /** S3175: the guide the broadcaster forwards to whoever receives the link, QR or file. */
     private fun openViewerGuide(activity: AppCompatActivity) {
         val url = SupportIntentFactory.broadcastGuideUrl(activity)
-        Timber.d("S3175: opening viewer guide url=$url")
         try {
             activity.startActivity(SupportIntentFactory.openUrl(url))
         } catch (e: ActivityNotFoundException) {

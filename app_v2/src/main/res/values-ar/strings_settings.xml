@@ -271,12 +271,10 @@
     <string name="cross_device_transfer_pending_title">عمليات نقل الأجهزة المعلقة</string>
     <string name="cross_device_transfer_receive_and_delete">الاستلام والحذف من السحابة</string>
     <string name="cross_device_transfer_receive_and_keep">الاستلام والاحتفاظ في السحابة</string>
-    <string name="cross_device_transfer_clear_queue">مسح قائمة الانتظار</string>
     <string name="cross_device_transfer_empty">لا شيء ينتظر هذا الجهاز. أرسل ملفًا أو إعدادات من جهاز آخر لتراها هنا.</string>
     <string name="cross_device_transfer_sending">جارٍ الرفع إلى قائمة انتظار Drive..</string>
     <string name="cross_device_transfer_sent">تم الرفع. افتح هذه الشاشة على جهازك الآخر لاستلامه.</string>
     <string name="cross_device_transfer_received_files">تم الحفظ في مجلد الوارد الخاص بالتطبيق</string>
     <string name="cross_device_transfer_received_settings">تم تطبيق الإعدادات من الجهاز الآخر</string>
     <string name="cross_device_transfer_failed">لم يكتمل النقل. تحقق من تسجيل الدخول إلى Drive ومن الاتصال، ثم حاول مرة أخرى.</string>
-    <string name="cross_device_transfer_queue_cleared">تم مسح قائمة الانتظار: تمت إزالة %1$d حزمة</string>
 </resources>

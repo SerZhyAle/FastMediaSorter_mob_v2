@@ -245,7 +245,7 @@ class BrowseEventHandler(
                     PermissionHelper.routeToLocalNetworkSettings(activity)
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
     }
 

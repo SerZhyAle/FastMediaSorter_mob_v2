@@ -145,10 +145,34 @@ class MediaFileAdapter(
             newState.playingPath,
             newState.downloadingPath
         ).filterNotNull()
+        notifyChangedRuns(PAYLOAD_PLAYBACK_STATE) { file -> file.path in affectedPaths }
+    }
+
+    /**
+     * Notifies [payload] for every position [isChanged] accepts, collapsing contiguous positions
+     * into one range notification.
+     *
+     * S3282: one notifyItemChanged per item queues one RecyclerView UpdateOp per item, and
+     * AdapterHelper.findPositionOffset / OpReorderer walk that pending list once per op - over a
+     * large folder the resulting main-thread stall was long enough for input dispatch to time out.
+     */
+    private inline fun notifyChangedRuns(payload: Any, isChanged: (MediaFile) -> Boolean) {
+        var runStart = RecyclerView.NO_POSITION
+        var runLength = 0
         currentList.forEachIndexed { index, file ->
-            if (file.path in affectedPaths) {
-                notifyItemChanged(index, PAYLOAD_PLAYBACK_STATE)
+            if (isChanged(file)) {
+                if (runStart == RecyclerView.NO_POSITION) {
+                    runStart = index
+                }
+                runLength++
+            } else if (runStart != RecyclerView.NO_POSITION) {
+                notifyItemRangeChanged(runStart, runLength, payload)
+                runStart = RecyclerView.NO_POSITION
+                runLength = 0
             }
+        }
+        if (runStart != RecyclerView.NO_POSITION) {
+            notifyItemRangeChanged(runStart, runLength, payload)
         }
     }
 
@@ -392,24 +416,10 @@ class MediaFileAdapter(
         val oldSelected = selectedPaths
         selectedPaths = paths
 
-        // Optimize updates: only notify changed items
-        // If selection was cleared
-        if (paths.isEmpty() && oldSelected.isNotEmpty()) {
-            currentList.forEachIndexed { index, file ->
-                if (file.path in oldSelected) {
-                    notifyItemChanged(index, PAYLOAD_SELECTION)
-                }
-            }
-            return
-        }
-
-        // If selection was added/changed
-        currentList.forEachIndexed { index, file ->
-            val wasSelected = file.path in oldSelected
-            val isSelected = file.path in paths
-            if (wasSelected != isSelected) {
-                notifyItemChanged(index, PAYLOAD_SELECTION)
-            }
+        // Only positions whose selection state actually flipped are rebound; select-all and
+        // clear-all produce one contiguous run each instead of one notification per item.
+        notifyChangedRuns(PAYLOAD_SELECTION) { file ->
+            (file.path in oldSelected) != (file.path in paths)
         }
     }
 

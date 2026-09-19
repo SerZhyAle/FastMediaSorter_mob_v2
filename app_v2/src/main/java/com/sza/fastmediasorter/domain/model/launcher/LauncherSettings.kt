@@ -127,6 +127,10 @@ data class LauncherSettings(
     val allAppsSortDescending: Boolean = false,
     // S1741/S2384: idle seconds before the launcher turns the screen off (0 = Off, on by default).
     val screenBlackoutTimeoutSeconds: Int = AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,
+    // S3284: the same countdown while the device is plugged in, wired or wireless. It fully replaces
+    // [screenBlackoutTimeoutSeconds] whenever power is connected (owner ruling 2026-09-18), so 0 - the
+    // default - keeps the desktop lit for as long as the charger is attached.
+    val screenBlackoutTimeoutOnChargeSeconds: Int = AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_ON_CHARGE_SECONDS,
     // S1748/S2253: launcher shared-surface opacity (0.0f = fully transparent, 1.0f = fully opaque).
     val widgetBackdropAlpha: Float = AppSettings.DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA,
     // S2213: the place last picked for a weather gadget, in `WeatherLocation.encode` form. It lives here

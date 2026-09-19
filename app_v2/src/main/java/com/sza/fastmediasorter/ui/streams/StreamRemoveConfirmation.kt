@@ -28,7 +28,7 @@ object StreamRemoveConfirmation {
             .setTitle(R.string.streams_remove)
             .setMessage(title)
             .setPositiveButton(R.string.streams_remove) { _, _ -> onConfirm() }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .create()
         DialogKeyboardDelegate.applyTo(dialog) {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()

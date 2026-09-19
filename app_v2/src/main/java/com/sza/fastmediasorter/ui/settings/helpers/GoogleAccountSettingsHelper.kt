@@ -186,7 +186,7 @@ class GoogleAccountSettingsHelper(
             .setTitle(R.string.s0200_sign_out_confirm_title)
             .setMessage(R.string.s0200_sign_out_confirm_message)
             .setPositiveButton(R.string.s0200_sign_out_confirm_confirm) { _, _ -> viewModel.signOutPrimary() }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
     }
 

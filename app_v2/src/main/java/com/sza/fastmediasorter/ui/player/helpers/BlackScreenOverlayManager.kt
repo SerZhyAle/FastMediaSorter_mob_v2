@@ -1,18 +1,32 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
+import android.content.Context
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.common.widget.DimOverlayView
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockOverlayView
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockStyleProvider
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimStatusContentProvider
+import com.sza.fastmediasorter.ui.common.widget.dimclock.di.DimClockEntryPoint
+import dagger.hilt.EntryPoints
+import dagger.Lazy
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.lang.ref.WeakReference
 
 class BlackScreenOverlayManager(
     private val activityRef: WeakReference<Activity>,
-    private val systemBarsManager: SystemBarsManager
+    private val systemBarsManager: SystemBarsManager,
+    var onVisibilityChanged: ((Boolean) -> Unit)? = null,
+    private val settingsRepositoryLazy: Lazy<SettingsRepository>? = null,
+    private val dimClockStyleProviderLazy: Lazy<DimClockStyleProvider>? = null,
+    private val dimStatusContentProviderLazy: Lazy<DimStatusContentProvider>? = null,
 ) {
 
     var isVisible: Boolean = false
@@ -28,7 +42,16 @@ class BlackScreenOverlayManager(
         private set
 
     private var overlayView: View? = null
+    private var dimClockView: DimClockOverlayView? = null
     private var wasFullscreenBeforeOverlay = false
+
+    private fun resolveEntryPoint(context: Context): DimClockEntryPoint =
+        EntryPoints.get(context.applicationContext, DimClockEntryPoint::class.java)
+
+    private fun isDimClockEnabled(activity: Activity): Boolean {
+        val repo = settingsRepositoryLazy?.get() ?: resolveEntryPoint(activity).settingsRepository()
+        return runBlocking { repo.getSettings().first().dimClockOverlayEnabled }
+    }
 
     fun show() {
         if (isVisible) return
@@ -37,6 +60,9 @@ class BlackScreenOverlayManager(
         wasFullscreenBeforeOverlay = systemBarsManager.isInFullscreenMode()
         isChangingSystemBars = true
         systemBarsManager.enterFullscreenMode()
+
+        val clockEnabled = isDimClockEnabled(activity)
+
         val view = DimOverlayView(activity).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -57,10 +83,32 @@ class BlackScreenOverlayManager(
         }
         decorView.addView(view)
         overlayView = view
+
+        if (clockEnabled) {
+            val entryPoint = resolveEntryPoint(activity)
+            val styleProvider = dimClockStyleProviderLazy?.get() ?: entryPoint.dimClockStyleProvider()
+            val statusProvider = dimStatusContentProviderLazy?.get() ?: entryPoint.dimStatusContentProvider()
+            val unitProvider = entryPoint.unitSystemProvider()
+
+            val clockView = DimClockOverlayView(activity).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+                bind(styleProvider, statusProvider, unitProvider)
+            }
+            decorView.addView(clockView)
+            dimClockView = clockView
+        } else {
+            setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
+        }
+
         isVisible = true
+        Timber.d("S3256: phone black screen overlay shown, clockEnabled=$clockEnabled")
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
+        onVisibilityChanged?.invoke(true)
         Timber.d(
-            "BlackScreenOverlayManager: overlay shown (fullscreen=true, wasFullscreen=$wasFullscreenBeforeOverlay)"
+            "BlackScreenOverlayManager: overlay shown (fullscreen=true, wasFullscreen=, clockEnabled=)"
         )
     }
 
@@ -78,19 +126,35 @@ class BlackScreenOverlayManager(
         if (!isVisible) return
         val activity = activityRef.get() ?: return
         val decorView = activity.window.decorView as? ViewGroup ?: return
+        dimClockView?.let {
+            decorView.removeView(it)
+            dimClockView = null
+        }
         overlayView?.let { decorView.removeView(it) }
         overlayView = null
         isVisible = false
+
+        setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
+
         if (!wasFullscreenBeforeOverlay) {
             systemBarsManager.exitFullscreenMode()
         }
         isChangingSystemBars = false
-        Timber.d("BlackScreenOverlayManager: overlay hidden (restoredFullscreen=$wasFullscreenBeforeOverlay)")
+        onVisibilityChanged?.invoke(false)
+        Timber.d("BlackScreenOverlayManager: overlay hidden (restoredFullscreen=)")
     }
 
     fun onFileTypeChanged(isAudioOrVideo: Boolean) {
         if (!isAudioOrVideo && isVisible) hide()
+    }
+
+    /**
+     * S3256: overrides window screenBrightness to zero when dimmed screen clock is disabled,
+     * and restores to default on un-dim. Never touches Settings.System (S1796 ADR-2).
+     */
+    private fun setScreenBrightness(activity: Activity, value: Float) {
+        activity.window.attributes = activity.window.attributes.apply { screenBrightness = value }
     }
 
     /**

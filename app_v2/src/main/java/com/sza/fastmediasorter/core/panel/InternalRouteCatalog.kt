@@ -171,9 +171,12 @@ object InternalRouteCatalog {
             iconRes = R.drawable.ic_watch_listen_record,
             intent = { WatchListenLaunchActivity.createIntent(it, record = true) },
         ),
+        // S1736 §6.7, owner ruling 2026-09-05: this is the one pair where the menu's wording wins over
+        // the route's - the route said "Photo OCR translate", which is jargon and worse Russian than the
+        // settings title every other surface already shows.
         Route(
             key = KEY_OCR,
-            labelRes = R.string.app_launch_panel_route_ocr,
+            labelRes = R.string.setting_camera_ocr_translation_title,
             iconRes = R.drawable.ic_camera_ocr_translate,
             intent = AppLaunchPanelRouteIntents::ocr,
         ),

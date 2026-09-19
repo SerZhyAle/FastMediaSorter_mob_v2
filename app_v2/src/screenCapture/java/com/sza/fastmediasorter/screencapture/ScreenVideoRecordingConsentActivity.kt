@@ -74,7 +74,7 @@ class ScreenVideoRecordingConsentActivity : AppCompatActivity() {
             .setPositiveButton(R.string.screen_recording_disclosure_start) { _, _ ->
                 lifecycleScope.launch { acceptDisclosureAndLaunchConsent() }
             }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> finish() }
+            .setNegativeButton(R.string.cancel) { _, _ -> finish() }
             .setOnCancelListener { finish() }
             .showBoundToHost(this@ScreenVideoRecordingConsentActivity)
     }

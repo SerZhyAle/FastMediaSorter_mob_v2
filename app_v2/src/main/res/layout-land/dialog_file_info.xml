@@ -37,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="@dimen/dialog_button_min_width_small"
-            android:text="@android:string/ok"
+            android:text="@string/ok"
             style="@style/Widget.Material3.Button" />
     </LinearLayout>
 

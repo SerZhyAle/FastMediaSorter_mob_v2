@@ -78,6 +78,10 @@ class FakeSettingsRepository(
         updateSettings(settingsFlow.value.copy(scheduledOperationsPaused = paused))
     }
 
+    override suspend fun updateDimClockOverlayEnabled(enabled: Boolean) {
+        updateSettings(settingsFlow.value.copy(dimClockOverlayEnabled = enabled))
+    }
+
     override suspend fun setStatisticsEnabled(enabled: Boolean) {
         updateSettings(settingsFlow.value.copy(enableStatistics = enabled))
     }

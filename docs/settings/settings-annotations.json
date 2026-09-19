@@ -759,6 +759,11 @@
     "ru": "Обрезает изображения для заполнения всего экрана в полноэкранном режиме, убирая чёрные полосы.",
     "uk": "Обрізає зображення для заповнення всього екрана в повноекранному режимі, прибираючи чорні смуги."
   },
+  "rowCrossDevicePackets": {
+    "en": "Opens the queue of files and settings your other devices left in your Google Drive, and sends this device's settings to them as a new packet.",
+    "ru": "Открывает очередь файлов и настроек, оставленных другими вашими устройствами в Google Drive, и отправляет настройки этого устройства им новым пакетом.",
+    "uk": "Відкриває чергу файлів і налаштувань, залишених іншими вашими пристроями в Google Drive, і надсилає налаштування цього пристрою їм новим пакетом."
+  },
   "rowDataTransfer": {
     "en": "Opens the import and export menu for settings, favorites, pinned streams and resources.",
     "ru": "Открывает меню импорта и экспорта настроек, избранного, закреплённых трансляций и ресурсов.",
@@ -808,6 +813,11 @@
     "en": "Selects the device profile that adapts the interface and controls to your device type.",
     "ru": "Выбирает профиль устройства, адаптирующий интерфейс и элементы управления под тип устройства.",
     "uk": "Вибирає профіль пристрою, що адаптує інтерфейс та елементи керування під тип пристрою."
+  },
+  "rowDimClockOverlay": {
+    "en": "Draws the clock and status line over the dimmed player screen, so the time stays readable while the picture is blacked out.",
+    "ru": "Показывает часы и строку состояния поверх затемнённого экрана плеера, чтобы время оставалось видно при погашенной картинке.",
+    "uk": "Показує годинник і рядок стану поверх затемненого екрана плеєра, щоб час залишався видимим при згашеному зображенні."
   },
   "rowDisableAnimations": {
     "en": "Disables screen transitions, group expanding and collapsing, settings-tab effects, decorative animations, and image crossfades. Audio visualizers, the camera focus ring, and filename auto-hide still run because they convey state.",
@@ -1249,6 +1259,11 @@
     "ru": "Гасит экран при простое на рабочем столе лаунчера: блокирует устройство там, где системная блокировка доступна, иначе показывает чёрный экран. По умолчанию включено с задержкой 30 секунд; предустановки от 5 до 300 секунд, заданное вручную число секунд или без отключения. Для профилей автомагнитолы и фоторамки по умолчанию выбрано «без отключения».",
     "uk": "Гасить екран під час простою на робочому столі лаунчера: блокує пристрій там, де системне блокування доступне, інакше показує чорний екран. Типово увімкнено із затримкою 30 секунд; попередні налаштування від 5 до 300 секунд, довільна кількість секунд або без вимкнення. Для профілів автомагнітоли й фоторамки типово вибрано «без вимкнення»."
   },
+  "rowLauncherScreenTimeoutOnCharge": {
+    "en": "Turns the screen off after a chosen period of inactivity while the charger is connected, wired or wireless. It replaces the ordinary screen timeout for as long as power is attached; off by default, so a charging device keeps the desktop lit. Same choices as the screen timeout above: presets of 5 to 300 seconds, a custom number of seconds, or never (off).",
+    "ru": "Гасит экран при простое, пока подключена зарядка - проводная или беспроводная. Пока есть питание, эта задержка полностью заменяет обычный таймаут экрана; по умолчанию выключено, поэтому на зарядке рабочий стол остаётся включённым. Набор вариантов тот же, что и у таймаута экрана выше: предустановки от 5 до 300 секунд, заданное вручную число секунд или без отключения.",
+    "uk": "Гасить екран під час простою, доки підключено заряджання - дротове або бездротове. Поки є живлення, ця затримка повністю замінює звичайний таймаут екрана; типово вимкнено, тому під час заряджання робочий стіл лишається увімкненим. Набір варіантів той самий, що й у таймауту екрана вище: попередні налаштування від 5 до 300 секунд, довільна кількість секунд або без вимкнення."
+  },
   "rowLauncherSettings": {
     "en": "Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density.",
     "ru": "Открывает диалог настроек системного лаунчера для настройки рабочего стола, панели задач и плотности сетки.",
@@ -1590,7 +1605,7 @@
     "uk": "Вмикає можливість додавати SMB-ресурси локальної мережі (NAS, ПК) як віддалені ресурси."
   },
   "rowStreamTitle": {
-    "en": "Sets the stream title broadcast in both the ICY metadata and the descriptor, so receivers display a consistent name.",
+    "en": "Sets the broadcast title sent in both the ICY metadata and the descriptor, so receivers display a consistent name.",
     "ru": "Задаёт название вещания, которое передаётся в метаданных ICY и в дескрипторе одновременно, чтобы приёмник показывал одно имя.",
     "uk": "Задає назву мовлення, яка передається в метаданих ICY та в дескрипторі одночасно, щоб приймач показував одне ім\'я."
   },

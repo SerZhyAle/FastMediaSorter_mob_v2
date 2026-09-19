@@ -1824,7 +1824,6 @@
     <string name="camera_capture_microphone_muted">শব্দ ছাড়া রেকর্ডিং</string>
     <string name="camera_mode_photo">ছবি</string>
     <string name="camera_mode_video">ভিডিও</string>
-    <string name="quick_camera_menu_label">ক্যামেরা</string>
     <string name="camera_control_pause">বিরতি</string>
     <string name="camera_control_resume">চালিয়ে যান</string>
     <string name="camera_gallery_preview">শেষ ধারণ দেখুন</string>
@@ -1920,7 +1919,6 @@
     <string name="statistics_metric_ocr_scans">শনাক্ত করা লেখা</string>
     <string name="app_launch_panel_route_calculator">ক্যালকুলেটর</string>
     <string name="app_launch_panel_route_game">মিনি-গেম</string>
-    <string name="app_launch_panel_route_ocr">ছবির OCR অনুবাদ</string>
     <string name="app_launch_panel_route_streams">স্ট্রিম</string>
     <string name="app_launch_panel_route_favorites">পছন্দ</string>
     <string name="app_launch_panel_os_settings">সেটিংস</string>
@@ -3350,7 +3348,7 @@
     <string name="mirror_capture_error_save">ক্যাপচার নেওয়া হয়েছে কিন্তু ফোল্ডারে সংরক্ষণ করা যায়নি</string>
     <string name="streams_logo_prompt_title">স্টেশনের লোগো</string>
     <string name="broadcast_notification_title">অডিও সম্প্রচার হচ্ছে</string>
-    <string name="broadcast_notification_text">লাইভ অডিও স্ট্রিম সক্রিয়</string>
+    <string name="broadcast_notification_text">লাইভ অডিও সম্প্রচার সক্রিয়</string>
     <string name="broadcast_action_stop">থামান</string>
     <string name="broadcast_channel_name">অডিও সম্প্রচার</string>
     <string name="broadcast_channel_description">চলমান অডিও সম্প্রচারের বিজ্ঞপ্তি</string>
@@ -3425,8 +3423,6 @@
     <string name="camera_session_consent_notification_title">আপনার ঘড়ি এই ক্যামেরাটি দেখতে চায়</string>
     <string name="camera_session_consent_notification_text">ঘড়িকে এই ফোনের ক্যামেরা ও মাইক্রোফোন দেখতে দিন.</string>
     <string name="camera_session_consent_allow">অনুমতি দিন</string>
-    <string name="launcher_screens_screen_title">লঞ্চার স্ক্রিন</string>
-    <string name="launcher_settings_screens_title">লঞ্চার স্ক্রিন</string>
     <string name="launcher_screens_section_screens">স্ক্রিন</string>
     <string name="launcher_screens_show_number_title">স্ক্রিন নম্বর দেখান</string>
     <string name="launcher_screens_show_number_hint">স্ক্রিনের মধ্যে পাতা উল্টানোর সময় নম্বরটি যেকোনো ওয়ালপেপারের উপর আঁকা হয়। এটি অ্যানিমেশন চালু আছে কিনা তার উপর নির্ভর করে না।</string>
@@ -3447,8 +3443,8 @@
     <string name="broadcast_failed_network">লাইভ ব্রডকাস্ট শুরু করা যায়নি: ডিভাইস নেটওয়ার্ক পোর্ট খুলতে পারেনি</string>
     <string name="broadcast_failed_encoder">লাইভ ব্রডকাস্ট শুরু করা যায়নি: এই ডিভাইসে কোনো অডিও এনকোডার নেই</string>
     <string name="broadcast_failed_capture">লাইভ ব্রডকাস্ট বন্ধ হয়েছে: অডিও ক্যাপচার বাধাপ্রাপ্ত হয়েছে</string>
-    <string name="broadcast_permission_microphone_required">অডিও স্ট্রিম করতে লাইভ ব্রডকাস্টের মাইক্রোফোন অ্যাক্সেস প্রয়োজন</string>
-    <string name="broadcast_permission_notifications_required">স্ট্রিম চালু রাখতে লাইভ ব্রডকাস্টের নোটিফিকেশন অ্যাক্সেস প্রয়োজন</string>
+    <string name="broadcast_permission_microphone_required">অডিও পাঠাতে লাইভ সম্প্রচারের মাইক্রোফোন অ্যাক্সেস প্রয়োজন</string>
+    <string name="broadcast_permission_notifications_required">লাইভ সম্প্রচার চালু রাখতে নোটিফিকেশন অ্যাক্সেস প্রয়োজন</string>
     <string name="settings_suppress_wear_media_takeover">ঘড়িতে মিডিয়া কন্ট্রোল বন্ধ রাখুন</string>
     <string name="settings_suppress_wear_media_takeover_summary">Wear OS সিস্টেমকে ঘড়িতে ফোন প্লেয়ারকে মিডিয়া-কন্ট্রোল স্ক্রিন হিসেবে দেখানো থেকে আটকান</string>
     <string name="broadcast_import_refreshed">ব্রডকাস্ট নতুন ঠিকানাসহ আপডেট হয়েছে</string>
@@ -3459,7 +3455,7 @@
     <string name="settings_broadcast_audio_format">অডিও ফরম্যাট</string>
     <string name="settings_broadcast_mic_gain">মাইক্রোফোন গেইন</string>
     <string name="settings_broadcast_auto_share">শেয়ার স্ক্রিন স্বয়ংক্রিয়ভাবে খুলুন</string>
-    <string name="settings_broadcast_stream_title">স্ট্রিমের শিরোনাম</string>
+    <string name="settings_broadcast_stream_title">সম্প্রচারের শিরোনাম</string>
     <string name="unit_speed_mph">%1$s mph</string>
     <string name="unit_speed_kmh_spoken">%1$s কিলোমিটার প্রতি ঘণ্টা</string>
     <string name="unit_speed_mph_spoken">%1$s মাইল প্রতি ঘণ্টা</string>
@@ -3487,9 +3483,7 @@
     <string name="settings_streams_visualize_as_music_summary">রেডিও স্টেশনে ট্যাপ করলে নিচের মিনি-কন্ট্রোলের বদলে ভিজ্যুয়ালাইজেশনসহ ফুল-স্ক্রিন প্লেয়ার খোলে।</string>
     <string name="translation_unavailable_device_licence">এই ধরনের ডিভাইসের জন্য অনুবাদ লাইসেন্সপ্রাপ্ত নয়</string>
     <string name="broadcast_entry_title">লাইভ ব্রডকাস্ট</string>
-    <string name="broadcast_entry_description">এই ডিভাইসের মাইক্রোফোন অডিও আপনার লোকাল নেটওয়ার্কে শেয়ার করা শুরু করুন। লিংক থাকা যে কেউ আপনি বন্ধ না করা পর্যন্ত শুনতে পারবে।</string>
     <string name="broadcast_entry_start">ব্রডকাস্ট শুরু করুন</string>
-    <string name="broadcast_entry_live">ব্রডকাস্ট লাইভ চলছে</string>
     <string name="shortcut_broadcast_short">ব্রডকাস্ট</string>
     <string name="shortcut_broadcast_long">লাইভ ব্রডকাস্ট</string>
     <string name="tile_broadcast_label">লাইভ ব্রডকাস্ট</string>
@@ -3590,7 +3584,7 @@
     <string name="streams_filter_media_own">নিজের</string>
     <string name="streams_media_filter_own">শুধু হাতে যোগ করা স্ট্রিম দেখান</string>
     <string name="broadcast_notification_video_title">ভিডিও সম্প্রচার হচ্ছে</string>
-    <string name="broadcast_notification_video_text">লাইভ ক্যামেরা স্ট্রিম চালু আছে</string>
+    <string name="broadcast_notification_video_text">লাইভ ক্যামেরা সম্প্রচার চালু আছে</string>
     <string name="broadcast_control_blank_screen">কালো স্ক্রিন</string>
     <string name="broadcast_control_blank_screen_cd">সম্প্রচার চলাকালীন অ্যাপটি কালো স্ক্রিনে ঢেকে দিন</string>
     <string name="broadcast_share_save_failed">ফাইল সংরক্ষণ করা যায়নি</string>
@@ -3634,7 +3628,7 @@
         <item>@string/launcher_primary_window_desktop_title</item>
         <item>@string/launcher_primary_window_resource_manager_title</item>
     </string-array>
-    <string name="broadcast_default_stream_title">ফোন স্ট্রিম</string>
+    <string name="broadcast_default_stream_title">ফোন সম্প্রচার</string>
     <string name="broadcast_share_help">এটি কীভাবে দেখবেন</string>
     <string name="sos_title">SOS জরুরি সংকেত</string>
     <string name="sos_hint">সাইরেন ও স্ট্রোব মোর্স SOS প্যাটার্ন পুনরাবৃত্তি করে। নাগালের মধ্যে থাকলে যুক্ত ঘড়িও সংকেত দেয়।</string>
@@ -3649,4 +3643,26 @@
     <string name="sos_help_title">SOS জরুরি সংকেত</string>
     <string name="sos_help_message">অ্যালার্ম চ্যানেলে জোরালো সাইরেন, পিছনের ফ্ল্যাশ এবং ঝলকানো স্ক্রিন দিয়ে মোর্স SOS প্যাটার্ন পুনরাবৃত্তি করে। শব্দ, আলো বা দুটোই বেছে নিন। এখানে চালু করলে যুক্ত ঘড়িতেও চালু হয়, আর যেকোনো একটি বন্ধ করলে দুটোই বন্ধ হয়। ব্যাটারি ও ফ্ল্যাশ যাতে টিকে থাকে সেজন্য সংকেত ৩০ মিনিট পর নিজেই শেষ হয়।</string>
     <string name="tourist_action_sos">SOS সংকেত</string>
+    <string name="data_transfer_row_title">ডেটা ইমপোর্ট ও এক্সপোর্ট করুন</string>
+    <string name="data_transfer_row_subtitle">সেটিংস, পছন্দের তালিকা, পিন করা স্ট্রিম ও রিসোর্স - কোনও ফাইলে বা Google Drive-এ</string>
+    <string name="data_transfer_dialog_title">ডেটা ইমপোর্ট ও এক্সপোর্ট করুন</string>
+    <string name="data_transfer_kind_settings">সেটিংস</string>
+    <string name="data_transfer_kind_favorites">পছন্দের তালিকা</string>
+    <string name="data_transfer_kind_streams">পিন করা স্ট্রিম</string>
+    <string name="data_transfer_kind_resources">রিসোর্স</string>
+    <string name="data_transfer_direction_export">এক্সপোর্ট</string>
+    <string name="data_transfer_direction_import">ইমপোর্ট</string>
+    <string name="data_transfer_medium_file">ডিভাইসের ফাইল</string>
+    <string name="data_transfer_medium_drive">Google Drive</string>
+    <string name="data_transfer_medium_file_desc">এই ডিভাইসে একটি ফাইল বেছে নিন</string>
+    <string name="data_transfer_medium_drive_desc">যুক্ত থাকা Google Drive অ্যাকাউন্টের ফাইল ব্যবহার করুন</string>
+    <string name="data_transfer_progress">%1$s স্থানান্তর করা হচ্ছে..</string>
+    <string name="data_transfer_export_done">%1$s এক্সপোর্ট করা হয়েছে।</string>
+    <string name="data_transfer_import_done">হয়ে গেছে। %1$d টি যোগ, %2$d টি আপডেট, %3$d টি বাদ।</string>
+    <string name="data_transfer_error_drive">Google Drive-এ পৌঁছনো গেল না। সংযোগ দেখে নিন এবং সেটিংসে কোনও Google অ্যাকাউন্ট যুক্ত আছে কিনা দেখুন, তারপর আবার চেষ্টা করুন।</string>
+    <string name="data_transfer_error_no_file">Google Drive-এ এখনও কোনও %1$s ফাইল নেই। আগে অন্য ডিভাইস থেকে সেটি এক্সপোর্ট করুন।</string>
+    <string name="data_transfer_error_incompatible">এই ফাইলে অন্য ধরনের ডেটা আছে, অথবা এটি অ্যাপের নতুন সংস্করণ থেকে এসেছে। কিছুই বদলানো হয়নি।</string>
+    <string name="data_transfer_error_empty">%1$s-এ এক্সপোর্ট করার মতো এখনও কিছু নেই।</string>
+    <string name="data_transfer_error_unreadable">ফাইলটি পড়া গেল না। আবার বেছে নিন, বা অন্য একটি বেছে নিন।</string>
+    <string name="data_transfer_error_unwritable">ওই জায়গায় লেখা গেল না। অন্য একটি ফাইল বেছে আবার চেষ্টা করুন।</string>
 </resources>

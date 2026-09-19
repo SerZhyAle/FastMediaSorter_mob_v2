@@ -33,7 +33,8 @@ import timber.log.Timber
  *
  * Navigation mode (`ssr_navMode`) swaps the trailing chevron for a real forward arrow and
  * collapses the content to hug the left, for rows that open another screen/activity/dialog;
- * value rows keep the chevron.
+ * value rows keep the chevron. A row carrying a subtitle keeps its stretched text group even in
+ * navigation mode - see [applyTextGroupWidth].
  *
  * Inside a [SettingsValueRowGroup] the row shares one label column with its siblings, so their values
  * line up while each value still sits right beside its own caption - see [applyLabelColumnWidth].
@@ -62,6 +63,9 @@ class SettingsSelectionRow @JvmOverloads constructor(
     private var helpTitleText: CharSequence? = null
     private var helpMessageText: CharSequence? = null
     private var rowClickListener: ((View) -> Unit)? = null
+
+    /** Whether this row asked to hug its content to the left; honoured only while it has no subtitle. */
+    private var hugContentRequested = false
 
     /**
      * `true` when the optional help icon is visible.
@@ -127,6 +131,7 @@ class SettingsSelectionRow @JvmOverloads constructor(
             subtitleView.text = text
             subtitleView.visibility = View.VISIBLE
         }
+        applyTextGroupWidth()
     }
 
     /**
@@ -261,9 +266,10 @@ class SettingsSelectionRow @JvmOverloads constructor(
             val showChevron = typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_showChevron, true)
             chevronView.visibility = if (showChevron) View.VISIBLE else View.GONE
             // S0644: value-row etalon - the trailing chevron sits right after the text instead of being
-            // pushed to the screen edge. Applied by default to single-line rows (no subtitle); rows with a
-            // subtitle keep the full-width text group so the subtitle is not truncated, and navigation rows
-            // collapse via setNavigationMode below regardless.
+            // pushed to the screen edge. Applied by default to single-line rows (no subtitle); a row with a
+            // subtitle keeps the full-width text group so the subtitle is not truncated - which
+            // applyTextGroupWidth now also enforces for the navigation and inline modes below, the two
+            // paths that used to reach the collapse regardless (S1565).
             if (subtitleView.visibility == View.GONE) {
                 collapseContentToLeft()
             }
@@ -286,12 +292,6 @@ class SettingsSelectionRow @JvmOverloads constructor(
         collapseContentToLeft()
     }
 
-    /**
-     * S0644: pins the trailing chevron right after the text by collapsing the text group so it stops
-     * stretching to the full row width. Kept separate from [applyInlineLayout] so the value-row
-     * etalon can hug content to the left without also dropping the tall touch-target band that
-     * [applyInlineLayout] removes for dense landscape / navigation rows.
-     */
     /**
      * Natural width of the title plus its help icon, measured unconstrained so an already applied
      * column width is never fed back to [SettingsValueRowGroup].
@@ -343,15 +343,42 @@ class SettingsSelectionRow @JvmOverloads constructor(
         }
     }
 
+    /**
+     * S0644: pins the trailing chevron right after the text by collapsing the text group so it stops
+     * stretching to the full row width. Kept separate from [applyInlineLayout] so the value-row
+     * etalon can hug content to the left without also dropping the tall touch-target band that
+     * [applyInlineLayout] removes for dense landscape / navigation rows.
+     */
     private fun collapseContentToLeft() {
+        hugContentRequested = true
+        applyTextGroupWidth()
+    }
+
+    /**
+     * Resolves the hug-left request against the subtitle, which cannot both hold.
+     *
+     * S1565: the collapse makes the text group `wrap_content`, and a `wrap_content` `LinearLayout`
+     * sizes itself from its non-`MATCH_PARENT` children alone - here the title line - then
+     * re-measures the `MATCH_PARENT` subtitle at that narrower width while forcing the height it had
+     * at the wider one, so the subtitle is cut mid-sentence with no ellipsis instead of wrapping.
+     * [applyAttributes] already skipped the collapse for a subtitle row, but navigation mode reached
+     * it anyway through [applyInlineLayout] - which is what shipped a row whose second half no user
+     * ever saw, in both orientations. Resolving it here rather than at each caller also makes the
+     * order independent: a host that sets the subtitle after navigation mode gets the same layout.
+     */
+    private fun applyTextGroupWidth() {
+        val hug = hugContentRequested && subtitleView.visibility == View.GONE
+        if (hugContentRequested && !hug) {
+            Timber.d("S1565: navigation row keeps its stretched text group so the subtitle wraps")
+        }
         binding.ssrTextGroup.updateLayoutParams<LayoutParams> {
-            width = LayoutParams.WRAP_CONTENT
-            weight = 0f
+            width = if (hug) LayoutParams.WRAP_CONTENT else 0
+            weight = if (hug) 0f else 1f
         }
         binding.ssrTitleLine.updateLayoutParams<ViewGroup.LayoutParams> {
-            width = ViewGroup.LayoutParams.WRAP_CONTENT
+            width = if (hug) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT
         }
-        binding.ssrTitleLineSpacer.visibility = View.GONE
+        binding.ssrTitleLineSpacer.visibility = if (hug) View.GONE else View.VISIBLE
     }
 
     private fun syncHelpVisibility() {

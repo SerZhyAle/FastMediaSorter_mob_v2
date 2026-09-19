@@ -1,6 +1,6 @@
 ﻿# FastMediaSorter v2 - GitHub Copilot Instructions
 
-**Read `docs/NON_CLAUDE_RUNTIME_RULES.md` first.** It is the twelve rules Claude Code refuses at the tool call and nothing refuses for you, plus the closure check that catches what you missed. Everything below assumes you have.
+**Read `docs/NON_CLAUDE_RUNTIME_RULES.md` first.** It holds the rules Claude Code refuses at the tool call and nothing refuses for you, plus the closure check that catches what you missed. Everything below assumes you have.
 
 ## 1. Browser / Web Access
 - Browse via MCP playwright (`navigate` → `snapshot` / `take_screenshot`). Never `fetch_webpage`.

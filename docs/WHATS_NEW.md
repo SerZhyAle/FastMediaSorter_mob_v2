@@ -14,7 +14,7 @@ permalink: /docs/WHATS_NEW.html
 
 ## What's New
 
-- **Live broadcast to the watch** - send a live stream from the phone to the paired watch.
+- **Live broadcast to the watch** - send a live broadcast from the phone to the paired watch.
 - **Watch stream categories** - Video, Audio and your own streams sorted apart on the watch.
 - **Camera broadcast lens choice** - pick the lens and mute the camera during a broadcast.
 - **Theme-aware launcher icons** - desktop icons follow the light or dark theme.

@@ -58,6 +58,8 @@ internal object WearPreferenceKeys {
     val IMAGE_SCALE_MODE = stringPreferencesKey("wear_image_scale_mode")
     val KEEP_SCREEN_AWAKE = booleanPreferencesKey("wear_keep_screen_awake")
     val BACKGROUND_PLAYBACK = booleanPreferencesKey("wear_background_playback")
+    val DIM_CLOCK_OVERLAY_ENABLED = booleanPreferencesKey("wear_dim_clock_overlay_enabled")
+    val DIM_CLOCK_SECONDS_VISIBLE = booleanPreferencesKey("wear_dim_clock_seconds_visible")
     val LAST_USED_RESOURCE = stringPreferencesKey("wear_last_used_resource")
     val LAST_USED_RESOURCE_ID = stringPreferencesKey("wear_last_used_resource_id")
     val LAST_USED_RESOURCES = stringPreferencesKey("wear_last_used_resources")

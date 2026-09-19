@@ -111,7 +111,7 @@ class BrowseLifecycleHelper(
                 .setPositiveButton(R.string.grant_permission) { _, _ ->
                     com.sza.fastmediasorter.core.util.PermissionHelper.requestAllFilesAccessPermission(activity)
                 }
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .setCancelable(true)
                 .showBoundToHost(activity)
         } else if (!hasPermission) {

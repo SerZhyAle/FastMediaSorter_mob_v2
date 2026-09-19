@@ -64,13 +64,11 @@ class LauncherWallpaperManager(
         wavesLayer.intent = AnimationIntent.DECORATIVE
     }
 
-    // Fires on the settings collector's thread; the camera is driven from the view's thread.
-    private val policyListener: () -> Unit = { cameraLayer.post { refreshCameraPolicy() } }
+    // Fires on the settings collector's thread; the camera and views are driven from the view's thread.
+    private val policyListener: () -> Unit = { cameraLayer.post { refreshWallpaperPolicy() } }
 
     /**
-     * S2536 / S2661: live-camera wallpaper is stopped when animation policy disallows decorative animations.
-     * When policy allows, the camera preview and scrim are raised; when disallowed, camera is stopped,
-     * camera layers are hidden, and the desktop degrades to the branded backdrop rather than leaving a black preview.
+     * S2536 / S2661 / S3276: wallpaper animation is paused/resumed when animation policy changes.
      */
     private fun startCameraIfPolicyAllows(cameraId: String) {
         val mayAnimate = AnimationPolicy.mayAnimate(AnimationIntent.DECORATIVE)
@@ -86,9 +84,24 @@ class LauncherWallpaperManager(
         }
     }
 
-    private fun refreshCameraPolicy() {
-        val wallpaper = current
-        if (wallpaper is LauncherWallpaper.LiveCamera) startCameraIfPolicyAllows(wallpaper.cameraId)
+    private fun refreshWallpaperPolicy() {
+        val mayAnimate = AnimationPolicy.mayAnimate(AnimationIntent.DECORATIVE)
+        when (val wallpaper = current) {
+            is LauncherWallpaper.Branded -> {
+                if (mayAnimate) wavesLayer.startAnimation() else wavesLayer.pauseAnimation()
+            }
+            is LauncherWallpaper.StaticStripes -> {
+                if (mayAnimate) wavesLayer.startAnimation() else wavesLayer.renderFreshStaticFrame()
+            }
+            is LauncherWallpaper.Image -> {
+                if (mayAnimate) imageAnimatable()?.start() else imageAnimatable()?.stop()
+            }
+            is LauncherWallpaper.InstantPhoto -> {
+                if (mayAnimate) imageAnimatable()?.start() else imageAnimatable()?.stop()
+            }
+            is LauncherWallpaper.LiveCamera -> startCameraIfPolicyAllows(wallpaper.cameraId)
+            is LauncherWallpaper.None -> Unit
+        }
     }
 
     fun attach() {
@@ -112,17 +125,10 @@ class LauncherWallpaperManager(
         }
     }
 
-    /** Foreground edge: resume whichever backdrop is active. Symmetric with [onStop]. */
+    /** Foreground edge: resume whichever backdrop is active per policy. Symmetric with [onStop]. */
     fun onStart() {
         AnimationPolicy.addLevelListener(policyListener)
-        when (val wallpaper = current) {
-            is LauncherWallpaper.Branded -> wavesLayer.startAnimation()
-            is LauncherWallpaper.StaticStripes -> wavesLayer.renderFreshStaticFrame()
-            is LauncherWallpaper.Image -> imageAnimatable()?.start()
-            is LauncherWallpaper.InstantPhoto -> render(wallpaper)
-            is LauncherWallpaper.LiveCamera -> startCameraIfPolicyAllows(wallpaper.cameraId)
-            is LauncherWallpaper.None -> Unit
-        }
+        refreshWallpaperPolicy()
     }
 
     /** Background edge: no frames while the desktop is not on screen. Symmetric with [onStart]. */

@@ -14,6 +14,7 @@ import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
+import com.sza.fastmediasorter.wear.R
 import timber.log.Timber
 
 /**
@@ -39,14 +40,15 @@ fun StandardWearAlertDialog(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     message: String? = null,
-    confirmLabel: String = stringResource(android.R.string.ok),
-    cancelLabel: String? = stringResource(android.R.string.cancel),
+    confirmLabel: String = stringResource(R.string.ok),
+    cancelLabel: String? = stringResource(R.string.cancel),
     isDestructive: Boolean = false,
     content: (@Composable ColumnScope.() -> Unit)? = null
 ) {
     if (!show) return
     LaunchedEffect(title) {
         Timber.d("S3262: standard wear alert '$title' - destructive=$isDestructive, cancel=${cancelLabel != null}")
+        Timber.d("S3303: wear alert labels $confirmLabel / $cancelLabel")
     }
 
     val titleSlot: @Composable ColumnScope.() -> Unit = {

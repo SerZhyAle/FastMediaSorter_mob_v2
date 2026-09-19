@@ -114,10 +114,10 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
     private fun showDeleteConfirmation(host: String, accountId: String, displayName: String) {
         MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(getString(R.string.s0155_delete_account_confirm, displayName))
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 viewModel.deleteAccount(host, accountId)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(this@AuthSessionsListFragment)
     }
 
@@ -126,13 +126,13 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.s0155_rename_account_title)
             .setView(input)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 val newName = input.text?.toString()?.trim().orEmpty()
                 if (newName.isNotBlank()) {
                     viewModel.updateDisplayName(host, accountId, newName)
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(this@AuthSessionsListFragment)
     }
 
@@ -155,7 +155,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
                     promptForManualUrl()
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(this@AuthSessionsListFragment)
     }
 
@@ -166,7 +166,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.auth_sessions_add_button)
             .setView(input)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
+            .setPositiveButton(R.string.ok) { _, _ ->
                 val url = input.text?.toString()?.trim().orEmpty()
                 if (url.startsWith("http://", true) || url.startsWith("https://", true)) {
                     openAuthWebView(url, "s0116_webview_auth")
@@ -174,7 +174,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
                     Snackbar.make(requireView(), R.string.webview_auth_invalid_url, Snackbar.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(this@AuthSessionsListFragment)
     }
 
@@ -200,7 +200,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
             .setPositiveButton(R.string.s0200_cct_unavailable_retry) { _, _ ->
                 if (cctChecker.isAvailable()) onRetry() else showCctUnavailableDialog(onRetry)
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.cancel, null)
             .showBoundTo(this@AuthSessionsListFragment)
     }
 }
