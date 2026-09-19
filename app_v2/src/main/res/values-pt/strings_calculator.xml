@@ -4,7 +4,7 @@
 <resources>
     <string name="calculator_action_add">Adicionar</string>
     <string name="calculator_action_backspace">Apagar</string>
-    <string name="calculator_action_clear">Claro</string>
+    <string name="calculator_action_clear">Limpar</string>
     <string name="calculator_action_clear_entry">Entrada livre</string>
     <string name="calculator_action_clear_history">Histórico claro</string>
     <string name="calculator_action_decimal">Ponto decimal</string>
@@ -19,7 +19,7 @@
     <string name="calculator_action_multiply">Multiplicar</string>
     <string name="calculator_action_paste">Colar</string>
     <string name="calculator_action_percent">Por cento</string>
-    <string name="calculator_action_round">Redondo</string>
+    <string name="calculator_action_round">Arredondar</string>
     <string name="calculator_action_save_history">Salvar histórico</string>
     <string name="calculator_action_share_result">Enviar resultado</string>
     <string name="calculator_action_subtract">Subtrair</string>

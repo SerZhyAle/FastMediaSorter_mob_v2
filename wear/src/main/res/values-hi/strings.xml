@@ -887,4 +887,6 @@
     <string name="wear_battery_optimization_title">बैटरी बचत प्रसारण रोक सकती है</string>
     <string name="wear_battery_optimization_desc">ऐप को पृष्ठभूमि में चलने दें ताकि ध्वनि बाधित न हो।</string>
     <string name="wear_battery_optimization_grant">पृष्ठभूमि गतिविधि की अनुमति दें</string>
+    <string name="dim_clock_overlay_toggle">मंद स्क्रीन पर घड़ी और स्थिति दिखाएँ</string>
+    <string name="dim_clock_status_cd">मंद स्क्रीन पर घड़ी और स्थिति</string>
 </resources>

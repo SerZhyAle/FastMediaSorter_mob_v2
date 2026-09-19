@@ -11,7 +11,7 @@
     <string name="draw_overlay_filename_hint">Nome do arquivo</string>
     <string name="draw_overlay_save_failed">Não foi possível salvar o desenho. Tente novamente.</string>
     <string name="draw_overlay_saved_to_downloads">Salvo em Downloads: %s</string>
-    <string name="draw_overlay_toolbar_brush">Escovar</string>
+    <string name="draw_overlay_toolbar_brush">Pincel</string>
     <string name="draw_overlay_toolbar_eraser">Apagador</string>
     <string name="draw_overlay_toolbar_rect">Retângulo</string>
     <string name="draw_save_failed_toast">Falha ao salvar</string>

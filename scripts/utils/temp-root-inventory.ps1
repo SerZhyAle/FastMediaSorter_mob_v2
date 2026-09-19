@@ -171,6 +171,7 @@ function Get-TempRootInventory {
         'standard-surface-snapshot.json'      # release/standard-surface-snapshot.ps1 (-OutFile default), read by release/standard-release-gate.ps1.
         'RELEASE-FREEZE.json'                 # Rule 36's marker. Omitted by the pre-S3030 copy, so a freeze held past the age cutoff could be swept mid-sweep.
         'RELEASE-FREEZE-FINGERPRINTS.json'    # quality/release-scope-fingerprint.ps1 - the freeze's content half, omitted by the same copy.
+        'RELEASE-FREEZE-ENDED.json'           # utils/release-freeze.ps1 - what the last freeze ended as, read by -Verb Status so "no freeze held" can be told apart from "yours ended under you" (S3320). A separate name from the marker on purpose: guard-release-freeze.ps1's hot path is one Test-Path on the marker, and a tombstone there would spawn its child on every Bash call forever.
         'STOP-AGENT-WATCHDOG'                 # operator-created stop flag, read by utils/agent-watchdog.ps1. No script writes it.
         'stream-catalog-liveness.csv'         # streams/collect-stream-candidates.ps1 (-CatalogLivenessReport default).
         'stream-catalog.zip'                  # streams/modules/StreamPublisher.Delivery.ps1.

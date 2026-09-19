@@ -996,7 +996,7 @@
     <string name="reopen_with_encoding">Riapri con codifica.</string>
     <string name="select_encoding">Seleziona la codifica</string>
     <string name="reader_settings">Impostazioni del lettore</string>
-    <string name="reader_theme_light">Leggero</string>
+    <string name="reader_theme_light">Chiaro</string>
     <string name="reader_theme_dark">Buio</string>
     <string name="reader_theme_sepia">Seppia</string>
     <string name="toggle_markdown">Attiva/disattiva Markdown</string>
@@ -1245,7 +1245,7 @@
     <string name="remember_file_list_help_message">Quando questa opzione è abilitata, l\'app memorizza l\'elenco dei file di risorse nel database dopo la scansione. Le aperture successive vengono caricate istantaneamente dalla cache. Utilizza la funzione Aggiorna per rilevare le modifiche ai file esterni.</string>
     <string name="file_not_found_playing_from_start">File \u201c%1$s\u201d non trovato - riproduzione dall\'inizio</string>
     <string name="picture_in_picture">Immagine nell\'immagine</string>
-    <string name="pip_play">Giocare</string>
+    <string name="pip_play">Riproduci</string>
     <string name="pip_pause">Pausa</string>
     <string name="label_profile_none">Personalizzato</string>
     <string name="label_profile_audio_library">Libreria audio</string>
@@ -1266,7 +1266,7 @@
     <string name="cd_add_to_favorites">Aggiungi ai preferiti</string>
     <string name="cd_remove_from_favorites">Rimuovi dai preferiti</string>
     <string name="tile_audio_label">Audio FMS</string>
-    <string name="tile_audio_play">Giocare</string>
+    <string name="tile_audio_play">Riproduci</string>
     <string name="tile_audio_pause">Pausa</string>
     <string name="tile_audio_play_music">Riproduci musica</string>
     <string name="perm_btn_grant_all">Consenti tutto</string>
@@ -1307,7 +1307,7 @@
     <string name="now_playing_track_count">Coda (%d)</string>
     <string name="now_playing_back_to_player">← In riproduzione</string>
     <string name="now_playing_play_pause_desc">Riproduci / Pausa</string>
-    <string name="now_playing_play_desc">Giocare</string>
+    <string name="now_playing_play_desc">Riproduci</string>
     <string name="now_playing_pause_desc">Pausa</string>
     <string name="now_playing_previous_desc">Traccia precedente</string>
     <string name="now_playing_next_desc">Prossima traccia</string>
@@ -1350,7 +1350,7 @@
     <string name="menu_automate_source">Automazione..</string>
     <string name="menu_add_receiver">Aggiungi all\'elenco di ordinamento</string>
     <string name="msg_added_as_receiver">Risorsa aggiunta all\'elenco di smistamento</string>
-    <string name="btn_edit_receiver">Specificare</string>
+    <string name="btn_edit_receiver">Configura</string>
     <string name="archive_files">Archivio</string>
     <string name="archive_dialog_title">Archivia i file selezionati</string>
     <string name="archive_name_hint">Nome dell\'archivio (senza estensione .zip)</string>
@@ -1482,7 +1482,7 @@
         <item quantity="other">%d cookie</item>
     </plurals>
     <string name="webview_auth_save_button">Salva autorizzazione</string>
-    <string name="webview_auth_cancel_button">Cancellare</string>
+    <string name="webview_auth_cancel_button">Annulla</string>
     <string name="webview_auth_url_prompt">Inserisci l\'URL (https://..)</string>
     <string name="webview_auth_invalid_url">URL non valido: deve iniziare con http:// o https://</string>
     <string name="auth_add_picker_title">Scegli una risorsa</string>
@@ -1821,7 +1821,7 @@
     <string name="download_by_link_dialog_title">Link per il download</string>
     <string name="download_by_link_dialog_hint">Incolla o digita un link</string>
     <string name="collapsible_section_state_expanded">Espandere</string>
-    <string name="collapsible_section_state_collapsed">Crollato</string>
+    <string name="collapsible_section_state_collapsed">Compresso</string>
     <string name="camera_control_flash">Flash</string>
     <string name="camera_control_switch_lens">Cambia fotocamera</string>
     <string name="camera_control_zoom">Zoom</string>
@@ -1977,7 +1977,7 @@
     <string name="streams_view_list">Vista a elenco</string>
     <string name="screenshot_gesture_action_crop_and_share">Ritaglia screenshot e condividi</string>
     <string name="share_to_pick_resource">Seleziona risorsa..</string>
-    <string name="draw_tool_crop">Raccolto</string>
+    <string name="draw_tool_crop">Ritaglia</string>
     <string name="draw_crop_frame_desc">Quadro di selezione delle colture</string>
     <string name="draw_crop_failed">Impossibile ritagliare l\'immagine</string>
     <string name="stream_wait_buffering">Buffering..</string>
@@ -2035,7 +2035,7 @@
     <string name="screen_recording_saved">Registrazione dello schermo salvata: %1$s</string>
     <string name="screen_recording_error">Impossibile salvare la registrazione dello schermo.</string>
     <string name="streams_panel_disable_action">Disattiva</string>
-    <string name="action_configure">Specificare</string>
+    <string name="action_configure">Configura</string>
     <string name="main_resource_type_filter_strip">Filtro per tipo di risorsa</string>
     <string name="streams_panel_hide_action">Nascondi pannello</string>
     <string name="streams_add_to_favorites">Aggiungi ai preferiti</string>
@@ -2257,10 +2257,6 @@
     <string name="launcher_edit_rotation_hint">I desktop verticale e orizzontale sono organizzati separatamente - imposta ciascuno come preferisci.</string>
     <string name="launcher_edit_pin_add">Blocca un\'app</string>
     <string name="launcher_edit_unpin_named">Sblocca %1$s</string>
-    <string name="launcher_settings_enable_title">Imposta questa app come schermata Home</string>
-    <string name="launcher_start_window_title">Apri il desktop all’avvio dell’app</string>
-    <string name="launcher_start_window_desc">Apre la tua scrivania invece del Gestore risorse. Questo non cambia la schermata Home del dispositivo.</string>
-    <string name="launcher_settings_enable_desc">Il pulsante Home apre il tuo desktop personale con collegamenti e widget. Disattiva in qualsiasi momento per ripristinare la schermata Home precedente.</string>
     <string name="launcher_settings_enable_help_title">Modalità schermata Home</string>
     <string name="launcher_settings_enable_help_message">Quando la attivi, Android chiede quale schermata Home usare - scegli questa app e tocca Sempre (oppure Solo questa volta per provarla). Per tornare indietro, disattivala e Android ripristinerà la schermata Home precedente.</string>
     <string name="launcher_settings_show_recents_title">Mostra app recenti</string>
@@ -2273,7 +2269,6 @@
     <string name="launcher_settings_density_dense">Compatta</string>
     <string name="launcher_settings_density_densest">Molto compatta</string>
     <string name="launcher_settings_open_home_chooser_title">Cambia schermata Home</string>
-    <string name="launcher_welcome_toggle_title">Usa come schermata Home</string>
     <string name="launcher_settings_dialog_title">Impostazioni del launcher di sistema</string>
     <string name="launcher_menu_launcher_settings">Impostazioni del launcher</string>
     <string name="welcome_streams_catalog_downloading">Download in corso..</string>
@@ -2342,7 +2337,7 @@
     <string name="launcher_settings_screen_timeout_dialog_hint">Secondi (1-86400)</string>
     <string name="sysinfo_section_cameras">Telecamere</string>
     <string name="sysinfo_field_camera_id">Telecamera</string>
-    <string name="sysinfo_field_camera_facing">Di fronte</string>
+    <string name="sysinfo_field_camera_facing">Orientamento</string>
     <string name="sysinfo_field_camera_physical_of">Lente fisica di</string>
     <string name="sysinfo_field_camera_focal">lunghezze focali</string>
     <string name="sysinfo_field_camera_zoom_range">Intervallo di zoom</string>
@@ -2658,7 +2653,7 @@
     <string name="network_monitor_section_bluetooth">Bluetooth</string>
     <string name="network_monitor_section_gnss">Satelliti</string>
     <string name="network_monitor_section_internet">Internet</string>
-    <string name="network_monitor_section_history">Storia</string>
+    <string name="network_monitor_section_history">Cronologia</string>
     <string name="network_monitor_status_available">Disponibile</string>
     <string name="network_monitor_status_no_hardware">Su questo dispositivo non è presente tale hardware.</string>
     <string name="network_monitor_status_no_permission">Autorizzazione non concessa</string>
@@ -2700,7 +2695,7 @@
     <string name="network_monitor_chart_waiting">Raccolta delle letture..</string>
     <string name="network_monitor_chart_summary">Ora %1$s / min %2$s / max %3$s / %4$s</string>
     <string name="network_monitor_trend_rising">in aumento</string>
-    <string name="network_monitor_trend_falling">cadente</string>
+    <string name="network_monitor_trend_falling">in calo</string>
     <string name="network_monitor_trend_flat">costante</string>
     <string name="network_monitor_trend_unknown">tendenza sconosciuta</string>
     <string name="network_monitor_value_dbm">%1$s dBm</string>
@@ -2748,7 +2743,7 @@
     <string name="network_monitor_traffic_down_label">In arrivo ora</string>
     <string name="network_monitor_traffic_up_label">In uscita adesso</string>
     <string name="network_monitor_value_mbps_decimal">%1$s Mbps</string>
-    <string name="network_monitor_actions_heading">Assegni</string>
+    <string name="network_monitor_actions_heading">Verifiche</string>
     <string name="network_monitor_target_label">Cosa controllare</string>
     <string name="network_monitor_target_internet">Internet</string>
     <string name="network_monitor_range_heading">Intervallo di indirizzi da scansionare: lasciare vuoto per scansionare la sottorete di questo dispositivo</string>
@@ -2791,10 +2786,10 @@
     <string name="network_monitor_history_empty">Nessuna misurazione ancora disponibile. Esegui una ricerca sullo schermo Internet e apparirà qui.</string>
     <string name="network_monitor_history_export">Esportare</string>
     <string name="network_monitor_history_export_failed">Impossibile preparare il file: libera spazio e riprova.</string>
-    <string name="network_monitor_history_clear">Chiaro</string>
+    <string name="network_monitor_history_clear">Cancella</string>
     <string name="network_monitor_history_clear_title">Cancella la cronologia delle misurazioni</string>
     <string name="network_monitor_history_clear_message">Questa operazione elimina tutte le misurazioni memorizzate da questo dispositivo. Se hai ancora bisogno di memorizzarle, esportale prima.</string>
-    <string name="network_monitor_history_clear_confirm">Chiaro</string>
+    <string name="network_monitor_history_clear_confirm">Cancella</string>
     <string name="network_monitor_history_outcome_ok">ha risposto</string>
     <string name="network_monitor_history_outcome_failed">nessuna risposta</string>
     <string name="network_monitor_history_kind_speed_test">Velocità</string>
@@ -3001,14 +2996,14 @@
     <string name="sysinfo_field_camera_active_array">Area del sensore attivo</string>
     <string name="network_monitor_history_kind_ping">Ping</string>
     <string name="network_monitor_history_kind_traceroute">Traceroute</string>
-    <string name="network_monitor_section_tools">Utensili</string>
+    <string name="network_monitor_section_tools">Strumenti</string>
     <string name="network_monitor_host_diagnostics_heading">Diagnostica dell\'ospite</string>
     <string name="network_monitor_host_hint">IP o nome host</string>
     <string name="network_monitor_action_ping">Ping</string>
     <string name="network_monitor_action_traceroute">Traceroute</string>
     <string name="network_monitor_console_heading">Uscita della console</string>
     <string name="network_monitor_console_empty">I risultati appariranno qui..</string>
-    <string name="network_monitor_action_clear">Chiaro</string>
+    <string name="network_monitor_action_clear">Cancella</string>
     <string name="network_monitor_action_copy">Copia</string>
     <string name="network_monitor_subnet_scan_heading">Scansione della sottorete</string>
     <string name="network_monitor_section_resource_speed">Velocità delle risorse</string>
@@ -3113,21 +3108,21 @@
     <string name="launcher_desktop_swipe_up_title">Scorri verso l\'alto</string>
     <string name="launcher_desktop_swipe_down_title">Scorri verso il basso</string>
     <string name="launcher_desktop_swipe_left_title">Scorri verso sinistra</string>
-    <string name="launcher_desktop_swipe_right_title">Swipe right</string>
+    <string name="launcher_desktop_swipe_right_title">Scorri a destra</string>
     <string name="streams_category_radio">Radio</string>
     <string name="streams_category_live_tv">Live TV</string>
     <string name="streams_category_on_demand_video">On-demand video</string>
     <string name="streams_category_test_streams">Provare i flussi</string>
     <string name="launcher_gadget_open_external">Apri nel browser</string>
-    <string name="launcher_gadget_steps_since_date">Since %1$s</string>
+    <string name="launcher_gadget_steps_since_date">Dal %1$s</string>
     <string name="launcher_gadget_google_maps_live">Google Maps Live Frame</string>
     <string name="launcher_translator_language_settings">Apri le impostazioni di traduzione</string>
-    <string name="launcher_section_action_delete">Delete Section</string>
+    <string name="launcher_section_action_delete">Elimina sezione</string>
     <string name="launcher_section_action_resort">Sezione Riordina</string>
     <string name="launcher_section_delete_confirm_title">Eliminare questa sezione?</string>
     <string name="launcher_section_delete_confirm_message">Ciò eliminerà la sezione e le scorciatoie al suo interno (%1$d). Puoi aggiungerli di nuovo in seguito.</string>
     <string name="launcher_stream_overlay_play_pause">Riproduci o metti in pausa</string>
-    <string name="launcher_stream_overlay_mute">Mute</string>
+    <string name="launcher_stream_overlay_mute">Muto</string>
     <string name="launcher_stream_overlay_stop">Stop</string>
     <string name="launcher_stream_overlay_pip">Immagine nell\'immagine</string>
     <string name="launcher_stream_overlay_fullscreen">A schermo intero</string>
@@ -3161,7 +3156,6 @@
     <string name="launcher_all_apps_swipe_action_expand">Espandi tutte le app</string>
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">Chiude l\'elenco delle app e mostra la scrivania sottostante.</string>
     <string name="launcher_all_apps_swipe_explain_expand">Mostra l\'elenco completo delle app invece delle sezioni alfabetiche.</string>
-    <string name="launcher_welcome_toggle_subtitle">Apri FastMediaSorter con il pulsante Home. Il sistema ti chiederà conferma al termine della configurazione e potrai tornare indietro in qualsiasi momento nelle Impostazioni.</string>
     <string name="welcome_enable_all_explainer_title">Cosa succede dopo</string>
     <string name="welcome_enable_all_explainer_intro">Android farà alcune domande per conto suo. Lascerai questa schermata per un momento e tornerai qui automaticamente.</string>
     <string name="welcome_enable_all_explainer_step_permissions_title">Consenti l\'accesso</string>
@@ -3329,7 +3323,7 @@
     <string name="stopwatch_settings_participants">Partecipanti</string>
     <string name="stopwatch_settings_music">Riproduci musica durante la corsa</string>
     <string name="stopwatch_settings_music_summary">Il brano scelto va in loop per tutta la durata di una misurazione.</string>
-    <string name="stopwatch_settings_track">Brano</string>
+    <string name="stopwatch_settings_track">Pista</string>
     <string name="stopwatch_settings_track_none">Non scelto</string>
     <string name="stopwatch_settings_volume_keys">I tasti del volume avviano e fermano</string>
     <string name="stopwatch_settings_volume_keys_summary">Mentre il cronometro è aperto, volume su avvia o segna un giro e volume giù ferma. Disattiva questa opzione per restituire i tasti al sistema.</string>
@@ -3355,17 +3349,14 @@
     <string name="mirror_capture_error_save">Lo scatto è stato eseguito ma non è stato possibile salvarlo nella cartella</string>
     <string name="streams_logo_prompt_title">Loghi delle stazioni</string>
     <string name="broadcast_notification_title">Trasmissione audio in corso</string>
-    <string name="broadcast_notification_text">La trasmissione audio dal vivo è attiva</string>
+    <string name="broadcast_notification_text">La trasmissione audio in diretta è attiva</string>
     <string name="broadcast_action_stop">Ferma</string>
     <string name="broadcast_channel_name">Trasmissione audio</string>
     <string name="broadcast_channel_description">Notifiche per le trasmissioni audio in corso</string>
     <string name="broadcast_menu_label">Trasmissione dal vivo</string>
     <string name="broadcast_share_title">Descrittore della trasmissione</string>
-    <string name="broadcast_share_url_label">URL della trasmissione</string>
     <string name="broadcast_share_export_file">Esporta file</string>
     <string name="broadcast_share_saved">File salvato</string>
-    <string name="broadcast_share_close">Chiudi</string>
-    <string name="broadcast_share_description">Scansiona il codice QR o salva il file descrittore per collegare un ascoltatore</string>
     <string name="broadcast_share_qr_cd">Codice QR del descrittore della trasmissione</string>
     <string name="broadcast_import_menu_label">Importa trasmissione (QR / file)</string>
     <string name="broadcast_import_dialog_title">Importa trasmissione dal vivo</string>
@@ -3450,8 +3441,8 @@
     <string name="broadcast_failed_network">Impossibile avviare la trasmissione dal vivo: il dispositivo non è riuscito ad aprire una porta di rete</string>
     <string name="broadcast_failed_encoder">Impossibile avviare la trasmissione dal vivo: questo dispositivo non ha un encoder audio disponibile</string>
     <string name="broadcast_failed_capture">Trasmissione dal vivo interrotta: l\'acquisizione audio è stata interrotta</string>
-    <string name="broadcast_permission_microphone_required">La trasmissione dal vivo richiede l\'accesso al microfono per trasmettere l\'audio</string>
-    <string name="broadcast_permission_notifications_required">La trasmissione dal vivo richiede l\'accesso alle notifiche per continuare a funzionare</string>
+    <string name="broadcast_permission_microphone_required">La trasmissione in diretta richiede l\'accesso al microfono per inviare l\'audio</string>
+    <string name="broadcast_permission_notifications_required">La trasmissione in diretta richiede l\'accesso alle notifiche per restare attiva</string>
     <string name="settings_suppress_wear_media_takeover">Disattiva il controllo multimediale sull\'orologio</string>
     <string name="settings_suppress_wear_media_takeover_summary">Impedisce al sistema Wear OS di mostrare il player del telefono come schermata di controllo multimediale sull\'orologio</string>
     <string name="broadcast_import_refreshed">Trasmissione aggiornata con il nuovo indirizzo</string>
@@ -3570,7 +3561,6 @@
     <string name="broadcast_control_mic_off">Microfono OFF</string>
     <string name="broadcast_control_switch_camera">Cambia fotocamera</string>
     <string name="broadcast_control_screen_off">Spegni schermo</string>
-    <string name="broadcast_control_share_link">Condividi link e QR</string>
     <string name="broadcast_control_stop">Interrompi trasmissione</string>
     <string name="broadcast_control_listeners">Ascoltatori: %d</string>
     <string name="broadcast_control_listeners_cd">Ascoltatori connessi: %d</string>
@@ -3586,12 +3576,11 @@
     <string name="broadcast_lens_none">Nessuna fotocamera disponibile</string>
     <string name="broadcast_control_lens_dialog_title">Scegli fotocamera</string>
     <string name="broadcast_permission_camera_required">La trasmissione dal vivo richiede l’accesso alla fotocamera per inviare video</string>
-    <string name="broadcast_settings_title">Impostazioni trasmissione</string>
     <string name="broadcast_share_copy">Copia link</string>
     <string name="streams_filter_media_own">Propri</string>
     <string name="streams_media_filter_own">Mostra solo gli stream aggiunti manualmente</string>
     <string name="broadcast_notification_video_title">Trasmissione video</string>
-    <string name="broadcast_notification_video_text">La trasmissione della fotocamera dal vivo è attiva</string>
+    <string name="broadcast_notification_video_text">La trasmissione dalla fotocamera in diretta è attiva</string>
     <string name="broadcast_control_blank_screen">Schermo nero</string>
     <string name="broadcast_control_blank_screen_cd">Copri l\'app con uno schermo nero mentre la trasmissione continua</string>
     <string name="broadcast_share_save_failed">Impossibile salvare il file</string>
@@ -3618,9 +3607,7 @@
     <string name="wear_screenshot_captured">L\'orologio ha inviato il suo screenshot</string>
     <string name="wear_screenshot_no_answer">L\'orologio non ha risposto</string>
     <string name="wear_companion_group_operations">Operazioni dell\'orologio</string>
-    <string name="resource_manager_title">Gestore risorse</string>
     <string name="welcome_primary_window_title">Finestra principale</string>
-    <string name="welcome_primary_window_subtitle">Scegli cosa si apre all\'avvio di FastMediaSorter</string>
     <string name="launcher_primary_window_recommended">Consigliato</string>
     <string name="launcher_primary_window_home_title">Schermata Home del dispositivo</string>
     <string name="launcher_primary_window_home_desc">L\'app diventa la schermata Home del tuo dispositivo</string>
@@ -3664,7 +3651,7 @@
     <string name="data_transfer_medium_file_desc">Scegli un file su questo dispositivo</string>
     <string name="data_transfer_medium_drive_desc">Usa il file nell\'account Google Drive collegato</string>
     <string name="data_transfer_progress">Trasferimento di %1$s..</string>
-    <string name="data_transfer_export_done">%1$s esportato.</string>
+    <string name="data_transfer_export_done">Esportato: %1$s.</string>
     <string name="data_transfer_import_done">Fatto. Aggiunti %1$d, aggiornati %2$d, ignorati %3$d.</string>
     <string name="data_transfer_error_drive">Impossibile raggiungere Google Drive. Controlla la connessione e che nelle impostazioni sia collegato un account Google, poi riprova.</string>
     <string name="data_transfer_error_no_file">In Google Drive non c\'è ancora nessun file %1$s. Esportalo prima dall\'altro dispositivo.</string>
@@ -3672,4 +3659,11 @@
     <string name="data_transfer_error_empty">In %1$s non c\'è ancora nulla da esportare.</string>
     <string name="data_transfer_error_unreadable">Impossibile leggere quel file. Selezionalo di nuovo o scegline un altro.</string>
     <string name="data_transfer_error_unwritable">Impossibile scrivere in quella posizione. Scegli un altro file e riprova.</string>
+    <string name="launcher_screens_wallpaper_title">Schermate e sfondo</string>
+    <string name="dim_clock_overlay_toggle">Mostra orologio e stato a schermo attenuato</string>
+    <string name="dim_clock_status_cd">Orologio e stato sullo schermo attenuato</string>
+    <string name="launcher_settings_screen_timeout_on_charge_title">Timeout schermo sotto carica</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle">Spegne lo schermo dopo un periodo di inattività mentre il caricabatterie è collegato</string>
+    <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Timeout schermo sotto carica</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Rende nero lo schermo dopo un periodo di inattività mentre il caricabatterie è collegato. Questa build non può bloccare il dispositivo.</string>
 </resources>

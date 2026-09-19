@@ -19,7 +19,7 @@
     <string name="calculator_action_multiply">ضرب</string>
     <string name="calculator_action_paste">چسپاں کریں۔</string>
     <string name="calculator_action_percent">فیصد</string>
-    <string name="calculator_action_round">گول</string>
+    <string name="calculator_action_round">راؤنڈ کریں</string>
     <string name="calculator_action_save_history">تاریخ کو محفوظ کریں۔</string>
     <string name="calculator_action_share_result">نتیجہ بھیجیں۔</string>
     <string name="calculator_action_subtract">گھٹائیں</string>

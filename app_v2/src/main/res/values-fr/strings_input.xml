@@ -3,7 +3,7 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="keybinding_capture_cancel">Annuler</string>
-    <string name="keybinding_capture_commit">Ensemble</string>
+    <string name="keybinding_capture_commit">Définir</string>
     <string name="keybinding_capture_conflict">Déjà lié à : %s</string>
     <string name="keybinding_capture_current">Capturé : %s</string>
     <string name="keybinding_capture_title">Appuyez sur une touche ou un bouton.</string>
@@ -39,7 +39,7 @@
     <string name="keybinding_input_gamepad_start">Commencer</string>
     <string name="keybinding_input_mod_alt">Alt</string>
     <string name="keybinding_input_mod_ctrl">Ctrl</string>
-    <string name="keybinding_input_mod_shift">Changement</string>
+    <string name="keybinding_input_mod_shift">Maj</string>
     <string name="keybinding_input_mouse_back">Retour de la souris</string>
     <string name="keybinding_input_mouse_forward">Avancer à la souris</string>
     <string name="keybinding_input_mouse_left">LMB</string>
@@ -51,7 +51,7 @@
     <string name="keybinding_label_audio_subtitle_delay">Retard des sous-titres</string>
     <string name="keybinding_label_audio_volume_down">Baisser le volume</string>
     <string name="keybinding_label_audio_volume_up">Augmenter le volume</string>
-    <string name="keybinding_label_browser_back">Dos</string>
+    <string name="keybinding_label_browser_back">Retour</string>
     <string name="keybinding_label_browser_context_menu">Menu contextuel</string>
     <string name="keybinding_label_browser_multi_select">Sélection multiple</string>
     <string name="keybinding_label_browser_search">Recherche</string>
@@ -88,7 +88,7 @@
     <string name="keybinding_label_sorting_delete">Supprimer</string>
     <string name="keybinding_label_sorting_favourite">Préféré</string>
     <string name="keybinding_label_sorting_file_ops">Opérations sur les fichiers</string>
-    <string name="keybinding_label_sorting_move">Se déplacer</string>
+    <string name="keybinding_label_sorting_move">Déplacer</string>
     <string name="keybinding_label_sorting_op_slot_1">Emplacement d\'opération 1</string>
     <string name="keybinding_label_sorting_op_slot_2">Emplacement d\'opération 2</string>
     <string name="keybinding_label_sorting_op_slot_3">Emplacement d\'opération 3</string>
@@ -114,7 +114,7 @@
     <string name="keybinding_label_view_aspect_ratio">Rapport d\'aspect</string>
     <string name="keybinding_label_view_fit_screen">Écran d\'ajustement</string>
     <string name="keybinding_label_view_fullscreen">Plein écran</string>
-    <string name="keybinding_label_view_pan">Poêle</string>
+    <string name="keybinding_label_view_pan">Déplacement de la vue</string>
     <string name="keybinding_label_view_rotate">Tourner</string>
     <string name="keybinding_label_view_rotation_toggle">Rotation de l\'écran</string>
     <string name="keybinding_label_view_zoom_in">Zoomer</string>
@@ -166,7 +166,7 @@
     <string name="kbm_help_op_create_group">Créer un groupe</string>
     <string name="kbm_help_op_delete">Supprimer</string>
     <string name="kbm_help_op_edit">Modifier</string>
-    <string name="kbm_help_op_move">Se déplacer</string>
+    <string name="kbm_help_op_move">Déplacer</string>
     <string name="kbm_help_op_refresh">Rafraîchir</string>
     <string name="kbm_help_op_rename">Rebaptiser</string>
     <string name="kbm_help_op_view">Afficher/prévisualiser</string>
@@ -182,7 +182,7 @@
     <string name="kbm_help_player_volume">Augmenter/diminuer le volume</string>
     <string name="kbm_help_section_dialog">Dialogue</string>
     <string name="kbm_help_section_file_ops">Opérations sur les fichiers</string>
-    <string name="kbm_help_section_global">Mondial</string>
+    <string name="kbm_help_section_global">Général</string>
     <string name="kbm_help_section_navigation">Navigation</string>
     <string name="kbm_help_section_playback">Lecture</string>
     <string name="kbm_help_section_selection">Sélection</string>
@@ -207,11 +207,11 @@
     <string name="touch_zone_7_command">7. PANNEAU DE COMMANDES - Ouvrir le menu de commandes</string>
     <string name="touch_zone_8_delete">8. SUPPRIMER - Supprimer le fichier actuel</string>
     <string name="touch_zone_9_slideshow">9. DIAPORAMA - Démarrer/arrêter le diaporama</string>
-    <string name="touch_zone_back">DOS</string>
+    <string name="touch_zone_back">RETOUR</string>
     <string name="touch_zone_command_panel">PANNEAU DE COMMANDE</string>
     <string name="touch_zone_copy">COPIE</string>
     <string name="touch_zone_delete">SUPPRIMER</string>
-    <string name="touch_zone_move">SE DÉPLACER</string>
+    <string name="touch_zone_move">DÉPLACER</string>
     <string name="touch_zone_next">SUIVANT</string>
     <string name="touch_zone_previous">PRÉCÉDENT</string>
     <string name="touch_zone_queue">File d\'attente</string>
@@ -219,11 +219,11 @@
     <string name="touch_zone_slideshow">DIAPORAMA</string>
     <string name="touch_zones_help">Afficher les zones tactiles</string>
     <string name="touch_zones_legend_title">Légende des zones tactiles :</string>
-    <string name="touch_zones_overlay_zoneBack_text">DOS</string>
+    <string name="touch_zones_overlay_zoneBack_text">RETOUR</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">PANNEAU DE COMMANDE</string>
     <string name="touch_zones_overlay_zoneCopy_text">COPIE</string>
     <string name="touch_zones_overlay_zoneDelete_text">SUPPRIMER</string>
-    <string name="touch_zones_overlay_zoneMove_text">SE DÉPLACER</string>
+    <string name="touch_zones_overlay_zoneMove_text">DÉPLACER</string>
     <string name="touch_zones_overlay_zoneNext_text">SUIVANT</string>
     <string name="touch_zones_overlay_zonePrevious_text">PRÉCÉDENT</string>
     <string name="touch_zones_overlay_zoneRename_text">REBAPTISER</string>

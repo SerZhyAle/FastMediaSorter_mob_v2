@@ -705,7 +705,7 @@
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
 
     <!-- Lyrics Feature -->
-    <string name="lyrics">Лирика</string>
+    <string name="lyrics">Текст песни</string>
     <string name="searching_lyrics">Поиск текста песни..</string>
     <string name="lyrics_not_found">Лирика не найдена</string>
     <string name="error_timeout_lyrics">Время ожидания истекло. Пожалуйста, проверьте подключение к Интернету и попробуйте снова.</string>
@@ -1795,7 +1795,7 @@
     <!-- S0104: Режимы порядка воспроизведения -->
 
     <!-- S0106: Image crop commands -->
-    <string name="menu_crop">Вырезать</string>
+    <string name="menu_crop">Обрезать</string>
     <string name="menu_crop_to_file">Вырезать в файл</string>
     <string name="menu_compress_copy">Сжатая копия</string>
     <string name="dialog_crop_filename_hint">Имя файла</string>
@@ -2649,10 +2649,6 @@
     <string name="launcher_edit_rotation_hint">Вертикальный и горизонтальный рабочие столы настраиваются отдельно - оформите каждый по-своему.</string>
     <string name="launcher_edit_pin_add">Закрепить приложение</string>
     <string name="launcher_edit_unpin_named">Открепить %1$s</string>
-    <string name="launcher_settings_enable_title">Лаунчер: сделать приложение домашним экраном</string>
-    <string name="launcher_start_window_title">Открывать рабочий стол при запуске</string>
-    <string name="launcher_start_window_desc">Открывает рабочий стол вместо Менеджера ресурсов. Домашний экран устройства не меняется.</string>
-    <string name="launcher_settings_enable_desc">Кнопка «Домой» открывает лаунчер - ваш рабочий стол с ярлыками и гаджетами. Выключите в любой момент, чтобы вернуть прежний домашний экран.</string>
     <string name="launcher_settings_enable_help_title">Режим лаунчера</string>
     <string name="launcher_settings_enable_help_message">После включения лаунчера Android спросит, какой домашний экран использовать - выберите это приложение и нажмите «Всегда» (или «Только сейчас», чтобы попробовать). Чтобы вернуться, выключите режим, и Android восстановит прежний домашний экран.</string>
     <string name="launcher_settings_show_recents_title">Показывать недавние приложения</string>
@@ -2664,7 +2660,6 @@
     <string name="launcher_settings_density_dense">Плотная</string>
     <string name="launcher_settings_density_densest">Очень плотная</string>
     <string name="launcher_settings_open_home_chooser_title">Сменить домашний экран</string>
-    <string name="launcher_welcome_toggle_title">Использовать как домашний экран</string>
     <string name="launcher_settings_dialog_title">Настройки системного лаунчера</string>
     <string name="launcher_menu_launcher_settings">Настройки лаунчера</string>
     <string name="welcome_streams_catalog_downloading">Загрузка..</string>
@@ -3575,7 +3570,6 @@
     <string name="launcher_all_apps_swipe_action_expand">Развернуть все приложения</string>
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">Закрывает список приложений и показывает рабочий стол под ним.</string>
     <string name="launcher_all_apps_swipe_explain_expand">Показывает полный список приложений вместо алфавитных секций.</string>
-    <string name="launcher_welcome_toggle_subtitle">Открывать FastMediaSorter по кнопке «Домой». Система попросит подтверждение после настройки, вернуть прежний лаунчер можно в любой момент в Настройках.</string>
     <string name="welcome_enable_all_explainer_title">Что сейчас произойдёт</string>
     <string name="welcome_enable_all_explainer_intro">Android задаст несколько своих вопросов. Вы ненадолго уйдёте с этого экрана и автоматически вернётесь сюда.</string>
     <string name="welcome_enable_all_explainer_step_permissions_title">Разрешите доступ</string>
@@ -3787,11 +3781,8 @@
     <string name="broadcast_channel_description">Уведомления об активном вещании звука</string>
     <string name="broadcast_menu_label">Вещание</string>
     <string name="broadcast_share_title">Дескриптор вещания</string>
-    <string name="broadcast_share_url_label">Адрес вещания</string>
     <string name="broadcast_share_export_file">Экспорт в файл</string>
     <string name="broadcast_share_saved">Файл сохранён</string>
-    <string name="broadcast_share_close">Закрыть</string>
-    <string name="broadcast_share_description">Отсканируйте QR-код или сохраните файл для подключения</string>
     <string name="broadcast_share_qr_cd">QR-код описания вещания</string>
     <string name="broadcast_import_menu_label">Импорт трансляции (QR / файл)</string>
     <string name="broadcast_import_dialog_title">Импорт трансляции</string>
@@ -4008,7 +3999,6 @@
     <string name="broadcast_control_mic_off">Микрофон ВЫКЛ</string>
     <string name="broadcast_control_switch_camera">Сменить камеру</string>
     <string name="broadcast_control_screen_off">Погасить экран</string>
-    <string name="broadcast_control_share_link">Ссылка и QR-код</string>
     <string name="broadcast_control_stop">Остановить вещание</string>
     <string name="broadcast_control_listeners">Слушателей: %d</string>
     <string name="broadcast_control_listeners_cd">Подключено слушателей: %d</string>
@@ -4024,7 +4014,6 @@
     <string name="broadcast_lens_none">Камера недоступна</string>
     <string name="broadcast_control_lens_dialog_title">Выберите камеру</string>
     <string name="broadcast_permission_camera_required">Для видеовещания нужен доступ к камере</string>
-    <string name="broadcast_settings_title">Настройки вещания</string>
     <string name="broadcast_share_copy">Копировать ссылку</string>
     <string name="streams_filter_media_own">Свои</string>
     <string name="streams_media_filter_own">Показывать только добавленные вручную трансляции</string>
@@ -4061,9 +4050,7 @@
     <string name="wear_screenshot_captured">Часы прислали снимок экрана</string>
     <string name="wear_screenshot_no_answer">Часы не ответили</string>
     <string name="wear_companion_group_operations">Операции с часами</string>
-    <string name="resource_manager_title">Менеджер ресурсов</string>
     <string name="welcome_primary_window_title">Основное окно</string>
-    <string name="welcome_primary_window_subtitle">Выберите, что открывать при запуске FastMediaSorter</string>
     <string name="launcher_primary_window_recommended">Рекомендуется</string>
     <string name="launcher_primary_window_home_title">Домашний экран устройства</string>
     <string name="launcher_primary_window_home_desc">Приложение становится домашним экраном устройства</string>

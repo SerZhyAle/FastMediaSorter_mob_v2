@@ -995,7 +995,7 @@
     <string name="reopen_with_encoding">重新打开并编码..</string>
     <string name="select_encoding">选择编码</string>
     <string name="reader_settings">阅读器设置</string>
-    <string name="reader_theme_light">光</string>
+    <string name="reader_theme_light">浅色</string>
     <string name="reader_theme_dark">黑暗的</string>
     <string name="reader_theme_sepia">棕褐色</string>
     <string name="toggle_markdown">切换 Markdown</string>
@@ -1144,7 +1144,7 @@
     <string name="hint_resource_name">资源名称</string>
     <string name="hint_folder_path">文件夹路径</string>
     <string name="hint_host">主机/IP地址</string>
-    <string name="hint_port">港口</string>
+    <string name="hint_port">端口</string>
     <string name="hint_username">用户名</string>
     <string name="hint_password">密码</string>
     <string name="hint_domain">域名（可选）</string>
@@ -1230,7 +1230,7 @@
     <string name="vinyl_indicator_description">音频播放指示器</string>
     <string name="menu_sleep_timer">睡眠定时器</string>
     <string name="sleep_timer_title">睡眠定时器</string>
-    <string name="sleep_timer_off">离开</string>
+    <string name="sleep_timer_off">关闭</string>
     <string name="sleep_timer_minutes">%d 分钟</string>
     <string name="sleep_timer_hours">%1$dh %2$d 分钟</string>
     <string name="sleep_timer_cancelled">睡眠定时器已取消</string>
@@ -1241,7 +1241,7 @@
     <string name="remember_file_list_help_message">启用此功能后，应用会在扫描后将资源文件列表存储到数据库中。下次打开时，会立即从缓存加载。使用“刷新”功能可以获取外部文件的更改。</string>
     <string name="file_not_found_playing_from_start">文件“%1$s”未找到 - 从头开始​​播放</string>
     <string name="picture_in_picture">画中画</string>
-    <string name="pip_play">玩</string>
+    <string name="pip_play">播放</string>
     <string name="pip_pause">暂停</string>
     <string name="label_profile_none">自定义</string>
     <string name="label_profile_audio_library">音频库</string>
@@ -1262,7 +1262,7 @@
     <string name="cd_add_to_favorites">添加到收藏夹</string>
     <string name="cd_remove_from_favorites">从收藏夹中移除</string>
     <string name="tile_audio_label">FMS Audio</string>
-    <string name="tile_audio_play">玩</string>
+    <string name="tile_audio_play">播放</string>
     <string name="tile_audio_pause">暂停</string>
     <string name="tile_audio_play_music">奏乐</string>
     <string name="perm_btn_grant_all">全部授予</string>
@@ -1303,7 +1303,7 @@
     <string name="now_playing_track_count">队列（%d）</string>
     <string name="now_playing_back_to_player">← 正在播放</string>
     <string name="now_playing_play_pause_desc">播放/暂停</string>
-    <string name="now_playing_play_desc">玩</string>
+    <string name="now_playing_play_desc">播放</string>
     <string name="now_playing_pause_desc">暂停</string>
     <string name="now_playing_previous_desc">上一首曲目</string>
     <string name="now_playing_next_desc">下一首</string>
@@ -1347,13 +1347,13 @@
     <string name="menu_add_receiver">添加到排序列表</string>
     <string name="msg_added_as_receiver">资源已添加到分类列表</string>
     <string name="btn_edit_receiver">配置</string>
-    <string name="archive_files">档案</string>
+    <string name="archive_files">归档</string>
     <string name="archive_dialog_title">归档选定文件</string>
     <string name="archive_name_hint">压缩文件名称（不含 .zip）</string>
     <string name="archive_name_empty_error">归档名称不能为空</string>
     <string name="archive_name_invalid_chars_error">名称包含无效字符</string>
     <string name="archive_destination_label">目标文件夹：%1$s</string>
-    <string name="archive_action_btn">档案</string>
+    <string name="archive_action_btn">归档</string>
     <string name="archive_progress_title">正在创建存档..</string>
     <string name="archive_success">已创建归档：%1$s（%2$d 个文件）</string>
     <string name="archive_error">归档错误：%1$s</string>
@@ -1362,7 +1362,7 @@
     <string name="archive_error_network_not_supported">归档功能仅支持本地文件，不支持网络和云端文件。</string>
     <string name="unarchive_dialog_title">提取压缩文件？</string>
     <string name="unarchive_dialog_message">\"%1$s\" -&gt; 文件夹 \"%2$s\"</string>
-    <string name="unarchive_action_extract">提炼</string>
+    <string name="unarchive_action_extract">解压</string>
     <string name="unarchive_progress_title">正在提取压缩文件..</string>
     <string name="unarchive_progress_entry">正在提取：%1$s</string>
     <string name="unarchive_success">已提取的存档</string>
@@ -1543,7 +1543,7 @@
     <string name="audio_next_track_loading">正在加载下一首曲目..</string>
     <string name="widget_quick_audio_recorder_label">快速录音机</string>
     <string name="widget_quick_audio_recorder_description">点击开始录音；再次点击停止并保存</string>
-    <string name="quick_recorder_notification_recording">记录..</string>
+    <string name="quick_recorder_notification_recording">正在录音..</string>
     <string name="quick_recorder_notification_channel">录音</string>
     <string name="quick_recorder_action_stop">停止</string>
     <string name="quick_recorder_error">无法录制音频</string>
@@ -1805,7 +1805,7 @@
     <string name="save_fallback_resource_unavailable">已保存至 %1$s - %2$s 不可用</string>
     <string name="save_fallback_channel_name">保存备用方案</string>
     <string name="link_download_notif_text_saved_fallback">已将 %1$s 保存到“下载” - 目标位置不可用</string>
-    <string name="quick_voice_recording_dialog_title">记录..</string>
+    <string name="quick_voice_recording_dialog_title">正在录音..</string>
     <string name="quick_voice_recording_stop">停止并保存</string>
     <string name="quick_voice_menu_label">录音</string>
     <string name="quick_recorder_saved_to">录音已保存至 %1$s</string>
@@ -1970,7 +1970,7 @@
     <string name="streams_view_list">列表视图</string>
     <string name="screenshot_gesture_action_crop_and_share">裁剪截屏并分享</string>
     <string name="share_to_pick_resource">选择资源..</string>
-    <string name="draw_tool_crop">庄稼</string>
+    <string name="draw_tool_crop">裁剪</string>
     <string name="draw_crop_frame_desc">作物选择框</string>
     <string name="draw_crop_failed">无法裁剪图片</string>
     <string name="stream_wait_buffering">正在缓冲..</string>
@@ -2250,10 +2250,6 @@
     <string name="launcher_edit_rotation_hint">竖屏和横屏桌面是分开排列的 - 请按自己的喜好分别设置。</string>
     <string name="launcher_edit_pin_add">固定应用</string>
     <string name="launcher_edit_unpin_named">取消固定 %1$s</string>
-    <string name="launcher_settings_enable_title">将此应用设为主屏幕</string>
-    <string name="launcher_start_window_title">应用启动时打开桌面</string>
-    <string name="launcher_start_window_desc">打开你的桌面而不是资源管理器。这不会改变设备的主屏幕。</string>
-    <string name="launcher_settings_enable_desc">按下主屏幕键将打开你自己的桌面，包含快捷方式和小组件。随时关闭即可恢复之前的主屏幕。</string>
     <string name="launcher_settings_enable_help_title">主屏幕模式</string>
     <string name="launcher_settings_enable_help_message">开启后，Android 会询问要使用哪个主屏幕 - 选择本应用并点按“始终”（或点按“仅一次”先试用）。要恢复，只需关闭此选项，Android 会还原之前的主屏幕。</string>
     <string name="launcher_settings_show_recents_title">显示最近使用的应用</string>
@@ -2266,7 +2262,6 @@
     <string name="launcher_settings_density_dense">密集</string>
     <string name="launcher_settings_density_densest">非常密集</string>
     <string name="launcher_settings_open_home_chooser_title">更改主屏幕</string>
-    <string name="launcher_welcome_toggle_title">用作主屏幕</string>
     <string name="launcher_settings_dialog_title">系统启动器设置</string>
     <string name="launcher_menu_launcher_settings">启动器设置</string>
     <string name="welcome_streams_catalog_downloading">正在下载..</string>
@@ -2335,7 +2330,7 @@
     <string name="launcher_settings_screen_timeout_dialog_hint">秒（1-86400）</string>
     <string name="sysinfo_section_cameras">相机</string>
     <string name="sysinfo_field_camera_id">相机</string>
-    <string name="sysinfo_field_camera_facing">面对</string>
+    <string name="sysinfo_field_camera_facing">朝向</string>
     <string name="sysinfo_field_camera_physical_of">物理透镜</string>
     <string name="sysinfo_field_camera_focal">焦距</string>
     <string name="sysinfo_field_camera_zoom_range">变焦范围</string>
@@ -2680,20 +2675,20 @@
     <string name="network_monitor_wifi_link_speed_label">链路速度</string>
     <string name="network_monitor_wifi_standard_label">Wi-Fi 标准</string>
     <string name="network_monitor_link_heading">链接详情</string>
-    <string name="network_monitor_link_interface_label">界面</string>
+    <string name="network_monitor_link_interface_label">网络接口</string>
     <string name="network_monitor_link_ipv4_label">IPv4</string>
     <string name="network_monitor_link_ipv6_label">IPv6</string>
     <string name="network_monitor_link_dns_label">DNS</string>
     <string name="network_monitor_link_gateway_label">网关</string>
     <string name="network_monitor_link_route_label">默认路由</string>
-    <string name="network_monitor_link_proxy_label">代理人</string>
-    <string name="network_monitor_route_present">展示</string>
+    <string name="network_monitor_link_proxy_label">代理</string>
+    <string name="network_monitor_route_present">存在</string>
     <string name="network_monitor_route_absent">没有任何</string>
     <string name="network_monitor_chart_signal_heading">信号</string>
     <string name="network_monitor_chart_waiting">收集阅读材料..</string>
     <string name="network_monitor_chart_summary">现在 %1$s / 最小 %2$s / 最大 %3$s / %4$s</string>
     <string name="network_monitor_trend_rising">上升</string>
-    <string name="network_monitor_trend_falling">坠落</string>
+    <string name="network_monitor_trend_falling">下降</string>
     <string name="network_monitor_trend_flat">稳定的</string>
     <string name="network_monitor_trend_unknown">趋势未知</string>
     <string name="network_monitor_value_dbm">%1$s dBm</string>
@@ -2707,9 +2702,9 @@
     <string name="network_monitor_mobile_open_system">打开系统网络设置</string>
     <string name="network_monitor_mobile_sim_signal_heading">SIM %1$d 信号</string>
     <string name="network_monitor_bluetooth_adapter_label">适配器</string>
-    <string name="network_monitor_bluetooth_adapter_present">展示</string>
+    <string name="network_monitor_bluetooth_adapter_present">存在</string>
     <string name="network_monitor_bluetooth_adapter_absent">此设备上未显示</string>
-    <string name="network_monitor_bluetooth_state_off">离开</string>
+    <string name="network_monitor_bluetooth_state_off">关闭</string>
     <string name="network_monitor_bluetooth_paired_empty">此设备未配对任何设备。</string>
     <string name="network_monitor_bluetooth_picker_label">绘制连接设备图</string>
     <string name="network_monitor_bluetooth_picker_none">未选择</string>
@@ -2780,13 +2775,13 @@
     <string name="network_monitor_result_resource_failed">该资源未响应 - 请检查其地址和凭据，然后重试。</string>
     <string name="network_monitor_result_resource_missing">该资源已不存在。请选择其他资源。</string>
     <string name="network_monitor_history_empty">暂无测量数据。请在网页上进行检查，结果将显示在此处。</string>
-    <string name="network_monitor_history_export">出口</string>
+    <string name="network_monitor_history_export">导出</string>
     <string name="network_monitor_history_export_failed">文件无法准备就绪 - 请释放一些空间并重试。</string>
     <string name="network_monitor_history_clear">清除</string>
     <string name="network_monitor_history_clear_title">清除测量历史记录</string>
     <string name="network_monitor_history_clear_message">这将删除此设备中存储的所有测量数据。如果您仍需要这些数据，请先导出。</string>
     <string name="network_monitor_history_clear_confirm">清除</string>
-    <string name="network_monitor_history_outcome_ok">回答</string>
+    <string name="network_monitor_history_outcome_ok">有响应</string>
     <string name="network_monitor_history_outcome_failed">没有答案</string>
     <string name="network_monitor_history_kind_speed_test">速度</string>
     <string name="network_monitor_history_kind_resource_check">资源检查</string>
@@ -2989,7 +2984,7 @@
     <string name="wear_watch_transfer_failed_file">%1$s 未送达手表。</string>
     <string name="camera_lens_switching">正在切换..</string>
     <string name="sysinfo_field_camera_active_array">有效传感器区域</string>
-    <string name="network_monitor_history_kind_ping">平</string>
+    <string name="network_monitor_history_kind_ping">Ping</string>
     <string name="network_monitor_history_kind_traceroute">路由追踪</string>
     <string name="network_monitor_section_tools">工具</string>
     <string name="network_monitor_host_diagnostics_heading">主机诊断</string>
@@ -3104,7 +3099,7 @@
     <string name="launcher_desktop_swipe_down_title">向下滑动</string>
     <string name="launcher_desktop_swipe_left_title">向左滑动</string>
     <string name="launcher_desktop_swipe_right_title">向右滑动</string>
-    <string name="streams_category_radio">收音机</string>
+    <string name="streams_category_radio">电台</string>
     <string name="streams_category_live_tv">电视直播</string>
     <string name="streams_category_on_demand_video">点播视频</string>
     <string name="streams_category_test_streams">测试流</string>
@@ -3117,7 +3112,7 @@
     <string name="launcher_section_delete_confirm_title">删除这一段吗？</string>
     <string name="launcher_section_delete_confirm_message">这将删除该部分及其内部的快捷方式 (%1$d)。您可以稍后再次添加它们。</string>
     <string name="launcher_stream_overlay_play_pause">播放或暂停</string>
-    <string name="launcher_stream_overlay_mute">沉默的</string>
+    <string name="launcher_stream_overlay_mute">静音</string>
     <string name="launcher_stream_overlay_stop">停止</string>
     <string name="launcher_stream_overlay_pip">画中画</string>
     <string name="launcher_stream_overlay_fullscreen">全屏</string>
@@ -3151,7 +3146,6 @@
     <string name="launcher_all_apps_swipe_action_expand">展开全部应用</string>
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">关闭应用列表，显示其下方的桌面。</string>
     <string name="launcher_all_apps_swipe_explain_expand">显示完整应用列表，而不是按字母分组。</string>
-    <string name="launcher_welcome_toggle_subtitle">用主屏幕按钮打开 FastMediaSorter。系统会在设置完成后请你确认，你随时可以在设置中切换回去。</string>
     <string name="welcome_enable_all_explainer_title">接下来会发生什么</string>
     <string name="welcome_enable_all_explainer_intro">Android 会问几个它自己的问题。您会暂时离开此界面，随后自动返回这里。</string>
     <string name="welcome_enable_all_explainer_step_permissions_title">允许访问</string>
@@ -3319,7 +3313,7 @@
     <string name="stopwatch_settings_participants">参与者</string>
     <string name="stopwatch_settings_music">运行时播放音乐</string>
     <string name="stopwatch_settings_music_summary">在计时进行期间，所选曲目会循环播放。</string>
-    <string name="stopwatch_settings_track">曲目</string>
+    <string name="stopwatch_settings_track">赛道</string>
     <string name="stopwatch_settings_track_none">未选择</string>
     <string name="stopwatch_settings_volume_keys">音量键开始和停止</string>
     <string name="stopwatch_settings_volume_keys_summary">秒表打开时，音量加开始或计圈，音量减停止。关闭此项可把按键交还系统。</string>
@@ -3345,17 +3339,14 @@
     <string name="mirror_capture_error_save">已拍摄，但无法保存到该文件夹</string>
     <string name="streams_logo_prompt_title">电台标志</string>
     <string name="broadcast_notification_title">正在广播音频</string>
-    <string name="broadcast_notification_text">音频直播进行中</string>
+    <string name="broadcast_notification_text">实时音频广播正在进行</string>
     <string name="broadcast_action_stop">停止</string>
     <string name="broadcast_channel_name">音频广播</string>
     <string name="broadcast_channel_description">正在进行的音频广播通知</string>
     <string name="broadcast_menu_label">实时广播</string>
     <string name="broadcast_share_title">广播描述符</string>
-    <string name="broadcast_share_url_label">广播 URL</string>
     <string name="broadcast_share_export_file">导出文件</string>
     <string name="broadcast_share_saved">文件已保存</string>
-    <string name="broadcast_share_close">关闭</string>
-    <string name="broadcast_share_description">扫描二维码或保存描述符文件以连接收听者</string>
     <string name="broadcast_share_qr_cd">广播描述符二维码</string>
     <string name="broadcast_import_menu_label">导入广播（二维码 / 文件）</string>
     <string name="broadcast_import_dialog_title">导入实时广播</string>
@@ -3440,8 +3431,8 @@
     <string name="broadcast_failed_network">直播无法启动: 设备无法打开网络端口</string>
     <string name="broadcast_failed_encoder">直播无法启动: 此设备没有可用的音频编码器</string>
     <string name="broadcast_failed_capture">直播已停止: 音频采集被中断</string>
-    <string name="broadcast_permission_microphone_required">直播需要麦克风权限才能发送音频</string>
-    <string name="broadcast_permission_notifications_required">直播需要通知权限才能持续运行</string>
+    <string name="broadcast_permission_microphone_required">实时广播需要麦克风权限才能发送音频</string>
+    <string name="broadcast_permission_notifications_required">实时广播需要通知权限才能保持广播运行</string>
     <string name="settings_suppress_wear_media_takeover">在手表上隐藏媒体控制</string>
     <string name="settings_suppress_wear_media_takeover_summary">阻止 Wear OS 系统在手表上将手机播放器显示为媒体控制界面</string>
     <string name="broadcast_import_refreshed">直播地址已更新</string>
@@ -3452,7 +3443,7 @@
     <string name="settings_broadcast_audio_format">音频格式</string>
     <string name="settings_broadcast_mic_gain">麦克风增益</string>
     <string name="settings_broadcast_auto_share">自动打开分享界面</string>
-    <string name="settings_broadcast_stream_title">直播标题</string>
+    <string name="settings_broadcast_stream_title">广播标题</string>
     <string name="unit_speed_mph">%1$s mph</string>
     <string name="unit_speed_kmh_spoken">%1$s 千米/小时</string>
     <string name="unit_speed_mph_spoken">%1$s 英里/小时</string>
@@ -3560,7 +3551,6 @@
     <string name="broadcast_control_mic_off">麦克风：关</string>
     <string name="broadcast_control_switch_camera">切换摄像头</string>
     <string name="broadcast_control_screen_off">关闭屏幕</string>
-    <string name="broadcast_control_share_link">分享链接和二维码</string>
     <string name="broadcast_control_stop">停止广播</string>
     <string name="broadcast_control_listeners">%d 位听众</string>
     <string name="broadcast_control_listeners_cd">已连接 %d 位听众</string>
@@ -3576,12 +3566,11 @@
     <string name="broadcast_lens_none">没有可用的摄像头</string>
     <string name="broadcast_control_lens_dialog_title">选择摄像头</string>
     <string name="broadcast_permission_camera_required">直播需要摄像头权限才能发送视频</string>
-    <string name="broadcast_settings_title">广播设置</string>
     <string name="broadcast_share_copy">复制链接</string>
     <string name="streams_filter_media_own">自有</string>
     <string name="streams_media_filter_own">仅显示手动添加的直播流</string>
     <string name="broadcast_notification_video_title">正在广播视频</string>
-    <string name="broadcast_notification_video_text">摄像头直播进行中</string>
+    <string name="broadcast_notification_video_text">实时摄像头广播正在进行</string>
     <string name="broadcast_control_blank_screen">黑屏</string>
     <string name="broadcast_control_blank_screen_cd">在广播继续运行时用黑屏遮盖应用</string>
     <string name="broadcast_share_save_failed">无法保存文件</string>
@@ -3608,9 +3597,7 @@
     <string name="wear_screenshot_captured">手表已发送截图</string>
     <string name="wear_screenshot_no_answer">手表没有响应</string>
     <string name="wear_companion_group_operations">手表操作</string>
-    <string name="resource_manager_title">资源管理器</string>
     <string name="welcome_primary_window_title">主窗口</string>
-    <string name="welcome_primary_window_subtitle">选择启动 FastMediaSorter 时打开的内容</string>
     <string name="launcher_primary_window_recommended">推荐</string>
     <string name="launcher_primary_window_home_title">设备主屏幕</string>
     <string name="launcher_primary_window_home_desc">应用将成为你的设备主屏幕</string>
@@ -3625,7 +3612,7 @@
         <item>@string/launcher_primary_window_desktop_title</item>
         <item>@string/launcher_primary_window_resource_manager_title</item>
     </string-array>
-    <string name="broadcast_default_stream_title">手机直播</string>
+    <string name="broadcast_default_stream_title">手机广播</string>
     <string name="broadcast_share_help">如何观看</string>
     <string name="sos_title">SOS 紧急信号</string>
     <string name="sos_hint">警报声和闪光灯重复摩尔斯 SOS 信号。配对的手表在范围内时也会同时发出信号。</string>
@@ -3654,7 +3641,7 @@
     <string name="data_transfer_medium_file_desc">在此设备上选择文件</string>
     <string name="data_transfer_medium_drive_desc">使用已连接的 Google 云端硬盘账号中的文件</string>
     <string name="data_transfer_progress">正在传输 %1$s..</string>
-    <string name="data_transfer_export_done">已导出 %1$s。</string>
+    <string name="data_transfer_export_done">已导出：%1$s。</string>
     <string name="data_transfer_import_done">完成。新增 %1$d 项，更新 %2$d 项，跳过 %3$d 项。</string>
     <string name="data_transfer_error_drive">无法连接 Google 云端硬盘。请检查网络连接，并确认已在设置中连接 Google 账号，然后重试。</string>
     <string name="data_transfer_error_no_file">Google 云端硬盘中还没有 %1$s 文件。请先在另一台设备上导出。</string>
@@ -3662,4 +3649,11 @@
     <string name="data_transfer_error_empty">%1$s 中暂时没有可导出的内容。</string>
     <string name="data_transfer_error_unreadable">无法读取该文件。请重新选择，或选择其他文件。</string>
     <string name="data_transfer_error_unwritable">无法写入该位置。请选择其他文件后重试。</string>
+    <string name="launcher_screens_wallpaper_title">屏幕与壁纸</string>
+    <string name="dim_clock_overlay_toggle">变暗时显示时钟和状态</string>
+    <string name="dim_clock_status_cd">变暗屏幕上的时钟和状态</string>
+    <string name="launcher_settings_screen_timeout_on_charge_title">充电时屏幕超时</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle">充电器连接时，在一段时间无操作后关闭屏幕</string>
+    <string name="launcher_settings_screen_timeout_on_charge_dialog_title">充电时屏幕超时</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">充电器连接时，在一段时间无操作后将屏幕变黑。此版本无法锁定设备。</string>
 </resources>

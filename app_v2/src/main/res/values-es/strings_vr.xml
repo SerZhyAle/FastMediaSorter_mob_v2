@@ -36,7 +36,7 @@
     <string name="vr_fops_choose_copy_target">¿Copiar dónde?</string>
     <string name="vr_fops_choose_folder">Elige otra carpeta.</string>
     <string name="vr_fops_choose_move_target">¿Adónde mudarse?</string>
-    <string name="vr_fops_close">Cerca</string>
+    <string name="vr_fops_close">Cerrar</string>
     <string name="vr_fops_copy_to">Copiar a..</string>
     <string name="vr_fops_delete">Borrar</string>
     <string name="vr_fops_info">Acerca del archivo</string>
@@ -57,9 +57,9 @@
     <string name="vr_hud_guard_file_ops">El panel de archivos no está disponible en el modo inmersivo. Salga del modo inmersivo para usarlo.</string>
     <string name="vr_hud_immersive_off">Pantalla plana</string>
     <string name="vr_hud_last_file">Último archivo</string>
-    <string name="vr_hud_move_done">Emocionado</string>
+    <string name="vr_hud_move_done">Movido</string>
     <string name="vr_hud_paused">Pausa</string>
-    <string name="vr_hud_playing">Jugando</string>
+    <string name="vr_hud_playing">Reproduciendo</string>
     <string name="vr_hud_prev_next_hint">← anterior / siguiente →</string>
     <string name="vr_hud_recenter_done">Reenfocado</string>
     <string name="vr_hud_seek_bwd">Buscar hacia atrás</string>

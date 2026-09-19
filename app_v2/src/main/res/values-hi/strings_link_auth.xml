@@ -7,7 +7,7 @@
     <string name="s0140_webview_auth_sign_in_first">पहले साइन इन करें, फिर \'प्राधिकरण सहेजें\' पर टैप करें।</string>
     <string name="s0155_name_account_title">इस खाते का नाम दें</string>
     <string name="s0155_name_account_hint">उदाहरण के लिए @myusername</string>
-    <string name="s0155_name_account_positive">बचाना</string>
+    <string name="s0155_name_account_positive">सहेजें</string>
     <string name="s0155_pick_account_last_used">(अंतिम समय प्रयोग हुआ)</string>
     <string name="s0155_reauth_title">%1$s के रूप में फिर से साइन इन करें?</string>
     <string name="s0155_reauth_message">%1$s के लिए सहेजा गया साइन-इन शायद समाप्त हो गया है। दोबारा साइन इन करने से ऐप वास्तविक सामग्री प्राप्त कर सकेगा।</string>

@@ -274,4 +274,7 @@
     <string name="cross_device_transfer_received_files">Salvato nella cartella in entrata dell\'app</string>
     <string name="cross_device_transfer_received_settings">Le impostazioni dell\'altro dispositivo sono state applicate</string>
     <string name="cross_device_transfer_failed">Il trasferimento non è stato completato. Controlla l\'accesso a Drive e la connessione, poi riprova.</string>
+    <string name="cross_device_transfer_row_subtitle">File e impostazioni in arrivo dagli altri dispositivi, in attesa nel tuo Google Drive</string>
+    <string name="cross_device_transfer_remove_expired">Rimuovi i pacchetti scaduti</string>
+    <string name="cross_device_transfer_expired_removed">Pacchetti scaduti rimossi: %1$d</string>
 </resources>

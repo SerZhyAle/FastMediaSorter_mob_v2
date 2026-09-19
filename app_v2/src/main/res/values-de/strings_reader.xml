@@ -38,7 +38,7 @@
     <string name="epub_e">EPUB (E)</string>
     <string name="epub_exit_fullscreen">Vollbildmodus beendet</string>
     <string name="epub_file_not_found">Diese EPUB-Datei ist nicht mehr verfügbar.</string>
-    <string name="epub_go_to_chapter_cancel">Stornieren</string>
+    <string name="epub_go_to_chapter_cancel">Abbrechen</string>
     <string name="epub_go_to_chapter_hint">Kapitelnummer (1-%1$d)</string>
     <string name="epub_go_to_chapter_message">Kapitelnummer eingeben (1 bis %1$d)</string>
     <string name="epub_go_to_chapter_title">Gehe zu Kapitel</string>
@@ -52,7 +52,7 @@
     <string name="epub_reader_line_height">Linienhöhe</string>
     <string name="epub_reader_margin">Horizontaler Rand</string>
     <string name="epub_reader_settings">Leseeinstellungen</string>
-    <string name="epub_reader_theme">Thema</string>
+    <string name="epub_reader_theme">Design</string>
     <string name="epub_search_all_chapters">Alle Kapitel durchsuchen</string>
     <string name="epub_search_hint">Suchbegriff..</string>
     <string name="epub_search_no_results">Keine Ergebnisse gefunden</string>
@@ -62,7 +62,7 @@
     <string name="epub_text_empty_tts">Im Kapitel wurde kein Text gefunden.</string>
     <string name="text_content_hint">Textinhalt</string>
     <string name="text_editing_large_file">Die Bearbeitung von Dateien mit mehreren Seiten ist nicht möglich.</string>
-    <string name="text_editor_action_cancel">Stornieren</string>
+    <string name="text_editor_action_cancel">Abbrechen</string>
     <string name="text_editor_action_save">Speichern</string>
     <string name="text_editor_action_save_close">Speichern und schließen</string>
     <string name="text_editor_action_save_send">Speichern und senden</string>

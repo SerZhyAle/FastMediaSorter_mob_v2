@@ -117,7 +117,9 @@ class WearSettingsPayloadDecoderTest {
             "appVersionName" to "\"2.60.8250.134\"",
             "fieldTimestamps" to "{\"audioEnabled\":1}",
             "capabilities" to "{\"autoRotationSensor\":true}",
-            "unitSystem" to "\"METRIC\""
+            "unitSystem" to "\"METRIC\"",
+            "dimClockOverlayEnabled" to "true",
+            "dimClockSecondsVisible" to "false"
         )
         base.putAll(overrides)
         nulled.forEach { base[it] = "null" }

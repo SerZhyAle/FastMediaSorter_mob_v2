@@ -37,7 +37,7 @@
     <string name="keybinding_input_gamepad_mode">মোড</string>
     <string name="keybinding_input_gamepad_select">নির্বাচন করুন</string>
     <string name="keybinding_input_gamepad_start">শুরু করুন</string>
-    <string name="keybinding_input_mod_alt">বিকল্প</string>
+    <string name="keybinding_input_mod_alt">Alt</string>
     <string name="keybinding_input_mod_ctrl">Ctrl</string>
     <string name="keybinding_input_mod_shift">শিফট</string>
     <string name="keybinding_input_mouse_back">মাউস ব্যাক</string>
@@ -47,7 +47,7 @@
     <string name="keybinding_input_mouse_right">আরএমবি</string>
     <string name="keybinding_label_audio_cycle_subtitle">সাইকেল উপশিরোনাম</string>
     <string name="keybinding_label_audio_cycle_track">সাইকেল অডিও ট্র্যাক</string>
-    <string name="keybinding_label_audio_mute">মূক</string>
+    <string name="keybinding_label_audio_mute">নিঃশব্দ</string>
     <string name="keybinding_label_audio_subtitle_delay">সাবটাইটেল বিলম্ব</string>
     <string name="keybinding_label_audio_volume_down">ভলিউম কমান</string>
     <string name="keybinding_label_audio_volume_up">ভলিউম বাড়ান</string>
@@ -76,7 +76,7 @@
     <string name="keybinding_label_playback_frame_step_forward">ফ্রেম স্টেপ ফরওয়ার্ড</string>
     <string name="keybinding_label_playback_pause">বিরতি</string>
     <string name="keybinding_label_playback_pause_play">থামান / চালান</string>
-    <string name="keybinding_label_playback_play">খেলা</string>
+    <string name="keybinding_label_playback_play">চালান</string>
     <string name="keybinding_label_playback_repeat_mode">পুনরাবৃত্তি মোড</string>
     <string name="keybinding_label_playback_slideshow_toggle">স্লাইডশো টগল</string>
     <string name="keybinding_label_playback_speed_down">গতি কমান</string>
@@ -180,9 +180,9 @@
     <string name="kbm_help_player_seek_10s">সিক −10s / +10s</string>
     <string name="kbm_help_player_seek_60s">সিক −60s / +60s</string>
     <string name="kbm_help_player_volume">ভলিউম বাড়ানো / কমানো</string>
-    <string name="kbm_help_section_dialog">সংলাপ</string>
+    <string name="kbm_help_section_dialog">ডায়ালগ</string>
     <string name="kbm_help_section_file_ops">ফাইল অপারেশন</string>
-    <string name="kbm_help_section_global">বিশ্বব্যাপী</string>
+    <string name="kbm_help_section_global">অ্যাপ-জুড়ে</string>
     <string name="kbm_help_section_navigation">নেভিগেশন</string>
     <string name="kbm_help_section_playback">প্লেব্যাক</string>
     <string name="kbm_help_section_selection">নির্বাচন</string>

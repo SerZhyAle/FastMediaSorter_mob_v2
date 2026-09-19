@@ -38,7 +38,7 @@
     <string name="epub_e">EPUB (E)</string>
     <string name="epub_exit_fullscreen">Uscita dalla modalità a schermo intero</string>
     <string name="epub_file_not_found">Questo file EPUB non è più disponibile.</string>
-    <string name="epub_go_to_chapter_cancel">Cancellare</string>
+    <string name="epub_go_to_chapter_cancel">Annulla</string>
     <string name="epub_go_to_chapter_hint">Numero del capitolo (1-%1$d)</string>
     <string name="epub_go_to_chapter_message">Inserisci il numero del capitolo (da 1 a %1$d)</string>
     <string name="epub_go_to_chapter_title">Vai al capitolo</string>
@@ -62,7 +62,7 @@
     <string name="epub_text_empty_tts">Nessun testo trovato nel capitolo</string>
     <string name="text_content_hint">Contenuto testuale</string>
     <string name="text_editing_large_file">La modifica non è disponibile per i file con più pagine.</string>
-    <string name="text_editor_action_cancel">Cancellare</string>
+    <string name="text_editor_action_cancel">Annulla</string>
     <string name="text_editor_action_save">Salva</string>
     <string name="text_editor_action_save_close">Salva e chiudi</string>
     <string name="text_editor_action_save_send">Salva e invia</string>

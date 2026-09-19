@@ -13,7 +13,7 @@
     <string name="playback_control_no_subtitles">Não há legendas disponíveis.</string>
     <string name="playback_control_speed_value">Velocidade: %1$.2fx</string>
     <string name="playback_control_tab_audio">Faixa de áudio</string>
-    <string name="playback_control_tab_brightness">Luz</string>
+    <string name="playback_control_tab_brightness">Brilho</string>
     <string name="playback_control_tab_hue">MATIZ</string>
     <string name="playback_control_tab_speed">Velocidade</string>
     <string name="playback_control_tab_subtitles">Subs</string>

@@ -55,6 +55,16 @@ class WearUnitDateTimeFormatter @Inject constructor() {
         locale,
     )
 
+    /**
+     * Weekday abbreviation, e.g. "Mon". No [UnitSystem] input: unlike a clock length or a date field
+     * order, a weekday name has no metric/imperial form - only a locale form, which [render] already
+     * carries via [Locale].
+     */
+    fun formatWeekday(
+        epochMillis: Long,
+        locale: Locale = Locale.getDefault(),
+    ): String = render(epochMillis, PATTERN_WEEKDAY, locale)
+
     private fun render(epochMillis: Long, pattern: String, locale: Locale): String {
         return SimpleDateFormat(pattern, locale).format(Date(epochMillis))
     }
@@ -85,5 +95,8 @@ class WearUnitDateTimeFormatter @Inject constructor() {
         /** Month first, 12-hour clock with a marker. Mirrors `UnitScale.PATTERN_*_IMPERIAL`. */
         const val PATTERN_DATE_IMPERIAL = "MM/dd/yyyy"
         const val PATTERN_TIME_IMPERIAL = "h:mm a"
+
+        /** Not part of the phone/watch pattern mirror: a weekday abbreviation has no unit-system form. */
+        const val PATTERN_WEEKDAY = "EEE"
     }
 }

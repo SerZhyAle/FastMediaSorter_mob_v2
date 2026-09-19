@@ -77,3 +77,7 @@ S3302  EN/ZH/BN/DE/FR/HI/IT/UR string values only - the six broadcast values tha
 S3305  Locale resource values (app_v2/src/main/res/values-*) plus repo scripts; no .kt touched. The evidence is a localized screen on a device set to ar, ur, hi, bn, zh-Hans, ru, uk, de, fr, es, pt or it - a Timber probe cannot observe a string resource rendering.
 
 S3311  Locale resource values (app_v2/src/main/res/values-* and src/vr/res/values-ur) plus one repo script; no .kt touched. Same class as S3305 - the evidence is a localized screen on a device set to ar, bn, hi, ur, zh-Hans, ru or uk, and a Timber probe cannot observe a string resource rendering.
+
+S3314  Locale resource values (app_v2/src/main/res/values-de|es|fr|it|pt and src/vr/res/values-it), one allow-list JSON and one repo script; no .kt touched. Same class as S3305 and S3311 - the evidence is a localized screen on a device set to de, es, fr, it or pt, and a Timber probe cannot observe a string resource rendering.
+
+S3316  Locale resource values only (app_v2/src/main/res/values-* strings*.xml across twelve locales); no .kt touched. Same class as S3305, S3311 and S3314 - the evidence is a localized screen on a device set to ar, bn, de, es, fr, hi, it, pt, ru, uk, ur or zh-Hans, and a Timber probe cannot observe a string resource rendering.

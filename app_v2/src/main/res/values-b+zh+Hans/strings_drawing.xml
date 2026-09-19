@@ -3,7 +3,7 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="draw_color_custom_cd">自定义颜色</string>
-    <string name="draw_overflow_save_inplace">节省</string>
+    <string name="draw_overflow_save_inplace">保存</string>
     <string name="draw_overflow_save_new">另存为..</string>
     <string name="draw_overflow_settings">设置</string>
     <string name="draw_overflow_undo_all">全部撤销</string>
@@ -11,7 +11,7 @@
     <string name="draw_overlay_filename_hint">文件名</string>
     <string name="draw_overlay_save_failed">图形无法保存，请重试。</string>
     <string name="draw_overlay_saved_to_downloads">已保存至下载：%s</string>
-    <string name="draw_overlay_toolbar_brush">刷子</string>
+    <string name="draw_overlay_toolbar_brush">画笔</string>
     <string name="draw_overlay_toolbar_eraser">橡皮</string>
     <string name="draw_overlay_toolbar_rect">长方形</string>
     <string name="draw_save_failed_toast">保存失败</string>

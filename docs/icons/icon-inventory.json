@@ -730,7 +730,7 @@
   {
     "surface": "program-nav",
     "key": "ocr",
-    "feature": "app_launch_panel_route_ocr",
+    "feature": "setting_camera_ocr_translation_title",
     "drawable": "ic_camera_ocr_translate",
     "assetFormat": "vector",
     "public": true
@@ -788,6 +788,14 @@
     "key": "settings",
     "feature": "app_launch_panel_os_settings",
     "drawable": "ic_android",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "sos",
+    "feature": "sos_title",
+    "drawable": "ic_sos",
     "assetFormat": "vector",
     "public": true
   },
@@ -1289,6 +1297,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowDimClockOverlay",
+    "feature": "dim_clock_overlay_toggle",
+    "drawable": "ic_world_clock",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowEmbeddedGame",
     "feature": "game_settings_toggle_title",
     "drawable": "ic_game_kryvavitsa",
@@ -1348,6 +1364,14 @@
     "key": "rowEnableScheduledOps",
     "feature": "scheduled_ops_toggle",
     "drawable": "ic_schedule",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableSos",
+    "feature": "sos_settings_toggle_title",
+    "drawable": "ic_sos",
     "assetFormat": "vector",
     "public": true
   },
@@ -1420,22 +1444,6 @@
     "key": "rowGestureOverlayEnabled",
     "feature": "setting_gesture_overlay_title",
     "drawable": "ic_gesture",
-    "assetFormat": "vector",
-    "public": true
-  },
-  {
-    "surface": "settings-row",
-    "key": "rowLauncherModeEnabled",
-    "feature": "launcher_settings_enable_title",
-    "drawable": "ic_launcher_mode",
-    "assetFormat": "vector",
-    "public": true
-  },
-  {
-    "surface": "settings-row",
-    "key": "rowLauncherStartWindow",
-    "feature": "launcher_start_window_title",
-    "drawable": "ic_launcher_mode",
     "assetFormat": "vector",
     "public": true
   },

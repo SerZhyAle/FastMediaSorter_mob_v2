@@ -25,10 +25,10 @@
         android:background="@drawable/item_interaction_overlay"
         android:importantForAccessibility="no"
         android:includeFontPadding="false"
-        android:paddingStart="2dp"
-        android:paddingEnd="2dp"
+        android:paddingStart="@dimen/dim_clock_badge_padding_h"
+        android:paddingEnd="@dimen/dim_clock_badge_padding_h"
         android:textColor="@color/white"
-        android:textSize="8sp"
+        android:textSize="@dimen/dim_clock_badge_text_size"
         android:visibility="gone"
         tools:text="3"
         tools:visibility="visible" />

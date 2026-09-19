@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController
@@ -16,8 +17,11 @@ import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockStyleProvider
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimStatusContentProvider
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
 import dagger.Lazy
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -90,8 +94,6 @@ class BroadcastBlankScreenManager @Inject constructor(
         if (overlay?.get() != null) return
         val content = hostRoot?.get()?.parent as? ViewGroup ?: return
 
-        val clockEnabled = runBlocking { settingsRepository.get().getSettings().first().dimClockOverlayEnabled }
-
         // Added above the screen's root rather than inside either orientation layout: the overlay must cover
         // the inset padding those layouts apply, and both orientations then need no duplicate view.
         val view = DimOverlayView(activity).apply {
@@ -107,24 +109,58 @@ class BroadcastBlankScreenManager @Inject constructor(
         )
         overlay = WeakReference(view)
 
-        if (clockEnabled) {
-            val clockView = DimClockOverlayView(activity).apply {
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
-                bind(dimClockStyleProvider.get(), dimStatusContentProvider.get(), null)
-            }
-            content.addView(clockView)
-            dimClockView = WeakReference(clockView)
-        } else {
-            setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
-        }
-
         SystemBarsManager(activity).enterFullscreenMode()
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
         activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         backCallback?.get()?.isEnabled = true
+
+        resolveDimMode(activity)
+    }
+
+    /**
+     * S3321: the dim-clock flag is read off the main thread, and the black overlay no longer waits for
+     * it. [onScreenOffRequested] runs on Main from a button tap, where a DataStore read that misses its
+     * in-memory cache - the first one after process start, or after a low-memory trim - used to pay disk
+     * latency inline. The flag is deliberately not cached on this @Singleton: the user can toggle it in
+     * the settings Activity and come back to a session this manager outlived.
+     */
+    private fun resolveDimMode(activity: AppCompatActivity) {
+        Timber.d("S3321: broadcast blank screen shown, settings read dispatched off-main")
+        activity.lifecycleScope.launch {
+            val clockEnabled = settingsRepository.get().getSettings()
+                .flowOn(Dispatchers.IO)
+                .first()
+                .dimClockOverlayEnabled
+            Timber.d("S3321: broadcast dim mode resolved, clockEnabled=$clockEnabled")
+            applyDimMode(activity, clockEnabled)
+        }
+    }
+
+    private fun applyDimMode(activity: AppCompatActivity, clockEnabled: Boolean) {
+        // hide() may have won the race while the read was in flight.
+        if (overlay?.get() == null) return
+        if (clockEnabled) {
+            addClockView(activity)
+        } else {
+            setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
+        }
+    }
+
+    private fun addClockView(activity: AppCompatActivity) {
+        // S3157: re-resolved rather than captured by the coroutine, so no strong UI reference outlives it.
+        val content = hostRoot?.get()?.parent as? ViewGroup ?: return
+        // A hide/show pair can land between the read and this call; a second clock view would be added
+        // to the container with only the later one reachable for removal.
+        if (dimClockView?.get() != null) return
+        val clockView = DimClockOverlayView(activity).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            bind(dimClockStyleProvider.get(), dimStatusContentProvider.get(), null)
+        }
+        content.addView(clockView)
+        dimClockView = WeakReference(clockView)
     }
 
     private fun hide(activity: AppCompatActivity) {

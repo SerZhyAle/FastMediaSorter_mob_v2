@@ -30,7 +30,7 @@
     <string name="audio_info_section">آڈیو معلومات</string>
     <string name="audio_lossless_label">معیار: %1$s</string>
     <string name="audio_lossless_value_lossless">بے نقصان</string>
-    <string name="audio_lossless_value_lossy">نقصان دہ</string>
+    <string name="audio_lossless_value_lossy">ضیاع والا</string>
     <string name="audio_replaygain_album_label">ری پلے گین (البم): %1$.2f dB</string>
     <string name="audio_replaygain_track_label">ری پلے گین (ٹریک): %1$.2f dB</string>
     <string name="audio_sample_rate_label">نمونہ کی شرح: %1$d ہرٹز</string>

@@ -73,7 +73,7 @@
     <string name="sysinfo_field_last_update">آخری اپ ڈیٹ</string>
     <string name="sysinfo_field_locale_current">موجودہ</string>
     <string name="sysinfo_field_locales">زبانیں</string>
-    <string name="sysinfo_field_manufacturer">ساز</string>
+    <string name="sysinfo_field_manufacturer">بنانے والا</string>
     <string name="sysinfo_field_max_heap">زیادہ سے زیادہ ہیپ</string>
     <string name="sysinfo_field_model">ماڈل</string>
     <string name="sysinfo_field_net_airplane">ہوائی جہاز موڈ</string>

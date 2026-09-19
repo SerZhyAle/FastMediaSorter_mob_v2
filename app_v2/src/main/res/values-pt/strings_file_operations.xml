@@ -71,7 +71,7 @@
     <string name="delete_by_size_larger">Maior que</string>
     <string name="delete_by_size_no_matches">Nenhum arquivo correspondente encontrado</string>
     <string name="delete_by_size_preview_title">Confirmar exclusão</string>
-    <string name="delete_by_size_scanning">Digitalizando..</string>
+    <string name="delete_by_size_scanning">Analisando..</string>
     <string name="delete_by_size_smaller">Menor que</string>
     <string name="delete_by_size_warning_no_trash">Aviso: a lixeira não é suportada para este recurso. A exclusão será permanente!</string>
     <string name="delete_confirmation">Apagar arquivos?</string>

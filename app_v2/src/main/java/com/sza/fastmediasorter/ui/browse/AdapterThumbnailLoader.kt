@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
+import com.sza.fastmediasorter.ui.common.widget.MediaItemThumbnailBinder.Companion.CACHED_THUMBNAIL_SIZE
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import com.sza.fastmediasorter.utils.GlideCacheStats
@@ -81,7 +82,8 @@ class AdapterThumbnailLoader(
     }
 
     companion object {
-        const val CACHED_THUMBNAIL_SIZE = 300
+        // S3246: promoted to MediaItemThumbnailBinder.CACHED_THUMBNAIL_SIZE (ui/common/widget) as the
+        // single source of truth; imported above, so every unqualified use below is unchanged.
 
         /**
          * S3072: the header read behind this verdict used to run on the main thread during row binding,

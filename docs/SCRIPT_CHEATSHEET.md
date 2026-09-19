@@ -872,6 +872,19 @@ scripts/builders/clean-gradle-caches.ps1
   (no param block)
 ```
 
+### compile-benchmark-module.ps1
+Compiles the :benchmark module's Kotlin without a device.
+
+```
+scripts/builders/compile-benchmark-module.ps1
+  Compiles the :benchmark module's Kotlin without a device.
+  Params:
+    -Variant            [String] = "BenchmarkRelease"
+    -DryRun             [SwitchParameter]
+    -GradleArgs         [String[]]
+  Exit: 0 - the module's Kotlin compiled; 1 - gradle failed (compile error, or the variant does not exist - gradle names the candidates); 2 - refused: the Build.Phone domain is held by another session (Enter-BuildLockOrExit exits on its own)
+```
+
 ### compile-vp9-classes.ps1
 S1126 - compiles the media3 VP9 decoder module's Java half into a classes.jar and writes the AAR manifest beside it, ready for build-libvpx-vp9.sh to package.
 
@@ -4104,6 +4117,20 @@ scripts/quality/audit-stale-suppressions.ps1
   Exit: 0 - the verb completed.; 2 - could not verify: missing argument, manifest, report or log; a log with no warning line; a
 ```
 
+### compare-macrobenchmark-runs.ps1
+Compares two macrobenchmark result files against the committed budgets and fails on a regression.
+
+```
+scripts/quality/compare-macrobenchmark-runs.ps1
+  Compares two macrobenchmark result files against the committed budgets and fails on a regression.
+  Params:
+    -Baseline   (req)  [String]
+    -Candidate  (req)  [String]
+    -Budgets           [String] = "$PSScriptRoot\macrobenchmark-budgets.json"
+    -Json              [SwitchParameter]
+  Exit: 0 - every budgeted record is within its budget; 1 - at least one record regressed beyond its budget; 2 - cannot verify: a file is missing or unparseable, the budget file is invalid, or no budgeted
+```
+
 ### detekt-preflight.ps1
 
 ```
@@ -4455,6 +4482,15 @@ set-android-string-remove.Tests.ps1 (S1568) - regression tests for the removal b
 ```
 scripts/quality.tests/set-android-string-remove.Tests.ps1
   set-android-string-remove.Tests.ps1 (S1568) - regression tests for the removal branch.
+  (no param block)
+```
+
+### set-android-string-sourceset.Tests.ps1
+set-android-string-sourceset.Tests.ps1 (S3315) - regression tests for -SourceSet addressing.
+
+```
+scripts/quality.tests/set-android-string-sourceset.Tests.ps1
+  set-android-string-sourceset.Tests.ps1 (S3315) - regression tests for -SourceSet addressing.
   (no param block)
 ```
 
@@ -4851,6 +4887,18 @@ Run-Tests.ps1 (S3152) - regression suite for scripts/quality/audit-stale-suppres
 ```
 scripts/quality/audit-stale-suppressions.tests/Run-Tests.ps1
   Run-Tests.ps1 (S3152) - regression suite for scripts/quality/audit-stale-suppressions.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\compare-macrobenchmark-runs.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S3322) - regression suite for scripts/quality/compare-macrobenchmark-runs.ps1.
+
+```
+scripts/quality/compare-macrobenchmark-runs.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S3322) - regression suite for scripts/quality/compare-macrobenchmark-runs.ps1.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -7728,6 +7776,7 @@ scripts/utils/set-android-string.ps1
   Params:
     -Action                      [String] = 'set'  {set|add|get|remove|rename|list|move|audit}
     -Module                      [String] = 'app_v2'
+    -SourceSet                   [String] = 'main'
     -Locale                      [String]
     -Key                         [String]
     -Value                       [String]

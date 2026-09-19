@@ -16,8 +16,8 @@
     <string name="playback_control_tab_brightness">रोशनी</string>
     <string name="playback_control_tab_hue">रंग</string>
     <string name="playback_control_tab_speed">रफ़्तार</string>
-    <string name="playback_control_tab_subtitles">बाद के चरणों</string>
-    <string name="playback_control_tab_volume">आयतन</string>
+    <string name="playback_control_tab_subtitles">उपशीर्षक</string>
+    <string name="playback_control_tab_volume">ध्वनि</string>
     <string name="playback_control_unmute">अनम्यूट</string>
     <string name="playback_order_button_desc">प्लेबैक क्रम: %1$s</string>
     <string name="playback_order_loop_list">लूप सूची</string>
@@ -25,7 +25,7 @@
     <string name="playback_order_mode_set">प्लेबैक क्रम: %1$s</string>
     <string name="playback_order_play_through">खेलकर देखें</string>
     <string name="playback_order_repeat_one">एक बार दोहराएँ</string>
-    <string name="playback_order_shuffle">मिश्रण</string>
+    <string name="playback_order_shuffle">शफ़ल</string>
     <string name="playback_order_stopped">प्लेबैक रुक गया (सूची का अंत)</string>
     <string name="playback_settings_3d_360_mono">360° मोनो</string>
     <string name="playback_settings_3d_360_sbs">360° SBS</string>

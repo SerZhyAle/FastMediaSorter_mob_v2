@@ -6,8 +6,8 @@
     <string name="playback_control_brightness_value">উজ্জ্বলতা: %1$+d%%</string>
     <string name="playback_control_done">সম্পন্ন হয়েছে</string>
     <string name="playback_control_hue_value">রঙের আভা: %1$+d°</string>
-    <string name="playback_control_mute">মূক</string>
-    <string name="playback_control_mute_active">ম্লান</string>
+    <string name="playback_control_mute">নিঃশব্দ</string>
+    <string name="playback_control_mute_active">নিঃশব্দ করা</string>
     <string name="playback_control_mute_inactive">শব্দ চালু করুন</string>
     <string name="playback_control_no_audio_tracks">কোন অডিও ট্র্যাক উপলব্ধ নেই</string>
     <string name="playback_control_no_subtitles">কোনো সাবটাইটেল উপলব্ধ নেই</string>
@@ -16,7 +16,7 @@
     <string name="playback_control_tab_brightness">আলো</string>
     <string name="playback_control_tab_hue">হিউ</string>
     <string name="playback_control_tab_speed">গতি</string>
-    <string name="playback_control_tab_subtitles">বদলি</string>
+    <string name="playback_control_tab_subtitles">সাবটাইটেল</string>
     <string name="playback_control_tab_volume">ভলিউম</string>
     <string name="playback_control_unmute">আনমিউট করুন</string>
     <string name="playback_order_button_desc">প্লেব্যাক ক্রম: %1$s</string>

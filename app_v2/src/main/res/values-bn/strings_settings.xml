@@ -273,4 +273,7 @@
     <string name="cross_device_transfer_received_files">অ্যাপের ইনকামিং ফোল্ডারে সংরক্ষিত হয়েছে</string>
     <string name="cross_device_transfer_received_settings">অন্য ডিভাইসের সেটিংস প্রয়োগ করা হয়েছে</string>
     <string name="cross_device_transfer_failed">স্থানান্তর শেষ হয়নি। Drive সাইন-ইন ও সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
+    <string name="cross_device_transfer_row_subtitle">আপনার অন্য ডিভাইস থেকে আসা ফাইল ও সেটিংস, আপনার Google Drive-এ অপেক্ষা করছে</string>
+    <string name="cross_device_transfer_remove_expired">মেয়াদোত্তীর্ণ প্যাকেট সরান</string>
+    <string name="cross_device_transfer_expired_removed">মেয়াদোত্তীর্ণ প্যাকেট সরানো হয়েছে: %1$d</string>
 </resources>

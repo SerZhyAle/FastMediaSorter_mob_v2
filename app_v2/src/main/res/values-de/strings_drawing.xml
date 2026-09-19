@@ -11,7 +11,7 @@
     <string name="draw_overlay_filename_hint">Dateiname</string>
     <string name="draw_overlay_save_failed">Die Zeichnung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.</string>
     <string name="draw_overlay_saved_to_downloads">Unter Downloads gespeichert: %s</string>
-    <string name="draw_overlay_toolbar_brush">Bürste</string>
+    <string name="draw_overlay_toolbar_brush">Pinsel</string>
     <string name="draw_overlay_toolbar_eraser">Radiergummi</string>
     <string name="draw_overlay_toolbar_rect">Rechteck</string>
     <string name="draw_save_failed_toast">Speichern fehlgeschlagen</string>
@@ -20,7 +20,7 @@
     <string name="draw_settings_brush_size">Bürstengröße</string>
     <string name="draw_settings_opacity">Opazität</string>
     <string name="draw_settings_text_large">Groß</string>
-    <string name="draw_settings_text_medium">Medium</string>
+    <string name="draw_settings_text_medium">Mittel</string>
     <string name="draw_settings_text_size">Textgröße</string>
     <string name="draw_settings_text_small">Klein</string>
     <string name="draw_settings_title">Zeicheneinstellungen</string>

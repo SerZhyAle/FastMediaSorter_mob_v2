@@ -11,7 +11,7 @@
     <string name="playback_control_no_subtitles">Субтитри недоступні</string>
     <string name="playback_control_speed_value">Швидкість: %1$.2fx</string>
     <string name="playback_control_tab_audio">Аудіодоріжка</string>
-    <string name="playback_control_tab_brightness">Світло</string>
+    <string name="playback_control_tab_brightness">Яскравість</string>
     <string name="playback_control_tab_hue">Відтінок</string>
     <string name="playback_control_tab_speed">Швидкість</string>
     <string name="playback_control_tab_subtitles">Субтит.</string>

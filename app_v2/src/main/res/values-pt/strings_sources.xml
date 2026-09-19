@@ -36,7 +36,7 @@
     <string name="sftp_ftp_folder">SFTP / FTP</string>
     <string name="sftp_ftp_folder_description">Adicionar pastas remotas SFTP ou FTP</string>
     <string name="sftp_ftp_port_hint">SFTP: 22, FTP: 21</string>
-    <string name="sftp_host">Hospedar</string>
+    <string name="sftp_host">Host</string>
     <string name="sftp_host_hint">Endereço IP do servidor</string>
     <string name="sftp_key_invalid">Formato de chave privada SSH inválido</string>
     <string name="sftp_key_load_error">Falha ao carregar o arquivo de chave</string>

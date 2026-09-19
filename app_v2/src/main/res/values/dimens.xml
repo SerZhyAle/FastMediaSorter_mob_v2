@@ -972,4 +972,9 @@
     <dimen name="dim_clock_battery_text_size">12sp</dimen>
     <dimen name="dim_clock_date_text_size">14sp</dimen>
     <dimen name="dim_clock_time_text_size">48sp</dimen>
+    <dimen name="dim_clock_date_margin_top">2dp</dimen>
+    <dimen name="dim_clock_battery_padding_h">6dp</dimen>
+    <dimen name="dim_clock_battery_padding_v">2dp</dimen>
+    <dimen name="dim_clock_badge_padding_h">2dp</dimen>
+    <dimen name="dim_clock_badge_text_size">8sp</dimen>
 </resources>

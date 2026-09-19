@@ -52,7 +52,7 @@
     <string name="epub_reader_line_height">ऊंची लाईन</string>
     <string name="epub_reader_margin">क्षैतिज मार्जिन</string>
     <string name="epub_reader_settings">पाठक सेटिंग्स</string>
-    <string name="epub_reader_theme">विषय</string>
+    <string name="epub_reader_theme">थीम</string>
     <string name="epub_search_all_chapters">सभी अध्यायों में खोजें</string>
     <string name="epub_search_hint">खोज पाठ..</string>
     <string name="epub_search_no_results">कोई परिणाम नहीं मिला</string>
@@ -63,7 +63,7 @@
     <string name="text_content_hint">पाठ सामग्री</string>
     <string name="text_editing_large_file">एक से अधिक पृष्ठों वाली फ़ाइलों के लिए संपादन सुविधा उपलब्ध नहीं है।</string>
     <string name="text_editor_action_cancel">रद्द करना</string>
-    <string name="text_editor_action_save">बचाना</string>
+    <string name="text_editor_action_save">सहेजें</string>
     <string name="text_editor_action_save_close">सहेजे बंद करें</string>
     <string name="text_editor_action_save_send">सहेजें और भेजें</string>
     <string name="text_editor_action_send_keep">रखने के लिए भेजें</string>
@@ -76,11 +76,11 @@
     <string name="text_file_too_large">फ़ाइल का आकार बहुत बड़ा है (%1$s)। अधिकतम समर्थित आकार %2$s है।</string>
     <string name="text_file_upload_failed_after_local_save">फाइल इस डिवाइस पर सेव हो गई, लेकिन सर्वर पर अपलोड नहीं हो सकी।</string>
     <string name="text_note_save_dialog_hint">फ़ाइल नाम</string>
-    <string name="text_note_save_dialog_ok">बचाना</string>
+    <string name="text_note_save_dialog_ok">सहेजें</string>
     <string name="text_note_save_dialog_title">नोट सहेजें</string>
     <string name="text_note_save_error_network">फ़ोल्डर तक नहीं पहुँच पाए। आपका नोट डिवाइस पर ही रह गया है - कृपया ऑनलाइन वापस आने पर पुनः प्रयास करें।</string>
     <string name="text_note_save_renamed_suffix">%1$s के रूप में सहेजा गया (यह नाम पहले से ही लिया जा चुका था)</string>
-    <string name="text_note_save_success_local">सुरक्षित।</string>
+    <string name="text_note_save_success_local">सहेजा गया।</string>
     <string name="text_page_indicator">पृष्ठ %1$d / %2$d</string>
     <string name="text_page_indicator_estimated">पृष्ठ %1$d / ~%2$d</string>
     <string name="text_size_limit">टेक्स्ट फ़ाइल के आकार की सीमा (आंतरिक व्यूअर)</string>

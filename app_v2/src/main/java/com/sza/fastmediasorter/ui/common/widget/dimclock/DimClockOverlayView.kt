@@ -8,10 +8,8 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextClock
-import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -20,10 +18,11 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.databinding.DimClockOverlayBinding
+import com.sza.fastmediasorter.databinding.ItemDimStatusChipBinding
 import com.sza.fastmediasorter.domain.model.UnitScale
 import com.sza.fastmediasorter.domain.model.UnitSystem
+import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -106,10 +105,8 @@ class DimClockOverlayView @JvmOverloads constructor(
         val lifecycleOwner = findViewTreeLifecycleOwner() ?: return
         observationJob?.cancel()
         observationJob = lifecycleOwner.lifecycleScope.launch {
-            // Apply initial style
             styleProvider?.let { applyStyle(it.getStyle()) }
 
-            // Observe unit system if provided
             unitSystemProvider?.let { provider ->
                 launch {
                     provider.current.collectLatest { system ->
@@ -119,7 +116,6 @@ class DimClockOverlayView @JvmOverloads constructor(
                 }
             }
 
-            // Observe device status
             statusProvider?.let { provider ->
                 launch {
                     provider.observeStatus().collectLatest { snapshot ->
@@ -189,11 +185,9 @@ class DimClockOverlayView @JvmOverloads constructor(
         val notifChips = chips.filter { it.isNotification }
         val statusChips = chips.filter { !it.isNotification }
 
-        // Render notifications row above clock
         binding.dimNotificationsRow.isVisible = notifChips.isNotEmpty()
         populateChipContainer(binding.dimNotificationsRow, notifChips)
 
-        // Render network/connectivity chips next to battery
         populateChipContainer(binding.dimNetworkChipsContainer, statusChips)
     }
 
@@ -201,9 +195,10 @@ class DimClockOverlayView @JvmOverloads constructor(
         container.removeAllViews()
         val inflater = LayoutInflater.from(context)
         chips.forEach { chip ->
-            val chipView = inflater.inflate(R.layout.item_dim_status_chip, container, false)
-            val iconView = chipView.findViewById<ImageView>(R.id.dimChipIcon)
-            val badgeView = chipView.findViewById<TextView>(R.id.dimChipBadge)
+            val chipBinding = ItemDimStatusChipBinding.inflate(inflater, container, false)
+            val chipView = chipBinding.root
+            val iconView = chipBinding.dimChipIcon
+            val badgeView = chipBinding.dimChipBadge
 
             if (chip.iconResId != 0) {
                 iconView.setImageResource(chip.iconResId)

@@ -171,6 +171,14 @@ the 2.4 s row and nothing more. Before S2123 it paid nothing and proved nothing:
 the module as having no resource-processing task, which was a verdict about the guessed name
 `:benchmark:processDebugResources` rather than about the module.
 
+A change to the module's **Kotlin** is compiled by `scripts/builders/compile-benchmark-module.ps1`
+(S3322), which runs `:benchmark:compileBenchmarkReleaseKotlin` under `Build.Phone` - measured 4 s on a
+warm daemon, foreground. `fk` / `fkn` / `fc` compile `app_v2` and exit 0 without touching a benchmark
+file, so quoting one of them under a `benchmark/` change records a verdict about the other module, the
+same trap the wear targets carry. The module offers three Kotlin compile variants -
+`BenchmarkBenchmark`, `BenchmarkRelease`, `NonMinifiedBenchmark` - and no Debug one, so a bare
+`:benchmark:compileBenchmarkKotlin` is refused as ambiguous rather than run.
+
 The OCR overlay bench rows were measured on 2026-08-26 (S1782), warm daemon, `app_v2`. Both benches live
 in the test source set, so nothing here ships in an APK:
 

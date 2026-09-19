@@ -72,7 +72,7 @@
     <string name="delete_by_size_larger">Plus grand que</string>
     <string name="delete_by_size_no_matches">Aucun fichier correspondant trouvé</string>
     <string name="delete_by_size_preview_title">Confirmer la suppression</string>
-    <string name="delete_by_size_scanning">Balayage..</string>
+    <string name="delete_by_size_scanning">Analyse..</string>
     <string name="delete_by_size_smaller">Plus petit que</string>
     <string name="delete_by_size_warning_no_trash">Attention : la corbeille n’est pas prise en charge pour cette ressource. La suppression sera définitive !</string>
     <string name="delete_confirmation">Supprimer des fichiers ?</string>

@@ -24,7 +24,7 @@
     <string name="translation_model_prewarm_downloading">Descargando modelo de traducción..</string>
     <string name="translation_model_prewarm_failed">No se pudo descargar el modelo de traducción. Inténtalo de nuevo.</string>
     <string name="translation_model_prewarm_ready">Modelo de traducción listo.</string>
-    <string name="translation_model_prewarm_retry">Rever</string>
+    <string name="translation_model_prewarm_retry">Reintentar</string>
     <string name="translation_no_text_found">No se encontró texto para traducir</string>
     <string name="translation_settings">Configuración de texto</string>
     <string name="translation_source_language">Idioma original</string>

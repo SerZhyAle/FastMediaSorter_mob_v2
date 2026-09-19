@@ -19,7 +19,7 @@
     <string name="calculator_action_multiply">গুণ করুন</string>
     <string name="calculator_action_paste">পেস্ট</string>
     <string name="calculator_action_percent">শতাংশ</string>
-    <string name="calculator_action_round">গোল</string>
+    <string name="calculator_action_round">রাউন্ড করুন</string>
     <string name="calculator_action_save_history">ইতিহাস সংরক্ষণ করুন</string>
     <string name="calculator_action_share_result">ফলাফল পাঠান</string>
     <string name="calculator_action_subtract">বিয়োগ করুন</string>

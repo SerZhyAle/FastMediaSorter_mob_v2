@@ -1144,7 +1144,7 @@
     <string name="hint_resource_name">وسائل کا نام</string>
     <string name="hint_folder_path">فولڈر کا راستہ</string>
     <string name="hint_host">میزبان / آئی پی ایڈریس</string>
-    <string name="hint_port">بندرگاہ</string>
+    <string name="hint_port">پورٹ</string>
     <string name="hint_username">صارف نام</string>
     <string name="hint_password">پاس ورڈ</string>
     <string name="hint_domain">ڈومین (اختیاری)</string>
@@ -1241,7 +1241,7 @@
     <string name="remember_file_list_help_message">فعال ہونے پر، ایپ اسکین کے بعد وسائل کی فائل کی فہرست کو ڈیٹا بیس میں اسٹور کرتی ہے۔ اگلا افتتاح فوری طور پر کیشے سے لوڈ ہوتا ہے۔ فائل کی بیرونی تبدیلیاں لینے کے لیے ریفریش کا استعمال کریں۔</string>
     <string name="file_not_found_playing_from_start">فائل \u201c%1$s\u201d نہیں ملی - شروع سے چل رہی ہے۔</string>
     <string name="picture_in_picture">تصویر میں تصویر</string>
-    <string name="pip_play">کھیلیں</string>
+    <string name="pip_play">چلائیں</string>
     <string name="pip_pause">توقف</string>
     <string name="label_profile_none">حسب ضرورت</string>
     <string name="label_profile_audio_library">آڈیو لائبریری</string>
@@ -1262,7 +1262,7 @@
     <string name="cd_add_to_favorites">پسندیدہ میں شامل کریں۔</string>
     <string name="cd_remove_from_favorites">پسندیدہ سے ہٹا دیں۔</string>
     <string name="tile_audio_label">ایف ایم ایس آڈیو</string>
-    <string name="tile_audio_play">کھیلیں</string>
+    <string name="tile_audio_play">چلائیں</string>
     <string name="tile_audio_pause">توقف</string>
     <string name="tile_audio_play_music">میوزک چلائیں۔</string>
     <string name="perm_btn_grant_all">سب کو اجازت دیں</string>
@@ -1303,7 +1303,7 @@
     <string name="now_playing_track_count">قطار (%d)</string>
     <string name="now_playing_back_to_player">← اب چل رہا ہے</string>
     <string name="now_playing_play_pause_desc">چلائیں / روکیں۔</string>
-    <string name="now_playing_play_desc">کھیلیں</string>
+    <string name="now_playing_play_desc">چلائیں</string>
     <string name="now_playing_pause_desc">توقف</string>
     <string name="now_playing_previous_desc">پچھلا ٹریک</string>
     <string name="now_playing_next_desc">اگلا ٹریک</string>
@@ -1347,13 +1347,13 @@
     <string name="menu_add_receiver">ترتیب کی فہرست میں شامل کریں۔</string>
     <string name="msg_added_as_receiver">وسیلہ Sort List میں شامل ہو گیا</string>
     <string name="btn_edit_receiver">ترتیب دیں۔</string>
-    <string name="archive_files">محفوظ شدہ دستاویزات</string>
+    <string name="archive_files">آرکائیو</string>
     <string name="archive_dialog_title">منتخب فائلوں کو محفوظ کریں۔</string>
     <string name="archive_name_hint">آرکائیو کا نام (زپ کے بغیر)</string>
     <string name="archive_name_empty_error">آرکائیو کا نام خالی نہیں ہو سکتا</string>
     <string name="archive_name_invalid_chars_error">نام غلط حروف پر مشتمل ہے۔</string>
     <string name="archive_destination_label">منزل کا فولڈر: %1$s</string>
-    <string name="archive_action_btn">محفوظ شدہ دستاویزات</string>
+    <string name="archive_action_btn">آرکائیو کریں</string>
     <string name="archive_progress_title">آرکائیو بنایا جا رہا ہے..</string>
     <string name="archive_success">آرکائیو بنایا گیا: %1$s (%2$d فائلیں)</string>
     <string name="archive_error">آرکائیو کی خرابی: %1$s</string>
@@ -1972,7 +1972,7 @@
     <string name="streams_view_list">فہرست منظر</string>
     <string name="screenshot_gesture_action_crop_and_share">اسکرین شاٹ کراپ کر کے شیئر کریں</string>
     <string name="share_to_pick_resource">وسیلہ منتخب کریں..</string>
-    <string name="draw_tool_crop">فصل</string>
+    <string name="draw_tool_crop">کراپ</string>
     <string name="draw_crop_frame_desc">انتخاب کے فریم کو تراشیں۔</string>
     <string name="draw_crop_failed">تصویر کو تراش نہیں سکا</string>
     <string name="stream_wait_buffering">بفرنگ..</string>
@@ -2053,7 +2053,7 @@
     <string name="programs_panel_hide_action">پینل چھپائیں۔</string>
     <string name="main_programs_panel_strip">پروگرام اور منظرنامے۔</string>
     <string name="streams_panel_collapse_action">پینل سمیٹیں</string>
-    <string name="main_streams_panel_strip">سلسلے..</string>
+    <string name="main_streams_panel_strip">سٹریمز..</string>
     <string name="camera_scenario_ocr_translate">متن کی شناخت</string>
     <string name="recording_pause">ریکارڈنگ روک دیں۔</string>
     <string name="recording_resume">ریکارڈنگ دوبارہ شروع کریں۔</string>
@@ -2252,10 +2252,6 @@
     <string name="launcher_edit_rotation_hint">سیدھا اور بغلی ڈیسک ٹاپ الگ الگ ترتیب دیے جاتے ہیں - ہر ایک کو اپنی پسند کے مطابق سیٹ کریں۔</string>
     <string name="launcher_edit_pin_add">ایپ پن کریں</string>
     <string name="launcher_edit_unpin_named">%1$s ان پن کریں</string>
-    <string name="launcher_settings_enable_title">اس ایپ کو ہوم اسکرین بنائیں</string>
-    <string name="launcher_start_window_title">ایپ شروع ہونے پر ڈیسک ٹاپ کھولیں</string>
-    <string name="launcher_start_window_desc">ریسورس مینیجر کے بجائے آپ کا ڈیسک ٹاپ کھولتا ہے۔ اس سے آلے کی ہوم اسکرین تبدیل نہیں ہوتی۔</string>
-    <string name="launcher_settings_enable_desc">ہوم بٹن آپ کا اپنا ڈیسک ٹاپ کھولتا ہے جس میں شارٹ کٹس اور گیجٹس ہوتے ہیں۔ اپنی پچھلی ہوم اسکرین واپس لانے کے لیے اسے کسی بھی وقت بند کر دیں۔</string>
     <string name="launcher_settings_enable_help_title">ہوم اسکرین موڈ</string>
     <string name="launcher_settings_enable_help_message">جب آپ اسے آن کرتے ہیں، تو اینڈرائیڈ پوچھتا ہے کہ کون سی ہوم اسکرین استعمال کی جائے - اس ایپ کو منتخب کریں اور ہمیشہ پر تھپتھپائیں (یا آزمانے کے لیے صرف ایک بار)۔ واپس جانے کے لیے، اسے بند کر دیں اور اینڈرائیڈ آپ کی پچھلی ہوم اسکرین بحال کر دے گا۔</string>
     <string name="launcher_settings_show_recents_title">حالیہ ایپس دکھائیں</string>
@@ -2268,7 +2264,6 @@
     <string name="launcher_settings_density_dense">گنجان</string>
     <string name="launcher_settings_density_densest">بہت گنجان</string>
     <string name="launcher_settings_open_home_chooser_title">ہوم اسکرین تبدیل کریں</string>
-    <string name="launcher_welcome_toggle_title">ہوم اسکرین کے طور پر استعمال کریں</string>
     <string name="launcher_settings_dialog_title">سسٹم لانچر کی سیٹنگز</string>
     <string name="launcher_menu_launcher_settings">لانچر کی سیٹنگز</string>
     <string name="welcome_streams_catalog_downloading">ڈاؤن لوڈ ہو رہا ہے..</string>
@@ -2337,7 +2332,7 @@
     <string name="launcher_settings_screen_timeout_dialog_hint">سیکنڈ (1-86400)</string>
     <string name="sysinfo_section_cameras">کیمرے</string>
     <string name="sysinfo_field_camera_id">کیمرہ</string>
-    <string name="sysinfo_field_camera_facing">سامنا کرنا</string>
+    <string name="sysinfo_field_camera_facing">رخ</string>
     <string name="sysinfo_field_camera_physical_of">کی جسمانی عینک</string>
     <string name="sysinfo_field_camera_focal">فوکل لمبائی</string>
     <string name="sysinfo_field_camera_zoom_range">زوم کی حد</string>
@@ -2689,7 +2684,7 @@
     <string name="network_monitor_link_gateway_label">گیٹ وے</string>
     <string name="network_monitor_link_route_label">طے شدہ راستہ</string>
     <string name="network_monitor_link_proxy_label">پراکسی</string>
-    <string name="network_monitor_route_present">حاضر</string>
+    <string name="network_monitor_route_present">موجود</string>
     <string name="network_monitor_route_absent">کوئی نہیں۔</string>
     <string name="network_monitor_chart_signal_heading">سگنل</string>
     <string name="network_monitor_chart_waiting">ریڈنگز جمع کر رہے ہیں..</string>
@@ -2709,7 +2704,7 @@
     <string name="network_monitor_mobile_open_system">سسٹم نیٹ ورک کی ترتیبات کھولیں۔</string>
     <string name="network_monitor_mobile_sim_signal_heading">SIM %1$d سگنل</string>
     <string name="network_monitor_bluetooth_adapter_label">اڈاپٹر</string>
-    <string name="network_monitor_bluetooth_adapter_present">حاضر</string>
+    <string name="network_monitor_bluetooth_adapter_present">موجود</string>
     <string name="network_monitor_bluetooth_adapter_absent">اس ڈیوائس پر نہیں۔</string>
     <string name="network_monitor_bluetooth_state_off">آف</string>
     <string name="network_monitor_bluetooth_paired_empty">اس ڈیوائس کے ساتھ کچھ بھی جوڑا نہیں ہے۔</string>
@@ -2743,7 +2738,7 @@
     <string name="network_monitor_traffic_down_label">ابھی آنے والا ہے۔</string>
     <string name="network_monitor_traffic_up_label">اب سبکدوش ہو رہا ہے۔</string>
     <string name="network_monitor_value_mbps_decimal">%1$s Mbps</string>
-    <string name="network_monitor_actions_heading">چیک کرتا ہے۔</string>
+    <string name="network_monitor_actions_heading">جانچیں</string>
     <string name="network_monitor_target_label">کیا چیک کرنا ہے۔</string>
     <string name="network_monitor_target_internet">انٹرنیٹ</string>
     <string name="network_monitor_range_heading">اسکین کرنے کے لیے پتہ کی حد - اس آلے کے سب نیٹ کو اسکین کرنے کے لیے خالی چھوڑ دیں۔</string>
@@ -3012,7 +3007,7 @@
     <string name="network_monitor_read_only_resource">(صرف پڑھنے کا وسیلہ)</string>
     <string name="camera_profile_document">دستاویز</string>
     <string name="wear_companion_add_open_resource">واچ شامل کریں یا کھولیں</string>
-    <string name="share_target_title_watch">دیکھو</string>
+    <string name="share_target_title_watch">گھڑی</string>
     <string name="share_target_desc_watch">اپنی جوڑی والی گھڑی پر فائل دکھائیں۔</string>
     <string name="share_target_help_watch">فائل کو آپ کی جوڑی والی گھڑی پر بھیجتا ہے اور اسے وہاں کھولتا ہے۔ تصاویر، GIFs، ویڈیو اور آڈیو کے ساتھ 32 MB تک کام کرتا ہے۔ گھڑی پر موجود ایپ کھلی ہونی چاہیے۔</string>
     <string name="share_target_watch_opened">آپ کی گھڑی پر کھلا۔</string>
@@ -3156,7 +3151,6 @@
     <string name="launcher_all_apps_swipe_action_expand">تمام ایپس پھیلائیں</string>
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">ایپ کی فہرست بند کرکے اس کے نیچے کا ڈیسک ٹاپ دکھاتا ہے۔</string>
     <string name="launcher_all_apps_swipe_explain_expand">حروف تہجی کے حصوں کی جگہ مکمل ایپ فہرست دکھاتا ہے۔</string>
-    <string name="launcher_welcome_toggle_subtitle">ہوم بٹن سے FastMediaSorter کھولیں۔ سیٹ اپ کے بعد سسٹم تصدیق مانگتا ہے، اور آپ کسی بھی وقت ترتیبات میں واپس جا سکتے ہیں۔</string>
     <string name="welcome_enable_all_explainer_title">آگے کیا ہوگا</string>
     <string name="welcome_enable_all_explainer_intro">Android اپنی طرف سے چند سوالات پوچھے گا۔ آپ اس اسکرین سے تھوڑی دیر کے لیے چلے جائیں گے اور خودکار طور پر واپس آ جائیں گے۔</string>
     <string name="welcome_enable_all_explainer_step_permissions_title">رسائی کی اجازت دیں</string>
@@ -3350,17 +3344,14 @@
     <string name="mirror_capture_error_save">کیپچر لے لیا گیا مگر فولڈر میں محفوظ نہ ہو سکا</string>
     <string name="streams_logo_prompt_title">اسٹیشن کے لوگو</string>
     <string name="broadcast_notification_title">آڈیو نشر ہو رہا ہے</string>
-    <string name="broadcast_notification_text">براہِ راست آڈیو نشریات فعال ہیں</string>
+    <string name="broadcast_notification_text">لائیو آڈیو نشریات فعال ہے</string>
     <string name="broadcast_action_stop">بند کریں</string>
     <string name="broadcast_channel_name">آڈیو نشریات</string>
     <string name="broadcast_channel_description">جاری آڈیو نشریات کی اطلاعات</string>
     <string name="broadcast_menu_label">براہِ راست نشریات</string>
     <string name="broadcast_share_title">نشریات کا ڈسکرپٹر</string>
-    <string name="broadcast_share_url_label">نشریات کا URL</string>
     <string name="broadcast_share_export_file">فائل برآمد کریں</string>
     <string name="broadcast_share_saved">فائل محفوظ ہو گئی</string>
-    <string name="broadcast_share_close">بند کریں</string>
-    <string name="broadcast_share_description">سننے والے کو جوڑنے کے لیے QR کوڈ سکین کریں یا ڈسکرپٹر فائل محفوظ کریں</string>
     <string name="broadcast_share_qr_cd">نشریات کے ڈسکرپٹر کا QR کوڈ</string>
     <string name="broadcast_import_menu_label">نشریات درآمد کریں (QR / فائل)</string>
     <string name="broadcast_import_dialog_title">براہِ راست نشریات درآمد کریں</string>
@@ -3445,8 +3436,8 @@
     <string name="broadcast_failed_network">لائیو براڈکاسٹ شروع نہیں ہو سکا: ڈیوائس نیٹ ورک پورٹ نہیں کھول سکی</string>
     <string name="broadcast_failed_encoder">لائیو براڈکاسٹ شروع نہیں ہو سکا: اس ڈیوائس میں کوئی آڈیو انکوڈر دستیاب نہیں ہے</string>
     <string name="broadcast_failed_capture">لائیو براڈکاسٹ رک گیا: آڈیو کیپچر میں رکاوٹ آئی</string>
-    <string name="broadcast_permission_microphone_required">آڈیو بھیجنے کے لیے لائیو نشریات کو مائیکروفون تک رسائی درکار ہے</string>
-    <string name="broadcast_permission_notifications_required">لائیو نشریات جاری رکھنے کے لیے نوٹیفیکیشن تک رسائی درکار ہے</string>
+    <string name="broadcast_permission_microphone_required">آڈیو بھیجنے کے لیے لائیو نشریات کو مائیکروفون کی اجازت درکار ہے</string>
+    <string name="broadcast_permission_notifications_required">نشریات جاری رکھنے کے لیے لائیو نشریات کو اطلاعات کی اجازت درکار ہے</string>
     <string name="settings_suppress_wear_media_takeover">واچ پر میڈیا کنٹرول بند رکھیں</string>
     <string name="settings_suppress_wear_media_takeover_summary">Wear OS سسٹم کو واچ پر فون پلیئر کو میڈیا کنٹرول اسکرین کے طور پر دکھانے سے روکیں</string>
     <string name="broadcast_import_refreshed">براڈکاسٹ نئے پتے کے ساتھ اپ ڈیٹ ہو گیا</string>
@@ -3565,7 +3556,6 @@
     <string name="broadcast_control_mic_off">مائیکروفون آف</string>
     <string name="broadcast_control_switch_camera">کیمرا تبدیل کریں</string>
     <string name="broadcast_control_screen_off">اسکرین بند کریں</string>
-    <string name="broadcast_control_share_link">لنک اور QR شیئر کریں</string>
     <string name="broadcast_control_stop">نشریات روکیں</string>
     <string name="broadcast_control_listeners">سامعین: %d</string>
     <string name="broadcast_control_listeners_cd">منسلک سامعین: %d</string>
@@ -3581,12 +3571,11 @@
     <string name="broadcast_lens_none">کوئی کیمرا دستیاب نہیں</string>
     <string name="broadcast_control_lens_dialog_title">کیمرا منتخب کریں</string>
     <string name="broadcast_permission_camera_required">ویڈیو بھیجنے کے لیے لائیو نشریات کو کیمرا تک رسائی درکار ہے</string>
-    <string name="broadcast_settings_title">نشریات کی ترتیبات</string>
     <string name="broadcast_share_copy">لنک کاپی کریں</string>
     <string name="streams_filter_media_own">اپنے</string>
     <string name="streams_media_filter_own">صرف دستی طور پر شامل کردہ اسٹریمز دکھائیں</string>
     <string name="broadcast_notification_video_title">ویڈیو نشر ہو رہی ہے</string>
-    <string name="broadcast_notification_video_text">لائیو کیمرا نشریات فعال ہیں</string>
+    <string name="broadcast_notification_video_text">لائیو کیمرہ نشریات فعال ہے</string>
     <string name="broadcast_control_blank_screen">سیاہ اسکرین</string>
     <string name="broadcast_control_blank_screen_cd">نشریات جاری رہنے کے دوران ایپ کو سیاہ اسکرین سے ڈھانپیں</string>
     <string name="broadcast_share_save_failed">فائل محفوظ نہیں ہو سکی</string>
@@ -3613,9 +3602,7 @@
     <string name="wear_screenshot_captured">گھڑی نے اپنا اسکرین شاٹ بھیجا</string>
     <string name="wear_screenshot_no_answer">گھڑی نے جواب نہیں دیا</string>
     <string name="wear_companion_group_operations">گھڑی کے آپریشنز</string>
-    <string name="resource_manager_title">ریسورس مینیجر</string>
     <string name="welcome_primary_window_title">بنیادی ونڈو</string>
-    <string name="welcome_primary_window_subtitle">منتخب کریں کہ FastMediaSorter شروع کرنے پر کیا کھلے</string>
     <string name="launcher_primary_window_recommended">تجویز کردہ</string>
     <string name="launcher_primary_window_home_title">آلے کی ہوم اسکرین</string>
     <string name="launcher_primary_window_home_desc">ایپ آپ کے آلے کی ہوم اسکرین بن جاتی ہے</string>
@@ -3659,7 +3646,7 @@
     <string name="data_transfer_medium_file_desc">اس ڈیوائس پر کوئی فائل منتخب کریں</string>
     <string name="data_transfer_medium_drive_desc">منسلک Google Drive اکاؤنٹ کی فائل استعمال کریں</string>
     <string name="data_transfer_progress">%1$s منتقل ہو رہی ہے..</string>
-    <string name="data_transfer_export_done">%1$s برآمد ہو گئی۔</string>
+    <string name="data_transfer_export_done">برآمد ہو گیا: %1$s.</string>
     <string name="data_transfer_import_done">ہو گیا۔ %1$d شامل، %2$d اپ ڈیٹ، %3$d نظر انداز۔</string>
     <string name="data_transfer_error_drive">Google Drive تک رسائی نہیں ہو سکی۔ کنکشن دیکھیں اور یقینی بنائیں کہ ترتیبات میں کوئی Google اکاؤنٹ منسلک ہے، پھر دوبارہ کوشش کریں۔</string>
     <string name="data_transfer_error_no_file">Google Drive میں ابھی کوئی %1$s فائل نہیں ہے۔ پہلے دوسری ڈیوائس سے اسے برآمد کریں۔</string>
@@ -3667,4 +3654,11 @@
     <string name="data_transfer_error_empty">%1$s میں ابھی برآمد کرنے کو کچھ نہیں ہے۔</string>
     <string name="data_transfer_error_unreadable">وہ فائل پڑھی نہیں جا سکی۔ اسے دوبارہ منتخب کریں یا کوئی اور منتخب کریں۔</string>
     <string name="data_transfer_error_unwritable">اس مقام پر لکھا نہیں جا سکا۔ کوئی اور فائل منتخب کر کے دوبارہ کوشش کریں۔</string>
+    <string name="launcher_screens_wallpaper_title">اسکرینیں اور وال پیپر</string>
+    <string name="dim_clock_overlay_toggle">مدھم حالت میں گھڑی اور حیثیت دکھائیں</string>
+    <string name="dim_clock_status_cd">مدھم اسکرین پر گھڑی اور حیثیت</string>
+    <string name="launcher_settings_screen_timeout_on_charge_title">چارجنگ کے دوران اسکرین ٹائم آؤٹ</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle">چارجر منسلک ہونے کے دوران غیر فعالیت کے بعد اسکرین بند کر دیتا ہے</string>
+    <string name="launcher_settings_screen_timeout_on_charge_dialog_title">چارجنگ کے دوران اسکرین ٹائم آؤٹ</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">چارجر منسلک ہونے کے دوران غیر فعالیت کے بعد اسکرین سیاہ کر دیتا ہے۔ یہ بلڈ آلہ مقفل نہیں کر سکتا۔</string>
 </resources>

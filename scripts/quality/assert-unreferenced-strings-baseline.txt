@@ -1,50 +1,18 @@
-# assert-unreferenced-strings baseline (S1568) - names measured as unreferenced that are deliberately KEPT.
-# Each line: <key>  # <reason it is kept>. An unexplained entry is how the previous 397 accumulated.
-# Seeded 2026-08-12 from the S1568 cleanup. Regenerate the measurement with:
-passthrough_capture_saved  # VR passthrough capture is contracted but unimplemented - see reason below
-passthrough_capture_unavailable  # same feature
+# assert-unreferenced-strings baseline (S1568).
+# Names measured as unreferenced that are deliberately KEPT. One per line, with the reason.
+# Regenerate the measurement with: pwsh -NoProfile -File scripts/utils/audit-unreferenced-strings.ps1 -Module app_v2 -File strings.xml
+# A new name here needs a written reason - an unexplained entry is how the previous 397 accumulated.
 passthrough_capture_error  # same feature
-passthrough_capture_timeout  # same feature
 passthrough_capture_error_save  # same feature
 passthrough_capture_permission_denied  # same feature
 passthrough_capture_permission_needed  # same feature
-# Reason, once, for the seven above: BrowsePassthroughCaptureProvider is a contract in src/main bound
-# with @BindsOptionalOf and NO implementation in any source set, so the injected Optional is always
-# empty and nothing can reference these user-facing messages yet. That is the signature of scaffolding
-# awaiting wiring, not of a removed feature, and strategic §7 requires such names to be surfaced for a
-# decision rather than deleted silently.
-
-splash_slogan
-# S1706: consumed at authoring time, not at run time. The system splash window cannot render a
-# string, so scripts/utils/generate-splash-brand.ps1 reads this key and bakes it into the contours
-# of ic_splash_app_brand.xml. Nothing under app_v2/src can reference it by design, and deleting it
-# would silently empty the slogan on the next regeneration.
-
-wear_sync_now  # held by S2484, phases 04-05 - delete this line when that ticket closes
-wear_sync_now_description  # held by S2484, same two phases
-# S2707: S2484's phase 01 declared both keys in app_v2 and wear; its phases 04 and 05 - the ones that
-# put them on the watch and companion sync buttons and into the launcher - have not run, and the
-# ticket sits in BlockNeedUserTest pending wear module compilation. The pair therefore reads exactly
-# like scaffolding superseded by wear_settings_sync_button, and it is the reverse: wear_sync_now is
-# what replaces that key when phase 04 lands. S2707 deleted both across 52 declarations on that
-# misreading before checking the owner, and restored them. Both are also declared Mirrored in
-# wear-mirrored-strings.psd1, so a deletion here has to take those two records with it.
-
+passthrough_capture_saved  # VR passthrough capture is contracted but unimplemented - see reason below
+passthrough_capture_timeout  # same feature
+passthrough_capture_unavailable  # same feature
 share_target_desc_package_app  # held by S2390 until its device verdict - delete when that ticket closes
-# S2707: S2390 phase 01 deliberately set subtitleRes = null on the six package-backed share targets,
-# leaving share_target_help_package_app under the help icon as the only text. That is the change the
-# owner still has to confirm on a device - the ticket's status note names "removal of redundant
-# subtitles" as an acceptance item - so until it passes, this string is the rollback of a pending
-# decision rather than dead weight.
-
-# S2922 (tourist-info-tiles, open in package 37): four captions the remedial pass authored but never
-# wired. tourist_daylight_active / tourist_daylight_night are the Day/Night badge, which no layout
-# carries a slot for yet - that placement is the Rule 10 decision the ticket names as blocking.
-# tourist_status_permission_required is the caption for the two permission flags
-# ObserveTouristDashboardUseCase still never writes. tourist_info_panel_desc is the panel's own
-# description. Deleting them would throw away the authored text and its ten translations; they leave
-# this file when S2922 wires them or the owner rules the surfaces away.
+splash_slogan  # TODO: state why this name is kept
 tourist_daylight_active  # held by S2922 - Day/Night badge has no layout slot until the Rule 10 placement is decided
 tourist_daylight_night  # held by S2922 - see tourist_daylight_active
 tourist_status_permission_required  # held by S2922 - the permission flags it captions are never written yet
-tourist_info_panel_desc  # held by S2922 - panel description, unwired until the panel's remedial phase lands
+wear_sync_now  # held by S2484, phases 04-05 - delete this line when that ticket closes
+wear_sync_now_description  # held by S2484, same two phases

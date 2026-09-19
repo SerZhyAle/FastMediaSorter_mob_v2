@@ -23,7 +23,7 @@
     <string name="scheduled_ops_battery_dialog_title">Consenti attività in background</string>
     <string name="scheduled_ops_btn_add">Aggiungere</string>
     <string name="scheduled_ops_btn_clear_all">Cancella tutto</string>
-    <string name="scheduled_ops_btn_log">Tronco d\'albero</string>
+    <string name="scheduled_ops_btn_log">Registro</string>
     <string name="scheduled_ops_btn_run_now">Corri adesso</string>
     <string name="scheduled_ops_col_condition">Condizioni</string>
     <string name="scheduled_ops_col_operation">Operazione</string>
@@ -54,7 +54,7 @@
     <string name="scheduled_ops_notif_running">Esecuzione dell\'operazione programmata.</string>
     <string name="scheduled_ops_op_copy">Copia</string>
     <string name="scheduled_ops_op_delete">Eliminare</string>
-    <string name="scheduled_ops_op_move">Mossa</string>
+    <string name="scheduled_ops_op_move">Sposta</string>
     <string name="scheduled_ops_operation">Operazione</string>
     <string name="scheduled_ops_overwrite">Sovrascrivi i file esistenti</string>
     <string name="scheduled_ops_readonly_source">Il codice sorgente è di sola lettura.</string>

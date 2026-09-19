@@ -277,4 +277,7 @@
     <string name="cross_device_transfer_received_files">تم الحفظ في مجلد الوارد الخاص بالتطبيق</string>
     <string name="cross_device_transfer_received_settings">تم تطبيق الإعدادات من الجهاز الآخر</string>
     <string name="cross_device_transfer_failed">لم يكتمل النقل. تحقق من تسجيل الدخول إلى Drive ومن الاتصال، ثم حاول مرة أخرى.</string>
+    <string name="cross_device_transfer_row_subtitle">الملفات والإعدادات الواردة من أجهزتك الأخرى، في انتظارك على Google Drive</string>
+    <string name="cross_device_transfer_remove_expired">إزالة الحزم المنتهية الصلاحية</string>
+    <string name="cross_device_transfer_expired_removed">الحزم المنتهية الصلاحية التي تمت إزالتها: %1$d</string>
 </resources>

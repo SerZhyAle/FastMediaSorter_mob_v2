@@ -628,17 +628,28 @@ if ($queueRunnerStartCommands -contains $Command) {
             $crossed += "active agents $activeAgents at or past the declared maximum $($concurrency.maxSessions)"
         }
 
+        # The window is deliberately short and declared. The question here is whether the machine is
+        # loaded NOW, and the summary's own default is 24 hours: on 2026-09-19 the first lane started
+        # under this rule was refused at 39.6 s of lag on a machine that had run no fast check for an
+        # hour, because the median still carried the loaded part of the previous day. A window holding
+        # fewer than loadMinSamples checks is not evidence of a quiet machine or a busy one, so it
+        # refuses nothing rather than guessing from one run.
         $summaryScript = Join-Path $ProjectRoot 'scripts\utils\measure-process-throughput.ps1'
         if (Test-Path $summaryScript) {
-            try { $summary = & pwsh -NoProfile -File $summaryScript -Json | ConvertFrom-Json } catch { $summary = $null }
+            $loadWindow = if ($concurrency.loadWindowMinutes) { [double]$concurrency.loadWindowMinutes } else { 60 }
+            $minSamples = if ($concurrency.loadMinSamples) { [int]$concurrency.loadMinSamples } else { 3 }
+            $since = (Get-Date).AddMinutes(-$loadWindow).ToString('yyyy-MM-ddTHH:mm:ss')
+            try { $summary = & pwsh -NoProfile -File $summaryScript -Since $since -Json | ConvertFrom-Json } catch { $summary = $null }
             if ($summary) {
                 if ($null -ne $summary.idleRunShare -and $concurrency.idleRunSharePercentMax -and
+                    $summary.runCount -ge $minSamples -and
                     $summary.idleRunShare -gt [double]$concurrency.idleRunSharePercentMax) {
-                    $crossed += "idle run share $($summary.idleRunShare) % past the declared $($concurrency.idleRunSharePercentMax) %"
+                    $crossed += "idle run share $($summary.idleRunShare) % past the declared $($concurrency.idleRunSharePercentMax) % over the last $loadWindow min"
                 }
                 if ($null -ne $summary.fastCheckLag -and $concurrency.fastCheckLagSecondsMax -and
+                    $summary.fastCheckRuns -ge $minSamples -and
                     $summary.fastCheckLag -gt [double]$concurrency.fastCheckLagSecondsMax) {
-                    $crossed += "fast check lag $($summary.fastCheckLag) s past the declared $($concurrency.fastCheckLagSecondsMax) s"
+                    $crossed += "fast check lag $($summary.fastCheckLag) s past the declared $($concurrency.fastCheckLagSecondsMax) s over the last $loadWindow min ($($summary.fastCheckRuns) run(s))"
                 }
             }
         }
@@ -682,6 +693,21 @@ if ($queueRunnerInstanceNames.ContainsKey($Command)) {
         }
         catch {
             Write-Host "  progress watcher did not start, continuing without it - $($_.Exception.Message)" -ForegroundColor DarkYellow
+        }
+    }
+}
+
+# A freeze that ended by expiry or with its holder, rather than by an explicit Release, used to leave
+# its queue stand-down behind. release-freeze.ps1 lifts that flag when it clears such a marker, but
+# only a READER of the freeze learns it is over, and a lane start is the one moment where nothing else
+# reads it: run-spec-queue.ps1 sees the flag alone and, with any headless child alive, refuses to start
+# (exit 3) having run nothing. The status read is read-only against a live freeze and costs one line.
+if ($queueRunnerInstanceNames.ContainsKey($Command)) {
+    $freezeStatusScript = Join-Path $ProjectRoot 'scripts\utils\release-freeze.ps1'
+    if (Test-Path $freezeStatusScript) {
+        try { & $freezeStatusScript -Verb Status }
+        catch {
+            Write-Host "  freeze status unavailable, continuing - $($_.Exception.Message)" -ForegroundColor DarkYellow
         }
     }
 }

@@ -7,16 +7,20 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.common.widget.DimOverlayView
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockOverlayView
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockStyleProvider
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimStatusContentProvider
 import com.sza.fastmediasorter.ui.common.widget.dimclock.di.DimClockEntryPoint
-import dagger.hilt.EntryPoints
 import dagger.Lazy
+import dagger.hilt.EntryPoints
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.lang.ref.WeakReference
 
@@ -48,9 +52,9 @@ class BlackScreenOverlayManager(
     private fun resolveEntryPoint(context: Context): DimClockEntryPoint =
         EntryPoints.get(context.applicationContext, DimClockEntryPoint::class.java)
 
-    private fun isDimClockEnabled(activity: Activity): Boolean {
+    private suspend fun readDimClockEnabled(activity: Activity): Boolean {
         val repo = settingsRepositoryLazy?.get() ?: resolveEntryPoint(activity).settingsRepository()
-        return runBlocking { repo.getSettings().first().dimClockOverlayEnabled }
+        return repo.getSettings().flowOn(Dispatchers.IO).first().dimClockOverlayEnabled
     }
 
     fun show() {
@@ -60,8 +64,6 @@ class BlackScreenOverlayManager(
         wasFullscreenBeforeOverlay = systemBarsManager.isInFullscreenMode()
         isChangingSystemBars = true
         systemBarsManager.enterFullscreenMode()
-
-        val clockEnabled = isDimClockEnabled(activity)
 
         val view = DimOverlayView(activity).apply {
             layoutParams = ViewGroup.LayoutParams(
@@ -84,32 +86,62 @@ class BlackScreenOverlayManager(
         decorView.addView(view)
         overlayView = view
 
-        if (clockEnabled) {
-            val entryPoint = resolveEntryPoint(activity)
-            val styleProvider = dimClockStyleProviderLazy?.get() ?: entryPoint.dimClockStyleProvider()
-            val statusProvider = dimStatusContentProviderLazy?.get() ?: entryPoint.dimStatusContentProvider()
-            val unitProvider = entryPoint.unitSystemProvider()
+        isVisible = true
+        setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
+        onVisibilityChanged?.invoke(true)
+        resolveDimMode(activity)
+    }
 
-            val clockView = DimClockOverlayView(activity).apply {
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
-                bind(styleProvider, statusProvider, unitProvider)
-            }
-            decorView.addView(clockView)
-            dimClockView = clockView
+    /**
+     * S3321: the dim-clock flag is read off the main thread, and the overlay no longer waits for it.
+     * A gesture or key handler reaches [show] on Main, where a DataStore read that misses its
+     * in-memory cache - the first one after process start, or after a low-memory trim - used to pay
+     * disk latency inline. The flag is deliberately not cached on this manager: the user can toggle
+     * it in the settings Activity and come back to a host that outlived the visit.
+     */
+    private fun resolveDimMode(activity: Activity) {
+        val scope = (activity as? LifecycleOwner)?.lifecycleScope
+        if (scope == null) {
+            applyDimMode(activity, clockEnabled = false)
+            return
+        }
+        Timber.d("S3321: phone dim overlay shown, settings read dispatched off-main")
+        scope.launch {
+            val clockEnabled = readDimClockEnabled(activity)
+            Timber.d("S3321: phone dim mode resolved, clockEnabled=$clockEnabled visible=$isVisible")
+            // hide() may have won the race while the read was in flight.
+            if (isVisible) applyDimMode(activity, clockEnabled)
+        }
+    }
+
+    private fun applyDimMode(activity: Activity, clockEnabled: Boolean) {
+        if (clockEnabled) {
+            addClockView(activity)
         } else {
             setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
         }
-
-        isVisible = true
         Timber.d("S3256: phone black screen overlay shown, clockEnabled=$clockEnabled")
-        setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
-        onVisibilityChanged?.invoke(true)
-        Timber.d(
-            "BlackScreenOverlayManager: overlay shown (fullscreen=true, wasFullscreen=, clockEnabled=)"
-        )
+    }
+
+    private fun addClockView(activity: Activity) {
+        val decorView = activity.window.decorView as? ViewGroup ?: return
+        // A hide/show pair can land between the read and this call; a second clock view would be added
+        // to the decor view with only the later one reachable for removal.
+        if (dimClockView != null) return
+        val entryPoint = resolveEntryPoint(activity)
+        val styleProvider = dimClockStyleProviderLazy?.get() ?: entryPoint.dimClockStyleProvider()
+        val statusProvider = dimStatusContentProviderLazy?.get() ?: entryPoint.dimStatusContentProvider()
+        val unitProvider = entryPoint.unitSystemProvider()
+
+        val clockView = DimClockOverlayView(activity).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            bind(styleProvider, statusProvider, unitProvider)
+        }
+        decorView.addView(clockView)
+        dimClockView = clockView
     }
 
     fun onTouchEvent(event: MotionEvent): Boolean {
@@ -142,7 +174,7 @@ class BlackScreenOverlayManager(
         }
         isChangingSystemBars = false
         onVisibilityChanged?.invoke(false)
-        Timber.d("BlackScreenOverlayManager: overlay hidden (restoredFullscreen=)")
+        Timber.d("BlackScreenOverlayManager: overlay hidden (restoredFullscreen=${!wasFullscreenBeforeOverlay})")
     }
 
     fun onFileTypeChanged(isAudioOrVideo: Boolean) {

@@ -11,7 +11,7 @@
     <string name="draw_overlay_filename_hint">Nom de fichier</string>
     <string name="draw_overlay_save_failed">Impossible d\'enregistrer le dessin. Veuillez réessayer.</string>
     <string name="draw_overlay_saved_to_downloads">Enregistré dans Téléchargements : %s</string>
-    <string name="draw_overlay_toolbar_brush">Brosse</string>
+    <string name="draw_overlay_toolbar_brush">Pinceau</string>
     <string name="draw_overlay_toolbar_eraser">Gomme</string>
     <string name="draw_overlay_toolbar_rect">Rectangle</string>
     <string name="draw_save_failed_toast">Échec de la sauvegarde</string>

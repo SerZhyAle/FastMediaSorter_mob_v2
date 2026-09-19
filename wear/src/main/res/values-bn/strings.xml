@@ -887,4 +887,6 @@
     <string name="wear_battery_optimization_title">ব্যাটারি সাশ্রয় সম্প্রচার বন্ধ করতে পারে</string>
     <string name="wear_battery_optimization_desc">অ্যাপটিকে পটভূমিতে চলতে দিন যাতে শব্দ বিচ্ছিন্ন না হয়।</string>
     <string name="wear_battery_optimization_grant">পটভূমিতে কাজের অনুমতি দিন</string>
+    <string name="dim_clock_overlay_toggle">আবছা অবস্থায় ঘড়ি ও স্ট্যাটাস দেখান</string>
+    <string name="dim_clock_status_cd">আবছা স্ক্রিনে ঘড়ি ও স্ট্যাটাস</string>
 </resources>

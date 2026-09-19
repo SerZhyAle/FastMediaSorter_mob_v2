@@ -59,7 +59,7 @@
     <string name="vr_hud_last_file">শেষ ফাইল</string>
     <string name="vr_hud_move_done">স্থানান্তরিত</string>
     <string name="vr_hud_paused">বিরতি দেওয়া হয়েছে</string>
-    <string name="vr_hud_playing">খেলা</string>
+    <string name="vr_hud_playing">চলছে</string>
     <string name="vr_hud_prev_next_hint">← আগের / পরের →</string>
     <string name="vr_hud_recenter_done">কেন্দ্রিক</string>
     <string name="vr_hud_seek_bwd">পেছনের দিকে সন্ধান করুন</string>

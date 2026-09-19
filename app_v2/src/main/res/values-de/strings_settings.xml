@@ -273,4 +273,7 @@
     <string name="cross_device_transfer_received_files">Im Eingangsordner der App gespeichert</string>
     <string name="cross_device_transfer_received_settings">Die Einstellungen vom anderen Gerät wurden übernommen</string>
     <string name="cross_device_transfer_failed">Die Übertragung wurde nicht abgeschlossen. Prüfen Sie die Drive-Anmeldung und die Verbindung und versuchen Sie es erneut.</string>
+    <string name="cross_device_transfer_row_subtitle">Eingehende Dateien und Einstellungen von Ihren anderen Geräten, die in Ihrem Google Drive warten</string>
+    <string name="cross_device_transfer_remove_expired">Abgelaufene Pakete entfernen</string>
+    <string name="cross_device_transfer_expired_removed">Abgelaufene Pakete entfernt: %1$d</string>
 </resources>

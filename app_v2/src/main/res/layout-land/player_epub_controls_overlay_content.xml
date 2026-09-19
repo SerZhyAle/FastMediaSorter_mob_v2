@@ -8,6 +8,7 @@
     android:orientation="horizontal"
     android:background="@android:color/transparent"
     android:gravity="center_vertical"
+    android:elevation="@dimen/elevation_player_controls"
     android:paddingVertical="@dimen/player_pdf_controls_padding_vertical"
     android:paddingHorizontal="@dimen/player_pdf_controls_padding_horizontal"
     android:visibility="gone">
@@ -47,7 +48,7 @@
         android:background="@drawable/bg_rounded_dark"
         android:paddingHorizontal="@dimen/player_indicator_padding_horizontal"
         android:paddingVertical="@dimen/player_indicator_padding_vertical_4dp"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/white"
         android:textSize="@dimen/empty_state_text_size"
         android:textStyle="bold"
         android:text="@string/epub_chapter_indicator_default"

@@ -3681,6 +3681,16 @@
       "titleUk": "Колірна схема"
     },
     {
+      "key": "wearDimClockOverlay",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_screen_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show clock and status while dimmed",
+      "titleRu": "Выводить часы и состояние во время затемнения",
+      "titleUk": "Показувати годинник і стан під час затемнення"
+    },
+    {
       "key": "wearDisableAnimations",
       "sectionId": "wear",
       "destination": "MEDIA",

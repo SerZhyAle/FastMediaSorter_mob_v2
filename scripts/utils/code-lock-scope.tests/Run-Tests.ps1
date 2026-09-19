@@ -69,13 +69,45 @@ $testIdentities = @('code-lock-scope-tests-foreign', 'code-lock-scope-tests-skip
 
 # Every OTHER code domain this session holds after an acquiring case would be a leak the fixture
 # retarget exists to prevent; a sibling's lock on them is not ours and is ignored.
-function Test-NoOtherOwnCodeLock {
+#
+# S3317: "held by this identity" is NOT that leak on its own. The suite runs as a child process of
+# whatever invoked it and Get-AgentIdentityResolution answers from the inherited
+# CLAUDE_CODE_SESSION_ID, so a domain the CALLER took for its own edits before the suite started is
+# stamped with the same id as one the suite took - and a release-scope batch is exactly the context
+# where the caller holds Code.Scripts. Measured 2026-09-19: four cases red inside
+# run-script-suites -Gate while the subject was provably intact, diagnosed at the price of a
+# 1172 s suite run plus an isolated re-run. The baseline below is the difference: a hold that
+# predates the run and never moved is the caller's, a hold that appeared - or was released and
+# retaken - inside the run is the leak, and the acquisition stamp separates them.
+$productionCodeDomains = @('Code.Phone', 'Code.Wear', 'Code.Scripts')
+
+function Get-OwnProductionCodeHolds {
     $self = Get-AgentSessionId
-    foreach ($domain in @('Code.Phone', 'Code.Wear', 'Code.Scripts')) {
+    $holds = @{}
+    foreach ($domain in $script:productionCodeDomains) {
         $status = Get-AgentLockStatus -Name $domain
-        if ($status.Exists -and [string]$status.SessionId -eq $self) { return $false }
+        if ($status.Exists -and [string]$status.SessionId -eq $self) {
+            $holds[$domain] = '{0}|{1}' -f $status.AcquiredAtIso, $status.Reason
+        }
     }
-    return $true
+    return $holds
+}
+
+$preHeldOwnCodeLocks = Get-OwnProductionCodeHolds
+
+function Get-OwnProductionCodeLeaks {
+    $now = Get-OwnProductionCodeHolds
+    $leaks = [System.Collections.Generic.List[string]]::new()
+    foreach ($domain in $script:productionCodeDomains) {
+        if (-not $now.ContainsKey($domain)) { continue }
+        if ((-not $script:preHeldOwnCodeLocks.ContainsKey($domain)) -or
+            ($script:preHeldOwnCodeLocks[$domain] -ne $now[$domain])) { $leaks.Add($domain) }
+    }
+    return $leaks.ToArray()
+}
+
+function Test-NoOtherOwnCodeLock {
+    return ((@(Get-OwnProductionCodeLeaks)).Count -eq 0)
 }
 
 Write-Host 'code-lock-scope contract suite' -ForegroundColor Cyan
@@ -318,13 +350,18 @@ if (-not $skipAcquiring) {
 }
 
 # --- Case 24: the suite never touched Code.Scripts (S2697) --------------------
-# The non-interference claim the fixture domain exists for: this session holds no production code
-# lock, and neither test identity left a ticket on the Code.Scripts queue.
+# The non-interference claim the fixture domain exists for: this RUN took no production code lock,
+# and neither test identity left a ticket on the Code.Scripts queue. The detail names both halves
+# separately, so a future red case says which one it is instead of leaving the caller to re-run the
+# suite alone to find out (S3317).
 $scriptsLeftovers = @(Get-AgentLockQueue -Name 'Code.Scripts' |
     Where-Object { $testIdentities -contains [string]$_.sessionId }).Count
+$ownLeaks = @(Get-OwnProductionCodeLeaks)
 Assert-Case 'acquiring cases use Code.Fixture and leave Code.Scripts free of this suite' `
-    ((Test-NoOtherOwnCodeLock) -and ($scriptsLeftovers -eq 0)) `
-    "own production lock held: $(-not (Test-NoOtherOwnCodeLock)); test tickets on Code.Scripts: $scriptsLeftovers"
+    (($ownLeaks.Count -eq 0) -and ($scriptsLeftovers -eq 0)) `
+    ("production domains taken by this run: $(if ($ownLeaks.Count) { $ownLeaks -join ',' } else { 'none' }); " +
+     "pre-held by the caller and ignored: $(if ($preHeldOwnCodeLocks.Count) { ($preHeldOwnCodeLocks.Keys | Sort-Object) -join ',' } else { 'none' }); " +
+     "test tickets on Code.Scripts: $scriptsLeftovers")
 
 # --- Verdict ------------------------------------------------------------------
 Write-Host ''

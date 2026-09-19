@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="top"
     android:orientation="horizontal"
-    android:background="#DD000000"
+    android:background="@color/activity_player_unified_searchPanel_background"
     android:padding="@dimen/player_search_panel_padding"
     android:gravity="center_vertical"
     android:visibility="gone"
@@ -22,8 +22,8 @@
         android:layout_weight="1"
         android:importantForAutofill="no"
         android:hint="@string/search_hint"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#AAAAAA"
+        android:textColor="@color/white"
+        android:textColorHint="@color/player_search_hint_grey"
         android:background="@android:color/transparent"
         android:padding="@dimen/player_search_panel_padding"
         android:singleLine="true"
@@ -35,7 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/search_counter_default"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/white"
         android:paddingHorizontal="@dimen/player_search_counter_padding"
         android:visibility="gone" />
 
@@ -45,7 +45,7 @@
         android:layout_height="@dimen/player_search_button_size"
         android:src="@drawable/ic_skip_previous"
         android:background="?attr/selectableItemBackgroundBorderless"
-        app:tint="#FFFFFF"
+        app:tint="@color/selector_player_button_tint"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:contentDescription="@string/previous_match" />
@@ -56,7 +56,7 @@
         android:layout_height="@dimen/player_search_button_size"
         android:src="@drawable/ic_skip_next"
         android:background="?attr/selectableItemBackgroundBorderless"
-        app:tint="#FFFFFF"
+        app:tint="@color/selector_player_button_tint"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:contentDescription="@string/next_match" />
@@ -67,7 +67,7 @@
         android:layout_height="@dimen/player_search_button_size"
         android:src="@drawable/ic_cancel"
         android:background="?attr/selectableItemBackgroundBorderless"
-        app:tint="#FFFFFF"
+        app:tint="@color/selector_player_button_tint"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:contentDescription="@string/close_search" />

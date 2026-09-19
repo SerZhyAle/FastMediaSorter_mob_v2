@@ -4,13 +4,13 @@
 <resources>
     <string name="calculator_action_add">जोड़ना</string>
     <string name="calculator_action_backspace">बैकस्पेस</string>
-    <string name="calculator_action_clear">स्पष्ट</string>
+    <string name="calculator_action_clear">साफ़ करें</string>
     <string name="calculator_action_clear_entry">साफ़ प्रवेश</string>
     <string name="calculator_action_clear_history">इतिहास मिटा दें</string>
     <string name="calculator_action_decimal">दशमलव बिंदु</string>
     <string name="calculator_action_divide">विभाजित करना</string>
     <string name="calculator_action_equals">बराबर</string>
-    <string name="calculator_action_function">समारोह</string>
+    <string name="calculator_action_function">फ़ंक्शन</string>
     <string name="calculator_action_memory_add">मेमोरी जोड़ें</string>
     <string name="calculator_action_memory_clear">मेमोरी साफ़ करें</string>
     <string name="calculator_action_memory_recall">स्मृति स्मरण</string>
@@ -19,7 +19,7 @@
     <string name="calculator_action_multiply">गुणा</string>
     <string name="calculator_action_paste">पेस्ट करें</string>
     <string name="calculator_action_percent">प्रतिशत</string>
-    <string name="calculator_action_round">गोल</string>
+    <string name="calculator_action_round">राउंड करें</string>
     <string name="calculator_action_save_history">इतिहास को सहेजें</string>
     <string name="calculator_action_share_result">परिणाम भेजें</string>
     <string name="calculator_action_subtract">घटाना</string>

@@ -30,7 +30,7 @@
     <string name="scheduled_ops_col_operation">Операція</string>
     <string name="scheduled_ops_col_schedule">Розклад</string>
     <string name="scheduled_ops_col_source">Джерело</string>
-    <string name="scheduled_ops_col_target">Отримувач</string>
+    <string name="scheduled_ops_col_target">Призначення</string>
     <string name="scheduled_ops_confirm_clear">Очистити всі завдання за розкладом?</string>
     <string name="scheduled_ops_confirm_delete">Видалити це завдання?</string>
     <string name="scheduled_ops_enabled">Операцію увімкнено</string>
@@ -66,7 +66,7 @@
     <string name="scheduled_ops_source">Джерело</string>
     <string name="scheduled_ops_starting_from">Починаючи з</string>
     <string name="scheduled_ops_status_error_tooltip">Останній запуск завершився з помилкою. Відкрийте журнал для деталей.</string>
-    <string name="scheduled_ops_target">Отримувач</string>
+    <string name="scheduled_ops_target">Призначення</string>
     <string name="scheduled_ops_time_all">Усі</string>
     <string name="scheduled_ops_time_last_day">Нові за добу</string>
     <string name="scheduled_ops_time_last_hour">Нові за годину</string>

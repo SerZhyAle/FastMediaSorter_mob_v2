@@ -44,6 +44,13 @@
 .PARAMETER Module
     Module path relative to repo root, e.g. app_v2, wear.
 
+.PARAMETER SourceSet
+    Gradle source set holding the resources, default 'main'. Pass 'vr' or 'noLegal' for a key that
+    lives only in a flavor source set - values/ and values-XX/ are resolved under
+    <module>/src/<SourceSet>/res. The declared locale list stays module-level: locales_config.xml is
+    read from <module>/src/main/res/xml whatever this parameter says, because a module declares its
+    interface languages once and not once per source set.
+
 .PARAMETER Locale
     Target locale for 'set': en -> values, ru -> values-ru, uk -> values-uk.
 
@@ -157,6 +164,10 @@ param(
 
     [string]$Module = 'app_v2',
 
+    # S3314: a flavor source set holds resources of its own (app_v2/src/vr/res/values-it/strings.xml),
+    # and a key that lives only there was unreachable while the resource root was hard-coded to main.
+    [string]$SourceSet = 'main',
+
     # Validated at runtime against locales_config.xml, not by a ValidateSet: the declared set is data
     # (S1190) and a literal list here would pin the tool back to three languages.
     [string]$Locale,
@@ -200,9 +211,9 @@ $valueBound = $PSBoundParameters.ContainsKey('Value')
 $expectedOldBound = $PSBoundParameters.ContainsKey('ExpectedOldValue')
 
 $repoRoot = Split-Path -Parent $PSScriptRoot | Split-Path -Parent
-$resDir = Join-Path $repoRoot (Join-Path $Module 'src/main/res')
+$resDir = Join-Path $repoRoot (Join-Path $Module "src/$SourceSet/res")
 if (-not (Test-Path $resDir)) {
-    throw "Resource dir not found for module '$Module': $resDir"
+    throw "Resource dir not found for module '$Module', source set '$SourceSet': $resDir"
 }
 
 # S1190: the locale set is read from locales_config.xml. Two tiers, per strategic ADR-6:
@@ -529,6 +540,38 @@ function Show-KeyReferences([string]$key, [string[]]$hits, [string]$note) {
     foreach ($h in $hits) { Write-Host "  $h" -ForegroundColor DarkYellow }
 }
 
+# ----- S3315: where else a key could be living -----
+#
+# A refusal that names only the file it opened is what cost S3311 its time: 'vr_hud_prev' existed in
+# app_v2/src/vr/res/values-ur, the message said the key was not found and advised -CreateIfMissing,
+# and following that advice would have appended a SECOND declaration into main that ships in every
+# flavor. Both helpers exist so a refusal can say which set it searched and which sets it did not.
+function Get-ResourceSourceSets {
+    $srcRoot = Join-Path $repoRoot (Join-Path $Module 'src')
+    if (-not (Test-Path -LiteralPath $srcRoot)) { return @() }
+    return @(
+        Get-ChildItem -LiteralPath $srcRoot -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -ne $SourceSet } |
+            Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'res') } |
+            ForEach-Object { $_.Name }
+    )
+}
+
+function Find-KeyInOtherSourceSets {
+    param([Parameter(Mandatory = $true)][string]$KeyName)
+
+    $declaration = '<(?:string|plurals|string-array)\b[^>]*\bname\s*=\s*"' + [regex]::Escape($KeyName) + '"'
+    $hits = @()
+    foreach ($set in @(Get-ResourceSourceSets)) {
+        $setRes = Join-Path $repoRoot (Join-Path $Module "src/$set/res")
+        $files = @(Get-ChildItem -LiteralPath $setRes -Recurse -Filter 'strings*.xml' -File -ErrorAction SilentlyContinue)
+        foreach ($f in $files) {
+            if ([System.IO.File]::ReadAllText($f.FullName) -match $declaration) { $hits += $set; break }
+        }
+    }
+    return @($hits)
+}
+
 # ----- single-locale set (original behavior, byte-for-byte compatible) -----
 function Invoke-Set {
     if (-not $Locale) { throw "set requires -Locale en|ru|uk." }
@@ -537,7 +580,9 @@ function Invoke-Set {
     Test-KeySyntax $Key
 
     $filePath = Join-Path $resDir (Join-Path $localeDirByTag[$Locale] $File)
-    if (-not (Test-Path $filePath)) { throw "$File not found for module '$Module' locale '$Locale': $filePath" }
+    if (-not (Test-Path $filePath)) {
+        throw "$File not found for module '$Module', source set '$SourceSet', locale '$Locale': $filePath"
+    }
 
     $content = [System.IO.File]::ReadAllText($filePath)
     $newline = if ($content.Contains("`r`n")) { "`r`n" } else { "`n" }
@@ -574,7 +619,19 @@ function Invoke-Set {
         $action = 'update'
     }
     else {
-        if (-not $CreateIfMissing) { throw "Key '$Key' not found in $filePath. Use -CreateIfMissing to append it." }
+        if (-not $CreateIfMissing) {
+            # @(..) at the call site: a function returning an empty array unrolls it to $null, and
+            # StrictMode then fails on .Count instead of reporting the refusal this branch exists for.
+            $elsewhere = @(Find-KeyInOtherSourceSets -KeyName $Key)
+            if ($elsewhere.Count -gt 0) {
+                throw ("Key '$Key' not found in $filePath (module '$Module', source set '$SourceSet'), " +
+                    "but it IS declared in source set(s): $($elsewhere -join ', '). " +
+                    "Re-run with -SourceSet $($elsewhere[0]) - creating it here would be a second declaration shipping in every flavor.")
+            }
+            $others = @(Get-ResourceSourceSets)
+            $alsoSearched = if ($others.Count -gt 0) { " Searched source set '$SourceSet' only; this module also carries resources in: $($others -join ', ')." } else { '' }
+            throw "Key '$Key' not found in $filePath (module '$Module', source set '$SourceSet').$alsoSearched Use -CreateIfMissing to append it."
+        }
         if ($expectedOldBound) { throw "ExpectedOldValue cannot be used together with -CreateIfMissing for a missing key." }
         $closingIndex = $content.LastIndexOf('</resources>', [System.StringComparison]::Ordinal)
         if ($closingIndex -lt 0) { throw "Could not find </resources> in $filePath." }
@@ -611,7 +668,7 @@ function Invoke-Set {
         if ($enHit) {
             $enDecoded = ConvertFrom-XmlText $enHit.Raw
             $enHash = Get-EnglishStringFingerprint $enDecoded
-            $unitId = Get-LocaleUnitId -Module $Module -Set main -File $enHit.File.Name -Key $Key
+            $unitId = Get-LocaleUnitId -Module $Module -Set $SourceSet -File $enHit.File.Name -Key $Key
             Edit-LocaleSourceFingerprints -Mutate {
                 param($fps)
                 Update-LocaleSourceFingerprint -Fingerprints $fps -Locale $Locale -Identity $unitId -Hash $enHash
@@ -642,7 +699,7 @@ function Invoke-ReaffirmTranslation {
     if (-not $enHit) { throw "Key '$Key' is not declared in any values/strings*.xml of module '$Module'. There is no English source to fingerprint." }
     $enValue = ConvertFrom-XmlText $enHit.Raw
     $enHash = Get-EnglishStringFingerprint $enValue
-    $unitId = Get-LocaleUnitId -Module $Module -Set main -File $enHit.File.Name -Key $Key
+    $unitId = Get-LocaleUnitId -Module $Module -Set $SourceSet -File $enHit.File.Name -Key $Key
 
     $identicalAllowlist = Get-LocaleIdenticalAllowlist
 
@@ -770,8 +827,8 @@ function Move-OneKey([string]$key, [string]$targetFile) {
     foreach ($path in $writes.Keys) { Save-File $path $writes[$path] }
 
     $oldBase = [System.IO.Path]::GetFileName($plan[0].Source)
-    $oldUnit = Get-LocaleUnitId -Module $Module -Set main -File $oldBase -Key $key
-    $newUnit = Get-LocaleUnitId -Module $Module -Set main -File $targetFile -Key $key
+    $oldUnit = Get-LocaleUnitId -Module $Module -Set $SourceSet -File $oldBase -Key $key
+    $newUnit = Get-LocaleUnitId -Module $Module -Set $SourceSet -File $targetFile -Key $key
     Edit-LocaleSourceFingerprints -Mutate {
         param($fps)
         Rename-LocaleSourceFingerprint -Fingerprints $fps -OldIdentity $oldUnit -NewIdentity $newUnit
@@ -921,7 +978,7 @@ switch ($Action) {
         }
         if (-not $DryRun -and $suppliedOptional.Count -gt 0) {
             $enHash = Get-EnglishStringFingerprint $En
-            $unitId = Get-LocaleUnitId -Module $Module -Set main -File $File -Key $Key
+            $unitId = Get-LocaleUnitId -Module $Module -Set $SourceSet -File $File -Key $Key
             Edit-LocaleSourceFingerprints -Mutate {
                 param($fps)
                 foreach ($loc in $suppliedOptional) {

@@ -24,8 +24,8 @@
     <string name="scheduled_ops_btn_clear_all">全部清除</string>
     <string name="scheduled_ops_btn_log">日志</string>
     <string name="scheduled_ops_btn_run_now">立即运行</string>
-    <string name="scheduled_ops_col_condition">状况</string>
-    <string name="scheduled_ops_col_operation">手术</string>
+    <string name="scheduled_ops_col_condition">条件</string>
+    <string name="scheduled_ops_col_operation">操作</string>
     <string name="scheduled_ops_col_schedule">日程</string>
     <string name="scheduled_ops_col_source">来源</string>
     <string name="scheduled_ops_col_target">目的地</string>
@@ -54,7 +54,7 @@
     <string name="scheduled_ops_op_copy">复制</string>
     <string name="scheduled_ops_op_delete">删除</string>
     <string name="scheduled_ops_op_move">移动</string>
-    <string name="scheduled_ops_operation">手术</string>
+    <string name="scheduled_ops_operation">操作</string>
     <string name="scheduled_ops_overwrite">覆盖现有文件</string>
     <string name="scheduled_ops_readonly_source">源代码为只读</string>
     <string name="scheduled_ops_save">保存操作</string>

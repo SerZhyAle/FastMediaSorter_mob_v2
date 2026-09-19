@@ -140,6 +140,9 @@
     "maxSessions": 6,
     "activeAgentComment": "S3308, the owner's definition of 2026-09-19. An agent counts against maxSessions only while it is ACTIVE: it talked in the chat, wrote a file or ran a script no longer than activeAgentWindowMinutes ago. A hung one, an interrupted one, one out of usage limits, one that finished its task and sits idle, and one the owner has declared dead are all out of the count - the bound exists to measure load, and an open window is not load.",
     "activeAgentWindowMinutes": 2,
+    "loadWindowComment": "S3308, fixed 2026-09-19 after the bound refused a lane on a quiet machine. The two measured sides answer 'is this machine loaded NOW', so the launcher reads them over loadWindowMinutes and not over the summary's 24-hour default: a median taken across a day the machine was loaded keeps refusing long after it went quiet, which is what happened the first time a lane was started under this rule. A window with fewer than loadMinSamples fast checks in it is no evidence either way and refuses nothing.",
+    "loadWindowMinutes": 60,
+    "loadMinSamples": 3,
     "idleRunSharePercentMax": 20,
     "fastCheckLagSecondsMax": 14.1,
     "holdSecondsMax": 600

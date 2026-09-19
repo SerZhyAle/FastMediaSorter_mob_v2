@@ -15,7 +15,7 @@
     <string name="smb_network_unstable">نیٹ ورک غیر مستحکم ہے - براہ کرم Wi-Fi چیک کریں۔</string>
     <string name="smb_no_shares_found_title">کوئی شیئرز نہیں ملے</string>
     <string name="smb_password">پاس ورڈ</string>
-    <string name="smb_port">بندرگاہ</string>
+    <string name="smb_port">پورٹ</string>
     <string name="smb_port_hint">ڈیفالٹ: 445</string>
     <string name="smb_resource_added_readonly">SMB وسائل شامل کیے گئے (صرف پڑھنے کے لیے)۔ تحریری کارروائیاں دستیاب نہیں ہوں گی۔</string>
     <string name="smb_resource_added_success">SMB وسائل کامیابی کے ساتھ شامل ہو گئے۔</string>
@@ -44,7 +44,7 @@
     <string name="sftp_key_passphrase_hint">اگر کلید کو خفیہ نہیں کیا گیا ہے تو خالی چھوڑ دیں۔</string>
     <string name="sftp_load_key">فائل لوڈ کریں۔</string>
     <string name="sftp_password">پاس ورڈ</string>
-    <string name="sftp_port">بندرگاہ</string>
+    <string name="sftp_port">پورٹ</string>
     <string name="sftp_private_key">نجی SSH کلید</string>
     <string name="sftp_private_key_hint">کلید چسپاں کریں یا فائل منتخب کریں۔</string>
     <string name="sftp_remote_path">دور دراز کا راستہ</string>

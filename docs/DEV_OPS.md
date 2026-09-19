@@ -299,6 +299,8 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests
 - `gbp` collects the standard Baseline Profile through the `nonMinifiedRelease` generation flow.
 - Wrapper scripts: `scripts/builders/run-standard-macrobenchmark.ps1` and `scripts/builders/generate-standard-baseline-profile.ps1`.
 - Expect JSON results and Perfetto traces under `benchmark/build/outputs/connected_android_test_additional_output/<variant>/connected/<device_id>/`.
+- Judge a run against a previous one with `scripts/quality/compare-macrobenchmark-runs.ps1 -Baseline <previous>.json -Candidate <new>.json`: it applies `scripts/quality/macrobenchmark-budgets.json` and exits 1 on a regression, 2 when it cannot verify (S3322).
+- Compile the module's Kotlin without a device with `scripts/builders/compile-benchmark-module.ps1` - the phone fast checks compile `app_v2` and never touch a benchmark file (S3322).
 - See `docs/PERFETTO_PLAYBOOK.md` for thresholds, output interpretation, and Perfetto escalation rules.
 
 ### Streams-catalog performance checkpoints (S1502)
@@ -774,6 +776,10 @@ The bound is one declared block, `concurrency` in `.sza-profile.json`, and nothi
 - `fastCheckLagSecondsMax` - how far past its documented duration the phone code fast check may run. 14.1 s of lag is the check taking twice the documented figure.
 - `holdSecondsMax` - the age at which a Rule 23 domain hold is reported as having outlived its edit window.
 
+- `loadWindowMinutes` / `loadMinSamples` - how recently, and over how many runs, the two measured sides are read when a lane is being started.
+
+**The launcher reads load over the short window, never over the summary's 24-hour default.** "Is this machine loaded" is a question about now, and a median taken across a day the machine was loaded keeps answering yes long after it went quiet: the first lane started under this rule, on 2026-09-19, was refused at 39.6 s of lag on a machine that had run no fast check for an hour. A window holding fewer than `loadMinSamples` checks refuses nothing - it is not evidence of a busy machine or a quiet one. The summary itself still defaults to 24 hours, because an audit is asking the opposite question.
+
 `a.ps1 r1`/`r2`/`r3` read that block before starting and **exit 4** naming the bound crossed, with the measured value beside the declared one. `r0` is exempt: MONO is one agent alone, which is the opposite of adding load. The measured side comes from `scripts/utils/measure-process-throughput.ps1`, which sweeps the three journals that were already being written - the runner's run rows, `temp/metrics/gate-executions.jsonl` and the fast-check logs - and answers any window with the five values plus the model each policy actually produced, a warning for a declared policy that never ran, and the long-hold report below. Nothing swept them before, so every process audit re-mined the same corpus by hand and its numbers died with the conversation.
 
 **A hold that outlived its edit window is now reported, not discovered afterwards.** Rule 23 releases a domain at the last file a step writes. On 2026-09-19 one `Code.Scripts` hold ran at least 41 minutes with no release, against 4 to 418 seconds for every other hold of that domain in the same stretch, and alone produced the window's longest wait - 747 s served by a neighbouring session. The summary pairs acquire and release events from the agent progress records and the queue handoffs, prints every hold past `holdSecondsMax` with its domain, holder and duration, and carries **an acquire with no release as `still held`** rather than dropping it for having no end stamp - that shape is precisely what a dropped hold looks like. The longest wait printed beside a hold is a lower bound: the grant itself is not journalled, so a waiter that took a ticket during the hold is credited only with the time up to the hold's end.
@@ -889,10 +895,47 @@ every lock and lease, at the `SpecTicket` timings; and an absolute expiry stampe
 Take, default four hours and refused above the `SpecTicket` ceiling. A reader that finds a dead or
 expired marker reports it as absent and deletes it in the same call, so an abandoned freeze costs the
 next session one line of output instead of a standoff (S2761 records that failure mode for the code
-lock). Liveness is deliberately **not** a pid test: the process running Take exits the moment Take
+lock). That deletion lifts the queue stand-down the freeze requested as well, which for a while only
+`Release` did: on 2026-09-19 the package-39 marker expired at 08:39 and `temp/STOP-SPEC-QUEUE` stayed
+behind carrying its `stoppedQueue`, and since `run-spec-queue.ps1` reads that flag before its first
+ranking and refuses to start beside a live headless child, every lane started and did nothing for six
+hours on a decision nobody had made. The three ends have to be interchangeable in their effects, not
+only in the marker they remove. `.\a.ps1 r0`-`r3` read the freeze before starting for the same reason:
+a lane start is the one moment where nothing else would. Liveness is deliberately **not** a pid test: the process running Take exits the moment Take
 returns - the same reason `lock-status.ps1` prints "acquiring process - exits at acquire, not the
 holder" - and `Test-AgentIdentityProcessAlive` answers false for a session-guid owner by design, which
 is what a Claude session has, so either shortcut would report every live freeze as dead.
+
+**Which signal the second end reads, and the 45 minutes it used to be worth (S3320).** Owner liveness
+is `Get-AgentTicketLiveness` at the `SpecTicket` timings, and that function ranks a ticket's own
+`lastSeenAt` heartbeat **above** the owning session's transcript, because a heartbeat is written by the
+polling waiter that owns the ticket. A freeze has no waiter: `Take` stamped `lastSeenAt` once and
+nothing refreshed it, so the dead heartbeat shadowed the live transcript the same `Take` had just
+resolved, and every freeze became evictable **45 minutes after Take** - whatever `-Hours` said, and
+however alive its owner was. Any reader evicts, including the `-Verb Status -Json` child
+`guard-release-freeze.ps1` spawns in a **sibling** session, so the freeze was deleted by a stranger's
+ticket claim on the way to that claim being allowed. Measured 2026-09-19 against a fixture tree:
+heartbeat 60 minutes old, expiry three hours out, owner transcript written one second earlier ->
+`held=false`, `endedBy=dead-owner`, marker gone. That is exactly how the package-39 sweep lost a freeze
+taken at 03:37 and found it absent at 04:39. The marker now presents the **newest** of its heartbeat
+and its owner's transcript to the liveness function, judging a copy so nothing on disk is made to look
+younger than it is, and the owner's own reads rewrite the stamp - which is the only signal left in a
+runtime where `CLAUDE_TRANSCRIPT_PATH` is unset, as it is here. Raising a heartbeat can only keep a
+freeze alive, never evict one earlier, so the eviction half is untouched: an owner with no signal at all
+is still cleared on the spot. Both directions are pinned in
+`scripts/utils/release-freeze.tests/Run-Tests.ps1` (E16, E17).
+
+**"No freeze held" is two different pieces of news.** A tree that was never frozen and a sweep whose
+freeze ended underneath it read identically, which is why the package-39 loss was noticed only by a
+ticket claim that should have been refused. A cleared freeze now leaves
+`temp/RELEASE-FREEZE-ENDED.json` - owner, reason, `takenAt`, `endedAt`, `endedBy`, and the name of the
+session that cleared it, which is rarely the owner. `-Verb Status` reads it and names the end, adding
+"every gate cleared since then was measured on an unprotected tree" when the owner is the caller;
+`-Json` carries `endedBy`, `endedAt` and `wasMine`; a `Release` with nothing held reports it too, since
+the sweep's closing call is the likeliest moment it finds out. `Take` and `Release` remove it. It is a
+second file rather than a field on the marker because `guard-release-freeze.ps1`'s hot path is one
+`Test-Path` on the marker name, and a tombstone living there would spawn that hook's child process on
+every Bash call in every session forever after the first sweep.
 
 **Convergence honesty, which needs no co-operation at all.**
 `scripts/quality/release-scope-fingerprint.ps1` records what the judged tree looked like when the

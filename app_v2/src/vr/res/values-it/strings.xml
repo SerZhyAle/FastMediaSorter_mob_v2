@@ -41,7 +41,7 @@
     <string name="vr_hud_audio_label">AUDIO</string>
     <string name="vr_hud_subs_label">ABBONAMENTI</string>
     <string name="vr_hud_subs_off">Spento</string>
-    <string name="vr_hud_prev">PREV</string>
+    <string name="vr_hud_prev">PREC</string>
     <string name="vr_hud_play">GIOCARE</string>
     <string name="vr_hud_pause">PAUSA</string>
     <string name="vr_hud_next">PROSSIMO</string>

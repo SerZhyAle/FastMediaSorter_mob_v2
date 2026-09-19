@@ -999,7 +999,7 @@
     <string name="reopen_with_encoding">أعد الفتح مع التشفير..</string>
     <string name="select_encoding">تحديد الترميز</string>
     <string name="reader_settings">إعدادات القارئ</string>
-    <string name="reader_theme_light">ضوء</string>
+    <string name="reader_theme_light">فاتح</string>
     <string name="reader_theme_dark">مظلم</string>
     <string name="reader_theme_sepia">بني داكن</string>
     <string name="toggle_markdown">تبديل Markdown</string>
@@ -1160,7 +1160,7 @@
     <string name="hint_resource_name">اسم المورد</string>
     <string name="hint_folder_path">مسار المجلد</string>
     <string name="hint_host">عنوان المضيف / عنوان IP</string>
-    <string name="hint_port">ميناء</string>
+    <string name="hint_port">المنفذ</string>
     <string name="hint_username">اسم المستخدم</string>
     <string name="hint_password">كلمة المرور</string>
     <string name="hint_domain">النطاق (اختياري)</string>
@@ -1246,7 +1246,7 @@
     <string name="vinyl_indicator_description">مؤشر تشغيل الصوت</string>
     <string name="menu_sleep_timer">مؤقت النوم</string>
     <string name="sleep_timer_title">مؤقت النوم</string>
-    <string name="sleep_timer_off">عن</string>
+    <string name="sleep_timer_off">إيقاف</string>
     <string name="sleep_timer_minutes">%d دقيقة</string>
     <string name="sleep_timer_cancelled">تم إلغاء مؤقت النوم</string>
     <string name="sleep_timer_set">تم ضبط مؤقت النوم على %s</string>
@@ -1256,8 +1256,8 @@
     <string name="remember_file_list_help_message">عند تفعيل هذه الميزة، يقوم التطبيق بتخزين قائمة ملفات الموارد في قاعدة البيانات بعد المسح. يتم تحميل عمليات الفتح اللاحقة من الذاكرة المؤقتة فورًا. استخدم خاصية التحديث لتحديث الملفات الخارجية.</string>
     <string name="file_not_found_playing_from_start">الملف \"%1$s\" غير موجود - جارٍ التشغيل من البداية</string>
     <string name="picture_in_picture">صورة داخل صورة</string>
-    <string name="pip_play">يلعب</string>
-    <string name="pip_pause">يوقف</string>
+    <string name="pip_play">تشغيل</string>
+    <string name="pip_pause">إيقاف مؤقت</string>
     <string name="label_profile_none">مخصص</string>
     <string name="label_profile_audio_library">مكتبة الصوتيات</string>
     <string name="label_profile_video_library">مكتبة الفيديو</string>
@@ -1277,8 +1277,8 @@
     <string name="cd_add_to_favorites">أضف إلى المفضلة</string>
     <string name="cd_remove_from_favorites">إزالة من المفضلة</string>
     <string name="tile_audio_label">إف إم إس أوديو</string>
-    <string name="tile_audio_play">يلعب</string>
-    <string name="tile_audio_pause">يوقف</string>
+    <string name="tile_audio_play">تشغيل</string>
+    <string name="tile_audio_pause">إيقاف مؤقت</string>
     <string name="tile_audio_play_music">تشغيل الموسيقى</string>
     <string name="perm_btn_grant_all">منح الكل</string>
     <string name="perm_btn_open_system_settings">فتح إعدادات التطبيق</string>
@@ -1313,13 +1313,13 @@
     <string name="perm_title_battery_optimization">تحسين البطارية</string>
     <string name="perm_desc_battery_optimization">العمل في الخلفية مسموح به</string>
     <string name="now_playing_label">يعرض الآن</string>
-    <string name="now_playing_queue_label">طابور</string>
-    <string name="now_playing_queue_title">طابور</string>
+    <string name="now_playing_queue_label">قائمة التشغيل</string>
+    <string name="now_playing_queue_title">قائمة التشغيل</string>
     <string name="now_playing_track_count">قائمة الانتظار (%d)</string>
     <string name="now_playing_back_to_player">← قيد التشغيل الآن</string>
     <string name="now_playing_play_pause_desc">تشغيل / إيقاف مؤقت</string>
-    <string name="now_playing_play_desc">يلعب</string>
-    <string name="now_playing_pause_desc">يوقف</string>
+    <string name="now_playing_play_desc">تشغيل</string>
+    <string name="now_playing_pause_desc">إيقاف مؤقت</string>
     <string name="now_playing_previous_desc">المسار السابق</string>
     <string name="now_playing_next_desc">المسار التالي</string>
     <string name="now_playing_seek_bar_desc">ابحث عن بار</string>
@@ -1834,7 +1834,7 @@
     <string name="download_by_link_dialog_title">رابط التحميل</string>
     <string name="download_by_link_dialog_hint">الصق أو اكتب رابطًا</string>
     <string name="collapsible_section_state_expanded">موسع</string>
-    <string name="collapsible_section_state_collapsed">مُنهار</string>
+    <string name="collapsible_section_state_collapsed">مطوي</string>
     <string name="camera_control_flash">الفلاش</string>
     <string name="camera_control_switch_lens">تبديل الكاميرا</string>
     <string name="camera_control_zoom">التكبير</string>
@@ -2071,7 +2071,7 @@
     <string name="programs_panel_hide_action">إخفاء اللوحة</string>
     <string name="main_programs_panel_strip">البرامج والسيناريوهات</string>
     <string name="streams_panel_collapse_action">طيّ اللوحة</string>
-    <string name="main_streams_panel_strip">تيارات مائية..</string>
+    <string name="main_streams_panel_strip">البث..</string>
     <string name="camera_scenario_ocr_translate">التعرف على النص</string>
     <string name="recording_pause">إيقاف التسجيل مؤقتًا</string>
     <string name="recording_resume">استئناف التسجيل</string>
@@ -2270,10 +2270,6 @@
     <string name="launcher_edit_rotation_hint">يُرتَّب سطح المكتب العمودي والأفقي كل على حدة - اضبط كل واحد منهما بالطريقة التي تريدها.</string>
     <string name="launcher_edit_pin_add">تثبيت تطبيق</string>
     <string name="launcher_edit_unpin_named">إلغاء تثبيت %1$s</string>
-    <string name="launcher_settings_enable_title">اجعل هذا التطبيق الشاشة الرئيسية</string>
-    <string name="launcher_start_window_title">فتح سطح المكتب عند بدء التطبيق</string>
-    <string name="launcher_start_window_desc">يفتح سطح المكتب بدلا من مدير الموارد. لا يغير هذا الشاشة الرئيسية للجهاز.</string>
-    <string name="launcher_settings_enable_desc">يفتح زر الرئيسية سطح مكتبك الخاص بالاختصارات والأدوات. أوقف هذا الخيار في أي وقت لاستعادة شاشتك الرئيسية السابقة.</string>
     <string name="launcher_settings_enable_help_title">وضع الشاشة الرئيسية</string>
     <string name="launcher_settings_enable_help_message">عند تفعيل هذا الخيار، يسألك Android عن الشاشة الرئيسية التي تريد استخدامها - اختر هذا التطبيق واضغط على دائمًا (أو مرة واحدة فقط لتجربته). للعودة، أوقف هذا الخيار وسيستعيد Android شاشتك الرئيسية السابقة.</string>
     <string name="launcher_settings_show_recents_title">إظهار التطبيقات الأخيرة</string>
@@ -2286,7 +2282,6 @@
     <string name="launcher_settings_density_dense">كثيفة</string>
     <string name="launcher_settings_density_densest">كثيفة جدًا</string>
     <string name="launcher_settings_open_home_chooser_title">تغيير الشاشة الرئيسية</string>
-    <string name="launcher_welcome_toggle_title">استخدام كشاشة رئيسية</string>
     <string name="launcher_settings_dialog_title">إعدادات مشغّل النظام</string>
     <string name="launcher_menu_launcher_settings">إعدادات المشغّل</string>
     <string name="welcome_streams_catalog_downloading">جارٍ التنزيل..</string>
@@ -2667,7 +2662,7 @@
     <string name="gesture_slot_app_label">التطبيق المراد تشغيله</string>
     <string name="gesture_slot_app_none">لم يُختر - انقر لاختيار تطبيق</string>
     <string name="gesture_slot_app_reset">مسح الاختيار</string>
-    <string name="network_monitor_section_mobile">متحرك</string>
+    <string name="network_monitor_section_mobile">شبكة الجوال</string>
     <string name="network_monitor_section_bluetooth">بلوتوث</string>
     <string name="network_monitor_section_gnss">الأقمار الصناعية</string>
     <string name="network_monitor_section_internet">إنترنت</string>
@@ -2696,11 +2691,11 @@
     <string name="network_monitor_radio_state_unknown">الحالة غير معروفة</string>
     <string name="network_monitor_radio_unsupported">لا يسمح هذا الجهاز للتطبيقات بتغيير هذا الراديو. استخدم إعدادات النظام بدلاً من ذلك.</string>
     <string name="network_monitor_wifi_network_label">شبكة</string>
-    <string name="network_monitor_wifi_frequency_label">تكرار</string>
+    <string name="network_monitor_wifi_frequency_label">التردد</string>
     <string name="network_monitor_wifi_link_speed_label">سرعة الربط</string>
     <string name="network_monitor_wifi_standard_label">معيار واي فاي</string>
     <string name="network_monitor_link_heading">تفاصيل الرابط</string>
-    <string name="network_monitor_link_interface_label">واجهة المستخدم</string>
+    <string name="network_monitor_link_interface_label">واجهة الشبكة</string>
     <string name="network_monitor_link_ipv4_label">IPv4</string>
     <string name="network_monitor_link_ipv6_label">IPv6</string>
     <string name="network_monitor_link_dns_label">نظام أسماء النطاقات (DNS)</string>
@@ -2708,7 +2703,7 @@
     <string name="network_monitor_link_route_label">المسار الافتراضي</string>
     <string name="network_monitor_link_proxy_label">الوكيل</string>
     <string name="network_monitor_route_present">حاضر</string>
-    <string name="network_monitor_route_absent">لا أحد</string>
+    <string name="network_monitor_route_absent">لا يوجد</string>
     <string name="network_monitor_chart_signal_heading">إشارة</string>
     <string name="network_monitor_chart_waiting">جارٍ جمع القراءات..</string>
     <string name="network_monitor_chart_summary">الآن %1$s / الحد الأدنى %2$s / الحد الأقصى %3$s / %4$s</string>
@@ -2729,7 +2724,7 @@
     <string name="network_monitor_bluetooth_adapter_label">محول</string>
     <string name="network_monitor_bluetooth_adapter_present">حاضر</string>
     <string name="network_monitor_bluetooth_adapter_absent">غير متوفر على هذا الجهاز</string>
-    <string name="network_monitor_bluetooth_state_off">عن</string>
+    <string name="network_monitor_bluetooth_state_off">إيقاف</string>
     <string name="network_monitor_bluetooth_paired_empty">لا يوجد شيء مقترن بهذا الجهاز.</string>
     <string name="network_monitor_bluetooth_picker_label">رسم بياني لجهاز متصل</string>
     <string name="network_monitor_bluetooth_picker_none">غير قابل للتغيير</string>
@@ -2804,10 +2799,10 @@
     <string name="network_monitor_history_empty">لم تُجرَ أي قياسات بعد. قم بإجراء فحص على شاشة الإنترنت وستظهر هنا.</string>
     <string name="network_monitor_history_export">يصدّر</string>
     <string name="network_monitor_history_export_failed">تعذر إعداد الملف - قم بإخلاء بعض المساحة وحاول مرة أخرى.</string>
-    <string name="network_monitor_history_clear">واضح</string>
+    <string name="network_monitor_history_clear">مسح</string>
     <string name="network_monitor_history_clear_title">امسح سجل القياسات</string>
     <string name="network_monitor_history_clear_message">سيؤدي هذا إلى حذف جميع القياسات المخزنة من هذا الجهاز. قم بتصديرها أولاً إذا كنت لا تزال بحاجة إليها.</string>
-    <string name="network_monitor_history_clear_confirm">واضح</string>
+    <string name="network_monitor_history_clear_confirm">مسح</string>
     <string name="network_monitor_history_outcome_ok">تمت الإجابة</string>
     <string name="network_monitor_history_outcome_failed">لا يوجد جواب</string>
     <string name="network_monitor_history_kind_speed_test">سرعة</string>
@@ -3173,7 +3168,6 @@
     <string name="launcher_all_apps_swipe_action_expand">توسيع كل التطبيقات</string>
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">يغلق قائمة التطبيقات ويعرض سطح المكتب تحتها.</string>
     <string name="launcher_all_apps_swipe_explain_expand">يعرض قائمة التطبيقات كاملة بدل الأقسام الأبجدية.</string>
-    <string name="launcher_welcome_toggle_subtitle">افتح FastMediaSorter بزر الشاشة الرئيسية. يطلب النظام التأكيد بعد الإعداد، ويمكنك الرجوع في أي وقت من الإعدادات.</string>
     <string name="welcome_enable_all_explainer_title">ماذا يحدث بعد ذلك</string>
     <string name="welcome_enable_all_explainer_intro">سيطرح نظام Android بعض الأسئلة الخاصة به. ستغادر هذه الشاشة للحظة وستعود إليها تلقائيًا.</string>
     <string name="welcome_enable_all_explainer_step_permissions_title">السماح بالوصول</string>
@@ -3341,7 +3335,7 @@
     <string name="stopwatch_settings_participants">المشاركون</string>
     <string name="stopwatch_settings_music">تشغيل الموسيقى أثناء العمل</string>
     <string name="stopwatch_settings_music_summary">يتكرر المقطع المختار طوال مدة القياس.</string>
-    <string name="stopwatch_settings_track">المقطع</string>
+    <string name="stopwatch_settings_track">المضمار</string>
     <string name="stopwatch_settings_track_none">غير مختار</string>
     <string name="stopwatch_settings_volume_keys">مفاتيح الصوت تبدأ وتوقف</string>
     <string name="stopwatch_settings_volume_keys_summary">أثناء فتح ساعة الإيقاف، يبدأ رفع الصوت التشغيل أو يسجل لفة ويوقف خفض الصوت. أوقف هذا لإعادة المفاتيح إلى النظام.</string>
@@ -3367,17 +3361,14 @@
     <string name="mirror_capture_error_save">تم الالتقاط لكن تعذّر حفظه في المجلد</string>
     <string name="streams_logo_prompt_title">شعارات المحطات</string>
     <string name="broadcast_notification_title">جارٍ إذاعة الصوت</string>
-    <string name="broadcast_notification_text">الإذاعة الصوتية المباشرة نشطة</string>
+    <string name="broadcast_notification_text">البث الصوتي المباشر نشط</string>
     <string name="broadcast_action_stop">أوقف</string>
     <string name="broadcast_channel_name">الإذاعة الصوتية</string>
     <string name="broadcast_channel_description">إشعارات عمليات الإذاعة الصوتية الجارية</string>
     <string name="broadcast_menu_label">إذاعة مباشرة</string>
     <string name="broadcast_share_title">واصف الإذاعة</string>
-    <string name="broadcast_share_url_label">رابط الإذاعة</string>
     <string name="broadcast_share_export_file">تصدير الملف</string>
     <string name="broadcast_share_saved">تم حفظ الملف</string>
-    <string name="broadcast_share_close">إغلاق</string>
-    <string name="broadcast_share_description">امسح رمز QR أو احفظ ملف الواصف لتوصيل مستمع</string>
     <string name="broadcast_share_qr_cd">رمز QR لواصف الإذاعة</string>
     <string name="broadcast_import_menu_label">استيراد بث (QR / ملف)</string>
     <string name="broadcast_import_dialog_title">استيراد بث مباشر</string>
@@ -3462,8 +3453,8 @@
     <string name="broadcast_failed_network">تعذّر بدء الإذاعة المباشرة: تعذّر على الجهاز فتح منفذ شبكة</string>
     <string name="broadcast_failed_encoder">تعذّر بدء الإذاعة المباشرة: لا يتوفر مُرمّز صوت على هذا الجهاز</string>
     <string name="broadcast_failed_capture">توقّفت الإذاعة المباشرة: انقطع التقاط الصوت</string>
-    <string name="broadcast_permission_microphone_required">تحتاج الإذاعة المباشرة إلى إذن الميكروفون لإذاعة الصوت</string>
-    <string name="broadcast_permission_notifications_required">تحتاج الإذاعة المباشرة إلى إذن الإشعارات لإبقاء الإذاعة تعمل</string>
+    <string name="broadcast_permission_microphone_required">يحتاج البث المباشر إلى إذن الميكروفون لإرسال الصوت</string>
+    <string name="broadcast_permission_notifications_required">يحتاج البث المباشر إلى إذن الإشعارات لإبقاء البث قيد التشغيل</string>
     <string name="settings_suppress_wear_media_takeover">إخفاء عناصر تحكم الوسائط على الساعة</string>
     <string name="settings_suppress_wear_media_takeover_summary">منع نظام Wear OS من عرض مشغّل الهاتف كشاشة تحكم بالوسائط على الساعة</string>
     <string name="broadcast_import_refreshed">تحديث البث بعنوانه الجديد</string>
@@ -3474,7 +3465,7 @@
     <string name="settings_broadcast_audio_format">تنسيق الصوت</string>
     <string name="settings_broadcast_mic_gain">كسب الميكروفون</string>
     <string name="settings_broadcast_auto_share">فتح شاشة المشاركة تلقائيًا</string>
-    <string name="settings_broadcast_stream_title">عنوان الإذاعة</string>
+    <string name="settings_broadcast_stream_title">عنوان البث</string>
     <string name="unit_speed_mph">%1$s mph</string>
     <string name="unit_speed_kmh_spoken">%1$s كيلومتر في الساعة</string>
     <string name="unit_speed_mph_spoken">%1$s ميل في الساعة</string>
@@ -3582,7 +3573,6 @@
     <string name="broadcast_control_mic_off">الميكروفون: إيقاف</string>
     <string name="broadcast_control_switch_camera">تبديل الكاميرا</string>
     <string name="broadcast_control_screen_off">إطفاء الشاشة</string>
-    <string name="broadcast_control_share_link">مشاركة الرابط ورمز QR</string>
     <string name="broadcast_control_stop">إيقاف الإذاعة</string>
     <string name="broadcast_control_listeners">المستمعون: %d</string>
     <string name="broadcast_control_listeners_cd">المستمعون المتصلون: %d</string>
@@ -3598,12 +3588,11 @@
     <string name="broadcast_lens_none">لا تتوفر كاميرا</string>
     <string name="broadcast_control_lens_dialog_title">اختيار الكاميرا</string>
     <string name="broadcast_permission_camera_required">تحتاج الإذاعة المباشرة إلى الوصول إلى الكاميرا لإرسال الفيديو</string>
-    <string name="broadcast_settings_title">إعدادات الإذاعة</string>
     <string name="broadcast_share_copy">نسخ الرابط</string>
     <string name="streams_filter_media_own">خاصة</string>
     <string name="streams_media_filter_own">عرض البثوث المضافة يدويًا فقط</string>
     <string name="broadcast_notification_video_title">جارٍ إذاعة الفيديو</string>
-    <string name="broadcast_notification_video_text">إذاعة الكاميرا المباشرة نشطة</string>
+    <string name="broadcast_notification_video_text">بث الكاميرا المباشر نشط</string>
     <string name="broadcast_control_blank_screen">شاشة سوداء</string>
     <string name="broadcast_control_blank_screen_cd">تغطية التطبيق بشاشة سوداء مع استمرار الإذاعة</string>
     <string name="broadcast_share_save_failed">تعذّر حفظ الملف</string>
@@ -3630,9 +3619,7 @@
     <string name="wear_screenshot_captured">أرسلت الساعة لقطة شاشتها</string>
     <string name="wear_screenshot_no_answer">لم تستجب الساعة</string>
     <string name="wear_companion_group_operations">عمليات الساعة</string>
-    <string name="resource_manager_title">مدير الموارد</string>
     <string name="welcome_primary_window_title">النافذة الرئيسية</string>
-    <string name="welcome_primary_window_subtitle">اختر ما يفتح عند بدء FastMediaSorter</string>
     <string name="launcher_primary_window_recommended">موصى به</string>
     <string name="launcher_primary_window_home_title">الشاشة الرئيسية للجهاز</string>
     <string name="launcher_primary_window_home_desc">يصبح التطبيق الشاشة الرئيسية لجهازك</string>
@@ -3676,7 +3663,7 @@
     <string name="data_transfer_medium_file_desc">اختر ملفًا على هذا الجهاز</string>
     <string name="data_transfer_medium_drive_desc">استخدام الملف في حساب Google Drive المتصل</string>
     <string name="data_transfer_progress">جارٍ نقل %1$s..</string>
-    <string name="data_transfer_export_done">تم تصدير %1$s.</string>
+    <string name="data_transfer_export_done">تم التصدير: %1$s.</string>
     <string name="data_transfer_import_done">تم. أُضيف %1$d، وحُدّث %2$d، وتم تخطي %3$d.</string>
     <string name="data_transfer_error_drive">تعذّر الوصول إلى Google Drive. تحقق من الاتصال ومن وجود حساب Google متصل في الإعدادات، ثم أعد المحاولة.</string>
     <string name="data_transfer_error_no_file">لا يوجد ملف %1$s في Google Drive بعد. صدّره أولًا من الجهاز الآخر.</string>
@@ -3684,4 +3671,11 @@
     <string name="data_transfer_error_empty">لا يوجد شيء لتصديره في %1$s بعد.</string>
     <string name="data_transfer_error_unreadable">تعذّرت قراءة هذا الملف. اختره مرة أخرى أو اختر ملفًا آخر.</string>
     <string name="data_transfer_error_unwritable">تعذّرت الكتابة في هذا الموقع. اختر ملفًا آخر وأعد المحاولة.</string>
+    <string name="launcher_screens_wallpaper_title">الشاشات والخلفية</string>
+    <string name="dim_clock_overlay_toggle">إظهار الساعة والحالة أثناء التعتيم</string>
+    <string name="dim_clock_status_cd">الساعة والحالة على الشاشة المعتمة</string>
+    <string name="launcher_settings_screen_timeout_on_charge_title">مهلة الشاشة أثناء الشحن</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle">يطفئ الشاشة بعد فترة من عدم النشاط أثناء توصيل الشاحن</string>
+    <string name="launcher_settings_screen_timeout_on_charge_dialog_title">مهلة الشاشة أثناء الشحن</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">يجعل الشاشة سوداء بعد فترة من عدم النشاط أثناء توصيل الشاحن. هذا الإصدار لا يمكنه قفل الجهاز.</string>
 </resources>

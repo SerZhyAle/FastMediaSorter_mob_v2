@@ -273,4 +273,7 @@
     <string name="cross_device_transfer_received_files">ऐप के इनकमिंग फ़ोल्डर में सहेजा गया</string>
     <string name="cross_device_transfer_received_settings">दूसरे डिवाइस की सेटिंग्स लागू कर दी गई हैं</string>
     <string name="cross_device_transfer_failed">स्थानांतरण पूरा नहीं हुआ। Drive साइन-इन और कनेक्शन जांचें, फिर दोबारा कोशिश करें।</string>
+    <string name="cross_device_transfer_row_subtitle">आपके अन्य डिवाइस से आने वाली फ़ाइलें और सेटिंग्ज़, आपके Google Drive में प्रतीक्षारत</string>
+    <string name="cross_device_transfer_remove_expired">समय-समाप्त पैकेट हटाएँ</string>
+    <string name="cross_device_transfer_expired_removed">समय-समाप्त पैकेट हटाए गए: %1$d</string>
 </resources>

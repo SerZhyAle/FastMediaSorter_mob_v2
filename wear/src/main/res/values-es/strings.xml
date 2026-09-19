@@ -887,4 +887,6 @@
     <string name="wear_battery_optimization_title">El ahorro de batería puede detener la transmisión</string>
     <string name="wear_battery_optimization_desc">Deja que la app siga funcionando en segundo plano para que el sonido no se corte.</string>
     <string name="wear_battery_optimization_grant">Permitir la actividad en segundo plano</string>
+    <string name="dim_clock_overlay_toggle">Mostrar reloj y estado con la pantalla atenuada</string>
+    <string name="dim_clock_status_cd">Reloj y estado en la pantalla atenuada</string>
 </resources>

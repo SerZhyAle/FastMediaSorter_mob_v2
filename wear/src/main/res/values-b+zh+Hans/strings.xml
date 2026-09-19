@@ -887,4 +887,6 @@
     <string name="wear_battery_optimization_title">省电模式可能会停止直播</string>
     <string name="wear_battery_optimization_desc">请允许应用在后台继续运行，以免声音中断。</string>
     <string name="wear_battery_optimization_grant">允许后台运行</string>
+    <string name="dim_clock_overlay_toggle">变暗时显示时钟和状态</string>
+    <string name="dim_clock_status_cd">变暗屏幕上的时钟和状态</string>
 </resources>

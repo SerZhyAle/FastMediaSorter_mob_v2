@@ -7,7 +7,7 @@
     <string name="s0140_webview_auth_sign_in_first">Primero inicia sesión y luego toca Guardar autorización.</string>
     <string name="s0155_name_account_title">Nombra esta cuenta</string>
     <string name="s0155_name_account_hint">p. ej. @miusuario</string>
-    <string name="s0155_name_account_positive">Ahorrar</string>
+    <string name="s0155_name_account_positive">Guardar</string>
     <string name="s0155_pick_account_title">Seleccione la cuenta para %1$s</string>
     <string name="s0155_pick_account_last_used">(último uso)</string>
     <string name="s0155_reauth_title">¿Desea iniciar sesión nuevamente como %1$s?</string>

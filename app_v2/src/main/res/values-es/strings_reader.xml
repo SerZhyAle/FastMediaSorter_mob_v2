@@ -63,7 +63,7 @@
     <string name="text_content_hint">Contenido de texto</string>
     <string name="text_editing_large_file">La edición no está disponible para archivos con varias páginas.</string>
     <string name="text_editor_action_cancel">Cancelar</string>
-    <string name="text_editor_action_save">Ahorrar</string>
+    <string name="text_editor_action_save">Guardar</string>
     <string name="text_editor_action_save_close">Guardar y cerrar</string>
     <string name="text_editor_action_save_send">Guardar y enviar</string>
     <string name="text_editor_action_send_keep">Enviar para conservar</string>
@@ -76,7 +76,7 @@
     <string name="text_file_too_large">El archivo es demasiado grande (%1$s). El tamaño máximo admitido es %2$s.</string>
     <string name="text_file_upload_failed_after_local_save">Se guardó en este dispositivo, pero no se pudo volver a subir el archivo al servidor.</string>
     <string name="text_note_save_dialog_hint">Nombre del archivo</string>
-    <string name="text_note_save_dialog_ok">Ahorrar</string>
+    <string name="text_note_save_dialog_ok">Guardar</string>
     <string name="text_note_save_dialog_title">Guardar nota</string>
     <string name="text_note_save_error_network">No se pudo acceder a la carpeta. Tu nota se quedó en el dispositivo; inténtalo de nuevo cuando vuelvas a tener conexión a internet.</string>
     <string name="text_note_save_renamed_suffix">Guardado como %1$s (el nombre ya estaba en uso)</string>

@@ -14,7 +14,7 @@
     <string name="audio_cache_size_warning_message">音频缓存占用了大量存储空间。删除旧文件以释放空间？</string>
     <string name="audio_cache_size_warning_title">大型音频缓存</string>
     <string name="audio_channels_label">频道：%1$s</string>
-    <string name="audio_channels_mono">单核细胞增多症</string>
+    <string name="audio_channels_mono">单声道</string>
     <string name="audio_channels_stereo">立体声</string>
     <string name="audio_codec_label">音频编解码器：%1$s</string>
     <string name="audio_cover_art">音频封面</string>
@@ -30,7 +30,7 @@
     <string name="audio_info_section">音频信息</string>
     <string name="audio_lossless_label">质量：%1$s</string>
     <string name="audio_lossless_value_lossless">无损</string>
-    <string name="audio_lossless_value_lossy">洛西</string>
+    <string name="audio_lossless_value_lossy">有损</string>
     <string name="audio_replaygain_album_label">ReplayGain（专辑）：%1$.2f dB</string>
     <string name="audio_replaygain_track_label">重放增益（音轨）：%1$.2f dB</string>
     <string name="audio_sample_rate_label">采样率：%1$d Hz</string>

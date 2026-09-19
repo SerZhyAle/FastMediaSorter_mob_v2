@@ -43,9 +43,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.power.WearPowerStateObserver
@@ -56,21 +56,20 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlin.math.roundToInt
 
 private const val SECONDS_CADENCE_MS = 1000L
 private const val NORMAL_CADENCE_MS = 30000L
 private const val AUTO_FADE_TIMEOUT_MS = 60000L
 private const val BURN_IN_SHIFT_INTERVAL_MS = 60000L
+private const val BURN_IN_STEP_COUNT = 4
 private const val FADE_ANIMATION_MS = 500
 private const val NORMAL_ALPHA = 1.0f
 private const val DIMMED_ALPHA = 0.35f
 private const val MAX_BURN_IN_OFFSET_DP = 4
 private const val BATTERY_PERCENT_SCALE = 100
 private const val BATTERY_LOW_THRESHOLD = 15
+private const val UNKNOWN_BATTERY_FIELD = -1
 
 private val CHIP_PADDING_H = 6.dp
 private val CHIP_PADDING_V = 2.dp
@@ -78,9 +77,21 @@ private val CHIP_CORNER_RADIUS = 4.dp
 private val STATUS_ROW_SPACING = 8.dp
 private val STATUS_ICON_SIZE = 12.dp
 private val CHIP_ICON_SIZE = 10.dp
-private val TIME_FONT_SIZE = 34.sp
-private val DATE_FONT_SIZE = 12.sp
-private val STATUS_FONT_SIZE = 11.sp
+
+// Raw ARGB ints named so MagicNumber's ignoreConstantDeclaration exempts them; Color(Long/Int) is not
+// itself a const expression, so the wrapped val below carries no literal of its own to flag.
+private const val CHIP_BACKGROUND_ARGB = 0x33FFFFFF
+private const val BATTERY_LOW_ARGB = 0xFFFF5252.toInt()
+private const val PHONE_CONNECTED_ARGB = 0xFF81C784.toInt()
+private const val PHONE_DISCONNECTED_ARGB = 0xFFE57373.toInt()
+
+private val CHIP_BACKGROUND = Color(CHIP_BACKGROUND_ARGB)
+private val BATTERY_LOW_COLOR = Color(BATTERY_LOW_ARGB)
+private val PHONE_CONNECTED_COLOR = Color(PHONE_CONNECTED_ARGB)
+private val PHONE_DISCONNECTED_COLOR = Color(PHONE_DISCONNECTED_ARGB)
+
+/** Battery charge as last read from the sticky/live [Intent.ACTION_BATTERY_CHANGED] broadcast. */
+private data class DimClockBatteryState(val percent: Int, val isCharging: Boolean)
 
 /**
  * Centered digital clock with date, battery and phone connection status for dimmed watch screen (S3256).
@@ -88,8 +99,15 @@ private val STATUS_FONT_SIZE = 11.sp
  * Honors [WearPreferencesRepository.dimClockSecondsVisible] cadence (1s vs 30s),
  * applies burn-in shift every minute to protect OLED screens, auto-fades after 1 minute of idle,
  * and reads battery and phone connectivity via [WearPowerStateObserver] and [WearSystemInfoDataSource].
+ *
+ * [powerStateObserver] is currently unused: the caller (`WearDimOverlay`) already wires the singleton
+ * in, but this screen still reads charge/charging state from its own broadcast receiver below -
+ * [WearPowerStateObserver] exposes only the coarse power-saving policy level, not a raw percent, so it
+ * is not a substitute yet. Kept as a parameter rather than dropped so a future charge-state migration
+ * is a one-file change here instead of a second call-site edit.
  */
 @Composable
+@Suppress("UnusedParameter")
 fun WearDimClock(
     preferencesRepository: WearPreferencesRepository,
     powerStateObserver: WearPowerStateObserver? = null,
@@ -101,10 +119,47 @@ fun WearDimClock(
     val dateTimeFormatter = LocalWearDateTimeFormatter.current
     val context = LocalContext.current
 
-    var nowMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    val nowMillis = rememberDimClockNowMillis(secondsVisible)
     val displayStartTime = remember { System.currentTimeMillis() }
+    val burnInOffset = rememberDimClockBurnInOffset(context)
+    val alphaAnim = rememberDimClockAlpha(nowMillis, displayStartTime)
+    val batteryState = rememberDimClockBatteryState(context)
+    val isPhoneConnected = rememberDimClockPhoneConnected(systemInfoDataSource)
 
-    // Cadence loop: 1s if seconds are visible, 30s otherwise
+    val timeText = remember(nowMillis, unitSystem, secondsVisible) {
+        dateTimeFormatter.formatTime(nowMillis, unitSystem, withSeconds = secondsVisible)
+    }
+    val dateText = remember(nowMillis, unitSystem) {
+        val baseDate = dateTimeFormatter.formatDate(nowMillis, unitSystem)
+        val weekday = dateTimeFormatter.formatWeekday(nowMillis)
+        Timber.d("S3326: dim clock weekday=$weekday routed through WearUnitDateTimeFormatter seam")
+        "$baseDate, $weekday"
+    }
+
+    val statusContentDescription = stringResource(
+        R.string.dim_clock_status_cd,
+        timeText,
+        batteryState.percent
+    )
+
+    DimClockContent(
+        modifier = modifier,
+        burnInOffset = burnInOffset,
+        alpha = alphaAnim,
+        frame = DimClockFrame(
+            timeText = timeText,
+            dateText = dateText,
+            statusContentDescription = statusContentDescription,
+            batteryState = batteryState,
+            phoneConnected = isPhoneConnected
+        )
+    )
+}
+
+/** Cadence loop: 1s if seconds are visible, 30s otherwise. */
+@Composable
+private fun rememberDimClockNowMillis(secondsVisible: Boolean): Long {
+    var nowMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(secondsVisible) {
         val cadence = if (secondsVisible) SECONDS_CADENCE_MS else NORMAL_CADENCE_MS
         while (isActive) {
@@ -112,8 +167,12 @@ fun WearDimClock(
             delay(cadence)
         }
     }
+    return nowMillis
+}
 
-    // Burn-in shift state: periodic small offset (max 4dp in x and y)
+/** Burn-in shift state: periodic small offset (max [MAX_BURN_IN_OFFSET_DP] dp in x and y). */
+@Composable
+private fun rememberDimClockBurnInOffset(context: Context): IntOffset {
     var burnInOffset by remember { mutableStateOf(IntOffset.Zero) }
     LaunchedEffect(Unit) {
         val density = context.resources.displayMetrics.density
@@ -121,7 +180,7 @@ fun WearDimClock(
         var step = 0
         while (isActive) {
             delay(BURN_IN_SHIFT_INTERVAL_MS)
-            step = (step + 1) % 4
+            step = (step + 1) % BURN_IN_STEP_COUNT
             burnInOffset = when (step) {
                 0 -> IntOffset(0, 0)
                 1 -> IntOffset(maxPx, 0)
@@ -130,8 +189,12 @@ fun WearDimClock(
             }
         }
     }
+    return burnInOffset
+}
 
-    // Auto-fade after 1 minute idle
+/** Auto-fade after [AUTO_FADE_TIMEOUT_MS] of idle. */
+@Composable
+private fun rememberDimClockAlpha(nowMillis: Long, displayStartTime: Long): Float {
     val isFaded = (nowMillis - displayStartTime) >= AUTO_FADE_TIMEOUT_MS
     val targetAlpha = if (isFaded) DIMMED_ALPHA else NORMAL_ALPHA
     val alphaAnim by animateFloatAsState(
@@ -139,43 +202,45 @@ fun WearDimClock(
         animationSpec = tween(FADE_ANIMATION_MS),
         label = "wearDimClockAlpha"
     )
+    return alphaAnim
+}
 
-    // Battery observation: charge percent & charging indicator
+/** Battery observation: charge percent & charging indicator, read from the sticky/live intent alike. */
+@Composable
+private fun rememberDimClockBatteryState(context: Context): DimClockBatteryState {
     var batteryPercent by remember { mutableIntStateOf(BATTERY_PERCENT_SCALE) }
     var isCharging by remember { mutableStateOf(false) }
     DisposableEffect(context) {
+        val onPercent: (Int) -> Unit = { batteryPercent = it }
+        val onCharging: (Boolean) -> Unit = { isCharging = it }
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context?, intent: Intent?) {
-                intent?.let {
-                    val rawLevel = it.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-                    val scale = it.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-                    if (rawLevel >= 0 && scale > 0) {
-                        batteryPercent = rawLevel * BATTERY_PERCENT_SCALE / scale
-                    }
-                    val status = it.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-                    isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                        status == BatteryManager.BATTERY_STATUS_FULL
-                }
+                intent?.let { applyBatteryIntent(it, onPercent, onCharging) }
             }
         }
         val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
         val sticky = context.registerReceiver(receiver, filter)
-        sticky?.let {
-            val rawLevel = it.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-            val scale = it.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-            if (rawLevel >= 0 && scale > 0) {
-                batteryPercent = rawLevel * BATTERY_PERCENT_SCALE / scale
-            }
-            val status = it.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-            isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                status == BatteryManager.BATTERY_STATUS_FULL
-        }
+        sticky?.let { applyBatteryIntent(it, onPercent, onCharging) }
         onDispose {
             runCatching { context.unregisterReceiver(receiver) }
         }
     }
+    return DimClockBatteryState(batteryPercent, isCharging)
+}
 
-    // Phone connection observation
+private fun applyBatteryIntent(intent: Intent, onPercent: (Int) -> Unit, onCharging: (Boolean) -> Unit) {
+    val rawLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, UNKNOWN_BATTERY_FIELD)
+    val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, UNKNOWN_BATTERY_FIELD)
+    if (rawLevel >= 0 && scale > 0) {
+        onPercent(rawLevel * BATTERY_PERCENT_SCALE / scale)
+    }
+    val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, UNKNOWN_BATTERY_FIELD)
+    onCharging(status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL)
+}
+
+/** Phone connection observation via the Data Layer node list. */
+@Composable
+private fun rememberDimClockPhoneConnected(systemInfoDataSource: WearSystemInfoDataSource?): Boolean? {
     var isPhoneConnected by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(systemInfoDataSource) {
         if (systemInfoDataSource != null) {
@@ -183,28 +248,31 @@ fun WearDimClock(
             isPhoneConnected = !nodes.isNullOrEmpty()
         }
     }
+    return isPhoneConnected
+}
 
-    val timeText = remember(nowMillis, unitSystem, secondsVisible) {
-        dateTimeFormatter.formatTime(nowMillis, unitSystem, withSeconds = secondsVisible)
-    }
-    val dateText = remember(nowMillis, unitSystem) {
-        val baseDate = dateTimeFormatter.formatDate(nowMillis, unitSystem)
-        val weekday = SimpleDateFormat("EEE", Locale.getDefault()).format(Date(nowMillis))
-        "$baseDate, $weekday"
-    }
+/** Everything [DimClockContent] renders, bundled so the composable stays under the parameter-count gate. */
+private data class DimClockFrame(
+    val timeText: String,
+    val dateText: String,
+    val statusContentDescription: String,
+    val batteryState: DimClockBatteryState,
+    val phoneConnected: Boolean?
+)
 
-    val statusContentDescription = stringResource(
-        R.string.dim_clock_status_cd,
-        timeText,
-        batteryPercent
-    )
-
+@Composable
+private fun DimClockContent(
+    modifier: Modifier,
+    burnInOffset: IntOffset,
+    alpha: Float,
+    frame: DimClockFrame
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
             .offset { burnInOffset }
-            .alpha(alphaAnim)
-            .semantics { contentDescription = statusContentDescription },
+            .alpha(alpha)
+            .semantics { contentDescription = frame.statusContentDescription },
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -213,8 +281,8 @@ fun WearDimClock(
         ) {
             // Time text
             Text(
-                text = timeText,
-                fontSize = TIME_FONT_SIZE,
+                text = frame.timeText,
+                style = MaterialTheme.typography.display2,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
                 color = Color.White
@@ -222,8 +290,8 @@ fun WearDimClock(
 
             // Date & Weekday text
             Text(
-                text = dateText,
-                fontSize = DATE_FONT_SIZE,
+                text = frame.dateText,
+                style = MaterialTheme.typography.caption2,
                 color = Color.LightGray,
                 modifier = Modifier.padding(top = 2.dp, bottom = 6.dp)
             )
@@ -233,54 +301,64 @@ fun WearDimClock(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(STATUS_ROW_SPACING)
             ) {
-                // Battery chip
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(CHIP_CORNER_RADIUS))
-                        .background(Color(0x33FFFFFF))
-                        .padding(horizontal = CHIP_PADDING_H, vertical = CHIP_PADDING_V)
-                ) {
-                    if (isCharging) {
-                        Icon(
-                            imageVector = Icons.Default.Bolt,
-                            contentDescription = null,
-                            tint = Color.Yellow,
-                            modifier = Modifier.size(STATUS_ICON_SIZE)
-                        )
-                    }
-                    Text(
-                        text = "$batteryPercent%",
-                        fontSize = STATUS_FONT_SIZE,
-                        color = if (batteryPercent <= BATTERY_LOW_THRESHOLD && !isCharging) {
-                            Color(0xFFFF5252)
-                        } else {
-                            Color.White
-                        }
-                    )
-                }
-
-                // Phone connection chip
-                val phoneConnected = isPhoneConnected
+                BatteryChip(frame.batteryState)
+                val phoneConnected = frame.phoneConnected
                 if (phoneConnected != null) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(CHIP_CORNER_RADIUS))
-                            .background(Color(0x33FFFFFF))
-                            .padding(horizontal = CHIP_PADDING_H, vertical = CHIP_PADDING_V)
-                    ) {
-                        Icon(
-                            imageVector = if (phoneConnected) Icons.Default.PhoneAndroid else Icons.Default.PhoneDisabled,
-                            contentDescription = null,
-                            tint = if (phoneConnected) Color(0xFF81C784) else Color(0xFFE57373),
-                            modifier = Modifier.size(CHIP_ICON_SIZE)
-                        )
-                    }
+                    PhoneConnectionChip(connected = phoneConnected)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun BatteryChip(batteryState: DimClockBatteryState) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(CHIP_CORNER_RADIUS))
+            .background(CHIP_BACKGROUND)
+            .padding(horizontal = CHIP_PADDING_H, vertical = CHIP_PADDING_V)
+    ) {
+        if (batteryState.isCharging) {
+            Icon(
+                imageVector = Icons.Default.Bolt,
+                contentDescription = null,
+                tint = Color.Yellow,
+                modifier = Modifier.size(STATUS_ICON_SIZE)
+            )
+        }
+        val percentColor = if (batteryState.percent <= BATTERY_LOW_THRESHOLD && !batteryState.isCharging) {
+            BATTERY_LOW_COLOR
+        } else {
+            Color.White
+        }
+        Text(
+            text = "${batteryState.percent}%",
+            style = MaterialTheme.typography.caption3,
+            color = percentColor
+        )
+    }
+}
+
+@Composable
+private fun PhoneConnectionChip(connected: Boolean) {
+    val icon = if (connected) Icons.Default.PhoneAndroid else Icons.Default.PhoneDisabled
+    val tint = if (connected) PHONE_CONNECTED_COLOR else PHONE_DISCONNECTED_COLOR
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(CHIP_CORNER_RADIUS))
+            .background(CHIP_BACKGROUND)
+            .padding(horizontal = CHIP_PADDING_H, vertical = CHIP_PADDING_V)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(CHIP_ICON_SIZE)
+        )
     }
 }

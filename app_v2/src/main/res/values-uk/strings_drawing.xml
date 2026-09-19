@@ -16,7 +16,7 @@
     <string name="draw_save_ok_toast">Збережено</string>
     <string name="draw_save_remote_failed">Не вдалося зберегти в цю теку. Рисунок залишився на цьому пристрої - спробуйте ще раз.</string>
     <string name="draw_settings_brush_size">Розмір пензля</string>
-    <string name="draw_settings_opacity">Прозорість</string>
+    <string name="draw_settings_opacity">Непрозорість</string>
     <string name="draw_settings_text_large">Великий</string>
     <string name="draw_settings_text_medium">Середній</string>
     <string name="draw_settings_text_size">Розмір тексту</string>

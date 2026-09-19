@@ -12,11 +12,11 @@ import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.ui.browse.AdapterThumbnailLoader
-import java.io.File
-import java.util.concurrent.TimeUnit
+import com.sza.fastmediasorter.ui.common.widget.MediaItemThumbnailBinder
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
+import java.io.File
+import java.util.concurrent.TimeUnit
 
 /**
  * Resilient poster-frame extraction for the dynamic-background plane behind the player.
@@ -107,13 +107,20 @@ class VideoPosterExtractor {
         if (isPreventiveSkip) {
             Timber.d("VideoPlayerManager: getFrameAtTime skipped path=$path reason=$reason fallback=$fallbackName")
         } else {
-            Timber.w("VideoPlayerManager: getFrameAtTime returned null path=$path reason=$reason fallback=$fallbackName")
+            Timber.w(
+                "VideoPlayerManager: getFrameAtTime returned null path=$path reason=$reason fallback=$fallbackName"
+            )
         }
         val fileLen = runCatching { File(path).length() }.getOrDefault(-1L)
         val nativeFreeMb = android.os.Debug.getNativeHeapFreeSize() / (1024L * 1024L)
         Timber.d(
             "VR_AUDIT/10: getFrameAtTime null path=%s reason=%s fallback=%s preventive=%b fileBytes=%d nativeFreeMb=%d",
-            path, reason, fallbackName, isPreventiveSkip, fileLen, nativeFreeMb,
+            path,
+            reason,
+            fallbackName,
+            isPreventiveSkip,
+            fileLen,
+            nativeFreeMb,
         )
     }
 
@@ -142,7 +149,7 @@ class VideoPosterExtractor {
             .asBitmap()
             .load(file)
             .signature(ObjectKey("${path}_${file.length()}"))
-            .override(AdapterThumbnailLoader.CACHED_THUMBNAIL_SIZE, AdapterThumbnailLoader.CACHED_THUMBNAIL_SIZE)
+            .override(MediaItemThumbnailBinder.CACHED_THUMBNAIL_SIZE, MediaItemThumbnailBinder.CACHED_THUMBNAIL_SIZE)
             .centerCrop()
             .onlyRetrieveFromCache(true)
             .submit()
@@ -173,6 +180,7 @@ class VideoPosterExtractor {
         private const val PLACEHOLDER_SIZE_PX = 256
         private val PLACEHOLDER_BG_COLOR = Color.rgb(0x22, 0x22, 0x22)
         private val PLACEHOLDER_ICON_COLOR = Color.rgb(0x88, 0x88, 0x88)
+
         @Volatile
         private var cachedPlaceholder: Bitmap? = null
     }

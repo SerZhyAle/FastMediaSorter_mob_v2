@@ -57,7 +57,7 @@
     <string name="vr_hud_guard_file_ops">Das Dateiauswahlfeld ist im Immersionsmodus nicht verfügbar. Beenden Sie den Immersionsmodus, um es zu verwenden.</string>
     <string name="vr_hud_immersive_off">Flachbildschirm</string>
     <string name="vr_hud_last_file">Letzte Datei</string>
-    <string name="vr_hud_move_done">Umgezogen</string>
+    <string name="vr_hud_move_done">Verschoben</string>
     <string name="vr_hud_paused">Angehalten</string>
     <string name="vr_hud_playing">Spielen</string>
     <string name="vr_hud_prev_next_hint">← vorherige / nächste →</string>
@@ -82,14 +82,14 @@
     <string name="vr_install_cta_title">Dies ist ein 3D-Video.</string>
     <string name="vr_overlay_btn_bright_down">Hell -</string>
     <string name="vr_overlay_btn_bright_up">Hell +</string>
-    <string name="vr_overlay_btn_exit">Ausfahrt</string>
+    <string name="vr_overlay_btn_exit">Beenden</string>
     <string name="vr_overlay_btn_format">Format</string>
     <string name="vr_overlay_btn_next">Nächste</string>
     <string name="vr_overlay_btn_play_pause">Wiedergabe / Pause</string>
     <string name="vr_overlay_btn_prev">Zurück</string>
     <string name="vr_overlay_btn_settings">Einstellungen</string>
     <string name="vr_overlay_btn_speed">Geschwindigkeit</string>
-    <string name="vr_overlay_btn_track">Schiene</string>
+    <string name="vr_overlay_btn_track">Spur</string>
     <string name="vr_overlay_btn_vol_down">Band -</string>
     <string name="vr_overlay_btn_vol_up">Vol +</string>
     <string name="vr_overlay_speed_label">Geschwindigkeit: %sx</string>
@@ -101,7 +101,7 @@
     <string name="vr_settings_block_title">3D-VR-Wiedergabe und -Steuerung</string>
     <string name="vr_settings_test_immersive_content_description">Öffnet ein Beispiel-360°-Bild im immersiven Modus.</string>
     <string name="vr_settings_test_immersive_init_failure_toast">VR kann nicht gestartet werden. Überprüfen Sie, ob Ihr Headset angeschlossen ist.</string>
-    <string name="vr_settings_test_immersive_label">Test Immersive</string>
+    <string name="vr_settings_test_immersive_label">Immersiv testen</string>
     <string name="vr_settings_test_immersive_runtime_loss_toast">Die VR-Sitzung wurde unerwartet beendet.</string>
     <string name="vr_settings_xr_unavailable_advisory">Verfügbar auf Geräten wie Meta Quest 3 und Android XR.</string>
     <string name="vr_toggle_enter_description">Immersive Ansicht</string>

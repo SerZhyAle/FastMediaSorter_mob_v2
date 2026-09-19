@@ -1,5 +1,20 @@
 [
-  "action_configure",
+  {
+    "key": "action_configure",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "activity_player_unified_btnOcrImage_text",
   "activity_player_unified_btnOcrImageCmd_text",
   "activity_player_unified_btnOcrPdfCmd_text",
@@ -11,7 +26,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -81,21 +95,79 @@
   "body_sensor_bpm",
   "body_sensor_history_row",
   "browse_menu_group_text",
-  "btn_edit_receiver",
-  "btn_use_name_format",
-  "build_number",
-  "cache_size_format",
-  "calculator_action_backspace",
-  "calculator_action_paste",
-  "calculator_action_percent",
   {
-    "key": "calculator_action_settings",
+    "key": "btn_edit_receiver",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "btn_use_name_format",
     "locales": [
       "ar",
       "bn",
       "de",
       "es",
       "fr",
+      "hi",
+      "it",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
+  "build_number",
+  "cache_size_format",
+  "calculator_action_backspace",
+  {
+    "key": "calculator_action_paste",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "calculator_action_percent",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "calculator_action_settings",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
       "hi",
       "it",
       "pt",
@@ -151,7 +223,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "it",
@@ -167,7 +238,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -183,11 +253,9 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "it",
-      "pt",
       "ru",
       "uk",
       "zh-Hans"
@@ -198,7 +266,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "it",
@@ -222,7 +289,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -273,8 +339,38 @@
   "dialog_integration_test_chipLocal_text",
   "download",
   "draw_overlay_toolbar_rect",
-  "draw_settings_text_medium",
-  "draw_tool_oval",
+  {
+    "key": "draw_settings_text_medium",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "draw_tool_oval",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "draw_tool_text",
   "dropbox",
   "enable_audio",
@@ -418,6 +514,12 @@
   "kbm_help_section_global",
   "kbm_help_section_navigation",
   "keybinding_device_gamepad",
+  {
+    "key": "keybinding_device_mouse",
+    "locales": [
+      "it"
+    ]
+  },
   "keybinding_fmt_mouse_unknown",
   "keybinding_group_navigation",
   "keybinding_input_axis_hat_x",
@@ -433,7 +535,22 @@
   "keybinding_input_mod_alt",
   "keybinding_input_mod_ctrl",
   "keybinding_input_mod_shift",
-  "keybinding_input_mouse_back",
+  {
+    "key": "keybinding_input_mouse_back",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "keybinding_input_mouse_left",
   "keybinding_input_mouse_middle",
   "keybinding_input_mouse_right",
@@ -443,10 +560,54 @@
   "keybinding_label_navigation_seek_macro_forward",
   "keybinding_label_navigation_seek_micro_forward",
   "keybinding_label_playback_pause",
-  "keybinding_label_sorting_paste",
+  {
+    "key": "keybinding_label_sorting_paste",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "keybinding_label_system_screenshot",
-  "keybinding_label_vr_controller_ray",
-  "keybinding_row_remap",
+  {
+    "key": "keybinding_label_vr_controller_ray",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
+  {
+    "key": "keybinding_row_remap",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "fr",
+      "hi",
+      "it",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "label_profile_documents",
   "language",
   {
@@ -455,7 +616,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "it",
       "pt",
       "ru",
@@ -465,15 +625,27 @@
     ]
   },
   "launcher_contact_cell_unnamed",
-  "launcher_desktop_swipe_down_title",
+  {
+    "key": "launcher_desktop_swipe_down_title",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   {
     "key": "launcher_desktop_swipe_left_title",
     "locales": [
       "ar",
       "bn",
       "de",
-      "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -492,7 +664,6 @@
       "es",
       "fr",
       "hi",
-      "it",
       "pt",
       "ru",
       "uk",
@@ -504,7 +675,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -534,10 +704,8 @@
       "ar",
       "bn",
       "de",
-      "es",
       "fr",
       "hi",
-      "it",
       "pt",
       "ru",
       "uk",
@@ -548,7 +716,6 @@
     "key": "launcher_gadget_stream_window",
     "locales": [
       "bn",
-      "de",
       "es",
       "fr",
       "it",
@@ -562,7 +729,6 @@
     "key": "launcher_gadget_stream_window_stopped",
     "locales": [
       "bn",
-      "de",
       "es",
       "fr",
       "it",
@@ -577,9 +743,7 @@
     "key": "launcher_gadget_world_clock",
     "locales": [
       "bn",
-      "de",
       "es",
-      "fr",
       "it",
       "pt",
       "ru",
@@ -599,7 +763,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -610,7 +773,21 @@
       "zh-Hans"
     ]
   },
-  "launcher_section_action_delete",
+  {
+    "key": "launcher_section_action_delete",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "hi",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "launcher_section_action_resort",
   {
     "key": "launcher_section_android_apps",
@@ -618,7 +795,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "it",
       "pt",
       "ru",
@@ -657,7 +833,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -668,18 +843,45 @@
   },
   "launcher_settings_group_desktop",
   "launcher_settings_group_system",
-  "launcher_settings_group_tray",
+  {
+    "key": "launcher_settings_group_tray",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "launcher_settings_import_system_shortcuts_success",
   "launcher_settings_import_system_shortcuts_title",
   "launcher_settings_tray_bluetooth_title",
   "launcher_settings_tray_speed_subtitle",
-  "launcher_settings_tray_speed_title",
+  {
+    "key": "launcher_settings_tray_speed_title",
+    "locales": [
+      "ar",
+      "bn",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   {
     "key": "launcher_settings_wallpaper_camera",
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -702,8 +904,6 @@
       "ar",
       "bn",
       "de",
-      "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -718,10 +918,7 @@
       "ar",
       "bn",
       "de",
-      "es",
-      "fr",
       "hi",
-      "it",
       "pt",
       "ru",
       "uk",
@@ -730,7 +927,22 @@
   },
   "launcher_stream_overlay_pip",
   "launcher_stream_overlay_play_pause",
-  "launcher_stream_overlay_stop",
+  {
+    "key": "launcher_stream_overlay_stop",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "launcher_taskbar_start",
   "launcher_translator_language_settings",
   "launcher_tray_bluetooth_connected",
@@ -744,9 +956,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
-      "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -762,7 +971,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -781,14 +989,28 @@
   "media_type_image",
   "media_type_pdf",
   "media_type_text",
-  "media_type_video",
+  {
+    "key": "media_type_video",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "media_unavailable_message",
   {
     "key": "media_unavailable_title",
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -799,7 +1021,22 @@
       "zh-Hans"
     ]
   },
-  "menu_automate_source",
+  {
+    "key": "menu_automate_source",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "minutes",
   "mirror_zoom_button",
   "motion_stat_max",
@@ -811,7 +1048,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -826,7 +1062,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -847,7 +1082,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -863,7 +1097,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -904,7 +1137,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -927,7 +1159,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -946,14 +1177,28 @@
   "network_monitor_section_bluetooth",
   "network_monitor_section_gnss",
   "network_monitor_section_internet",
-  "network_monitor_section_mobile",
+  {
+    "key": "network_monitor_section_mobile",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   {
     "key": "network_monitor_section_resource_speed",
     "locales": [
       "bn",
       "de",
       "es",
-      "fr",
       "it",
       "pt",
       "ru",
@@ -967,7 +1212,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "it",
       "pt",
       "ru",
@@ -997,7 +1241,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "it",
       "pt",
       "ru",
@@ -1012,7 +1255,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -1070,8 +1312,6 @@
   {
     "key": "playback_control_hue_value",
     "locales": [
-      "de",
-      "es",
       "fr",
       "it",
       "pt",
@@ -1096,7 +1336,22 @@
   },
   "playback_control_tab_subtitles",
   "playback_control_tab_volume",
-  "playback_order_shuffle",
+  {
+    "key": "playback_order_shuffle",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "playback_settings_3d_360_mono",
   "playback_settings_3d_360_sbs",
   "playback_settings_3d_manual_toast",
@@ -1113,7 +1368,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -1136,7 +1390,22 @@
   "resource_type_stream",
   "run_integration_tests",
   "s0155_account_default_name",
-  "s0200_card_state_needs_resign_in_cta",
+  {
+    "key": "s0200_card_state_needs_resign_in_cta",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "scheduled_op_filter_audio",
   "scheduled_op_filter_images",
   "scheduled_op_filter_video",
@@ -1195,6 +1464,15 @@
   "sftp_connection",
   "sftp_ftp_folder",
   "sftp_ftp_port_hint",
+  {
+    "key": "sftp_host",
+    "locales": [
+      "de",
+      "es",
+      "it",
+      "pt"
+    ]
+  },
   "sftp_password",
   "sftp_port",
   "share_target_desc_watch",
@@ -1279,8 +1557,6 @@
       "ar",
       "bn",
       "de",
-      "es",
-      "fr",
       "hi",
       "it",
       "pt",
@@ -1437,7 +1713,6 @@
       "es",
       "fr",
       "hi",
-      "it",
       "pt",
       "ru",
       "uk",
@@ -1455,19 +1730,48 @@
   "vr_overlay_btn_vol_up",
   "vr_settings_layout",
   "vr_settings_projection",
-  "vr_settings_test_immersive_label",
+  {
+    "key": "vr_settings_test_immersive_label",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "vr_settings_value_auto",
   "vr_settings_value_mono",
   "vr_settings_value_off",
   "wear_app_sos",
   "wear_background_failed",
-  "wear_background_mode_animation",
+  {
+    "key": "wear_background_mode_animation",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   {
     "key": "wear_background_mode_image",
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -1482,7 +1786,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -1560,7 +1863,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -1573,7 +1875,22 @@
   },
   "wear_settings_audio",
   "wear_settings_audio_desc",
-  "wear_settings_documents",
+  {
+    "key": "wear_settings_documents",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "wear_settings_documents_desc",
   "wear_settings_images",
   "wear_settings_images_desc",
@@ -1587,7 +1904,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -1603,7 +1919,6 @@
     "locales": [
       "ar",
       "bn",
-      "de",
       "es",
       "fr",
       "hi",
@@ -1627,7 +1942,22 @@
   "wear_streams_section_enabled",
   "wear_streams_sort_name_asc",
   "wear_streams_sort_name_desc",
-  "wear_sync_now",
+  {
+    "key": "wear_sync_now",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "wear_tile_sections_label",
   "wear_tourist_action_sos",
   "wear_tourist_app",
@@ -1644,7 +1974,21 @@
   "welcome_func_streams",
   "welcome_func_video",
   "welcome_profile_tv_media_box_title",
-  "welcome_role_streams",
+  {
+    "key": "welcome_role_streams",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "fr",
+      "hi",
+      "it",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "widget_camera_quick_capture_mode_photo",
   "widget_camera_quick_capture_mode_video",
   "widget_front_flashlight_description",
@@ -1654,7 +1998,6 @@
       "bn",
       "de",
       "es",
-      "fr",
       "hi",
       "it",
       "pt",

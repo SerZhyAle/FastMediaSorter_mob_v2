@@ -59,7 +59,7 @@
             android:id="@+id/dimClockDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="@dimen/dim_clock_date_margin_top"
             android:clickable="false"
             android:ellipsize="end"
             android:focusable="false"
@@ -91,10 +91,10 @@
                 android:background="@drawable/dim_clock_battery_outline"
                 android:clickable="false"
                 android:focusable="false"
-                android:paddingStart="6dp"
-                android:paddingTop="2dp"
-                android:paddingEnd="6dp"
-                android:paddingBottom="2dp">
+                android:paddingStart="@dimen/dim_clock_battery_padding_h"
+                android:paddingTop="@dimen/dim_clock_battery_padding_v"
+                android:paddingEnd="@dimen/dim_clock_battery_padding_h"
+                android:paddingBottom="@dimen/dim_clock_battery_padding_v">
 
                 <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                     android:id="@+id/dimBatteryLevelText"

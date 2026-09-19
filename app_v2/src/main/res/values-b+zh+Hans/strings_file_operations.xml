@@ -28,7 +28,7 @@
     <string name="import_browse">浏览文件..</string>
     <string name="import_failed">设置导入失败，请重试。</string>
     <string name="import_failed_title">导入失败</string>
-    <string name="import_fav_action">进口</string>
+    <string name="import_fav_action">导入</string>
     <string name="import_fav_conflict_label">冲突解决：</string>
     <string name="import_fav_conflict_overwrite">覆盖重复项</string>
     <string name="import_fav_conflict_skip">跳过重复项</string>

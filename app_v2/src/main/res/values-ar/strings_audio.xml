@@ -14,7 +14,7 @@
     <string name="audio_cache_size_warning_message">تستهلك ذاكرة التخزين المؤقت للصوت مساحة تخزين كبيرة. هل تريد حذف الملفات القديمة لتحرير مساحة؟</string>
     <string name="audio_cache_size_warning_title">ذاكرة تخزين مؤقتة صوتية كبيرة</string>
     <string name="audio_channels_label">القنوات: %1$s</string>
-    <string name="audio_channels_mono">كثرة الوحيدات</string>
+    <string name="audio_channels_mono">أحادي</string>
     <string name="audio_channels_stereo">ستيريو</string>
     <string name="audio_codec_label">ترميز الصوت: %1$s</string>
     <string name="audio_cover_art">غلاف الألبوم الصوتي</string>

@@ -887,4 +887,6 @@
     <string name="wear_battery_optimization_title">Energiesparen kann die Übertragung stoppen</string>
     <string name="wear_battery_optimization_desc">Lassen Sie die App im Hintergrund weiterlaufen, damit der Ton nicht abbricht.</string>
     <string name="wear_battery_optimization_grant">Hintergrundaktivität zulassen</string>
+    <string name="dim_clock_overlay_toggle">Uhr und Status im gedimmten Zustand anzeigen</string>
+    <string name="dim_clock_status_cd">Uhr und Status auf dem gedimmten Bildschirm</string>
 </resources>

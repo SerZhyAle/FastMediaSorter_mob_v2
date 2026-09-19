@@ -273,4 +273,7 @@
     <string name="cross_device_transfer_received_files">ایپ کے آنے والے فولڈر میں محفوظ ہو گیا</string>
     <string name="cross_device_transfer_received_settings">دوسرے آلے کی ترتیبات لاگو کر دی گئی ہیں</string>
     <string name="cross_device_transfer_failed">منتقلی مکمل نہیں ہوئی۔ Drive سائن ان اور کنکشن جانچیں، پھر دوبارہ کوشش کریں۔</string>
+    <string name="cross_device_transfer_row_subtitle">آپ کے دیگر آلات سے آنے والی فائلیں اور ترتیبات، آپ کے Google Drive میں منتظر</string>
+    <string name="cross_device_transfer_remove_expired">میعاد ختم شدہ پیکٹ ہٹائیں</string>
+    <string name="cross_device_transfer_expired_removed">میعاد ختم شدہ پیکٹ ہٹا دیے گئے: %1$d</string>
 </resources>

@@ -4,22 +4,22 @@
 <resources>
     <string name="calculator_action_add">يضيف</string>
     <string name="calculator_action_backspace">مسافة للخلف</string>
-    <string name="calculator_action_clear">واضح</string>
+    <string name="calculator_action_clear">مسح</string>
     <string name="calculator_action_clear_entry">دخول واضح</string>
     <string name="calculator_action_clear_history">سجل نظيف</string>
     <string name="calculator_action_decimal">الفاصلة العشرية</string>
     <string name="calculator_action_divide">قسّم</string>
     <string name="calculator_action_equals">يساوي</string>
-    <string name="calculator_action_function">وظيفة</string>
+    <string name="calculator_action_function">دالة</string>
     <string name="calculator_action_memory_add">إضافة الذاكرة</string>
     <string name="calculator_action_memory_clear">مسح الذاكرة</string>
     <string name="calculator_action_memory_recall">استرجاع الذاكرة</string>
     <string name="calculator_action_memory_subtract">طرح الذاكرة</string>
     <string name="calculator_action_memory_toggle">إظهار أو إخفاء مفاتيح الذاكرة</string>
-    <string name="calculator_action_multiply">ضاعف</string>
+    <string name="calculator_action_multiply">ضرب</string>
     <string name="calculator_action_paste">لصق</string>
     <string name="calculator_action_percent">النسبة المئوية</string>
-    <string name="calculator_action_round">دائري</string>
+    <string name="calculator_action_round">تقريب</string>
     <string name="calculator_action_save_history">حفظ السجل</string>
     <string name="calculator_action_share_result">إرسال النتيجة</string>
     <string name="calculator_action_subtract">طرح</string>

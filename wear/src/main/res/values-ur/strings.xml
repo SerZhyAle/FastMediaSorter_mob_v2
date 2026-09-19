@@ -887,4 +887,6 @@
     <string name="wear_battery_optimization_title">بیٹری بچت نشریات روک سکتی ہے</string>
     <string name="wear_battery_optimization_desc">ایپ کو پس منظر میں چلنے دیں تاکہ آواز منقطع نہ ہو۔</string>
     <string name="wear_battery_optimization_grant">پس منظر میں کام کی اجازت دیں</string>
+    <string name="dim_clock_overlay_toggle">مدھم حالت میں گھڑی اور حیثیت دکھائیں</string>
+    <string name="dim_clock_status_cd">مدھم اسکرین پر گھڑی اور حیثیت</string>
 </resources>

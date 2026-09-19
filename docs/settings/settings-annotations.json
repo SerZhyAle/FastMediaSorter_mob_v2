@@ -1839,6 +1839,11 @@
     "ru": "На Wear OS убирает переход панели управления видео, сразу оставляя доступными те же элементы управления.",
     "uk": "На Wear OS прибирає перехід панелі керування відео, одразу залишаючи доступними ті самі елементи керування."
   },
+  "wearDimClockOverlay": {
+    "en": "Shows the clock with the battery level and the connection state while the watch screen is dimmed, instead of leaving it blank. The same decision is made once on the phone and synced to the watch, so both devices dim the same way; the row here flips it on this watch until the next push from the phone.",
+    "ru": "Показывает часы с уровнем заряда и состоянием связи, пока экран часов затемнён, вместо пустого экрана. Решение принимается один раз на телефоне и синхронизируется с часами, поэтому оба устройства затемняются одинаково; этот ряд переключает его на самих часах до следующей отправки с телефона.",
+    "uk": "Показує годинник із рівнем заряду та станом зв'язку, поки екран годинника затемнено, замість порожнього екрана. Рішення ухвалюється один раз на телефоні й синхронізується з годинником, тому обидва пристрої затемнюються однаково; цей ряд перемикає його на самому годиннику до наступного надсилання з телефона."
+  },
   "wearDownloadAlbumArt": {
     "en": "Downloads and displays cover art for audio tracks on Wear OS.",
     "ru": "Загружает и отображает обложки для аудиофайлов на Wear OS.",

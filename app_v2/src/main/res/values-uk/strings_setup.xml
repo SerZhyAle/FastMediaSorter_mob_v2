@@ -58,7 +58,7 @@
     <string name="sysinfo_field_density">Щільність</string>
     <string name="sysinfo_field_device_name">Ім\'я пристрою</string>
     <string name="sysinfo_field_display_count">Дисплеї</string>
-    <string name="sysinfo_field_fingerprint">Відбиток пальця</string>
+    <string name="sysinfo_field_fingerprint">Відбиток збірки</string>
     <string name="sysinfo_field_first_install">Перше встановлення</string>
     <string name="sysinfo_field_flavor">Варіант</string>
     <string name="sysinfo_field_font_scale">Масштаб шрифту</string>

@@ -997,7 +997,7 @@
     <string name="reader_settings">पाठक सेटिंग्स</string>
     <string name="reader_theme_light">रोशनी</string>
     <string name="reader_theme_dark">अँधेरा</string>
-    <string name="reader_theme_sepia">एक प्रकार की मछली</string>
+    <string name="reader_theme_sepia">सीपिया</string>
     <string name="toggle_markdown">मार्कडाउन को टॉगल करें</string>
     <string name="read_aloud">जोर से पढ़ें</string>
     <string name="redo">फिर से करना</string>
@@ -1144,7 +1144,7 @@
     <string name="hint_resource_name">संसाधन का नाम</string>
     <string name="hint_folder_path">फ़ोल्डर पथ</string>
     <string name="hint_host">होस्ट / आईपी पता</string>
-    <string name="hint_port">पत्तन</string>
+    <string name="hint_port">पोर्ट</string>
     <string name="hint_username">उपयोगकर्ता नाम</string>
     <string name="hint_password">पासवर्ड</string>
     <string name="hint_domain">डोमेन (वैकल्पिक)</string>
@@ -1241,7 +1241,7 @@
     <string name="remember_file_list_help_message">जब यह सुविधा चालू होती है, तो ऐप स्कैन के बाद संसाधन फ़ाइल सूची को डेटाबेस में सहेज लेता है। अगली बार खोलने पर फ़ाइलें तुरंत कैश से लोड हो जाती हैं। बाहरी फ़ाइलों में हुए बदलावों को देखने के लिए रिफ्रेश का उपयोग करें।</string>
     <string name="file_not_found_playing_from_start">फ़ाइल \u201c%1$s\u201d नहीं मिली - शुरू से चल रहा है</string>
     <string name="picture_in_picture">चित्र में चित्र</string>
-    <string name="pip_play">खेल</string>
+    <string name="pip_play">चलाएं</string>
     <string name="pip_pause">विराम</string>
     <string name="label_profile_none">कस्टम</string>
     <string name="label_profile_audio_library">ऑडियो लाइब्रेरी</string>
@@ -1262,7 +1262,7 @@
     <string name="cd_add_to_favorites">पसंदीदा में जोड़े</string>
     <string name="cd_remove_from_favorites">पसंदीदा से हटाएँ</string>
     <string name="tile_audio_label">एफएमएस ऑडियो</string>
-    <string name="tile_audio_play">खेल</string>
+    <string name="tile_audio_play">चलाएं</string>
     <string name="tile_audio_pause">विराम</string>
     <string name="tile_audio_play_music">संगीत बजाना</string>
     <string name="perm_btn_grant_all">सभी को अनुमति दें</string>
@@ -1303,7 +1303,7 @@
     <string name="now_playing_track_count">कतार (%d)</string>
     <string name="now_playing_back_to_player">← अभी चल रहा है</string>
     <string name="now_playing_play_pause_desc">चलाएँ / रोकें</string>
-    <string name="now_playing_play_desc">खेल</string>
+    <string name="now_playing_play_desc">चलाएं</string>
     <string name="now_playing_pause_desc">विराम</string>
     <string name="now_playing_previous_desc">पिछला ट्रैक</string>
     <string name="now_playing_next_desc">अगला ट्रैक</string>
@@ -2050,7 +2050,7 @@
     <string name="programs_panel_hide_action">पैनल छिपाएँ</string>
     <string name="main_programs_panel_strip">कार्यक्रम और परिदृश्य</string>
     <string name="streams_panel_collapse_action">पैनल संक्षिप्त करें</string>
-    <string name="main_streams_panel_strip">धाराएँ..</string>
+    <string name="main_streams_panel_strip">स्ट्रीम..</string>
     <string name="camera_scenario_ocr_translate">पाठ पहचान</string>
     <string name="recording_pause">रिकॉर्डिंग रोकें</string>
     <string name="recording_resume">रिकॉर्डिंग फिर से शुरू करें</string>
@@ -2249,10 +2249,6 @@
     <string name="launcher_edit_rotation_hint">सीधी और आड़ी स्थिति के डेस्कटॉप अलग-अलग सेट होते हैं - हर एक को अपनी पसंद के अनुसार सेट करें.</string>
     <string name="launcher_edit_pin_add">एक ऐप पिन करें</string>
     <string name="launcher_edit_unpin_named">%1$s अनपिन करें</string>
-    <string name="launcher_settings_enable_title">इस ऐप को होम स्क्रीन बनाएं</string>
-    <string name="launcher_start_window_title">ऐप शुरू होने पर डेस्कटॉप खोलें</string>
-    <string name="launcher_start_window_desc">रिसोर्स मैनेजर के बजाय आपका डेस्कटॉप खोलता है। इससे डिवाइस की होम स्क्रीन नहीं बदलती।</string>
-    <string name="launcher_settings_enable_desc">होम बटन शॉर्टकट और गैजेट के साथ आपका अपना डेस्कटॉप खोलता है. अपनी पिछली होम स्क्रीन वापस लाने के लिए इसे किसी भी समय बंद करें.</string>
     <string name="launcher_settings_enable_help_title">होम स्क्रीन मोड</string>
     <string name="launcher_settings_enable_help_message">जब आप इसे चालू करते हैं, तो Android पूछता है कि कौन सी होम स्क्रीन इस्तेमाल करनी है - इस ऐप को चुनें और हमेशा पर टैप करें (या आज़माने के लिए केवल एक बार). वापस जाने के लिए, इसे बंद करें और Android आपकी पिछली होम स्क्रीन बहाल कर देगा.</string>
     <string name="launcher_settings_show_recents_title">हाल के ऐप्स दिखाएं</string>
@@ -2265,7 +2261,6 @@
     <string name="launcher_settings_density_dense">घना</string>
     <string name="launcher_settings_density_densest">बहुत घना</string>
     <string name="launcher_settings_open_home_chooser_title">होम स्क्रीन बदलें</string>
-    <string name="launcher_welcome_toggle_title">होम स्क्रीन के रूप में उपयोग करें</string>
     <string name="launcher_settings_dialog_title">सिस्टम लॉन्चर सेटिंग्स</string>
     <string name="launcher_menu_launcher_settings">लॉन्चर सेटिंग्स</string>
     <string name="welcome_streams_catalog_downloading">डाउनलोड हो रहा है..</string>
@@ -2334,7 +2329,7 @@
     <string name="launcher_settings_screen_timeout_dialog_hint">सेकंड (1-86400)</string>
     <string name="sysinfo_section_cameras">कैमरा</string>
     <string name="sysinfo_field_camera_id">कैमरा</string>
-    <string name="sysinfo_field_camera_facing">का सामना करना पड़</string>
+    <string name="sysinfo_field_camera_facing">दिशा</string>
     <string name="sysinfo_field_camera_physical_of">भौतिक लेंस</string>
     <string name="sysinfo_field_camera_focal">फोकस लंबाई</string>
     <string name="sysinfo_field_camera_zoom_range">ज़ूम रेंज</string>
@@ -2645,7 +2640,7 @@
     <string name="gesture_slot_app_label">लॉन्च करने के लिए ऐप</string>
     <string name="gesture_slot_app_none">चुना नहीं गया - ऐप चुनने के लिए टैप करें</string>
     <string name="gesture_slot_app_reset">चयन हटाएँ</string>
-    <string name="network_monitor_section_mobile">गतिमान</string>
+    <string name="network_monitor_section_mobile">मोबाइल</string>
     <string name="network_monitor_section_bluetooth">ब्लूटूथ</string>
     <string name="network_monitor_section_gnss">उपग्रहों</string>
     <string name="network_monitor_section_internet">इंटरनेट</string>
@@ -2682,9 +2677,9 @@
     <string name="network_monitor_link_ipv4_label">आईपीवी 4</string>
     <string name="network_monitor_link_ipv6_label">आईपीवी6</string>
     <string name="network_monitor_link_dns_label">डीएनएस</string>
-    <string name="network_monitor_link_gateway_label">द्वार</string>
+    <string name="network_monitor_link_gateway_label">गेटवे</string>
     <string name="network_monitor_link_route_label">डिफ़ॉल्ट रूट</string>
-    <string name="network_monitor_link_proxy_label">प्रतिनिधि</string>
+    <string name="network_monitor_link_proxy_label">प्रॉक्सी</string>
     <string name="network_monitor_route_present">उपस्थित</string>
     <string name="network_monitor_route_absent">कोई नहीं</string>
     <string name="network_monitor_chart_signal_heading">संकेत</string>
@@ -2718,7 +2713,7 @@
     <string name="network_monitor_gnss_acquiring">उपग्रहों की खोज की जा रही है..</string>
     <string name="network_monitor_gnss_used_in_fix">स्थिति में गिना गया</string>
     <string name="network_monitor_gnss_not_in_fix">गिनती नहीं की गई</string>
-    <string name="network_monitor_gnss_position_heading">पद</string>
+    <string name="network_monitor_gnss_position_heading">स्थिति</string>
     <string name="network_monitor_gnss_latitude_label">अक्षांश</string>
     <string name="network_monitor_gnss_longitude_label">देशान्तर</string>
     <string name="network_monitor_gnss_accuracy_label">शुद्धता</string>
@@ -2732,7 +2727,7 @@
     <string name="network_monitor_gnss_track_share_failed">ट्रैक फ़ाइल उपलब्ध नहीं है - हो सकता है कि किसी नए सेशन ने इसे बदल दिया हो। रिकॉर्डिंग चालू करें और दोबारा कोशिश करें।</string>
     <string name="network_monitor_path_heading">इंटरनेट का रास्ता</string>
     <string name="network_monitor_path_device">यह डिवाइस</string>
-    <string name="network_monitor_path_gateway">द्वार</string>
+    <string name="network_monitor_path_gateway">गेटवे</string>
     <string name="network_monitor_path_dns">डीएनएस</string>
     <string name="network_monitor_path_internet">इंटरनेट</string>
     <string name="network_monitor_traffic_heading">इस डिवाइस पर ट्रैफ़िक</string>
@@ -2782,10 +2777,10 @@
     <string name="network_monitor_history_empty">अभी तक कोई माप नहीं लिया गया है। इंटरनेट स्क्रीन पर एक जांच करें, यह यहां दिखाई देगा।</string>
     <string name="network_monitor_history_export">निर्यात</string>
     <string name="network_monitor_history_export_failed">फाइल तैयार नहीं हो सकी - कृपया कुछ जगह खाली करें और दोबारा कोशिश करें।</string>
-    <string name="network_monitor_history_clear">स्पष्ट</string>
+    <string name="network_monitor_history_clear">साफ़ करें</string>
     <string name="network_monitor_history_clear_title">माप इतिहास साफ़ करें</string>
     <string name="network_monitor_history_clear_message">इससे इस डिवाइस से सभी संग्रहित माप हट जाएंगे। यदि आपको अभी भी उनकी आवश्यकता है, तो पहले उन्हें निर्यात कर लें।</string>
-    <string name="network_monitor_history_clear_confirm">स्पष्ट</string>
+    <string name="network_monitor_history_clear_confirm">साफ़ करें</string>
     <string name="network_monitor_history_outcome_ok">उत्तर</string>
     <string name="network_monitor_history_outcome_failed">कोई जवाब नहीं</string>
     <string name="network_monitor_history_kind_speed_test">रफ़्तार</string>
@@ -2990,16 +2985,16 @@
     <string name="wear_watch_transfer_failed_file">%1$s घड़ी तक नहीं पहुँची।</string>
     <string name="camera_lens_switching">स्विचिंग..</string>
     <string name="sysinfo_field_camera_active_array">सक्रिय सेंसर क्षेत्र</string>
-    <string name="network_monitor_history_kind_ping">गुनगुनाहट</string>
+    <string name="network_monitor_history_kind_ping">पिंग</string>
     <string name="network_monitor_history_kind_traceroute">ट्रेसरूट</string>
     <string name="network_monitor_section_tools">उपकरण</string>
     <string name="network_monitor_host_diagnostics_heading">मेजबान निदान</string>
     <string name="network_monitor_host_hint">आईपी ​​या होस्ट नाम</string>
-    <string name="network_monitor_action_ping">गुनगुनाहट</string>
+    <string name="network_monitor_action_ping">पिंग</string>
     <string name="network_monitor_action_traceroute">ट्रेसरूट</string>
     <string name="network_monitor_console_heading">कंसोल आउटपुट</string>
     <string name="network_monitor_console_empty">परिणाम यहाँ दिखाई देंगे..</string>
-    <string name="network_monitor_action_clear">स्पष्ट</string>
+    <string name="network_monitor_action_clear">साफ़ करें</string>
     <string name="network_monitor_action_copy">प्रतिलिपि</string>
     <string name="network_monitor_subnet_scan_heading">सबनेट स्कैन</string>
     <string name="network_monitor_section_resource_speed">संसाधन गति</string>
@@ -3132,7 +3127,7 @@
     <string name="gesture_slot_url_none">सेट नहीं - पता दर्ज करने के लिए टैप करें</string>
     <string name="launcher_settings_group_tray">सिस्टम ट्रे</string>
     <string name="launcher_settings_group_gestures">जेस्चर</string>
-    <string name="launcher_settings_group_appearance">उपस्थिति</string>
+    <string name="launcher_settings_group_appearance">दिखावट</string>
     <string name="launcher_taskbar_pinned_action_launch">लॉन्च करें</string>
     <string name="launcher_taskbar_pinned_action_unpin">पिन हटाएँ</string>
     <string name="s2283_apk_download_in_progress">APK डाउनलोड पहले से जारी है</string>
@@ -3152,7 +3147,6 @@
     <string name="launcher_all_apps_swipe_action_expand">सभी ऐप विस्तृत करें</string>
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">ऐप सूची बंद करता है और उसके नीचे का डेस्कटॉप दिखाता है।</string>
     <string name="launcher_all_apps_swipe_explain_expand">वर्णमाला अनुभागों की जगह पूरी ऐप सूची दिखाता है।</string>
-    <string name="launcher_welcome_toggle_subtitle">होम बटन से FastMediaSorter खोलें। सेटअप के बाद सिस्टम पुष्टि माँगता है, और आप कभी भी सेटिंग्स में वापस बदल सकते हैं।</string>
     <string name="welcome_enable_all_explainer_title">आगे क्या होगा</string>
     <string name="welcome_enable_all_explainer_intro">Android अपनी ओर से कुछ सवाल पूछेगा. आप कुछ पल के लिए यह स्क्रीन छोड़ेंगे और अपने आप यहां वापस आ जाएंगे.</string>
     <string name="welcome_enable_all_explainer_step_permissions_title">एक्सेस की अनुमति दें</string>
@@ -3352,11 +3346,8 @@
     <string name="broadcast_channel_description">चल रहे ऑडियो प्रसारणों की सूचनाएँ</string>
     <string name="broadcast_menu_label">लाइव प्रसारण</string>
     <string name="broadcast_share_title">प्रसारण डिस्क्रिप्टर</string>
-    <string name="broadcast_share_url_label">प्रसारण URL</string>
     <string name="broadcast_share_export_file">फ़ाइल निर्यात करें</string>
     <string name="broadcast_share_saved">फ़ाइल सहेजी गई</string>
-    <string name="broadcast_share_close">बंद करें</string>
-    <string name="broadcast_share_description">श्रोता को जोड़ने के लिए QR कोड स्कैन करें या डिस्क्रिप्टर फ़ाइल सहेजें</string>
     <string name="broadcast_share_qr_cd">प्रसारण डिस्क्रिप्टर का QR कोड</string>
     <string name="broadcast_import_menu_label">प्रसारण आयात करें (QR / फ़ाइल)</string>
     <string name="broadcast_import_dialog_title">लाइव प्रसारण आयात करें</string>
@@ -3441,8 +3432,8 @@
     <string name="broadcast_failed_network">लाइव ब्रॉडकास्ट शुरू नहीं हो सका: डिवाइस नेटवर्क पोर्ट नहीं खोल सका</string>
     <string name="broadcast_failed_encoder">लाइव ब्रॉडकास्ट शुरू नहीं हो सका: इस डिवाइस में कोई ऑडियो एन्कोडर उपलब्ध नहीं है</string>
     <string name="broadcast_failed_capture">लाइव ब्रॉडकास्ट बंद हो गया: ऑडियो कैप्चर बाधित हुआ</string>
-    <string name="broadcast_permission_microphone_required">ऑडियो भेजने के लिए लाइव ब्रॉडकास्ट को माइक्रोफ़ोन एक्सेस चाहिए</string>
-    <string name="broadcast_permission_notifications_required">प्रसारण चालू रखने के लिए लाइव ब्रॉडकास्ट को नोटिफिकेशन एक्सेस चाहिए</string>
+    <string name="broadcast_permission_microphone_required">ऑडियो भेजने के लिए लाइव प्रसारण को माइक्रोफ़ोन अनुमति चाहिए</string>
+    <string name="broadcast_permission_notifications_required">प्रसारण चालू रखने के लिए लाइव प्रसारण को सूचना अनुमति चाहिए</string>
     <string name="settings_suppress_wear_media_takeover">वॉच पर मीडिया कंट्रोल न दिखाएं</string>
     <string name="settings_suppress_wear_media_takeover_summary">Wear OS सिस्टम को फोन प्लेयर को वॉच पर मीडिया-कंट्रोल स्क्रीन के रूप में दिखाने से रोकें</string>
     <string name="broadcast_import_refreshed">ब्रॉडकास्ट को नए पते के साथ अपडेट किया गया</string>
@@ -3561,7 +3552,6 @@
     <string name="broadcast_control_mic_off">माइक्रोफ़ोन बंद</string>
     <string name="broadcast_control_switch_camera">कैमरा बदलें</string>
     <string name="broadcast_control_screen_off">स्क्रीन बंद करें</string>
-    <string name="broadcast_control_share_link">लिंक और QR साझा करें</string>
     <string name="broadcast_control_stop">ब्रॉडकास्ट रोकें</string>
     <string name="broadcast_control_listeners">श्रोता: %d</string>
     <string name="broadcast_control_listeners_cd">जुड़े श्रोता: %d</string>
@@ -3577,7 +3567,6 @@
     <string name="broadcast_lens_none">कोई कैमरा उपलब्ध नहीं</string>
     <string name="broadcast_control_lens_dialog_title">कैमरा चुनें</string>
     <string name="broadcast_permission_camera_required">वीडियो भेजने के लिए लाइव ब्रॉडकास्ट को कैमरा एक्सेस चाहिए</string>
-    <string name="broadcast_settings_title">ब्रॉडकास्ट सेटिंग्स</string>
     <string name="broadcast_share_copy">लिंक कॉपी करें</string>
     <string name="streams_filter_media_own">अपने</string>
     <string name="streams_media_filter_own">केवल मैन्युअल रूप से जोड़ी गई स्ट्रीम दिखाएँ</string>
@@ -3609,9 +3598,7 @@
     <string name="wear_screenshot_captured">घड़ी ने अपना स्क्रीनशॉट भेजा</string>
     <string name="wear_screenshot_no_answer">घड़ी ने जवाब नहीं दिया</string>
     <string name="wear_companion_group_operations">घड़ी के ऑपरेशन</string>
-    <string name="resource_manager_title">रिसोर्स मैनेजर</string>
     <string name="welcome_primary_window_title">मुख्य विंडो</string>
-    <string name="welcome_primary_window_subtitle">चुनें कि FastMediaSorter शुरू करने पर क्या खुले</string>
     <string name="launcher_primary_window_recommended">अनुशंसित</string>
     <string name="launcher_primary_window_home_title">डिवाइस की होम स्क्रीन</string>
     <string name="launcher_primary_window_home_desc">ऐप आपके डिवाइस की होम स्क्रीन बन जाता है</string>
@@ -3655,7 +3642,7 @@
     <string name="data_transfer_medium_file_desc">इस डिवाइस पर कोई फ़ाइल चुनें</string>
     <string name="data_transfer_medium_drive_desc">जुड़े हुए Google Drive खाते की फ़ाइल इस्तेमाल करें</string>
     <string name="data_transfer_progress">%1$s ट्रांसफ़र हो रहा है..</string>
-    <string name="data_transfer_export_done">%1$s एक्सपोर्ट हो गया।</string>
+    <string name="data_transfer_export_done">निर्यात किया गया: %1$s.</string>
     <string name="data_transfer_import_done">हो गया। %1$d जोड़े गए, %2$d अपडेट हुए, %3$d छोड़े गए।</string>
     <string name="data_transfer_error_drive">Google Drive से कनेक्ट नहीं हो सका। कनेक्शन जाँचें और देखें कि सेटिंग में कोई Google खाता जुड़ा है, फिर दोबारा कोशिश करें।</string>
     <string name="data_transfer_error_no_file">Google Drive में अभी कोई %1$s फ़ाइल नहीं है। पहले दूसरे डिवाइस से उसे एक्सपोर्ट करें।</string>
@@ -3663,4 +3650,11 @@
     <string name="data_transfer_error_empty">%1$s में एक्सपोर्ट करने के लिए अभी कुछ नहीं है।</string>
     <string name="data_transfer_error_unreadable">वह फ़ाइल पढ़ी नहीं जा सकी। उसे दोबारा चुनें या कोई दूसरी चुनें।</string>
     <string name="data_transfer_error_unwritable">उस जगह पर लिखा नहीं जा सका। कोई दूसरी फ़ाइल चुनकर दोबारा कोशिश करें।</string>
+    <string name="launcher_screens_wallpaper_title">स्क्रीन और वॉलपेपर</string>
+    <string name="dim_clock_overlay_toggle">मंद स्क्रीन पर घड़ी और स्थिति दिखाएँ</string>
+    <string name="dim_clock_status_cd">मंद स्क्रीन पर घड़ी और स्थिति</string>
+    <string name="launcher_settings_screen_timeout_on_charge_title">चार्ज पर स्क्रीन टाइमआउट</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle">चार्जर कनेक्ट रहने पर निष्क्रियता के बाद स्क्रीन बंद कर देता है</string>
+    <string name="launcher_settings_screen_timeout_on_charge_dialog_title">चार्ज पर स्क्रीन टाइमआउट</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">चार्जर कनेक्ट रहने पर निष्क्रियता के बाद स्क्रीन काली कर देता है. यह बिल्ड डिवाइस लॉक नहीं कर सकता.</string>
 </resources>

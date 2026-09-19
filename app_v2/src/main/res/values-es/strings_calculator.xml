@@ -4,7 +4,7 @@
 <resources>
     <string name="calculator_action_add">Agregar</string>
     <string name="calculator_action_backspace">Retroceso</string>
-    <string name="calculator_action_clear">Claro</string>
+    <string name="calculator_action_clear">Borrar</string>
     <string name="calculator_action_clear_entry">Entrada libre</string>
     <string name="calculator_action_clear_history">Historial limpio</string>
     <string name="calculator_action_decimal">Coma decimal</string>
@@ -17,9 +17,9 @@
     <string name="calculator_action_memory_subtract">Memoria resta</string>
     <string name="calculator_action_memory_toggle">Mostrar u ocultar teclas de memoria</string>
     <string name="calculator_action_multiply">Multiplicar</string>
-    <string name="calculator_action_paste">Pasta</string>
+    <string name="calculator_action_paste">Pegar</string>
     <string name="calculator_action_percent">Por ciento</string>
-    <string name="calculator_action_round">Redondo</string>
+    <string name="calculator_action_round">Redondear</string>
     <string name="calculator_action_save_history">Guardar historial</string>
     <string name="calculator_action_share_result">Enviar resultado</string>
     <string name="calculator_action_subtract">Sustraer</string>

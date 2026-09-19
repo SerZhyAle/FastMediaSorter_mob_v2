@@ -47,6 +47,8 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseItemOperation
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseItemOperationPolicy
 import com.sza.fastmediasorter.ui.browse.managers.BrowseApkTileBadgeBinder
+import com.sza.fastmediasorter.ui.common.recycler.notifyChangedRuns
+import com.sza.fastmediasorter.ui.common.widget.MediaItemThumbnailBinder
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import timber.log.Timber
@@ -92,6 +94,12 @@ class MediaFileAdapter(
     private var hideGridActionButtons: Boolean = false // Hide quick action buttons in grid mode
     private var fileOpsInOverflowMenu: Boolean = true
     private var isAudioOnlyMode: Boolean = false
+
+    // S3246: the role-scoped Glide entry point (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.2).
+    // Used here only for the plain recycle-time clear() - the per-media-type load() pipeline stays on
+    // thumbnailLoader below, which reads per-adapter closures (scroll state, credentials, settings
+    // flags) a stateless binder cannot carry.
+    private val mediaItemThumbnailBinder = MediaItemThumbnailBinder()
 
     private val thumbnailLoader = AdapterThumbnailLoader(
         getIsScrolling = { isScrolling },
@@ -146,34 +154,6 @@ class MediaFileAdapter(
             newState.downloadingPath
         ).filterNotNull()
         notifyChangedRuns(PAYLOAD_PLAYBACK_STATE) { file -> file.path in affectedPaths }
-    }
-
-    /**
-     * Notifies [payload] for every position [isChanged] accepts, collapsing contiguous positions
-     * into one range notification.
-     *
-     * S3282: one notifyItemChanged per item queues one RecyclerView UpdateOp per item, and
-     * AdapterHelper.findPositionOffset / OpReorderer walk that pending list once per op - over a
-     * large folder the resulting main-thread stall was long enough for input dispatch to time out.
-     */
-    private inline fun notifyChangedRuns(payload: Any, isChanged: (MediaFile) -> Boolean) {
-        var runStart = RecyclerView.NO_POSITION
-        var runLength = 0
-        currentList.forEachIndexed { index, file ->
-            if (isChanged(file)) {
-                if (runStart == RecyclerView.NO_POSITION) {
-                    runStart = index
-                }
-                runLength++
-            } else if (runStart != RecyclerView.NO_POSITION) {
-                notifyItemRangeChanged(runStart, runLength, payload)
-                runStart = RecyclerView.NO_POSITION
-                runLength = 0
-            }
-        }
-        if (runStart != RecyclerView.NO_POSITION) {
-            notifyItemRangeChanged(runStart, runLength, payload)
-        }
     }
 
     // Fast scroll detection to skip thumbnail loading during rapid scrolling
@@ -627,7 +607,7 @@ class MediaFileAdapter(
                 return
             }
             try {
-                Glide.with(context).clear(binding.ivThumbnail)
+                mediaItemThumbnailBinder.clear(binding.ivThumbnail)
             } catch (e: IllegalArgumentException) {
                 // Catch any remaining edge cases where activity might be destroyed
                 Timber.w("Failed to clear Glide request: ${e.message}")
@@ -1016,7 +996,7 @@ class MediaFileAdapter(
                 return
             }
             try {
-                Glide.with(context).clear(binding.ivThumbnail)
+                mediaItemThumbnailBinder.clear(binding.ivThumbnail)
             } catch (e: IllegalArgumentException) {
                 // Catch any remaining edge cases where activity might be destroyed
                 Timber.w("Failed to clear Glide request: ${e.message}")
@@ -1285,7 +1265,7 @@ class MediaFileAdapter(
                 return
             }
             try {
-                Glide.with(context).clear(binding.ivThumbnail)
+                mediaItemThumbnailBinder.clear(binding.ivThumbnail)
             } catch (e: IllegalArgumentException) {
                 Timber.w("Failed to clear Glide request: ${e.message}")
             }

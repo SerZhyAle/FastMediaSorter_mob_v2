@@ -7,12 +7,14 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.databinding.ItemDuplicateFileBinding
 import com.sza.fastmediasorter.databinding.ItemDuplicateGroupBinding
 import com.sza.fastmediasorter.domain.model.DuplicateGroup
 import com.sza.fastmediasorter.domain.model.MediaFile
-import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.ui.common.dragselect.DragSelectTouchListener
+import com.sza.fastmediasorter.ui.common.recycler.notifyChangedRuns
+import timber.log.Timber
 
 private const val PAYLOAD_SELECTION = "payload_selection"
 
@@ -40,7 +42,9 @@ class DuplicateGroupAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupViewHolder {
         val binding = ItemDuplicateGroupBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
+            LayoutInflater.from(parent.context),
+            parent,
+            false
         )
         return GroupViewHolder(binding)
     }
@@ -110,7 +114,10 @@ class DuplicateGroupAdapter(
             // unified summary slot so it stays informative when the group is collapsed.
             binding.headerGroup.setTitle(group.files.firstOrNull()?.name.orEmpty())
             binding.headerGroup.setSummary("$sizeText - $countText")
-            binding.headerGroup.setExpandCollapseContentDescriptions(R.string.cd_expand_group, R.string.cd_collapse_group)
+            binding.headerGroup.setExpandCollapseContentDescriptions(
+                R.string.cd_expand_group,
+                R.string.cd_collapse_group
+            )
 
             val isExpanded = expandedGroups.contains(group.fullHash)
             binding.headerGroup.setExpanded(isExpanded, notify = false)
@@ -144,7 +151,9 @@ class DuplicateGroupAdapter(
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FileViewHolder {
             val binding = ItemDuplicateFileBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false
+                LayoutInflater.from(parent.context),
+                parent,
+                false
             )
             return FileViewHolder(binding)
         }
@@ -163,12 +172,9 @@ class DuplicateGroupAdapter(
 
         // Rebinds only the checkbox of files whose membership flipped between the two selections.
         fun refreshSelection(old: Set<String>, new: Set<String>) {
-            val list = currentList
-            for (i in list.indices) {
-                val path = list[i].path
-                if ((path in old) != (path in new)) {
-                    notifyItemChanged(i, PAYLOAD_SELECTION)
-                }
+            Timber.d("S3319: duplicates selection refresh, old=${old.size} new=${new.size} items=$itemCount")
+            notifyChangedRuns(PAYLOAD_SELECTION) { file ->
+                (file.path in old) != (file.path in new)
             }
         }
 

@@ -11,7 +11,7 @@
     <string name="draw_overlay_filename_hint">Nome file</string>
     <string name="draw_overlay_save_failed">Impossibile salvare il disegno. Riprova.</string>
     <string name="draw_overlay_saved_to_downloads">Salvato in Download: %s</string>
-    <string name="draw_overlay_toolbar_brush">Spazzola</string>
+    <string name="draw_overlay_toolbar_brush">Pennello</string>
     <string name="draw_overlay_toolbar_eraser">Gomma per cancellare</string>
     <string name="draw_overlay_toolbar_rect">Rettangolo</string>
     <string name="draw_save_failed_toast">Salvataggio non riuscito</string>
@@ -20,7 +20,7 @@
     <string name="draw_settings_brush_size">Dimensioni del pennello</string>
     <string name="draw_settings_opacity">Opacità</string>
     <string name="draw_settings_text_large">Grande</string>
-    <string name="draw_settings_text_medium">Mezzo</string>
+    <string name="draw_settings_text_medium">Medio</string>
     <string name="draw_settings_text_size">Dimensione della colonna</string>
     <string name="draw_settings_text_small">Piccolo</string>
     <string name="draw_settings_title">Impostazioni di disegno</string>

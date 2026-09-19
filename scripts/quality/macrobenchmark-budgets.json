@@ -1,0 +1,61 @@
+{
+  "comment": "S3322: regression budgets for .\\a.ps1 mb, applied by scripts/quality/compare-macrobenchmark-runs.ps1. A run is regressed when the candidate statistic grows over the baseline by MORE than both allowances. Numbers for the first four records carry over from docs/PERFETTO_PLAYBOOK.md 'Regression Thresholds'; the interaction records budget a frame-time percentile, where the absolute allowance is half a 60 Hz frame.",
+  "budgets": [
+    {
+      "benchmark": "coldStartup",
+      "class": "StartupBenchmarks",
+      "metric": "timeToInitialDisplayMs",
+      "statistic": "median",
+      "maxRelativeIncrease": 0.15,
+      "maxAbsoluteIncreaseMs": 120
+    },
+    {
+      "benchmark": "browseReadiness",
+      "class": "NavigationBenchmarks",
+      "metric": "FMS_BROWSE_READYMs",
+      "statistic": "median",
+      "maxRelativeIncrease": 0.20,
+      "maxAbsoluteIncreaseMs": 80
+    },
+    {
+      "benchmark": "playerReadiness",
+      "class": "NavigationBenchmarks",
+      "metric": "FMS_PLAYER_READYMs",
+      "statistic": "median",
+      "maxRelativeIncrease": 0.20,
+      "maxAbsoluteIncreaseMs": 120
+    },
+    {
+      "benchmark": "playerBackNavigation",
+      "class": "NavigationBenchmarks",
+      "metric": "FMS_PLAYER_BACK_NAVIGATIONMs",
+      "statistic": "median",
+      "maxRelativeIncrease": 0.20,
+      "maxAbsoluteIncreaseMs": 60
+    },
+    {
+      "benchmark": "browseListFling",
+      "class": "BrowseInteractionBenchmarks",
+      "metric": "frameDurationCpuMs",
+      "statistic": "P99",
+      "maxRelativeIncrease": 0.20,
+      "maxAbsoluteIncreaseMs": 8
+    },
+    {
+      "benchmark": "browseSelectAll",
+      "class": "BrowseInteractionBenchmarks",
+      "metric": "frameDurationCpuMs",
+      "statistic": "P99",
+      "maxRelativeIncrease": 0.20,
+      "maxAbsoluteIncreaseMs": 8
+    },
+    {
+      "benchmark": "browseDragSelect",
+      "class": "BrowseInteractionBenchmarks",
+      "metric": "frameDurationCpuMs",
+      "statistic": "P99",
+      "maxRelativeIncrease": 0.20,
+      "maxAbsoluteIncreaseMs": 8
+    }
+  ]
+}

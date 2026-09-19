@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.sza.fastmediasorter.ui.player.views.PlayerOverlayPanel
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/textViewerContainer"
+    style="@style/Widget.FastMediaSorter.Player.OverlayPanel.Docked"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:visibility="gone"
@@ -15,7 +17,7 @@
         android:layout_margin="@dimen/player_close_button_margin"
         android:background="@drawable/bg_circle_light"
         android:src="@drawable/ic_cancel"
-        app:tint="#424242"
+        app:tint="@color/activity_player_unified_btnCloseTextViewer_tint"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_close_button_padding"
         android:contentDescription="@string/close"
@@ -50,8 +52,8 @@
         android:gravity="center_vertical"
         android:paddingHorizontal="8dp"
         android:paddingVertical="4dp"
-        android:background="#B0000000"
-        android:elevation="4dp"
+        android:background="@color/player_overlay_translucent"
+        android:elevation="@dimen/elevation_player_overlay"
         android:visibility="gone">
 
         <ImageButton
@@ -85,13 +87,13 @@
             android:layout_width="1dp"
             android:layout_height="24dp"
             android:layout_marginHorizontal="4dp"
-            android:background="#40FFFFFF" />
+            android:background="@color/player_overlay_divider" />
 
         <TextView
             android:id="@+id/tvTextEncodingIndicator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#B0FFFFFF"
+            android:textColor="@color/player_overlay_text_secondary"
             android:textSize="11sp"
             android:paddingHorizontal="4dp"
             android:singleLine="true" />
@@ -104,10 +106,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top"
         android:orientation="vertical"
-        android:background="#E0303030"
+        android:background="@color/player_panel_dark_grey"
         android:paddingHorizontal="8dp"
         android:paddingVertical="4dp"
-        android:elevation="6dp"
+        android:elevation="@dimen/elevation_player_overlay"
         android:visibility="gone">
 
         <LinearLayout
@@ -129,7 +131,7 @@
                 android:maxLines="1"
                 android:paddingHorizontal="8dp"
                 android:textColor="@color/white"
-                android:textColorHint="#80FFFFFF"
+                android:textColorHint="@color/player_overlay_on_primary_translucent"
                 android:textSize="13sp" />
 
             <TextView
@@ -137,7 +139,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="4dp"
-                android:textColor="#B0FFFFFF"
+                android:textColor="@color/player_overlay_text_secondary"
                 android:textSize="11sp"
                 android:minWidth="32dp"
                 android:gravity="center" />
@@ -192,7 +194,7 @@
                 android:maxLines="1"
                 android:paddingHorizontal="8dp"
                 android:textColor="@color/white"
-                android:textColorHint="#80FFFFFF"
+                android:textColorHint="@color/player_overlay_on_primary_translucent"
                 android:textSize="13sp" />
 
             <com.google.android.material.button.MaterialButton
@@ -236,7 +238,7 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingHorizontal="4dp"
-            android:background="#CC000000">
+            android:background="@color/player_overlay_standard">
 
             <ImageButton
                 android:id="@+id/btnUndo"
@@ -262,7 +264,7 @@
                 android:layout_width="1dp"
                 android:layout_height="24dp"
                 android:layout_marginHorizontal="4dp"
-                android:background="#40FFFFFF" />
+                android:background="@color/player_overlay_divider" />
 
             <ImageButton
                 android:id="@+id/btnEditorFind"
@@ -291,7 +293,7 @@
                 android:id="@+id/tvEditorCursorPos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#B0FFFFFF"
+                android:textColor="@color/player_overlay_text_secondary"
                 android:textSize="11sp"
                 android:paddingHorizontal="8dp" />
 
@@ -299,7 +301,7 @@
                 android:layout_width="1dp"
                 android:layout_height="24dp"
                 android:layout_marginHorizontal="4dp"
-                android:background="#40FFFFFF" />
+                android:background="@color/player_overlay_divider" />
 
             <ImageButton
                 android:id="@+id/btnEditorSave"
@@ -394,4 +396,4 @@
         </ScrollView>
 
     </LinearLayout>
-</FrameLayout>
+</com.sza.fastmediasorter.ui.player.views.PlayerOverlayPanel>

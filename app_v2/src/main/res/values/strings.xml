@@ -2708,10 +2708,6 @@
     <string name="launcher_edit_rotation_hint">The upright and sideways desktops are arranged separately - set each up the way you like.</string>
     <string name="launcher_edit_pin_add">Pin an app</string>
     <string name="launcher_edit_unpin_named">Unpin %1$s</string>
-    <string name="launcher_settings_enable_title">Make this app the home screen</string>
-    <string name="launcher_start_window_title">Open the desktop when the app starts</string>
-    <string name="launcher_start_window_desc">Open your desktop instead of Resource Manager. This does not change the device home screen.</string>
-    <string name="launcher_settings_enable_desc">The Home button opens your own desktop with shortcuts and gadgets. Turn this off any time to bring back your previous home screen.</string>
     <string name="launcher_settings_enable_help_title">Home screen mode</string>
     <string name="launcher_settings_enable_help_message">When you turn this on, Android asks which home screen to use - pick this app and tap Always (or Just once to try it). To go back, turn this off and Android restores your previous home screen.</string>
     <string name="launcher_settings_show_recents_title">Show recent apps</string>
@@ -2724,7 +2720,6 @@
     <string name="launcher_settings_density_dense">Dense</string>
     <string name="launcher_settings_density_densest">Very dense</string>
     <string name="launcher_settings_open_home_chooser_title">Change home screen</string>
-    <string name="launcher_welcome_toggle_title">Use as home screen</string>
     <string name="launcher_settings_dialog_title">System launcher settings</string>
     <string name="launcher_menu_launcher_settings">Launcher settings</string>
     <string name="welcome_streams_catalog_downloading">Downloading..</string>
@@ -3633,7 +3628,6 @@
     <string name="launcher_all_apps_swipe_action_expand">Expand all apps</string>
     <string name="launcher_all_apps_swipe_explain_back_to_desktop">Closes the app list and shows the desktop underneath it.</string>
     <string name="launcher_all_apps_swipe_explain_expand">Shows the full app list instead of the alphabetical sections.</string>
-    <string name="launcher_welcome_toggle_subtitle">Open FastMediaSorter with the Home button. The system asks you to confirm after setup, and you can switch back any time in Settings.</string>
     <string name="welcome_enable_all_explainer_title">What happens next</string>
     <string name="welcome_enable_all_explainer_intro">Android will ask a few questions of its own. You will leave this screen for a moment and come back here automatically.</string>
     <string name="welcome_enable_all_explainer_step_permissions_title">Allow access</string>
@@ -3845,11 +3839,8 @@
     <string name="broadcast_channel_description">Notifications for ongoing audio broadcasts</string>
     <string name="broadcast_menu_label">Live Broadcast</string>
     <string name="broadcast_share_title">Broadcast Descriptor</string>
-    <string name="broadcast_share_url_label">Broadcast URL</string>
     <string name="broadcast_share_export_file">Export File</string>
     <string name="broadcast_share_saved">File saved</string>
-    <string name="broadcast_share_close">Close</string>
-    <string name="broadcast_share_description">Scan QR code or save descriptor file to connect listener</string>
     <string name="broadcast_share_qr_cd">Broadcast Descriptor QR Code</string>
     <string name="broadcast_import_menu_label">Import Broadcast (QR / File)</string>
     <string name="broadcast_import_dialog_title">Import Live Broadcast</string>
@@ -4066,7 +4057,6 @@
     <string name="broadcast_control_mic_off">Microphone OFF</string>
     <string name="broadcast_control_switch_camera">Switch Camera</string>
     <string name="broadcast_control_screen_off">Screen Off</string>
-    <string name="broadcast_control_share_link">Share Link &amp; QR</string>
     <string name="broadcast_control_stop">Stop Broadcast</string>
     <string name="broadcast_control_listeners">%d listeners</string>
     <string name="broadcast_control_listeners_cd">%d listeners connected</string>
@@ -4082,7 +4072,6 @@
     <string name="broadcast_lens_none">No camera available</string>
     <string name="broadcast_control_lens_dialog_title">Choose camera</string>
     <string name="broadcast_permission_camera_required">Live Broadcast needs camera access to send video</string>
-    <string name="broadcast_settings_title">Broadcast Settings</string>
     <string name="broadcast_share_copy">Copy Link</string>
     <string name="streams_filter_media_own">Own</string>
     <string name="streams_media_filter_own">Show manually added streams only</string>
@@ -4119,9 +4108,7 @@
     <string name="wear_screenshot_captured">The watch sent its screenshot</string>
     <string name="wear_screenshot_no_answer">The watch did not answer</string>
     <string name="wear_companion_group_operations">Watch operations</string>
-    <string name="resource_manager_title">Resource Manager</string>
     <string name="welcome_primary_window_title">Primary window</string>
-    <string name="welcome_primary_window_subtitle">Choose what opens when you start FastMediaSorter</string>
     <string name="launcher_primary_window_recommended">Recommended</string>
     <string name="launcher_primary_window_home_title">Device home screen</string>
     <string name="launcher_primary_window_home_desc">The app becomes your device home screen</string>
