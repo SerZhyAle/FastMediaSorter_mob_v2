@@ -1,11 +1,23 @@
 # Capability ids no user guide mentions yet (S1653).
 # Regenerate: pwsh -NoProfile -File scripts/quality/assert-guide-coverage.ps1 -UpdateBaseline
 # Shrink this file as guides get written. Growing it means a capability shipped undocumented.
+#
+# Added at the package-39 sweep, 2026-09-19, each with its reason - these two are not silenced
+# documentation debt, they are records that describe work a user cannot look up:
+#   diagnostics.macrobenchmark-baseline-profiles - a Macrobenchmark module, a baseline profile
+#     generator and a Perfetto playbook. Developer tooling: nothing reaches the interface, so no
+#     user guide has a place to put it.
+#   wear.singlecolumntilecell-in-favourites - "Fix single-column tile item layout rendering in Wear
+#     FavouritesScreen". A rendering fix to an internal layout primitive, not a capability anyone
+#     would search a guide for.
+# Whether the inventory should carry records of this shape at all is a separate question, parked
+# rather than decided here.
 audio-player.animated-equalizer-bars-backdrop
 audio-player.downloadable-looping-video-backdrops
 audio-player.pulsing-rings-backdrop
 audio-player.sleep-timer
 audio-player.wave-and-particle-backdrop
+diagnostics.macrobenchmark-baseline-profiles
 drawing-annotations.eraser-tool
 drawing-annotations.freehand-brush-drawing-on-image
 drawing-annotations.oval-shape-tool
@@ -28,3 +40,4 @@ usage-statistics.viewing-metrics
 video-player.picture-in-picture-mode
 vr-openxr.controller-haptic-feedback
 vr-openxr.xr-runtime-detection
+wear.singlecolumntilecell-in-favourites
