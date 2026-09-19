@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
 import androidx.annotation.RequiresApi
+import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.pedro.common.ConnectChecker
 import com.pedro.encoder.input.video.CameraOpenException
@@ -66,7 +67,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
-                Timber.d("S3038: video stop action received")
                 stopBroadcast()
                 stopSelf()
                 return START_NOT_STICKY
@@ -97,6 +97,9 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) !=
             PackageManager.PERMISSION_GRANTED
 
+        // Reachable only if a grant was revoked between the companion's check and this callback: a typed
+        // foreground start without its permission is refused by Android 14, so this branch cannot keep
+        // the startForegroundService() promise and the promise is refused before it is made (S3267).
         if (missingCamera || missingAudio) {
             Timber.w(
                 "VideoBroadcastService: permissions missing (camera: %b, audio: %b)",
@@ -111,13 +114,26 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             return START_NOT_STICKY
         }
 
+        // Before the reentrancy guard and before the asynchronous session work (S3267).
+        if (!enterForeground()) {
+            _state.value = BroadcastState.Failed(
+                BroadcastFailure.MICROPHONE_PERMISSION,
+                "Microphone permission missing for a video-only session"
+            )
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
         startBroadcast()
         return START_STICKY
     }
 
-    private fun startBroadcast() {
-        if (!isStreaming.compareAndSet(false, true)) return
-
+    /**
+     * False only when the platform offers this session no legal foreground type at all - the caller
+     * then has nothing to keep and stops, which is the one shape that can still cost the process.
+     * Step 01.2's guard keeps that case out of reach by refusing the start before it is made.
+     */
+    private fun enterForeground(): Boolean {
         // The stop action must reach this service: the shared factory defaults to the audio service,
         // which left a video session with no way to stop outside the control screen (S3058 run 1).
         val notification = BroadcastNotificationFactory.createNotification(
@@ -126,22 +142,29 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             titleRes = R.string.broadcast_notification_video_title,
             textRes = R.string.broadcast_notification_video_text,
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val type = resolveForegroundType(declaredForegroundServiceTypes(this))
-            if (type == null) {
-                Timber.w("VideoBroadcastService: no foreground type available for a video-only session")
-                isStreaming.set(false)
-                _state.value = BroadcastState.Failed(
-                    BroadcastFailure.MICROPHONE_PERMISSION,
-                    "Microphone permission missing for a video-only session"
-                )
-                stopSelf()
-                return
-            }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            startForeground(NotificationIds.PHONE_BROADCAST, notification)
+            return true
+        }
+        val declared = declaredForegroundServiceTypes(this)
+        val type = resolveForegroundType(declared)
+            ?: (declared and ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA)
+        val entered = type != 0
+        if (entered) {
             startForeground(NotificationIds.PHONE_BROADCAST, notification, type)
         } else {
-            startForeground(NotificationIds.PHONE_BROADCAST, notification)
+            Timber.w("VideoBroadcastService: no foreground type available for this session")
         }
+        return entered
+    }
+
+    private fun leaveForegroundAndStop() {
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
+    private fun startBroadcast() {
+        if (!isStreaming.compareAndSet(false, true)) return
 
         serviceScope.launch { openSession() }
     }
@@ -181,7 +204,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                     "RtspServerCamera2 prepare failed"
                 )
                 isStreaming.set(false)
-                stopSelf()
+                leaveForegroundAndStop()
                 return
             }
 
@@ -210,7 +233,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                 isLive = true,
                 targetLatencyMs = 200L
             )
-            Timber.d("S3051: video descriptor published with endpoints=%s isLive=%s", dto.endpoints, dto.isLive)
 
             currentMicEnabled = currentMode != BroadcastMode.VIDEO_ONLY
             _state.value = BroadcastState.Live(
@@ -221,7 +243,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                 activeLensId = lensId ?: camera.currentCameraId,
             )
             Timber.d("VideoBroadcastService: RTSP streaming started at %s", endpoint)
-            Timber.d("S3038: video session live, audio track announced only with microphone")
         } catch (e: Exception) {
             Timber.e(e, "VideoBroadcastService: failed to start RTSP server")
             _state.value = BroadcastState.Failed(
@@ -229,7 +250,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                 e.message ?: "Failed to start RTSP server"
             )
             isStreaming.set(false)
-            stopSelf()
+            leaveForegroundAndStop()
         }
     }
 
@@ -262,29 +283,31 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     private suspend fun readSessionConfig(): BroadcastSessionConfig {
         val settings = settingsRepository.getSettings().first()
-        val sourceDeviceId = settings.broadcastSourceDeviceId ?: run {
+        val broadcast = settings.broadcast
+        val sourceDeviceId = broadcast.sourceDeviceId ?: run {
             val id = UUID.randomUUID().toString()
-            settingsRepository.updateSettings(settings.copy(broadcastSourceDeviceId = id))
+            settingsRepository.updateSettings(
+                settings.copy(broadcast = broadcast.copy(sourceDeviceId = id))
+            )
             id
         }
         return BroadcastSessionConfig(
-            streamTitle = settings.broadcastStreamTitle.ifBlank { BroadcastSessionConfig.DEFAULT.streamTitle },
-            bitRateBps = settings.broadcastBitRateBps,
-            port = settings.broadcastPort,
-            sampleRateHz = settings.broadcastSampleRateHz,
-            channelCount = settings.broadcastChannelCount,
+            streamTitle = broadcast.streamTitle.ifBlank { BroadcastSessionConfig.DEFAULT.streamTitle },
+            bitRateBps = broadcast.bitRateBps,
+            port = broadcast.port,
+            sampleRateHz = broadcast.sampleRateHz,
+            channelCount = broadcast.channelCount,
             sourceDeviceId = sourceDeviceId,
-            micGainPercent = settings.broadcastMicGainPercent,
-            videoWidth = settings.broadcastVideoWidth,
-            videoHeight = settings.broadcastVideoHeight,
-            videoFps = settings.broadcastVideoFps,
-            videoBitrateBps = settings.broadcastVideoBitrateBps,
+            micGainPercent = broadcast.micGainPercent,
+            videoWidth = broadcast.videoWidth,
+            videoHeight = broadcast.videoHeight,
+            videoFps = broadcast.videoFps,
+            videoBitrateBps = broadcast.videoBitrateBps,
         )
     }
 
     private fun toggleMicInternal() {
         val camera = cameraServer ?: return
-        Timber.d("S3038: microphone toggle")
         if (camera.isAudioMuted) {
             camera.enableAudio()
             currentMicEnabled = true
@@ -317,7 +340,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             }
             BroadcastLensOption.physicalIdOf(lensId)?.let { openPhysicalLens(camera, it) }
             _state.value = liveState.copy(activeLensId = lensId)
-            Timber.d("S3038: lens switched on air")
         } catch (e: CameraOpenException) {
             Timber.w(
                 e,
@@ -348,7 +370,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     private fun toggleCameraInternal() {
         val liveState = _state.value as? BroadcastState.Live ?: return
         val cameraOn = !liveState.cameraEnabled
-        Timber.d("S3038: camera toggle via video mute")
         previewProvider.setVideoMuted(!cameraOn)
         _state.value = liveState.copy(cameraEnabled = cameraOn)
     }
@@ -408,7 +429,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     private fun publishListenerCount() {
         _listenerCount.value = cameraServer?.streamClient?.getNumClients() ?: 0
-        Timber.d("S3038: RTSP listener count published")
     }
 
     override fun onAuthError() {
@@ -452,7 +472,29 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         private val _listenerCount = MutableStateFlow(0)
         val listenerCount: StateFlow<Int> = _listenerCount.asStateFlow()
 
+        /**
+         * A start the service cannot honour is refused here rather than inside it: a promise made by
+         * startForegroundService() and not kept costs the whole process, while a refusal made before
+         * it is only a message (S3267).
+         */
         fun start(context: Context, mode: BroadcastMode, lensId: String?) {
+            val missingCamera = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) !=
+                PackageManager.PERMISSION_GRANTED
+            val missingAudio = mode != BroadcastMode.VIDEO_ONLY &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) !=
+                PackageManager.PERMISSION_GRANTED
+            if (missingCamera || missingAudio) {
+                Timber.w(
+                    "VideoBroadcastService: start refused (camera: %b, audio: %b)",
+                    missingCamera,
+                    missingAudio,
+                )
+                _state.value = BroadcastState.Failed(
+                    BroadcastFailure.MICROPHONE_PERMISSION,
+                    "Camera or Microphone permission missing"
+                )
+                return
+            }
             val intent = Intent(context, VideoBroadcastService::class.java).apply {
                 putExtra(EXTRA_MODE, mode.name)
                 putExtra(EXTRA_LENS_ID, lensId)
