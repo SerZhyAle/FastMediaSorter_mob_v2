@@ -189,9 +189,10 @@ class SettingsSearchCapabilityGateTest {
 
     @Test
     fun `launcher rows are gated by the launcher capability`() {
-        // S1088: the enable toggle + the launcher-settings entry row are the only launcher rows still in a
+        // S1088: the enable control + the launcher-settings entry row are the only launcher rows still in a
         // catalogued tab layout (General); the composition/density rows moved into the dialog (uncatalogued).
-        assertTrue(gate(launcherAvailable = true).isAvailable(entry(key = "rowLauncherModeEnabled")))
+        // S3024 made that control the primary-window choice, replacing the standalone toggle.
+        assertTrue(gate(launcherAvailable = true).isAvailable(entry(key = "rowLauncherPrimaryWindow")))
         assertFalse(gate(launcherAvailable = false).isAvailable(entry(key = "rowLauncherSettings")))
     }
 

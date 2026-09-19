@@ -1,7 +1,10 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Launcher home mode controls smoke test.
-# Description: Verifies Launcher Mode toggle and Launcher Settings entry points in General Settings.
+# Description: Verifies the primary-window choice and the Launcher Settings entry point in General Settings.
+#
+# S3024 consolidated the former standalone enable toggle into rowLauncherPrimaryWindow (Home screen /
+# In-app Desktop / Resource Manager); rowLauncherModeEnabled exists in no layout since then.
 #
 # No home role needed: this flow asserts that both controls are PRESENT, never that the settings row
 # is active, so it passes with launcher mode off. That is why it carries no `maestro-requires` marker
@@ -17,9 +20,9 @@ appId: com.sza.fastmediasorter.debug
 - assertVisible:
     id: "com.sza.fastmediasorter.debug:id/titleText"
 
-# Assert presence of launcher toggle
+# Assert presence of the primary-window choice
 - assertVisible:
-    id: "com.sza.fastmediasorter.debug:id/rowLauncherModeEnabled"
+    id: "com.sza.fastmediasorter.debug:id/rowLauncherPrimaryWindow"
 
 # Scroll down to launcher settings row
 - scrollUntilVisible:
