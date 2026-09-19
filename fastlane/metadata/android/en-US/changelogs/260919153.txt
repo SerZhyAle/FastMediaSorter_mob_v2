@@ -1,0 +1,5 @@
+• Cross-device transfer over Google Drive - queue files between your own devices through a Drive-backed transfer, no cable needed.
+• SOS distress signal - trigger it from the phone.
+• A more complete settings backup - back up your whole setup, plus import and export to a file or Google Drive.
+• Shortcuts that reach sub-programs - a long-press on the app icon jumps straight into a sub-program, not just the main screen.
+..

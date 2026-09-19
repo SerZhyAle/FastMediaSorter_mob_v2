@@ -1,0 +1,1 @@
+• Granting All files access no longer leaves the Permissions required dialog on screen.

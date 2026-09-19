@@ -1,0 +1,1 @@
+• Выдача All files access больше не оставляет на экране диалог Permissions required.
