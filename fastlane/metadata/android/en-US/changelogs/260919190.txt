@@ -1,0 +1,1 @@
+• Stopping the SOS signal no longer closes the app (spec S3332).
