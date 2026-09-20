@@ -5,13 +5,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.signature.ObjectKey
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGridCellBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGroupHeaderBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGroupTileBinding
+import com.sza.fastmediasorter.ui.common.widget.MediaItemThumbnailBinder
 import java.io.File
 
 /**
@@ -42,6 +41,11 @@ class LauncherAppGridAdapter(
     )
 
     private val items = mutableListOf<DisplayItem>()
+
+    // S3246: the single Glide entry point shared with ui/browse, so this adapter no longer owns its
+    // own request/clear lifecycle. Constructed rather than injected - the adapter is built by hand in
+    // LauncherAllAppsFragment and the binder is stateless.
+    private val thumbnailBinder = MediaItemThumbnailBinder()
 
     fun submitGroups(groups: List<LauncherAppGroupSection>) {
         items.clear()
@@ -178,11 +182,12 @@ class LauncherAppGridAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: AppItem) {
-            Glide.with(binding.appIcon)
-                .load(item.iconFile)
-                .signature(ObjectKey(item.iconVersion))
-                .placeholder(R.drawable.ic_launcher_mode)
-                .into(binding.appIcon)
+            thumbnailBinder.bindIcon(
+                view = binding.appIcon,
+                iconFile = item.iconFile,
+                versionKey = item.iconVersion,
+                placeholder = R.drawable.ic_launcher_mode,
+            )
             binding.appLabel.text = item.label
             binding.root.contentDescription = item.label
             binding.root.setOnClickListener { onAppClick(item) }
@@ -191,7 +196,7 @@ class LauncherAppGridAdapter(
 
         /** A request left running against a recycled view would paint the wrong app's icon. */
         fun clear() {
-            Glide.with(binding.appIcon).clear(binding.appIcon)
+            thumbnailBinder.clear(binding.appIcon)
         }
     }
 

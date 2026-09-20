@@ -11,6 +11,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -80,6 +81,27 @@ class ResolvePanelRouteAvailabilityUseCaseTest {
         // that nothing in the build can open.
         assertFalse("no bridge means the route is absent from the build", noBridge.availableInBuild)
         assertFalse("and it must not launch whatever the stored switch says", noBridge.isLaunchable)
+    }
+
+    /**
+     * S3337: the broadcast row was reported present on a clean install. The only writer of
+     * `enableBroadcasting = true` is the welcome "enable all" button, so the declared default must reach
+     * the menu gate untouched - this pins that it does, and that the flag is the route's only runtime axis.
+     */
+    @Test
+    fun `broadcasting stays off on the declared defaults`() = runBlocking {
+        val clean = useCaseFor(AppSettings()).invoke(InternalRouteCatalog.KEY_BROADCAST)
+        assertFalse("a clean install must not offer broadcasting", clean.isLaunchable)
+
+        val switchedOn = useCaseFor(AppSettings(enableBroadcasting = true))
+            .invoke(InternalRouteCatalog.KEY_BROADCAST)
+        // Compared against the build axis rather than asserted true: a flavor without streams carries no
+        // broadcast route at all, and this test runs in whichever variant the suite was launched for.
+        assertEquals(
+            "the stored switch is the route's only runtime axis",
+            switchedOn.availableInBuild,
+            switchedOn.isLaunchable,
+        )
     }
 
     @Test

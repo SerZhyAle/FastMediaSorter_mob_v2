@@ -588,7 +588,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private fun setupToolbarCommands() {
-        binding.toolbar.setNavigationOnClickListener { exitStreamsWithAudioCheck() }
+        binding.toolbar.setUpNavigation(this)
         onBackPressedDispatcher.addCallback(this) { exitStreamsWithAudioCheck() }
         // S1473: the menu is cleared and re-inflated on every orientation change, so this listener
         // must stay on the toolbar - a per-item listener would survive the first rotation as a

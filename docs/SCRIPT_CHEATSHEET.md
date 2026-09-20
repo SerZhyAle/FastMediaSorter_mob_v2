@@ -2971,6 +2971,17 @@ scripts/quality/assert-focus-highlight.ps1
   Exit: 0 - pass: at or below baseline, no growth in the named files, or a non-gate mode.; 1 - fail: the count rose above the baseline, a named file introduced a gap, or a
 ```
 
+### assert-focus-parity.ps1
+S3254: focus-traversal parity between a portrait layout and its landscape counterpart.
+
+```
+scripts/quality/assert-focus-parity.ps1
+  S3254: focus-traversal parity between a portrait layout and its landscape counterpart.
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+```
+
 ### assert-gate-count-prose.ps1
 S2935: fail when docs/BUILD_TEST_FAST_PATH.md claims a fast-gate count the live $gates table in assert-fast-gates.ps1 disagrees with.
 
@@ -5129,6 +5140,15 @@ S3301: the closure ledger - what scripts/post-change.ps1 remembers about what it
 ```
 scripts/quality/lib/post-change-closure-ledger.ps1
   S3301: the closure ledger - what scripts/post-change.ps1 remembers about what it already judged.
+  (no param block)
+```
+
+### post-change-gate-argvs.ps1
+Gate argument vectors of the doc/config/wear-wire family for post-change.ps1, extracted to hold the facade under the 2000-line ceiling of CLAUDE.md Rule 2 (S3254).
+
+```
+scripts/quality/lib/post-change-gate-argvs.ps1
+  Gate argument vectors of the doc/config/wear-wire family for post-change.ps1, extracted to hold the facade under the 2000-line ceiling of CLAUDE.md Rule 2 (S3254).
   (no param block)
 ```
 
@@ -8136,6 +8156,17 @@ scripts/utils/invoke-isolated-stdout.tests/Run-Tests.ps1
   S2412 - contract suite for the stdout-isolation runner and the a.ps1 routing that reaches it.
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - could not verify - the runner script is missing.
+```
+
+## scripts\utils\lib
+
+### python-interpreter.ps1
+Resolves a Python interpreter that will actually RUN, skipping Windows Store execution aliases.
+
+```
+scripts/utils/lib/python-interpreter.ps1
+  Resolves a Python interpreter that will actually RUN, skipping Windows Store execution aliases.
+  (no param block)
 ```
 
 ## scripts\utils\measure-process-throughput.tests

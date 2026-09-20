@@ -6,17 +6,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogCrossDevicePacketsBinding
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketManifest
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceTransferOption
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 /**
  * S3040: the packets other devices left in the user's Drive queue, with the two accept options.
@@ -100,11 +102,12 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
      * screen, so the choice gets its own prompt where both consequences fit as full sentences.
      */
     private fun askReceiveOption(manifest: CrossDevicePacketManifest) {
+        Timber.d("S3243: cross-device receive option asked for ${manifest.senderDeviceName}")
         val options = arrayOf(
             getString(R.string.cross_device_transfer_receive_and_keep),
             getString(R.string.cross_device_transfer_receive_and_delete)
         )
-        AlertDialog.Builder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(describe(manifest))
             .setItems(options) { _, which ->
                 val option = if (which == 0) {
@@ -115,7 +118,9 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
                 viewModel.receive(manifest, option)
             }
             .setNegativeButton(R.string.cancel, null)
-            .showBoundTo(this)
+            .create()
+        DialogKeyboardDelegate.applyTo(dialog) {}
+        dialog.showBoundTo(this)
     }
 
     companion object {

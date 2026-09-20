@@ -8,7 +8,6 @@ import androidx.core.view.updatePadding
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
-import timber.log.Timber
 
 /**
  * Applies edge-to-edge window insets to BrowseActivity layout.
@@ -33,7 +32,7 @@ object BrowseEdgeToEdgeHelper {
         val searchOrigPaddingRight = binding.layoutSearch.paddingRight
         val searchOrigPaddingBottom = binding.layoutSearch.paddingBottom
 
-        val fabOrigBottomMargin = (binding.fabScrollToBottom.layoutParams as? ViewGroup.MarginLayoutParams)
+        val fabOrigBottomMargin = (binding.barScrollBottom.layoutParams as? ViewGroup.MarginLayoutParams)
             ?.bottomMargin ?: binding.root.resources.getDimensionPixelSize(R.dimen.margin_small)
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
@@ -57,11 +56,11 @@ object BrowseEdgeToEdgeHelper {
             // S3282: reassigning layoutParams calls requestLayout, so doing it on every inset
             // dispatch queued a whole traversal per keyboard show / rotation for an unchanged margin.
             val fabBottomMargin = fabOrigBottomMargin + navBar.bottom
-            (binding.fabScrollToBottom.layoutParams as? ViewGroup.MarginLayoutParams)
+            (binding.barScrollBottom.layoutParams as? ViewGroup.MarginLayoutParams)
                 ?.takeIf { it.bottomMargin != fabBottomMargin }
                 ?.let {
                     it.bottomMargin = fabBottomMargin
-                    binding.fabScrollToBottom.layoutParams = it
+                    binding.barScrollBottom.layoutParams = it
                 }
 
             applyBottomInsets(binding)

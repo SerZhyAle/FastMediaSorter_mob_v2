@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.player.helpers.AudioWaveParticleView
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import timber.log.Timber
 import java.io.File
 
 /**
@@ -57,6 +58,10 @@ class LauncherWallpaperManager(
 
     private var current: LauncherWallpaper = LauncherWallpaper.None
 
+    // S3335: raised while the backdrop shows a still of the last camera frame instead of a live preview.
+    // Every start path consults it, so only the resume edge may put the camera back up.
+    private var cameraFrozen = false
+
     init {
         // S2536: the desktop backdrop is ornament, whatever the class it is drawn by. The same view
         // is the audio visualizer elsewhere and stays AMBIENT there - this is the declaration that
@@ -71,6 +76,10 @@ class LauncherWallpaperManager(
      * S2536 / S2661 / S3276: wallpaper animation is paused/resumed when animation policy changes.
      */
     private fun startCameraIfPolicyAllows(cameraId: String) {
+        // S3335: the frozen still stands until the resume edge lowers the flag itself. Returning to the
+        // desktop runs onStart - and the wallpaper flow's STARTED re-emission - while the screen the user
+        // is leaving still holds the camera, so binding here would take it back from a surface on screen.
+        if (cameraFrozen) return
         val mayAnimate = AnimationPolicy.mayAnimate(AnimationIntent.DECORATIVE)
         if (mayAnimate) {
             stopWaves()
@@ -79,6 +88,9 @@ class LauncherWallpaperManager(
             cameraBackground.start(cameraId)
         } else {
             stopCamera()
+            // S3335: a freeze that ends under a policy forbidding animation hands the desktop to the
+            // waves, so the still it left behind has to go with the preview.
+            clearImage()
             wavesLayer.isVisible = true
             wavesLayer.startAnimation()
         }
@@ -123,6 +135,49 @@ class LauncherWallpaperManager(
                 wavesLayer.renderFreshStaticFrame()
             }
         }
+        // S3335: the still is dropped by the first live frame of the new session, not by the call that
+        // asked for it - a bind that fails or takes a second would otherwise leave the desktop blank.
+        cameraLayer.previewStreamState.observe(lifecycleOwner) { state ->
+            if (state == PreviewView.StreamState.STREAMING && current is LauncherWallpaper.LiveCamera) {
+                clearImage()
+            }
+        }
+    }
+
+    /**
+     * S3335: foreground edge for the camera backdrop alone - the lens is taken only once the desktop is
+     * the surface the user is actually on.
+     */
+    fun onResume() {
+        Timber.d("S3335: wallpaper resume edge, frozen=$cameraFrozen, mode=${current::class.simpleName}")
+        cameraFrozen = false
+        val wallpaper = current
+        if (wallpaper is LauncherWallpaper.LiveCamera) startCameraIfPolicyAllows(wallpaper.cameraId)
+    }
+
+    /**
+     * S3335: releases the lens one lifecycle edge earlier than [onStop], freezing the last frame.
+     *
+     * Android runs the launcher's `onStop` after the opened screen's `onResume`, so a camera held until
+     * then is still bound while the capture screen, the mirror or the torch asks for it.
+     */
+    fun onPause() {
+        Timber.d("S3335: wallpaper pause edge, mode=${current::class.simpleName}, frozen=$cameraFrozen")
+        if (current !is LauncherWallpaper.LiveCamera || cameraFrozen) return
+        cameraFrozen = true
+        // A null bitmap means no frame ever reached the preview; there is nothing to freeze, and the
+        // camera still has to go.
+        cameraLayer.bitmap?.let { lastFrame ->
+            imageLayer.setImageBitmap(lastFrame)
+            imageLayer.isVisible = true
+            // The still has to cover the preview it replaces, and the scrim has to stay above both, or
+            // icon labels lose the dimming they had a frame earlier. The preview itself stays visible:
+            // a hidden PreviewView has no surface, so it could never report the live frame that ends
+            // the freeze.
+            imageLayer.bringToFront()
+            cameraScrim.bringToFront()
+        }
+        cameraBackground.stop()
     }
 
     /** Foreground edge: resume whichever backdrop is active per policy. Symmetric with [onStop]. */
@@ -214,6 +269,9 @@ class LauncherWallpaperManager(
     }
 
     private fun stopCamera() {
+        // S3335: a backdrop that is no longer the live camera cannot stay frozen, or the next switch back
+        // to it would be refused by a flag nothing lowers.
+        cameraFrozen = false
         cameraBackground.stop()
         cameraLayer.isVisible = false
         cameraScrim.isVisible = false

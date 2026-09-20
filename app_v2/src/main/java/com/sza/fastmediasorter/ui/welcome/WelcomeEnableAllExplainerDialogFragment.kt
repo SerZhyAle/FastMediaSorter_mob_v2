@@ -12,8 +12,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.DialogEnableAllExplainerBinding
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import timber.log.Timber
 
 /**
  * S2322: prepares the user for the "Enable all" sequence, which otherwise hands them to a chain of
@@ -47,6 +49,7 @@ class WelcomeEnableAllExplainerDialogFragment : DialogFragment() {
     enum class Mode { OVERVIEW, DEFAULT_APP }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        Timber.d("S3254: enable-all explainer opened for the rotation and D-pad pass")
         val args = requireArguments()
         mode = args.getString(ARG_MODE)?.let { name ->
             runCatching { Mode.valueOf(name) }.getOrNull()
@@ -60,6 +63,13 @@ class WelcomeEnableAllExplainerDialogFragment : DialogFragment() {
             .setTitle(titleRes())
             .setView(binding.root)
             .create()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        DialogKeyboardDelegate.applyToDialogFragment(dialog) {
+            binding.btnExplainerConfirm.performClick()
+        }
     }
 
     private fun titleRes(): Int = when (mode) {

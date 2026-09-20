@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraUseCaseFactory
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraAspectSelection
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -123,6 +124,13 @@ class CameraSettingsDialogFragment : DialogFragment() {
             }
         }
         return dialog
+    }
+
+    override fun onStart() {
+        super.onStart()
+        DialogKeyboardDelegate.applyToDialogFragment(dialog) {
+            binding.btnCameraSettingsApply.performClick()
+        }
     }
 
     private fun bindDialogContent(resolvedCallbacks: Callbacks) {

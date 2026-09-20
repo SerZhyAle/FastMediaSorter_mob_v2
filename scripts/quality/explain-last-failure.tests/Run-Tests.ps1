@@ -36,6 +36,34 @@ else { 'pwsh' }
 
 $script:pass = 0
 $script:fail = 0
+$script:skip = 0
+
+function Get-ResolvedHarnessRoot {
+    # The same order the generated forwarders resolve in: an explicit checkout first, then the
+    # newest plugin cache. Read here rather than imported because this suite must answer "which
+    # copy actually runs" without loading a forwarder, whose job is to run a script, not report.
+    $candidates = @()
+    if ($env:SZA_HARNESS_ROOT) { $candidates += $env:SZA_HARNESS_ROOT }
+    $homeDir = if ($env:USERPROFILE) { $env:USERPROFILE } elseif ($env:HOME) { $env:HOME } else { $null }
+    if ($homeDir) {
+        $cache = Join-Path $homeDir '.claude/plugins/cache/sza-unified-rules/sza'
+        if (Test-Path -LiteralPath $cache) {
+            $versions = @(Get-ChildItem -LiteralPath $cache -Directory -ErrorAction SilentlyContinue |
+                ForEach-Object {
+                    $parsed = $null
+                    [void][version]::TryParse($_.Name, [ref]$parsed)
+                    [pscustomobject]@{ Path = $_.FullName; Version = $parsed }
+                } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                                @{ Expression = { $_.Version }; Descending = $true },
+                                @{ Expression = { $_.Path }; Descending = $true })
+            $candidates += @($versions | ForEach-Object { Join-Path $_.Path 'tools/harness' })
+        }
+    }
+    foreach ($candidate in $candidates) {
+        if (Test-Path -LiteralPath (Join-Path $candidate 'spec_catalog/_lib.ps1')) { return $candidate }
+    }
+    return $null
+}
 
 function Assert-That([string]$Name, [bool]$Ok, [string]$Detail) {
     if ($Ok) {
@@ -161,14 +189,64 @@ New-Item -ItemType Directory -Path $unreadable -Force | Out-Null
 $broken = Invoke-Subject @('-Journal', $unreadable)
 Assert-That 'an unreadable journal exits 2' ($broken.Code -eq 2) "exit $($broken.Code)"
 
+# --- A row written by the harness itself, when the resolved harness can write one -----------------
+# The harness half of S3288 lives in the canon and reaches a project only when the owner publishes,
+# so these cases are guarded by a probe of the copy that actually runs. Skipped rather than failed:
+# a suite that went red on an undeployed change would turn a stale plugin cache into a red closure
+# for every unrelated ticket that runs it.
+$harnessRoot = Get-ResolvedHarnessRoot
+$harnessWriter = if ($harnessRoot) { Join-Path $harnessRoot 'lib/tool-failure-journal.ps1' } else { $null }
+$harnessRow = $null
+
+if (-not ($harnessWriter -and (Test-Path -LiteralPath $harnessWriter))) {
+    Write-Host "  SKIP  S3288 harness-written rows (2 cases)" -ForegroundColor Yellow
+    $script:skip += 2
+}
+else {
+    # A scratch project root, so the harness writes its row where a consuming project would keep it
+    # and the live journal of this repository is left alone.
+    $fakeProject = Join-Path $scratch 'project'
+    New-Item -ItemType Directory -Path $fakeProject -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Destination $fakeProject -Force
+
+    $writerScript = @"
+. '$(Join-Path $harnessRoot '_profile.ps1')'
+. '$harnessWriter'
+Write-SzaToolFailureRecord -Tool 'spec_catalog' ``
+    -Command "spec_catalog status gate -Id S0001 -Status 'Verified' :: check-evidence-durable.ps1" ``
+    -ExitCode 1 -OutputTail 'the gate refused: cited evidence is disposable'
+"@
+    $priorProjectRoot = $env:SZA_PROJECT_ROOT
+    $env:SZA_PROJECT_ROOT = $fakeProject
+    try { & $pwshExe -NoProfile -Command $writerScript 2>&1 | Out-Null }
+    finally { $env:SZA_PROJECT_ROOT = $priorProjectRoot }
+
+    $harnessJournal = Join-Path $fakeProject 'temp/metrics/tool-failures.jsonl'
+    Assert-That 'the harness writes its row under the consuming project root' (
+        Test-Path -LiteralPath $harnessJournal
+    ) $harnessJournal
+
+    if (Test-Path -LiteralPath $harnessJournal) {
+        $harnessRow = Invoke-Subject @('-Journal', $harnessJournal)
+        Assert-That 'a harness-written refusal is explained with its reason' (
+            $harnessRow.Code -eq 0 -and $harnessRow.Text -match 'cited evidence is disposable'
+        ) "exit $($harnessRow.Code): $($harnessRow.Text)"
+    }
+    else {
+        Assert-That 'a harness-written refusal is explained with its reason' $false 'no journal was written'
+    }
+}
+
 # --- The one code this script may never return ----------------------------------------------------
 Assert-That 'no case returned exit 1' (
-    @($absent, $empty, $one, $two, $repeat, $gate, $broken | Where-Object { $_.Code -eq 1 }).Count -eq 0
+    @(@($absent, $empty, $one, $two, $repeat, $gate, $broken, $harnessRow) |
+        Where-Object { $null -ne $_ -and $_.Code -eq 1 }).Count -eq 0
 ) 'a case returned 1, which the hook would catch and re-explain'
 
 if (Test-Path -LiteralPath $scratch) { Remove-Item -LiteralPath $scratch -Recurse -Force }
 
 Write-Host ""
-Write-Host ("explain-last-failure.tests: {0} passed, {1} failed." -f $script:pass, $script:fail) `
+Write-Host ("explain-last-failure.tests: {0} passed, {1} failed, {2} case(s) skipped." -f
+    $script:pass, $script:fail, $script:skip) `
     -ForegroundColor ($script:fail -gt 0 ? 'Red' : 'Green')
 exit ($script:fail -gt 0 ? 1 : 0)

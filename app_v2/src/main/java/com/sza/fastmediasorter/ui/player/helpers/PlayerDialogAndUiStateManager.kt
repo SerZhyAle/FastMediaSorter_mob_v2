@@ -1,9 +1,9 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.CommandPanelController
 import com.sza.fastmediasorter.ui.player.DestinationButtonsManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -175,7 +176,7 @@ class PlayerDialogAndUiStateManager(
             activity.getString(R.string.pdf_export_to_jpg)
         )
         
-        AlertDialog.Builder(activity)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.pdf_edit_title)
             .setItems(options) { _, which ->
                 when (which) {
@@ -183,7 +184,9 @@ class PlayerDialogAndUiStateManager(
                 }
             }
             .setNegativeButton(R.string.cancel, null)
-            .showBoundTo(activity)
+            .create()
+        DialogKeyboardDelegate.applyTo(dialog) {}
+        dialog.showBoundTo(activity)
     }
     
     /**

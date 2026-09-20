@@ -1,47 +1,143 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/item_focus_selector" android:foreground="@drawable/item_interaction_overlay" android:focusable="true" android:focusableInTouchMode="false" android:padding="@dimen/item_media_file_grid_unknown_padding">
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.FastMediaSorter.Item.Row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/item_media_file_grid_unknown_padding">
 
-    <androidx.cardview.widget.CardView android:id="@+id/cvCard" android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="0dp" app:cardElevation="@dimen/card_elevation" android:layout_margin="0dp" android:padding="0dp">
+    <!-- S3247: transparent card, so the row root's state-list paints the selection and the focus ring
+         instead of the adapter swapping the card colour per bind. -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cvCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="@dimen/card_elevation"
+        android:layout_margin="0dp"
+        android:padding="0dp">
 
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center_horizontal" android:padding="0dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="0dp">
 
             <!-- Thumbnail area: overlay controls live here so they sit ON the thumbnail,
                  not below the filename, and z-order is guaranteed correct.
                  Fixed height prevents portrait images from inflating the cell to enormous size. -->
-            <FrameLayout android:id="@+id/flThumbnailContainer" android:layout_width="match_parent" android:layout_height="@dimen/item_grid_thumbnail_size">
+            <FrameLayout
+                android:id="@+id/flThumbnailContainer"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/item_grid_thumbnail_size">
 
-                <ImageView android:id="@+id/ivThumbnail" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:contentDescription="@string/thumbnail" android:background="?android:selectableItemBackground" tools:src="@drawable/ic_image" />
+                <ImageView
+                    android:id="@+id/ivThumbnail"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@string/thumbnail"
+                    android:background="?android:selectableItemBackground"
+                    tools:src="@drawable/ic_image" />
 
                 <!-- S2177: file name written on the tile, shown only when the picture is the shared
                      extension icon and so identifies nothing. Declared here - after the image, before
                      every control - because a FrameLayout draws later children on top: the checkbox,
                      the star, the operations and the overflow button all stay above the plate. Centred
                      vertically, which is also what keeps it clear of those four, all of them in corners. -->
-                <TextView android:id="@+id/tvNameOverlay" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginStart="@dimen/margin_tiny" android:layout_marginEnd="@dimen/margin_tiny" android:background="@drawable/bg_tile_caption_plate" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/padding_3dp" android:paddingBottom="@dimen/padding_3dp" android:gravity="center" android:ellipsize="end" android:textColor="@android:color/white" android:textSize="@dimen/item_detail_text_size" android:visibility="gone" tools:text="Neapolitan dinner in a spotted cat.docx" tools:visibility="visible" />
+                <TextView
+                    android:id="@+id/tvNameOverlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="@dimen/margin_tiny"
+                    android:layout_marginEnd="@dimen/margin_tiny"
+                    android:background="@drawable/bg_tile_caption_plate"
+                    android:paddingStart="@dimen/margin_small"
+                    android:paddingEnd="@dimen/margin_small"
+                    android:paddingTop="@dimen/padding_3dp"
+                    android:paddingBottom="@dimen/padding_3dp"
+                    android:gravity="center"
+                    android:ellipsize="end"
+                    android:textColor="@android:color/white"
+                    android:textSize="@dimen/item_detail_text_size"
+                    android:visibility="gone"
+                    tools:text="Neapolitan dinner in a spotted cat.docx"
+                    tools:visibility="visible" />
 
                 <!-- Select checkbox: bottom-left of thumbnail; self-contrasting white/black box (S0419) -->
-                <androidx.appcompat.widget.AppCompatCheckBox android:id="@+id/cbSelect" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="bottom|start" android:layout_margin="2dp" android:minWidth="0dp" android:minHeight="0dp" android:padding="0dp" android:background="@null" android:button="@drawable/selector_checkbox_select" app:buttonTint="@null" />
+                <androidx.appcompat.widget.AppCompatCheckBox
+                    android:id="@+id/cbSelect"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|start"
+                    android:layout_margin="2dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp"
+                    android:background="@null"
+                    android:button="@drawable/selector_checkbox_select"
+                    app:buttonTint="@null" />
 
                 <!-- Favorite button: top-right of thumbnail -->
-                <ImageButton android:id="@+id/btnFavorite" android:layout_width="@dimen/item_icon_size_small" android:layout_height="@dimen/item_icon_size_small" android:layout_gravity="top|end" android:layout_margin="0dp" android:clickable="true" android:focusable="true" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/favorite" android:scaleType="fitCenter" android:src="@drawable/ic_star_outline" android:padding="0dp" />
+                <ImageButton
+                    android:id="@+id/btnFavorite"
+                    android:layout_width="@dimen/item_icon_size_small"
+                    android:layout_height="@dimen/item_icon_size_small"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="0dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/favorite"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_star_outline"
+                    android:padding="0dp" />
 
                 <!-- Operation buttons: bottom-right of thumbnail -->
-                <ViewStub android:id="@+id/stubOperations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="bottom|end" android:inflatedId="@+id/llOperations" android:layout="@layout/item_media_file_grid_operations" />
+                <ViewStub
+                    android:id="@+id/stubOperations"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:inflatedId="@+id/llOperations"
+                    android:layout="@layout/item_media_file_grid_operations" />
 
                 <!-- Overflow menu button: bottom-right, shown instead of stubOperations when fileOpsInOverflowMenu=true -->
-                <ImageButton android:id="@+id/btnOverflowMenu" android:layout_width="32dp" android:layout_height="32dp" android:layout_gravity="bottom|end" android:padding="6dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/overflow_menu" android:scaleType="fitCenter" android:src="@drawable/ic_more_vert" app:tint="@color/selector_themed_button_tint" android:visibility="gone" tools:visibility="visible" />
+                <ImageButton
+                    android:id="@+id/btnOverflowMenu"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="bottom|end"
+                    android:padding="6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/overflow_menu"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_more_vert"
+                    app:tint="@color/selector_themed_button_tint"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
 
             </FrameLayout>
 
             <!-- Filename below the thumbnail, outside the overlay zone -->
-            <TextView android:id="@+id/tvFileName" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="0dp" android:textSize="@dimen/item_detail_text_size" android:maxLines="3" android:ellipsize="end" android:gravity="center" tools:text="IMG_20231106_123456.jpg" />
+            <TextView
+                android:id="@+id/tvFileName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:textSize="@dimen/item_detail_text_size"
+                android:maxLines="3"
+                android:ellipsize="end"
+                android:gravity="center"
+                tools:text="IMG_20231106_123456.jpg" />
 
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 
 </FrameLayout>
-
-

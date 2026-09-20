@@ -16,4 +16,19 @@
          return a torn-down root to the pool of its own kind. Carried on the view because a SHORTCUT
          root and a SECTION root are both MaterialCardView and cannot be told apart by class. -->
     <item name="launcher_cell_kind_tag" type="id" />
+    <!-- S3249: the Browse operations bar and the two floating scroll strips are built from
+         ActionBarView.Action records, so their ids are declared here instead of by an @+id in a
+         layout. btnCopy/btnMove/btnRename/btnDelete/btnShare also exist as @+id in the binary-file
+         bottom sheet; declaring them here keeps the action ids independent of that layout. -->
+    <item name="actionBrowseCopy" type="id" />
+    <item name="actionBrowseMove" type="id" />
+    <item name="actionBrowseRename" type="id" />
+    <item name="actionBrowseDelete" type="id" />
+    <item name="actionBrowseUndo" type="id" />
+    <item name="actionBrowseShare" type="id" />
+    <item name="actionBrowseArchive" type="id" />
+    <item name="actionBrowseScrollToTop" type="id" />
+    <item name="actionBrowsePageUp" type="id" />
+    <item name="actionBrowsePageDown" type="id" />
+    <item name="actionBrowseScrollToBottom" type="id" />
 </resources>

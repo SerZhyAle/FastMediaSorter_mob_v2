@@ -13,11 +13,11 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogLauncherYoutubeChannelBinding
 import com.sza.fastmediasorter.domain.model.youtube.YouTubeChannel
 import com.sza.fastmediasorter.domain.usecase.youtube.ResolveYouTubeChannelUseCase
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -70,6 +70,13 @@ class LauncherYouTubeChannelDialogFragment : DialogFragment() {
             runSearch()
             true
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // The query field consumes Enter through its editor action, so search stays wired there;
+        // the delegate adds the Escape dismissal route and focus movement.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
     override fun onDestroyView() {

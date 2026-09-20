@@ -167,8 +167,6 @@
     <color name="welcome_page_7_background">#E8EAF6</color>
     <color name="welcome_page_8_background">#EDE7F6</color>  <!-- Deep Purple 50 - used when VR page is added -->
 
-    <color name="resource_item_bg_even">#FFFFFFFF</color>    <!-- White -->
-    <color name="resource_item_bg_odd">#FFE8E8E8</color>    <!-- Light grey (visible zebra stripe) -->
 
     <!-- Resource type chip background colors (light theme) -->
     <color name="chip_local_bg">#A5D6A7</color>    <!-- Green 200 -->
@@ -575,4 +573,33 @@
     <color name="tourist_tile_bg_sun_time">#FFF8E1</color>
     <color name="tourist_tile_bg_weather">#E1F5FE</color>
     <color name="tourist_tile_bg_dew_point">#E0F2F1</color>
+
+    <!-- S3252: minigame board entity palette. game_player/game_kryvavitsa/game_shadow are the
+         deliberate brand hues for the three actor types (owner quiz decision 2026-09-18) - fixed
+         across themes, not resolved against the theme surface. -->
+    <color name="game_floor">#FFF5F5F5</color>
+    <color name="game_wall">#FF5F6368</color>
+    <color name="game_exit">#FF2E7D32</color>
+    <color name="game_player">#FF1976D2</color>
+    <color name="game_kryvavitsa">#FFD32F2F</color>
+    <color name="game_shadow">#FF7B1FA2</color>
+    <color name="game_border">#FF3C4043</color>
+    <color name="game_defeat">#FFE53935</color>
+    <color name="game_start_highlight_fill">#55FFD54F</color>
+    <color name="game_start_highlight_stroke">#FFFFD54F</color>
+    <color name="game_defeat_highlight_fill">#66FF5252</color>
+    <color name="game_defeat_highlight_stroke">#FFFF7043</color>
+    <color name="game_grid">#33000000</color>
+    <color name="game_guide_arrow">#FFFFA000</color>
+
+    <!-- S3252: prefetch overlay status pill/bar tints, one triple per prefetch state. -->
+    <color name="prefetch_pill_success">#CC2E7D32</color>
+    <color name="prefetch_bar_success">#4CAF50</color>
+    <color name="prefetch_pill_warning">#CCF57F17</color>
+    <color name="prefetch_bar_warning">#FFB300</color>
+    <color name="prefetch_pill_neutral">#CC1C1C1C</color>
+    <color name="prefetch_bar_neutral">#2196F3</color>
+
+    <!-- S3252: 20% opacity red background for the IP address field's invalid-input state. -->
+    <color name="ip_error_background">#33FF0000</color>
 </resources>

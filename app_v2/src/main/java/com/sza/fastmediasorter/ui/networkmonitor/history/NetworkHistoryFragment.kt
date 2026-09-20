@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import timber.log.Timber
 
 /**
  * S1433: the History subscreen - the stored measurements, a clear-all behind a confirmation and an export
@@ -94,6 +95,7 @@ class NetworkHistoryFragment : Fragment() {
      * `DialogCancel`, and a builder would give the confirm the ordinary affirmative style instead.
      */
     private fun showClearConfirmation() {
+        Timber.d("S3254: clear-history dialog opened for the rotation and D-pad pass")
         clearDialog?.dismiss()
         val content = DialogNetworkMonitorClearHistoryBinding.inflate(layoutInflater)
         val dialog = MaterialAlertDialogBuilder(requireContext())

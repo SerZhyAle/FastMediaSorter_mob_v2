@@ -844,6 +844,52 @@ The retired flat `temp/Sxxxx_*` scheme left exactly the second shape behind, and
 class matches directories only so those files surface instead of hiding behind the rule that protects
 the directories.
 
+### The failure journal and the one command that reads it (S3288)
+
+A red verdict used to be walked past for a mechanical reason: the tool result carrying it scrolls out
+of the agent's reach within a turn or two, so "what did that command actually say" stops being
+answerable moments after it is worth asking. Measured 2026-09-18, `temp/metrics/gate-executions.jsonl`
+held 189 116 rows and 187 `FAIL` verdicts over two days, written by exactly three gate runners and read
+by nobody, while every other script in the repository - the `spec_catalog` CLI, `catalog_sync.ps1`,
+`scripts/devtest/adb.ps1`, `set-android-string.ps1`, the fast `a.ps1` targets - left no trace at all
+when it refused. Three pieces close that, and each has one job.
+
+- **The record: `temp/metrics/tool-failures.jsonl`**, written by `scripts/quality/lib/tool-failure-journal.ps1`.
+  One row per failing invocation - `timestampUtc`, `sessionId`, `tool`, `command`, `exitCode`,
+  `outputTail` (the last 2000 characters, because a script states its reason immediately before it
+  exits) and `cwd`. The writer swallows every IO error of its own, so recording a failure can never
+  become a second failure on top of it, and it **trims the file to its last 500 rows on every write** -
+  the journal it sits beside reached 30 MB unattended, and a record nobody prunes is a cost rather
+  than an answer. The `temp/metrics/` root is already declared in the inventory above.
+- **The moment: `.claude/hooks/refuse-unexplained-red-verdict.ps1`**, a `Stop` hook. It refuses to let
+  a turn end that left a red `.ps1` verdict nobody looked at. Red is exit **1** (failed) or **2**
+  (could not verify) from a command whose head is a `.ps1` or `a.ps1`, and nothing else: it is silent
+  on exit 3 and 4 - an advisory verdict and a lock queue position, 137 call sites between them and both
+  normal flow - silent on a failing `grep`, whose 1 means "no match", and silent about the explainer
+  itself, or it would demand an explanation of the explanation. A hook that cries wolf teaches the
+  agent to skip its line, which is the failure this whole mechanism exists to end.
+- **The answer: `pwsh -NoProfile -File scripts/quality/explain-last-failure.ps1`**, the one command the
+  refusal names, and the only way out of it. It prints what the failing invocation was and what it
+  printed last, says `REPEAT: n earlier failure(s)` when the same command head already failed in this
+  session - a repeat is the finding, because it means the previous answers were walked past - and for
+  the three gate runners cross-references `gate-executions.jsonl` to name **which** gate went red and
+  over which files. It never returns 1: "nothing to explain" is an answer and exits 0. `-Last n`
+  explains more than one row, `-Session` restricts to this session.
+
+Why a `Stop` hook and not a `PostToolUse` one: `PostToolUse` **does not fire when the tool call fails**,
+measured directly on this runtime and recorded with its captured payloads in
+`PLAN/S3288_script-result-journal-and-red-verdict-visibility/` - and the Bash `tool_response` carries
+no exit-code member either, so the trigger could not be read even on a call that did fire. The
+transcript the `Stop` payload points at records every tool result, so the hook reads what actually
+failed rather than being told.
+
+The canon half - a harness CLI journalling its own refusal with the reason it printed, rather than a
+project hook inferring it from an exit code - is authored in the canon checkout
+(`tools/harness/lib/tool-failure-journal.ps1`, called from `spec_catalog/_lib.ps1`) and reaches this
+repository only when the owner publishes the plugin; until then `assert-harness-drift.ps1` reports
+those files as `canon is newer` and `scripts/quality/explain-last-failure.tests/Run-Tests.ps1` skips
+its harness-written cases, saying so on its summary line.
+
 ### Release freeze - admission control for a sweep, not a sixth lock (S3010)
 
 Rule 23 orders concurrent work at the granularity a **change** needs: five domains, each held for one
@@ -993,6 +1039,8 @@ post-change: FAIL (2 gate(s), Kotlin)
 ```
 
 What did **not** change: exit codes stay `0` passed / `1` a gate failed / `2` could not verify, and a failed run still writes nothing - the barrier sits before `catalog-sync` and `dev-log`, so "there is a changelog row" still means "the closure passed". `detekt-preflight` still suppresses the whole-module `detekt-gate` when it fails, since it already ran the real analyser over the same files; the gate then reports `SKIP` naming the preflight rather than pretending it judged.
+
+Since S3327 (owner ruling 2026-09-20) the whole-module `detekt-gate` no longer runs in a `-ScopeToFile` closure at all: the step reports `SKIP` naming the ruling, and the judgement stays in the release/CI closure that omits the switch, where `detekt-preflight` still suppresses it after a red pre-pass. Two independent windows (S1938 over 1450 closures, S3327 over 556) found zero gradle-step findings after a clean cheap pass, while the step held 21.4% of the summed gate wall and ~34 s of elapsed time per Kotlin-carrying closure. The lexical pair (`detekt-format`, `detekt-preflight`) is untouched.
 
 Each failed gate prints two extra lines - `repro:`, the command that runs that gate **alone**, and `fix:`, one sentence on what to do with the finding. Both come from `scripts/quality/gate-recovery-hints.psd1`, keyed by the gate label exactly as the facade prints it. Registering a new gate means adding an entry there, never editing the facade's output logic; `scripts/quality/assert-gate-hints-sync.ps1` (in `.\a.ps1 fg`) fails when a label has no entry or an entry names no label, because a missing hint is otherwise invisible until the moment that gate fails.
 

@@ -99,6 +99,29 @@
     <dimen name="card_corner_radius">8dp</dimen>
     <dimen name="card_elevation">2dp</dimen>
 
+    <!-- S3241: the three sanctioned corner radii of docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 1.5.
+         The per-feature names (card_corner_radius, settings_tab_corner_radius, focus_decoration_corner_radius,
+         tourist_*_card_corner_radius, welcome_*_corner) collapse onto these as each feature is next
+         touched, never as a campaign - a fourth radius needs a decision, not a fourth name. -->
+    <dimen name="shape_corner_small">8dp</dimen>
+    <dimen name="shape_corner_medium">12dp</dimen>
+    <dimen name="shape_corner_large">16dp</dimen>
+
+    <!-- S3241: padding of a list/grid row root carrying Widget.FastMediaSorter.Item.Row. The row style
+         owns the value so 81 item layouts stop each declaring their own. -->
+    <dimen name="item_row_padding_horizontal">12dp</dimen>
+    <dimen name="item_row_padding_vertical">8dp</dimen>
+
+    <!-- S3241: padding of the action-bar container (Widget.FastMediaSorter.Bar.Action) whose children
+         are 48dp icon buttons, so the container adds breathing room without growing the touch targets. -->
+    <dimen name="bar_action_padding_horizontal">4dp</dimen>
+    <dimen name="bar_action_padding_vertical">2dp</dimen>
+
+    <!-- S3241: badge chip metrics - one pill for every overlay counter, replacing six one-off badge
+         backgrounds each with its own padding. -->
+    <dimen name="item_badge_padding_horizontal">6dp</dimen>
+    <dimen name="item_badge_padding_vertical">2dp</dimen>
+
     <!-- ===== SPECIFIC COMPONENTS ===== -->
 
     <!-- Page indicators -->
@@ -324,7 +347,6 @@
     <dimen name="player_group_separator_margin">20dp</dimen>
 
     <!-- Settings Activity -->
-    <dimen name="toolbar_elevation">0dp</dimen>
     <dimen name="tab_indicator_height">0dp</dimen>
 
     <!-- Resource Management (Add/Edit Resource) -->

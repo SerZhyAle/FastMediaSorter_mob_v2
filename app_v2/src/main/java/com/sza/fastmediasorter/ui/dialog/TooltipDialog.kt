@@ -1,9 +1,10 @@
 package com.sza.fastmediasorter.ui.dialog
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
 import android.view.WindowManager
+import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
@@ -13,7 +14,7 @@ import timber.log.Timber
  * Used to explain complex settings and features to users.
  */
 object TooltipDialog {
-    
+
     /**
      * Show a tooltip dialog with title and message
      * @param context Android context
@@ -26,19 +27,23 @@ object TooltipDialog {
             return
         }
         try {
-            AlertDialog.Builder(context)
+            val tooltipDialog = MaterialAlertDialogBuilder(context)
                 .setTitle(title)
                 .setMessage(message)
-                .setPositiveButton(R.string.ok) { dialog, _ ->
-                    dialog.dismiss()
+                .setPositiveButton(R.string.ok) { d, _ ->
+                    d.dismiss()
                 }
                 .setCancelable(true)
-                .showBoundToHost(context)
+                .create()
+            DialogKeyboardDelegate.applyTo(tooltipDialog) {
+                tooltipDialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+            }
+            tooltipDialog.showBoundToHost(context)
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "TooltipDialog: show failed - bad window token")
         }
     }
-    
+
     /**
      * Show a tooltip dialog using string resource IDs
      * @param context Android context

@@ -299,6 +299,26 @@
         <item name="android:letterSpacing">0</item>
     </style>
 
+    <!-- S3241: the text scale of docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 1.3. A role is chosen
+         by what the text MEANS, never by how large it should look, and each one parents a Material 3
+         token so a single type-scale change reaches every surface. The two styles above are the
+         precedent and join this family unchanged. A layout carrying android:textSize is the defect
+         this scale retires: 33 literals across 20 item layouts, spanning 8 values three of which sat
+         1sp apart, plus 23 Material 2 bridge tokens that cannot share a visual family with M3 ones. -->
+    <style name="TextAppearance.FastMediaSorter.Item.Title" parent="TextAppearance.Material3.BodyLarge" />
+
+    <style name="TextAppearance.FastMediaSorter.Item.Subtitle" parent="TextAppearance.Material3.BodyMedium" />
+
+    <style name="TextAppearance.FastMediaSorter.Item.Detail" parent="TextAppearance.Material3.BodySmall" />
+
+    <style name="TextAppearance.FastMediaSorter.Item.Badge" parent="TextAppearance.Material3.LabelSmall" />
+
+    <style name="TextAppearance.FastMediaSorter.Bar.Title" parent="TextAppearance.Material3.TitleLarge" />
+
+    <style name="TextAppearance.FastMediaSorter.Dialog.Title" parent="TextAppearance.Material3.HeadlineSmall" />
+
+    <style name="TextAppearance.FastMediaSorter.Dialog.Body" parent="TextAppearance.Material3.BodyMedium" />
+
     <!-- S0536: canonical on/off switch look. Parent-only (Material3 default) - the app theme binds this
          via materialSwitchStyle so any bare MaterialSwitch matches the one inside SettingsToggleRow. -->
     <style name="Widget.FastMediaSorter.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch" />
@@ -361,7 +381,14 @@
         <item name="textAllCaps">false</item>
     </style>
 
-    <style name="Widget.FastMediaSorter.Button.Icon" parent="Widget.Material3.Button.IconButton" />
+    <!-- S3249: the icon-button token every ActionBarView child is built with. The two minimums are
+         written here rather than left to the M3 parent because a bar generated in code has no layout
+         attributes to fall back on, and Rule 16 puts the floor at 48dp for D-pad and touch alike. -->
+    <style name="Widget.FastMediaSorter.Button.Icon" parent="Widget.Material3.Button.IconButton">
+        <item name="android:minWidth">@dimen/touch_target_min_height</item>
+        <item name="android:minHeight">@dimen/touch_target_min_height</item>
+        <item name="android:focusable">true</item>
+    </style>
 
     <!-- S3250: the shared surface for every floating player panel - one scrim token and one
          elevation token instead of a per-panel literal. Applied either through PlayerOverlayPanel
@@ -388,6 +415,66 @@
         <item name="android:scaleType">centerInside</item>
         <item name="android:padding">@dimen/player_button_padding</item>
         <item name="tint">@color/selector_player_button_tint</item>
+    </style>
+
+    <!-- S3241: the list/grid item family of docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.2.
+         The row style is what closes the background hole in one place - 26 of the 64 item layouts
+         declare no root background at all, and the correct two-drawable idiom (selector as background,
+         ripple as foreground) had been adopted by 7 of 81. A row is selected through isSelected and
+         the state-list drawable; an adapter that swaps the root colour destroys that selector, which
+         is why the value lives here and not in a bind() call. -->
+    <style name="Widget.FastMediaSorter.Item.Row" parent="">
+        <item name="android:background">@drawable/item_focus_selector</item>
+        <item name="android:foreground">@drawable/item_interaction_overlay</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">false</item>
+        <item name="android:paddingHorizontal">@dimen/item_row_padding_horizontal</item>
+        <item name="android:paddingVertical">@dimen/item_row_padding_vertical</item>
+    </style>
+
+    <!-- S3241: the thumbnail child of a row. Transparent by construction, so the two
+         setBackgroundColor(Color.TRANSPARENT) calls an adapter made per bind have nothing left to do. -->
+    <style name="Widget.FastMediaSorter.Item.Thumbnail" parent="">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:scaleType">centerCrop</item>
+        <item name="android:adjustViewBounds">true</item>
+    </style>
+
+    <!-- S3241: one badge pill for the six one-off badge ids, each of which carried its own background
+         drawable and its own text sizing. -->
+    <style name="Widget.FastMediaSorter.Item.Badge" parent="">
+        <item name="android:background">?attr/colorSecondaryContainer</item>
+        <item name="android:textAppearance">@style/TextAppearance.FastMediaSorter.Item.Badge</item>
+        <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
+        <item name="android:paddingHorizontal">@dimen/item_badge_padding_horizontal</item>
+        <item name="android:paddingVertical">@dimen/item_badge_padding_vertical</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <!-- S3241: container of an action strip (ActionBarView, section 2.3). The children are icon
+         buttons added as Action records, so the container owns only placement, surface and elevation -
+         the three decisions the two bar-less screens currently restate per control. -->
+    <style name="Widget.FastMediaSorter.Bar.Action" parent="">
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:background">?attr/colorSurface</item>
+        <item name="android:elevation">@dimen/elevation_button_bar</item>
+        <item name="android:paddingHorizontal">@dimen/bar_action_padding_horizontal</item>
+        <item name="android:paddingVertical">@dimen/bar_action_padding_vertical</item>
+    </style>
+
+    <!-- S3241: bottom placement - it sits on the surface it acts upon, so it separates by container
+         colour and by the operations-bar elevation rather than by a divider. -->
+    <style name="Widget.FastMediaSorter.Bar.Action.Bottom">
+        <item name="android:background">?attr/colorSurfaceVariant</item>
+        <item name="android:elevation">@dimen/elevation_operations_bar</item>
+    </style>
+
+    <!-- S3241: floating placement - it draws over content, so it carries no surface of its own and
+         relies on its children's own backgrounds, as the four scroll controls already do. -->
+    <style name="Widget.FastMediaSorter.Bar.Action.Floating">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:elevation">@dimen/card_elevation_high</item>
     </style>
 
     <!-- Compact variants of the taxonomy above, for an action bar that must keep several labelled
@@ -510,6 +597,26 @@
         <item name="selectableItemBackgroundBorderless">@drawable/toolbar_action_item_focus_selector</item>
         <item name="android:selectableItemBackgroundBorderless">@drawable/toolbar_action_item_focus_selector</item>
         <item name="toolbarNavigationButtonStyle">@style/Widget.FastMediaSorter.Toolbar.ActionButton</item>
+    </style>
+
+    <!-- S3248: the two toolbar variants of docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.3. Seven
+         inline attribute fingerprints across 27 layouts collapse onto these, so a theme change is one
+         edit here instead of 27 restatements where an omission is invisible. Primary paints the bar
+         with the brand colour, Flat leaves the host surface showing through. -->
+    <style name="Widget.FastMediaSorter.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:elevation">@dimen/dimension_zero</item>
+        <item name="titleTextAppearance">@style/TextAppearance.FastMediaSorter.Bar.Title</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.Toolbar.Primary">
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="navigationIconTint">?attr/colorOnPrimary</item>
+        <item name="titleTextColor">?attr/colorOnPrimary</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.Toolbar.Flat">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="navigationIconTint">?attr/colorControlNormal</item>
     </style>
 
 
@@ -722,6 +829,25 @@
     <style name="ShapeAppearanceOverlay.FastMediaSorter.ThumbnailSquare" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">4dp</item>
+    </style>
+
+    <!-- S3241: the three sanctioned radii of docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 1.5, as
+         shape overlays rather than as an app:cardCornerRadius on each instance - the radius is a
+         property of the role, so a surface that changes role changes one style reference. The square
+         overlay above is the precedent and keeps its own 4dp, which is a clip, not a card corner. -->
+    <style name="ShapeAppearanceOverlay.FastMediaSorter.Corner.Small" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/shape_corner_small</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.FastMediaSorter.Corner.Medium" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/shape_corner_medium</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.FastMediaSorter.Corner.Large" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/shape_corner_large</item>
     </style>
 
     <!-- S0619: wide, finger-friendly slider for the playback control dialog. Opt-in via style= on each

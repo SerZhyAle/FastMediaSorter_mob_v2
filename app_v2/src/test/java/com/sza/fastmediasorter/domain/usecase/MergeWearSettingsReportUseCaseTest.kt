@@ -23,6 +23,8 @@ private const val WATCH_POWER_SAVING = "BELOW_15"
 private const val PHONE_POWER_SAVING = "OFF"
 private const val WATCH_PANEL_AUTO_HIDE = 3
 private const val PHONE_PANEL_AUTO_HIDE = 8
+private const val WATCH_DIM_CLOCK_OVERLAY_ENABLED = true
+private const val PHONE_DIM_CLOCK_OVERLAY_ENABLED = false
 
 // S2799: the three shared fields the merge omitted - added to the contract after its field list was
 // written, and each dropped on the way back from the watch until that ticket.
@@ -315,6 +317,42 @@ class MergeWearSettingsReportUseCaseTest {
         assertEquals(false, merged.disableAnimations)
         assertEquals(PHONE_POWER_SAVING, merged.powerSavingTrigger)
         assertEquals(PHONE_PANEL_AUTO_HIDE, merged.panelAutoHideSeconds)
+    }
+
+    @Test
+    fun `S3330 a watch-stamped dim-clock overlay edit wins over a stale phone value`() = runTest {
+        val store = FakeWearSettingsMirrorStore().apply {
+            settings = phoneSet().copy(dimClockOverlayEnabled = PHONE_DIM_CLOCK_OVERLAY_ENABLED)
+            stamps = mapOf("dimClockOverlayEnabled" to EARLY_EDIT)
+        }
+
+        val merged = MergeWearSettingsReportUseCase(store)(
+            watchSet().copy(
+                dimClockOverlayEnabled = WATCH_DIM_CLOCK_OVERLAY_ENABLED,
+                fieldTimestamps = mapOf("dimClockOverlayEnabled" to LATE_EDIT)
+            ),
+            EXCHANGE_AT,
+            EXCHANGE_AT
+        )
+
+        assertEquals(WATCH_DIM_CLOCK_OVERLAY_ENABLED, merged.dimClockOverlayEnabled)
+        assertEquals(LATE_EDIT, store.stamps["dimClockOverlayEnabled"])
+    }
+
+    @Test
+    fun `S3330 a dim-clock overlay field the watch never sent leaves the stored value alone`() = runTest {
+        val store = FakeWearSettingsMirrorStore().apply {
+            settings = phoneSet().copy(dimClockOverlayEnabled = PHONE_DIM_CLOCK_OVERLAY_ENABLED)
+        }
+
+        val merged = MergeWearSettingsReportUseCase(store)(
+            watchSet(),
+            null,
+            EXCHANGE_AT,
+            WearSettingsPayloadDecoder.CONTRACT_FIELDS - "dimClockOverlayEnabled"
+        )
+
+        assertEquals(PHONE_DIM_CLOCK_OVERLAY_ENABLED, merged.dimClockOverlayEnabled)
     }
 
     private fun lateAddedPhoneSet() = phoneSet().copy(

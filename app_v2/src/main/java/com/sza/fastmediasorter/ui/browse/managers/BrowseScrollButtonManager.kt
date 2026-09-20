@@ -1,27 +1,29 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
-import android.view.View
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
+import com.sza.fastmediasorter.ui.common.widget.ActionBarView
 import timber.log.Timber
 
 /**
  * Manages scroll button (FAB) visibility and safe RecyclerView notification for BrowseActivity.
  *
  * Extracted from BrowseActivity (Wave 1.5 decomposition - IV.1).
+ *
+ * S3249: the four controls became two floating [ActionBarView] strips - the backward pair anchored
+ * to the top of the list, the forward pair to its bottom - so a strip is hidden alongside its own
+ * actions and stops reserving space no visible control needs.
  */
 class BrowseScrollButtonManager(
     private val activity: Activity,
     private val recyclerView: RecyclerView,
     private val adapter: MediaFileAdapter,
-    private val fabScrollToTop: View,
-    private val fabScrollToBottom: View,
-    private val fabPageUp: View,
-    private val fabPageDown: View
+    private val barScrollTop: ActionBarView,
+    private val barScrollBottom: ActionBarView
 ) {
 
     /**
@@ -44,21 +46,17 @@ class BrowseScrollButtonManager(
 
         val allVisible = firstVisible == RecyclerView.NO_POSITION ||
             (firstVisible <= 0 && lastVisible != RecyclerView.NO_POSITION && lastVisible >= itemCount - 1)
-        if (fileCount == 0 || allVisible) {
-            fabScrollToTop.isVisible = false
-            fabScrollToBottom.isVisible = false
-            fabPageUp.isVisible = false
-            fabPageDown.isVisible = false
-            return
-        }
+        val atTop = fileCount == 0 || allVisible || firstVisible <= 0
+        val atBottom = fileCount == 0 || allVisible || lastVisible >= itemCount - 1
 
-        val atTop = firstVisible <= 0
-        val atBottom = lastVisible >= itemCount - 1
+        applyStripState(barScrollTop, R.id.actionBrowseScrollToTop, R.id.actionBrowsePageUp, !atTop)
+        applyStripState(barScrollBottom, R.id.actionBrowsePageDown, R.id.actionBrowseScrollToBottom, !atBottom)
+    }
 
-        fabScrollToTop.isVisible = !atTop
-        fabPageUp.isVisible = !atTop
-        fabScrollToBottom.isVisible = !atBottom
-        fabPageDown.isVisible = !atBottom
+    private fun applyStripState(bar: ActionBarView, firstAction: Int, secondAction: Int, visible: Boolean) {
+        bar.setActionVisible(firstAction, visible)
+        bar.setActionVisible(secondAction, visible)
+        bar.isVisible = visible
     }
 
     /**

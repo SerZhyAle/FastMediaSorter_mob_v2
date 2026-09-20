@@ -37,6 +37,7 @@ class SosSoundGenerator @Inject constructor() {
     /** Idempotent: a second call while the siren runs is a no-op rather than a second track. */
     fun start(context: Context) {
         if (track != null) return
+        Timber.d("S3333: watch siren starting, raising the alarm channel")
         raiseAlarmVolume(context)
         runCatching { buildLoopingTrack() }
             .onFailure { Timber.w(it, "SosSoundGenerator: could not open the alarm track") }
@@ -119,13 +120,61 @@ class SosSoundGenerator @Inject constructor() {
         }
     }
 
+    /**
+     * Raises the alarm channel and states, in the log, what it actually reached.
+     *
+     * The reached value is read back rather than assumed (S3333): a watch with Do Not Disturb or theatre
+     * mode active accepts [AudioManager.setStreamVolume] and leaves the channel where it was, so the only
+     * evidence that the siren is at full volume is the channel answering with its own maximum afterwards.
+     */
     private fun raiseAlarmVolume(context: Context) {
         val manager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
-        runCatching {
-            val max = manager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
-            restoreAlarmVolume = manager.getStreamVolume(AudioManager.STREAM_ALARM)
-            manager.setStreamVolume(AudioManager.STREAM_ALARM, max, 0)
-        }.onFailure { Timber.w(it, "SosSoundGenerator: alarm volume left as the watch had it") }
+        val max = manager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
+        val baseline = runCatching { manager.getStreamVolume(AudioManager.STREAM_ALARM) }.getOrNull() ?: return
+        restoreAlarmVolume = baseline
+        runCatching { manager.setStreamVolume(AudioManager.STREAM_ALARM, max, 0) }
+            .onFailure { Timber.w(it, "SosSoundGenerator: the watch alarm channel refused a direct set") }
+        var reached = currentAlarmVolume(manager, baseline)
+        if (reached < max) {
+            reached = raiseStepwise(manager, max, reached)
+        }
+        if (reached < max) {
+            Timber.w(
+                "SosSoundGenerator: watch siren below full volume - baseline %d, max %d, reached %d",
+                baseline,
+                max,
+                reached,
+            )
+        } else {
+            Timber.i("SosSoundGenerator: watch siren at full alarm volume - baseline %d, max %d", baseline, max)
+        }
+    }
+
+    /**
+     * Walks the channel up one notch at a time when the direct set did not land.
+     *
+     * Bounded by the channel's own maximum and stopped as soon as a step fails to move the value: a watch
+     * that refuses the raise altogether would otherwise spin here for the life of the siren.
+     */
+    private fun raiseStepwise(manager: AudioManager, max: Int, from: Int): Int {
+        var reached = from
+        var attempts = 0
+        var stalled = false
+        while (!stalled && reached < max && attempts < max) {
+            attempts++
+            val accepted = runCatching {
+                manager.adjustStreamVolume(
+                    AudioManager.STREAM_ALARM,
+                    AudioManager.ADJUST_RAISE,
+                    AudioManager.FLAG_ALLOW_RINGER_MODES,
+                )
+            }.onFailure { failure ->
+                Timber.w(failure, "SosSoundGenerator: the watch alarm channel refused a stepwise raise")
+            }.isSuccess
+            val next = if (accepted) currentAlarmVolume(manager, reached) else reached
+            if (next > reached) reached = next else stalled = true
+        }
+        return reached
     }
 
     private fun restoreAlarmVolume(context: Context) {
@@ -134,7 +183,17 @@ class SosSoundGenerator @Inject constructor() {
         val manager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
         runCatching { manager.setStreamVolume(AudioManager.STREAM_ALARM, previous, 0) }
             .onFailure { Timber.w(it, "SosSoundGenerator: could not restore the alarm volume") }
+        val now = currentAlarmVolume(manager, previous)
+        if (now == previous) {
+            Timber.i("SosSoundGenerator: watch alarm volume back at %d", previous)
+        } else {
+            Timber.w("SosSoundGenerator: watch alarm volume not restored - expected %d, now %d", previous, now)
+        }
     }
+
+    /** [fallback] rather than a thrown read: a channel that cannot be read must not end the siren. */
+    private fun currentAlarmVolume(manager: AudioManager, fallback: Int): Int =
+        runCatching { manager.getStreamVolume(AudioManager.STREAM_ALARM) }.getOrDefault(fallback)
 
     private companion object {
 

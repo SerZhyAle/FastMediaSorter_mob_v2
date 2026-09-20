@@ -5,9 +5,11 @@ import android.widget.Toast
 import androidx.activity.result.IntentSenderRequest
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.domain.mutation.Mutation
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.MediaUnavailableDialog
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
@@ -161,11 +163,15 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
     fun showFileNotFound(fileName: String) {
         if (activity.isFinishing || activity.isDestroyed) return
         try {
-            AlertDialog.Builder(activity)
+            val dialog = MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.file_not_found_title)
                 .setMessage(activity.getString(R.string.player_file_not_found_message, fileName))
                 .setPositiveButton(R.string.ok, null)
-                .showBoundTo(activity)
+                .create()
+            DialogKeyboardDelegate.applyTo(dialog) {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+            }
+            dialog.showBoundTo(activity)
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "PlayerEventHandler: showFileNotFound failed - bad window token")
         }

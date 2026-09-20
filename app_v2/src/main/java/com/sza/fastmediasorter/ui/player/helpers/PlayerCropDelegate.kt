@@ -4,10 +4,10 @@ import android.graphics.RectF
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import kotlinx.coroutines.launch
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.common.widget.CropFrameView
 import com.sza.fastmediasorter.ui.player.contracts.PlayerActionHost
-import com.sza.fastmediasorter.ui.player.views.CropOverlayView
+import kotlinx.coroutines.launch
 
 /**
  * Handles the crop overlay lifecycle. S0393: consumes the binding-agnostic [PlayerActionHost] seam
@@ -44,7 +44,9 @@ class PlayerCropDelegate(
         ) { fileName ->
             imageCropManager.lifecycleScope.launch {
                 imageCropManager.performCompressedCopy(
-                    file, resource, fileName,
+                    file,
+                    resource,
+                    fileName,
                     if (isReadOnly) null else resource,
                     imageCropCallback
                 )
@@ -62,7 +64,7 @@ class PlayerCropDelegate(
         cropOverlayView = overlay
         parent.addView(overlay)
 
-        val cropView = overlay.findViewById<CropOverlayView>(R.id.crop_overlay_view)
+        val cropView = overlay.findViewById<CropFrameView>(R.id.crop_overlay_view)
         cropView.pinchPassthroughTarget = host.imagePinchTarget
         val btnConfirm = overlay.findViewById<View>(R.id.btn_crop_confirm)
         val btnCancel = overlay.findViewById<View>(R.id.btn_crop_cancel)
@@ -99,7 +101,12 @@ class PlayerCropDelegate(
                     ) { fileName ->
                         host.hostScope.launch {
                             imageCropManager.performCropToFile(
-                                rect, vw, vh, file, resource, fileName,
+                                rect,
+                                vw,
+                                vh,
+                                file,
+                                resource,
+                                fileName,
                                 if (isReadOnly) null else resource,
                                 imageCropCallback
                             )

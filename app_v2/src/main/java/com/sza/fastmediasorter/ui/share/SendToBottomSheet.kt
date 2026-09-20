@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.share
 
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,15 +7,14 @@ import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareTarget
 import com.sza.fastmediasorter.core.share.ShareTargetIconResolver
 import com.sza.fastmediasorter.core.share.ShareableContent
-import com.sza.fastmediasorter.databinding.SheetSendToBinding
 import com.sza.fastmediasorter.databinding.ItemSendToReceiverBinding
+import com.sza.fastmediasorter.databinding.SheetSendToBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
-import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.ui.common.dialog.BaseAppBottomSheet
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -35,7 +33,7 @@ import javax.inject.Inject
  * between gating and binding. TV/D-pad: first row receives focus once laid out (research 03).
  */
 @AndroidEntryPoint
-class SendToBottomSheet : BottomSheetDialogFragment() {
+class SendToBottomSheet : BaseAppBottomSheet() {
 
     @Inject lateinit var menuManager: SendToMenuManager
     @Inject lateinit var iconResolver: ShareTargetIconResolver
@@ -53,6 +51,8 @@ class SendToBottomSheet : BottomSheetDialogFragment() {
     private val binding get() = _binding!!
 
     companion object {
+        private const val REQUEST_KEY = "send_to_sheet"
+
         fun newInstance(
             content: ShareableContent,
             settings: AppSettings,
@@ -64,17 +64,11 @@ class SendToBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
-        _binding = SheetSendToBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override val contentLayout: Int = R.layout.sheet_send_to
+    override val requestKey: String = REQUEST_KEY
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun bindContent(sheetContent: View) {
+        _binding = SheetSendToBinding.bind(sheetContent)
         val currentContent = content
         val currentSettings = settings
         if (currentContent == null || currentSettings == null) {
@@ -105,13 +99,6 @@ class SendToBottomSheet : BottomSheetDialogFragment() {
                 dismiss()
             }
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        // Pure picker: tapping a receiver row is the action, so no-op confirm gives Esc-dismiss and
-        // focus traversal without a false Enter-confirm.
-        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
     override fun onDestroyView() {

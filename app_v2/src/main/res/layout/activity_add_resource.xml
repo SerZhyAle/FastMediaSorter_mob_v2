@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:fitsSystemWindows="true" tools:context=".ui.addresource.AddResourceActivity">
 
     <!-- Keep the toolbar content at full height; the status-bar inset is applied to the outer container. -->
-    <FrameLayout android:id="@+id/toolbarContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:layout_constraintTop_toTopOf="parent">
+    <FrameLayout android:id="@+id/toolbarContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorPrimary" android:elevation="@dimen/dimension_zero" app:layout_constraintTop_toTopOf="parent">
 
         <!-- S0800: early icon picker removed; the resource icon is assigned later in the resource editor. -->
-        <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:navigationIcon="@drawable/ic_arrow_back" app:navigationContentDescription="@string/back" app:navigationIconTint="?attr/colorOnPrimary" app:title="@string/add_resource_title" app:titleTextColor="?attr/colorOnPrimary" />
+        <com.sza.fastmediasorter.ui.common.widget.StandardToolbar android:id="@+id/toolbar" style="@style/Widget.FastMediaSorter.Toolbar.Primary" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" app:navigationIcon="@drawable/ic_arrow_back" app:navigationContentDescription="@string/back" app:title="@string/add_resource_title" />
 
     </FrameLayout>
 

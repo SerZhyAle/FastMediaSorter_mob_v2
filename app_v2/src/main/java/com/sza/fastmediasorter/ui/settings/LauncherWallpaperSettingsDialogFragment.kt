@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogLauncherWallpaperSettingsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.usecase.launcher.IsCameraWallpaperAvailableUseCase
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherWallpaperScreenManager
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherWallpaperSettingsManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -169,6 +170,9 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
     override fun onStart() {
         super.onStart()
         dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        // The close button only dismisses, so Enter on an unfocused surface dismisses too; focused
+        // controls consume Enter before the delegate sees it.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = { dismiss() })
     }
 
     override fun onDestroyView() {

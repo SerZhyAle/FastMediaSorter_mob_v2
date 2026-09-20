@@ -7,6 +7,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ContextThemeWrapper
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
@@ -46,7 +47,9 @@ class LinkAutoDownloadProgressDialog(
             onCancel()
             dismiss()
         }
-        dialog = AlertDialog.Builder(themedContext)
+        // No keyboard delegate here on purpose: Escape must route through the cancel listener
+        // (OnCancelListener fires on cancel(), not on dismiss()), so BACK stays the dismissal route.
+        dialog = MaterialAlertDialogBuilder(themedContext)
             .setView(view)
             .setCancelable(true)
             .setOnCancelListener {
@@ -55,7 +58,8 @@ class LinkAutoDownloadProgressDialog(
                     onCancel()
                 }
             }
-            .showBoundToHost(activity)
+            .create()
+            .also { it.showBoundToHost(activity) }
     }
 
     fun update(state: LinkAutoDownloadCoordinator.ProgressState) {

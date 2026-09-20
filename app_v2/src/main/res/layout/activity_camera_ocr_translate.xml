@@ -315,10 +315,12 @@
                 android:importantForAccessibility="no"
                 android:scaleType="fitCenter" />
 
-            <com.sza.fastmediasorter.ui.cameraocr.CropOverlayView
+            <com.sza.fastmediasorter.ui.common.widget.CropFrameView
                 android:id="@+id/cropOverlay"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:contentDescription="@string/camera_ocr_crop_frame_desc"
+                app:cfvScrimMode="bands" />
 
         </FrameLayout>
 

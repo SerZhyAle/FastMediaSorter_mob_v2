@@ -191,14 +191,17 @@ class BrowseStateUiUpdater(
         // carries the inset, and whether the list must reserve it itself.
         BrowseEdgeToEdgeHelper.applyBottomInsets(binding)
 
-        binding.btnCopy.isVisible = hasSelection
-        binding.btnMove.isVisible = hasSelection && canWrite
-        binding.btnRename.isVisible = hasSelection && canWrite
-        binding.btnDelete.isVisible = hasSelection && canWrite
-        binding.btnUndo.isVisible = state.lastOperation != null
-        binding.btnShare.isVisible = hasSelection
+        // S3249: the operations bar is an ActionBarView, so a control is addressed by its action id.
+        val operations = binding.layoutOperations
+        Timber.d("S3249: operations visibility hasSelection=$hasSelection canWrite=$canWrite")
+        operations.setActionVisible(R.id.actionBrowseCopy, hasSelection)
+        operations.setActionVisible(R.id.actionBrowseMove, hasSelection && canWrite)
+        operations.setActionVisible(R.id.actionBrowseRename, hasSelection && canWrite)
+        operations.setActionVisible(R.id.actionBrowseDelete, hasSelection && canWrite)
+        operations.setActionVisible(R.id.actionBrowseUndo, state.lastOperation != null)
+        operations.setActionVisible(R.id.actionBrowseShare, hasSelection)
         val isLocalResource = resource?.type == ResourceType.LOCAL
-        binding.btnArchive?.isVisible = hasSelection && isLocalResource
+        operations.setActionVisible(R.id.actionBrowseArchive, hasSelection && isLocalResource)
     }
 
     /**

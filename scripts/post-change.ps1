@@ -87,11 +87,13 @@ param(
     [string]$Module = "app_v2",
     [string]$KeyPrefix,
     [switch]$SkipScan,
-    # S0826: per-change closure on an always-dirty tree. When set, detekt is diff-scoped to
-    # -File (fails only on findings in THIS change), and every count-ratchet gate (neuroslop,
-    # listener-symmetry, flavor-flag, deprecated-pm; S0848/S0850) judges a real FATAL delta on
-    # the changed file (growth vs HEAD) instead of a full-project scan - other tickets' WIP no
-    # longer trips them. Only icon-inventory-sync stays advisory (its re-render is repo-wide).
+    # S0826: per-change closure on an always-dirty tree. When set, every count-ratchet gate
+    # (neuroslop, listener-symmetry, flavor-flag, deprecated-pm; S0848/S0850) judges a real
+    # FATAL delta on the changed file (growth vs HEAD) instead of a full-project scan - other
+    # tickets' WIP no longer trips them. Only icon-inventory-sync stays advisory (its re-render
+    # is repo-wide). S3327 (owner ruling 2026-09-20): the gradle detekt step no longer runs
+    # under this switch at all - the scoped run left the per-ticket closure, and the
+    # whole-module judgement stays in the release/CI closure that omits the switch.
     # Release/CI omit the switch for the strict full project gate.
     [switch]$ScopeToFile,
     # S1338 phase 05: acknowledge the document-registry records this change touches. The
@@ -348,7 +350,11 @@ $runsNeuroslopGate = $isCodeChange -or $isResourceChange
 # S0720 detekt + ktlint static-analysis gate. Runs :app_v2:detekt :wear:detekt over a
 # committed per-module baseline (only NEW findings fail). It invokes gradle, so it is scoped to
 # a changed Kotlin/Java source file rather than the caller's label.
-$runsDetektGate = $isCodeChange
+# S3327 (owner ruling 2026-09-20): the scoped run left the per-ticket closure. Two independent
+# windows (S1938, 1450 closures; S3327, 556) found zero gradle-step findings after a clean cheap
+# pass, while the step held 21.4% of the summed gate wall and ~34 s of elapsed time per closure.
+# The whole-module judgement stays where the unscoped release/CI closure already performs it.
+$runsDetektGate = $isCodeChange -and -not $ScopeToFile
 # S1356 detekt-baseline absorption gate. Fires when a committed detekt baseline (or its ID snapshot)
 # is among the changed files. A whole-module `detektBaseline` re-freeze accepts every live finding in
 # that module at once - on 2026-08-02 one absorbed the debt S1198 and S1328 were written about, and
@@ -460,7 +466,15 @@ $runsOrientationLayoutPairingGate = (Test-AnyChangedFile '^app_v2/.*AndroidManif
 # than one copy - a config variant, or a flavor override - loses a ViewBinding field the moment one
 # copy drops an id, and either copy can be the one edited. Per-ticket rather than release-scope
 # (Rule 33): the flavor half is a compile break in shared src/main code, so later work builds on it.
+# The trigger assignments stay at the facade's top level on purpose: post-change.tests/Run-Tests.ps1
+# reads them statically there, and the Rule 2 ceiling is paid by the argv lib below instead.
 $runsLayoutVariantIdParityGate = Test-AnyChangedFile '^app_v2/.*res/layout[^/]*/.*\.xml$'
+# S3254 focus-parity gate. Fires on any app_v2 main layout XML: a portrait layout that declares
+# nextFocus* promises a D-pad chain, and a landscape counterpart that drops it strands the focus on
+# rotation. Either side of the pair can be the file edited, so a portrait-only changed set must
+# still trigger the scan. Per-ticket (Rule 33): the author of the declaration is the only one who
+# knows the counterpart must repeat it.
+$runsFocusParityGate = Test-AnyChangedFile '^app_v2/.*res/layout(-land)?/[^/]*\.xml$'
 # S1639 Gson persistence contract gate. Fires on a Kotlin source or an obfuscation rules file, the two
 # halves of the invariant: a model whose JSON outlives the process must have its field names pinned, and
 # either half can break it alone - a new model, or a keep rule that stopped covering an old one. The
@@ -1077,6 +1091,7 @@ if ($ScopeToFile) { $argvNeuroslop += @('-ChangedFiles', ($changedFiles -join ',
 $argvOrientationFeature = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-orientation-implied-feature.ps1"), '-Gate')
 $argvOrientationPairing = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-orientation-layout-pairing.ps1"), '-Gate')
 $argvLayoutVariantParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-layout-variant-id-parity.ps1"), '-Gate')
+$argvFocusParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-focus-parity.ps1"), '-Gate', '-Quiet')
 # S2326: the FGS gate reads every Kotlin file in both trees twice. Handing it the changed set makes
 # it judge what this change could have broken - a new call site, or a drawable it may have tinted.
 $argvFgs = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-fgs-notifications.ps1"), '-Gate')
@@ -1092,30 +1107,16 @@ $argvActivityLocaleWrapper = @('-NoProfile', '-File', (Join-Path $root "scripts/
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvActivityLocaleWrapper += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvQuantityFormatSeam = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-quantity-format-seam.ps1"), '-Gate')
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvQuantityFormatSeam += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvAllFeatures = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1"), '-Gate', '-Quiet')
-$argvHowToPaths = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-howto-settings-paths.ps1"), '-Gate')
-$argvScriptCheatsheet = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-script-cheatsheet-sync.ps1"), '-Gate', '-Quiet')
-$argvCodeDomainWriters = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-code-domain-writers.ps1"), '-Gate', '-Quiet')
-$argvFlavorMatrixDoc = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-flavor-matrix-docs.ps1"), '-Gate', '-Quiet')
-# S2828: -ChangedFiles joins the vector BEFORE Start-PooledGate, so the pool is keyed by the same
-# vector the gate is later invoked with.
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvFlavorMatrixDoc += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvOssNotices = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-oss-notices.ps1"), '-Gate', '-Quiet')
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvOssNotices += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvRuleDigest = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-rule-digest-sync.ps1"), '-Gate')
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvRuleDigest += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvLauncherReset = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-launcher-reset-coverage.ps1"), '-Gate', '-Quiet')
-# S2824: scoped HERE, not at the call site - Start-PooledGate below keys the warmed job by the exact
-# argument vector, so a call site that consumed a different one would miss the pool and run inline.
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvLauncherReset += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvWearWireVocabularyParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-wear-wire-vocabulary-parity.ps1"), '-Gate', '-Quiet')
-$argvWearWireNullability = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-wear-wire-nullability.ps1"), '-Gate', '-Quiet')
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvWearWireVocabularyParity += @('-ChangedFiles', ($changedFiles -join ',')) }
+# Argument vectors of the doc/config/wear-wire gate family live in this lib - extracted to hold
+# the facade under the Rule 2 ceiling. Dot-sourcing lands every vector in this scope; $root,
+# $ScopeToFile and $changedFiles are set by the time this runs.
+. (Join-Path $root 'scripts/quality/lib/post-change-gate-argvs.ps1')
 
 if ($runsNeuroslopGate) { Start-PooledGate @argvNeuroslop }
 if ($runsOrientationFeatureGate) { Start-PooledGate @argvOrientationFeature }
 if ($runsOrientationLayoutPairingGate) { Start-PooledGate @argvOrientationPairing }
 if ($runsLayoutVariantIdParityGate) { Start-PooledGate @argvLayoutVariantParity }
+if ($runsFocusParityGate) { Start-PooledGate @argvFocusParity }
 if ($runsFgsGate) { Start-PooledGate @argvFgs }
 if ($runsFocusHighlightGate) { Start-PooledGate @argvFocusHighlight }
 if ($runsDialogCancelGate) { Start-PooledGate @argvDialogCancel }
@@ -1164,6 +1165,13 @@ if ($runsLayoutVariantIdParityGate) {
 }
 else {
     Skip-Step "layout-variant-id-parity-gate" "not applicable - no changed file is an app_v2 layout XML"
+}
+
+if ($runsFocusParityGate) {
+    Invoke-Gate "focus-parity-gate" { Invoke-GateChild @argvFocusParity }
+}
+else {
+    Skip-Step "focus-parity-gate" "not applicable - no changed file is an app_v2 layout XML"
 }
 
 if ($runsFgsGate) {
@@ -1674,7 +1682,10 @@ else {
 # costs no parallelism: the job still runs alongside every lexical gate above, and it could never
 # have overlapped the gradle gates - one domain, one daemon. It also disarms the orphan lock, since
 # the abort path's Stop-Job in the finally below now has no live child to kill mid-run.
-if ($runsDetektGate -and $detektPreflightFailed) {
+if ($isCodeChange -and $ScopeToFile) {
+    Skip-Step "detekt-gate" "S3327 ruling: the scoped gradle run left the per-ticket closure - the whole-module judgement stays in the release/CI closure"
+}
+elseif ($runsDetektGate -and $detektPreflightFailed) {
     Skip-Step "detekt-gate" "detekt-preflight already failed on the same files - fix those findings first"
 }
 elseif ($runsDetektGate) {
@@ -1687,9 +1698,16 @@ elseif ($runsDetektGate) {
         $finished = Wait-Job -Job $detektJob -Timeout $joinCeilingSeconds
         if (-not $finished) {
             Write-Host ("detekt-gate: CANNOT VERIFY - joining the detekt job exceeded ${joinCeilingSeconds}s; " +
-                "the job was stopped and detekt was not judged.") -ForegroundColor Yellow
-            try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
-            try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
+                "detekt was not judged.") -ForegroundColor Yellow
+            # S3341: the ceiling bounds the join, and the branch needs a bound of its own. It was
+            # journalled blocking 4.5 h past the ceiling (2026-09-19, row elapsed 17 977.8 s = the
+            # wall clock from the join's start): Stop-Job waits for the job's thread, the thread
+            # waits for the child process, and a child that cannot die made that wait unbounded.
+            # Bounded teardown: kill the child tree, settle briefly, abandon the job if needed.
+            Invoke-ClosureJobCleanup -Job $detektJob -ChildProcessMarker 'assert-detekt.ps1'
+            # The journalled number is the ceiling this verdict cost, never the time a stuck
+            # child held the branch below the join.
+            Set-PooledElapsedMs ($joinCeilingSeconds * 1000)
             $script:detektJob = $null
             $global:LASTEXITCODE = 2
             return
@@ -1823,9 +1841,9 @@ finally {
     # A gate whose call site was never reached - the run ended early - still owns a running child.
     Stop-GatePool
     # Guarantee no orphan detekt/gradle launcher survives an early exit from the gate block.
+    # S3341: the teardown is bounded - a child that cannot die must not hang the exit either.
     if ($detektJob) {
-        try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
-        try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
+        Invoke-ClosureJobCleanup -Job $detektJob -ChildProcessMarker 'assert-detekt.ps1'
     }
     # Tier-2 coordination lock (CLAUDE.md Rule 23). S2419 moved the release to just before the
     # gate batch, so on the normal path this call is already a no-op. It stays here as the

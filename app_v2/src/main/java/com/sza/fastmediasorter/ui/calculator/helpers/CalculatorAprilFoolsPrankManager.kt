@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.ui.calculator.helpers
 
 import android.content.Context
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 import java.time.LocalDate
 import java.time.Month
@@ -36,10 +38,7 @@ class CalculatorAprilFoolsPrankManager(
     }
 
     private fun showPrankDialog() {
-        val dialog = android.app.AlertDialog.Builder(
-            context,
-            android.R.style.Theme_DeviceDefault_Dialog_Alert,
-        )
+        val dialog = MaterialAlertDialogBuilder(context)
             .setTitle(R.string.calculator_prank_title)
             .setIcon(R.drawable.ic_prank_system_alert)
             .setMessage(R.string.calculator_prank_message)
@@ -47,10 +46,10 @@ class CalculatorAprilFoolsPrankManager(
                 openWikipedia()
                 dlg.dismiss()
             }
+            .setCancelable(false)
             .create()
-        dialog.setCancelable(false)
         dialog.setCanceledOnTouchOutside(false)
-        dialog.show()
+        dialog.showBoundToHost(context)
         DialogAccessibilityHelper.applyInitialFocus(dialog)
     }
 

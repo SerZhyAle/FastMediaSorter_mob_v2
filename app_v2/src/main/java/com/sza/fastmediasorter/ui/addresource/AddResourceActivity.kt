@@ -223,7 +223,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         helper = AddResourceHelper(this)
         watchPromptManager = AddResourceWatchPromptManager(this, viewModel)
 
-        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.toolbar.setUpNavigation(this)
 
         resourceToAddAdapter = ResourceToAddAdapter(
             onSelectionChanged = { resource, selected -> viewModel.toggleResourceSelection(resource, selected) },

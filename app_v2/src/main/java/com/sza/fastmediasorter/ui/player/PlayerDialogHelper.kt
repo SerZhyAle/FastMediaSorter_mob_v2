@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.player
 
-import android.app.AlertDialog
 import android.app.Dialog
 import android.view.WindowManager
 import android.widget.Toast
@@ -94,14 +93,23 @@ class PlayerDialogHelper(
             return
         }
         try {
-            dialog.setOnDismissListener { activeDialogs.remove(dialog) }
-            activeDialogs.add(dialog)
+            trackDialog(dialog)
             dialog.show()
             com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "PlayerDialogHelper: dialog show failed - bad window token")
             activeDialogs.remove(dialog)
         }
+    }
+
+    /**
+     * Track an already-shown dialog for [dismissAll] cleanup, for a factory (like
+     * [com.sza.fastmediasorter.ui.dialog.RenameDialog]) that shows itself via [AppDialog][
+     * com.sza.fastmediasorter.ui.common.dialog.AppDialog] and so cannot go through [safeShow].
+     */
+    private fun trackDialog(dialog: Dialog) {
+        dialog.setOnDismissListener { activeDialogs.remove(dialog) }
+        activeDialogs.add(dialog)
     }
 
     /**
@@ -338,6 +346,10 @@ class PlayerDialogHelper(
      * Show rename dialog
      */
     fun showRenameDialog(currentFile: MediaFile) {
+        if (activity.isFinishing || activity.isDestroyed) {
+            Timber.w("PlayerDialogHelper: cannot show dialog - activity is finishing/destroyed")
+            return
+        }
         val resource = viewModel.state.value.resource
 
         // Create File object - for network/cloud paths, preserve the scheme
@@ -365,7 +377,7 @@ class PlayerDialogHelper(
             onNameChosen = { oldPath, newName -> dialogCallback.onRenameRequested(oldPath, newName) },
             onComplete = { oldPath, newFile -> dialogCallback.onRenameComplete(oldPath, newFile.path) },
             onBeforeRename = { oldPath -> dialogCallback.onBeforeRenameDialog(oldPath) },
-        ).also { safeShow(it) }
+        ).show().also { trackDialog(it) }
     }
 
     /**
@@ -488,7 +500,7 @@ class PlayerDialogHelper(
         val options = arrayOf(activity.getString(R.string.pdf_export_to_jpg))
 
         safeShow(
-            AlertDialog.Builder(activity)
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.pdf_edit_title)
                 .setItems(options) { _, which ->
                     when (which) {

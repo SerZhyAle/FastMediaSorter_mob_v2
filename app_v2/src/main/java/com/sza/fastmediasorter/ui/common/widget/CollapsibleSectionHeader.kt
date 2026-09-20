@@ -19,8 +19,6 @@ import androidx.core.content.res.use
 import androidx.core.view.ViewCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.AnimationPolicy
-import com.sza.fastmediasorter.ui.dialog.TooltipDialog
-import timber.log.Timber
 
 /**
  * Reusable header for collapsible settings groups and similar UI sections.
@@ -32,10 +30,11 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : LinearLayout(context, attrs, defStyleAttr) {
+) : LinearLayout(context, attrs, defStyleAttr), HelpableRow {
 
     private val headerRow: LinearLayout
     private val helpIcon: ImageButton
+    private val help: HelpRowDelegate
     private val chevronView: ImageView
     private val iconView: ImageView
     private val prefixView: TextView
@@ -46,8 +45,6 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     private var expanded = false
     private var titleText: CharSequence = ""
     private var summaryText: CharSequence? = null
-    private var helpTitleText: CharSequence? = null
-    private var helpMessageText: CharSequence? = null
     private var expandContentDescriptionText: CharSequence? = null
     private var collapseContentDescriptionText: CharSequence? = null
     private var virtual = false
@@ -57,9 +54,8 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     /**
      * `true` when the optional help icon is visible.
      */
-    @get:JvmName("getHelpVisible")
-    val isHelpVisible: Boolean
-        get() = helpIcon.visibility == View.VISIBLE
+    override val isHelpVisible: Boolean
+        get() = help.isHelpVisible
 
     init {
         orientation = VERTICAL
@@ -67,6 +63,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
 
         headerRow = findViewById(R.id.csh_headerRow)
         helpIcon = findViewById(R.id.csh_iconHelp)
+        help = HelpRowDelegate(helpIcon, "CollapsibleSectionHeader")
         chevronView = findViewById(R.id.csh_chevron)
         iconView = findViewById(R.id.csh_icon)
         prefixView = findViewById(R.id.csh_prefix)
@@ -80,7 +77,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
         renderTitle()
         applyVirtualState()
         updateChevron(animate = false)
-        syncHelpVisibility()
+        help.syncVisibility()
     }
 
     /**
@@ -169,10 +166,8 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     /**
      * Configures the help tooltip payload and makes the help button available.
      */
-    fun setHelp(@StringRes titleRes: Int, @StringRes messageRes: Int) {
-        helpTitleText = context.getText(titleRes)
-        helpMessageText = context.getText(messageRes)
-        setHelpVisible(true)
+    override fun setHelp(@StringRes titleRes: Int, @StringRes messageRes: Int) {
+        help.setHelp(titleRes, messageRes)
     }
 
     /**
@@ -203,9 +198,8 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     /**
      * Shows or hides the help button without dropping the stored help payload.
      */
-    fun setHelpVisible(visible: Boolean) {
-        helpIcon.visibility = if (visible && hasHelpPayload()) View.VISIBLE else View.GONE
-        updateHelpContentDescription()
+    override fun setHelpVisible(visible: Boolean) {
+        help.setHelpVisible(visible)
     }
 
     /**
@@ -238,15 +232,6 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
                 setExpanded(!expanded)
             }
         }
-        helpIcon.setOnClickListener {
-            val title = helpTitleText
-            val message = helpMessageText
-            if (title.isNullOrEmpty() || message.isNullOrEmpty()) {
-                Timber.w("CollapsibleSectionHeader: help requested without payload")
-                return@setOnClickListener
-            }
-            TooltipDialog.show(context, title.toString(), message.toString())
-        }
     }
 
     private fun applyAttributes(attrs: AttributeSet?, defStyleAttr: Int) {
@@ -254,12 +239,14 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
         context.obtainStyledAttributes(attrs, R.styleable.CollapsibleSectionHeader, defStyleAttr, 0).use { typedArray ->
             titleText = typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_title) ?: ""
             expanded = typedArray.getBoolean(R.styleable.CollapsibleSectionHeader_csh_expanded, false)
-            helpTitleText = typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_helpTitle)
-            helpMessageText = typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_helpMessage)
+            help.setPayload(
+                typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_helpTitle),
+                typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_helpMessage),
+            )
             virtual = typedArray.getBoolean(R.styleable.CollapsibleSectionHeader_csh_virtual, false)
             setSummary(typedArray.getText(R.styleable.CollapsibleSectionHeader_csh_summary))
             val showHelp = typedArray.getBoolean(R.styleable.CollapsibleSectionHeader_csh_showHelp, false)
-            helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
+            help.applyInitialVisibility(showHelp)
 
             val iconRes = typedArray.getResourceId(R.styleable.CollapsibleSectionHeader_csh_icon, 0)
             if (iconRes != 0) setIcon(iconRes)
@@ -361,17 +348,6 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     private fun withSummary(base: CharSequence): CharSequence =
         if (summaryText.isNullOrBlank()) base else "$base, $summaryText"
 
-    private fun syncHelpVisibility() {
-        if (!hasHelpPayload()) {
-            helpIcon.visibility = View.GONE
-        }
-        updateHelpContentDescription()
-    }
-
-    private fun updateHelpContentDescription() {
-        helpIcon.contentDescription = helpTitleText?.toString().orEmpty()
-    }
-
     private fun applyVirtualState() {
         headerRow.background = if (virtual) null else defaultHeaderBackground
         chevronView.visibility = if (virtual) View.GONE else View.VISIBLE
@@ -387,10 +363,6 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
             headerRow.isFocusable = true
         }
         helpIcon.nextFocusForwardId = headerRow.id
-    }
-
-    private fun hasHelpPayload(): Boolean {
-        return !helpTitleText.isNullOrEmpty() && !helpMessageText.isNullOrEmpty()
     }
 
     companion object {

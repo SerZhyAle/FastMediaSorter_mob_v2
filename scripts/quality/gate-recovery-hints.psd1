@@ -158,6 +158,11 @@
         Fix   = 'One copy of a layout dropped a view id its sibling declares - re-declare it. [config-variant] means layout-land and layout-w600dp disagree, and both must match. [flavor-override] means a flavor copy lost an id that src/main declares and shared code binds, so add it back; the reverse is allowed and extra ids in an override are never a finding.'
     }
 
+    'focus-parity-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-focus-parity.ps1 -Gate'
+        Fix   = 'A portrait layout declares nextFocus* while its existing layout-land counterpart carries none, so the D-pad chain dies on rotation (S3254). Carry the portrait declarations into the counterpart; a counterpart with no chain of its own should not exist - delete it rather than leave it stale (spec 5.1 prefers no counterpart to a stale one).'
+    }
+
     'all-features-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/all_features/validate.ps1'
         Fix   = 'The capability inventory is invalid or lost records - fix the JSONL row; add capabilities through scripts/all_features/add.ps1, never by hand.'

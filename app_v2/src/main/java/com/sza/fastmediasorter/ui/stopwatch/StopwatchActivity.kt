@@ -24,7 +24,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
 
 /**
  * The stopwatch screen (strategic S1411).
@@ -67,7 +66,7 @@ class StopwatchActivity : BaseActivity<ActivityStopwatchBinding>() {
 
     override fun setupViews() {
         binding.root.applySystemBarInsetPadding()
-        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.toolbar.setUpNavigation(this)
         regionBinder = StopwatchRegionBinder(
             binding = binding,
             onStartOrLap = viewModel::startOrLap,

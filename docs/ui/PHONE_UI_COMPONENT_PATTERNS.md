@@ -53,7 +53,7 @@ Two Material 2 bridge attributes and two Material 3 attributes cannot coexist in
 ### 1.4 Elevation tokens
 
 - A surface declares `android:elevation="@dimen/elevation_<role>"`. A raw `dp` literal on an elevation attribute is a defect.
-- One name per value. `@dimen/toolbar_elevation` (0dp, `dimens.xml:327`) and `@dimen/dimension_zero` (`dimens.xml:497`) are two names for the same zero and the toolbar one is retired in favour of the role name that survives.
+- One name per value. `@dimen/toolbar_elevation` and `@dimen/dimension_zero` were two names for the same zero; S3248 deleted the toolbar one and moved its remaining call sites onto `@dimen/dimension_zero`, the role name that survives.
 - The permitted set is `elevation_dialog` (8dp), `elevation_operations_bar` (4dp), `elevation_button_bar` (2dp), `elevation_player_overlay` (8dp), `elevation_player_controls` (16dp), `card_elevation` (2dp), `card_elevation_low` (1dp), `card_elevation_high` (4dp). A new value needs a new role, not a new number.
 - Omitting the attribute is a decision, not a default. Measured: 5 distinct elevation values in use, with no attribute at all on toolbar families B, E, F and G, on `activity_main.xml`'s `AppBarLayout`, on `launcher_taskbar.xml`, and on `player_epub_controls_overlay_content.xml` whose structural twin `player_pdf_controls_overlay_content.xml` sets 16dp.
 
@@ -141,12 +141,14 @@ Anti-patterns retired: the 29 `AlertDialog.Builder(` call sites in 22 files, whi
 abstract class BaseAppBottomSheet : BottomSheetDialogFragment() {
     @LayoutRes protected abstract val contentLayout: Int
     protected open val showActionPair: Boolean = false
+    protected open val usesShell: Boolean = true
     protected abstract fun bindContent(content: View)
     protected fun deliverResult(payload: Bundle)
 }
 ```
 
 - Inflates one fixed shell: a `BottomSheetDragHandleView`, a title slot, a `NestedScrollView` content slot for the subclass, and an optional action-pair slot.
+- A subclass whose dialog is not a sheet sets `usesShell = false` (S3244): the content layout inflates as the whole view and the drag handle and bottom inset are skipped, because an anchored top panel must not carry either. The launcher Start menu in top-panel mode is the case - its bottom-placement mode keeps the full shell.
 - Applies the bottom `systemBars` inset to the content slot in `onViewCreated`, so a sheet's last row never sits under the navigation bar whatever the host's edge-to-edge state is.
 - Wires `DialogKeyboardDelegate` in `onStart`, giving Escape-to-dismiss and arrow-key movement to a family that has neither.
 - Declares the `FragmentResult` plumbing once - `RESULT_KEY`, a private `ARG_REQUEST_KEY` read back in `onCreate`, `deliverResult(Bundle)` - following the `SearchableLanguagePickerDialog` reference named by `docs/ARCHITECTURE.md` "Dialog Result Delivery".
@@ -194,7 +196,7 @@ One `DialogWindowSizer` resolves the window width from the existing `@dimen/dial
 
 #### Naming
 
-A surface that behaves as a bottom sheet is named `sheet_*.xml` and a surface that behaves as a dialog is named `dialog_*.xml`. `dialog_stream_offload_offer.xml` is a `BottomSheetDialogFragment` and renames; `sheet_send_to.xml`, `launcher_signal_list_sheet.xml` and `sheet_launcher_section_actions.xml` are sheets whose names the current gate does not scan, and the gate's filter widens to reach them (section 6). The name is what a gate can see, so a misnamed file is an ungated file.
+A surface that behaves as a bottom sheet is named `sheet_*.xml` and a surface that behaves as a dialog is named `dialog_*.xml`. The name is what a gate can see, so a misnamed file is an ungated file. S3244 closed the gap this section opened with: the offload offer layout is `sheet_stream_offload_offer.xml`, and `assert-dialog-cancel-style.ps1` now scans `sheet_*.xml` and `*_sheet.xml` as well as the two original prefixes, so `sheet_send_to.xml`, `launcher_signal_list_sheet.xml` and `sheet_launcher_section_actions.xml` are inside a gate rather than beside one.
 
 #### Context menus
 
@@ -248,7 +250,7 @@ Anti-patterns retired, each with its measurement:
 - Six one-off badge ids (`tvPinBadge`, `tvErrorBadge`, `tvDestinationBadge`, `taskbarUnpinBadge`, `cellRemoveBadge`, `cellModeBadge`), each with its own background drawable and text sizing, and no shared badge layout anywhere.
 - Three byte-identical cloud layouts, `item_dropbox_folder.xml`, `item_google_drive_folder.xml` and `item_onedrive_folder.xml`, unified today only by a Kotlin `CloudFolderItemBinding` wrapper.
 - Two adapters over one layout (`BrowseRenameFilesAdapter:43` and `RenameDialog:321` both inflating `ItemRenameFileBinding`) and two independent "track row" implementations (`QueueTrackAdapter`, `MusicTrackAdapter`).
-- The dead `item_media_file_grid_operations.xml` (79 lines, no `R.layout.` or binding call site) is deleted rather than migrated, per CLAUDE.md Rule 20.
+- `item_media_file_grid_operations.xml` (79 lines) reads as dead against `R.layout.` and the binding call sites, and is not: four `ViewStub android:layout="@layout/item_media_file_grid_operations"` references inflate it - `item_media_file_grid.xml`, `item_media_file_grid_no_thumb.xml` and both `noLegal` counterparts - and an XML `ViewStub` reference appears in neither search. It stays (S3247 measured this before deleting it; the strip it holds is the grid tile's copy/move/rename/delete row). A layout reached only from a `ViewStub` is the one shape the usual dead-resource sweep cannot see.
 
 Consolidation candidates, to be taken opportunistically as each screen is next touched and never as a campaign: `item_media_file`, `item_media_file_grid`, `item_media_file_grid_no_thumb`, `item_resource`, `item_resource_grid`, `item_stream_grid_cell`, `item_stream_source`, `item_duplicate_file`, `item_queue_track`, `item_music_track`, `item_folder`, and the three cloud-folder layouts.
 
@@ -329,7 +331,7 @@ Two styles, and only two:
 
 A toolbar declaration carries `style="@style/Widget.FastMediaSorter.Toolbar.<Variant>"` and nothing else beyond `android:id`, layout params and `app:title`.
 
-Anti-patterns retired: 27 `MaterialToolbar` declarations in 7 attribute fingerprints, zero of them carrying a `style` attribute, so every visual decision is restated inline and a theme change has to be applied 27 times. The seven fingerprints map onto the two variants without loss - Families A and A-variant (11 sites) to `Primary`, Family B (7 sites) to `Flat`, and Families C, D, E, F and G to one or the other. `activity_duplicates.xml:17` currently mixes Family A hosting with Family B tinting, `fragment_resource_editor.xml` omits elevation entirely, and `activity_streams.xml:15` is the single site using `ThemeOverlay.FastMediaSorter.Toolbar.Primary`.
+Anti-patterns retired by S3248: 27 `MaterialToolbar` declarations in 7 attribute fingerprints, zero of them carrying a `style` attribute, so every visual decision was restated inline and a theme change had to be applied 27 times. All 27 are now `StandardToolbar` - 14 `Primary`, 13 `Flat` - and the `styleless-toolbar` dimension of `scripts/quality/assert-source-gates.ps1` holds the count at zero for both class names, so a new screen cannot reintroduce the pattern. Two sites needed a stated choice rather than a mechanical one: `activity_duplicates.xml` mixed Family A hosting with Family B tinting and went to `Primary`, and `fragment_permissions_management.xml` was the one primary-coloured settings fragment and went to `Flat` beside the licences fragment. `activity_streams.xml` keeps `ThemeOverlay.FastMediaSorter.Toolbar.Primary` alongside its style: it is the only site with an `app:menu`, and the overlay carries the action-menu text colour and the D-pad focus selectors that the two variants do not.
 
 #### `ActionBarView`
 
@@ -340,21 +342,25 @@ class ActionBarView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
-    data class Action(@IdRes val id: Int, @DrawableRes val icon: Int, @StringRes val label: Int)
+    data class Action(@IdRes val id: Int, @DrawableRes val icon: Int, @StringRes val contentDescription: Int)
 
     enum class Placement { TOP, BOTTOM, FLOATING }
 
     fun setActions(actions: List<Action>, onAction: (Int) -> Unit)
     fun setActionEnabled(@IdRes id: Int, enabled: Boolean)
+    fun setActionVisible(@IdRes id: Int, visible: Boolean)
+    fun hasVisibleAction(): Boolean
 }
 ```
 
-Children are added as `Action` records, never as hand-placed XML buttons, so every control gets `Widget.FastMediaSorter.Button.Icon` by construction and a 48dp touch target with it. The root carries `Widget.FastMediaSorter.Bar.Action` with `.Bottom` and `.Floating` as its two variants, each pinning its own background and elevation.
+Children are added as `Action` records, so every control gets `Widget.FastMediaSorter.Button.Icon` by construction and a 48dp touch target with it. The root carries `Widget.FastMediaSorter.Bar.Action` with `.Bottom` and `.Floating` as its two variants, each pinning its own background and elevation. Placement, the item tint, the item background tint and the item edge are the four `declare-styleable ActionBarView` attributes (`abvPlacement`, `abvItemTint`, `abvItemBackgroundTint`, `abvItemSize`); a `FLOATING` bar rounds its items into pills, because a control drawing over content needs a shape of its own.
+
+Delivered by S3249. **A bar whose children stay declared in XML is the sanctioned second form**, not a shortfall: `ActionBarView` is a `LinearLayout`, so converting a container alone gives the bar its placement token and its surface while every id-keyed lookup around it keeps working. Records are for a bar nothing but its own helper addresses - the Browse operations bar and the two floating scroll strips. The Browse command bar (16 controls) and the Main action strip stayed declared, because their ids are the addressing scheme of an adaptive overflow manager, a wide-bar label and metric pass and a per-command eligibility map; rebuilding them from records would discard all three in one step. A generated child is inflated from `view_action_bar_item.xml` rather than constructed, since `MaterialButton`'s constructor takes a `defStyleAttr` and cannot be handed a widget style.
 
 Anti-patterns retired:
 
 - Two screens with no toolbar at all, and they are the two busiest: `activity_main.xml:10-410`, an `AppBarLayout` containing only a `MaterialButton` row and a `TabLayout` with no title, no navigation icon and no menu; and `activity_browse.xml:7-68`, a bare `LinearLayout` command bar holding `btnBack` plus 15 further controls.
-- Two icon-button idioms inside one file: `activity_browse.xml` uses `MaterialButton` with `?attr/materialIconButtonStyle` for its 16 command-bar controls and raw `<ImageButton>` for its 7 operations-bar controls and 4 scroll controls; `activity_player_unified.xml` mixes 46 raw `ImageButton` with 5 `MaterialButton` icon buttons. The two forms differ in touch target, ripple shape and disabled-state tint.
+- Two icon-button idioms inside one file: `activity_browse.xml` used `MaterialButton` with `?attr/materialIconButtonStyle` for its 16 command-bar controls and raw `<ImageButton>` for its 7 operations-bar controls and 4 scroll controls; `activity_player_unified.xml` mixes 46 raw `ImageButton` with 5 `MaterialButton` icon buttons. The two forms differ in touch target, ripple shape and disabled-state tint. S3249 retired the browse half: the 11 raw controls are `Action` records in three `ActionBarView` strips - one bottom operations bar and two floating scroll strips, two because the backward pair anchors to the top of the list and the forward pair to its bottom.
 - `Widget.FastMediaSorter.Button.Icon` already exists (`themes.xml:364`, parent `Widget.Material3.Button.IconButton`) and is referenced by exactly 2 layouts, neither of them a bar. It becomes the single icon-button token, with `Widget.FastMediaSorter.Button.Icon.Overlay` added as the variant carrying the player tint state list.
 
 Exempt by design, unchanged from `docs/ARCHITECTURE.md` "Button Taxonomy": reserved ExoPlayer `@id/exo_*` controls and the intentionally dark camera and viewfinder surfaces.
@@ -533,12 +539,12 @@ Gate dimensions that each new rule would require. None is written in this ticket
 - Section 1.3, no Material 2 bridge token: a dimension refusing `textAppearanceCaption`, `textAppearanceBody1`, `textAppearanceBody2`, `textAppearanceSubtitle1` and `textAppearanceSubtitle2`, seeded at 23.
 - Section 1.4, no `dp` literal on an elevation attribute, and no new elevation dimen outside the sanctioned set.
 - Section 2.1, no legacy builder: a dimension refusing `AlertDialog.Builder(` under `app_v2/src/main`, exactly as Rule 21 refuses the raw PackageManager overloads, landing after the 29 sites have moved.
-- Section 2.1, sheet naming and gate reach: widen the `assert-dialog-cancel-style.ps1` file filter to `sheet_*` and `*_sheet.xml`, and rename `dialog_stream_offload_offer.xml` in the same change so the widened filter finds it under the right rules.
+- Section 2.1, sheet naming and gate reach: the `assert-dialog-cancel-style.ps1` file filter reaches `sheet_*` and `*_sheet.xml`, delivered by S3244 in the same change that renamed `dialog_stream_offload_offer.xml`, at `delta 0`.
 - Section 2.1, no hand-rolled window sizing: a dimension refusing `window.setLayout(` outside `DialogWindowSizer`, seeded at 22.
 - Section 2.2, no root-background mutation in an adapter: a dimension refusing `setBackgroundColor(` and `setBackgroundResource(` on a ViewHolder root inside any `*Adapter.kt` under `ui/`, seeded at 9.
 - Section 2.2, one Glide entry point: a dimension refusing `Glide.with(` outside `MediaItemThumbnailBinder` for files under the adapter packages, seeded at the current 3 adapter call sites.
-- Section 2.3, no styleless toolbar: a dimension refusing a `MaterialToolbar` declaration without a `style` attribute, seeded at 27 and lowered as families migrate.
-- Section 2.4, no raw `ImageButton` in a bar or panel layout: a ratchet dimension seeded at 57 for the two known files.
+- Section 2.3, no styleless toolbar: `styleless-toolbar` in `scripts/quality/lib/source-matchers.ps1` refuses a `StandardToolbar` or `MaterialToolbar` declaration without a `style` attribute. Delivered by S3248 at 0, not at the 27 this section first planned for: the families migrated inside that one ticket, so the baseline never needed a descent.
+- Section 2.4, no raw `ImageButton` in a bar or panel layout: `raw-imagebutton-in-bar` in `scripts/quality/lib/source-matchers.ps1`, delivered by S3249. Seeded at **268**, not the 57 this section predicted: the prediction counted two files, the dimension walks every layout root and every variant, so the player's panels are inside it too. A hit is an `<ImageButton>` whose enclosing container's id names a strip (`bar`, `panel`, `controls`, `operations`, `toolbar`, `strip`), so a list row's trailing action is not judged by it. S3249 removed 33 - eleven controls in each of the three `activity_browse.xml` variants.
 - Section 3.1, keyboard contract present: a dimension requiring every `DialogFragment` and `BottomSheetDialogFragment` under `app_v2/src/main` either to route through `AppDialog` or `BaseAppBottomSheet`, or to name its exemption, seeded at the current 20 unwired classes.
 - Section 3.2, focus parity: a dimension failing when a `res/layout/*.xml` declares `nextFocus*` and its existing `res/layout-land/` counterpart does not.
 - Section 4, insets present: a dimension requiring a dialog or sheet class to reach `applySystemBarInsetPadding` transitively, which is only checkable once the two base constructs exist and is therefore the last of these to land.

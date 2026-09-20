@@ -49,7 +49,7 @@ class CalculatorActivity :
     override fun setupViews() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbar.setNavigationOnClickListener { finishWithResult() }
+        binding.toolbar.setUpNavigation(this)
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {

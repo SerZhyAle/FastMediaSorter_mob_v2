@@ -3,7 +3,9 @@ package com.sza.fastmediasorter.core.db
 import android.app.Activity
 import android.content.Context
 import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 import java.io.File
@@ -96,11 +98,15 @@ object DatabaseResetNotice {
             }
         }
         try {
-            AlertDialog.Builder(activity)
+            val dialog = MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.database_reset_dialog_title)
                 .setMessage(message)
                 .setPositiveButton(R.string.ok, null)
-                .showBoundToHost(activity)
+                .create()
+            DialogKeyboardDelegate.applyTo(dialog) {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+            }
+            dialog.showBoundToHost(activity)
         } catch (e: Exception) {
             Timber.w(e, "DatabaseResetNotice: failed to show dialog")
         }

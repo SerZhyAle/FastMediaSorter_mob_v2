@@ -1,22 +1,18 @@
 package com.sza.fastmediasorter.ui.icon.picker
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.core.os.bundleOf
-import androidx.fragment.app.setFragmentResult
 import androidx.recyclerview.widget.GridLayoutManager
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.tabs.TabLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.BottomSheetIconPickerBinding
-import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.ui.common.dialog.BaseAppBottomSheet
 import com.sza.fastmediasorter.ui.icon.ResourceIconSet
 import timber.log.Timber
 
 /** Bottom-sheet dialog that lets the user pick a themed resource icon (S0034 Phase 06). */
-class IconPickerBottomSheet : BottomSheetDialogFragment() {
+class IconPickerBottomSheet : BaseAppBottomSheet() {
 
     private var _binding: BottomSheetIconPickerBinding? = null
     private val binding get() = _binding!!
@@ -40,15 +36,11 @@ class IconPickerBottomSheet : BottomSheetDialogFragment() {
             }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        _binding = BottomSheetIconPickerBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override val contentLayout: Int = R.layout.bottom_sheet_icon_picker
+    override val requestKey: String = KEY
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun bindContent(content: View) {
+        _binding = BottomSheetIconPickerBinding.bind(content)
 
         val currentIconId = arguments?.getString(ARG_CURRENT_ICON_ID)
         val defaultSet = arguments?.getString(ARG_DEFAULT_SET)
@@ -58,7 +50,7 @@ class IconPickerBottomSheet : BottomSheetDialogFragment() {
         // Build adapter with current selection
         adapter = IconPickerAdapter(currentIconId) { pickedId ->
             Timber.d("IconPicker: user picked $pickedId")
-            setFragmentResult(KEY, bundleOf(RESULT_ICON_ID to pickedId))
+            deliverResult(bundleOf(RESULT_ICON_ID to pickedId))
             dismiss()
         }
 
@@ -100,13 +92,6 @@ class IconPickerBottomSheet : BottomSheetDialogFragment() {
         ResourceIconSet.IMAGE -> getString(R.string.icon_set_image)
         ResourceIconSet.DOCS  -> getString(R.string.icon_set_docs)
         ResourceIconSet.OTHER -> getString(R.string.icon_set_other)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        // Pure picker: tapping an icon selects and closes, so no-op confirm only adds Esc-dismiss and
-        // focus traversal across the tabs/grid.
-        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
     override fun onDestroyView() {

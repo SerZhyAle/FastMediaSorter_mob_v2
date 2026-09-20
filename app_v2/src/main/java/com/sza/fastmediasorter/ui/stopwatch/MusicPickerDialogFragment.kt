@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogMusicPickerBinding
 import com.sza.fastmediasorter.domain.model.stopwatch.MusicTrackOption
 import com.sza.fastmediasorter.domain.usecase.stopwatch.LoadMusicTracksUseCase
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.stopwatch.helpers.MusicTrackAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -47,6 +48,13 @@ class MusicPickerDialogFragment : DialogFragment() {
             .create()
         loadTracks()
         return dialog
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // The track rows are the actions and consume Enter themselves; the delegate adds only the
+        // Escape route and focus movement.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
     override fun onDestroyView() {

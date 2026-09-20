@@ -12,6 +12,8 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
 import com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
+import com.sza.fastmediasorter.ui.common.dialog.AppDialog
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.flow.first
@@ -130,11 +132,15 @@ class GeneralSettingsPrefetchHelper(
             val ctx = fragment.requireContext()
 
             if (entries.isEmpty()) {
-                AlertDialog.Builder(ctx)
+                val dialog = MaterialAlertDialogBuilder(ctx)
                     .setTitle(R.string.pref_streaming_clear_now)
                     .setMessage(ctx.getString(R.string.streaming_cache_empty))
                     .setPositiveButton(R.string.ok, null)
-                    .showBoundTo(fragment)
+                    .create()
+                DialogKeyboardDelegate.applyTo(dialog) {
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+                }
+                dialog.showBoundTo(fragment)
                 return@launch
             }
 
@@ -146,17 +152,19 @@ class GeneralSettingsPrefetchHelper(
             }
             val message = ctx.getString(R.string.pref_streaming_clear_confirm_format, totalStr, entryLines)
 
-            MaterialAlertDialogBuilder(ctx, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
-                .setTitle(R.string.pref_streaming_clear_now)
-                .setMessage(message)
-                .setPositiveButton(R.string.delete) { _, _ ->
+            AppDialog.destructive(
+                owner = fragment,
+                context = ctx,
+                title = ctx.getString(R.string.pref_streaming_clear_now),
+                message = message,
+                confirmLabel = ctx.getString(R.string.delete),
+                onConfirm = {
                     fragment.lifecycleScope.launch {
                         val count = streamingCacheRepository.clearAll()
                         Timber.i("GeneralSettingsPrefetchHelper: cleared %d streaming cache entries", count)
                     }
-                }
-                .setNegativeButton(R.string.cancel, null)
-                .showBoundTo(fragment)
+                },
+            )
         }
     }
 

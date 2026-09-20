@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.signal
 
 import android.content.res.Configuration
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,9 +8,10 @@ import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.LauncherSignalListItemBinding
 import com.sza.fastmediasorter.databinding.LauncherSignalListSheetBinding
+import com.sza.fastmediasorter.ui.common.dialog.BaseAppBottomSheet
 
 /**
  * S1421 §5.1: every active signal, including the ones the strip could not fit.
@@ -23,7 +23,7 @@ import com.sza.fastmediasorter.databinding.LauncherSignalListSheetBinding
  *
  * A picker, so it carries no confirm/cancel pair - CLAUDE.md §11 exempts this shape.
  */
-class LauncherSignalListBottomSheet : BottomSheetDialogFragment() {
+class LauncherSignalListBottomSheet : BaseAppBottomSheet() {
 
     // Set by the caller before show(); not persisted across process death, as this is a modal dialog that is
     // never restored from the back stack.
@@ -41,17 +41,12 @@ class LauncherSignalListBottomSheet : BottomSheetDialogFragment() {
 
     private var binding: LauncherSignalListSheetBinding? = null
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View = LauncherSignalListSheetBinding.inflate(inflater, container, false)
-        .also { binding = it }
-        .root
+    override val contentLayout: Int = R.layout.launcher_signal_list_sheet
+    override val requestKey: String = REQUEST_KEY
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val sheet = binding ?: return
+    override fun bindContent(content: View) {
+        val sheet = LauncherSignalListSheetBinding.bind(content)
+        binding = sheet
         val list = sheet.launcherSignalList
         list.layoutManager = GridLayoutManager(requireContext(), columnCount())
         list.adapter = SignalAdapter()
@@ -161,5 +156,6 @@ class LauncherSignalListBottomSheet : BottomSheetDialogFragment() {
     private companion object {
         const val PORTRAIT_COLUMNS = 2
         const val LANDSCAPE_COLUMNS = 4
+        const val REQUEST_KEY = "launcher_signal_list_sheet"
     }
 }

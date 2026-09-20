@@ -4,9 +4,7 @@ import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.isVisible
@@ -18,7 +16,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
@@ -29,7 +26,7 @@ import com.sza.fastmediasorter.databinding.FragmentLauncherStartMenuBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.ResourcePickerDialogFragment
-import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.ui.common.dialog.BaseAppBottomSheet
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherModalSurfaceManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
@@ -39,6 +36,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -46,7 +44,7 @@ import javax.inject.Inject
  * itself, our resources, every installed app, Android settings, and the way out of launcher mode.
  */
 @AndroidEntryPoint
-class LauncherStartMenuFragment : BottomSheetDialogFragment() {
+class LauncherStartMenuFragment : BaseAppBottomSheet() {
 
     @Inject
     lateinit var roleManager: LauncherRoleManager
@@ -67,6 +65,24 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
     // the window and leave the positive lambda holding a detached fragment (S0892 precedent).
     private var exitDialog: Dialog? = null
 
+    // The base requires a result key; the Start menu never delivers one - its rows act directly.
+    override val requestKey: String = START_MENU_REQUEST_KEY
+
+    override val contentLayout: Int = R.layout.fragment_launcher_start_menu
+
+    /**
+     * S3244 quiz: the top-panel mode is an anchored Dialog (S1643), not a sheet - wrapping it in
+     * the shell would give the pinned window an undraggable handle and a bottom inset. Only the
+     * sheet mode uses the shell, so there it gains the handle, the bottom inset and the family
+     * keyboard contract.
+     */
+    override val usesShell: Boolean
+        get() = !viewModel.taskbarAtTop.value
+
+    override fun bindContent(content: View) {
+        _binding = FragmentLauncherStartMenuBinding.bind(content)
+    }
+
     /**
      * S1643: the panel opens from the edge of the bar it belongs to (owner ruling, strategic §6 item 3).
      *
@@ -76,6 +92,7 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
      * allows.
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        Timber.d("S3244: start menu dialog open, taskbarAtTop=%b", viewModel.taskbarAtTop.value)
         if (!viewModel.taskbarAtTop.value) {
             return super.onCreateDialog(savedInstanceState)
         }
@@ -102,15 +119,6 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         val location = IntArray(2)
         anchor.getLocationInWindow(location)
         return location[1] + anchor.height
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
-        _binding = FragmentLauncherStartMenuBinding.inflate(inflater, container, false)
-        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -176,7 +184,6 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        dialog?.let { DialogKeyboardDelegate.applyToDialogFragment(it, onConfirm = {}) }
         expandSheet()
         wrapPanelToContentWidth()
         capTopPanelToAvailableHeight()
@@ -338,6 +345,7 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
     companion object {
         const val TAG = "launcher_start_menu"
 
+        private const val START_MENU_REQUEST_KEY = "launcher_start_menu_result"
         private const val RESOURCE_REQUEST_KEY = "launcher_start_menu_resource"
         private const val RESOURCE_PICKER_TAG = "launcher_start_menu_resource_picker"
         private const val OPAQUE_ALPHA = 255

@@ -1,14 +1,14 @@
 package com.sza.fastmediasorter.ui.dialog
 
-import android.app.Dialog
 import android.content.Context
-import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -20,14 +20,20 @@ import com.sza.fastmediasorter.databinding.ItemRenameFileBinding
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.ui.common.dialog.AppDialog
 import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 
+/**
+ * S3242 phase 04 pilot: built on [AppDialog.custom] instead of subclassing raw `Dialog`, so the
+ * unified primitive layer (keyboard contract, TalkBack focus, insets, window sizing) applies here
+ * without RenameDialog re-wiring any of it itself.
+ */
 class RenameDialog(
-    context: Context,
+    private val context: Context,
     private val lifecycleOwner: LifecycleOwner,
     private val files: List<File>,
     private val sourceFolderName: String,
@@ -35,9 +41,9 @@ class RenameDialog(
     private val onNameChosen: ((oldPath: String, newName: String) -> Unit)? = null,
     private val onComplete: (oldPath: String, newFile: File) -> Unit,
     private val onBeforeRename: ((oldPath: String) -> Unit)? = null,
-) : Dialog(context) {
-
+) {
     private lateinit var binding: DialogRenameBinding
+    private lateinit var dialog: AlertDialog
     private var renameFilesAdapter: RenameFilesAdapter? = null
 
     // Keep rename errors resource-driven so UI does not depend on raw handler wording.
@@ -55,12 +61,20 @@ class RenameDialog(
         return errorRes == R.string.file_already_exists || error.contains("already exists", ignoreCase = true)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = DialogRenameBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        setupUI()
+    /** Builds and shows the dialog. Mirrors the previous `Dialog.show()` call shape. */
+    fun show(): AlertDialog {
+        dialog = AppDialog.custom(
+            owner = lifecycleOwner,
+            context = context,
+            layoutRes = R.layout.dialog_rename,
+            keyboardContract = true,
+            onConfirm = ::renameFiles,
+        ) { view, _ ->
+            binding = DialogRenameBinding.bind(view)
+            setupUI()
+        }
+        dialog.window?.setBackgroundDrawableResource(R.drawable.bg_rename_dialog)
+        return dialog
     }
 
     private fun setupUI() {
@@ -74,8 +88,8 @@ class RenameDialog(
 
             if (files.size == 1) {
                 // Single file rename
-                tilFileName.visibility = android.view.View.VISIBLE
-                rvFileNames.visibility = android.view.View.GONE
+                tilFileName.visibility = View.VISIBLE
+                rvFileNames.visibility = View.GONE
 
                 etFileName.setText(files.first().name)
                 etFileName.setSelection(files.first().nameWithoutExtension.length)
@@ -91,8 +105,8 @@ class RenameDialog(
                 }, 200)
             } else {
                 val fileNames = files.map { it.name }.toMutableList()
-                tilFileName.visibility = android.view.View.GONE
-                rvFileNames.visibility = android.view.View.VISIBLE
+                tilFileName.visibility = View.GONE
+                rvFileNames.visibility = View.VISIBLE
                 renameFilesAdapter = RenameFilesAdapter(fileNames)
                 rvFileNames.layoutManager = LinearLayoutManager(context)
                 rvFileNames.adapter = renameFilesAdapter
@@ -107,12 +121,9 @@ class RenameDialog(
                 }, 200)
             }
 
-            btnCancel.setOnClickListenerDebounced { dismiss() }
+            btnCancel.setOnClickListenerDebounced { dialog.dismiss() }
             btnApply.setOnClickListenerDebounced { renameFiles() }
         }
-
-        window?.setBackgroundDrawableResource(R.drawable.bg_rename_dialog)
-        DialogKeyboardDelegate.applyTo(this, onConfirm = ::renameFiles)
     }
 
     private fun renameFiles() {
@@ -134,7 +145,7 @@ class RenameDialog(
         val file = files.first()
 
         if (newName == file.name) {
-            dismiss()
+            dialog.dismiss()
             return
         }
 
@@ -143,7 +154,7 @@ class RenameDialog(
 
         onNameChosen?.let { callback ->
             callback(oldPath, newName)
-            dismiss()
+            dialog.dismiss()
             return
         }
 
@@ -176,7 +187,7 @@ class RenameDialog(
                         }
                         onComplete(oldPath, newFile)
 
-                        dismiss()
+                        dialog.dismiss()
                     }
                     is FileOperationResult.Failure -> {
                         val message = result.toRenameFailureMessage(newName)
@@ -208,7 +219,7 @@ class RenameDialog(
 
     private fun renameMultipleFiles() {
         val adapter = renameFilesAdapter ?: run {
-            dismiss()
+            dialog.dismiss()
             return
         }
 
@@ -286,7 +297,7 @@ class RenameDialog(
                 Toast.makeText(context, errors.joinToString("\n"), Toast.LENGTH_LONG).show()
             }
 
-            dismiss()
+            dialog.dismiss()
         }
     }
 

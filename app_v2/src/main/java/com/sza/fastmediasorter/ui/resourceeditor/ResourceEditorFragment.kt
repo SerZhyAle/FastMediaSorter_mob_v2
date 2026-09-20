@@ -139,9 +139,7 @@ class ResourceEditorFragment : Fragment() {
             ResourceEditorMode.COPY -> getString(R.string.title_copy_resource)
         }
         binding.toolbar.subtitle = null
-        binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
-        }
+        binding.toolbar.setUpNavigation(requireActivity())
         updateToolbarTypeSubtitle(resourceType ?: ResourceType.LOCAL)
     }
 

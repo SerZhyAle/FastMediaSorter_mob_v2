@@ -2,10 +2,13 @@ package com.sza.fastmediasorter.ui.common.widget
 
 import android.net.Uri
 import android.widget.ImageView
+import androidx.annotation.DrawableRes
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.domain.model.MediaFile
+import timber.log.Timber
 import java.io.File
 
 /**
@@ -45,8 +48,26 @@ class MediaItemThumbnailBinder {
             .into(view)
     }
 
+    /**
+     * Loads a cached launcher icon file into [view]. [versionKey] is the owning app's last-update
+     * time and becomes the cache key, so a reinstalled app cannot keep serving its previous icon.
+     *
+     * No role options are applied: an app icon is already square and pre-sized on disk, so pinning an
+     * override or a crop here would re-scale a bitmap that needs neither, and would override the
+     * ImageView's own scale type (S3246).
+     */
+    fun bindIcon(view: ImageView, iconFile: File?, versionKey: Long, @DrawableRes placeholder: Int) {
+        Timber.d("S3246: bindIcon version=$versionKey file=${iconFile?.name}")
+        Glide.with(view)
+            .load(iconFile)
+            .signature(ObjectKey(versionKey))
+            .placeholder(placeholder)
+            .into(view)
+    }
+
     /** Cancels any in-flight request targeting [view] and frees its Glide target. */
     fun clear(view: ImageView) {
+        Timber.d("S3246: clear thumbnail target")
         Glide.with(view).clear(view)
     }
 

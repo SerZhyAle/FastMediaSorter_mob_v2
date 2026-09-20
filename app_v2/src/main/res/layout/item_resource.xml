@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="@dimen/item_margin_tiny" android:background="@drawable/item_focus_selector" android:focusable="true" android:focusableInTouchMode="false">
+    xmlns:tools="http://schemas.android.com/tools" style="@style/Widget.FastMediaSorter.Item.Row" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="@dimen/item_margin_tiny" android:paddingHorizontal="0dp" android:paddingVertical="0dp">
 
-    <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation">
+    <!-- S3247: the card is transparent so the row root's state-list (selected / focused / pressed)
+         reaches the pixels. An opaque card colour is what previously hid it, which is why the adapter
+         painted the inner surface instead and lost the focus ring on selected rows. -->
+    <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" app:cardBackgroundColor="@android:color/transparent" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation">
 
         <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/rootLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/item_padding_vertical">
 
@@ -57,7 +60,7 @@
     </androidx.cardview.widget.CardView>
 
     <!-- Destination border (colored stroke) - placed after CardView to draw on top -->
-    <View android:id="@+id/viewDestinationBorder" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/destination_border" android:elevation="@dimen/toolbar_elevation" android:visibility="gone" />
+    <View android:id="@+id/viewDestinationBorder" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/destination_border" android:elevation="@dimen/dimension_zero" android:visibility="gone" />
 
 </FrameLayout>
 

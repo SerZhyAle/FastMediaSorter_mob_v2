@@ -462,7 +462,7 @@ foreach ($entry in $phoneEntries) {
         if ($text.PhonePayload -notmatch "(?m)^\s*(?:@SerializedName\(""$([regex]::Escape($field))""\)\s*)?val\s+$([regex]::Escape($field))\b") {
             $findings += "S2093: '$field' is in the registry as BOTH but has no field in the phone WearSettingsPayload."
         }
-        if ($text.WatchPayload -notmatch "(?m)^\s*val\s+$([regex]::Escape($field))\b") {
+        if ($text.WatchPayload -notmatch "(?m)^\s*(?:@SerializedName\(""$([regex]::Escape($field))""\)\s*)?val\s+$([regex]::Escape($field))\b") {
             $findings += "S2093: '$field' is in the registry as BOTH but has no field in the watch WearSettingsPayload."
         }
         # 3. A shared setting must be stored on the watch.

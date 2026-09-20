@@ -42,7 +42,7 @@ class AuthSessionsActivity : BaseActivity<ActivityAuthSessionsBinding>() {
     override fun setupViews() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.toolbar.setUpNavigation(this)
     }
 
     override fun observeData() = Unit

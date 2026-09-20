@@ -40,7 +40,7 @@ class WearResourceSelectionActivity : BaseActivity<ActivityWearResourceSelection
     override fun setupViews() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.toolbar.setUpNavigation(this)
         binding.rvResources.adapter = adapter
         binding.btnSelectAll.setOnClickListener { viewModel.selectAll() }
     }

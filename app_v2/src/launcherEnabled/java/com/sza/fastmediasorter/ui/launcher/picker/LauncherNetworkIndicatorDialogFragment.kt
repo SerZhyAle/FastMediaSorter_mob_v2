@@ -11,6 +11,7 @@ import androidx.fragment.app.setFragmentResult
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.DialogLauncherNetworkIndicatorBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherNetworkIndicatorOptionBinding
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator
 
 /**
@@ -54,7 +55,12 @@ class LauncherNetworkIndicatorDialogFragment : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        dialog?.let { DialogAccessibilityHelper.applyInitialFocus(it) }
+        dialog?.let {
+            DialogAccessibilityHelper.applyInitialFocus(it)
+            // The option rows are the actions and consume Enter themselves; the delegate adds the
+            // Escape route on top of the declared D-pad chain.
+            DialogKeyboardDelegate.applyToDialogFragment(it, onConfirm = {})
+        }
     }
 
     override fun onDestroyView() {

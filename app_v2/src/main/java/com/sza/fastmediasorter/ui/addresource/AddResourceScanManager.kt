@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.addresource
 
 import android.Manifest
-import android.app.AlertDialog
 import android.app.Dialog
 import android.net.Uri
 import android.widget.Toast
@@ -87,7 +86,7 @@ internal class AddResourceScanManager(
     fun showFolderSelectionDialog() {
         val dialogView = activity.layoutInflater.inflate(R.layout.dialog_folder_selection, null)
 
-        val dialog = AlertDialog.Builder(activity)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.select_folder)
             .setView(dialogView)
             .setNegativeButton(R.string.cancel, null)
@@ -361,7 +360,7 @@ internal class AddResourceScanManager(
 
     fun showFolderBrowserDialog(startPath: String = "/storage/emulated/0") {
         val dialogView = activity.layoutInflater.inflate(R.layout.dialog_folder_browser, null)
-        val dialog = AlertDialog.Builder(activity)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.browse_folders)
             .setView(dialogView)
             .create()

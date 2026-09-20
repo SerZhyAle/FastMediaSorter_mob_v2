@@ -18,8 +18,6 @@ import androidx.core.content.res.use
 import androidx.core.view.updateLayoutParams
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ViewSettingsSelectionRowBinding
-import com.sza.fastmediasorter.ui.dialog.TooltipDialog
-import timber.log.Timber
 
 /**
  * Canonical reusable clickable selection row for settings fragments and forms.
@@ -27,8 +25,8 @@ import timber.log.Timber
  * Layout: optional leading icon, text group (title + helper inline, subtitle below),
  * trailing value text, optional trailing control slot, and a trailing chevron.
  *
- * The whole row is one focus/click target. The helper icon opens [TooltipDialog] when a
- * help payload is configured; it is hidden otherwise without breaking the layout. Hosts
+ * The whole row is one focus/click target. The help-icon chrome is the shared
+ * [HelpRowDelegate]; it is hidden without a payload, without breaking the layout. Hosts
  * supply a row-click listener instead of wiring nested click handlers.
  *
  * Navigation mode (`ssr_navMode`) swaps the trailing chevron for a real forward arrow and
@@ -47,7 +45,7 @@ class SettingsSelectionRow @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : LinearLayout(context, attrs, defStyleAttr), LabelColumnRow {
+) : LinearLayout(context, attrs, defStyleAttr), LabelColumnRow, HelpableRow {
 
     // S1693: the row reads its own children through the generated binding, like SettingsDropdownRow.
     private val binding = ViewSettingsSelectionRowBinding.inflate(LayoutInflater.from(context), this)
@@ -57,11 +55,10 @@ class SettingsSelectionRow @JvmOverloads constructor(
     private val subtitleView: TextView = binding.ssrSubtitle
     private val valueView: TextView = binding.ssrValue
     private val helpIcon: ImageButton = binding.ssrIconHelp
+    private val help = HelpRowDelegate(helpIcon, "SettingsSelectionRow")
     private val chevronView: ImageView = binding.ssrChevron
     private val trailingSlot: FrameLayout = binding.ssrTrailingSlot
 
-    private var helpTitleText: CharSequence? = null
-    private var helpMessageText: CharSequence? = null
     private var rowClickListener: ((View) -> Unit)? = null
 
     /** Whether this row asked to hug its content to the left; honoured only while it has no subtitle. */
@@ -70,9 +67,8 @@ class SettingsSelectionRow @JvmOverloads constructor(
     /**
      * `true` when the optional help icon is visible.
      */
-    @get:JvmName("getHelpVisible")
-    val isHelpVisible: Boolean
-        get() = helpIcon.visibility == View.VISIBLE
+    override val isHelpVisible: Boolean
+        get() = help.isHelpVisible
 
     init {
         orientation = HORIZONTAL
@@ -87,9 +83,8 @@ class SettingsSelectionRow @JvmOverloads constructor(
             setBackgroundResource(outValue.resourceId)
         }
         bindRowClick()
-        bindHelpClick()
         applyAttributes(attrs, defStyleAttr)
-        syncHelpVisibility()
+        help.syncVisibility()
     }
 
     /**
@@ -160,19 +155,16 @@ class SettingsSelectionRow @JvmOverloads constructor(
     /**
      * Stores the help payload and makes the help icon available.
      */
-    fun setHelp(@StringRes titleRes: Int, @StringRes messageRes: Int) {
-        helpTitleText = context.getText(titleRes)
-        helpMessageText = context.getText(messageRes)
-        setHelpVisible(true)
+    override fun setHelp(@StringRes titleRes: Int, @StringRes messageRes: Int) {
+        help.setHelp(titleRes, messageRes)
     }
 
     /**
      * Shows or hides the help icon without dropping the stored help payload.
      * Hidden when no payload is configured regardless of the requested value.
      */
-    fun setHelpVisible(visible: Boolean) {
-        helpIcon.visibility = if (visible && hasHelpPayload()) View.VISIBLE else View.GONE
-        helpIcon.contentDescription = helpTitleText?.toString().orEmpty()
+    override fun setHelpVisible(visible: Boolean) {
+        help.setHelpVisible(visible)
     }
 
     /**
@@ -225,7 +217,7 @@ class SettingsSelectionRow @JvmOverloads constructor(
      */
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
-        helpIcon.isEnabled = enabled
+        help.setEnabled(enabled)
         titleView.isEnabled = enabled
         subtitleView.isEnabled = enabled
         valueView.isEnabled = enabled
@@ -239,18 +231,6 @@ class SettingsSelectionRow @JvmOverloads constructor(
         }
     }
 
-    private fun bindHelpClick() {
-        helpIcon.setOnClickListener {
-            val title = helpTitleText
-            val message = helpMessageText
-            if (title.isNullOrEmpty() || message.isNullOrEmpty()) {
-                Timber.w("SettingsSelectionRow: help requested without payload")
-                return@setOnClickListener
-            }
-            TooltipDialog.show(context, title.toString(), message.toString())
-        }
-    }
-
     private fun applyAttributes(attrs: AttributeSet?, defStyleAttr: Int) {
         if (attrs == null) return
         context.obtainStyledAttributes(attrs, R.styleable.SettingsSelectionRow, defStyleAttr, 0).use { typedArray ->
@@ -259,10 +239,12 @@ class SettingsSelectionRow @JvmOverloads constructor(
             setSubtitle(typedArray.getText(R.styleable.SettingsSelectionRow_ssr_subtitle))
             val iconRes = typedArray.getResourceId(R.styleable.SettingsSelectionRow_ssr_icon, 0)
             if (iconRes != 0) setIcon(iconRes)
-            helpTitleText = typedArray.getText(R.styleable.SettingsSelectionRow_ssr_helpTitle)
-            helpMessageText = typedArray.getText(R.styleable.SettingsSelectionRow_ssr_helpMessage)
+            help.setPayload(
+                typedArray.getText(R.styleable.SettingsSelectionRow_ssr_helpTitle),
+                typedArray.getText(R.styleable.SettingsSelectionRow_ssr_helpMessage),
+            )
             val showHelp = typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_showHelp, false)
-            helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
+            help.applyInitialVisibility(showHelp)
             val showChevron = typedArray.getBoolean(R.styleable.SettingsSelectionRow_ssr_showChevron, true)
             chevronView.visibility = if (showChevron) View.VISIBLE else View.GONE
             // S0644: value-row etalon - the trailing chevron sits right after the text instead of being
@@ -368,8 +350,6 @@ class SettingsSelectionRow @JvmOverloads constructor(
      */
     private fun applyTextGroupWidth() {
         val hug = hugContentRequested && subtitleView.visibility == View.GONE
-        if (hugContentRequested && !hug) {
-        }
         binding.ssrTextGroup.updateLayoutParams<LayoutParams> {
             width = if (hug) LayoutParams.WRAP_CONTENT else 0
             weight = if (hug) 0f else 1f
@@ -378,16 +358,5 @@ class SettingsSelectionRow @JvmOverloads constructor(
             width = if (hug) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT
         }
         binding.ssrTitleLineSpacer.visibility = if (hug) View.GONE else View.VISIBLE
-    }
-
-    private fun syncHelpVisibility() {
-        if (!hasHelpPayload()) {
-            helpIcon.visibility = View.GONE
-        }
-        helpIcon.contentDescription = helpTitleText?.toString().orEmpty()
-    }
-
-    private fun hasHelpPayload(): Boolean {
-        return !helpTitleText.isNullOrEmpty() && !helpMessageText.isNullOrEmpty()
     }
 }

@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -9,12 +8,14 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.VideoPlaybackFailureSessionCache
@@ -62,6 +63,7 @@ import com.sza.fastmediasorter.ui.browse.helpers.BrowseSwipeActionResolver
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
@@ -277,10 +279,8 @@ class BrowseManagerInitializer(
             activity = activity,
             recyclerView = binding.rvMediaFiles,
             adapter = mediaFileAdapter,
-            fabScrollToTop = binding.fabScrollToTop,
-            fabScrollToBottom = binding.fabScrollToBottom,
-            fabPageUp = binding.fabPageUp,
-            fabPageDown = binding.fabPageDown
+            barScrollTop = binding.barScrollTop,
+            barScrollBottom = binding.barScrollBottom
         )
 
         binding.rvMediaFiles.addOnScrollListener(BrowseScrollThumbnailListener(mediaFileAdapter) {
@@ -384,11 +384,15 @@ class BrowseManagerInitializer(
                 override fun onShowMessage(message: String) { Toast.makeText(activity, message, Toast.LENGTH_SHORT).show() }
                 override fun onShowError(message: String, details: String?) {
                     if (details != null) {
-                        AlertDialog.Builder(activity)
+                        val errorDialog = MaterialAlertDialogBuilder(activity)
                             .setTitle(message)
                             .setMessage(details)
                             .setPositiveButton(R.string.ok, null)
-                            .showBoundToHost(activity)
+                            .create()
+                        DialogKeyboardDelegate.applyTo(errorDialog) {
+                            errorDialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+                        }
+                        errorDialog.showBoundToHost(activity)
                     } else {
                         Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
                     }

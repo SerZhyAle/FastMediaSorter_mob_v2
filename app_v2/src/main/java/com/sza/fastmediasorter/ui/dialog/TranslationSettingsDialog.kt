@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
@@ -16,6 +17,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptorEntryPoint
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
+import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -46,7 +48,7 @@ object TranslationSettingsDialog {
 
         val dialogView = android.view.LayoutInflater.from(context)
             .inflate(R.layout.dialog_translation_settings, null)
-        val dialog = androidx.appcompat.app.AlertDialog.Builder(context)
+        val dialog = MaterialAlertDialogBuilder(context)
             .setView(dialogView)
             .create()
 
@@ -199,7 +201,10 @@ object TranslationSettingsDialog {
                 }
             }
 
-            dialog.show()
+            // Enter reuses the view's own confirm button; Escape dismisses without applying,
+            // matching btnCancel.
+            DialogKeyboardDelegate.applyTo(dialog) { btnOk.performClick() }
+            dialog.showBoundToHost(context)
         }
     }
 

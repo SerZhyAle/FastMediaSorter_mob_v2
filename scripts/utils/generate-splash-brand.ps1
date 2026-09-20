@@ -48,14 +48,17 @@ if (-not (Test-Path $wordmark)) {
     exit 2
 }
 
-# Candidate order matters: on this machine `python3` resolves to the Microsoft Store stub in
-# WindowsApps, which exits non-zero for every command, while the working interpreter is the
-# repo's own virtual environment. So a candidate is accepted only once fontTools imports in it.
+# A candidate is accepted only once fontTools imports in it, so the probe RUNS each one - and that
+# is why the Store aliases must be filtered out BEFORE the loop rather than be allowed to fail in it
+# (S3342). `python3` and `python` under WindowsApps are zero-length execution aliases; running one
+# does not exit non-zero as the earlier note here assumed, it opens Windows' "Select an app to open
+# 'python3'" picker in front of the owner. Test-StoreAliasPath decides that from a file stat.
+. (Join-Path $PSScriptRoot 'lib/python-interpreter.ps1')
 $candidates = @(
     (Join-Path $repoRoot '.venv/Scripts/python.exe'),
-    (Get-Command python -ErrorAction SilentlyContinue).Source,
-    (Get-Command python3 -ErrorAction SilentlyContinue).Source
-) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -Unique
+    (Get-Command python -CommandType Application -All -ErrorAction SilentlyContinue | ForEach-Object { $_.Source }),
+    (Get-Command py -CommandType Application -All -ErrorAction SilentlyContinue | ForEach-Object { $_.Source })
+) | Where-Object { $_ -and (Test-Path $_) -and -not (Test-StoreAliasPath -Path $_) } | Select-Object -Unique
 
 $pythonExe = $null
 foreach ($candidate in $candidates) {

@@ -52,6 +52,8 @@ class BoundedGridPopupManager {
             ?.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
         val metrics = context.resources.displayMetrics
 
+        val maxWidth = metrics.widthPixels - (safe?.left ?: 0) - (safe?.right ?: 0) - POPUP_MARGIN_PX
+        val gridPadding = grid.paddingLeft + grid.paddingRight
         if (equalColumns) {
             val widest = cells.maxOfOrNull { measureCellWidth(it) } ?: 0
             // Weighted columns only stretch under an EXACTLY width, so the containers must fill the popup.
@@ -63,8 +65,9 @@ class BoundedGridPopupManager {
                     columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
                 }
             }
-            val maxWidth = metrics.widthPixels - (safe?.left ?: 0) - (safe?.right ?: 0) - POPUP_MARGIN_PX
-            popup.width = resolveGridWidth(widest, columnCount, grid.paddingLeft + grid.paddingRight, maxWidth)
+            popup.width = resolveGridWidth(widest, columnCount, gridPadding, maxWidth)
+        } else {
+            capCellsToColumnShare(cells, resolveCellMaxWidth(maxWidth, columnCount, gridPadding))
         }
         cells.forEach { grid.addView(it) }
 
@@ -90,6 +93,20 @@ class BoundedGridPopupManager {
     fun dismiss() {
         activePopup?.dismiss()
         activePopup = null
+    }
+
+    /**
+     * S1736: with unequal columns nothing bounded the row - both the popup and the grid wrap their
+     * content - so a cell wider than its share of the screen was sliced by the popup edge mid-word
+     * ("Быстрый перевод с камеры" read as "Быстрый перевод с камер"). Pinning the over-wide cell to its
+     * share hands the cut back to the cell layout's own `ellipsize`, which says it is cutting.
+     */
+    private fun capCellsToColumnShare(cells: List<View>, cellMaxWidth: Int) {
+        if (cellMaxWidth <= 0) return
+        cells.forEach { cell ->
+            if (measureCellWidth(cell) <= cellMaxWidth) return@forEach
+            cell.layoutParams = GridLayout.LayoutParams().apply { width = cellMaxWidth }
+        }
     }
 
     private fun measureCellWidth(cell: View): Int {
@@ -126,5 +143,9 @@ class BoundedGridPopupManager {
 
         internal fun resolveGridWidth(widestCell: Int, columnCount: Int, horizontalPadding: Int, maxWidth: Int): Int =
             minOf(widestCell * columnCount + horizontalPadding, maxWidth)
+
+        /** The width one column may take before the popup edge, not the cell's own ellipsize, does the cutting. */
+        internal fun resolveCellMaxWidth(maxWidth: Int, columnCount: Int, horizontalPadding: Int): Int =
+            (maxWidth - horizontalPadding) / columnCount.coerceAtLeast(1)
     }
 }

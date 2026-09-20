@@ -17,6 +17,25 @@ own its body (S2402). The refusal comes from `scripts/quality/assert-allfeatures
 runs at ticket closure whenever the ledger is in the changed set - so an unknown area is caught, but
 later than you typed it.
 
+## What a record may describe (S3331)
+
+Every record is one of two things, and the coverage gate reads the same split:
+
+- **A user-facing capability** - the default. A guide is expected to mention it;
+  `assert-guide-coverage.ps1` nominates the record when none does.
+- **Developer machinery** - recorded only under the `tooling.*` prefix. A guide will never mention
+  it and should not: the coverage gate skips the prefix outright, so a tooling record never belongs
+  in `guide-coverage-baseline.txt` either.
+
+A purely internal fix gets no record at all. A changelog-shaped record ("Fix <internal primitive>")
+describes no capability a guide could document; the fix is told by `dev/CHANGELOG.md` and its spec.
+A fix whose change a user can notice is a capability like any other and gets a normal record.
+
+Removed 2026-09-20 under this rule (S3331), both of them coverage-gate nominations every release
+until then: `diagnostics.macrobenchmark-baseline-profiles`, a duplicate of
+`tooling.macrobenchmark_baseline_profile_perf_harness`, and the fix-shaped
+`wear.singlecolumntilecell-in-favourites`.
+
 ## The three legal shapes of a watch record
 
 A watch record's `flavors` field is about the **phone**, always. It answers "which phone build gates

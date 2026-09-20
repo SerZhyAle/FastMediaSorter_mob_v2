@@ -9,6 +9,7 @@ import android.graphics.PointF
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.TypedValue
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
@@ -18,6 +19,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.EdgeGestureAxis
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
+import timber.log.Timber
 
 /**
  * S1035: schematic of the four edge bands and their three swipe directions, mirroring the live overlay
@@ -57,6 +59,10 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
     )
 
     private var state: SchemaState = SchemaState.EMPTY
+
+    // Key-navigation cursor: which band the arrows walk, and which of its cells (NO_DIRECTION = the band).
+    private var cursorZoneIndex = 0
+    private var cursorDirectionIndex = NO_DIRECTION
 
     // S1188: which pair of outline edges carries the bands, read from the same rule the live overlay
     // uses so the diagram cannot promise a layout the overlay does not render.
@@ -199,6 +205,19 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
         canvas.drawRoundRect(phoneRect, phoneCornerPx, phoneCornerPx, phonePaint)
         ScreenshotGestureZone.entries.forEach { zone -> drawZone(canvas, zone) }
         state.selectedZone?.let { zone -> drawSelection(canvas, zone) }
+        drawKeyCursor(canvas)
+    }
+
+    // Without this the arrow keys would move a cursor nothing on screen shows.
+    private fun drawKeyCursor(canvas: Canvas) {
+        if (!isFocused || cursorDirectionIndex == NO_DIRECTION) return
+        val zone = ScreenshotGestureZone.entries[cursorZoneIndex]
+        val cell = directionOrder.getOrNull(cursorDirectionIndex)
+            ?.let { direction -> directionRects[zone to direction] }
+        cell?.let {
+            val corner = dp(SELECTION_CORNER_DP)
+            canvas.drawRoundRect(it, corner, corner, selectionPaint)
+        }
     }
 
     /**
@@ -293,6 +312,51 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
         return true
     }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        Timber.d("S3252: EdgeGestureSchemaView key $keyCode zone=$cursorZoneIndex cell=$cursorDirectionIndex")
+        val handled = when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_LEFT -> moveZoneCursor(-1)
+            KeyEvent.KEYCODE_DPAD_RIGHT -> moveZoneCursor(1)
+            KeyEvent.KEYCODE_DPAD_UP -> moveDirectionCursor(-1)
+            KeyEvent.KEYCODE_DPAD_DOWN -> moveDirectionCursor(1)
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> activateCursor()
+            else -> false
+        }
+        return if (handled) true else super.onKeyDown(keyCode, event)
+    }
+
+    /**
+     * Left and right walk the four bands and report the landing zone, so the marker the host draws
+     * follows the key cursor exactly as it follows a tap.
+     */
+    private fun moveZoneCursor(step: Int): Boolean {
+        val zones = ScreenshotGestureZone.entries
+        cursorZoneIndex = (cursorZoneIndex + step).mod(zones.size)
+        cursorDirectionIndex = NO_DIRECTION
+        zoneTapListener?.invoke(zones[cursorZoneIndex])
+        invalidate()
+        return true
+    }
+
+    // Up and down walk the band itself plus its three direction cells, without committing anything.
+    private fun moveDirectionCursor(step: Int): Boolean {
+        val positions = directionOrder.size + 1
+        cursorDirectionIndex = (cursorDirectionIndex + 1 + step).mod(positions) - 1
+        invalidate()
+        return true
+    }
+
+    private fun activateCursor(): Boolean {
+        val zone = ScreenshotGestureZone.entries[cursorZoneIndex]
+        val direction = directionOrder.getOrNull(cursorDirectionIndex)
+        if (direction == null) {
+            zoneTapListener?.invoke(zone)
+        } else {
+            directionTapListener?.invoke(zone, direction)
+        }
+        return true
+    }
+
     private fun handleTap(x: Float, y: Float) {
         directionRects.entries.firstOrNull { it.value.contains(x, y) }?.let { (key, _) ->
             directionTapListener?.invoke(key.first, key.second)
@@ -350,5 +414,6 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
         const val SELECTION_CORNER_DP = 8f
         const val DIRECTION_COUNT = 3
         const val HALF = 0.5f
+        const val NO_DIRECTION = -1
     }
 }

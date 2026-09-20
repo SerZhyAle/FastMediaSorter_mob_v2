@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
+import com.sza.fastmediasorter.ui.browse.sheets.BrowseBinaryFileBottomSheet
 import com.sza.fastmediasorter.util.BinaryFileTypeDetector
 import timber.log.Timber
 import java.io.File
@@ -48,52 +49,21 @@ class BrowseBinaryFileHandler(
             return
         }
 
-        val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(activity)
-        val root = activity.findViewById<android.view.ViewGroup>(android.R.id.content)
-        val view = activity.layoutInflater.inflate(R.layout.bottom_sheet_binary_file, root, false)
-
-        view.findViewById<android.widget.TextView>(R.id.tvFileName)?.text = mediaFile.name
-
-        view.findViewById<android.view.View>(R.id.btnShare)?.setOnClickListener {
-            shareFile(mediaFile)
-            bottomSheet.dismiss()
+        val host = activity as? FragmentActivity ?: run {
+            Timber.w("BrowseBinaryFileHandler: host is not a FragmentActivity, cannot show binary file menu")
+            return
         }
 
-        view.findViewById<android.view.View>(R.id.btnOpenWith)?.setOnClickListener {
-            openWithDefaultApp(mediaFile)
-            bottomSheet.dismiss()
-        }
-
-        view.findViewById<android.view.View>(R.id.btnCopy)?.setOnClickListener {
-            onSelectFile(mediaFile.path)
-            onShowCopyDialog()
-            bottomSheet.dismiss()
-        }
-
-        view.findViewById<android.view.View>(R.id.btnMove)?.setOnClickListener {
-            onSelectFile(mediaFile.path)
-            onShowMoveDialog()
-            bottomSheet.dismiss()
-        }
-
-        view.findViewById<android.view.View>(R.id.btnRename)?.setOnClickListener {
-            onSelectFile(mediaFile.path)
-            onShowRenameDialog()
-            bottomSheet.dismiss()
-        }
-
-        view.findViewById<android.view.View>(R.id.btnDelete)?.setOnClickListener {
-            onSelectFile(mediaFile.path)
-            onShowDeleteConfirmation()
-            bottomSheet.dismiss()
-        }
-
-        binaryFileMenuActions.forEach { action ->
-            action.bind(view, mediaFile) { bottomSheet.dismiss() }
-        }
-
-        bottomSheet.setContentView(view)
-        bottomSheet.show()
+        BrowseBinaryFileBottomSheet.newInstance(
+            mediaFile = mediaFile,
+            onShare = { shareFile(mediaFile) },
+            onOpenWith = { openWithDefaultApp(mediaFile) },
+            onCopy = { onSelectFile(mediaFile.path); onShowCopyDialog() },
+            onMove = { onSelectFile(mediaFile.path); onShowMoveDialog() },
+            onRename = { onSelectFile(mediaFile.path); onShowRenameDialog() },
+            onDelete = { onSelectFile(mediaFile.path); onShowDeleteConfirmation() },
+            menuActions = binaryFileMenuActions,
+        ).show(host.supportFragmentManager, "browse_binary_file_sheet")
     }
 
     fun openWithDefaultApp(mediaFile: MediaFile) {

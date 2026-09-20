@@ -4,15 +4,12 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.ui.dialog.TooltipDialog
-import timber.log.Timber
 
 /**
  * Canonical reusable checkbox row for resource-entry forms.
@@ -22,23 +19,24 @@ import timber.log.Timber
  * Add Resource and Resource Editor scanning sections (S0567 survey item 5).
  *
  * Modelled on [SettingsToggleRow] (Pattern B): the whole row is a single focus stop, tapping
- * anywhere toggles the checkbox, and the row owns the help icon -> [TooltipDialog] wiring.
+ * anywhere toggles the checkbox, and the help icon chrome is the shared [HelpRowDelegate].
  * Public XML attributes use the `fcr_` prefix (see `attrs.xml`).
  */
 class FormCheckboxRow @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : LinearLayout(context, attrs, defStyleAttr) {
+) : LinearLayout(context, attrs, defStyleAttr), HelpableRow {
 
     private val checkBox: MaterialCheckBox
     private val titleView: TextView
     private val subtitleView: TextView
-    private val helpIcon: ImageButton
+    private val help: HelpRowDelegate
 
-    private var helpTitleText: CharSequence? = null
-    private var helpMessageText: CharSequence? = null
     private var checkedChangeListener: ((Boolean) -> Unit)? = null
+
+    override val isHelpVisible: Boolean
+        get() = help.isHelpVisible
 
     /**
      * Current checked state of the embedded checkbox.
@@ -64,12 +62,11 @@ class FormCheckboxRow @JvmOverloads constructor(
         checkBox = findViewById(R.id.fcr_checkbox)
         titleView = findViewById(R.id.fcr_title)
         subtitleView = findViewById(R.id.fcr_subtitle)
-        helpIcon = findViewById(R.id.fcr_iconHelp)
+        help = HelpRowDelegate(findViewById(R.id.fcr_iconHelp), "FormCheckboxRow")
 
         bindRowClicks()
-        bindHelpClick()
         applyAttributes(attrs, defStyleAttr)
-        syncHelpVisibility()
+        help.syncVisibility()
     }
 
     /**
@@ -110,18 +107,15 @@ class FormCheckboxRow @JvmOverloads constructor(
     /**
      * Stores the help payload and makes the help icon available.
      */
-    fun setHelp(@StringRes titleRes: Int, @StringRes messageRes: Int) {
-        helpTitleText = context.getText(titleRes)
-        helpMessageText = context.getText(messageRes)
-        setHelpVisible(true)
+    override fun setHelp(@StringRes titleRes: Int, @StringRes messageRes: Int) {
+        help.setHelp(titleRes, messageRes)
     }
 
     /**
      * Shows or hides the help icon without dropping the stored help payload.
      */
-    fun setHelpVisible(visible: Boolean) {
-        helpIcon.visibility = if (visible && hasHelpPayload()) View.VISIBLE else View.GONE
-        helpIcon.contentDescription = helpTitleText?.toString().orEmpty()
+    override fun setHelpVisible(visible: Boolean) {
+        help.setHelpVisible(visible)
     }
 
     /**
@@ -145,7 +139,7 @@ class FormCheckboxRow @JvmOverloads constructor(
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
         checkBox.isEnabled = enabled
-        helpIcon.isEnabled = enabled
+        help.setEnabled(enabled)
         titleView.isEnabled = enabled
         subtitleView.isEnabled = enabled
         alpha = if (enabled) 1f else 0.5f
@@ -163,39 +157,17 @@ class FormCheckboxRow @JvmOverloads constructor(
         }
     }
 
-    private fun bindHelpClick() {
-        helpIcon.setOnClickListener {
-            val title = helpTitleText
-            val message = helpMessageText
-            if (title.isNullOrEmpty() || message.isNullOrEmpty()) {
-                Timber.w("FormCheckboxRow: help requested without payload")
-                return@setOnClickListener
-            }
-            TooltipDialog.show(context, title.toString(), message.toString())
-        }
-    }
-
     private fun applyAttributes(attrs: AttributeSet?, defStyleAttr: Int) {
         if (attrs == null) return
         context.obtainStyledAttributes(attrs, R.styleable.FormCheckboxRow, defStyleAttr, 0).use { typedArray ->
             setTitle(typedArray.getText(R.styleable.FormCheckboxRow_fcr_title) ?: "")
             setSubtitle(typedArray.getText(R.styleable.FormCheckboxRow_fcr_subtitle))
-            helpTitleText = typedArray.getText(R.styleable.FormCheckboxRow_fcr_helpTitle)
-            helpMessageText = typedArray.getText(R.styleable.FormCheckboxRow_fcr_helpMessage)
-            val showHelp = typedArray.getBoolean(R.styleable.FormCheckboxRow_fcr_showHelp, false)
-            helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
+            help.setPayload(
+                typedArray.getText(R.styleable.FormCheckboxRow_fcr_helpTitle),
+                typedArray.getText(R.styleable.FormCheckboxRow_fcr_helpMessage)
+            )
+            help.applyInitialVisibility(typedArray.getBoolean(R.styleable.FormCheckboxRow_fcr_showHelp, false))
             checkBox.isChecked = typedArray.getBoolean(R.styleable.FormCheckboxRow_fcr_checked, false)
         }
-    }
-
-    private fun syncHelpVisibility() {
-        if (!hasHelpPayload()) {
-            helpIcon.visibility = View.GONE
-        }
-        helpIcon.contentDescription = helpTitleText?.toString().orEmpty()
-    }
-
-    private fun hasHelpPayload(): Boolean {
-        return !helpTitleText.isNullOrEmpty() && !helpMessageText.isNullOrEmpty()
     }
 }

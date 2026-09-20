@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.databinding.DialogStopwatchSettingsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.MusicTrackRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -67,6 +68,13 @@ class StopwatchSettingsDialogFragment : DialogFragment() {
         }
         loadDraft()
         return dialog
+    }
+
+    override fun onStart() {
+        super.onStart()
+        DialogKeyboardDelegate.applyToDialogFragment(dialog) {
+            binding.btnStopwatchSettingsApply.performClick()
+        }
     }
 
     override fun onDestroyView() {

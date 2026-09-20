@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.domain.model.WearSettingsMergeResolver
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSettingsPayloadDecoder
 import com.sza.fastmediasorter.domain.model.WearSettingsRegistry
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -60,6 +61,7 @@ class MergeWearSettingsReportUseCase @Inject constructor(
         // absent local stamp, which the resolver already answers with "take the incoming value", so the
         // first report needs no branch of its own.
         val merged = mergeAgainst(stored ?: incoming, incoming, merge)
+        Timber.d("S3330: merged report, dimClockOverlayEnabled=${merged.dimClockOverlayEnabled}")
         mirrorStore.writeSettings(merged)
         mirrorStore.writeFieldTimestamps(stamps)
         // S2461: the version rides in on the same call as the time, because this line is the single
@@ -141,6 +143,13 @@ class MergeWearSettingsReportUseCase @Inject constructor(
             "panelAutoHideSeconds",
             incoming.panelAutoHideSeconds,
             stored.panelAutoHideSeconds
+        ),
+        // S3330: now BOTH in the registry - the watch's Screen row edits it independently, so a merge
+        // is required or the watch's edit loses the comparison the first time it is made.
+        dimClockOverlayEnabled = merge.optional(
+            "dimClockOverlayEnabled",
+            incoming.dimClockOverlayEnabled,
+            stored.dimClockOverlayEnabled
         ),
         // appLanguage is deliberately absent: it is the PHONE_ONLY entry the copy above preserves, and
         // the resolver would refuse it anyway.

@@ -61,4 +61,13 @@
     <dimen name="main_tab_strip_leading_anchor">@dimen/main_top_panel_leading_anchor</dimen>
     <dimen name="broadcast_share_qr_size">220dp</dimen>
     <dimen name="launcher_wallpaper_preview_height">120dp</dimen>
+
+    <!-- S3254: the item row/grid family (Widget.FastMediaSorter.Item.Row, PHONE_UI_COMPONENT_
+         PATTERNS 2.2) compacts vertically in landscape - rows and cells keep their horizontal
+         padding because the wider viewport is exactly what landscape buys. The thumbnail
+         container is the grid cell's height driver (item_media_file_grid.xml and the
+         MediaItemView constraint), so 120dp against the 150dp base buys back the shorter
+         landscape viewport alongside the tighter row padding. -->
+    <dimen name="item_row_padding_vertical">6dp</dimen>
+    <dimen name="item_grid_thumbnail_size">120dp</dimen>
 </resources>

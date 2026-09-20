@@ -13,6 +13,7 @@ import android.text.TextPaint
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.GestureDetector
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import com.sza.fastmediasorter.BuildConfig
@@ -65,7 +66,7 @@ class TranslationOverlayView @JvmOverloads constructor(
         // S1713: opaque, so the plate covers the source text. S2064: OverlayPlateColorSampler keeps
         // alpha at 255 on every path into the view; if the result looks heavy the cause is the
         // sampled colour (S1704, S1714), not the alpha.
-        var backgroundColor: Int = Color.parseColor("#FFFFFFFF"),
+        var backgroundColor: Int = Color.WHITE,
         var textColor: Int = Color.BLACK, // Contrast text color
         var customFontSize: Float? = null, // Per-block font size override (6-72sp)
         // S1711: source-line type size in OCR pixels (median of the line's word heights). Null means the
@@ -100,7 +101,7 @@ class TranslationOverlayView @JvmOverloads constructor(
 
     // Paint for background rectangles
     private val backgroundPaint = Paint().apply {
-        color = Color.parseColor("#FFFFFFFF") // S1713: opaque backing, see TranslatedBlock.backgroundColor
+        color = Color.WHITE // S1713: opaque backing, see TranslatedBlock.backgroundColor
         style = Paint.Style.FILL
         isAntiAlias = true
     }
@@ -198,11 +199,7 @@ class TranslationOverlayView @JvmOverloads constructor(
                 // Find which block was tapped (iterate in reverse to check top blocks first)
                 for (i in translatedBlocks.indices.reversed()) {
                     if (i < scaledRects.size && scaledRects[i].contains(x, y)) {
-                        // Move tapped block to end of list (top of z-order)
-                        val block = translatedBlocks.removeAt(i)
-                        translatedBlocks.add(block)
-                        scaledRects.clear() // Force recalculation
-                        invalidate()
+                        bringBlockToFront(i)
                         Timber.d("Translation block tapped: brought to front")
                         return true
                     }
@@ -257,6 +254,8 @@ class TranslationOverlayView @JvmOverloads constructor(
      */
     init {
         loadFontSizeMultiplierAsync()
+        isFocusable = true
+        isFocusableInTouchMode = true
     }
 
     private fun loadFontSizeMultiplierAsync() {
@@ -481,6 +480,39 @@ class TranslationOverlayView @JvmOverloads constructor(
      * passing through to the image/document underneath
      */
     override fun performClick(): Boolean = super.performClick()
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        Timber.d("S3252: TranslationOverlayView key $keyCode blocks=${translatedBlocks.size}")
+        val handled = when (keyCode) {
+            KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK -> hideAndClear()
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                decreaseFontSize()
+                true
+            }
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                increaseFontSize()
+                true
+            }
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> bringBlockToFront(0)
+            else -> false
+        }
+        return if (handled) true else super.onKeyDown(keyCode, event)
+    }
+
+    private fun hideAndClear(): Boolean {
+        visibility = View.GONE
+        clear()
+        return true
+    }
+
+    // Moves a block to the end of the list, which is the top of the draw order.
+    private fun bringBlockToFront(index: Int): Boolean {
+        if (index !in translatedBlocks.indices) return false
+        translatedBlocks.add(translatedBlocks.removeAt(index))
+        scaledRects.clear() // Force recalculation
+        invalidate()
+        return true
+    }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         // Always pass ALL events to gesture detector (including DOWN, MOVE, UP)

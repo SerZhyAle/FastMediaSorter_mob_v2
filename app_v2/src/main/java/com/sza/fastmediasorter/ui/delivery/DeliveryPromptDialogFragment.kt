@@ -17,6 +17,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogDeliveryPromptBinding
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -50,6 +51,15 @@ class DeliveryPromptDialogFragment : DialogFragment() {
             .setTitle(featureNameRes(set))
             .setView(binding.root)
             .create()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Enter confirms the offer. Escape dismisses even though the prompt is not BACK-cancelable;
+        // a keyboard dismissal skips the refuse() accounting, so the offer may return next session.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog) {
+            binding.btnDeliveryConfirm.performClick()
+        }
     }
 
     @androidx.annotation.StringRes

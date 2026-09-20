@@ -331,11 +331,7 @@ object WearSettingsRegistry {
             watchPreferenceKey = "wear_dim_clock_overlay_enabled",
             docScopeId = "wearDimClockOverlay",
             valueType = TYPE_BOOLEAN,
-            ownership = WearSettingOwnership.PHONE_ONLY,
-            exceptionReason = "S3256 settings shape: one shared toggle authored on the phone and synced " +
-                "to the watch, so the exchange carries it phone to watch only. The watch's Screen row " +
-                "writes the same key locally, and the watch never reports it back - neither " +
-                "GatherWearSettingsUseCase nor MergeWearSettingsReportUseCase names it."
+            ownership = WearSettingOwnership.BOTH
         ),
         WearSettingScope(
             field = "dimClockSecondsVisible",

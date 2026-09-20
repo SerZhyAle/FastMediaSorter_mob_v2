@@ -8,6 +8,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.ui.common.dialog.AppDialog
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
@@ -23,36 +25,48 @@ class GeneralSettingsResetHelper(
     private val fragment: Fragment,
 ) {
     fun showRememberFileListHelpDialog() {
-        AlertDialog.Builder(fragment.requireContext())
+        val dialog = MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.remember_file_list_help_title)
             .setMessage(R.string.remember_file_list_help_message)
             .setPositiveButton(R.string.ok, null)
-            .showBoundTo(fragment)
+            .create()
+        DialogKeyboardDelegate.applyTo(dialog) {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+        }
+        dialog.showBoundTo(fragment)
     }
 
     fun showResetSettingsConfirmation() {
-        MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
-            .setTitle(R.string.reset_settings_title)
-            .setMessage(R.string.reset_settings_message)
-            .setPositiveButton(R.string.ok) { _, _ -> resetSettingsToDefaults() }
-            .setNegativeButton(R.string.cancel, null)
-            .showBoundTo(fragment)
+        Timber.d("S3243: reset settings confirmation shown")
+        AppDialog.destructive(
+            owner = fragment,
+            context = fragment.requireContext(),
+            title = fragment.getString(R.string.reset_settings_title),
+            message = fragment.getString(R.string.reset_settings_message),
+            confirmLabel = fragment.getString(R.string.ok),
+            onConfirm = { resetSettingsToDefaults() },
+        )
     }
 
     fun showResetGeneralSectionConfirmation() {
-        MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
-            .setTitle(R.string.reset_general_section_title)
-            .setMessage(R.string.reset_general_section_message)
-            .setPositiveButton(R.string.ok) { _, _ -> resetGeneralSection() }
-            .setNegativeButton(R.string.cancel, null)
-            .showBoundTo(fragment)
+        AppDialog.destructive(
+            owner = fragment,
+            context = fragment.requireContext(),
+            title = fragment.getString(R.string.reset_general_section_title),
+            message = fragment.getString(R.string.reset_general_section_message),
+            confirmLabel = fragment.getString(R.string.ok),
+            onConfirm = { resetGeneralSection() },
+        )
     }
 
     fun resetSmbConnections() {
-        MaterialAlertDialogBuilder(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
-            .setTitle(R.string.reset_smb_connections_title)
-            .setMessage(R.string.reset_smb_connections_message)
-            .setPositiveButton(R.string.ok) { _, _ ->
+        AppDialog.destructive(
+            owner = fragment,
+            context = fragment.requireContext(),
+            title = fragment.getString(R.string.reset_smb_connections_title),
+            message = fragment.getString(R.string.reset_smb_connections_message),
+            confirmLabel = fragment.getString(R.string.ok),
+            onConfirm = {
                 binding.btnResetSmbConnections.isEnabled = false
                 binding.btnResetSmbConnections.text = fragment.getString(R.string.please_wait)
                 fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
@@ -73,9 +87,8 @@ class GeneralSettingsResetHelper(
                         }
                     }
                 }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .showBoundTo(fragment)
+            },
+        )
     }
 
     private fun resetGeneralSection() {

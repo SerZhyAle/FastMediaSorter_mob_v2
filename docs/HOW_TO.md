@@ -97,6 +97,7 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 39. [Choose Where Captures and Downloads Are Saved](#how-to-choose-where-captures-and-downloads-are-saved)
 40. [Receive Files Shared from Another App](#how-to-receive-files-shared-from-another-app)
 41. [Use the Built-In Programs](#how-to-use-the-built-in-programs)
+42. [Ask Your Assistant to Find and Open Media](#how-to-ask-your-assistant-to-find-and-open-media)
 
 ---
 
@@ -1462,6 +1463,36 @@ The panel and the launcher additionally carry direct camera shortcuts - take a p
 
 - Do not expect the water flashlight to survive a swipe home - a system navigation gesture still leaves it, and the light goes out with it.
 - Do not expect every program in every build - the list above is the full set, and a build without the underlying capability simply does not show that entry.
+
+---
+
+## How to Ask Your Assistant to Find and Open Media
+
+**Available in:** every build, on Android 16 and newer. Older Android versions simply do not offer the feature, and nothing in the app has to be switched on for it.
+
+On Android 16+ the app registers a set of assistant actions - AppFunctions, in Android's own wording - with the system. Your device's assistant can then call them by name, so you can ask out loud for a photo, a video or a computer folder instead of opening the app and browsing for it yourself.
+
+**What you can ask for**
+
+- **Search your media** - the assistant hands your words to the app's search and shows what matched.
+- **Open a media file** - a photo, a video or a track opens straight in the app's viewer or player.
+- **Open a computer folder** - one of your network or cloud folders opens in the browser screen.
+
+**Quick Path**
+
+1. Make sure the device runs Android 16 or newer and has a system assistant set up.
+2. Ask the assistant for the media you want, naming FastMediaSorter if the device hosts several media apps.
+3. The app opens on the result - the search list, the file, or the folder you asked for.
+
+**When It Helps**
+
+- Your hands are busy - cooking, driving, holding a child - and tapping through folders is not an option.
+- You remember what a file is called but not where you filed it.
+
+**Avoid This**
+
+- Do not expect it below Android 16: the assistant actions are part of the newer system, so on an older phone the assistant will not see them.
+- Do not expect the assistant to reach a PIN-protected folder - the lock still applies, and the folder asks for its PIN as usual.
 
 ---
 

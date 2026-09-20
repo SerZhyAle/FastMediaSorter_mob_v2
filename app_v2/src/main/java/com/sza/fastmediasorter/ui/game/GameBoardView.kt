@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.game
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
@@ -10,10 +9,14 @@ import android.graphics.drawable.Drawable
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.GestureDetector
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewConfiguration
+import androidx.annotation.ColorRes
+import androidx.core.content.ContextCompat
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.game.GameDirection
 import com.sza.fastmediasorter.domain.game.GameMode
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardActorCell
@@ -25,6 +28,7 @@ import com.sza.fastmediasorter.ui.game.helpers.GameBoardRenderState
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardScale
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardTheme
 import com.sza.fastmediasorter.ui.game.helpers.GameScalingManager
+import timber.log.Timber
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -60,52 +64,52 @@ class GameBoardView @JvmOverloads constructor(
     private val cellRect = RectF()
     private val boardRect = RectF()
     private val actorPath = Path()
-    private val floorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FFF5F5F5") }
-    private val wallPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FF5F6368") }
+    private val floorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = boardColor(R.color.game_floor) }
+    private val wallPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = boardColor(R.color.game_wall) }
     private val exitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#FF2E7D32")
+        color = boardColor(R.color.game_exit)
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
     }
     // S0993: solid exit fill for the contrast skin; colour set from the theme in applyTheme.
     private val exitFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val playerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FF1976D2") }
-    private val kryvavitsaPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FFD32F2F") }
-    private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FF7B1FA2") }
+    private val playerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = boardColor(R.color.game_player) }
+    private val kryvavitsaPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = boardColor(R.color.game_kryvavitsa) }
+    private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = boardColor(R.color.game_shadow) }
     private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#FF3C4043")
+        color = boardColor(R.color.game_border)
         style = Paint.Style.STROKE
     }
     private val defeatPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#FFE53935")
+        color = boardColor(R.color.game_defeat)
         strokeCap = Paint.Cap.ROUND
         style = Paint.Style.STROKE
     }
     private val startHighlightFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#55FFD54F")
+        color = boardColor(R.color.game_start_highlight_fill)
         style = Paint.Style.FILL
     }
     private val startHighlightStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#FFFFD54F")
+        color = boardColor(R.color.game_start_highlight_stroke)
         style = Paint.Style.STROKE
     }
     private val defeatHighlightFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#66FF5252")
+        color = boardColor(R.color.game_defeat_highlight_fill)
         style = Paint.Style.FILL
     }
     private val defeatHighlightStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#FFFF7043")
+        color = boardColor(R.color.game_defeat_highlight_stroke)
         style = Paint.Style.STROKE
     }
     private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#33000000")
+        color = boardColor(R.color.game_grid)
         style = Paint.Style.STROKE
         strokeWidth = 1f
     }
     // S0993: start-of-level guide arrow; amber reads over every skin's floor/wall/exit.
     private val guideArrowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#FFFFA000")
+        color = boardColor(R.color.game_guide_arrow)
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
@@ -262,10 +266,30 @@ class GameBoardView @JvmOverloads constructor(
         return scaleHandled || gestureHandled || true
     }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        val direction = directionFromKeyCode(keyCode)
+        Timber.d("S3252: GameBoardView key $keyCode -> $direction")
+        if (direction != null) {
+            onSwipeDirection?.invoke(direction)
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
     override fun performClick(): Boolean {
         super.performClick()
         return true
     }
+
+    private fun directionFromKeyCode(keyCode: Int): GameDirection? = when (keyCode) {
+        KeyEvent.KEYCODE_DPAD_UP -> GameDirection.UP
+        KeyEvent.KEYCODE_DPAD_DOWN -> GameDirection.DOWN
+        KeyEvent.KEYCODE_DPAD_LEFT -> GameDirection.LEFT
+        KeyEvent.KEYCODE_DPAD_RIGHT -> GameDirection.RIGHT
+        else -> null
+    }
+
+    private fun boardColor(@ColorRes colorRes: Int): Int = ContextCompat.getColor(context, colorRes)
 
     private fun paintFor(baseCell: GameBoardBaseCell): Paint = when (baseCell) {
         GameBoardBaseCell.FLOOR -> floorPaint

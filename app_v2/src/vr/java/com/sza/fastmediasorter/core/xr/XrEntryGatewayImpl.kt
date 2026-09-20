@@ -5,10 +5,11 @@ import android.content.Intent
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
 import com.sza.fastmediasorter.ui.xr.DiagnosticXrActivity
 import com.sza.fastmediasorter.ui.xr.ImmersiveBrowseActivity
+import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import timber.log.Timber
 
 /**
  * Real VR entry gateway for `vr` / `noLegal` flavors.
@@ -23,16 +24,23 @@ import timber.log.Timber
  * where the OpenXR slice is absent), short-circuit to [XrEntryResult.UnavailableNoRuntime]
  * before starting the Activity - otherwise the user would see a blank Activity flash before
  * the on-device runtime check rejects the session.
+ *
+ * S3334: the runtime arrives as [Lazy] because its constructor calls `System.loadLibrary`, and this
+ * gateway is reachable from the launcher's start-up graph (main-screen VR launch managers ->
+ * `StartVrPlaybackUseCase` -> this class). Injecting it directly put an `.so` load - eleven
+ * StrictMode DiskReadViolations - on the main thread of every cold start, including on phones that
+ * never enter VR. Resolving it on the first immersive-intent request keeps the load off that path.
  */
 @Singleton
 class XrEntryGatewayImpl @Inject constructor(
     @ApplicationContext private val appContext: Context,
-    private val runtime: DiagnosticXrRuntime,
+    private val runtimeProvider: Lazy<DiagnosticXrRuntime>,
     private val payloadHolder: VrLaunchPayloadHolder,
 ) : XrEntryGateway {
 
     override fun createImmersiveIntent(input: VrLaunchInput): Intent? {
-        if (!runtime.isNativeAvailable) {
+        Timber.d("S3334: createImmersiveIntent resolving lazy DiagnosticXrRuntime")
+        if (!runtimeProvider.get().isNativeAvailable) {
             Timber.i("XrEntryGatewayImpl: createImmersiveIntent -> native runtime unavailable")
             return null
         }

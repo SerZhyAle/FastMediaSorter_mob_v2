@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.domain.usecase.EnsureWatchResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetPairedWatchStatusUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportWatchSourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.ObserveDimClockOverlayEnabledUseCase
 import com.sza.fastmediasorter.domain.usecase.ObserveUnitSystemUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearStreamPinsUseCase
@@ -27,6 +28,7 @@ import com.sza.fastmediasorter.service.WatchListenSessionManager
 import com.sza.fastmediasorter.service.WearListenState
 import com.sza.fastmediasorter.service.WearSyncEvents
 import com.sza.fastmediasorter.testing.MainDispatcherRule
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockStyleProvider
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -77,6 +79,8 @@ class WearSyncViewModelTest {
     private lateinit var sendWearBackgroundImageUseCase: SendWearBackgroundImageUseCase
     private lateinit var wearFileTransferRepository: WearFileTransferRepository
     private lateinit var observeUnitSystemUseCase: ObserveUnitSystemUseCase
+    private lateinit var observeDimClockOverlayEnabledUseCase: ObserveDimClockOverlayEnabledUseCase
+    private lateinit var dimClockStyleProvider: DimClockStyleProvider
     private lateinit var watchListenSessionManager: WatchListenSessionManager
     private lateinit var applicationScope: TestScope
 
@@ -124,6 +128,11 @@ class WearSyncViewModelTest {
         observeUnitSystemUseCase = mockk()
         every { observeUnitSystemUseCase() } returns flowOf(UnitSystem.METRIC)
 
+        observeDimClockOverlayEnabledUseCase = mockk()
+        every { observeDimClockOverlayEnabledUseCase() } returns flowOf(true)
+        dimClockStyleProvider = mockk()
+        every { dimClockStyleProvider.secondsVisible } returns false
+
         watchListenSessionManager = mockk(relaxed = true)
         every { watchListenSessionManager.listenState } returns MutableStateFlow(WearListenState.Idle())
 
@@ -141,10 +150,22 @@ class WearSyncViewModelTest {
             wearFileTransferRepository = wearFileTransferRepository,
             wearSettingsMirrorStore = wearSettingsMirrorStore,
             observeUnitSystemUseCase = observeUnitSystemUseCase,
+            observeDimClockOverlayEnabledUseCase = observeDimClockOverlayEnabledUseCase,
+            dimClockStyleProvider = dimClockStyleProvider,
             watchListenSessionManager = watchListenSessionManager,
             applicationScope = applicationScope
         )
     }
+
+    @Test
+    fun `S3330 dimClockOverlayEnabled and dimClockSecondsVisible reflect the live phone sources`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val viewModel = createViewModel()
+            runCurrent()
+
+            assertEquals(true, viewModel.dimClockOverlayEnabled.value)
+            assertEquals(false, viewModel.dimClockSecondsVisible)
+        }
 
     @Test
     fun `pushSettings emits Timeout and resets to Idle when watch does not report merge within timeout`() =

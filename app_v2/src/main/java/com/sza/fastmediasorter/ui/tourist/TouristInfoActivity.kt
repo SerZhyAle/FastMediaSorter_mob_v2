@@ -42,7 +42,7 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
 
     override fun setupViews() {
         binding.touristRoot.applySystemBarInsetPadding()
-        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.toolbar.setUpNavigation(this)
 
         val valueFormatter = TouristTileValueFormatter(this, quantityFormatter) {
             unitSystemProvider.value

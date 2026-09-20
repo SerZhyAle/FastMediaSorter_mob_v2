@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -11,14 +10,17 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.withStarted
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog
 import com.sza.fastmediasorter.util.ApkInstallFailure
 import com.sza.fastmediasorter.util.showBoundToHost
@@ -133,11 +135,11 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
             triggerInstall(file)
         } else {
             pendingFile = file
-            AlertDialog.Builder(act)
+            val dialog = MaterialAlertDialogBuilder(act)
                 .setTitle(R.string.s0183_apk_install_rationale_title)
                 .setMessage(R.string.s0183_apk_install_rationale_message)
-                .setNegativeButton(R.string.s0183_apk_install_rationale_btn_cancel) { dialog, _ ->
-                    dialog.dismiss()
+                .setNegativeButton(R.string.s0183_apk_install_rationale_btn_cancel) { d, _ ->
+                    d.dismiss()
                     pendingFile = null
                 }
                 .setPositiveButton(R.string.s0183_apk_install_rationale_btn_settings) { _, _ ->
@@ -147,7 +149,11 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
                     )
                     settingsLauncher?.launch(intent)
                 }
-                .showBoundToHost(act)
+                .create()
+            DialogKeyboardDelegate.applyTo(dialog) {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+            }
+            dialog.showBoundToHost(act)
         }
     }
 

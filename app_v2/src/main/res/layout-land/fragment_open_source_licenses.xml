@@ -9,8 +9,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.google.android.material.appbar.MaterialToolbar
+        <com.sza.fastmediasorter.ui.common.widget.StandardToolbar
             android:id="@+id/toolbar"
+            style="@style/Widget.FastMediaSorter.Toolbar.Flat"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="?attr/homeAsUpIndicator"

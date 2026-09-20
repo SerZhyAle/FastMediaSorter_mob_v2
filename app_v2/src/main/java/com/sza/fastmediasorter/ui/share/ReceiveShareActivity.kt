@@ -740,7 +740,7 @@ class ReceiveShareActivity : AppCompatActivity() {
     // ── Lifecycle helpers ────────────────────────────────────────────────────
 
     private fun showLoadingDialog(): AlertDialog {
-        val dialog = AlertDialog.Builder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setMessage(R.string.receive_share_preparing)
             .setCancelable(false)
             .create()

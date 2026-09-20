@@ -47,4 +47,19 @@ class BoundedGridPopupManagerTest {
     fun `grid too wide - width is capped at the safe width`() {
         assertEquals(1000, BoundedGridPopupManager.resolveGridWidth(600, 2, 32, 1000))
     }
+
+    @Test
+    fun `two columns - a cell may take half the safe width minus the padding`() {
+        assertEquals((1000 - 32) / 2, BoundedGridPopupManager.resolveCellMaxWidth(1000, 2, 32))
+    }
+
+    @Test
+    fun `one column - a cell may take the whole safe width minus the padding`() {
+        assertEquals(1000 - 32, BoundedGridPopupManager.resolveCellMaxWidth(1000, 1, 32))
+    }
+
+    @Test
+    fun `no columns - the share is the whole width rather than a division by zero`() {
+        assertEquals(1000 - 32, BoundedGridPopupManager.resolveCellMaxWidth(1000, 0, 32))
+    }
 }

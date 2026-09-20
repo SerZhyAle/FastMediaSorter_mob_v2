@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearSettingsRegistry
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -30,6 +31,10 @@ class GatherWearSettingsUseCase @Inject constructor(
         // S2923: the field is BOTH in the registry and the phone's merge consumes it, so a report
         // without it tells the phone the watch never answered instead of what the watch holds.
         val panelAutoHide = preferencesRepository.panelAutoHideSeconds.first()
+        // S3330: the field is BOTH in the registry and the phone's merge consumes it, so a report
+        // without it tells the phone the watch never answered instead of what the watch holds.
+        val dimClockOverlayEnabled = preferencesRepository.dimClockOverlayEnabled.first()
+        Timber.d("S3330: gathering watch report, dimClockOverlayEnabled=$dimClockOverlayEnabled")
         return WearSettingsPayload(
             audioEnabled = preferencesRepository.isAudioEnabled.first(),
             videoEnabled = preferencesRepository.isVideoEnabled.first(),
@@ -57,7 +62,8 @@ class GatherWearSettingsUseCase @Inject constructor(
             // S2461: the same string the watch's own settings screen shows, so the phone displays the
             // version the owner would read on the watch itself rather than a second, differently-derived one.
             appVersionName = BuildConfig.VERSION_NAME,
-            panelAutoHideSeconds = panelAutoHide
+            panelAutoHideSeconds = panelAutoHide,
+            dimClockOverlayEnabled = dimClockOverlayEnabled
         )
     }
 

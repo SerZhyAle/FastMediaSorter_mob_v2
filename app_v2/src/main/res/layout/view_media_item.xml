@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+    S3245: child hierarchy of MediaItemView (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.2).
+    Merged into the widget, which is itself a ConstraintLayout carrying
+    Widget.FastMediaSorter.Item.Row - the root background, foreground and focus flags live in that
+    style and never here, so no adapter can swap them away.
+    Constraints below describe LayoutMode.LIST; MediaItemView.setLayoutMode applies GRID and PLANK.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+    <ImageView
+        android:id="@+id/ivThumbnail"
+        style="@style/Widget.FastMediaSorter.Item.Thumbnail"
+        android:layout_width="@dimen/item_icon_size_medium"
+        android:layout_height="@dimen/item_icon_size_medium"
+        android:contentDescription="@string/thumbnail"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/ic_image" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_small"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Title"
+        app:layout_constraintBottom_toTopOf="@+id/tvSubtitle"
+        app:layout_constraintEnd_toStartOf="@+id/tvBadge"
+        app:layout_constraintStart_toEndOf="@+id/ivThumbnail"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="IMG_20231106_123456.jpg" />
+
+    <TextView
+        android:id="@+id/tvSubtitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Subtitle"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintBottom_toTopOf="@+id/tvDetail"
+        app:layout_constraintEnd_toEndOf="@+id/tvTitle"
+        app:layout_constraintStart_toStartOf="@+id/tvTitle"
+        app:layout_constraintTop_toBottomOf="@+id/tvTitle"
+        tools:text="2.5 MB" />
+
+    <TextView
+        android:id="@+id/tvDetail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Detail"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/tvTitle"
+        app:layout_constraintStart_toStartOf="@+id/tvTitle"
+        app:layout_constraintTop_toBottomOf="@+id/tvSubtitle"
+        tools:text="2023-11-06" />
+
+    <TextView
+        android:id="@+id/tvBadge"
+        style="@style/Widget.FastMediaSorter.Item.Badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_small"
+        android:maxLines="1"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/tvTitle"
+        app:layout_constraintEnd_toStartOf="@+id/flTrailingSlot"
+        app:layout_constraintTop_toTopOf="@+id/tvTitle"
+        tools:text="PIN"
+        tools:visibility="visible" />
+
+    <!-- Declared before the trailing slot so a slot control can never sit under the checkbox.
+         duplicateParentState keeps the box in step with the row's selected state without a second
+         highlight mechanism; it is neither focusable nor clickable, so the row stays one focus stop. -->
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/cbSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:button="@drawable/selector_checkbox_select"
+        android:clickable="false"
+        android:duplicateParentState="true"
+        android:focusable="false"
+        android:minWidth="@dimen/dimension_zero"
+        android:minHeight="@dimen/dimension_zero"
+        android:padding="@dimen/margin_tiny"
+        android:visibility="gone"
+        app:buttonTint="@null"
+        app:layout_constraintBottom_toBottomOf="@+id/ivThumbnail"
+        app:layout_constraintStart_toStartOf="@+id/ivThumbnail"
+        tools:visibility="visible" />
+
+    <FrameLayout
+        android:id="@+id/flTrailingSlot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</merge>

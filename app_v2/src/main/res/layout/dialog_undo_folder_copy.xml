@@ -2,8 +2,9 @@
 <!-- S1326: the copy-undo confirmation. States what the delete removes and what it leaves alone rather
      than asking "are you sure" (COMMUNICATION_POLICY 2.7), and carries the named destructive/cancel
      pair CLAUDE.md 11 fixes - MaterialAlertDialogBuilder's own buttons cannot take those styles.
-     Orientation-independent: wrap_content and centred, so it needs no layout-land counterpart, the
-     same shape dialog_network_monitor_clear_history.xml ships. -->
+     Orientation-independent: wrap_content and centred, the same shape
+     dialog_network_monitor_clear_history.xml ships; the landscape variant (S3254) carries the same
+     focus chain. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"

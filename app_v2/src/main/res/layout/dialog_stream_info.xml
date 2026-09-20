@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S1474: "about this channel" - three groups of label/value rows plus a state line for the measured
      group. Rows are added into the three containers at runtime, so no row layout is inflated per property.
-     One vertically scrolling column, which is why no res/layout-land counterpart exists. -->
+     One vertically scrolling column; the landscape variant (S3254) carries the same focus chain. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"

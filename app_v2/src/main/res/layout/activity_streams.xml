@@ -12,17 +12,15 @@
         android:fitsSystemWindows="true"
         app:elevation="0dp">
 
-        <com.google.android.material.appbar.MaterialToolbar
+        <com.sza.fastmediasorter.ui.common.widget.StandardToolbar
             android:id="@+id/toolbar"
+            style="@style/Widget.FastMediaSorter.Toolbar.Primary"
             android:layout_width="match_parent"
             android:layout_height="?actionBarSize"
-            android:background="?attr/colorPrimary"
             android:theme="@style/ThemeOverlay.FastMediaSorter.Toolbar.Primary"
             app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="?attr/colorOnPrimary"
             app:menu="@menu/menu_streams"
-            app:title="@string/streams_title"
-            app:titleTextColor="?attr/colorOnPrimary">
+            app:title="@string/streams_title">
 
 
             <!-- S0940: in-landscape host for the relocated search/filter/sort control group.
@@ -36,7 +34,7 @@
                 android:focusable="false"
                 android:visibility="gone" />
 
-        </com.google.android.material.appbar.MaterialToolbar>
+        </com.sza.fastmediasorter.ui.common.widget.StandardToolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 

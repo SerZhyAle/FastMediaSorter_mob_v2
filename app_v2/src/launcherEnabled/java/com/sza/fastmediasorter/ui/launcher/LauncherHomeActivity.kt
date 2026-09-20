@@ -289,9 +289,13 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             onVisibilityChanged = { isVisible ->
                 if (::wallpaperManager.isInitialized) {
                     if (isVisible) {
+                        // S3335: the overlay raises and drops without an activity edge of its own, so the
+                        // freeze flag is driven from here or it would stand for the rest of the session.
+                        wallpaperManager.onPause()
                         wallpaperManager.onStop()
                     } else if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
                         wallpaperManager.onStart()
+                        wallpaperManager.onResume()
                     }
                 }
             },
@@ -785,6 +789,21 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     override fun onResumeWithViews() {
         viewModel.onHomeResumed()
         captureInstantPhotoFrame(viewModel.wallpaper.value)
+        // S3335: the camera backdrop comes back one edge later than the rest of the wallpaper - only once
+        // the desktop is the surface the user is on, so the screen being left keeps the lens it holds.
+        if (::wallpaperManager.isInitialized && !blackScreenOverlayManager.isVisible) {
+            wallpaperManager.onResume()
+        }
+    }
+
+    /**
+     * S3335: the launcher's own onStop runs after the opened screen's onResume, so the camera backdrop
+     * is released here instead - the capture screen, the mirror and the torch all ask for the lens in
+     * that window.
+     */
+    override fun onPause() {
+        super.onPause()
+        if (::wallpaperManager.isInitialized) wallpaperManager.onPause()
     }
 
     /**

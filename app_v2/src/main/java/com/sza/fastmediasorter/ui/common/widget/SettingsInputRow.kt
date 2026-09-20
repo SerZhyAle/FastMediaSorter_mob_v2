@@ -25,8 +25,6 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ViewSettingsInputRowBinding
-import com.sza.fastmediasorter.ui.dialog.TooltipDialog
-import timber.log.Timber
 
 /**
  * Canonical reusable labelled input row for settings surfaces.
@@ -34,7 +32,7 @@ import timber.log.Timber
  * Layout: title + inline helper, then a Material outlined text field. Replaces the manual
  * `TextInputLayout` + standalone help `ImageButton` pairs (S0567).
  *
- * The row owns the help icon -> [TooltipDialog] wiring. Public XML attributes use the
+ * The help-icon chrome is the shared [HelpRowDelegate]. Public XML attributes use the
  * `sir_` prefix (see `attrs.xml`).
  *
  * S2786: two opt-in extras. `sir_inline` puts the title and the field on one line, and `sir_entries`
@@ -48,20 +46,25 @@ class SettingsInputRow @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : LinearLayout(context, attrs, defStyleAttr), LabelColumnRow {
+) : LinearLayout(context, attrs, defStyleAttr), LabelColumnRow, HelpableRow {
 
     private val binding = ViewSettingsInputRowBinding.inflate(LayoutInflater.from(context), this)
 
     private val titleView: TextView = binding.sirTitle
     private val helpIcon: ImageButton = binding.sirIconHelp
+    private val help = HelpRowDelegate(helpIcon, "SettingsInputRow")
     private val inputLayout: TextInputLayout = binding.sirInputLayout
     private val editText: TextInputEditText = binding.sirInput
     private val titleLine: LinearLayout = binding.sirTitleLine
     private val titleLineSpacer: View = binding.sirTitleLineSpacer
     private val inlineTailSpacer: View = binding.sirInlineTailSpacer
 
-    private var helpTitleText: CharSequence? = null
-    private var helpMessageText: CharSequence? = null
+    /**
+     * `true` when the optional help icon is visible.
+     */
+    override val isHelpVisible: Boolean
+        get() = help.isHelpVisible
+
     private var textChangedListener: ((CharSequence) -> Unit)? = null
     private var commitListener: ((CharSequence) -> Unit)? = null
     private var entries: List<CharSequence> = emptyList()
@@ -91,11 +94,10 @@ class SettingsInputRow @JvmOverloads constructor(
     init {
         orientation = VERTICAL
 
-        bindHelpClick()
         bindTextChange()
         bindCommit()
         applyAttributes(attrs, defStyleAttr)
-        syncHelpVisibility()
+        help.syncVisibility()
     }
 
     /**
@@ -162,24 +164,21 @@ class SettingsInputRow @JvmOverloads constructor(
     /**
      * Stores the help payload and makes the help icon available.
      */
-    fun setHelp(@StringRes titleRes: Int, @StringRes messageRes: Int) {
-        helpTitleText = context.getText(titleRes)
-        helpMessageText = context.getText(messageRes)
-        setHelpVisible(true)
+    override fun setHelp(@StringRes titleRes: Int, @StringRes messageRes: Int) {
+        help.setHelp(titleRes, messageRes)
     }
 
     /**
      * Shows or hides the help icon without dropping the stored help payload.
      */
-    fun setHelpVisible(visible: Boolean) {
-        helpIcon.visibility = if (visible && hasHelpPayload()) View.VISIBLE else View.GONE
-        helpIcon.contentDescription = helpTitleText?.toString().orEmpty()
+    override fun setHelpVisible(visible: Boolean) {
+        help.setHelpVisible(visible)
     }
 
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
         titleView.isEnabled = enabled
-        helpIcon.isEnabled = enabled
+        help.setEnabled(enabled)
         inputLayout.isEnabled = enabled
         editText.isEnabled = enabled
         alpha = if (enabled) 1f else 0.5f
@@ -230,18 +229,6 @@ class SettingsInputRow @JvmOverloads constructor(
     private fun hideKeyboard() {
         val manager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
         manager?.hideSoftInputFromWindow(editText.windowToken, 0)
-    }
-
-    private fun bindHelpClick() {
-        helpIcon.setOnClickListener {
-            val title = helpTitleText
-            val message = helpMessageText
-            if (title.isNullOrEmpty() || message.isNullOrEmpty()) {
-                Timber.w("SettingsInputRow: help requested without payload")
-                return@setOnClickListener
-            }
-            TooltipDialog.show(context, title.toString(), message.toString())
-        }
     }
 
     /**
@@ -410,10 +397,12 @@ class SettingsInputRow @JvmOverloads constructor(
                 2 -> TextInputLayout.END_ICON_PASSWORD_TOGGLE
                 else -> TextInputLayout.END_ICON_NONE
             }
-            helpTitleText = typedArray.getText(R.styleable.SettingsInputRow_sir_helpTitle)
-            helpMessageText = typedArray.getText(R.styleable.SettingsInputRow_sir_helpMessage)
+            help.setPayload(
+                typedArray.getText(R.styleable.SettingsInputRow_sir_helpTitle),
+                typedArray.getText(R.styleable.SettingsInputRow_sir_helpMessage),
+            )
             val showHelp = typedArray.getBoolean(R.styleable.SettingsInputRow_sir_showHelp, false)
-            helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
+            help.applyInitialVisibility(showHelp)
             val fieldMaxWidthPx = typedArray.getDimensionPixelSize(R.styleable.SettingsInputRow_sir_fieldMaxWidth, 0)
             if (fieldMaxWidthPx > 0) {
                 inputLayout.maxWidth = fieldMaxWidthPx
@@ -425,17 +414,6 @@ class SettingsInputRow @JvmOverloads constructor(
             if (maxLength > 0) setMaxLength(maxLength)
             if (typedArray.getBoolean(R.styleable.SettingsInputRow_sir_inline, false)) applyInlineLayout()
         }
-    }
-
-    private fun syncHelpVisibility() {
-        if (!hasHelpPayload()) {
-            helpIcon.visibility = View.GONE
-        }
-        helpIcon.contentDescription = helpTitleText?.toString().orEmpty()
-    }
-
-    private fun hasHelpPayload(): Boolean {
-        return !helpTitleText.isNullOrEmpty() && !helpMessageText.isNullOrEmpty()
     }
 
     private companion object {
