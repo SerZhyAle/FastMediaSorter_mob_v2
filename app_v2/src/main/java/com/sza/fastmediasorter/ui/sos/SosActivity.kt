@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.sos.SosMode
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * S3216: the phone's distress signal - the window that starts it, reshapes it and stops it.
@@ -121,7 +120,6 @@ class SosActivity : BaseActivity<ActivitySosBinding>() {
      * the window is the whole of the restore.
      */
     private fun applyWindowBrightness(value: Float) {
-        Timber.d("S3333: phone SOS window brightness set to %s", value)
         window.attributes = window.attributes.apply { screenBrightness = value }
     }
 

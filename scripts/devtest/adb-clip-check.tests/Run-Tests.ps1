@@ -94,6 +94,49 @@ Assert-Equal 'EDGE' (Get-ClipVerdict $tail $watch).kind 'a box touching the scre
 $middle = @{ label = 'centred label'; x1 = 150; y1 = 220; x2 = 330; y2 = 260; scrollAncestor = $false; leaf = $true }
 Assert-Equal '' "$(Get-ClipVerdict $middle $watch)" 'a box in the straight-edged middle is never a finding'
 
+# ---- S3357: the radius the geometry is allowed to be measured against ---------------------------
+# The AVD reading that started the ticket, and the two real devices it has to keep answering for.
+$avd = Resolve-DisplayRadius -Width 384 -Height 384 -Radii @(240, 240, 240, 240) -IsRoundWatch $true
+Assert-Equal 192   $avd.radius  'impossible radius on a square watch falls back to the inscribed circle'
+Assert-Equal $true $avd.trusted 'the corrected reading is measurable, so the check still runs'
+
+$noSecondSignal = Resolve-DisplayRadius -Width 384 -Height 500 -Radii @(240, 240, 240, 240) -IsRoundWatch $false
+Assert-Equal 0      $noSecondSignal.radius  'an impossible radius with nothing to correct it from yields no shape'
+Assert-Equal $false $noSecondSignal.trusted 'and it is refused rather than guessed'
+
+$galaxyWatch = Resolve-DisplayRadius -Width 480 -Height 480 -Radii @(240, 240, 240, 240) -IsRoundWatch $true
+Assert-Equal 240   $galaxyWatch.radius  'a real round watch reports exactly half its display and is believed'
+Assert-Equal $true $galaxyWatch.trusted 'the sanity check must not reject the device it was calibrated on'
+
+$phone = Resolve-DisplayRadius -Width 1080 -Height 2340 -Radii @(105, 105, 105, 105) -IsRoundWatch $false
+Assert-Equal 105 $phone.radius 'a rounded-corner phone is untouched'
+
+$assumed = Resolve-DisplayRadius -Width 454 -Height 454 -Radii @() -IsRoundWatch $true
+Assert-Equal 227 $assumed.radius 'a watch reporting no corner data at all still gets its inscribed circle'
+
+$plain = Resolve-DisplayRadius -Width 1080 -Height 1920 -Radii @() -IsRoundWatch $false
+Assert-Equal 0     $plain.radius  'a plain rectangle has no corner arc'
+Assert-Equal $true $plain.trusted 'and that is a measurable answer, not a refusal'
+
+# ---- S3357 regression: the five false blockers the impossible radius manufactured ---------------
+# Bounds read off the 2026-09-20 walk on emulator-5556. Every one of them is inside the real glass;
+# all five were reported OFF-GLASS because the arc centres had crossed over. The `broken` shape is
+# what clip-check used to build from the device's own reading, and it is asserted too - a fix that
+# silently stopped finding anything would pass the first half of this block on its own.
+$broken    = @{ width = 384; height = 384; radius = 240; round = $false; source = 'fixture - the AVD reading' }
+$corrected = @{ width = 384; height = 384; radius = 192; round = $true;  source = 'fixture - the inscribed circle' }
+$falseAlarms = @(
+    @{ name = 'mini-game board'; x1 = 58;  y1 = 58; x2 = 327; y2 = 327 },
+    @{ name = 'calculator "+"';  x1 = 231; y1 = 58; x2 = 327; y2 = 106 },
+    @{ name = 'stopwatch time';  x1 = 165; y1 = 6;  x2 = 219; y2 = 43  },
+    @{ name = 'clipboard title'; x1 = 62;  y1 = 51; x2 = 322; y2 = 91  }
+)
+foreach ($n in $falseAlarms) {
+    $node = @{ label = $n.name; x1 = $n.x1; y1 = $n.y1; x2 = $n.x2; y2 = $n.y2; scrollAncestor = $false; leaf = $true }
+    Assert-Equal 'OFF-GLASS' (Get-ClipVerdict $node $broken).kind "$($n.name): the impossible radius did call this a defect"
+    Assert-Equal ''          "$(Get-ClipVerdict $node $corrected)" "$($n.name): on the real glass it is not a finding at all"
+}
+
 Write-Host ""
 Write-Host "passed: $script:passed  failed: $script:failed"
 if ($script:failed -gt 0) { exit 1 }

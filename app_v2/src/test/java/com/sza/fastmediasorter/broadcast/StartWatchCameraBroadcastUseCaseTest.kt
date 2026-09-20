@@ -134,6 +134,7 @@ class StartWatchCameraBroadcastUseCaseTest {
         override val state: StateFlow<BroadcastState> get() = stateFlow
 
         override val listenerCount: StateFlow<Int> = MutableStateFlow(0)
+        override val feedbackSuppressed: StateFlow<Boolean> = MutableStateFlow(false)
 
         override fun start(mode: BroadcastMode, lensId: String?) {
             started = true

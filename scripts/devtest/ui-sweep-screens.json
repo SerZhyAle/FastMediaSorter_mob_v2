@@ -30,7 +30,6 @@
     "",
     "S2380 phase 03: `excluded` and the per-screen `expand` lists are added by step 03.3."
   ],
-
   "reasonSet": [
     "not-a-destination",
     "arg-external",
@@ -42,15 +41,28 @@
     "absent-from-this-flavor",
     "secure-surface"
   ],
-
   "setup": [
     {
       "id": "setup-disable-secure-screens",
       "name": "Turn off secure sensitive screens",
       "steps": [
-        { "resourceId": "btnSettings", "from": "main" },
-        { "label": "@string/settings_tab_general", "note": "Tab strip carries no id - see _comment." },
-        { "resourceId": "rowSecureSensitiveScreens", "action": "toggle-off" }
+        {
+          "resourceId": "btnSettings",
+          "from": "main"
+        },
+        {
+          "label": "@string/settings_tab_general",
+          "note": "Tab strip carries no id - see _comment."
+        },
+        {
+          "resourceId": "headerAuthorization",
+          "note": "Every collapsible section of General registers with defaultExpanded=false (GeneralSettingsFragment.setupCollapsibleSections), so the row below is not merely off-screen - it is inside a collapsed container and no amount of scrolling reveals it. The walk reported it as 'the row never became visible' (emulator-5554, 2026-09-20).",
+          "action": "expand"
+        },
+        {
+          "resourceId": "rowSecureSensitiveScreens",
+          "action": "toggle-off"
+        }
       ],
       "expect": "Secure sensitive screens",
       "expectRes": "settings_secure_sensitive_screens_title",
@@ -61,10 +73,21 @@
       "id": "setup-enable-streams",
       "name": "Enable the Streams sub-program",
       "steps": [
-        { "resourceId": "btnSettings", "from": "main" },
-        { "label": "@string/settings_tab_media" },
-        { "resourceId": "headerStreams", "action": "expand" },
-        { "resourceId": "rowEnableStreams", "action": "toggle-on" }
+        {
+          "resourceId": "btnSettings",
+          "from": "main"
+        },
+        {
+          "label": "@string/settings_tab_media"
+        },
+        {
+          "resourceId": "headerStreams",
+          "action": "expand"
+        },
+        {
+          "resourceId": "rowEnableStreams",
+          "action": "toggle-on"
+        }
       ],
       "expect": "Enable Streams",
       "expectRes": "settings_streams_toggle",
@@ -75,9 +98,17 @@
       "id": "setup-add-local-resource",
       "name": "Configure one local resource over the seeded root",
       "steps": [
-        { "resourceId": "btnAddResource", "from": "main" },
-        { "action": "pick-local-folder", "target": "@seedRoot" },
-        { "action": "confirm" }
+        {
+          "resourceId": "btnAddResource",
+          "from": "main"
+        },
+        {
+          "action": "pick-local-folder",
+          "target": "@seedRoot"
+        },
+        {
+          "action": "confirm"
+        }
       ],
       "expect": "Add Resource",
       "expectRes": "add_resource_title",
@@ -85,28 +116,38 @@
       "note": "Browse, the player, duplicates and the resource editor all open only from a configured resource row. Without this they would every one be excluded needs-seeded-content and the sweep would photograph the shell of the app rather than the app."
     }
   ],
-
   "teardown": [
     {
       "id": "teardown-restore-secure-screens",
       "name": "Turn secure sensitive screens back on",
       "steps": [
-        { "resourceId": "btnSettings", "from": "main" },
-        { "label": "@string/settings_tab_general" },
-        { "resourceId": "rowSecureSensitiveScreens", "action": "toggle-on" }
+        {
+          "resourceId": "btnSettings",
+          "from": "main"
+        },
+        {
+          "label": "@string/settings_tab_general"
+        },
+        {
+          "resourceId": "headerAuthorization",
+          "note": "Collapsed by default, exactly as in the setup entry above.",
+          "action": "expand"
+        },
+        {
+          "resourceId": "rowSecureSensitiveScreens",
+          "action": "toggle-on"
+        }
       ],
       "note": "Research 03 residual risk: a run that dies mid-walk leaves the protection off. The walker re-asserts this at start of run as well as at end, so the next run repairs an abandoned one."
     }
   ],
-
   "screens": [
     {
       "id": "main",
       "name": "Main - resource list",
-      "expect": "Add Resource",
-      "expectRes": "add_resource_title",
+      "expectId": "tabResourceTypes",
       "backAfter": 0,
-      "note": "Start destination; the app is already here after launch. The marker is the add-resource button's own label, which is on Main and on no screen Main opens from - there is no screen it opens from."
+      "note": "Start destination; the app is already here after launch. The marker is the resource-type tab strip's id, which exists only on Main. It replaced the add-resource button's LABEL (add_resource_title): that label is drawn only while the button has room for it, so at 360 dp the button is icon-only and the walk refused every combination reporting that the app never reached its start screen while it was standing on it (emulator-5554, 2026-09-20). An id is neither translated nor width-dependent."
     },
     {
       "id": "add-resource",
@@ -184,7 +225,6 @@
       "secure": true,
       "note": "The pencil on a resource card. FLAG_SECURE like the wizard; the title is set on the toolbar for ResourceEditorMode.EDIT."
     },
-
     {
       "id": "settings",
       "name": "Settings",
@@ -205,14 +245,48 @@
       "backAfter": 0,
       "note": "Tab, not a row: TabLayoutMediator builds the strip and a tab carries no android:id. The four tab labels are the reason the language dimension changes only between whole catalog passes.",
       "expand": [
-        { "resourceId": "headerInterface", "expect": "Color theme", "expectRes": "color_theme" },
-        { "resourceId": "headerMainWindowInterface", "expect": "Resource grid cell size", "expectRes": "pref_resource_grid_cell_size_title" },
-        { "resourceId": "headerFileBrowser", "expect": "Allow All Files mode", "expectRes": "setting_all_files_allow_title" },
-        { "resourceId": "headerRemoteSources", "expect": "Local network (Ethernet) SMB", "expectRes": "settings_remote_source_smb_title" },
-        { "resourceId": "headerAuthorization", "expect": "Google Play Services", "expectRes": "gms_settings_link" },
-        { "resourceId": "headerAppData", "expect": "Share Debug Logs", "expectRes": "share_debug_logs" },
-        { "resourceId": "headerSystem", "expect": "Video pre-cache size", "expectRes": "pref_prefetch_cache_title" },
-        { "resourceId": "headerDebugSettings", "expect": "Show log", "expectRes": "show_log", "stateDependent": true, "note": "Drawn only in a debug build, which is what the sweep runs." }
+        {
+          "resourceId": "headerInterface",
+          "expect": "Color theme",
+          "expectRes": "color_theme"
+        },
+        {
+          "resourceId": "headerMainWindowInterface",
+          "expect": "Resource grid cell size",
+          "expectRes": "pref_resource_grid_cell_size_title"
+        },
+        {
+          "resourceId": "headerFileBrowser",
+          "expect": "Allow All Files mode",
+          "expectRes": "setting_all_files_allow_title"
+        },
+        {
+          "resourceId": "headerRemoteSources",
+          "expect": "Local network (Ethernet) SMB",
+          "expectRes": "settings_remote_source_smb_title"
+        },
+        {
+          "resourceId": "headerAuthorization",
+          "expect": "Google Play Services",
+          "expectRes": "gms_settings_link"
+        },
+        {
+          "resourceId": "headerAppData",
+          "expect": "Share Debug Logs",
+          "expectRes": "share_debug_logs"
+        },
+        {
+          "resourceId": "headerSystem",
+          "expect": "Video pre-cache size",
+          "expectRes": "pref_prefetch_cache_title"
+        },
+        {
+          "resourceId": "headerDebugSettings",
+          "expect": "Show log",
+          "expectRes": "show_log",
+          "stateDependent": true,
+          "note": "Drawn only in a debug build, which is what the sweep runs."
+        }
       ]
     },
     {
@@ -225,7 +299,13 @@
       "backAfter": 0,
       "note": "The tab's own container has no unique static string of its own; the marker is taken from the first sub-page, which the container attaches on expand.",
       "expand": [
-        { "resourceId": "headerVr", "expect": "3D-VR playback and controls", "expectRes": "vr_settings_block_title", "stateDependent": true, "note": "Drawn only in the vr flavor; the sweep runs standard, so this node is expected to be `skipped` and that is not a defect." }
+        {
+          "resourceId": "headerVr",
+          "expect": "3D-VR playback and controls",
+          "expectRes": "vr_settings_block_title",
+          "stateDependent": true,
+          "note": "Drawn only in the vr flavor; the sweep runs standard, so this node is expected to be `skipped` and that is not a defect."
+        }
       ],
       "expandNote": "The other seven headers in this container - Images, Video, Audio, Documents, Other, Streams, Broadcast - are not expand nodes: each attaches its own child fragment and is walked as a screen record of its own above. S3078 moved Broadcast out of this list: S2817 gave it fragment_settings_broadcast with seven declared settings rows, so the header is no longer the only static token it has."
     },
@@ -305,11 +385,31 @@
       "backAfter": 0,
       "note": "The tab renders \"Player\", not \"Playback\" - the resource key and the drawn text diverge, so the walker must resolve the label through the resource, never from the key name.",
       "expand": [
-        { "resourceId": "headerSortingSlideshow", "expect": "Default sort mode", "expectRes": "default_sort_mode" },
-        { "resourceId": "headerFileOperations", "expect": "Allow rename", "expectRes": "allow_rename" },
-        { "resourceId": "headerPlayerUI", "expect": "Hide OS UI in fullscreen", "expectRes": "hide_system_ui_in_fullscreen" },
-        { "resourceId": "headerTouchZones", "expect": "Disable 9-zone tracking", "expectRes": "disable_nine_zone_tracking" },
-        { "resourceId": "headerBackgroundAudio", "expect": "Background Playback", "expectRes": "background_audio_setting_title" }
+        {
+          "resourceId": "headerSortingSlideshow",
+          "expect": "Default sort mode",
+          "expectRes": "default_sort_mode"
+        },
+        {
+          "resourceId": "headerFileOperations",
+          "expect": "Allow rename",
+          "expectRes": "allow_rename"
+        },
+        {
+          "resourceId": "headerPlayerUI",
+          "expect": "Hide OS UI in fullscreen",
+          "expectRes": "hide_system_ui_in_fullscreen"
+        },
+        {
+          "resourceId": "headerTouchZones",
+          "expect": "Disable 9-zone tracking",
+          "expectRes": "disable_nine_zone_tracking"
+        },
+        {
+          "resourceId": "headerBackgroundAudio",
+          "expect": "Background Playback",
+          "expectRes": "background_audio_setting_title"
+        }
       ]
     },
     {
@@ -322,23 +422,79 @@
       "backAfter": 0,
       "note": "Drawn as \"Management\"; its layout is still named fragment_settings_destinations and the settings manifest still calls the section `destinations`.",
       "expand": [
-        { "resourceId": "headerCopyMove", "expect": "Allow copying", "expectRes": "enable_copying" },
-        { "resourceId": "headerSafety", "expect": "Enable Safe Mode", "expectRes": "enable_safe_mode" },
-        { "resourceId": "headerDestinations", "expect": "+ Add", "expectRes": "add_destination" },
-        { "resourceId": "headerScheduled", "expect": "Use scheduled operations", "expectRes": "scheduled_ops_toggle" },
-        { "resourceId": "headerBehaviour", "expect": "Show detailed errors", "expectRes": "show_detailed_errors" },
-        { "resourceId": "headerCameraPhotos", "expect": "Enable photo capture", "expectRes": "setting_camera_to_resource_enabled_title" },
-        { "resourceId": "headerVideoCapture", "expect": "Enable video recording", "expectRes": "setting_video_capture_enable_title" },
-        { "resourceId": "headerMicRecording", "expect": "Enable microphone recording", "expectRes": "settings_mic_recording_enable_title" },
-        { "resourceId": "headerScreenRecording", "expect": "Screen video recording", "expectRes": "settings_screen_recording_enable_title" },
-        { "resourceId": "headerWear", "expect": "Wear companion", "expectRes": "settings_enable_wear_companion" },
-        { "resourceId": "headerAdditionalPrograms", "expect": "Camera OCR translation", "expectRes": "setting_camera_ocr_translation_title" },
-        { "resourceId": "headerSystemApps", "expect": "Prevent sleep", "expectRes": "prevent_sleep" },
-        { "resourceId": "headerScreenGestures", "expect": "Gesture overlay", "expectRes": "setting_gesture_overlay_title" },
-        { "resourceId": "headerSendCommands", "expect": "Send file to..", "expectRes": "settings_send_commands_group", "note": "The only section whose body carries no string resource of its own - every row inside it is built at runtime from the share-target registry - so this node's token is the header's own title and it proves presence rather than expansion." }
+        {
+          "resourceId": "headerCopyMove",
+          "expect": "Allow copying",
+          "expectRes": "enable_copying"
+        },
+        {
+          "resourceId": "headerSafety",
+          "expect": "Enable Safe Mode",
+          "expectRes": "enable_safe_mode"
+        },
+        {
+          "resourceId": "headerDestinations",
+          "expect": "+ Add",
+          "expectRes": "add_destination"
+        },
+        {
+          "resourceId": "headerScheduled",
+          "expect": "Use scheduled operations",
+          "expectRes": "scheduled_ops_toggle"
+        },
+        {
+          "resourceId": "headerBehaviour",
+          "expect": "Show detailed errors",
+          "expectRes": "show_detailed_errors"
+        },
+        {
+          "resourceId": "headerCameraPhotos",
+          "expect": "Enable photo capture",
+          "expectRes": "setting_camera_to_resource_enabled_title"
+        },
+        {
+          "resourceId": "headerVideoCapture",
+          "expect": "Enable video recording",
+          "expectRes": "setting_video_capture_enable_title"
+        },
+        {
+          "resourceId": "headerMicRecording",
+          "expect": "Enable microphone recording",
+          "expectRes": "settings_mic_recording_enable_title"
+        },
+        {
+          "resourceId": "headerScreenRecording",
+          "expect": "Screen video recording",
+          "expectRes": "settings_screen_recording_enable_title"
+        },
+        {
+          "resourceId": "headerWear",
+          "expect": "Wear companion",
+          "expectRes": "settings_enable_wear_companion"
+        },
+        {
+          "resourceId": "headerAdditionalPrograms",
+          "expect": "Camera OCR translation",
+          "expectRes": "setting_camera_ocr_translation_title"
+        },
+        {
+          "resourceId": "headerSystemApps",
+          "expect": "Prevent sleep",
+          "expectRes": "prevent_sleep"
+        },
+        {
+          "resourceId": "headerScreenGestures",
+          "expect": "Gesture overlay",
+          "expectRes": "setting_gesture_overlay_title"
+        },
+        {
+          "resourceId": "headerSendCommands",
+          "expect": "Send file to..",
+          "expectRes": "settings_send_commands_group",
+          "note": "The only section whose body carries no string resource of its own - every row inside it is built at runtime from the share-target registry - so this node's token is the header's own title and it proves presence rather than expansion."
+        }
       ]
     },
-
     {
       "id": "settings-default-apps",
       "name": "Settings - Default app dialog",
@@ -396,7 +552,6 @@
       "backAfter": 2,
       "note": "A destructive confirmation. The walk photographs it and leaves by BACK - it never presses the confirm button."
     },
-
     {
       "id": "keybinding-remap",
       "name": "Controls and keybindings",
@@ -427,7 +582,6 @@
       "stateDependent": true,
       "note": "The row is drawn only while AppSettings.enableStatistics is on, which is its default."
     },
-
     {
       "id": "wear-companion",
       "name": "Wear companion",
@@ -449,7 +603,6 @@
       "backAfter": 2,
       "note": "wear_resource_selection_title is the opening button's own label on the parent, so a row inside the screen is the marker instead."
     },
-
     {
       "id": "calculator",
       "name": "Calculator",
@@ -577,7 +730,6 @@
       "note": "The `camera` settings section is covered here. It is not reachable from the Settings entry point: CameraSettingsDialogFragment has exactly one call site, the gear button on the capture screen. camera_settings_title is NOT the marker - it is the content description of that same gear button on the host screen. The section's second layout, dialog_camera_ocr_settings, belongs to CameraOcrTranslateActivity, which is excluded no-static-marker; the section stays covered by this entry."
     }
   ],
-
   "excluded": [
     {
       "activity": "WelcomeActivity",
@@ -624,35 +776,142 @@
       "reason": "needs-seeded-content",
       "note": "Reached only through shareSftpResourceConfigAsQr, which requires an SFTP resource. The sweep seeds a LOCAL resource, so the event never fires."
     },
-    { "activity": "GoogleDriveFolderPickerActivity", "reason": "needs-seeded-content", "note": "Opens only after a completed Google sign-in - a cloud account, not local media." },
-    { "activity": "DropboxFolderPickerActivity", "reason": "needs-seeded-content", "note": "Same shape, Dropbox authentication." },
-    { "activity": "OneDriveFolderPickerActivity", "reason": "needs-seeded-content", "note": "Same shape, MSAL/OneDrive authentication." },
-    { "activity": "GoogleDriveAuthCompletionActivity", "reason": "arg-external", "note": "Completion hop for the AppAuth redirect; reached only by the external OAuth browser." },
-    { "activity": "GoogleDriveAuthResolutionActivity", "reason": "arg-external", "note": "GMS PendingIntent resolution trampoline." },
-    { "activity": "ResourceLaunchWidgetConfigActivity", "reason": "arg-external", "note": "APPWIDGET_CONFIGURE only; the appWidgetId is minted by the launcher's widget picker, and no in-app tap reaches it." },
-    { "activity": "RandomPhotoFrameConfigActivity", "reason": "arg-external", "note": "Widget configuration, same as above." },
-    { "activity": "StreamLaunchWidgetConfigActivity", "reason": "arg-external", "note": "Widget configuration, same as above." },
-    { "activity": "CameraQuickCaptureConfigActivity", "reason": "arg-external", "note": "Widget configuration, same as above." },
-    { "activity": "QuickAudioRecorderActivity", "reason": "arg-external", "note": "Transparent trampoline that toggles recording from a widget tap." },
-    { "activity": "CameraQuickCaptureActivity", "reason": "arg-external", "note": "Widget-tap trampoline." },
-    { "activity": "CameraLaunchActivity", "reason": "arg-external", "note": "Widget-tap trampoline." },
-    { "activity": "StreamPlayLaunchActivity", "reason": "arg-external", "note": "Stream shortcut trampoline." },
-    { "activity": "PhotoCaptureLaunchActivity", "reason": "gesture-only", "note": "Take-photo edge-gesture trampoline; no menu or button reaches it." },
-    { "activity": "ScreenRecordingLaunchActivity", "reason": "gesture-only", "note": "Edge-gesture trampoline. The popup's 'Screen video recording' item acts in-window and never opens this activity." },
-    { "activity": "LinkDownloadLaunchActivity", "reason": "gesture-only", "note": "Panel trampoline. The popup's 'Download by link' item also acts in-window." },
-    { "activity": "StandalonePlayerActivity", "reason": "arg-external", "note": "Exported fallback for an external VIEW intent." },
-    { "activity": "PhotoVideoStandaloneActivity", "reason": "arg-external", "note": "Reached through a VIEW activity-alias." },
-    { "activity": "AudioStandaloneActivity", "reason": "arg-external", "note": "Reached through a VIEW activity-alias." },
-    { "activity": "DocumentStandaloneActivity", "reason": "arg-external", "note": "Reached through a VIEW activity-alias." },
-    { "activity": "TextStandaloneActivity", "reason": "arg-external", "note": "Reached through a VIEW activity-alias." },
-    { "activity": "StandalonePlayerDispatcherActivity", "reason": "arg-external", "note": "No-UI dispatcher trampoline for a typeless VIEW intent." },
-    { "activity": "ReceiveShareActivity", "reason": "arg-external", "note": "ACTION_SEND receiver; the sweep sends nothing to the app." },
-    { "activity": "ResourceImportActivity", "reason": "arg-external", "note": "VIEW/SEND intent filters only." },
-    { "activity": "CompanionConfigImportActivity", "reason": "arg-external", "note": "VIEW/SEND intent filters only." },
-    { "activity": "DiagnosticXrActivity", "reason": "absent-from-this-flavor", "note": "Declared only in app_v2/src/vr/AndroidManifest.xml; the sweep is pinned to standard by strategic 3.2." },
-    { "activity": "ImmersiveBrowseActivity", "reason": "absent-from-this-flavor", "note": "Declared only in app_v2/src/vr/AndroidManifest.xml." }
+    {
+      "activity": "GoogleDriveFolderPickerActivity",
+      "reason": "needs-seeded-content",
+      "note": "Opens only after a completed Google sign-in - a cloud account, not local media."
+    },
+    {
+      "activity": "DropboxFolderPickerActivity",
+      "reason": "needs-seeded-content",
+      "note": "Same shape, Dropbox authentication."
+    },
+    {
+      "activity": "OneDriveFolderPickerActivity",
+      "reason": "needs-seeded-content",
+      "note": "Same shape, MSAL/OneDrive authentication."
+    },
+    {
+      "activity": "GoogleDriveAuthCompletionActivity",
+      "reason": "arg-external",
+      "note": "Completion hop for the AppAuth redirect; reached only by the external OAuth browser."
+    },
+    {
+      "activity": "GoogleDriveAuthResolutionActivity",
+      "reason": "arg-external",
+      "note": "GMS PendingIntent resolution trampoline."
+    },
+    {
+      "activity": "ResourceLaunchWidgetConfigActivity",
+      "reason": "arg-external",
+      "note": "APPWIDGET_CONFIGURE only; the appWidgetId is minted by the launcher's widget picker, and no in-app tap reaches it."
+    },
+    {
+      "activity": "RandomPhotoFrameConfigActivity",
+      "reason": "arg-external",
+      "note": "Widget configuration, same as above."
+    },
+    {
+      "activity": "StreamLaunchWidgetConfigActivity",
+      "reason": "arg-external",
+      "note": "Widget configuration, same as above."
+    },
+    {
+      "activity": "CameraQuickCaptureConfigActivity",
+      "reason": "arg-external",
+      "note": "Widget configuration, same as above."
+    },
+    {
+      "activity": "QuickAudioRecorderActivity",
+      "reason": "arg-external",
+      "note": "Transparent trampoline that toggles recording from a widget tap."
+    },
+    {
+      "activity": "CameraQuickCaptureActivity",
+      "reason": "arg-external",
+      "note": "Widget-tap trampoline."
+    },
+    {
+      "activity": "CameraLaunchActivity",
+      "reason": "arg-external",
+      "note": "Widget-tap trampoline."
+    },
+    {
+      "activity": "StreamPlayLaunchActivity",
+      "reason": "arg-external",
+      "note": "Stream shortcut trampoline."
+    },
+    {
+      "activity": "PhotoCaptureLaunchActivity",
+      "reason": "gesture-only",
+      "note": "Take-photo edge-gesture trampoline; no menu or button reaches it."
+    },
+    {
+      "activity": "ScreenRecordingLaunchActivity",
+      "reason": "gesture-only",
+      "note": "Edge-gesture trampoline. The popup's 'Screen video recording' item acts in-window and never opens this activity."
+    },
+    {
+      "activity": "LinkDownloadLaunchActivity",
+      "reason": "gesture-only",
+      "note": "Panel trampoline. The popup's 'Download by link' item also acts in-window."
+    },
+    {
+      "activity": "StandalonePlayerActivity",
+      "reason": "arg-external",
+      "note": "Exported fallback for an external VIEW intent."
+    },
+    {
+      "activity": "PhotoVideoStandaloneActivity",
+      "reason": "arg-external",
+      "note": "Reached through a VIEW activity-alias."
+    },
+    {
+      "activity": "AudioStandaloneActivity",
+      "reason": "arg-external",
+      "note": "Reached through a VIEW activity-alias."
+    },
+    {
+      "activity": "DocumentStandaloneActivity",
+      "reason": "arg-external",
+      "note": "Reached through a VIEW activity-alias."
+    },
+    {
+      "activity": "TextStandaloneActivity",
+      "reason": "arg-external",
+      "note": "Reached through a VIEW activity-alias."
+    },
+    {
+      "activity": "StandalonePlayerDispatcherActivity",
+      "reason": "arg-external",
+      "note": "No-UI dispatcher trampoline for a typeless VIEW intent."
+    },
+    {
+      "activity": "ReceiveShareActivity",
+      "reason": "arg-external",
+      "note": "ACTION_SEND receiver; the sweep sends nothing to the app."
+    },
+    {
+      "activity": "ResourceImportActivity",
+      "reason": "arg-external",
+      "note": "VIEW/SEND intent filters only."
+    },
+    {
+      "activity": "CompanionConfigImportActivity",
+      "reason": "arg-external",
+      "note": "VIEW/SEND intent filters only."
+    },
+    {
+      "activity": "DiagnosticXrActivity",
+      "reason": "absent-from-this-flavor",
+      "note": "Declared only in app_v2/src/vr/AndroidManifest.xml; the sweep is pinned to standard by strategic 3.2."
+    },
+    {
+      "activity": "ImmersiveBrowseActivity",
+      "reason": "absent-from-this-flavor",
+      "note": "Declared only in app_v2/src/vr/AndroidManifest.xml."
+    }
   ],
-
   "excludedSurfaces": [
     {
       "surface": "WebViewAuthDialogFragment",
@@ -660,7 +919,6 @@
       "note": "The fourth FLAG_SECURE surface, and the only one that is not an activity. It sets the flag by its own path rather than through BaseActivity, and it opens only while authorizing a real remote source - a live account the sweep does not have. Named here so all four secure surfaces are accounted for: two carry `secure: true` on their screen record, CompanionQrShareActivity is in `excluded`, and this one is here."
     }
   ],
-
   "excludedSettingsSections": [
     {
       "sectionId": "networkMonitor",
@@ -673,7 +931,6 @@
       "note": "Four Compose screens that live in the wear module and render no app_v2 resource. Strategic 3.2 puts Wear OS out of scope entirely; the watch has its own walk."
     }
   ],
-
   "_activityCoverage": {
     "main": "MainActivity",
     "add-resource": "AddResourceActivity",
@@ -700,7 +957,6 @@
     "streams": "StreamsActivity",
     "camera-capture": "CameraCaptureActivity"
   },
-
   "_sectionCoverage": {
     "general": "settings-general",
     "audio": "settings-audio",
@@ -719,7 +975,6 @@
     "camera": "camera-settings",
     "translation": "player-translation-settings"
   },
-
   "_coverage": [
     "Activities: dev/ACTIVITY_CATALOG/app_v2.jsonl holds 60 records. 24 are walked by the `screens` list",
     "above (some screens are dialogs hosted by an already-counted activity, so screens > activities),",

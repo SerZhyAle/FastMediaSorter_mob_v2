@@ -39,9 +39,16 @@ data class BroadcastSettings(
     val videoBitrateBps: Int = 2_000_000,
     // S3049: digital PCM microphone gain percentage for broadcasts (50% - 400%, default 100%).
     val micGainPercent: Int = 100,
+    // S3349: the acoustic-feedback guard that turns [micGainPercent] down while a listener's speaker
+    // is feeding the microphone. An absent preference means on - the loop is worse than the dip.
+    val feedbackGuardEnabled: Boolean = true,
     // S3237: the lens the broadcast screen last opened, in the capture screen's `logical`
     // or `logical/physical` form. Null until the user picks one; a stored id that names no lens of
     // this phone is discarded in favour of the device's initial lens, so a restored backup or a
     // camera the OS stopped enumerating cannot pin the screen to a lens that will not open.
     val cameraLensId: String? = null,
+    // S2551: the owner's standing answer to "my watch may see my camera" in `noLegal`. The consent
+    // policy there grants only while a capture is already live, so this is the persisted intent behind
+    // that session rather than a second permission the wire reads.
+    val watchCameraStandby: Boolean = false,
 )

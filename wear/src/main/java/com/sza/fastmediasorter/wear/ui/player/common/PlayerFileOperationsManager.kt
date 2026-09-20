@@ -54,6 +54,9 @@ class PlayerFileOperationsManager @Inject constructor(
     private lateinit var currentFile: StateFlow<WearMediaFile?>
     private var isNetworkSource: () -> Boolean = { false }
 
+    /** S3359: the share the played file is read from, needed only by a copy onto the watch. */
+    private var networkSourceId: () -> String? = { null }
+
     private val _operationRun = MutableStateFlow(WearFileOperationRunState())
     val operationRun: StateFlow<WearFileOperationRunState> = _operationRun.asStateFlow()
 
@@ -74,18 +77,20 @@ class PlayerFileOperationsManager @Inject constructor(
     fun bind(
         scope: CoroutineScope,
         currentFile: StateFlow<WearMediaFile?>,
-        isNetworkSource: () -> Boolean = { false }
+        isNetworkSource: () -> Boolean = { false },
+        networkSourceId: () -> String? = { null }
     ) {
         this.scope = scope
         this.currentFile = currentFile
         this.isNetworkSource = isNetworkSource
+        this.networkSourceId = networkSourceId
 
         _allowedOperations = combine(currentFile) { files ->
             val file = files[0]
             if (file == null) {
                 emptySet()
             } else {
-                capabilityPolicy.allowedOperations(capabilityPolicy.classify(file, isNetworkSource()))
+                capabilityPolicy.allowedOperations(file, isNetworkSource())
             }
         }.stateIn(scope, SharingStarted.WhileSubscribed(RECEIVER_SUBSCRIPTION_MS), emptySet())
 
@@ -137,7 +142,7 @@ class PlayerFileOperationsManager @Inject constructor(
     }
 
     private suspend fun collectRun(file: WearMediaFile, operation: WearFileOperation) {
-        performFileOperation(listOf(file), operation, isNetworkSource())
+        performFileOperation(listOf(file), operation, isNetworkSource(), networkSourceId())
             .catch { throwable ->
                 Timber.e(throwable, "Player file operation failed")
                 emit(WearFileOperationResult(file.name, WearFileOperationOutcome.FAILED))
@@ -182,6 +187,8 @@ class PlayerFileOperationsManager @Inject constructor(
 private fun WearFileOperation.mutatesList(): Boolean = when (this) {
     WearFileOperation.SendToPhone -> false
     WearFileOperation.MoveToPhone -> true
+    WearFileOperation.CopyToWatch -> false
+    WearFileOperation.MoveToWatch -> true
     WearFileOperation.Delete -> true
     is WearFileOperation.Rename -> true
     is WearFileOperation.OpenOnPhone -> false

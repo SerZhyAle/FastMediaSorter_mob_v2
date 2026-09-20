@@ -3657,4 +3657,11 @@
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">चार्जर कनेक्ट रहने पर निष्क्रियता के बाद स्क्रीन बंद कर देता है</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">चार्ज पर स्क्रीन टाइमआउट</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">चार्जर कनेक्ट रहने पर निष्क्रियता के बाद स्क्रीन काली कर देता है. यह बिल्ड डिवाइस लॉक नहीं कर सकता.</string>
+    <string name="settings_watch_camera_standby">मेरी घड़ी को मेरा कैमरा देखने दें</string>
+    <string name="settings_watch_camera_standby_summary">कैमरा अभी चालू करता है, ताकि फ़ोन जेब में रहते हुए भी युग्मित घड़ी बाद में तस्वीर खोल सके</string>
+    <string name="settings_watch_camera_standby_failed">घड़ी के लिए कैमरा चालू नहीं किया जा सका</string>
+    <string name="settings_broadcast_feedback_guard">फ़ीडबैक सुरक्षा</string>
+    <string name="settings_broadcast_feedback_guard_summary">जब कोई श्रोता पास में प्रसारण को ज़ोर से बजाता है तो माइक्रोफ़ोन गेन घटा देता है, ताकि आवाज़ बढ़ती न जाए</string>
+    <string name="broadcast_control_feedback_warning">आवाज़ कम की गई: श्रोता का स्पीकर माइक्रोफ़ोन में वापस आ रहा है। सुनने वाले उपकरण को दूर ले जाएँ या उसकी आवाज़ कम करें।</string>
+    <string name="broadcast_control_feedback_warning_cd">ध्वनिक फ़ीडबैक मिला, माइक्रोफ़ोन गेन कम कर दिया गया</string>
 </resources>

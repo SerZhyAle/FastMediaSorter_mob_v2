@@ -89,6 +89,64 @@ function Select-UiNodesById {
     return $hits
 }
 
+# Decide which corner radius the geometry below may be measured against (S3357). Pure: the caller
+# owns every adb call and hands the readings in.
+#
+# A corner radius wider than half the shorter side describes no shape at all - the four corner arcs
+# would have to overlap, and the quadrant boundaries in Get-CornerOverflow cross over, so EVERY
+# point on the display lands in all four quadrants and is measured against an arc centre that is
+# nowhere near it. Measured 2026-09-20 on the Wear_OS_Small_Round AVD, which reports radius=240 on a
+# 384x384 round display (240 is half of 480, the size a different watch has): the whole
+# /spec-prerelease-wear walk came back with five OFF-GLASS screens, and every one of them sits
+# inside the real glass - the mini-game board is the exact inscribed square. That is the mirror
+# image of the S2273 failure: manufacturing release blockers is as bad as missing them.
+#
+# An impossible reading carries no information, so a square watch display falls back to the same
+# assumption the no-data branch already makes - the inscribed circle is the only round shape a
+# square glass can have. Anywhere else the reading is refused as untrusted, because there is no
+# second source to correct it from and a guessed outline would judge the app against an invented
+# screen.
+function Resolve-DisplayRadius {
+    param([int]$Width, [int]$Height, [int[]]$Radii, [bool]$IsRoundWatch)
+
+    $shorter = [math]::Min($Width, $Height)
+    $inscribed = [int][math]::Floor($shorter / 2)
+
+    $reported = 0
+    # Equal on every real device seen so far; the maximum is the conservative reading when they
+    # differ, because it is the one that shrinks the safe area rather than growing it.
+    if ($null -ne $Radii -and $Radii.Count -ge 4) { $reported = ($Radii | Measure-Object -Maximum).Maximum }
+
+    if ($reported -gt 0 -and $reported * 2 -le $shorter) {
+        return [ordered]@{
+            radius = $reported; trusted = $true; reason = ''
+            source = 'dumpsys window displays (mRoundedCorners)'
+        }
+    }
+
+    if ($reported * 2 -gt $shorter) {
+        $note = "the device reports corner radius $reported on a ${Width}x${Height} display, where the widest arc that can exist is $inscribed"
+        if ($IsRoundWatch) {
+            return [ordered]@{
+                radius = $inscribed; trusted = $true; reason = $note
+                source = "impossible radius $reported rejected - square watch display, inscribed circle assumed"
+            }
+        }
+        return [ordered]@{ radius = 0; trusted = $false; reason = $note; source = 'unusable rounded-corner data' }
+    }
+
+    if ($IsRoundWatch) {
+        return [ordered]@{
+            radius = $inscribed; trusted = $true; reason = ''
+            source = 'watch characteristic + square display - assumed round'
+        }
+    }
+    return [ordered]@{
+        radius = 0; trusted = $true; reason = ''
+        source = 'no rounded-corner data - treated as a plain rectangle'
+    }
+}
+
 # How far outside its nearest corner circle a point sits. 0 means the point is not in any corner
 # quadrant at all, i.e. it is in the straight-edged middle of the screen and cannot be off-glass.
 function Get-CornerOverflow {

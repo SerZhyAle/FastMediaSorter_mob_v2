@@ -4,8 +4,10 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.BluetoothStatusCodes
 import android.content.Context
 import android.os.Build
+import androidx.annotation.RequiresApi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
@@ -25,6 +27,13 @@ import javax.inject.Singleton
  * Nothing is held between reads. Every proxy obtained is released in the same call, including on the
  * timeout path, because a leaked proxy keeps a binding alive behind a screen the user has already left.
  *
+ * S3346: a proxy is requested only once this class has established that the request can bind. `getProfileProxy`
+ * constructs and registers its profile object before any binder work and returns true without consulting the
+ * adapter state, and when the binding never completes no listener callback follows at all - so that object is
+ * unreachable for the caller and only the garbage collector reports it, as a `LeakedClosableViolation`. Hence
+ * the two gates below: a powered-off adapter is asked nothing, and LE audio is requested only after
+ * `isLeAudioSupported`, which is the check the platform applies to `HEARING_AID` on its own and to nothing else.
+ *
  * A profile that has not answered within [PROFILE_TIMEOUT_MS] contributes nothing rather than delaying the
  * Monitor's one-second tick.
  */
@@ -42,12 +51,18 @@ class BluetoothProfileConnectionReader @Inject constructor(
      *
      * Addresses rather than devices: the caller already holds the bonded set and needs only to know which of
      * those links are live, and an address is the one key both sides share.
+     *
+     * A powered-off adapter holds no link of any kind, GATT included, so it is answered with nothing rather
+     * than with four profile requests that can only time out.
      */
     suspend fun connectedAddresses(): Set<String> {
-        val adapter = bluetoothManager?.adapter ?: return emptySet()
-        val gatt = gattAddresses()
-        val addresses = gatt.toMutableSet()
-        for (profile in supportedProfiles()) {
+        val poweredOn = bluetoothManager?.adapter?.takeIf(::isPoweredOn)
+        Timber.d("S3346: bluetooth sweep, poweredOn=%s", poweredOn != null)
+        val adapter = poweredOn ?: return emptySet()
+        val profiles = supportedProfiles(adapter)
+        Timber.d("S3346: bluetooth profiles queried=%s", profiles)
+        val addresses = gattAddresses().toMutableSet()
+        for (profile in profiles) {
             addresses += profileAddresses(adapter, profile)
         }
         return addresses
@@ -62,6 +77,14 @@ class BluetoothProfileConnectionReader @Inject constructor(
     } catch (security: SecurityException) {
         Timber.w(security, "Connected GATT devices refused despite a granted permission")
         emptySet()
+    }
+
+    /** Whether the adapter is in a state where a profile service can bind at all. */
+    private fun isPoweredOn(adapter: BluetoothAdapter): Boolean = try {
+        adapter.isEnabled
+    } catch (security: SecurityException) {
+        Timber.w(security, "Adapter state refused despite a granted permission")
+        false
     }
 
     /**
@@ -120,15 +143,29 @@ class BluetoothProfileConnectionReader @Inject constructor(
     }
 
     /** The profile constants this API level knows; referencing a newer one below its level would not link. */
-    private fun supportedProfiles(): List<Int> = buildList {
+    private fun supportedProfiles(adapter: BluetoothAdapter): List<Int> = buildList {
         add(BluetoothProfile.A2DP)
         add(BluetoothProfile.HEADSET)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             add(BluetoothProfile.HEARING_AID)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && isLeAudioSupported(adapter)) {
             add(BluetoothProfile.LE_AUDIO)
         }
+    }
+
+    /**
+     * Whether this build supports LE audio, asked before the proxy rather than through it.
+     *
+     * The adapter answers `ERROR_BLUETOOTH_NOT_ENABLED` as readily as `FEATURE_NOT_SUPPORTED`, and only
+     * `FEATURE_SUPPORTED` means a request can bind; anything else registers an object nobody can close.
+     */
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun isLeAudioSupported(adapter: BluetoothAdapter): Boolean = try {
+        adapter.isLeAudioSupported() == BluetoothStatusCodes.FEATURE_SUPPORTED
+    } catch (security: SecurityException) {
+        Timber.w(security, "LE audio support refused despite a granted permission")
+        false
     }
 
     private companion object {

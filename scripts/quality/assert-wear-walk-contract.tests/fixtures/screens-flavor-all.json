@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "Fixture: S3358 - the absent field written the long way. It reads as a scope and is none, and a",
+    "third flavor would inherit an exclusion nobody decided on."
+  ],
+  "screens": [
+    {
+      "id": "alpha",
+      "name": "Alpha",
+      "expect": "Hello",
+      "screen": "AlphaScreen",
+      "expectRes": "good_marker",
+      "flavors": ["standard", "noLegal"]
+    }
+  ],
+  "excluded": [
+    {
+      "screen": "BetaScreen",
+      "reason": "not-a-destination",
+      "note": "Fixture: nested helper."
+    }
+  ]
+}

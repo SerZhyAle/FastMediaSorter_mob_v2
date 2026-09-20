@@ -884,9 +884,6 @@
     <string name="wear_onboarding_slogan">Votre compagnon multimédia au poignet</string>
     <string name="wear_onboarding_skip_all">Tout ignorer</string>
     <string name="wear_onboarding_page_indicator">Étape %1$d sur %2$d</string>
-    <string name="wear_battery_optimization_title">L\'économie de batterie peut arrêter la diffusion</string>
-    <string name="wear_battery_optimization_desc">Laissez l\'application fonctionner en arrière-plan pour que le son ne soit pas coupé.</string>
-    <string name="wear_battery_optimization_grant">Autoriser l\'activité en arrière-plan</string>
     <string name="dim_clock_overlay_toggle">Afficher l\'horloge et l\'état en mode atténué</string>
     <string name="dim_clock_status_cd">Horloge et état sur l\'écran atténué</string>
 </resources>

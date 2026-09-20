@@ -3661,4 +3661,11 @@
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">چارجر منسلک ہونے کے دوران غیر فعالیت کے بعد اسکرین بند کر دیتا ہے</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">چارجنگ کے دوران اسکرین ٹائم آؤٹ</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">چارجر منسلک ہونے کے دوران غیر فعالیت کے بعد اسکرین سیاہ کر دیتا ہے۔ یہ بلڈ آلہ مقفل نہیں کر سکتا۔</string>
+    <string name="settings_watch_camera_standby">میری گھڑی کو میرا کیمرہ دیکھنے دیں</string>
+    <string name="settings_watch_camera_standby_summary">کیمرہ ابھی چالو کرتا ہے، تاکہ فون جیب میں رہتے ہوئے بھی جوڑی بنی گھڑی بعد میں تصویر کھول سکے</string>
+    <string name="settings_watch_camera_standby_failed">گھڑی کے لیے کیمرہ چالو نہیں کیا جا سکا</string>
+    <string name="settings_broadcast_feedback_guard">فیڈ بیک تحفظ</string>
+    <string name="settings_broadcast_feedback_guard_summary">جب کوئی سننے والا قریب ہی نشریات اونچی آواز میں چلائے تو مائیکروفون گین کم کر دیتا ہے، تاکہ آواز بڑھتی نہ جائے</string>
+    <string name="broadcast_control_feedback_warning">آواز کم کر دی گئی: سننے والے کا اسپیکر مائیکروفون میں واپس آ رہا ہے۔ سننے والا آلہ دور لے جائیں یا اس کی آواز کم کریں۔</string>
+    <string name="broadcast_control_feedback_warning_cd">صوتی فیڈ بیک کا پتہ چلا، مائیکروفون گین کم کر دیا گیا</string>
 </resources>

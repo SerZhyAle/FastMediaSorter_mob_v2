@@ -14,11 +14,14 @@
         android:orientation="horizontal"
         android:padding="@dimen/settings_padding_vertical">
 
+        <!-- S3355: the chevron keeps the leading position and sits tight against the title.
+             The two slots between them are hidden on most rows, so the row's own 12dp gap read
+             as empty fill rather than as the indicator of an expandable section. -->
         <ImageView
             android:id="@+id/csh_chevron"
             android:layout_width="@dimen/settings_help_icon_size"
             android:layout_height="@dimen/settings_help_icon_size"
-            android:layout_marginEnd="@dimen/settings_padding_vertical"
+            android:layout_marginEnd="@dimen/margin_small"
             android:importantForAccessibility="no"
             app:srcCompat="@drawable/ic_arrow_drop_down"
             app:tint="?attr/colorOnSurfaceVariant" />

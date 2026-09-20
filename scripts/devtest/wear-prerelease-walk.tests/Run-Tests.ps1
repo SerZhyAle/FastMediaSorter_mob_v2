@@ -653,6 +653,46 @@ Assert-Equal -Label 'a foreign-window manual in the unreachable branch does not 
     -Expected $true `
     -Actual ($walkText -match "(?s)Get-ForeignWindowPackage.*?if \(\`$null -ne \`$foreignPkg\).*?continue.*?consecutiveUnreachable\+\+")
 
+# --- S3358: an entry declared for one flavor only ------------------------------------------------
+
+$bothFlavors = '{"id":"apps-calculator"}' | ConvertFrom-Json
+$sideloadOnly = '{"id":"resources","flavors":["noLegal"]}' | ConvertFrom-Json
+$emptyScope = '{"id":"broken","flavors":[]}' | ConvertFrom-Json
+
+Assert-Equal -Label 'an entry declaring no flavors is walkable in the store build' `
+    -Expected $true -Actual (Test-WalkEntryInFlavor -Screen $bothFlavors -Flavor 'standard')
+
+Assert-Equal -Label 'an entry declaring no flavors is walkable in the sideload build too' `
+    -Expected $true -Actual (Test-WalkEntryInFlavor -Screen $bothFlavors -Flavor 'noLegal')
+
+Assert-Equal -Label 'a noLegal-only entry is walkable there' `
+    -Expected $true -Actual (Test-WalkEntryInFlavor -Screen $sideloadOnly -Flavor 'noLegal')
+
+Assert-Equal -Label 'the same entry is not walkable on standard, which draws no such row' `
+    -Expected $false -Actual (Test-WalkEntryInFlavor -Screen $sideloadOnly -Flavor 'standard')
+
+Assert-Equal -Label 'an empty flavors list silences nothing - it is a declaration defect, not a scope' `
+    -Expected $true -Actual (Test-WalkEntryInFlavor -Screen $emptyScope -Flavor 'standard')
+
+Assert-Equal -Label 'a missing flavor argument never silences an entry' `
+    -Expected $true -Actual (Test-WalkEntryInFlavor -Screen $sideloadOnly -Flavor '')
+
+Assert-Equal -Label 'the walk asks the flavor-scope predicate about each entry' `
+    -Expected $true -Actual ($walkText -match 'Test-WalkEntryInFlavor -Screen \$screen -Flavor \$result\.flavor')
+
+# The skip must stay ahead of the control hunt. Below it the walk would scroll a list looking for a
+# row the artifact does not carry, leave the screen somewhere else and fail the entry after it -
+# which is exactly the cascade measured on 2026-09-20 and the reason this ticket exists.
+Assert-Equal -Label 'the flavor skip runs before the walk reaches for any control' `
+    -Expected $true `
+    -Actual ($walkText.IndexOf('Test-WalkEntryInFlavor') -lt $walkText.IndexOf('$tap = Invoke-ReachControl'))
+
+Assert-Equal -Label 'an out-of-flavor entry is counted apart from every other outcome' `
+    -Expected $true -Actual ($walkText -match "outOfFlavor\s+= @\(\`$rows \| Where-Object \{ \`$_\.outcome -eq 'outOfFlavor' \}\)\.Count")
+
+Assert-Equal -Label 'the walk verdict does not score an out-of-flavor row' `
+    -Expected $false -Actual ($walkText -match '\$verdict = if \([^\r\n]*outOfFlavor')
+
 Write-Host ""
 Write-Host "wear-prerelease-walk.tests: $script:passed passed, $script:failed failed."
 if ($script:failed -gt 0) { exit 1 }

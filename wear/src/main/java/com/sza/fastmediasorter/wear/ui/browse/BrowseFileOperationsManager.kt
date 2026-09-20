@@ -48,6 +48,9 @@ class BrowseFileOperationsManager @Inject constructor(
     private lateinit var scope: CoroutineScope
     private lateinit var displayedFiles: StateFlow<List<WearMediaFile>>
     private var isNetworkSource: () -> Boolean = { false }
+
+    /** S3359: which share the listed files are read from, needed only by a copy onto the watch. */
+    private var networkSourceId: () -> String? = { null }
     private var onListInvalidated: () -> Unit = {}
 
     /**
@@ -104,11 +107,13 @@ class BrowseFileOperationsManager @Inject constructor(
         scope: CoroutineScope,
         displayedFiles: StateFlow<List<WearMediaFile>>,
         isNetworkSource: () -> Boolean,
+        networkSourceId: () -> String?,
         onListInvalidated: () -> Unit
     ) {
         this.scope = scope
         this.displayedFiles = displayedFiles
         this.isNetworkSource = isNetworkSource
+        this.networkSourceId = networkSourceId
         this.onListInvalidated = onListInvalidated
 
         _allowedOperations = combine(displayedFiles, _selectedFileIds) { files, ids ->
@@ -225,7 +230,7 @@ class BrowseFileOperationsManager @Inject constructor(
      * app mid-batch and left the progress dialog owning the screen.
      */
     private suspend fun collectRun(targets: List<WearMediaFile>, operation: WearFileOperation) {
-        performFileOperation(targets, operation, isNetworkSource())
+        performFileOperation(targets, operation, isNetworkSource(), networkSourceId())
             .catch { throwable ->
                 Timber.e(throwable, "Wear file operation failed mid-batch")
                 val answered = _operationRun.value.results.map { it.fileName }.toSet()
@@ -282,16 +287,17 @@ class BrowseFileOperationsManager @Inject constructor(
 }
 
 /**
- * What [file] permits, classified first.
+ * What [file] permits, direction included.
  *
- * The classify-then-allow pair was written out at two call sites, and the screen only ever asked it
- * two questions: "may this file be acted on at all" and "what do all the selected ones share". Both
- * are this one expression, so it lives here once rather than as a member per question.
+ * The screen only ever asks two questions - "may this file be acted on at all" and "what do all the
+ * selected ones share" - and both are this one call, so it is named here once rather than as a member
+ * per question. S3359 moved the classification inside the policy, which is what keeps a network entry
+ * and a phone copy from being asked about as though they were the watch's own files.
  */
 private fun WearFileCapabilityPolicy.operationsFor(
     file: WearMediaFile,
     isNetworkSource: Boolean
-): Set<WearFileOperationKind> = allowedOperations(classify(file, isNetworkSource))
+): Set<WearFileOperationKind> = allowedOperations(file, isNetworkSource)
 
 /**
  * Whether a finished run leaves the list on screen describing files that are no longer there.
@@ -302,6 +308,10 @@ private fun WearFileCapabilityPolicy.operationsFor(
 private fun WearFileOperation.mutatesList(): Boolean = when (this) {
     WearFileOperation.SendToPhone -> false
     WearFileOperation.MoveToPhone -> true
+    // A copy to the watch adds a file elsewhere and leaves this listing's own entry untouched; a
+    // move takes the entry away, because the source the list is showing is the one being emptied.
+    WearFileOperation.CopyToWatch -> false
+    WearFileOperation.MoveToWatch -> true
     WearFileOperation.Delete -> true
     is WearFileOperation.Rename -> true
     // Everything it changes happens on the phone; the watch copy it names is still where it was.

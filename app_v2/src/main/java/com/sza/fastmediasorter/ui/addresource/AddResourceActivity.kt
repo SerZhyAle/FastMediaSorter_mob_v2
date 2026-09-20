@@ -33,8 +33,11 @@ import javax.inject.Inject
 @android.annotation.SuppressLint("SetTextI18n")
 class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
-    // S1045: hosts typed/pre-filled SMB/SFTP/FTP passwords and SSH passphrases.
-    override fun isSensitiveScreen(): Boolean = true
+    // S1045 hosted credentials for the whole activity; S3356: only the SMB and SFTP/FTP branches
+    // carry an account-password input, so the answer follows the visible branch - the type picker,
+    // the local folder branch and the cloud branch have nothing to hide and stay screenshotable.
+    override fun isSensitiveScreen(): Boolean = showsCredentialBranch
+    private var showsCredentialBranch = false
 
     private val viewModel: AddResourceViewModel by viewModels()
 
@@ -539,7 +542,19 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     // ========== Section Navigation ==========
 
+    /**
+     * S3356: the four `show*` functions below are the only writers of branch visibility - the copy
+     * flow lands through them too - so this is the single point where the sensitive answer moves.
+     */
+    internal fun setCredentialBranch(showsCredentials: Boolean) {
+        if (showsCredentialBranch == showsCredentials) return
+        showsCredentialBranch = showsCredentials
+        Timber.d("S3356: add-resource credential branch set to $showsCredentials")
+        refreshSecureFlag()
+    }
+
     internal fun showLocalFolderOptions() {
+        setCredentialBranch(false)
         binding.layoutResourceTypes.visibility = android.view.View.GONE
         binding.tvTitle.visibility = android.view.View.GONE
         binding.toolbar.title = getString(R.string.add_local_folder)
@@ -547,6 +562,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     internal fun showSmbFolderOptions() {
+        setCredentialBranch(true)
         binding.layoutResourceTypes.isVisible = false
         binding.tvTitle.isVisible = false
         binding.toolbar.title = if (copyResourceId == null) {
@@ -561,6 +577,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     internal fun showSftpFolderOptions() {
+        setCredentialBranch(true)
         binding.layoutResourceTypes.isVisible = false
         binding.tvTitle.isVisible = false
         binding.toolbar.title = getString(R.string.add_sftp_ftp_title)
@@ -575,6 +592,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     internal fun showCloudStorageOptions() {
+        setCredentialBranch(false)
         binding.layoutResourceTypes.isVisible = false
         binding.tvTitle.isVisible = false
         binding.toolbar.title = getString(R.string.cloud_storage)

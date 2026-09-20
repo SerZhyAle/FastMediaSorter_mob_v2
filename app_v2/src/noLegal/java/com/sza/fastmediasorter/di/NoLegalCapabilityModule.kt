@@ -22,4 +22,15 @@ object NoLegalCapabilityModule {
     @IntoSet
     @CompiledCapabilities
     fun provideNewPipe(): String = CapabilityAvailability.CAP_NEWPIPE
+
+    /**
+     * S2551: the standby answer to the watch's camera request is this flavor's shape alone - `standard`
+     * asks the owner with a notification, and the module that binds its policy lives in that source set
+     * beside this one. Contributing the id here is what keeps the settings row out of the other six
+     * builds without a flavor flag in shared code.
+     */
+    @Provides
+    @IntoSet
+    @CompiledCapabilities
+    fun provideWatchCameraStandby(): String = CapabilityAvailability.CAP_WATCH_CAMERA_STANDBY
 }

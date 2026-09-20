@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearSettingsRegistry
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -34,7 +33,6 @@ class GatherWearSettingsUseCase @Inject constructor(
         // S3330: the field is BOTH in the registry and the phone's merge consumes it, so a report
         // without it tells the phone the watch never answered instead of what the watch holds.
         val dimClockOverlayEnabled = preferencesRepository.dimClockOverlayEnabled.first()
-        Timber.d("S3330: gathering watch report, dimClockOverlayEnabled=$dimClockOverlayEnabled")
         return WearSettingsPayload(
             audioEnabled = preferencesRepository.isAudioEnabled.first(),
             videoEnabled = preferencesRepository.isVideoEnabled.first(),

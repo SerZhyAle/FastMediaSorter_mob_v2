@@ -7,17 +7,23 @@ import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
+import com.sza.fastmediasorter.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.domain.model.WearFileTransferItem
 import com.sza.fastmediasorter.domain.model.WearFileTransferOutcome
 import com.sza.fastmediasorter.domain.model.WearFileTransferState
 import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
+import com.sza.fastmediasorter.service.WearSyncEvents
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -64,6 +70,11 @@ class FileOperationUseCaseTest {
 
     private fun copyOp(source: String, dest: String) = FileOperation.Copy(
         sources = listOf(netFile(source)), destination = netFile(dest), overwrite = true,
+    )
+
+    // S3360: a real file on disk, because the watch-move tests assert on whether it survives.
+    private fun moveOp(source: File, dest: String) = FileOperation.Move(
+        sources = listOf(source), destination = netFile(dest), overwrite = true,
     )
 
     @Test
@@ -245,6 +256,56 @@ class FileOperationUseCaseTest {
 
         assertTrue(result is FileOperationResult.Failure)
     }
+
+    @Test
+    fun `S3360 a move to the watch keeps the phone original while the save is unconfirmed`() = runTest {
+        val source = File.createTempFile("s3360-unconfirmed", ".jpg").apply { writeText("x") }
+        every { wearTransferRepository.enqueue(any(), any(), any(), any()) } answers {
+            wearTransfers.value = watchQueueWith("t3", source, WearFileTransferOutcome.SUCCEEDED)
+            "t3"
+        }
+
+        val result = useCase.execute(moveOp(source, "wear://watch"))
+
+        assertTrue(result is FileOperationResult.Failure)
+        assertTrue("an unconfirmed move must leave the only copy on the phone", source.exists())
+        source.delete()
+    }
+
+    @Test
+    fun `S3360 a move to the watch removes the phone original once the watch confirms the save`() = runTest {
+        val source = File.createTempFile("s3360-confirmed", ".jpg").apply { writeText("x") }
+        val requestId = slot<String>()
+        every { wearTransferRepository.enqueue(any(), any(), any(), capture(requestId)) } answers {
+            wearTransfers.value = watchQueueWith("t4", source, WearFileTransferOutcome.SUCCEEDED)
+            "t4"
+        }
+        // The watch answers only a transfer the phone has already announced, so this emission is
+        // parked until the operation has generated its id and is waiting for the verdict.
+        launch {
+            delay(1)
+            WearSyncEvents.emitFileTransferAck(
+                WearFileTransferAck(requestId.captured, WearFileTransferAck.OUTCOME_SAVED)
+            )
+        }
+
+        val result = useCase.execute(moveOp(source, "wear://watch"))
+
+        assertTrue(result is FileOperationResult.Success)
+        assertFalse("a confirmed move removes the phone original", source.exists())
+    }
+
+    private fun watchQueueWith(id: String, source: File, outcome: WearFileTransferOutcome) =
+        WearFileTransferState(
+            listOf(
+                WearFileTransferItem(
+                    id = id,
+                    sourcePath = source.absolutePath,
+                    displayName = source.name,
+                    outcome = outcome
+                )
+            )
+        )
 
     @Test
     fun `S1861 renaming on the watch is refused rather than routed to local rename`() = runTest {

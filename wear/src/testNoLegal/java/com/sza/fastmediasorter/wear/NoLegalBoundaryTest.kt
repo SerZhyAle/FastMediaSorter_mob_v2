@@ -71,6 +71,22 @@ class NoLegalBoundaryTest {
         }
     }
 
+    /**
+     * S3358: the mirror of the store build's case, and the reason an entry cannot be scoped away.
+     *
+     * Declaring a row `noLegal`-only passes the store test whether or not the row exists here, so
+     * without this half the cheapest repair for a red standard sweep would be to narrow every entry
+     * until nothing is walked anywhere. The two cases contradict each other by construction.
+     */
+    @Test
+    fun `the declared walk claims every row this flavor draws`() {
+        WearWalkContract.assertScopeMatchesCatalogs(
+            flavor = "noLegal",
+            sections = HomeSectionCatalog.sectionsFor(sideloadVisibility(streamsEnabled = true)).map { it.id },
+            apps = WearAppCatalog.apps(capabilities).map { it.id }
+        )
+    }
+
     private fun sideloadVisibility(streamsEnabled: Boolean) = HomeSectionVisibility(
         streamsEnabled = streamsEnabled,
         lastUsedApp = null,

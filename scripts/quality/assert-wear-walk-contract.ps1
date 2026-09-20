@@ -21,11 +21,24 @@
                "FastMedia Wear" and is named only by AndroidManifest.xml, so the `home` entry could
                never have matched, on any screen size.
       screen - `screen` names a composable that exists in the module.
+      scope  - S3358. `flavors`, when declared, is a non-empty subset of the flavors
+               `wear/build.gradle.kts` creates, and never all of them (which is the absent field
+               written the long way). `homeSection` and `wearApp`, when declared, name a member of
+               `HomeSectionId` / `WearAppId`. Catches a typo that would silence an entry in every
+               flavor - the opposite of, and the same size as, the fault this check arrived with.
 
     What this gate CANNOT see, stated so nobody reads a PASS as more than it is: a string that is
     alive AND rendered, but by a different screen than the entry opens. That is `settings-system-info`
     after S2008 moved the route from settings into Apps, and it belongs to S2552. Path drift needs the
     navigation chain, which this gate does not model.
+
+    Nor does it judge whether a `flavors` declaration is TRUE - whether the catalogs really withhold
+    that row in that build. That check runs the catalogs rather than parsing them, so it lives in the
+    two flavor-scoped boundary tests (`wear/src/testStandard/..StoreBoundaryTest`,
+    `wear/src/testNoLegal/..NoLegalBoundaryTest`) where `HomeSectionCatalog` and `WearAppCatalog` can
+    be called with the flavor's own `WearRestrictedCapabilities`. A PowerShell re-reading of the same
+    Kotlin would be the second source of truth the S1621 rule exists to prevent - and a wrong second
+    answer here is precisely how S3358 was created.
 
     Ratchet: the baseline file holds the count of divergences accepted on the day the gate landed and
     moves DOWN only. Raising it hides a regression; a repair lowers it.
@@ -71,6 +84,7 @@
 .PARAMETER ScreenList
 .PARAMETER StringsFile
 .PARAMETER WearSource
+.PARAMETER WearGradleFile
 .PARAMETER BaselineFile
     Path overrides. Default to the real tree; the regression suite points them at fixtures, which is
     the only way to prove the gate catches a rename without renaming a shipped string to find out.
@@ -97,6 +111,7 @@ param(
     [string]$ScreenList,
     [string]$StringsFile,
     [string]$WearSource,
+    [string]$WearGradleFile,
     [string]$BaselineFile
 )
 
@@ -120,6 +135,10 @@ $stringsFiles = @(if ($StringsFile) {
             ForEach-Object { $_.FullName }
     })
 $wearSource = if ($WearSource) { $WearSource } else { Join-Path $repoRoot 'wear/src/main/java' }
+# S3358: the flavor names a `flavors` declaration may use, taken from the block that creates them
+# rather than written down here. A list of flavor names in a gate is a copy that goes stale the way
+# the screen list itself did.
+$wearGradleFile = if ($WearGradleFile) { $WearGradleFile } else { Join-Path $repoRoot 'wear/build.gradle.kts' }
 $baselineFile = if ($BaselineFile) { $BaselineFile } else { Join-Path $PSScriptRoot 'wear-walk-contract-baseline.txt' }
 
 function Stop-Unverifiable {
@@ -198,6 +217,32 @@ foreach ($file in Get-ChildItem -LiteralPath $wearSource -Recurse -Filter '*.kt'
 }
 $allSource = $sourceText.ToString()
 
+# S3358 - the three closed sets a `flavors` / `homeSection` / `wearApp` declaration is judged against,
+# each read from the file that owns it. None of them is written down here: a second copy of a set is
+# how the screen list came to describe a Home no shipped build draws.
+if (-not (Test-Path -LiteralPath $wearGradleFile)) { Stop-Unverifiable "wear build file not found: $wearGradleFile" }
+$wearFlavors = @([regex]::Matches(
+    (Get-Content -LiteralPath $wearGradleFile -Raw), 'create\("([A-Za-z][A-Za-z0-9]*)"\)\s*\{\s*(?:\r?\n\s*)?dimension\s*='
+) | ForEach-Object { $_.Groups[1].Value })
+if ($wearFlavors.Count -eq 0) { Stop-Unverifiable "no product flavor found in $wearGradleFile" }
+
+function Get-EnumMembers {
+    # The members of one top-level Kotlin enum, read out of the module text. The body runs to the
+    # first closing brace in the first column, which is where a top-level declaration ends; members
+    # are the four-space-indented CAPITALS, so a KDoc line (five spaces then an asterisk) and a
+    # member's constructor argument are both passed over.
+    param([string]$Source, [string]$Name)
+    $start = [regex]::Match($Source, ('(?m)^enum class ' + [regex]::Escape($Name) + '\b[^\{]*\{'))
+    if (-not $start.Success) { return @() }
+    $rest = $Source.Substring($start.Index + $start.Length)
+    $end = [regex]::Match($rest, '(?m)^\}')
+    $body = if ($end.Success) { $rest.Substring(0, $end.Index) } else { $rest }
+    return @([regex]::Matches($body, '(?m)^[ ]{4}([A-Z][A-Z0-9_]*)\s*[(,\r\n]') | ForEach-Object { $_.Groups[1].Value })
+}
+
+$homeSectionIds = Get-EnumMembers -Source $allSource -Name 'HomeSectionId'
+$wearAppIds = Get-EnumMembers -Source $allSource -Name 'WearAppId'
+
 $divergences = @()
 
 # S2621: every divergence records the screen it is about, so a scoped run can attribute it. The
@@ -240,6 +285,34 @@ foreach ($entry in $entries) {
     }
     elseif (-not $screenNames.Contains($screen)) {
         Add-Divergence -Text "$id : screen '$screen' is not a composable in the wear module" -Screen $screen -Id $entryId
+    }
+
+    # S3358 - the entry's flavor scope, judged as a declaration. Whether it is TRUE of the catalogs is
+    # the boundary tests' question; what is answered here is whether the walk can act on it at all.
+    if ($entry.PSObject.Properties.Name -contains 'flavors') {
+        $declaredFlavors = @($entry.flavors)
+        if ($declaredFlavors.Count -eq 0) {
+            Add-Divergence -Text "$id : 'flavors' is empty - an entry walkable nowhere is a declaration defect, omit the field to walk it everywhere" -Screen $screen -Id $entryId
+        }
+        elseif ($declaredFlavors.Count -ge $wearFlavors.Count) {
+            Add-Divergence -Text "$id : 'flavors' lists every flavor ($($wearFlavors -join ', ')) - omit the field instead, so a new flavor does not silently inherit this scope" -Screen $screen -Id $entryId
+        }
+        foreach ($flavor in $declaredFlavors) {
+            if ($wearFlavors -cnotcontains [string]$flavor) {
+                Add-Divergence -Text "$id : flavor '$flavor' is not created by wear/build.gradle.kts (it makes: $($wearFlavors -join ', ')) - a name no build answers to silences this entry everywhere" -Screen $screen -Id $entryId
+            }
+        }
+    }
+
+    foreach ($binding in @(
+        @{ Field = 'homeSection'; Enum = 'HomeSectionId'; Members = $homeSectionIds },
+        @{ Field = 'wearApp'; Enum = 'WearAppId'; Members = $wearAppIds }
+    )) {
+        if ($entry.PSObject.Properties.Name -notcontains $binding.Field) { continue }
+        $value = [string]$entry.($binding.Field)
+        if (@($binding.Members) -cnotcontains $value) {
+            Add-Divergence -Text "$id : $($binding.Field) '$value' is not a member of $($binding.Enum) in the wear module" -Screen $screen -Id $entryId
+        }
     }
 }
 

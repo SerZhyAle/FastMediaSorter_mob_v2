@@ -308,7 +308,8 @@ class VideoPlayerViewModel @Inject constructor(
         fileOperations.bind(
             scope = viewModelScope,
             currentFile = currentFileFlow,
-            isNetworkSource = { networkSelection != null }
+            isNetworkSource = { networkSelection != null },
+            networkSourceId = { networkSelection?.sourceId }
         )
         viewModelScope.launch {
             _uiState.collect { state ->

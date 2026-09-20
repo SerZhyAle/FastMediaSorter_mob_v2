@@ -157,7 +157,10 @@
         accessibility event anywhere on the device, budget 10 s, and offers no flag to shorten or
         skip that wait, so a window that emits a content-change event every ~100 ms is undumpable
         for as long as its readout is live (S3289). The refusal names it and costs one retry, not
-        three - each refused attempt blocks for the full 10 s budget
+        three - each refused attempt blocks for the full 10 s budget.
+        For `clip-check` it also covers a display whose reported corner radius is impossible - wider
+        than half its shorter side - on a shape that cannot be corrected from a second signal
+        (S3357). Nothing is judged, because a guessed outline manufactures OFF-GLASS findings
     8 - `tap-label` / `tap-id`: no visible node carried that label or that resource-id, so NOTHING
         was tapped. Distinct from 7 because "the screen does not show it" and "the tap failed" call
         for different next moves - the first usually means an animation was still running, the
@@ -868,6 +871,9 @@ function Get-UiTree {
 # (240,240) - a circle; a Galaxy S25 reports radius=105 on 1080x2340 with four distinct centres - a
 # rounded rectangle. One corner-quadrant rule covers both, and the circle is just the case where the
 # radius equals half the screen, so no watch-only branch is needed anywhere below.
+#
+# What the device prints is not automatically believable (S3357) - Resolve-DisplayRadius in
+# lib/ui-tree.ps1 owns that judgement, and `trusted` on the returned shape is its answer.
 function Get-DisplayShape {
     param([string]$Id)
     $sizeRaw = (Invoke-Adb $Id @('shell', 'wm', 'size') -AllowFail) -join "`n"
@@ -878,27 +884,23 @@ function Get-DisplayShape {
     $w = [int]$m.Groups[1].Value
     $h = [int]$m.Groups[2].Value
 
-    $radius = 0
-    $shapeSource = 'no rounded-corner data - treated as a plain rectangle'
+    $radii = @()
     $winRaw = (Invoke-Adb $Id @('shell', 'dumpsys', 'window', 'displays') -AllowFail) -join "`n"
     $block = [regex]::Match($winRaw, 'mRoundedCorners=RoundedCorners\{\[(.*?)\]\}')
     if ($block.Success) {
         $radii = @([regex]::Matches($block.Groups[1].Value, 'radius=(\d+)') | ForEach-Object { [int]$_.Groups[1].Value })
-        if ($radii.Count -ge 4) {
-            # Equal on every real device seen so far; the maximum is the conservative reading when
-            # they differ, because it is the one that shrinks the safe area rather than growing it.
-            $radius = ($radii | Measure-Object -Maximum).Maximum
-            $shapeSource = 'dumpsys window displays (mRoundedCorners)'
-        }
     }
-    if ($radius -le 0) {
-        if ((Test-WatchDevice $Id) -and $w -eq $h) {
-            $radius = [int]($w / 2)
-            $shapeSource = 'watch characteristic + square display - assumed round'
-        }
-    }
+    # One extra getprop, and only where the answer can change the reading: a square display is the
+    # only one the round-watch fallback and the S3357 correction apply to.
+    $isRoundWatch = ($w -eq $h) -and [bool](Test-WatchDevice $Id)
+
+    $resolved = Resolve-DisplayRadius -Width $w -Height $h -Radii $radii -IsRoundWatch $isRoundWatch
+    $radius = [int]$resolved.radius
     $isRound = ($radius * 2 -eq $w -and $radius * 2 -eq $h)
-    return [ordered]@{ width = $w; height = $h; radius = $radius; round = $isRound; source = $shapeSource }
+    return [ordered]@{
+        width = $w; height = $h; radius = $radius; round = $isRound
+        source = $resolved.source; trusted = [bool]$resolved.trusted; note = [string]$resolved.reason
+    }
 }
 
 # ---------- verbs ----------
@@ -1439,6 +1441,14 @@ switch ($Verb.ToLowerInvariant()) {
         $id = Select-Device
         $script:result.device = $id
         $shape = Get-DisplayShape $id
+        # Refuse before the tree is even dumped (S3357): a shape nothing can be measured against
+        # produces confident OFF-GLASS findings about an outline the display does not have, and
+        # "could not look" must never arrive as "the app is broken". Code 7 lands in the wrapper
+        # class that lib/clip-shape-outcome.ps1 already counts as shape-unchecked, so a walk built
+        # on this aborts its sweep instead of filing a release blocker.
+        if (-not $shape.trusted) {
+            Fail 7 ("the display shape cannot be measured against: {0}. Nothing was judged" -f $shape.note)
+        }
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
         $nodes = @(Get-UiNodes (Get-UiTree $id $file))
         $findings = [System.Collections.Generic.List[object]]::new()
@@ -1478,6 +1488,7 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "TREE $file" -ForegroundColor Green
         Write-Host ("SHAPE {0}x{1} corner radius {2}{3} - {4}" -f `
             $shape.width, $shape.height, $shape.radius, $(if ($shape.round) { ' (round)' } else { '' }), $shape.source) -ForegroundColor Gray
+        if ($shape.note) { Write-Host ("NOTE {0}" -f $shape.note) -ForegroundColor Yellow }
         foreach ($f in $findings) {
             $colour = if ($f.kind -eq 'OFF-GLASS') { 'Red' } else { 'Yellow' }
             Write-Host ("{0,-10} {1,-36} bounds {2},{3}..{4},{5}  worst corner {6} px from its arc centre (limit {7})" -f `

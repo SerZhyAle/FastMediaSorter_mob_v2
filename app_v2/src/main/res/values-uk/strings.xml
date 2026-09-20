@@ -4089,4 +4089,12 @@
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">Гасить екран у разі неактивності, доки підключено зарядку</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Таймаут екрана під час заряджання</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Гасить екран у разі неактивності, доки підключено зарядку. Ця збірка не може блокувати пристрій.</string>
+    <string name="settings_watch_camera_standby">Дозволити годиннику бачити мою камеру</string>
+    <string name="settings_watch_camera_standby_summary">Вмикає камеру одразу, щоб парний годинник міг відкрити зображення пізніше, поки телефон лежить у кишені</string>
+    <string name="settings_watch_camera_standby_failed">Не вдалося увімкнути камеру для годинника</string>
+    <string name="settings_broadcast_feedback_guard">Захист від петлі</string>
+    <string name="settings_broadcast_feedback_guard_summary">Знижує посилення мікрофона, коли слухач відтворює мовлення вголос поруч, щоб звук не наростав</string>
+    <string name="broadcast_control_feedback_warning">Звук приглушено: динамік слухача потрапляє в мікрофон. Віднесіть пристрій далі або зменште його гучність.</string>
+    <string name="broadcast_control_feedback_warning_cd">Виявлено акустичну петлю, посилення мікрофона знижено</string>
+    <string name="wear_watch_transfer_unconfirmed">Годинник не підтвердив збереження %1$s, тому оригінал залишився на телефоні.</string>
 </resources>

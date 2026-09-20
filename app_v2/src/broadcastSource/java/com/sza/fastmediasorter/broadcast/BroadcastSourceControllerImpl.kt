@@ -25,7 +25,10 @@ class BroadcastSourceControllerImpl @Inject constructor(
 
     override val cameraSurvivesBackground: Boolean by lazy {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
-            (VideoBroadcastService.declaredForegroundServiceTypes(context) and ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA) != 0
+            (
+                VideoBroadcastService.declaredForegroundServiceTypes(context) and
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+                ) != 0
     }
 
     override val state: StateFlow<BroadcastState> = combine(
@@ -41,6 +44,10 @@ class BroadcastSourceControllerImpl @Inject constructor(
     ) { audioCount, videoCount ->
         audioCount + videoCount
     }.stateIn(scope, SharingStarted.Eagerly, 0)
+
+    // S3349: only the audio path carries a guard - the video path hands its microphone to the encoder
+    // library and is tracked by S3351.
+    override val feedbackSuppressed: StateFlow<Boolean> = BroadcastCaptureService.feedbackSuppressed
 
     override fun start(mode: BroadcastMode, lensId: String?) {
         if (mode == BroadcastMode.AUDIO_ONLY) {

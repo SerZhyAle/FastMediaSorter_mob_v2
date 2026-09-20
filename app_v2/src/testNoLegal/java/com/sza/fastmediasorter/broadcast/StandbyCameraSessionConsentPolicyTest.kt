@@ -51,15 +51,39 @@ class StandbyCameraSessionConsentPolicyTest {
     }
 
     @Test
-    fun `a live session grants without starting anything`() = runTest {
+    fun `a live camera session grants without starting anything`() = runTest {
         val policy =
             StandbyCameraSessionConsentPolicy(
-                FakeController(BroadcastState.Live(descriptor(), startedAtElapsedRealtimeMs = 0L))
+                FakeController(
+                    BroadcastState.Live(
+                        descriptor(BroadcastMode.VIDEO_AUDIO),
+                        startedAtElapsedRealtimeMs = 0L
+                    )
+                )
             )
 
         assertEquals(CameraConsentOutcome.Granted, policy.requestConsent("req-1"))
     }
 
-    private fun descriptor(): BroadcastDescriptorDto =
-        BroadcastDescriptorDto(url = "http://127.0.0.1:8080/live", mode = "AUDIO_ONLY")
+    /** S2551 step 06.3: broadcasting sound to the room is not consent to be seen through the camera. */
+    @Test
+    fun `an audio broadcast is not a standing camera arrangement`() = runTest {
+        val policy =
+            StandbyCameraSessionConsentPolicy(
+                FakeController(
+                    BroadcastState.Live(
+                        descriptor(BroadcastMode.AUDIO_ONLY),
+                        startedAtElapsedRealtimeMs = 0L
+                    )
+                )
+            )
+
+        assertEquals(
+            CameraConsentOutcome.Refused(WearCameraRefusal.NOT_ARMED),
+            policy.requestConsent("req-1")
+        )
+    }
+
+    private fun descriptor(mode: BroadcastMode): BroadcastDescriptorDto =
+        BroadcastDescriptorDto(url = "rtsp://127.0.0.1:8554/live", mode = mode.name)
 }

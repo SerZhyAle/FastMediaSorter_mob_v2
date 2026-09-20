@@ -70,6 +70,14 @@ private fun rememberPlayerFileActionCallbacks(
             visibilities.onActionsVisibilityChange(false)
             operations.runOperation(WearFileOperation.MoveToPhone)
         },
+        onCopyToWatch = {
+            visibilities.onActionsVisibilityChange(false)
+            operations.runOperation(WearFileOperation.CopyToWatch)
+        },
+        onMoveToWatch = {
+            visibilities.onActionsVisibilityChange(false)
+            operations.runOperation(WearFileOperation.MoveToWatch)
+        },
         onRenameRequested = {
             visibilities.onActionsVisibilityChange(false)
             requestRename(currentFileName)

@@ -12,7 +12,7 @@
     the dump and the tap sends a coordinate into the neighbouring row, which is exactly how two taps
     in one earlier watch sweep hit the wrong control (CLAUDE.md section 9).
 
-    Five outcomes per screen, and the difference between them matters more than the count:
+    Six outcomes per screen, and the difference between them matters more than the count:
       observed    - the expected token was in the UI dump.
       failed      - the screen opened and the expected token was not on it. A product defect.
       unreachable - the control that opens the screen was never found, so the screen was never
@@ -29,6 +29,11 @@
       skipped  - an entry declared `optional` whose control is not on screen in this run. The first
                  launch of a fresh install shows a permission gate that a second run does not, and
                  an entry that is absent by design is neither a failure nor a question for a human.
+      outOfFlavor - an entry whose `flavors` does not name the installed build (S3358). The Home
+                 section or Apps program it reaches for is withheld from that artifact by
+                 `WearRestrictedCapabilities`, so there is no control on the glass and never was.
+                 Told apart from `skipped` because that one is about this run's starting state and
+                 may resolve on the next run; this one is about the artifact and never will.
 
     A destination is never recognised by its own title alone. Most watch screens repeat the label of
     the chip that opened them - the Home chip "Apps" opens a screen titled "Apps" - so a title match
@@ -526,6 +531,29 @@ foreach ($screen in $screens) {
         position = @($position | ForEach-Object { $_.name })
     }
 
+    # S3358 - the entry's own flavor scope, answered before anything is spent on it. An entry whose
+    # `flavors` does not name the installed build declares a Home section or an Apps program that
+    # build does not draw at all, so there is no control to reach for, nothing to judge, and no level
+    # to climb back out of: the walk records the row and moves on without touching the device.
+    #
+    # First in the iteration on purpose, ahead of the settle and the rehome guard. Hunting for a
+    # control that was never going to be there spends the whole scroll budget and leaves the list
+    # somewhere else, which then fails the NEXT entry - the same reason the `optional` branch below
+    # declines to hunt. Measured 2026-09-20 on emulator-5556 against wear-standard-release 2.60.9202.109:
+    # twelve withheld rows produced eighteen `unreachable` verdicts and seven re-homes, and the walk
+    # never found its way back into the settings block at all.
+    #
+    # `outOfFlavor` rather than `skipped`: an optional entry is absent because of THIS RUN's starting
+    # state and may be there on the next one, while this row is absent from the artifact. Both are
+    # scored by nothing, and telling them apart is what lets a reader see a narrow sweep for what it is.
+    if (-not (Test-WalkEntryInFlavor -Screen $screen -Flavor $result.flavor)) {
+        $row.outcome = 'outOfFlavor'
+        $row.detail = "declared for $(@($screen.flavors) -join ', '); the installed build is $($result.flavor), which does not draw this row"
+        $rows += [pscustomobject]$row
+        if (-not $Json) { Write-Host "walk: $($screen.id) -> outOfFlavor ($($result.flavor))" -ForegroundColor DarkGray }
+        continue
+    }
+
     # Settle before reaching for the control too: the previous entry's BACK is still animating when
     # this iteration starts, and a tap verb re-reads the tree itself, so it would search the screen
     # that is on its way out.
@@ -795,6 +823,11 @@ $result.counts = [ordered]@{
     failed         = @($rows | Where-Object { $_.outcome -eq 'failed' }).Count
     unreachable    = @($rows | Where-Object { $_.outcome -eq 'unreachable' }).Count
     manual         = @($rows | Where-Object { $_.outcome -eq 'manual' }).Count
+    # S3358: reported, never scored. The row is absent from the installed artifact by the capability
+    # gating's own decision, so it is neither a defect nor an open question - but a sweep that opened
+    # seven screens out of twenty-eight has to say where the other twenty-one went, or a narrow run
+    # and a broken one print the same line.
+    outOfFlavor    = @($rows | Where-Object { $_.outcome -eq 'outOfFlavor' }).Count
     shapeFailures  = $shapeFailuresCount
     shapeUnchecked = $shapeUncheckedCount
     shapeAccepted  = $shapeAcceptedCount
@@ -853,6 +886,6 @@ $result.ok = ($verdict -eq 0)
 if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 8 -Compress }
 else {
     $batteryNote = if ($null -ne $result.batteryPct) { "battery $($result.batteryPct)%; " } else { '' }
-    Write-Host ("wear-prerelease-walk: ${batteryNote}observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), shapeFailures $shapeFailuresCount, shapeUnchecked $shapeUncheckedCount, shapeAccepted $shapeAcceptedCount ($($result.flavor)), rehomes $rehomeCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
+    Write-Host ("wear-prerelease-walk: ${batteryNote}observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), outOfFlavor $($result.counts.outOfFlavor), shapeFailures $shapeFailuresCount, shapeUnchecked $shapeUncheckedCount, shapeAccepted $shapeAcceptedCount ($($result.flavor)), rehomes $rehomeCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
 }
 exit $verdict

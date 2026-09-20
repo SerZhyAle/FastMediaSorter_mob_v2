@@ -3666,4 +3666,11 @@
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">Éteint l\'écran après une période d\'inactivité lorsque le chargeur est branché</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Délai d\'extinction en charge</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Met l\'écran en noir après une période d\'inactivité lorsque le chargeur est branché. Cette version ne peut pas verrouiller l\'appareil.</string>
+    <string name="settings_watch_camera_standby">Autoriser ma montre à voir mon appareil photo</string>
+    <string name="settings_watch_camera_standby_summary">Démarre l\'appareil photo maintenant, pour que la montre associée puisse ouvrir l\'image plus tard pendant que le téléphone reste dans votre poche</string>
+    <string name="settings_watch_camera_standby_failed">Impossible de démarrer l\'appareil photo pour la montre</string>
+    <string name="settings_broadcast_feedback_guard">Protection anti-Larsen</string>
+    <string name="settings_broadcast_feedback_guard_summary">Baisse le gain du micro lorsqu\'un auditeur diffuse l\'émission à voix haute à proximité, afin que le son ne s\'amplifie pas</string>
+    <string name="broadcast_control_feedback_warning">Son baissé : le haut-parleur d\'un auditeur revient dans le micro. Éloignez l\'appareil d\'écoute ou baissez son volume.</string>
+    <string name="broadcast_control_feedback_warning_cd">Effet Larsen détecté, le gain du micro a été baissé</string>
 </resources>

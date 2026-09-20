@@ -19,6 +19,9 @@ class NoOpBroadcastSourceController @Inject constructor() : BroadcastSourceContr
     private val _listenerCount = MutableStateFlow(0)
     override val listenerCount: StateFlow<Int> = _listenerCount.asStateFlow()
 
+    private val _feedbackSuppressed = MutableStateFlow(false)
+    override val feedbackSuppressed: StateFlow<Boolean> = _feedbackSuppressed.asStateFlow()
+
     override fun start(mode: BroadcastMode, lensId: String?) {
         // No-op
     }

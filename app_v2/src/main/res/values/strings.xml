@@ -4168,4 +4168,12 @@
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">Turns off the screen after inactivity while the charger is connected</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Screen timeout when on charge</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Turns the screen black after inactivity while the charger is connected. This build cannot lock the device.</string>
+    <string name="settings_watch_camera_standby">Let my watch see my camera</string>
+    <string name="settings_watch_camera_standby_summary">Starts the camera now, so the paired watch can open the picture later while the phone stays in your pocket</string>
+    <string name="settings_watch_camera_standby_failed">Could not start the camera for the watch</string>
+    <string name="settings_broadcast_feedback_guard">Feedback guard</string>
+    <string name="settings_broadcast_feedback_guard_summary">Turns the microphone gain down when a listener plays the broadcast aloud nearby, so the sound cannot build up</string>
+    <string name="broadcast_control_feedback_warning">Sound turned down: a listener\'s speaker is feeding back into the microphone. Move the listening device away or lower its volume.</string>
+    <string name="broadcast_control_feedback_warning_cd">Acoustic feedback detected, the microphone gain was turned down</string>
+    <string name="wear_watch_transfer_unconfirmed">The watch did not confirm saving %1$s, so the original was kept on the phone.</string>
 </resources>

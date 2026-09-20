@@ -5,7 +5,7 @@ import com.sza.fastmediasorter.domain.model.WearSettingsMergeResolver
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSettingsPayloadDecoder
 import com.sza.fastmediasorter.domain.model.WearSettingsRegistry
-import timber.log.Timber
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import javax.inject.Inject
 
 /**
@@ -15,9 +15,14 @@ import javax.inject.Inject
  * exist as far as the phone was concerned. The resolution rule is identical to the watch's copy in
  * `wear/../domain/usecase/WearSettingsMergeResolver.kt` and is written twice because the two modules
  * share no source; `scripts/quality/assert-wear-settings-parity.ps1` is what keeps them honest.
+ *
+ * S3330: fields that live in both the mirror and in [AppSettings][com.sza.fastmediasorter.domain.model.AppSettings]
+ * (currently only `dimClockOverlayEnabled`) are written back to [settingsRepository] when the merge
+ * changes them, so the phone's next push carries the merged value instead of the stale pre-merge one.
  */
 class MergeWearSettingsReportUseCase @Inject constructor(
-    private val mirrorStore: WearSettingsMirrorStore
+    private val mirrorStore: WearSettingsMirrorStore,
+    private val settingsRepository: SettingsRepository
 ) {
 
     /**
@@ -61,9 +66,18 @@ class MergeWearSettingsReportUseCase @Inject constructor(
         // absent local stamp, which the resolver already answers with "take the incoming value", so the
         // first report needs no branch of its own.
         val merged = mergeAgainst(stored ?: incoming, incoming, merge)
-        Timber.d("S3330: merged report, dimClockOverlayEnabled=${merged.dimClockOverlayEnabled}")
         mirrorStore.writeSettings(merged)
         mirrorStore.writeFieldTimestamps(stamps)
+        // S3330: dimClockOverlayEnabled lives in both the mirror and AppSettings (it is the phone's
+        // own playback-settings toggle). Without this write-back the phone's next push would read
+        // the stale AppSettings value through ObserveDimClockOverlayEnabledUseCase and silently
+        // revert the watch's edit on the very next sync.
+        val mergedDimClock = merged.dimClockOverlayEnabled ?: false
+        val storedDimClock = stored?.dimClockOverlayEnabled ?: false
+        val writeBack = mergedDimClock != storedDimClock
+        if (writeBack) {
+            settingsRepository.updateDimClockOverlayEnabled(mergedDimClock)
+        }
         // S2461: the version rides in on the same call as the time, because this line is the single
         // point at which a full exchange is known to have completed (research 02).
         mirrorStore.markSynced(receivedAtEpochMillis, incoming.appVersionName)

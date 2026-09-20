@@ -52,7 +52,6 @@ abstract class WebGadgetFrameView @JvmOverloads constructor(
     /** Wires the WebView; call from the subclass `init` once its binding exists. */
     @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
     protected fun attachWebView() {
-        Timber.d("S3251: web gadget frame attached style=$styleElementId")
         with(webView.settings) {
             javaScriptEnabled = true
             domStorageEnabled = true

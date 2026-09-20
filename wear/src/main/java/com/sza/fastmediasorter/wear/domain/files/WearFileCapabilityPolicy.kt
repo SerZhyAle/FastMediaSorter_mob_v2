@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.domain.files
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import com.sza.fastmediasorter.wear.data.files.WearWatchFilePublisher
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
@@ -27,6 +28,12 @@ private val LOCAL_OPERATIONS = setOf(
     WearFileOperationKind.RENAME
 )
 
+/** Both directions of "hand this to the phone", withdrawn together for a file the phone already has. */
+private val TO_PHONE_OPERATIONS = setOf(
+    WearFileOperationKind.SEND_TO_PHONE,
+    WearFileOperationKind.MOVE_TO_PHONE
+)
+
 /**
  * The single place that answers "what may this file be asked to do".
  *
@@ -45,7 +52,8 @@ private val LOCAL_OPERATIONS = setOf(
 class WearFileCapabilityPolicy @Inject constructor(
     @ApplicationContext private val context: Context,
     private val mediaStoreConsent: WearMediaStoreConsent,
-    private val sendToReceivers: WearSendToReceiversRepository
+    private val sendToReceivers: WearSendToReceiversRepository,
+    private val watchPublisher: WearWatchFilePublisher
 ) {
 
     /**
@@ -81,6 +89,42 @@ class WearFileCapabilityPolicy @Inject constructor(
         context.filesDir,
         context.getExternalFilesDir(null)?.parentFile
     ).mapNotNull { canonicalPathOf(it) }
+
+    /**
+     * What [file] may be asked to do, direction included - the answer every surface draws from.
+     *
+     * The class alone cannot settle it. A copy fetched from the phone and a file the watch recorded
+     * itself are both readable local files, yet the first must never be offered back to the phone
+     * that still holds the original, and the second has nowhere else to go. So the class answer below
+     * is the base and the source decides the direction on top of it (S3359 ADR-1): a phone copy trades
+     * the two "to phone" operations for the copy onto the watch, and a network entry - which allows
+     * nothing of its own - gains exactly that one.
+     *
+     * Moving to the watch is deliberately absent from both: removing the original needs the source's
+     * own consent, which neither the phone nor a read-only share has given yet.
+     */
+    fun allowedOperations(file: WearMediaFile, isNetworkSource: Boolean): Set<WearFileOperationKind> {
+        val storageClass = classify(file, isNetworkSource)
+        val base = allowedOperations(storageClass)
+        return when (storageClass) {
+            WearFileStorageClass.PHONE_COPY -> base - TO_PHONE_OPERATIONS + toWatchOffer(file)
+            WearFileStorageClass.NETWORK -> base + toWatchOffer(file)
+            WearFileStorageClass.APP_OWNED, WearFileStorageClass.MEDIA_STORE -> base
+        }
+    }
+
+    /**
+     * The copy onto the watch, offered only where it can actually end in a file the owner finds.
+     *
+     * Two conditions, both about the destination rather than the source. A type with no collection
+     * reaches none of the watch's category lists, so a copy of one would be stored and unfindable
+     * (strategic Non-goals). Below API 29 the publisher cannot insert a row at all, and withholding
+     * the entry is what S2004 ADR-4 requires instead of offering it and refusing.
+     */
+    private fun toWatchOffer(file: WearMediaFile): Set<WearFileOperationKind> {
+        val reachable = WearWatchFileTarget.collectionOf(file.mimeType) != null && watchPublisher.isAvailable()
+        return if (reachable) setOf(WearFileOperationKind.COPY_TO_WATCH) else emptySet()
+    }
 
     /**
      * One expression on purpose: the MediaStore consent flow moved exactly the one line it was

@@ -458,6 +458,7 @@ data class BackupSettings(
         val broadcastCameraEnabled: Boolean? = null,
         val broadcastMicrophoneEnabled: Boolean? = null,
         val broadcastMicGainPercent: Int? = null,
+        val broadcastFeedbackGuardEnabled: Boolean? = null,
         val broadcastVideoWidth: Int? = null,
         val broadcastVideoHeight: Int? = null,
         val broadcastVideoFps: Int? = null,

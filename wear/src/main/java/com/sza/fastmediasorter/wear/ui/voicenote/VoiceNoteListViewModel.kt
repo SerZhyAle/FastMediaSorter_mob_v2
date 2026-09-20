@@ -154,8 +154,8 @@ class VoiceNoteListViewModel @Inject constructor(
     fun openActions(note: VoiceNote) {
         viewModelScope.launch(Dispatchers.IO) {
             val mapped = note.toMediaFile()
-            val storageClass = capabilityPolicy.classify(mapped.file, isNetworkSource = false)
-            val allowed = capabilityPolicy.allowedOperations(storageClass) - WITHHELD_OPERATIONS
+            val allowed =
+                capabilityPolicy.allowedOperations(mapped.file, isNetworkSource = false) - WITHHELD_OPERATIONS
             localState.value = localState.value.copy(
                 actions = VoiceNoteActions(note = note, file = mapped.file, allowed = allowed)
             )

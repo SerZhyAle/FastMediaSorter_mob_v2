@@ -90,6 +90,23 @@ class StoreBoundaryTest {
         )
     }
 
+    /**
+     * S3358: the pre-release walk declares which rows this flavor draws, and here it is held to it.
+     *
+     * `streamsEnabled = true` on purpose - the Streams row has a user preference in front of the
+     * capability, and the question here is the flavor's answer alone. `lastUsedApp = null` for the
+     * same reason: with a program in that slot the catalog emits LAST_USED_APP, which is nobody's
+     * declared entry, instead of the BROADCAST row the walk names.
+     */
+    @Test
+    fun `the declared walk claims only the rows this flavor draws`() {
+        WearWalkContract.assertScopeMatchesCatalogs(
+            flavor = "standard",
+            sections = HomeSectionCatalog.sectionsFor(storeVisibility(streamsEnabled = true)).map { it.id },
+            apps = WearAppCatalog.apps(capabilities).map { it.id }
+        )
+    }
+
     private fun storeVisibility(streamsEnabled: Boolean = false) = HomeSectionVisibility(
         streamsEnabled = streamsEnabled,
         lastUsedApp = null,

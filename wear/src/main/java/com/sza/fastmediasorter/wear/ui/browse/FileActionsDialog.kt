@@ -38,6 +38,10 @@ private fun batchActions(callbacks: FileActionsCallbacks): List<Pair<WearFileOpe
         WearFileOperationKind.SEND_TO_RECEIVER to callbacks.onSendToRequested,
         WearFileOperationKind.SEND_TO_PHONE to callbacks.onSendToPhone,
         WearFileOperationKind.MOVE_TO_PHONE to callbacks.onMoveToPhone,
+        // S3359: the other direction sits where the pair above it does, because for any one file only
+        // one of the two directions is ever offered - the source decides which (strategic 3.3).
+        WearFileOperationKind.COPY_TO_WATCH to callbacks.onCopyToWatch,
+        WearFileOperationKind.MOVE_TO_WATCH to callbacks.onMoveToWatch,
         WearFileOperationKind.RENAME to callbacks.onRenameRequested,
         WearFileOperationKind.DELETE to callbacks.onDeleteRequested
     )
@@ -66,6 +70,8 @@ internal data class FileActionsCallbacks(
     val onSendToRequested: () -> Unit,
     val onSendToPhone: () -> Unit,
     val onMoveToPhone: () -> Unit,
+    val onCopyToWatch: () -> Unit,
+    val onMoveToWatch: () -> Unit,
     val onRenameRequested: () -> Unit,
     val onDeleteRequested: () -> Unit,
     val onDismiss: () -> Unit
@@ -170,6 +176,8 @@ internal fun FileDeleteConfirmDialog(
 private fun WearFileOperationKind.labelRes(): Int = when (this) {
     WearFileOperationKind.SEND_TO_PHONE -> R.string.wear_file_op_send_to_phone
     WearFileOperationKind.MOVE_TO_PHONE -> R.string.wear_file_op_move_to_phone
+    WearFileOperationKind.COPY_TO_WATCH -> R.string.wear_file_op_copy_to_watch
+    WearFileOperationKind.MOVE_TO_WATCH -> R.string.wear_file_op_move_to_watch
     WearFileOperationKind.RENAME -> R.string.wear_file_op_rename
     WearFileOperationKind.DELETE -> R.string.delete
     WearFileOperationKind.OPEN_ON_PHONE -> R.string.wear_file_op_open_on_phone
@@ -180,6 +188,9 @@ private fun WearFileOperationKind.labelRes(): Int = when (this) {
 private fun WearFileOperationKind.iconRes(): Int = when (this) {
     WearFileOperationKind.SEND_TO_PHONE -> R.drawable.ic_copy
     WearFileOperationKind.MOVE_TO_PHONE -> R.drawable.ic_move
+    // The same two icons in the other direction: the verb is what differs, not the kind of errand.
+    WearFileOperationKind.COPY_TO_WATCH -> R.drawable.ic_copy
+    WearFileOperationKind.MOVE_TO_WATCH -> R.drawable.ic_move
     WearFileOperationKind.RENAME -> R.drawable.ic_edit
     WearFileOperationKind.DELETE -> R.drawable.ic_delete
     WearFileOperationKind.OPEN_ON_PHONE -> R.drawable.ic_open_in_new

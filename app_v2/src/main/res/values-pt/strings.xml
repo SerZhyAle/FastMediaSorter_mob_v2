@@ -3665,4 +3665,11 @@
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">Desliga a tela após um período de inatividade enquanto o carregador está conectado</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Tempo limite da tela ao carregar</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Deixa a tela preta após um período de inatividade enquanto o carregador está conectado. Esta versão não pode bloquear o dispositivo.</string>
+    <string name="settings_watch_camera_standby">Permitir que o meu relógio veja a minha câmara</string>
+    <string name="settings_watch_camera_standby_summary">Liga a câmara agora, para que o relógio emparelhado possa abrir a imagem mais tarde enquanto o telemóvel fica no bolso</string>
+    <string name="settings_watch_camera_standby_failed">Não foi possível ligar a câmara para o relógio</string>
+    <string name="settings_broadcast_feedback_guard">Proteção contra realimentação</string>
+    <string name="settings_broadcast_feedback_guard_summary">Reduz o ganho do microfone quando um ouvinte reproduz a transmissão em voz alta por perto, para que o som não se amplifique</string>
+    <string name="broadcast_control_feedback_warning">Som reduzido: a coluna de um ouvinte está a realimentar o microfone. Afaste o dispositivo de escuta ou baixe o volume dele.</string>
+    <string name="broadcast_control_feedback_warning_cd">Realimentação acústica detetada, o ganho do microfone foi reduzido</string>
 </resources>

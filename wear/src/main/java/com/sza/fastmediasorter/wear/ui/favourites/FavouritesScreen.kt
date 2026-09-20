@@ -266,6 +266,10 @@ private fun FavouriteActionsMenu(
                     viewModel.runOperation(record, WearFileOperation.SendToPhone)
                 WearFileOperationKind.MOVE_TO_PHONE ->
                     viewModel.runOperation(record, WearFileOperation.MoveToPhone)
+                WearFileOperationKind.COPY_TO_WATCH ->
+                    viewModel.runOperation(record, WearFileOperation.CopyToWatch)
+                WearFileOperationKind.MOVE_TO_WATCH ->
+                    viewModel.runOperation(record, WearFileOperation.MoveToWatch)
                 WearFileOperationKind.OPEN_ON_PHONE -> viewModel.reportOpenOnPhoneUnavailable()
                 WearFileOperationKind.SEND_TO_RECEIVER -> onSendTo()
             }

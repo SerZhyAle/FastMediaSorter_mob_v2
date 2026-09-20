@@ -137,6 +137,15 @@ $result = [ordered]@{
     reason    = $null
 }
 
+# An unhandled terminating error must not leave the caller reading silence as success: this whole
+# script is consumed by its exit code, and the one crash it has had - an assignment to $PID, which
+# PowerShell holds read-only - produced a stack trace and no verdict at all. 2, not 1: a crash is
+# "the walk never got to judge", never "the app is broken here".
+trap {
+    Write-Error "ui-sweep-walk: the run stopped on an unhandled error: $($_.Exception.Message)" -ErrorAction Continue
+    exit 2
+}
+
 function Stop-Run {
     param([int]$Code, [string]$Reason)
     $result.exitCode = $Code
@@ -169,10 +178,15 @@ if ($screensAll.Count -eq 0) { Stop-Run 2 "the screen catalog declares no screen
 $screenById = @{}
 foreach ($s in $screensAll) { $screenById[$s.id] = $s }
 if ($Only) {
-    $screens = @($screensAll | Where-Object { $_.id -eq $Only })
-    if ($screens.Count -eq 0) { Stop-Run 2 "-Only '$Only' names no screen in the catalog" }
+    $walkScreens = @($screensAll | Where-Object { $_.id -eq $Only })
+    if ($walkScreens.Count -eq 0) { Stop-Run 2 "-Only '$Only' names no screen in the catalog" }
 }
-else { $screens = $screensAll }
+else { $walkScreens = $screensAll }
+# Named $walkScreens and NOT $screens on purpose: PowerShell names are case-insensitive, so a local
+# $screens IS the -Screens parameter, which is [string]. Assigning the 43-record array into it
+# collapsed the whole catalog to one string, and the run swept a single nameless screen and still
+# passed its own row-count identity, because both sides of that check read the same collapsed value
+# (measured emulator-5554, 2026-09-20: rows 2/2, screens 1, every row's screen id null).
 
 # --- expand the matrix into combinations ---------------------------------------------------------
 
@@ -206,13 +220,13 @@ foreach ($p in $profileValues) {
     foreach ($l in $languageValues) {
         foreach ($t in $themeValues) {
             foreach ($o in $orientationValues) {
-                $pid = if ($p -is [string]) { $p } else { [string]$p.id }
+                $profileId = if ($p -is [string]) { $p } else { [string]$p.id }
                 $lid = if ($l -is [string]) { $l } else { [string]$l.id }
                 $tid = if ($t -is [string]) { $t } else { [string]$t.id }
                 $oid = if ($o -is [string]) { $o } else { [string]$o.id }
                 $combinations += ,@{
-                    key         = "${pid}_${lid}_${tid}_${oid}"
-                    profile     = $pid
+                    key         = "${profileId}_${lid}_${tid}_${oid}"
+                    profile     = $profileId
                     language    = $l
                     theme       = $tid
                     orientation = $o
@@ -228,8 +242,8 @@ $result.combinations = @($combinations | ForEach-Object { $_.key })
 
 $deviceForProfile = @{}
 foreach ($p in $profileValues) {
-    $pid = if ($p -is [string]) { $p } else { [string]$p.id }
-    if ($DeviceId) { $deviceForProfile[$pid] = $DeviceId }
+    $profileId = if ($p -is [string]) { $p } else { [string]$p.id }
+    if ($DeviceId) { $deviceForProfile[$profileId] = $DeviceId }
 }
 if ($DeviceMap) {
     foreach ($pair in ($DeviceMap -split '[;,]')) {
@@ -238,9 +252,9 @@ if ($DeviceMap) {
     }
 }
 foreach ($p in $profileValues) {
-    $pid = if ($p -is [string]) { $p } else { [string]$p.id }
-    if (-not $deviceForProfile.ContainsKey($pid)) {
-        Stop-Run 2 "no device for profile '$pid' - pass -DeviceId (single bench) or -DeviceMap ${pid}=<serial>"
+    $profileId = if ($p -is [string]) { $p } else { [string]$p.id }
+    if (-not $deviceForProfile.ContainsKey($profileId)) {
+        Stop-Run 2 "no device for profile '$profileId' - pass -DeviceId (single bench) or -DeviceMap ${profileId}=<serial>"
     }
 }
 $result.devices = [ordered]@{}
@@ -293,15 +307,23 @@ function Get-ResourceValue {
     if (-not $Name) { return $null }
     $cacheKey = "$Folder/$Name"
     if ($script:resCache.ContainsKey($cacheKey)) { return $script:resCache[$cacheKey] }
-    $resFile = Join-Path $repoRoot "app_v2/src/main/res/$Folder/strings.xml"
-    if (-not (Test-Path -LiteralPath $resFile)) { $script:resCache[$cacheKey] = $null; return $null }
+    # EVERY strings file in the folder, not strings.xml alone: app_v2 splits its resources across
+    # about thirty strings_*.xml files, and the settings tab labels - which the setup and teardown
+    # entries reach by - live in strings_settings.xml. Reading one file resolved those labels to
+    # nothing, and the walk reported it as "the app never reached its start screen": a marker that
+    # cannot be resolved is indistinguishable from a marker that is not on screen (measured
+    # emulator-5554, 2026-09-20, where it refused the whole matrix before the first frame).
+    $resDir = Join-Path $repoRoot "app_v2/src/main/res/$Folder"
+    if (-not (Test-Path -LiteralPath $resDir)) { $script:resCache[$cacheKey] = $null; return $null }
     $value = $null
-    try {
-        $xml = [xml](Get-Content -LiteralPath $resFile -Raw -Encoding UTF8)
-        $node = $xml.SelectNodes("//string[@name='$Name']") | Select-Object -First 1
-        if ($node) { $value = $node.InnerText }
+    foreach ($resFile in (Get-ChildItem -LiteralPath $resDir -Filter 'strings*.xml' -File -ErrorAction SilentlyContinue | Sort-Object Name)) {
+        try {
+            $xml = [xml](Get-Content -LiteralPath $resFile.FullName -Raw -Encoding UTF8)
+            $node = $xml.SelectNodes("//string[@name='$Name']") | Select-Object -First 1
+            if ($node) { $value = $node.InnerText; break }
+        }
+        catch { continue }
     }
-    catch { $value = $null }
     if ($value) {
         # Android escapes in the source what the device draws unescaped.
         $value = $value -replace "\\'", "'" -replace '\\"', '"' -replace '\\n', ' '
@@ -328,6 +350,15 @@ function Get-MarkerTexts {
     # acceptable and the localized one is tried first.
     param($Record)
     $markers = @()
+    # An `expectId` wins over both text forms where the catalog declares one: a resource-id is not
+    # translated and does not collapse with the screen width, which a label does on both counts. Main
+    # is why the field exists - its declared marker was the add-resource button's LABEL, which is
+    # drawn only while the button has room for it; at 360 dp the button is icon-only, so the walk
+    # refused the whole matrix reporting that the app never reached its start screen, on a device
+    # that was sitting on the start screen (measured emulator-5554, 2026-09-20). Matching it is
+    # Get-Haystack's job, and it reads the raw tree for ids precisely because a container id never
+    # reaches the parsed node list.
+    if ($Record.expectId) { $markers += [string]$Record.expectId }
     $localized = Get-ResourceValue -Folder $script:lang.resFolder -Name $Record.expectRes
     if ($localized) { $markers += $localized }
     if ($Record.expect -and -not $markers.Contains([string]$Record.expect)) { $markers += [string]$Record.expect }
@@ -344,8 +375,25 @@ function Read-UiDump {
 }
 
 function Get-Haystack {
+    # Two sources, because they are not the same set. The parsed node list carries only nodes that
+    # draw text or a description, so a CONTAINER - a tab strip, a section header - is in the raw tree
+    # and in none of those nodes; the raw XML is therefore read for its resource-ids as well. An
+    # `expectId` matched against the parsed list alone made a screen that was open read as never
+    # reached: measured emulator-5554 2026-09-20, `tabResourceTypes` is in the start screen's tree
+    # and in none of its 45 parsed nodes, so the walk refused the whole matrix from the start screen.
     param($Dump)
-    return @($Dump.nodes | ForEach-Object { "$($_.label) $($_.desc) $($_.resId)" }) -join "`n"
+    $parts = @($Dump.nodes | ForEach-Object { "$($_.label) $($_.desc) $($_.resId)" })
+    if ($Dump.file -and (Test-Path -LiteralPath $Dump.file)) {
+        try {
+            $raw = Get-Content -LiteralPath $Dump.file -Raw -Encoding UTF8
+            $parts += @([regex]::Matches($raw, 'resource-id="([^"]+)"') |
+                ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+        } catch {
+            # The parsed nodes stay the haystack - which is exactly what the walk matched against
+            # before this second source existed, so an unreadable dump file loses no ground.
+        }
+    }
+    return ($parts -join "`n")
 }
 
 function Test-HaystackHasToken {
@@ -428,7 +476,13 @@ function Invoke-TapOnce {
     if (-not $label) {
         return [pscustomobject]@{ Exit = 8; Output = "label '$($Record.label)' resolved to nothing in '$($script:lang.id)'" }
     }
-    return (Invoke-AdbVerb -Arguments @('tap-label', '-Label', $label))
+    # `exactLabel` is for a screen where one string is a substring of another: the system grant
+    # dialog's own title contains the word the ALLOW button carries, and a substring match tapped the
+    # TITLE, leaving the dialog open and the walk stalled three steps later on a control the dialog
+    # was covering (measured emulator-5554, 2026-09-20).
+    $tapArgs = @('tap-label', '-Label', $label)
+    if ($Record.exactLabel) { $tapArgs += '-Exact' }
+    return (Invoke-AdbVerb -Arguments $tapArgs)
 }
 
 function Invoke-ReachControl {
@@ -462,6 +516,15 @@ function Invoke-ScrollToVisible {
         $dump = Read-UiDump
         if ($dump) {
             $hit = @($dump.nodes | Where-Object { $_.resIdShort -eq $ResourceId })
+            # The parsed list carries only nodes that draw text or a description, and a toggle ROW is
+            # a container - its title and its switch are the labelled nodes, not the row. Read the raw
+            # tree as well, or a row that is on screen reads as never reached; the caller then scrolls
+            # a settings page to its end and reports a present control missing (measured
+            # emulator-5554, 2026-09-20, rowSecureSensitiveScreens).
+            if ($hit.Count -eq 0 -and $dump.file -and (Test-Path -LiteralPath $dump.file)) {
+                $rawTree = Get-Content -LiteralPath $dump.file -Raw -Encoding UTF8
+                if ($rawTree -match ('resource-id="[^"]*/' + [regex]::Escape($ResourceId) + '"')) { return $dump }
+            }
             if ($hit.Count -gt 0) { return $dump }
         }
         if ($try -eq $Cap) { return $null }
@@ -608,6 +671,41 @@ function Restore-WalkPosition {
     return $restored
 }
 
+$script:mainRefusalSeq = 0
+$script:mainRefusalNote = ''
+
+function Save-MainScreenRefusal {
+    # What the walk SAW at the moment it gave up: the tree, the window that actually held focus, and
+    # the markers it was looking for, written beside the corpus. None of that survives the run
+    # otherwise, and three wrong causes were already talked into S2380 by reasoning from the refusal
+    # TEXT instead of from the screen. Returns a short note naming the artifact for the reason string.
+    param($Dump, [string[]]$Markers)
+    $script:mainRefusalSeq++
+    $stamp = '{0:d2}' -f $script:mainRefusalSeq
+    $treePath = $null
+    if ($Dump -and $Dump.file -and (Test-Path -LiteralPath $Dump.file)) {
+        $treePath = Join-Path $outPath "refusal-main-screen-$stamp.xml"
+        Copy-Item -LiteralPath $Dump.file -Destination $treePath -Force
+    }
+    $current = Invoke-AdbVerb -Arguments @('current')
+    $focus = Get-ForeignWindowPackage
+    $nodeInfo = if ($Dump) { "$(@($Dump.nodes).Count)" } else { 'none - the dump verb returned no tree' }
+    $treeInfo = if ($treePath) { $treePath } else { 'not captured' }
+    $focusInfo = if ($focus) { $focus } else { 'none - the app held focus, or the window dump was unreadable' }
+    $notePath = Join-Path $outPath "refusal-main-screen-$stamp.txt"
+    @(
+        'refusal:  the app never reached its start screen',
+        "attempt:  $stamp",
+        "at:       $((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))",
+        "markers:  $($Markers -join ' | ')",
+        "nodes:    $nodeInfo",
+        "tree:     $treeInfo",
+        "current:  $($current.Output)",
+        "focus:    $focusInfo"
+    ) -join [Environment]::NewLine | Set-Content -LiteralPath $notePath -Encoding UTF8
+    return "diagnostic: $notePath"
+}
+
 function Wait-ForMainScreen {
     # The one position the walk can verify it reached: the entry point's own marker, in the current
     # combination's language. The wizard's title shares the marker string with the button label on
@@ -616,10 +714,12 @@ function Wait-ForMainScreen {
     param([int]$Attempts = 10)
     $main = $screenById['main']
     $markers = Get-MarkerTexts -Record $main
+    $lastDump = $null
     for ($i = 0; $i -lt $Attempts; $i++) {
         Start-Sleep -Milliseconds 1000
         $dump = Read-UiDump
         if ($dump) {
+            $lastDump = $dump
             $h = Get-Haystack $dump
             if ($h -match 'cardLocalFolder') {
                 Invoke-AdbVerb -Arguments @('key', '-Key', 'BACK') | Out-Null
@@ -628,6 +728,7 @@ function Wait-ForMainScreen {
             foreach ($mk in $markers) { if (Test-HaystackHasToken $h $mk) { return $true } }
         }
     }
+    $script:mainRefusalNote = Save-MainScreenRefusal -Dump $lastDump -Markers $markers
     return $false
 }
 
@@ -638,11 +739,35 @@ function Save-Shot {
     # back black BY DESIGN; the tree the shot verb pulls beside it is the evidence then, and the
     # caller scores `manual`, never `failed`.
     param([Parameter(Mandatory)][string]$Name)
+    # Re-assert the rotation immediately before the capture. Every tree read opens a UiAutomation
+    # connection, and that connection restores the rotation state it cached when it closes - so a
+    # combination that rotated correctly at its start drifts back to portrait somewhere inside a long
+    # screen list. Measured emulator-5554 2026-09-20: a two-screen run rotated, and the 43-screen run
+    # right after it produced 44 landscape-labelled frames of which 0 were wide.
+    if ($null -ne $script:userRotation) {
+        Invoke-Shell "settings put system user_rotation $($script:userRotation)" | Out-Null
+        Start-Sleep -Milliseconds $SettleMs
+    }
     $shot = Invoke-AdbJson -Arguments @('shot', '-Json')
     if (-not $shot -or -not $shot.file) { return $null }
     $dest = Join-Path $outPath "$Name.png"
     Move-Item -LiteralPath $shot.file -Destination $dest -Force
-    $out = [ordered]@{ file = $dest; secure = [bool]$shot.secureWindow; treeFile = $null }
+    $out = [ordered]@{ file = $dest; secure = [bool]$shot.secureWindow; treeFile = $null; rotationMismatch = $false }
+    # The frame's own pixels decide, not the setting's read-back: a mislabelled frame is the one
+    # artifact this sweep cannot recover from, because every later stage trusts the name.
+    if ($null -ne $script:userRotation) {
+        try {
+            Add-Type -AssemblyName System.Drawing
+            $probe = [System.Drawing.Bitmap]::FromFile($dest)
+            $isWide = $probe.Width -gt $probe.Height
+            $probe.Dispose()
+            $wantWide = ($script:userRotation -ne 0)
+            if ($isWide -ne $wantWide) { $out.rotationMismatch = $true }
+        } catch {
+            # Unreadable here means the compression stage will classify it too; leaving the flag
+            # false keeps that one verdict in one place rather than splitting it across two stages.
+        }
+    }
     if ($shot.secureWindow -and $shot.treeFile -and (Test-Path -LiteralPath $shot.treeFile)) {
         $treeDest = Join-Path $outPath "$Name.flagsecure.xml"
         Move-Item -LiteralPath $shot.treeFile -Destination $treeDest -Force
@@ -701,6 +826,7 @@ function Set-Language {
 
 function Set-Orientation {
     param([int]$UserRotation)
+    $script:userRotation = $UserRotation
     $a = Invoke-Shell 'settings put system accelerometer_rotation 0'
     if ($a.Exit -ne 0) { return "switching accelerometer rotation off failed: $($a.Output)" }
     $u = Invoke-Shell "settings put system user_rotation $UserRotation"
@@ -757,6 +883,31 @@ function Invoke-SetToggleRow {
     return $null
 }
 
+function Invoke-ExpandSection {
+    # Read the state, then act on it - the same rule the toggle rows already follow, and for the same
+    # reason. A collapsible settings section PERSISTS its expanded state across app restarts, so a
+    # blind tap on the header closes a section a previous run left open, and the row underneath then
+    # reports "never became visible" on a screen that was showing it one run earlier. Measured
+    # emulator-5554 2026-09-20 on headerStreams and headerAuthorization both, in consecutive runs.
+    # The container is the readable signal, not the row: an expanded row can still be below the fold
+    # and absent from the tree, while the container sits next to its own header.
+    param([Parameter(Mandatory)][string]$HeaderId, [string]$ContainerId)
+    $target = if ($ContainerId) { $ContainerId } else { $HeaderId -replace '^header', 'container' }
+    $seen = {
+        param($Id)
+        $d = Read-UiDump
+        return ($d -and (Test-HaystackHasToken (Get-Haystack $d) $Id))
+    }
+    if (& $seen $target) { return $null }
+    for ($attempt = 1; $attempt -le 2; $attempt++) {
+        $tap = Invoke-ReachControl -Record @{ resourceId = $HeaderId } -Cap $MaxScrolls
+        if ($tap.Exit -ne 0) { return "expanding '$HeaderId' failed: $($tap.Output)" }
+        Start-Sleep -Milliseconds $SettleMs
+        if (& $seen $target) { return $null }
+    }
+    return "'$HeaderId' was tapped twice and '$target' never appeared - the section did not open"
+}
+
 function Invoke-CatalogEntrySteps {
     # The interpreter for the catalog's setup and teardown arrays. The entries are data - reach
     # fields, toggle actions, the folder pick - and this walks them in the declared order.
@@ -784,9 +935,8 @@ function Invoke-CatalogEntrySteps {
             continue
         }
         if ($step.action -eq 'expand') {
-            $tap = Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', [string]$step.resourceId, '-Exact')
-            if ($tap.Exit -ne 0) { return "expanding '$($step.resourceId)' failed: $($tap.Output)" }
-            Start-Sleep -Milliseconds $SettleMs
+            $r = Invoke-ExpandSection -HeaderId ([string]$step.resourceId) -ContainerId ([string]$step.containerId)
+            if ($r) { return $r }
             continue
         }
         $tap = Invoke-TapOnce -Record $step
@@ -808,27 +958,73 @@ function Invoke-SafFolderPick {
     # through the app's resources.
     param([Parameter(Mandatory)][string]$FolderName)
     $steps = @(
+        # The wizard opens on the resource-TYPE chooser, not on the local-folder page: measured
+        # emulator-5554 2026-09-20, where btnAddManually was absent and the tree carried six
+        # cardXxx choices instead. Optional, because a build offering a single type would land on
+        # the page directly and a hard tap here would then refuse a wizard that is working.
+        @{ name = 'resource-type-local'; id = 'cardLocalFolder'; optional = $true },
         @{ name = 'add-manually'; id = 'btnAddManually' },
-        @{ name = 'browse-with-saf'; id = 'btnBrowseWithSAF' },
-        @{ name = 'show-roots'; labels = @('Show roots') },
-        @{ name = 'downloads'; labels = @('Downloads') },
+        # Only this door, and btnRoot deliberately NOT as a fallback. The quick-root button launches
+        # the picker without dismissing the dialog, and the granted tree then never reaches the
+        # wizard - measured emulator-5554 2026-09-20, the two paths run side by side: through this
+        # button the wizard lists the folder and its 17 files, through btnRoot it lists nothing.
+        # Parked as S3354. Refusing here is the honest outcome, because walking the other door
+        # produces a sweep that photographs an app with no resource configured and says nothing.
+        @{ name = 'browse-with-saf'; ids = @('btnBrowseWithSAF') },
+        # Optional: the picker opens on the device root already listing Download, DCIM and the rest,
+        # so the roots drawer is needed only when it opens somewhere else - Recent, or a folder a
+        # previous grant left it in. Refusing here would refuse a picker showing the destination.
+        @{ name = 'show-roots'; labels = @('Show roots'); optional = $true },
+        # Both spellings: the roots drawer says 'Downloads', the file list says 'Download', and which
+        # of the two the walk meets depends on the step above it having been needed at all.
+        @{ name = 'downloads'; labels = @('Download', 'Downloads') },
         @{ name = 'seed-folder'; labels = @($FolderName) },
-        @{ name = 'use-this-folder'; labels = @('USE THIS FOLDER', 'SELECT FOLDER') }
+        @{ name = 'use-this-folder'; labels = @('USE THIS FOLDER', 'SELECT FOLDER') },
+        # The grant dialog the system raises after the folder is chosen - 'Allow <app> to access
+        # files in <folder>?'. Optional, because a tree already granted is handed back without it,
+        # so a second run on the same emulator never sees this dialog at all.
+        @{ name = 'allow-access'; labels = @('ALLOW', 'Allow'); optional = $true; exact = $true }
     )
+    # Every step writes down what it tapped and where the screen went. The picker crosses two
+    # processes and a system grant dialog, so a step that "succeeded" on the wrong screen looks
+    # exactly like one that worked, and the failure then surfaces three steps later on a control
+    # nobody expected to be missing (measured emulator-5554, 2026-09-20).
+    $trace = [System.Collections.Generic.List[string]]::new()
+    $tracePath = Join-Path $outPath 'saf-folder-pick.log'
     foreach ($step in $steps) {
         $tap = $null
-        if ($step.id) {
-            $tap = Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', $step.id, '-Exact')
-        }
-        else {
-            foreach ($label in $step.labels) {
-                $tap = Invoke-ReachControl -Record @{ label = $label } -Cap $MaxScrolls
+        $ids = @(if ($step.ids) { $step.ids } elseif ($step.id) { @($step.id) } else { @() })
+        if ($ids.Count -gt 0) {
+            # Reached, not merely tapped: a control can sit below the fold on a 360 dp screen, and a
+            # bare tap-id exits 8 on a screen that is working. Several ids are alternatives, tried in
+            # order - the first one the screen actually carries wins.
+            foreach ($id in $ids) {
+                $tap = Invoke-ReachControl -Record @{ resourceId = $id } -Cap $MaxScrolls
                 if ($tap.Exit -eq 0) { break }
             }
         }
-        if (-not $tap -or $tap.Exit -ne 0) { return "the folder picker stalled at '$($step.name)': $($tap.Output)" }
+        else {
+            foreach ($label in $step.labels) {
+                $tap = Invoke-ReachControl -Record @{ label = $label; exactLabel = $step.exact } -Cap $MaxScrolls
+                if ($tap.Exit -eq 0) { break }
+            }
+        }
+        $verdict = if (-not $tap) { 'no candidate tried' } elseif ($tap.Exit -eq 0) { 'tapped' } else { "exit $($tap.Exit)" }
+        $trace.Add("$($step.name): $verdict :: $(($tap.Output -replace '\s+', ' '))")
+        if (-not $tap -or $tap.Exit -ne 0) {
+            if ($step.optional) { continue }
+            $trace -join [Environment]::NewLine | Set-Content -LiteralPath $tracePath -Encoding UTF8
+            return "the folder picker stalled at '$($step.name)' (trace: $tracePath): $($tap.Output)"
+        }
         Start-Sleep -Milliseconds (2 * $SettleMs)
+        $after = Read-UiDump
+        if ($after) {
+            $where = @($after.nodes | Where-Object { $_.resIdShort -in @('header_title', 'breadcrumb_text', 'alertTitle') } |
+                ForEach-Object { $_.label }) -join ' | '
+            $trace.Add("  -> $where")
+        }
     }
+    $trace -join [Environment]::NewLine | Set-Content -LiteralPath $tracePath -Encoding UTF8
     return $null
 }
 
@@ -842,7 +1038,7 @@ function Invoke-Setup {
     Invoke-AdbVerb -Arguments @('stop') | Out-Null
     Start-Sleep -Milliseconds $SettleMs
     Invoke-AdbVerb -Arguments @('launch') | Out-Null
-    if (-not (Wait-ForMainScreen)) { return "the app never reached its start screen after launch" }
+    if (-not (Wait-ForMainScreen)) { return "the app never reached its start screen after launch ($script:mainRefusalNote)" }
 
     foreach ($entry in @($screensDoc.setup)) {
         $reason = Invoke-CatalogEntrySteps -Entry $entry
@@ -862,7 +1058,7 @@ function Invoke-Setup {
         }
         if ($entry.id -eq 'setup-disable-secure-screens') { $script:secureAvailable = $true }
     }
-    if (-not (Wait-ForMainScreen)) { return "the walk is not on the start screen after setup" }
+    if (-not (Wait-ForMainScreen)) { return "the walk is not on the start screen after setup ($script:mainRefusalNote)" }
     return $null
 }
 
@@ -1038,14 +1234,24 @@ function Invoke-WalkScreen {
         $row.detail = "the screen opened but expected '$($markers[0])' is not on it"
     }
 
-    $row.tree = Save-Tree -DumpFile $dump.file -Name $Key
-    $shot = Save-Shot -Name $Key
+    # The frame name carries the screen id as well as the combination: without it every screen in a
+    # combination writes the same file and only the last one survives, which is also the link the
+    # compressed corpus joins an observation back to (strategic 11 criterion 4).
+    $frameName = "${Key}__$($Screen.id)"
+    $row.tree = Save-Tree -DumpFile $dump.file -Name $frameName
+    $shot = Save-Shot -Name $frameName
     if ($shot) {
         $row.shot = $shot.file
         if ($shot.secure) {
             $row.outcome = 'manual'
             $row.detail = 'the frame came back under FLAG_SECURE; the tree pulled beside it is the evidence'
             if ($shot.treeFile) { $row.tree = $shot.treeFile }
+        }
+        elseif ($shot.rotationMismatch) {
+            # Scored, not silently kept: a frame whose pixels contradict the orientation in its own
+            # name would be read by the review as evidence about a layout it never photographed.
+            $row.outcome = 'manual'
+            $row.detail = 'the frame does not carry the orientation its combination declares - the display did not hold the rotation'
         }
     }
     elseif (-not $row.detail) {
@@ -1074,7 +1280,7 @@ function Invoke-WalkScreen {
             $eh = Get-Haystack $expDump
             foreach ($mk in $expMarkers) { if (Test-HaystackHasToken $eh $mk) { $expPresent = $true; break } }
         }
-        $expName = "${Key}__x$('{0:d2}' -f $expandNo)"
+        $expName = "${Key}__$($Screen.id)__x$('{0:d2}' -f $expandNo)"
         if ($expDump) { $expRow.tree = Save-Tree -DumpFile $expDump.file -Name $expName }
         if (-not $expDump) { $expRow.outcome = 'manual'; $expRow.detail = 'the tree could not be read after expanding' }
         elseif ($expPresent) { $expRow.outcome = 'observed' }
@@ -1136,7 +1342,7 @@ foreach ($p in $profileValues) {
             if ($stateReason) {
                 # The refusal is its own outcome for the whole combination: every screen gets a row,
                 # and not one frame is captured under a label that was never confirmed.
-                foreach ($s in $screens) {
+                foreach ($s in $walkScreens) {
                     Add-Row ([ordered]@{
                         combination = $key; screen = $s.id; name = $s.name
                         outcome = 'refused-state'; detail = $stateReason
@@ -1151,7 +1357,7 @@ foreach ($p in $profileValues) {
             Start-Sleep -Milliseconds $SettleMs
             Invoke-AdbVerb -Arguments @('launch') | Out-Null
             if (-not (Wait-ForMainScreen)) {
-                foreach ($s in $screens) {
+                foreach ($s in $walkScreens) {
                     Add-Row ([ordered]@{
                         combination = $key; screen = $s.id; name = $s.name
                         outcome = 'refused-state'; detail = 'the app never reached its start screen after the combination launch'
@@ -1162,7 +1368,7 @@ foreach ($p in $profileValues) {
                 continue
             }
 
-            foreach ($s in $screens) {
+            foreach ($s in $walkScreens) {
                 Invoke-WalkScreen -Screen $s -Combo $combo -Key $key
             }
 
@@ -1172,7 +1378,7 @@ foreach ($p in $profileValues) {
             if (-not $Json) {
                 $soFar = @($script:rows | Where-Object { $_.combination -eq $key })
                 $observed = @($soFar | Where-Object { $_.outcome -eq 'observed' }).Count
-                Write-Host "walk: combination $key done - $observed/$($screens.Count) observed" -ForegroundColor Cyan
+                Write-Host "walk: combination $key done - $observed/$($walkScreens.Count) observed" -ForegroundColor Cyan
             }
         }
     }
@@ -1196,7 +1402,7 @@ foreach ($p in $profileValues) {
 
 # --- journal and verdict (step 04.6) -------------------------------------------------------------
 
-$expectedRows = $screens.Count * $combinations.Count
+$expectedRows = $walkScreens.Count * $combinations.Count
 $rowCount = $script:rows.Count
 
 $counts = [ordered]@{
@@ -1220,7 +1426,7 @@ $journal = [ordered]@{
     only         = $Only
     devices      = $result.devices
     combinations = $result.combinations
-    screens      = $screens.Count
+    screens      = $walkScreens.Count
     expectedRows = $expectedRows
     rowCount     = $rowCount
     counts       = $counts
@@ -1230,7 +1436,7 @@ $journalPath = Join-Path $outPath 'sweep-journal.json'
 $journal | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $journalPath -Encoding UTF8
 
 if ($rowCount -ne $expectedRows) {
-    Stop-Run 2 "the row-count identity failed: $rowCount rows for $($screens.Count) screens x $($combinations.Count) combinations = $expectedRows; journal: $journalPath"
+    Stop-Run 2 "the row-count identity failed: $rowCount rows for $($walkScreens.Count) screens x $($combinations.Count) combinations = $expectedRows; journal: $journalPath"
 }
 
 $verdict = if ($counts.failed -gt 0) { 1 }

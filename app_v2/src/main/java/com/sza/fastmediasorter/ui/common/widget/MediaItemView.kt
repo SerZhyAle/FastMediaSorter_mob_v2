@@ -18,6 +18,7 @@ import androidx.core.content.res.use
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ViewMediaItemBinding
+import timber.log.Timber
 
 /**
  * The list, grid and plank row primitive of `docs/ui/PHONE_UI_COMPONENT_PATTERNS.md` section 2.2.
@@ -158,9 +159,11 @@ class MediaItemView @JvmOverloads constructor(
 
     /**
      * Re-resolves the mode's constraints on rotation. The cached sets carry pixels fixed at
-     * construction, and the orientation-qualified dimensions (item_grid_thumbnail_size,
-     * item_row_padding_vertical) would serve their portrait values to a view that survived an
-     * absorbed rotation - which is exactly the staleness this re-resolve exists to prevent.
+     * construction, and the orientation-qualified dimension item_row_padding_vertical would serve
+     * its portrait value to a view that survived an absorbed rotation - which is exactly the
+     * staleness this re-resolve exists to prevent. item_grid_thumbnail_size is deliberately not on
+     * that list (S3343): its values-land declaration resolved on no device, so the grid height
+     * comes from the smallestWidth bucket in both orientations.
      */
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
@@ -185,6 +188,7 @@ class MediaItemView @JvmOverloads constructor(
     private fun applyOrientation(orientation: Int) {
         constraintOrientation = orientation
         val qualified = contextConfig(orientation)
+        Timber.d("S3343: orientation=$orientation gridThumb=${dimen(qualified, R.dimen.item_grid_thumbnail_size)}px")
         applyRowPadding(qualified)
         rebuildGridConstraints(qualified)
         setLayoutMode(layoutMode)

@@ -193,6 +193,7 @@ class BroadcastCaptureService : Service() {
             channelCount = broadcast.channelCount,
             sourceDeviceId = sourceDeviceId,
             micGainPercent = broadcast.micGainPercent,
+            feedbackGuardEnabled = broadcast.feedbackGuardEnabled,
         )
     }
 
@@ -240,16 +241,16 @@ class BroadcastCaptureService : Service() {
             recorder.startRecording()
 
             val buffer = ByteArray(bufferSize)
-            val gainPercent = config.micGainPercent
-            val gainMultiplier = gainPercent / 100.0f
-            val applyGain = gainPercent != 100
+            val guard = BroadcastFeedbackGuard(config.micGainPercent, config.feedbackGuardEnabled)
 
             while (isRecording.get()) {
                 val read = recorder.read(buffer, 0, bufferSize)
                 if (read > 0) {
-                    if (applyGain) {
-                        applyPcmGain(buffer, read, gainMultiplier)
+                    val suppressed = guard.process(buffer, read)
+                    if (suppressed != _feedbackSuppressed.value) {
+                        Timber.d("S3349: feedback guard suppression -> %b", suppressed)
                     }
+                    _feedbackSuppressed.value = suppressed
                     encoder.encode(buffer, read)
                 }
             }
@@ -272,18 +273,7 @@ class BroadcastCaptureService : Service() {
         httpServer = null
         _state.value = BroadcastState.Idle
         _listenerCount.value = 0
-    }
-
-    private fun applyPcmGain(buffer: ByteArray, length: Int, gainMultiplier: Float) {
-        var i = 0
-        while (i + 1 < length) {
-            val sample = (buffer[i].toInt() and 0xFF) or (buffer[i + 1].toInt() shl 8)
-            val shortSample = sample.toShort()
-            val scaled = (shortSample * gainMultiplier).toInt().coerceIn(-32768, 32767)
-            buffer[i] = (scaled and 0xFF).toByte()
-            buffer[i + 1] = ((scaled shr 8) and 0xFF).toByte()
-            i += 2
-        }
+        _feedbackSuppressed.value = false
     }
 
     @Suppress("SwallowedException", "TooGenericExceptionCaught")
@@ -311,6 +301,11 @@ class BroadcastCaptureService : Service() {
 
         private val _listenerCount = MutableStateFlow(0)
         val listenerCount: StateFlow<Int> = _listenerCount.asStateFlow()
+
+        // S3349: true while the feedback guard is holding the microphone gain down, so the screen can
+        // say why the sound dipped instead of leaving the user to suspect the microphone.
+        private val _feedbackSuppressed = MutableStateFlow(false)
+        val feedbackSuppressed: StateFlow<Boolean> = _feedbackSuppressed.asStateFlow()
 
         /**
          * A start the service cannot honour is refused here rather than inside it: a promise made by

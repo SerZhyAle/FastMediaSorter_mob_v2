@@ -5,6 +5,7 @@
 .DESCRIPTION
     Cross-checks docs/settings/settings-manifest.json against
     docs/settings/settings-annotations.json. Fails (exit 1) when:
+      - either file is not strictly valid JSON,
       - any manifest key is missing from the annotations,
       - any annotation key is orphaned (not in the manifest),
       - any annotation lacks a non-empty en/ru/uk value.
@@ -22,6 +23,33 @@ $ErrorActionPreference = 'Stop'
 
 if (-not (Test-Path $ManifestPath)) { Write-Host "Manifest not found: $ManifestPath" -ForegroundColor Red; exit 1 }
 if (-not (Test-Path $AnnotationsPath)) { Write-Host "Annotations not found: $AnnotationsPath" -ForegroundColor Red; exit 1 }
+
+# S3345: ConvertFrom-Json below is tolerant of escapes JSON does not define - it read
+# "прив\'язується" as "прив'язується" for years while python json and JSON.parse refused the whole
+# file at that byte, so every PowerShell gate passed and no other consumer could open the artifact.
+# Parse strictly first, with the parser that says which byte is wrong, and stop before the tolerant
+# read hides it again.
+function Assert-StrictJson([string] $path) {
+    try {
+        $doc = [System.Text.Json.JsonDocument]::Parse((Get-Content $path -Raw))
+        $doc.Dispose()
+    } catch {
+        $inner = $_.Exception
+        while ($inner.InnerException) { $inner = $inner.InnerException }
+        # JsonException.LineNumber is 0-based; report the line an editor shows.
+        $where = if ($inner -is [System.Text.Json.JsonException] -and $null -ne $inner.LineNumber) {
+            " (file line $($inner.LineNumber + 1))"
+        } else { '' }
+        Write-Host "INVALID JSON: $path$where" -ForegroundColor Red
+        Write-Host "  $($inner.Message)" -ForegroundColor Red
+        Write-Host "  PowerShell's ConvertFrom-Json accepts this; python json, JSON.parse and every other strict reader do not." -ForegroundColor Red
+        Write-Host "settings annotations: FAIL" -ForegroundColor Red
+        exit 1
+    }
+}
+
+Assert-StrictJson $ManifestPath
+Assert-StrictJson $AnnotationsPath
 
 $manifest = (Get-Content $ManifestPath -Raw | ConvertFrom-Json).entries
 $annot = Get-Content $AnnotationsPath -Raw | ConvertFrom-Json

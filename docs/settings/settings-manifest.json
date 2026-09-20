@@ -121,6 +121,16 @@
       "titleUk": "Увімкнути мовлення"
     },
     {
+      "key": "rowFeedbackGuard",
+      "sectionId": "broadcast",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_broadcast",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Feedback guard",
+      "titleRu": "Защита от петли",
+      "titleUk": "Захист від петлі"
+    },
+    {
       "key": "rowMicGain",
       "sectionId": "broadcast",
       "destination": "MEDIA",
@@ -1049,6 +1059,16 @@
       "titleEn": "Open recorded video in player",
       "titleRu": "Открывать записанное видео в плеере",
       "titleUk": "Відкривати записане відео у плеєрі"
+    },
+    {
+      "key": "rowWatchCameraStandby",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Let my watch see my camera",
+      "titleRu": "Разрешить часам видеть мою камеру",
+      "titleUk": "Дозволити годиннику бачити мою камеру"
     },
     {
       "key": "rowWaterFlashlight",

@@ -14,6 +14,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.pedro.common.ConnectChecker
+import com.pedro.encoder.input.audio.CustomAudioEffect
 import com.pedro.encoder.input.video.CameraOpenException
 import com.pedro.rtspserver.RtspServerCamera2
 import com.pedro.rtspserver.server.ClientListener
@@ -192,6 +193,8 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             } else {
                 true
             }
+
+            attachAudioEffect(camera, config)
 
             if (!videoPrepared || !audioPrepared) {
                 Timber.w(
@@ -455,6 +458,34 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
         }
         return type
+    }
+
+    private fun attachAudioEffect(camera: RtspServerCamera2, config: BroadcastSessionConfig) {
+        val gainPercent = config.micGainPercent
+        val gainMultiplier = gainPercent / 100.0f
+        val applyGain = gainPercent != 100
+
+        if (currentMode != BroadcastMode.VIDEO_ONLY && applyGain) {
+            camera.setCustomAudioEffect(object : CustomAudioEffect() {
+                override fun process(pcmBuffer: ByteArray): ByteArray {
+                    applyPcmGain(pcmBuffer, pcmBuffer.size, gainMultiplier)
+                    return pcmBuffer
+                }
+            })
+        }
+        Timber.d("S3351: video broadcast audio custom effect attached (gain: %d%%)", config.micGainPercent)
+    }
+
+    private fun applyPcmGain(buffer: ByteArray, length: Int, gainMultiplier: Float) {
+        var i = 0
+        while (i + 1 < length) {
+            val sample = (buffer[i].toInt() and 0xFF) or (buffer[i + 1].toInt() shl 8)
+            val shortSample = sample.toShort()
+            val scaled = (shortSample * gainMultiplier).toInt().coerceIn(-32768, 32767)
+            buffer[i] = (scaled and 0xFF).toByte()
+            buffer[i + 1] = ((scaled shr 8) and 0xFF).toByte()
+            i += 2
+        }
     }
 
     companion object {

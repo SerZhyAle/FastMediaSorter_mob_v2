@@ -470,9 +470,7 @@ class PhoneResourceViewModel @Inject constructor(
     fun allowedOperationsFor(entry: WearPhoneResourceItem): Set<WearFileOperationKind> {
         val destination = destinationFor(entry)
         val onTheCopy = if (destination.exists()) {
-            capabilityPolicy.allowedOperations(
-                capabilityPolicy.classify(entry.toWatchFile(destination), isNetworkSource = false)
-            )
+            capabilityPolicy.allowedOperations(entry.toWatchFile(destination), isNetworkSource = false)
         } else {
             emptySet()
         }

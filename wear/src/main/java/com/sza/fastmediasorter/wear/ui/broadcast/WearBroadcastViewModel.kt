@@ -1,18 +1,15 @@
 package com.sza.fastmediasorter.wear.ui.broadcast
 
 import android.content.Context
-import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionState
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionStateHolder
-import com.sza.fastmediasorter.wear.domain.power.WearPowerManager
 import com.sza.fastmediasorter.wear.service.VoiceRecordingService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -27,28 +24,14 @@ import javax.inject.Inject
 @HiltViewModel
 class WearBroadcastViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val wearPower: WearPowerManager,
     sessionHolder: WearBroadcastSessionStateHolder
 ) : ViewModel() {
 
     val state: StateFlow<WearBroadcastSessionState> = sessionHolder.state
 
-    private val _batteryOptimized = MutableStateFlow(!wearPower.isIgnoringBatteryOptimizations())
-
-    /**
-     * S3265: true while the platform may still put this package to sleep in doze, which is how a live
-     * broadcast was force-stopped mid-air. The screen turns it into an offer, never into a block - the
-     * broadcast works without the exemption, it just may not survive a long undisturbed doze window.
-     */
-    val batteryOptimized: StateFlow<Boolean> = _batteryOptimized.asStateFlow()
-
-    /** Read back after the system screen closes: this process never learns the answer any other way. */
-    fun refreshBatteryOptimization() {
-        _batteryOptimized.value = !wearPower.isIgnoringBatteryOptimizations()
+    init {
+        Timber.d("S3353: broadcast screen opened with no battery-optimization block")
     }
-
-    /** In firmware-preference order; the screen starts the first one that exists. */
-    fun batteryOptimizationIntents(): List<Intent> = wearPower.batteryOptimizationIntents()
 
     /**
      * `startForegroundService` because the service raises a microphone foreground notification on its

@@ -116,6 +116,11 @@ class BroadcastControlManager @Inject constructor(
                     }
                 }
                 launch {
+                    controller.feedbackSuppressed.collect { suppressed ->
+                        renderFeedbackWarning(activity, binding, suppressed)
+                    }
+                }
+                launch {
                     settingsRepository.getSettings().collect { settings ->
                         wearSendAvailable = settings.enableWearCompanion &&
                             mediaCapabilities.supportsWearCompanion
@@ -632,6 +637,20 @@ class BroadcastControlManager @Inject constructor(
     ) {
         binding.tvListenerCount.text = activity.getString(R.string.broadcast_control_listeners, count)
         binding.tvListenerCount.contentDescription = activity.getString(R.string.broadcast_control_listeners_cd, count)
+    }
+
+    /**
+     * S3349: names the acoustic feedback loop as the reason the sound dipped. Without it a guard doing
+     * its job is indistinguishable from a microphone that stopped working.
+     */
+    private fun renderFeedbackWarning(
+        activity: AppCompatActivity,
+        binding: ActivityBroadcastControlBinding,
+        suppressed: Boolean
+    ) {
+        binding.tvFeedbackWarning.visibility = if (suppressed) View.VISIBLE else View.GONE
+        binding.tvFeedbackWarning.contentDescription =
+            activity.getString(R.string.broadcast_control_feedback_warning_cd)
     }
 
     fun onDetach() {

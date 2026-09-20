@@ -3666,4 +3666,11 @@
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">Spegne lo schermo dopo un periodo di inattività mentre il caricabatterie è collegato</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Timeout schermo sotto carica</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Rende nero lo schermo dopo un periodo di inattività mentre il caricabatterie è collegato. Questa build non può bloccare il dispositivo.</string>
+    <string name="settings_watch_camera_standby">Consenti all\'orologio di vedere la mia fotocamera</string>
+    <string name="settings_watch_camera_standby_summary">Avvia subito la fotocamera, così l\'orologio abbinato può aprire l\'immagine più tardi mentre il telefono resta in tasca</string>
+    <string name="settings_watch_camera_standby_failed">Impossibile avviare la fotocamera per l\'orologio</string>
+    <string name="settings_broadcast_feedback_guard">Protezione dal feedback</string>
+    <string name="settings_broadcast_feedback_guard_summary">Abbassa il guadagno del microfono quando un ascoltatore riproduce la trasmissione ad alta voce nelle vicinanze, così il suono non si amplifica</string>
+    <string name="broadcast_control_feedback_warning">Audio abbassato: l\'altoparlante di un ascoltatore rientra nel microfono. Allontana il dispositivo in ascolto o abbassane il volume.</string>
+    <string name="broadcast_control_feedback_warning_cd">Rilevato feedback acustico, il guadagno del microfono è stato abbassato</string>
 </resources>

@@ -49,7 +49,6 @@ class HelpRowDelegate(
                 Timber.w("$logTag: help requested without payload")
                 return@setOnClickListener
             }
-            Timber.d("S3251: help tooltip opened from $logTag")
             TooltipDialog.show(helpIcon.context, title.toString(), message.toString())
         }
     }

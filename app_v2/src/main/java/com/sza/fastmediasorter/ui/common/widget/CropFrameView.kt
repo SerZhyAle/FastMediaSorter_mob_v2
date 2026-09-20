@@ -15,7 +15,6 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.use
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -357,7 +356,6 @@ class CropFrameView @JvmOverloads constructor(
             selection.set(contentRect)
         }
         initialized = true
-        Timber.d("S3251: crop frame initialised mode=$scrimMode rect=$selection")
     }
 
     private fun nudge(dx: Float, dy: Float) {

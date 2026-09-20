@@ -1374,6 +1374,11 @@
     "ru": "Включает встроенную функцию записи звука с микрофона.",
     "uk": "Вмикає вбудовану функцію запису звуку з мікрофона."
   },
+  "rowFeedbackGuard": {
+    "en": "Turns the broadcast microphone gain down when a listener plays the stream aloud nearby, so an acoustic feedback loop cannot build up.",
+    "ru": "Снижает усиление микрофона вещания, когда слушатель воспроизводит поток вслух рядом, чтобы акустическая петля не нарастала.",
+    "uk": "Знижує посилення мікрофона мовлення, коли слухач відтворює потік уголос поруч, щоб акустична петля не наростала."
+  },
   "rowMicGain": {
     "en": "Sets the digital PCM gain percentage (50% to 400%) for phone microphone broadcast audio.",
     "ru": "Задаёт процент цифрового PCM-усиления микрофона (от 50% до 400%) для вещания с телефона.",
@@ -1442,7 +1447,7 @@
   "rowPort": {
     "en": "Sets the network port the broadcast server binds to. If the port is already in use, the broadcast does not start.",
     "ru": "Задаёт сетевой порт, на который привязывается сервер вещания. Если порт занят, вещание не стартует.",
-    "uk": "Задає мережевий порт, до якого прив\'язується сервер вещання. Якщо порт зайнято, вещання не стартує."
+    "uk": "Задає мережевий порт, до якого прив'язується сервер вещання. Якщо порт зайнято, вещання не стартує."
   },
   "rowPowerSaving": {
     "en": "Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%.",
@@ -1607,7 +1612,7 @@
   "rowStreamTitle": {
     "en": "Sets the broadcast title sent in both the ICY metadata and the descriptor, so receivers display a consistent name.",
     "ru": "Задаёт название вещания, которое передаётся в метаданных ICY и в дескрипторе одновременно, чтобы приёмник показывал одно имя.",
-    "uk": "Задає назву мовлення, яка передається в метаданих ICY та в дескрипторі одночасно, щоб приймач показував одне ім\'я."
+    "uk": "Задає назву мовлення, яка передається в метаданих ICY та в дескрипторі одночасно, щоб приймач показував одне ім'я."
   },
   "rowStreamsEnablePip": {
     "en": "Enables Picture-in-Picture mode so playback continues in a floating window when you leave the player. Same setting as in the playback section.",
@@ -1683,6 +1688,11 @@
     "en": "Restricts thumbnail preloading to Wi-Fi connections only, saving mobile data.",
     "ru": "Ограничивает предзагрузку миниатюр соединением по Wi-Fi, чтобы не расходовать мобильный трафик.",
     "uk": "Обмежує попереднє завантаження мініатюр з'єднанням по Wi-Fi, щоб не витрачати мобільний трафік."
+  },
+  "rowWatchCameraStandby": {
+    "en": "Arms the phone camera for the paired watch: turning it on starts a camera session while the app is on screen, so a request from the watch meets a stream that already exists and needs no tap on the phone. Available in the sideload build only, which is the one allowed to keep the camera on air after the app leaves the screen.",
+    "ru": "Готовит камеру телефона для парных часов: при включении камера запускается, пока приложение на экране, и запрос с часов попадает в уже работающую трансляцию - касаться телефона не нужно. Доступно только в сайдлоад-сборке: лишь она удерживает камеру после ухода приложения с экрана.",
+    "uk": "Готує камеру телефона для парного годинника: після вмикання камера запускається, поки застосунок на екрані, і запит з годинника потрапляє у вже наявну трансляцію - торкатися телефона не потрібно. Доступно лише у сайдлоад-збірці: тільки вона утримує камеру після того, як застосунок залишає екран."
   },
   "rowTranslationLensStyle": {
     "en": "Displays translation results in overlay blocks on top of the image instead of a separate panel.",

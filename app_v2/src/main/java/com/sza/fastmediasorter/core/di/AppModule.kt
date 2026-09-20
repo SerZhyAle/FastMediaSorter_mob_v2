@@ -41,6 +41,12 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
+/**
+ * Hosts whose caller already logs the refusal itself, naming what it was fetching, so the blanket
+ * interceptor line below would only duplicate that. It no longer decides whether the failure reaches
+ * the debug error surface - nothing here does, because the interceptor logs at W and only E raises
+ * the red banner - so a host missing from this list costs one duplicate log line and nothing more.
+ */
 internal fun isExpectedHttpFallback(url: HttpUrl): Boolean {
     val path = url.encodedPath
     return path.endsWith("/delivery-manifest.json") ||
@@ -49,6 +55,8 @@ internal fun isExpectedHttpFallback(url: HttpUrl): Boolean {
             "api.deezer.com" -> path == "/search"
             "musicbrainz.org" -> path.startsWith("/ws/2/recording")
             "coverartarchive.org" -> path.startsWith("/release/")
+            "api.open-meteo.com", "geocoding-api.open-meteo.com" -> true
+            "www.youtube.com" -> true
             else -> false
         }
 }
@@ -183,14 +191,14 @@ object AppModule {
                     .alwaysReadResponseBody(true)
                     .build()
             )
-            // Log HTTP errors (4xx / 5xx) to Logcat via Timber so they surface in search-log.ps1 -Errors
+            // Record 4xx / 5xx in Logcat so search-log.ps1 -Warnings finds them. Deliberately W and
+            // never E: a remote server's answer is not a defect of ours, while UiNotificationTree
+            // turns every E into a red full-width banner that reads like the app itself broke.
             builder.addInterceptor { chain ->
                 val request = chain.request()
                 val response = chain.proceed(request)
-                if (!response.isSuccessful) {
-                    if (!isExpectedHttpFallback(request.url)) {
-                        Timber.e("HTTP ${response.code} ${request.method} ${request.url}")
-                    }
+                if (!response.isSuccessful && !isExpectedHttpFallback(request.url)) {
+                    Timber.w("HTTP ${response.code} ${request.method} ${request.url}")
                 }
                 response
             }

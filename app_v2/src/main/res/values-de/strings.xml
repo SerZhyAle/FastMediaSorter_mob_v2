@@ -3660,4 +3660,11 @@
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">Schaltet den Bildschirm nach Inaktivität aus, während das Ladegerät angeschlossen ist</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Bildschirm-Timeout beim Laden</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Schaltet den Bildschirm nach Inaktivität schwarz, während das Ladegerät angeschlossen ist. Dieser Build kann das Gerät nicht sperren.</string>
+    <string name="settings_watch_camera_standby">Meine Uhr darf meine Kamera sehen</string>
+    <string name="settings_watch_camera_standby_summary">Startet die Kamera sofort, damit die gekoppelte Uhr das Bild später öffnen kann, während das Telefon in der Tasche bleibt</string>
+    <string name="settings_watch_camera_standby_failed">Die Kamera konnte für die Uhr nicht gestartet werden</string>
+    <string name="settings_broadcast_feedback_guard">Rückkopplungsschutz</string>
+    <string name="settings_broadcast_feedback_guard_summary">Senkt die Mikrofonverstärkung, wenn ein Zuhörer die Übertragung in der Nähe laut abspielt, damit sich der Ton nicht aufschaukelt</string>
+    <string name="broadcast_control_feedback_warning">Ton abgesenkt: Der Lautsprecher eines Zuhörers koppelt in das Mikrofon zurück. Bringen Sie das Empfangsgerät weiter weg oder verringern Sie dessen Lautstärke.</string>
+    <string name="broadcast_control_feedback_warning_cd">Akustische Rückkopplung erkannt, die Mikrofonverstärkung wurde gesenkt</string>
 </resources>

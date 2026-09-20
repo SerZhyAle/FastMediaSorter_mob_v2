@@ -14,6 +14,11 @@
   branch after a defect that did not exist. That is the same substitution S2767 removed one line
   above, where a screen the walk never opened was printed as a screen the app had broken.
 
+  Since S3189 it also holds the walk's per-flavor answers - which flavor is installed, whether an
+  entry accepts a shape finding there, and since S3358 whether an entry is walkable there at all.
+  They share this file for the same reason the classifier does: the walk and the verdict must reach
+  the same answer, and a second copy of a literal is where the two come to disagree.
+
   Sourced, never executed directly, so it declares no exit codes of its own.
 #>
 
@@ -85,6 +90,37 @@ function Test-WalkShapeAccepted {
     $flavors = $accept.Value.PSObject.Properties['flavors']
     if ($null -eq $flavors -or $null -eq $flavors.Value) { return $false }
     return (@($flavors.Value) -ccontains $Flavor)
+}
+
+function Test-WalkEntryInFlavor {
+    <#
+    .SYNOPSIS
+      S3358 - whether a screen entry is walkable in the given flavor.
+
+    .DESCRIPTION
+      An entry that declares no `flavors` is walkable everywhere, which is what an entry reached
+      through no capability gate stays. One that declares the list is walkable only where the list
+      names the flavor exactly, the same case-sensitive membership [Test-WalkShapeAccepted] uses.
+
+      Why the two answers cannot be merged: an acceptance forgives a finding on a screen that was
+      opened, this decides whether the screen exists to open at all. S3178 put twelve Home and Apps
+      rows behind a `WearRestrictedCapabilities` answer the store build returns false for, and the
+      walk went on reaching for every one of them - measured 2026-09-20 on emulator-5556, eighteen
+      `unreachable` rows of which none was a defect, and the two real questions buried among them.
+
+      An empty or unreadable flavor answers $true. A flavor probe that failed must never be the
+      reason a screen went unjudged: the walk's own default for an unreadable versionName is
+      'standard', so the only way to arrive here empty is a caller that never probed.
+    #>
+    param($Screen, [string]$Flavor)
+
+    if ($null -eq $Screen) { return $true }
+    $declared = $Screen.PSObject.Properties['flavors']
+    if ($null -eq $declared -or $null -eq $declared.Value) { return $true }
+    $flavors = @($declared.Value)
+    if ($flavors.Count -eq 0) { return $true }
+    if (-not $Flavor) { return $true }
+    return ($flavors -ccontains $Flavor)
 }
 
 function Get-WalkRowShapeClass {

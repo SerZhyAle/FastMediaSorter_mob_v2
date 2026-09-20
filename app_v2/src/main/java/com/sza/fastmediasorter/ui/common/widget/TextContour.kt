@@ -7,7 +7,6 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.use
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * The contour settings and draw pass shared by [OutlinedTextView] and [OutlinedTextClock]: one
@@ -71,7 +70,6 @@ internal class TextContour(
                 widthPx = ta.getDimension(R.styleable.OutlinedTextView_otv_outlineWidth, widthPx)
                 scale = ta.getFloat(R.styleable.OutlinedTextView_otv_outlineScale, scale)
             }
-            Timber.d("S3251: contour read width=$widthPx scale=$scale")
             return TextContour(color, widthPx, scale)
         }
     }

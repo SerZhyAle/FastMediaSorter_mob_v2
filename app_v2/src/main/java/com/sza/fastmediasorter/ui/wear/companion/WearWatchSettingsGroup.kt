@@ -53,7 +53,6 @@ import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.WearBackgroundDeliveryState
 import com.sza.fastmediasorter.ui.settings.WearBackgroundPreview
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
-import timber.log.Timber
 import java.io.File
 
 private const val DEFAULT_SLIDESHOW_INTERVAL_SECONDS = 5
@@ -297,7 +296,6 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         dimClockOverlayEnabled: Boolean,
         dimClockSecondsVisible: Boolean
     ): WearSettingsPayload {
-        Timber.d("S3330: phone building push payload, dimClockOverlayEnabled=$dimClockOverlayEnabled")
         return WearSettingsPayload(
             audioEnabled = audioEnabled,
             videoEnabled = videoEnabled,

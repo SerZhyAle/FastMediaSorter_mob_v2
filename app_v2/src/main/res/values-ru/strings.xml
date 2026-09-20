@@ -4104,4 +4104,12 @@
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">Гасит экран при неактивности, пока подключена зарядка</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Таймаут экрана при зарядке</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Гасит экран при неактивности, пока подключена зарядка. Эта сборка не может блокировать устройство.</string>
+    <string name="settings_watch_camera_standby">Разрешить часам видеть мою камеру</string>
+    <string name="settings_watch_camera_standby_summary">Включает камеру сразу, чтобы парные часы могли открыть картинку позже, пока телефон лежит в кармане</string>
+    <string name="settings_watch_camera_standby_failed">Не удалось включить камеру для часов</string>
+    <string name="settings_broadcast_feedback_guard">Защита от петли</string>
+    <string name="settings_broadcast_feedback_guard_summary">Снижает усиление микрофона, когда слушатель воспроизводит вещание вслух рядом, чтобы звук не нарастал</string>
+    <string name="broadcast_control_feedback_warning">Звук приглушён: динамик слушателя попадает в микрофон. Отнесите устройство дальше или убавьте его громкость.</string>
+    <string name="broadcast_control_feedback_warning_cd">Обнаружена акустическая петля, усиление микрофона снижено</string>
+    <string name="wear_watch_transfer_unconfirmed">Часы не подтвердили сохранение %1$s, поэтому оригинал остался на телефоне.</string>
 </resources>

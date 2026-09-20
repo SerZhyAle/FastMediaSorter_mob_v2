@@ -1,6 +1,8 @@
 {
   "_comment": [
-    "Fixture: every check satisfied."
+    "Fixture: every check satisfied.",
+    "S3358: it carries a flavor scope and both catalog bindings, so the clean case pins the accepting",
+    "side of those checks too - a gate that only ever fires proves as little as one that never does."
   ],
   "screens": [
     {
@@ -8,7 +10,10 @@
       "name": "Alpha",
       "expect": "Hello",
       "screen": "AlphaScreen",
-      "expectRes": "good_marker"
+      "expectRes": "good_marker",
+      "homeSection": "APPS",
+      "wearApp": "CALCULATOR",
+      "flavors": ["noLegal"]
     }
   ],
   "excluded": [

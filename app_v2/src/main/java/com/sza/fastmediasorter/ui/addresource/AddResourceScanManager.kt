@@ -161,18 +161,24 @@ internal class AddResourceScanManager(
                         dialog.dismiss()
                         showFolderBrowserDialog(path)
                     }
-                    useSafOnly -> folderPickerLauncher.launch(null)
+                    // S3354: the picker must not open on top of this dialog - the system grant
+                    // then returns the user here instead of to the wizard, and the folder that was
+                    // accepted behind the dialog reads as a silent failure.
+                    useSafOnly -> {
+                        Timber.d("S3354: quick folder falls back to the system picker, closing the dialog first")
+                        dialog.dismiss()
+                        folderPickerLauncher.launch(null)
+                    }
                     else -> selectFolderByPath(path, dialog)
                 }
             }
         }
 
-        folderBinding.tilManualPath.isVisible = canBrowsePaths
-        folderBinding.btnValidatePath.apply {
-            isVisible = canBrowsePaths
-            setOnClickListener {
-                selectFolderByPath(etManualPath.text?.toString()?.trim() ?: "", dialog)
-            }
+        // S3354: the section heading and its divider belong to the same group, so withdrawing the
+        // typed-path route leaves no caption standing over an empty stretch of dialog.
+        folderBinding.groupManualPath.isVisible = canBrowsePaths
+        folderBinding.btnValidatePath.setOnClickListener {
+            selectFolderByPath(etManualPath.text?.toString()?.trim() ?: "", dialog)
         }
 
         dialogView.findViewById<com.google.android.material.button.MaterialButton>(
@@ -255,19 +261,26 @@ internal class AddResourceScanManager(
     }
 
     /**
-     * Wires the two top groups of the folder dialog to the unified collapsible orchestrator.
-     * Short dialog -> default expanded (research 02 D4); state persists in the consolidated store.
+     * Wires every group of the folder dialog to the unified collapsible orchestrator.
+     *
+     * S3355: all five sections register with `persistState = false`, so a collapse lasts only as
+     * long as this dialog. Persisted state outlived the dialog and reopened it with every section
+     * folded away and no folder on offer, which `defaultExpanded` cannot undo - a saved value wins
+     * over it by design.
      */
     private fun setupCollapsibleFolderSections(dialogView: android.view.View) {
         val sections = listOf(
             Triple(R.id.headerSpecialFolders, R.id.containerSpecialFolders, "folder_selection__special"),
             Triple(R.id.headerQuickFolders, R.id.containerQuickFolders, "folder_selection__quick"),
             Triple(R.id.headerRemovableVolumes, R.id.containerRemovableVolumes, "folder_selection__removable"),
+            Triple(R.id.headerManualPath, R.id.containerManualPath, "folder_selection__manual"),
+            Triple(R.id.headerSystemPicker, R.id.containerSystemPicker, "folder_selection__picker"),
         )
+        Timber.d("S3355: folder dialog registers 5 collapsible sections, all expanded, none persisted")
         sections.forEach { (headerId, containerId, key) ->
             val header = dialogView.findViewById<CollapsibleSectionHeader>(headerId) ?: return@forEach
             val container = dialogView.findViewById<android.view.View>(containerId) ?: return@forEach
-            sectionsManager.register(header, container, key, defaultExpanded = true)
+            sectionsManager.register(header, container, key, defaultExpanded = true, persistState = false)
         }
     }
 
@@ -288,6 +301,9 @@ internal class AddResourceScanManager(
     fun selectFolderByPath(path: String, dialog: Dialog) {
         if (ChromeOsCompat.needsSafFolderPicker(activity)) {
             Timber.d("AddResourceScanManager: redirecting to SAF picker on Chrome OS")
+            // S3354: same reason as the quick-folder branch - the picker owns the screen alone.
+            Timber.d("S3354: manual path falls back to the system picker, closing the dialog first")
+            dialog.dismiss()
             folderPickerLauncher.launch(null)
             return
         }

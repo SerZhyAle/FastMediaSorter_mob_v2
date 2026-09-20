@@ -884,9 +884,6 @@
     <string name="wear_onboarding_slogan">Il tuo compagno multimediale al polso</string>
     <string name="wear_onboarding_skip_all">Salta tutto</string>
     <string name="wear_onboarding_page_indicator">Passaggio %1$d di %2$d</string>
-    <string name="wear_battery_optimization_title">Il risparmio energetico può interrompere la trasmissione</string>
-    <string name="wear_battery_optimization_desc">Lascia che l\'app continui a funzionare in background così l\'audio non si interrompe.</string>
-    <string name="wear_battery_optimization_grant">Consenti l\'attività in background</string>
     <string name="dim_clock_overlay_toggle">Mostra orologio e stato a schermo attenuato</string>
     <string name="dim_clock_status_cd">Orologio e stato sullo schermo attenuato</string>
 </resources>

@@ -299,7 +299,6 @@ class CameraOcrFlowManager(
 
     /** Called by the Activity when the user taps Retry on the crop step. */
     fun onCropRetry() {
-        Timber.d("S3339: crop retry - hiding crop state before bitmap recycle")
         // Leave the crop step before recycling: the preview ImageView still holds the displayed
         // bitmap, so any later draw (e.g. the close animation after a fast retry+close) would
         // crash with "Canvas: trying to use a recycled bitmap" (S3339).

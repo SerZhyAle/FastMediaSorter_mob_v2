@@ -22,6 +22,11 @@
                        blaming the 192 dp screen for it was wrong.
       missing-screen - the entry names a composable that does not exist.
 
+    S3358 added a fourth channel, and its faults are declarations rather than drift: a `flavors` list
+    that is empty, names a flavor no build creates, or names every one of them, and a `homeSection` /
+    `wearApp` binding naming no enum member. Each of those silences a check instead of failing it,
+    which is the shape of the fault this ticket was opened about.
+
     The clean case is not decoration: a gate that fires on everything is as useless as one that fires
     on nothing, and it pins the ratchet's "at or below baseline passes" arithmetic.
 
@@ -173,6 +178,32 @@ Assert-Case -Label 'scoped: a stale entry is not claimed by a set carrying no sc
     -ExpectedExit 0 -ExpectedPattern 'PASS' `
     -Result (Invoke-Gate -ScreenListName 'screens-scoped-missing.json' -SourceDir 'src-scoped' -AsGate `
         -ChangedFiles 'src-scoped/Alpha.kt')
+
+# --- S3358: the flavor scope and the catalog bindings, judged as declarations --------------------
+#
+# The fixtures use the REAL flavor names, because the gate reads them from wear/build.gradle.kts and
+# nowhere else - a fixture build file would prove the extractor works on a file no build uses. The
+# enums live in fixtures/src/Screens.kt, so an unknown id is judged against a real enum shape.
+
+Assert-Case -Label 'an entry walkable in no flavor is reported' `
+    -ExpectedExit 1 -ExpectedPattern "'flavors' is empty" `
+    -Result (Invoke-Gate -ScreenListName 'screens-flavor-empty.json' -AsGate)
+
+Assert-Case -Label 'a flavor name no build answers to is reported' `
+    -ExpectedExit 1 -ExpectedPattern "flavor 'sideload' is not created by" `
+    -Result (Invoke-Gate -ScreenListName 'screens-flavor-unknown.json' -AsGate)
+
+Assert-Case -Label 'a scope listing every flavor is reported - that is the absent field' `
+    -ExpectedExit 1 -ExpectedPattern "'flavors' lists every flavor" `
+    -Result (Invoke-Gate -ScreenListName 'screens-flavor-all.json' -AsGate)
+
+Assert-Case -Label 'a homeSection naming no HomeSectionId member is reported' `
+    -ExpectedExit 1 -ExpectedPattern "homeSection 'RESOURCESS' is not a member of HomeSectionId" `
+    -Result (Invoke-Gate -ScreenListName 'screens-binding-unknown.json' -AsGate)
+
+Assert-Case -Label 'a wearApp naming no WearAppId member is reported' `
+    -ExpectedExit 1 -ExpectedPattern "wearApp 'CALCULATORR' is not a member of WearAppId" `
+    -Result (Invoke-Gate -ScreenListName 'screens-binding-unknown.json' -AsGate)
 
 Write-Host ""
 Write-Host "assert-wear-walk-contract.tests: $script:passed passed, $script:failed failed."

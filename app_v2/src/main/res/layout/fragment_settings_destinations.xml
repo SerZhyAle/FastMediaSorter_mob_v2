@@ -821,6 +821,15 @@
                         app:str_title="@string/settings_suppress_wear_media_takeover"
                         app:str_subtitle="@string/settings_suppress_wear_media_takeover_summary" />
 
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowWatchCameraStandby"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        app:str_icon="@drawable/ic_camera_capture"
+                        app:str_title="@string/settings_watch_camera_standby"
+                        app:str_subtitle="@string/settings_watch_camera_standby_summary" />
+
                     <TextView
                         android:id="@+id/textWearGroupDescription"
                         android:layout_width="match_parent"

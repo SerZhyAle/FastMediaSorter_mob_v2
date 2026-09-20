@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "Fixture: S3358 - an entry walkable in no flavor at all. Omitting the field is how an entry says",
+    "'every flavor'; an empty list says 'nowhere', which no author means and the walk would obey."
+  ],
+  "screens": [
+    {
+      "id": "alpha",
+      "name": "Alpha",
+      "expect": "Hello",
+      "screen": "AlphaScreen",
+      "expectRes": "good_marker",
+      "flavors": []
+    }
+  ],
+  "excluded": [
+    {
+      "screen": "BetaScreen",
+      "reason": "not-a-destination",
+      "note": "Fixture: nested helper."
+    }
+  ]
+}

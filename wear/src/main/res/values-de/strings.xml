@@ -884,9 +884,6 @@
     <string name="wear_onboarding_slogan">Ihr Medienbegleiter am Handgelenk</string>
     <string name="wear_onboarding_skip_all">Alle überspringen</string>
     <string name="wear_onboarding_page_indicator">Schritt %1$d von %2$d</string>
-    <string name="wear_battery_optimization_title">Energiesparen kann die Übertragung stoppen</string>
-    <string name="wear_battery_optimization_desc">Lassen Sie die App im Hintergrund weiterlaufen, damit der Ton nicht abbricht.</string>
-    <string name="wear_battery_optimization_grant">Hintergrundaktivität zulassen</string>
     <string name="dim_clock_overlay_toggle">Uhr und Status im gedimmten Zustand anzeigen</string>
     <string name="dim_clock_status_cd">Uhr und Status auf dem gedimmten Bildschirm</string>
 </resources>

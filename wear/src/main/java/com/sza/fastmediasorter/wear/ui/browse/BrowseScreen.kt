@@ -485,6 +485,8 @@ private fun WearFileOperationOutcome.messageRes(): Int = when (this) {
     WearFileOperationOutcome.REFUSED_UNSUPPORTED -> R.string.wear_file_op_outcome_unsupported
     WearFileOperationOutcome.NEEDS_CONSENT -> R.string.wear_file_op_outcome_needs_consent
     WearFileOperationOutcome.REFUSED_TOO_LARGE -> R.string.wear_file_op_outcome_too_large
+    WearFileOperationOutcome.REFUSED_NO_SPACE -> R.string.wear_file_op_outcome_no_space
+    WearFileOperationOutcome.COPIED_SOURCE_KEPT -> R.string.wear_file_op_outcome_copied_source_kept
     WearFileOperationOutcome.PHONE_UNREACHABLE -> R.string.wear_file_op_outcome_phone_unreachable
     WearFileOperationOutcome.OPENED_ON_PHONE -> R.string.wear_open_on_phone_shown
     WearFileOperationOutcome.NOTIFIED_ON_PHONE -> R.string.wear_open_on_phone_notified
@@ -700,6 +702,14 @@ private fun BrowseDialogsHost(
                 onMoveToPhone = {
                     onActionsVisibilityChange(false)
                     viewModel.fileOperations.runOperation(WearFileOperation.MoveToPhone)
+                },
+                onCopyToWatch = {
+                    onActionsVisibilityChange(false)
+                    viewModel.fileOperations.runOperation(WearFileOperation.CopyToWatch)
+                },
+                onMoveToWatch = {
+                    onActionsVisibilityChange(false)
+                    viewModel.fileOperations.runOperation(WearFileOperation.MoveToWatch)
                 },
                 onRenameRequested = {
                     onActionsVisibilityChange(false)

@@ -578,6 +578,10 @@ private fun PhoneFileActionsMenu(
                     viewModel.runOperation(entry, WearFileOperation.SendToPhone)
                 WearFileOperationKind.MOVE_TO_PHONE ->
                     viewModel.runOperation(entry, WearFileOperation.MoveToPhone)
+                WearFileOperationKind.COPY_TO_WATCH ->
+                    viewModel.runOperation(entry, WearFileOperation.CopyToWatch)
+                WearFileOperationKind.MOVE_TO_WATCH ->
+                    viewModel.runOperation(entry, WearFileOperation.MoveToWatch)
                 // The only surface that can ask: the token addressing the phone's own original is the
                 // one this list was built from.
                 WearFileOperationKind.OPEN_ON_PHONE ->
@@ -870,6 +874,8 @@ private fun WearFileOperationOutcome.toStatusRes(): Int = when (this) {
     // confirmation - the branch exists because the enum is shared, not because it is reachable here.
     WearFileOperationOutcome.NEEDS_CONSENT -> R.string.wear_file_op_outcome_needs_consent
     WearFileOperationOutcome.REFUSED_TOO_LARGE -> R.string.wear_file_op_outcome_too_large
+    WearFileOperationOutcome.REFUSED_NO_SPACE -> R.string.wear_file_op_outcome_no_space
+    WearFileOperationOutcome.COPIED_SOURCE_KEPT -> R.string.wear_file_op_outcome_copied_source_kept
     WearFileOperationOutcome.PHONE_UNREACHABLE -> R.string.wear_file_op_outcome_phone_unreachable
     WearFileOperationOutcome.OPENED_ON_PHONE -> R.string.wear_open_on_phone_shown
     WearFileOperationOutcome.NOTIFIED_ON_PHONE -> R.string.wear_open_on_phone_notified

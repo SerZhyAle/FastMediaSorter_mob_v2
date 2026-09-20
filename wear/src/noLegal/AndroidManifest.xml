@@ -159,17 +159,6 @@
         android:minSdkVersion="33" />
 
     <!--
-        S3265: a microphone foreground service did not survive an undisturbed doze window on a Galaxy
-        Watch 7 - a Samsung background-management daemon force-stopped the whole package while the
-        broadcast was on air, and a force-stopped package is never restarted. This permission is what
-        lets the watch ask for the exemption that stops it; the ask is on demand from the broadcast
-        screen, never at startup. It stays out of the store artifact for the reason the whole block
-        above does: Play reviews this permission against a short list of admitted use cases, and the
-        capability it defends - broadcast - is itself noLegal-only.
-    -->
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-
-    <!--
         S2941: lets the listen-request notification open ListenRequestActivity automatically via
         setFullScreenIntent, putting the app in the foreground so the microphone FGS can start without
         a tap. CATEGORY_CALL on the notification qualifies for this permission on Android 14+.

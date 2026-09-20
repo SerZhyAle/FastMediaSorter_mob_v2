@@ -931,10 +931,11 @@
     <string name="wear_onboarding_slogan">Ваш медиа-компаньон на руке</string>
     <string name="wear_onboarding_skip_all">Пропустить все</string>
     <string name="wear_onboarding_page_indicator">Шаг %1$d из %2$d</string>
-    <string name="wear_battery_optimization_title">Экономия батареи может прервать вещание</string>
-    <string name="wear_battery_optimization_desc">Разрешите приложению работать в фоне, чтобы звук не прерывался.</string>
-    <string name="wear_battery_optimization_grant">Разрешить работу в фоне</string>
     <string name="dim_clock_overlay_toggle">выводить часы и состояние во время затемнения</string>
     <string name="dim_clock_status_cd">Часы и состояние на затемнённом экране</string>
     <string name="ok">ОК</string>
+    <string name="wear_file_op_copy_to_watch">Копировать на часы</string>
+    <string name="wear_file_op_move_to_watch">Переместить на часы</string>
+    <string name="wear_file_op_outcome_no_space">На часах не хватает места - освободите место и повторите</string>
+    <string name="wear_file_op_outcome_copied_source_kept">Скопировано на часы - оригинал остался на месте</string>
 </resources>

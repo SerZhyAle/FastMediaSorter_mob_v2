@@ -931,10 +931,11 @@
     <string name="wear_onboarding_slogan">Your media companion on the wrist</string>
     <string name="wear_onboarding_skip_all">Skip all</string>
     <string name="wear_onboarding_page_indicator">Step %1$d of %2$d</string>
-    <string name="wear_battery_optimization_title">Battery saving may stop the broadcast</string>
-    <string name="wear_battery_optimization_desc">Let the app keep working in the background so the sound does not cut out.</string>
-    <string name="wear_battery_optimization_grant">Allow background work</string>
     <string name="dim_clock_overlay_toggle">Show clock and status while dimmed</string>
     <string name="dim_clock_status_cd">Clock and status on the dimmed screen</string>
     <string name="ok">OK</string>
+    <string name="wear_file_op_copy_to_watch">Copy to watch</string>
+    <string name="wear_file_op_move_to_watch">Move to watch</string>
+    <string name="wear_file_op_outcome_no_space">Not enough space on the watch - free some up and try again</string>
+    <string name="wear_file_op_outcome_copied_source_kept">Copied to the watch - the original stayed where it was</string>
 </resources>

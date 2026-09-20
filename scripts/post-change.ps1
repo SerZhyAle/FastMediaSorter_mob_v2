@@ -1502,90 +1502,10 @@ else {
 # the changed set - it has no trigger, so it runs on every closure in the repo.
 Invoke-FixedInputGate "launcher-reset-coverage-gate" $argvLauncherReset 'assert-launcher-reset-coverage.ps1'
 
-# S2093: a watch setting present on one side of the phone/watch pair and absent on the other. The list
-# lived in four independently maintained places, so a one-sided setting diverged in silence and was
-# found only when the owner could not see it where it was expected. Here and not only in the fg batch:
-# the closure is where a ticket is judged, and a check the closure never runs cannot stop the ticket
-# that skipped a side.
-#
-# S2824 removed the claim that stood here - that a sibling session's WIP could not fail this gate
-# unless the WIP was itself the defect. S2820 refuted it: a changed set lying entirely in
-# wear/../ui/streams/ was refused by a half-written pair another session was mid-way through, and the
-# gate journal shows 40 such refusals in seventeen days, nineteen of them consecutive on one night
-# (temp/metrics/gate-executions.jsonl). What holds instead is that the gate charges
-# its findings only when a file it declares as an input is in the changed set. The trigger stays wide
-# because the path list lives in the gate (S1621) and duplicating it here would drift; it fires on 825
-# files while only 24 can be charged, and the gap between those two numbers is what code 3 covers.
-if (Test-AnyChangedFile '(^|/)wear/|Wear[A-Za-z]*\.kt$|SettingsDocScopeCatalog\.kt$') {
-    $argvWearSettingsParity = @('-NoProfile', '-File',
-        (Join-Path $root "scripts/quality/assert-wear-settings-parity.ps1"), '-Gate', '-Quiet')
-    if ($ScopeToFile -and $changedFiles.Count -gt 0) {
-        $argvWearSettingsParity += @('-ChangedFiles', ($changedFiles -join ','))
-    }
-    Invoke-FixedInputGate "wear-settings-parity-gate" $argvWearSettingsParity 'assert-wear-settings-parity.ps1'
-}
-else {
-    Skip-Step "wear-settings-parity-gate" "not applicable - no changed file touches the watch module or a watch-settings surface"
-}
-
-# S2579: a watch mini-program's canonicalKey that is neither a phone route key nor a declared
-# watch-only program. The enum's own KDoc calls that key the phone's, four of five entries obeyed it
-# and the fifth did not, and nothing looked - the watch's test compares the watch against itself.
-# Fatal on a divergence between the three files it reads, and since S2824 it declines to charge one
-# when none of them is in the changed set, for the reason recorded at the gate above.
-if (Test-AnyChangedFile '(^|/)wear/|InternalRouteCatalog\.kt$') {
-    $argvWearCanonicalKeyParity = @('-NoProfile', '-File',
-        (Join-Path $root "scripts/quality/assert-wear-canonical-key-parity.ps1"), '-Gate', '-Quiet')
-    if ($ScopeToFile -and $changedFiles.Count -gt 0) {
-        $argvWearCanonicalKeyParity += @('-ChangedFiles', ($changedFiles -join ','))
-    }
-    Invoke-FixedInputGate "wear-canonical-key-parity-gate" $argvWearCanonicalKeyParity 'assert-wear-canonical-key-parity.ps1'
-}
-else {
-    Skip-Step "wear-canonical-key-parity-gate" "not applicable - no changed file touches the watch module or the phone route catalog"
-}
-
-# S2621: a wear screen that is in neither the walked nor the excluded list of the pre-release walk is
-# not opened by /spec-prerelease-wear and is not declared skipped either, so it ships unchecked in
-# silence. Until now the only caller was the project-wide fg battery, which is not bound to any
-# ticket's changed set: the three screens that produced this gate's first real failure were added by
-# S2457, S2458 and S2516 on 2026-09-03/04, and the refusal was collected on 2026-09-05 and 2026-09-06
-# by two uninvolved sessions running fg for unrelated work - one of which filed a duplicate ticket
-# because the finding reaches whoever ran the battery rather than whoever added the screen.
-#
-# PER-TICKET by Rule 33: the subject is a screen this change added or renamed, and only its author
-# knows whether it is a destination worth walking or an exclusion with a reason. Scoped rather than
-# unconditional for the same reason the wear-mirrored-strings gate is: the gate reads the whole
-# module, so an unscoped FATAL here would refuse this closure over a neighbour's unclassified WIP -
-# reproducing the very complaint above, narrowed to sessions touching the watch.
-if (Test-AnyChangedFile '(^|/)wear/.*Screen\.kt$|(^|/)scripts/devtest/wear-prerelease-screens\.json$') {
-    Invoke-Gate "wear-walk-contract-gate" {
-        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-wear-walk-contract.ps1"), '-Gate')
-        if ($ScopeToFile -and $changedFiles.Count -gt 0) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
-        & $pwsh @a
-    }
-}
-else {
-    Skip-Step "wear-walk-contract-gate" "not applicable - no changed file is a wear screen or the declared walk list"
-}
-
-# S2880: a route declared in either WearDataLayerPaths.kt with no scenario naming it and no recorded
-# exclusion is the gap class S2861 measured - two of thirty-eight routes were named nowhere, and both
-# were exactly where the campaign's only confirmed defect lives. PER-TICKET by Rule 33: the subject is
-# the route catalog any bridge ticket may extend, so the author of the extension classifies it in the
-# same change. Scoped rather than unconditional for the walk-contract reason: the gate reads both
-# catalogs whole, and an unscoped FATAL here would refuse this closure over a neighbour's
-# unclassified new route (S2621).
-if (Test-AnyChangedFile '(^|/)WearDataLayerPaths\.kt$|(^|/)scripts/devtest/bridge-scenarios\.json$') {
-    Invoke-Gate "bridge-scenario-coverage-gate" {
-        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-bridge-scenario-coverage.ps1"), '-Gate')
-        if ($ScopeToFile -and $changedFiles.Count -gt 0) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
-        & $pwsh @a
-    }
-}
-else {
-    Skip-Step "bridge-scenario-coverage-gate" "not applicable - no changed file is a route catalog or the bridge scenario registry"
-}
+# S2380: the declared-catalog gate family - five gates that judge a hand-maintained declaration
+# against the module it describes. Dot-sourced rather than inline only because the facade crossed
+# the Rule 2 ceiling; scope, order and behaviour are unchanged.
+. (Join-Path $root 'scripts/quality/lib/post-change-declared-catalog-gates.ps1')
 
 # S2125: the sibling of the gate above, judging the TEXT the parity gate never reads. The two modules
 # ship no shared resource artifact, so a label the owner sees on both sides exists twice and editing

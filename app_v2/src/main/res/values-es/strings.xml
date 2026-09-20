@@ -3665,4 +3665,11 @@
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">Apaga la pantalla tras un periodo de inactividad mientras el cargador está conectado</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Tiempo de espera de pantalla al cargar</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Pone la pantalla en negro tras un periodo de inactividad mientras el cargador está conectado. Esta versión no puede bloquear el dispositivo.</string>
+    <string name="settings_watch_camera_standby">Permitir que mi reloj vea mi cámara</string>
+    <string name="settings_watch_camera_standby_summary">Enciende la cámara ahora para que el reloj vinculado pueda abrir la imagen más tarde mientras el teléfono sigue en el bolsillo</string>
+    <string name="settings_watch_camera_standby_failed">No se pudo encender la cámara para el reloj</string>
+    <string name="settings_broadcast_feedback_guard">Protección contra acoplamiento</string>
+    <string name="settings_broadcast_feedback_guard_summary">Reduce la ganancia del micrófono cuando un oyente reproduce la emisión en voz alta cerca, para que el sonido no se realimente</string>
+    <string name="broadcast_control_feedback_warning">Sonido reducido: el altavoz de un oyente se está acoplando al micrófono. Aleje el dispositivo receptor o baje su volumen.</string>
+    <string name="broadcast_control_feedback_warning_cd">Acoplamiento acústico detectado, se redujo la ganancia del micrófono</string>
 </resources>

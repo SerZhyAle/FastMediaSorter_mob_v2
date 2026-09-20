@@ -81,6 +81,10 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
             updateBroadcastOptionsVisibility(isChecked)
         }
 
+        bindSwitch(binding.rowFeedbackGuard) { isChecked ->
+            updateBroadcast { copy(feedbackGuardEnabled = isChecked) }
+        }
+
         bindSwitch(binding.rowAutoOpenShare) { isChecked ->
             updateBroadcast { copy(autoOpenShare = isChecked) }
         }
@@ -101,6 +105,7 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
                     BroadcastSettingsOptions.audioFormatIndex(settings)
                 )
                 setDropdownSelection(binding.rowMicGain, BroadcastSettingsOptions.micGainIndex(settings))
+                setSwitchChecked(binding.rowFeedbackGuard, settings.broadcast.feedbackGuardEnabled)
                 setSwitchChecked(binding.rowAutoOpenShare, settings.broadcast.autoOpenShare)
             }
         }
@@ -115,6 +120,7 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
     private fun updateBroadcastOptionsVisibility(enabled: Boolean) {
         binding.rowStreamTitle.isVisible = enabled
         binding.broadcastConfigGroup.isVisible = enabled
+        binding.rowFeedbackGuard.isVisible = enabled
         binding.rowAutoOpenShare.isVisible = enabled
     }
 

@@ -5,21 +5,19 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
-import com.sza.fastmediasorter.wear.domain.model.SosMorseCadence
+import com.sza.fastmediasorter.wear.domain.model.SosSirenWaveform
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.PI
-import kotlin.math.sin
 
 /**
  * S3216: the siren half of the watch's distress signal - one synthesised `... --- ...` cycle played on
  * the alarm channel and looped by the audio hardware.
  *
  * The watch is where the owner discovered the effect this program exists for: the speaker is small and
- * resonant, and a tone near its resonance is startlingly loud for the size of the device. The tone
- * frequency is therefore the same number the phone half uses rather than one tuned per device - the two
- * are one signal, and a listener has to recognise the same sound from either.
+ * resonant, and a signal in its band is startlingly loud for the size of the device. The waveform comes
+ * from [SosSirenWaveform] with the phone half's numbers rather than ones tuned per device - the two are
+ * one signal, and a listener has to recognise the same sound from either.
  *
  * One pre-rendered buffer in a STATIC track rather than a timer switching a tone on and off: a loop the
  * hardware owns keeps its cadence while the process is starved, and it makes [start] and [stop] the
@@ -37,7 +35,6 @@ class SosSoundGenerator @Inject constructor() {
     /** Idempotent: a second call while the siren runs is a no-op rather than a second track. */
     fun start(context: Context) {
         if (track != null) return
-        Timber.d("S3333: watch siren starting, raising the alarm channel")
         raiseAlarmVolume(context)
         runCatching { buildLoopingTrack() }
             .onFailure { Timber.w(it, "SosSoundGenerator: could not open the alarm track") }
@@ -60,7 +57,13 @@ class SosSoundGenerator @Inject constructor() {
     }
 
     private fun buildLoopingTrack(): AudioTrack {
-        val samples = renderCycle()
+        val samples = SosSirenWaveform.render(SAMPLE_RATE_HZ)
+        Timber.i(
+            "SosSoundGenerator: watch siren waveform peak %.3f, rms %.3f of full scale",
+            SosSirenWaveform.peakRatio(samples),
+            SosSirenWaveform.rmsRatio(samples, SAMPLE_RATE_HZ),
+        )
+        Timber.d("S3347: watch siren rendered with the band-limited warbled waveform")
         val attributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ALARM)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -82,42 +85,6 @@ class SosSoundGenerator @Inject constructor() {
                 // -1 loops until stop(); the cadence then survives a starved process.
                 setLoopPoints(0, samples.size, INFINITE_LOOP)
             }
-    }
-
-    /**
-     * One cycle of the cadence as 16-bit PCM.
-     *
-     * The tone is faded in and out over a few milliseconds at each mark boundary. A sine cut mid-period
-     * is a step in the waveform, which a small speaker reproduces as a click on every dot - about twenty
-     * per cycle, loud enough to muddy the pattern the signal exists to be recognised by.
-     */
-    private fun renderCycle(): ShortArray {
-        val total = (SosMorseCadence.cycleMs * SAMPLE_RATE_HZ / MILLIS_PER_SECOND).toInt()
-        val samples = ShortArray(total)
-        var cursor = 0
-        for (span in SosMorseCadence.cycle) {
-            val length = (span.durationMs * SAMPLE_RATE_HZ / MILLIS_PER_SECOND).toInt()
-                .coerceAtMost(total - cursor)
-            if (span.engaged) {
-                writeTone(samples, cursor, length)
-            }
-            cursor += length
-        }
-        return samples
-    }
-
-    private fun writeTone(samples: ShortArray, offset: Int, length: Int) {
-        val rampSamples = (RAMP_MS * SAMPLE_RATE_HZ / MILLIS_PER_SECOND).toInt().coerceAtMost(length / 2)
-        for (index in 0 until length) {
-            val envelope = when {
-                rampSamples == 0 -> 1.0
-                index < rampSamples -> index.toDouble() / rampSamples
-                index >= length - rampSamples -> (length - index).toDouble() / rampSamples
-                else -> 1.0
-            }
-            val angle = TWO_PI * TONE_HZ * index / SAMPLE_RATE_HZ
-            samples[offset + index] = (sin(angle) * envelope * Short.MAX_VALUE).toInt().toShort()
-        }
     }
 
     /**
@@ -198,18 +165,13 @@ class SosSoundGenerator @Inject constructor() {
     private companion object {
 
         /**
-         * 22.05 kHz is enough headroom for the tone below and halves the buffer a whole cycle needs -
-         * one cycle is over five seconds long, which on a watch is the difference between a comfortable
-         * static track and one near the platform's limit.
+         * 22.05 kHz halves the buffer a whole cycle needs - one cycle is over five seconds long, which on
+         * a watch is the difference between a comfortable static track and one near the platform's limit.
+         * [SosSirenWaveform] derives its partial ceiling from this rate, so lowering it drops the upper
+         * harmonics rather than aliasing them down.
          */
         const val SAMPLE_RATE_HZ = 22_050
 
-        /** 3.2 kHz: the same number the phone half uses, so both devices sound like one signal. */
-        const val TONE_HZ = 3_200.0
-
-        const val RAMP_MS = 4L
-        const val MILLIS_PER_SECOND = 1_000L
-        const val TWO_PI = 2.0 * PI
         const val INFINITE_LOOP = -1
     }
 }

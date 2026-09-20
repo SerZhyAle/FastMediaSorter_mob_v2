@@ -103,6 +103,15 @@ class CapabilityAvailability @Inject constructor(
     /** Whether the GPL NewPipe extractor is linked in (noLegal only) - gates its license card. */
     fun isNewPipeAvailable(): Boolean = CAP_NEWPIPE in compiled
 
+    /**
+     * Whether this build answers the paired watch's camera request from a standing arrangement rather
+     * than from a notification the owner taps (S2551 research item 6.8, owner decision 2026-09-08).
+     *
+     * Compiled in by `noLegal` alone, so the settings row that arms the standby session is absent
+     * everywhere else - a `standard` build prompts per request and has nothing to arm ahead of time.
+     */
+    fun isWatchCameraStandbyAvailable(): Boolean = CAP_WATCH_CAMERA_STANDBY in compiled
+
     enum class TranslationUnavailableReason {
         /** This flavor does not link ML Kit translation at all. */
         NOT_COMPILED_IN,
@@ -125,5 +134,6 @@ class CapabilityAvailability @Inject constructor(
         const val CAP_VR = "vr"
         const val CAP_NEWPIPE = "newpipe"
         const val CAP_CLOUD = "cloud"
+        const val CAP_WATCH_CAMERA_STANDBY = "watch_camera_standby"
     }
 }

@@ -1421,18 +1421,33 @@ scripts/devtest/ui-sweep-bench.ps1
   Exit: 0 - the verb succeeded: -List printed, -Ensure left a usable AVD, or -Assert matched.; 1 - -Assert ran and the attached device does NOT match the declared profile. A real answer, and
 ```
 
+### ui-sweep-compress.ps1
+S2380 phase 05 - reduces the raw UI-sweep corpus to a weight an agent can read and emits the manifest that is the review's only input besides the frames.
+
+```
+scripts/devtest/ui-sweep-compress.ps1
+  S2380 phase 05 - reduces the raw UI-sweep corpus to a weight an agent can read and emits the manifest that is the review's only input besides the frames.
+  Params:
+    -CorpusDir           [String] = 'temp/S2380/sweep'
+    -OutDir              [String] = 'temp/S2380/sweep-compressed'
+    -MaxWidth            [Int32] = 1080
+    -JpegQuality         [Int32] = 72  {range 1..100}
+    -Json                [SwitchParameter]
+  Exit: 0 - the corpus was compressed and the manifest written (including when every frame was dropped:
+```
+
 ### ui-sweep-seed.ps1
-S2380 - stage a device for the automated UI sweep: synthetic media in its own root, MediaStore told about it, and the media-read permissions granted before the app is first launched.
+S2380 - stage a device for the automated UI sweep: synthetic media in its own root, MediaStore told about it, the media-read permissions granted before the app is first launched, and the first-run wizard cleared out of the walk's way.
 
 ```
 scripts/devtest/ui-sweep-seed.ps1
-  S2380 - stage a device for the automated UI sweep: synthetic media in its own root, MediaStore told about it, and the media-read permissions granted before the app is first launched.
+  S2380 - stage a device for the automated UI sweep: synthetic media in its own root, MediaStore told about it, the media-read permissions granted before the app is first launched, and the first-run wizard cleared out of the walk's way.
   Params:
     -DeviceId             [String]
     -Root                 [String] = '/sdcard/Download/FastMediaSorter_UiSweep'
     -Package              [String] = 'com.sza.fastmediasorter.debug'
     -SkipGenerate         [SwitchParameter]
-  Exit: 0 - corpus generated (unless skipped), pushed, handed to MediaStore, and the three media-read
+  Exit: 0 - corpus generated (unless skipped), pushed, handed to MediaStore, the three media-read
 ```
 
 ### ui-sweep-walk.ps1
@@ -1704,6 +1719,15 @@ Shared adb-path auto-discovery, extracted from adb.ps1 (S1341) so every caller (
 ```
 scripts/devtest/lib/find-adb.ps1
   Shared adb-path auto-discovery, extracted from adb.ps1 (S1341) so every caller (adb.ps1, spec-prerelease.md, any future device script) uses one discovery order instead of each hand-rolling its own hardcoded fallback.
+  (no param block)
+```
+
+### frame-signal.ps1
+S2380 - classifies one captured frame as carrying signal or not.
+
+```
+scripts/devtest/lib/frame-signal.ps1
+  S2380 - classifies one captured frame as carrying signal or not.
   (no param block)
 ```
 
@@ -4040,6 +4064,7 @@ scripts/quality/assert-wear-walk-contract.ps1
     -ScreenList                 [String]
     -StringsFile                [String]
     -WearSource                 [String]
+    -WearGradleFile             [String]
     -BaselineFile               [String]
   Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: the screen list, the strings file or the wear source tree is missing or; 4 Code.Scripts is held by another session, so no baseline was written. The queue place is held -
 ```
@@ -5140,6 +5165,15 @@ S3301: the closure ledger - what scripts/post-change.ps1 remembers about what it
 ```
 scripts/quality/lib/post-change-closure-ledger.ps1
   S3301: the closure ledger - what scripts/post-change.ps1 remembers about what it already judged.
+  (no param block)
+```
+
+### post-change-declared-catalog-gates.ps1
+The declared-catalog gates of scripts/post-change.ps1 - each one judging a hand-maintained declaration against the module it claims to describe.
+
+```
+scripts/quality/lib/post-change-declared-catalog-gates.ps1
+  The declared-catalog gates of scripts/post-change.ps1 - each one judging a hand-maintained declaration against the module it claims to describe.
   (no param block)
 ```
 

@@ -4,10 +4,13 @@ import android.content.Intent
 import com.sza.fastmediasorter.wear.data.files.WearMediaFileStager
 import com.sza.fastmediasorter.wear.data.files.WearMediaStoreFileWriter
 import com.sza.fastmediasorter.wear.data.files.WearSendToLauncher
+import com.sza.fastmediasorter.wear.data.files.WearWatchFilePublisher
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.files.WearFileNameConflictResolver
 import com.sza.fastmediasorter.wear.domain.files.WearSendToReachability
+import com.sza.fastmediasorter.wear.domain.files.WearWatchFileCollection
+import com.sza.fastmediasorter.wear.domain.files.WearWatchFileTarget
 import com.sza.fastmediasorter.wear.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
@@ -19,6 +22,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneRequest
 import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
 import com.sza.fastmediasorter.wear.domain.model.kind
+import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearOpenOnPhoneRepository
@@ -39,39 +43,58 @@ private const val ANY_MIME_TYPE = "*/*"
  * Anything leaving the watch goes through the S1861 sender that S1862 already calls - strategic
  * ADR-1 keeps that one transport, so this class adds a runner over it and never a second channel.
  */
+// Each parameter is the one collaborator a single operation needs, and the operations are fixed by
+// the model rather than by this class. Grouping any of them would name a thing that does not exist -
+// the watch has no "file service", only a sender, a publisher, a stager and a downloader.
+@Suppress("LongParameterList")
 class PerformWearFileOperationUseCase @Inject constructor(
     private val capabilityPolicy: WearFileCapabilityPolicy,
     private val senderRepository: WearFileSenderRepository,
     private val openOnPhoneRepository: WearOpenOnPhoneRepository,
     private val stager: WearMediaFileStager,
     private val mediaStoreWriter: WearMediaStoreFileWriter,
+    private val watchPublisher: WearWatchFilePublisher,
+    /** S1687's protocol routing, reused rather than duplicated: a copy reads the share as a play does. */
+    private val downloadNetworkFile: DownloadNetworkFileUseCase,
     private val sendToReceivers: WearSendToReceiversRepository,
     private val reachability: WearSendToReachability,
     private val sendToLauncher: WearSendToLauncher
 ) {
 
+    /**
+     * [networkSourceId] names the share a network file is read from, and only a copy onto the watch
+     * needs it - every other operation either stays on the watch or crosses to the phone, where the
+     * listing's own connection has already been resolved.
+     */
     operator fun invoke(
         files: List<WearMediaFile>,
         operation: WearFileOperation,
-        isNetworkSource: Boolean
+        isNetworkSource: Boolean,
+        networkSourceId: String? = null
     ): Flow<WearFileOperationResult> = flow {
         for (file in files) {
-            emit(runOne(file, operation, isNetworkSource))
+            emit(runOne(file, operation, isNetworkSource, networkSourceId))
         }
     }.flowOn(Dispatchers.IO)
 
     private suspend fun runOne(
         file: WearMediaFile,
         operation: WearFileOperation,
-        isNetworkSource: Boolean
+        isNetworkSource: Boolean,
+        networkSourceId: String?
     ): WearFileOperationResult {
         val storageClass = capabilityPolicy.classify(file, isNetworkSource)
-        if (operation.kind() !in capabilityPolicy.allowedOperations(storageClass)) {
+        if (operation.kind() !in capabilityPolicy.allowedOperations(file, isNetworkSource)) {
             return WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_UNSUPPORTED)
         }
         return when (operation) {
             WearFileOperation.SendToPhone -> sendToPhone(file, storageClass, deleteSource = false)
             WearFileOperation.MoveToPhone -> sendToPhone(file, storageClass, deleteSource = true)
+            WearFileOperation.CopyToWatch -> copyToWatch(file, storageClass, networkSourceId)
+            // The removal half needs the source's own consent - the phone's for a copy it holds, a
+            // delete verb for a share that has none - so it is delivered after the copy it depends on.
+            WearFileOperation.MoveToWatch ->
+                WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_UNSUPPORTED)
             WearFileOperation.Delete -> deleteLocal(file, storageClass)
             is WearFileOperation.Rename -> renameLocal(file, operation.newName, storageClass)
             is WearFileOperation.OpenOnPhone -> openOnPhone(file, operation.token)
@@ -182,6 +205,119 @@ class PerformWearFileOperationUseCase @Inject constructor(
         !senderRepository.isPhoneReachable() -> WearFileOperationOutcome.PHONE_UNREACHABLE
         else -> null
     }
+
+    /**
+     * Turns a file the watch is only borrowing into one of its own.
+     *
+     * Two sources reach here and neither is the watch's own storage: the phone's copy, whose bytes
+     * are already on disk, and a network entry, which has to be read off the share first. A type with
+     * no collection is refused before either path, because the destination is what decides whether a
+     * copy can be found again at all.
+     */
+    private suspend fun copyToWatch(
+        file: WearMediaFile,
+        storageClass: WearFileStorageClass,
+        networkSourceId: String?
+    ): WearFileOperationResult {
+        val mimeType = file.mimeType
+        val collection = WearWatchFileTarget.collectionOf(mimeType)
+        if (mimeType == null || collection == null) {
+            return WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_UNSUPPORTED)
+        }
+        return when (storageClass) {
+            WearFileStorageClass.PHONE_COPY -> copyHeldFile(file, mimeType, collection)
+            WearFileStorageClass.NETWORK -> copyNetworkFile(file, mimeType, collection, networkSourceId)
+            WearFileStorageClass.APP_OWNED, WearFileStorageClass.MEDIA_STORE ->
+                WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_UNSUPPORTED)
+        }
+    }
+
+    /**
+     * The phone's copy is already here, so this is a publish and not a transfer.
+     *
+     * The space is judged against the cached file's real length before the first byte, because the
+     * refusal has to arrive while the phone's original is still the only complete copy there is.
+     */
+    private fun copyHeldFile(
+        file: WearMediaFile,
+        mimeType: String,
+        collection: WearWatchFileCollection
+    ): WearFileOperationResult {
+        val cached = stager.localFileOf(file)
+        return when {
+            cached == null -> WearFileOperationResult(file.name, WearFileOperationOutcome.FAILED)
+            watchPublisher.freeBytes() < cached.length() ->
+                WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_NO_SPACE)
+            else -> publishToWatch(file, cached, mimeType, collection)
+        }
+    }
+
+    /**
+     * A share is read through the one use case that knows which protocol serves it (S1687), so a copy
+     * needs no network verb of its own - research artifact 02's finding.
+     *
+     * The space is judged against the listing's size rather than a downloaded length: refusing after
+     * the transfer would have spent exactly what the refusal exists to save. A missing source id is a
+     * failure rather than a refusal - the id names the share the bytes live on, and its absence means
+     * the menu and the list disagreed about where this entry came from.
+     */
+    private suspend fun copyNetworkFile(
+        file: WearMediaFile,
+        mimeType: String,
+        collection: WearWatchFileCollection,
+        networkSourceId: String?
+    ): WearFileOperationResult = when {
+        networkSourceId == null -> WearFileOperationResult(file.name, WearFileOperationOutcome.FAILED)
+        watchPublisher.freeBytes() < file.size ->
+            WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_NO_SPACE)
+        else -> downloadAndPublish(file, mimeType, collection, networkSourceId)
+    }
+
+    private suspend fun downloadAndPublish(
+        file: WearMediaFile,
+        mimeType: String,
+        collection: WearWatchFileCollection,
+        networkSourceId: String
+    ): WearFileOperationResult {
+        val selected = SelectedMedia(
+            file = file,
+            isNetworkSource = true,
+            streamUri = file.uri.toString(),
+            sourceId = networkSourceId
+        )
+        val downloaded = downloadNetworkFile(selected, downloadKindOf(collection)).getOrNull()
+        return if (downloaded == null) {
+            WearFileOperationResult(file.name, WearFileOperationOutcome.FAILED)
+        } else {
+            publishToWatch(file, downloaded, mimeType, collection)
+        }
+    }
+
+    /** The collection already answered the MIME prefix, so the cache the download uses follows from it. */
+    private fun downloadKindOf(collection: WearWatchFileCollection): DownloadNetworkFileUseCase.Kind =
+        when (collection) {
+            WearWatchFileCollection.AUDIO -> DownloadNetworkFileUseCase.Kind.AUDIO
+            WearWatchFileCollection.VIDEO -> DownloadNetworkFileUseCase.Kind.VIDEO
+            WearWatchFileCollection.IMAGE -> DownloadNetworkFileUseCase.Kind.IMAGE
+        }
+
+    private fun publishToWatch(
+        file: WearMediaFile,
+        cached: File,
+        mimeType: String,
+        collection: WearWatchFileCollection
+    ): WearFileOperationResult =
+        when (val published = watchPublisher.publish(cached, file.name, mimeType, collection)) {
+            is WearWatchFilePublisher.Result.Published -> WearFileOperationResult(
+                fileName = file.name,
+                outcome = WearFileOperationOutcome.SUCCEEDED,
+                // Reported only when the store had to move the name: repeating the name the owner
+                // just tapped says nothing, while a silent suffix leaves them looking for the wrong file.
+                finalName = published.finalName.takeIf { it != file.name }
+            )
+            WearWatchFilePublisher.Result.Failed ->
+                WearFileOperationResult(file.name, WearFileOperationOutcome.FAILED)
+        }
 
     /**
      * The one operation that stages nothing: the phone already holds the file this watch copy came

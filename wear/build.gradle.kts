@@ -4,6 +4,7 @@ import java.io.File
 import java.time.Duration
 import java.util.Properties
 import org.gradle.api.GradleException
+import org.gradle.api.tasks.PathSensitivity
 
 plugins {
     id("com.android.application")
@@ -246,6 +247,14 @@ android {
                 // ends the task so the wrapper reaches its finally and reaps the worker there.
                 it.timeout.set(Duration.ofMinutes(unitTestTimeoutMinutes))
                 it.maxParallelForks = unitTestMaxParallelForks
+                // S3358: the declared pre-release walk is read by the two boundary tests and lives
+                // outside this module, so Gradle sees no dependency on it - an edit to the screen
+                // list alone left the test task UP-TO-DATE and the check it exists for never ran.
+                // Declared as an input rather than by disabling caching, so an unrelated edit still
+                // reuses the result.
+                it.inputs.file(rootProject.file("scripts/devtest/wear-prerelease-screens.json"))
+                    .withPropertyName("wearPrereleaseScreenList")
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
             }
         }
     }

@@ -884,9 +884,6 @@
     <string name="wear_onboarding_slogan">رفيقك للوسائط على المعصم</string>
     <string name="wear_onboarding_skip_all">تخطي الكل</string>
     <string name="wear_onboarding_page_indicator">الخطوة %1$d من %2$d</string>
-    <string name="wear_battery_optimization_title">قد يوقف توفير البطارية البث</string>
-    <string name="wear_battery_optimization_desc">اسمح للتطبيق بمواصلة العمل في الخلفية حتى لا ينقطع الصوت.</string>
-    <string name="wear_battery_optimization_grant">السماح بالعمل في الخلفية</string>
     <string name="dim_clock_overlay_toggle">إظهار الساعة والحالة أثناء التعتيم</string>
     <string name="dim_clock_status_cd">الساعة والحالة على الشاشة المعتمة</string>
 </resources>

@@ -3678,4 +3678,11 @@
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">يطفئ الشاشة بعد فترة من عدم النشاط أثناء توصيل الشاحن</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">مهلة الشاشة أثناء الشحن</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">يجعل الشاشة سوداء بعد فترة من عدم النشاط أثناء توصيل الشاحن. هذا الإصدار لا يمكنه قفل الجهاز.</string>
+    <string name="settings_watch_camera_standby">السماح لساعتي برؤية الكاميرا</string>
+    <string name="settings_watch_camera_standby_summary">يشغّل الكاميرا الآن، حتى تتمكن الساعة المقترنة من فتح الصورة لاحقًا بينما يبقى الهاتف في جيبك</string>
+    <string name="settings_watch_camera_standby_failed">تعذّر تشغيل الكاميرا للساعة</string>
+    <string name="settings_broadcast_feedback_guard">الحماية من التغذية الراجعة</string>
+    <string name="settings_broadcast_feedback_guard_summary">يخفض كسب الميكروفون عندما يشغّل أحد المستمعين البث بصوت عالٍ في الجوار، حتى لا يتصاعد الصوت</string>
+    <string name="broadcast_control_feedback_warning">تم خفض الصوت: مكبّر صوت أحد المستمعين يعود إلى الميكروفون. أبعد جهاز الاستماع أو اخفض مستوى صوته.</string>
+    <string name="broadcast_control_feedback_warning_cd">تم اكتشاف تغذية راجعة صوتية، وتم خفض كسب الميكروفون</string>
 </resources>
