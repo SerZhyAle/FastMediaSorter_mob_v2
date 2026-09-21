@@ -112,6 +112,7 @@ internal class WearWatchFileOperation(
             null
         }
         savedAck?.cancel()
+        Timber.d("S3360: ${source.name} streamed=$streamed ack=${ack?.outcome} awaited=$requireSavedAck")
         when {
             !streamed -> context.getString(messageFor(outcome), source.name)
             savedAck == null -> null

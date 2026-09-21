@@ -6,17 +6,20 @@ import com.sza.fastmediasorter.wear.data.files.WearMediaFileStager
 import com.sza.fastmediasorter.wear.data.files.WearMediaStoreFileWriter
 import com.sza.fastmediasorter.wear.data.files.WearWatchFilePublisher
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.domain.files.WEAR_PHONE_FILE_CACHE_DIR
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.files.WearMediaStoreConsent
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationResult
 import com.sza.fastmediasorter.wear.domain.model.WearFileSendOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneRequest
+import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceDeleteOutcome
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearOpenOnPhoneRepository
 import io.mockk.coEvery
@@ -24,6 +27,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -83,9 +87,15 @@ class PerformWearFileOperationUseCaseTest {
             stager = WearMediaFileStager(context),
             mediaStoreWriter = WearMediaStoreFileWriter(context, consent),
             watchPublisher = publisher,
+            // S3359: unstubbed for the reason below - no local operation may ask the phone to delete
+            // anything, and a relaxed answer would let one do so unnoticed.
+            phoneResourceClient = mockk(),
             // Unstubbed on purpose: no local operation may read a share, and a relaxed answer would
             // let one do so unnoticed.
             downloadNetworkFile = mockk(),
+            // S3359: unstubbed for the same reason, one step further - no local operation may remove
+            // anything from a share either.
+            deleteNetworkFile = mockk(),
             sendToReceivers = receivers,
             // The operations under test are the local ones, which never reach either of these.
             reachability = mockk(relaxed = true),
@@ -318,6 +328,168 @@ class PerformWearFileOperationUseCaseTest {
         coVerify(exactly = 0) { download(any(), any()) }
     }
 
+    /**
+     * Strategic §11 criterion 3: the original leaves the phone only on a confirmed removal, and the
+     * length that travels with the ask is the one measured on the copy this watch just published.
+     */
+    @Test
+    fun `a move the phone confirmed reports success and sends the copy's own length`() = runTest {
+        val publisher = publisher(WearWatchFilePublisher.Result.Published(mockk(), "clip.mp4"))
+        val client = mockk<PhoneResourceClient>()
+        coEvery { client.requestDelete(any(), any()) } returns WearPhoneResourceDeleteOutcome.DELETED
+        val copy = phoneCopy("clip.mp4", VIDEO_MIME_TYPE)
+        // Read before the verification block: a mocked getter called inside one is verified too.
+        val copiedLength = File(copy.uri.path!!).length()
+
+        val results = copyUseCase(publisher, client = client)(
+            files = listOf(copy),
+            operation = WearFileOperation.MoveToWatch,
+            isNetworkSource = false,
+            phoneToken = TOKEN
+        ).toList()
+
+        assertEquals(WearFileOperationOutcome.SUCCEEDED, results.single().outcome)
+        coVerify(exactly = 1) { client.requestDelete(TOKEN, copiedLength) }
+    }
+
+    /**
+     * Strategic §7: "the original may still be there" and "the original is gone" must not round to the
+     * same line, so every answer that is not a confirmed removal says the copy was kept - a lost answer
+     * (null) included, which is the one that would otherwise be read as success.
+     */
+    @Test
+    fun `every answer other than deleted reports the original kept`() = runTest {
+        val kept = listOf(
+            WearPhoneResourceDeleteOutcome.COPIED_ONLY,
+            WearPhoneResourceDeleteOutcome.SIZE_MISMATCH,
+            WearPhoneResourceDeleteOutcome.NOT_FOUND,
+            WearPhoneResourceDeleteOutcome.COMPANION_DISABLED,
+            null
+        )
+
+        kept.forEach { answer ->
+            val publisher = publisher(WearWatchFilePublisher.Result.Published(mockk(), "clip.mp4"))
+            val client = mockk<PhoneResourceClient>()
+            coEvery { client.requestDelete(any(), any()) } returns answer
+
+            val results = copyUseCase(publisher, client = client)(
+                files = listOf(phoneCopy("clip-$answer.mp4", VIDEO_MIME_TYPE)),
+                operation = WearFileOperation.MoveToWatch,
+                isNetworkSource = false,
+                phoneToken = TOKEN
+            ).toList()
+
+            assertEquals(
+                "answer $answer must not read as a move",
+                WearFileOperationOutcome.COPIED_SOURCE_KEPT,
+                results.single().outcome
+            )
+        }
+    }
+
+    /** Goal 5: nothing is asked of the phone until the copy on this watch is written and published. */
+    @Test
+    fun `a copy that did not finish asks the phone nothing and answers as the copy did`() = runTest {
+        val publisher = publisher(WearWatchFilePublisher.Result.Failed)
+        val client = mockk<PhoneResourceClient>()
+
+        val results = copyUseCase(publisher, client = client)(
+            files = listOf(phoneCopy("clip.mp4", VIDEO_MIME_TYPE)),
+            operation = WearFileOperation.MoveToWatch,
+            isNetworkSource = false,
+            phoneToken = TOKEN
+        ).toList()
+
+        assertEquals(WearFileOperationOutcome.FAILED, results.single().outcome)
+        coVerify(exactly = 0) { client.requestDelete(any(), any()) }
+    }
+
+    /** No token means no address for the original, and a guess would delete the wrong file. */
+    @Test
+    fun `a move with no token keeps the original and asks the phone nothing`() = runTest {
+        val publisher = publisher(WearWatchFilePublisher.Result.Published(mockk(), "clip.mp4"))
+        val client = mockk<PhoneResourceClient>()
+
+        val results = copyUseCase(publisher, client = client)(
+            files = listOf(phoneCopy("clip.mp4", VIDEO_MIME_TYPE)),
+            operation = WearFileOperation.MoveToWatch,
+            isNetworkSource = false
+        ).toList()
+
+        assertEquals(WearFileOperationOutcome.COPIED_SOURCE_KEPT, results.single().outcome)
+        coVerify(exactly = 0) { client.requestDelete(any(), any()) }
+    }
+
+    /**
+     * Strategic §11 criterion 5: the file leaves the server only after the copy is on the watch, and
+     * the phone is not involved at all - the watch removes a share's file itself.
+     */
+    @Test
+    fun `a network move the share allowed reports success and asks the phone nothing`() = runTest {
+        val delete = deleteThatAnswers(Result.success(Unit))
+        val client = mockk<PhoneResourceClient>()
+
+        val results = networkMove(delete, client = client).toList()
+
+        assertEquals(WearFileOperationOutcome.SUCCEEDED, results.single().outcome)
+        coVerify(exactly = 1) { delete(SOURCE_ID, any()) }
+        coVerify(exactly = 0) { client.requestDelete(any(), any()) }
+    }
+
+    /**
+     * Strategic §7: a read-only account, a locked file and a connection lost mid-move are one answer to
+     * the owner - the copy is on the watch and the original is still on the server.
+     */
+    @Test
+    fun `a share that refused the removal reports the original kept`() = runTest {
+        val delete = deleteThatAnswers(Result.failure(IllegalStateException("read-only")))
+
+        val results = networkMove(delete).toList()
+
+        assertEquals(WearFileOperationOutcome.COPIED_SOURCE_KEPT, results.single().outcome)
+    }
+
+    /** Goal 5 on the share's side: a copy that did not land leaves the server untouched. */
+    @Test
+    fun `a network move whose copy failed removes nothing from the share`() = runTest {
+        val delete = mockk<DeleteNetworkFileUseCase>()
+
+        val results = networkMove(delete, publisher(WearWatchFilePublisher.Result.Failed)).toList()
+
+        assertEquals(WearFileOperationOutcome.FAILED, results.single().outcome)
+        coVerify(exactly = 0) { delete(any(), any()) }
+    }
+
+    private fun deleteThatAnswers(answer: Result<Unit>): DeleteNetworkFileUseCase {
+        val delete = mockk<DeleteNetworkFileUseCase>()
+        coEvery { delete(any(), any()) } returns answer
+        return delete
+    }
+
+    /** A network move whose download and publish both succeed unless the caller says otherwise. */
+    private fun networkMove(
+        delete: DeleteNetworkFileUseCase,
+        publisher: WearWatchFilePublisher = publisher(
+            WearWatchFilePublisher.Result.Published(mockk(), "remote.mp3")
+        ),
+        client: PhoneResourceClient = mockk()
+    ): Flow<WearFileOperationResult> {
+        val download = mockk<DownloadNetworkFileUseCase>()
+        coEvery { download(any(), any()) } returns Result.success(temporaryFolder.newFile("fetched.mp3"))
+        return copyUseCase(
+            publisher,
+            download,
+            storageClass = WearFileStorageClass.NETWORK,
+            client = client,
+            delete = delete
+        )(
+            files = listOf(networkFile("remote.mp3")),
+            operation = WearFileOperation.MoveToWatch,
+            isNetworkSource = true,
+            networkSourceId = SOURCE_ID
+        )
+    }
+
     private fun networkCopy(
         publisher: WearWatchFilePublisher,
         download: DownloadNetworkFileUseCase,
@@ -353,12 +525,14 @@ class PerformWearFileOperationUseCaseTest {
     private fun copyUseCase(
         publisher: WearWatchFilePublisher,
         download: DownloadNetworkFileUseCase = mockk(),
-        storageClass: WearFileStorageClass = WearFileStorageClass.PHONE_COPY
+        storageClass: WearFileStorageClass = WearFileStorageClass.PHONE_COPY,
+        client: PhoneResourceClient = mockk(),
+        delete: DeleteNetworkFileUseCase = mockk()
     ): PerformWearFileOperationUseCase {
         val policy = mockk<WearFileCapabilityPolicy>()
         every { policy.classify(any(), any()) } returns storageClass
         every { policy.allowedOperations(any<WearMediaFile>(), any()) } returns
-            setOf(WearFileOperationKind.COPY_TO_WATCH)
+            setOf(WearFileOperationKind.COPY_TO_WATCH, WearFileOperationKind.MOVE_TO_WATCH)
         return PerformWearFileOperationUseCase(
             capabilityPolicy = policy,
             senderRepository = sender,
@@ -366,7 +540,9 @@ class PerformWearFileOperationUseCaseTest {
             stager = WearMediaFileStager(context),
             mediaStoreWriter = mockk(relaxed = true),
             watchPublisher = publisher,
+            phoneResourceClient = client,
             downloadNetworkFile = download,
+            deleteNetworkFile = delete,
             sendToReceivers = receivers,
             reachability = mockk(relaxed = true),
             sendToLauncher = mockk(relaxed = true)

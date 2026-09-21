@@ -886,4 +886,8 @@
     <string name="wear_onboarding_page_indicator">ধাপ %1$d / %2$d</string>
     <string name="dim_clock_overlay_toggle">আবছা অবস্থায় ঘড়ি ও স্ট্যাটাস দেখান</string>
     <string name="dim_clock_status_cd">আবছা স্ক্রিনে ঘড়ি ও স্ট্যাটাস</string>
+    <string name="wear_file_op_copy_to_watch">ঘড়িতে কপি করুন</string>
+    <string name="wear_file_op_move_to_watch">ঘড়িতে সরান</string>
+    <string name="wear_file_op_outcome_no_space">ঘড়িতে পর্যাপ্ত জায়গা নেই - কিছু জায়গা খালি করে আবার চেষ্টা করুন</string>
+    <string name="wear_file_op_outcome_copied_source_kept">ঘড়িতে কপি করা হয়েছে - মূল ফাইলটি আগের জায়গাতেই আছে</string>
 </resources>

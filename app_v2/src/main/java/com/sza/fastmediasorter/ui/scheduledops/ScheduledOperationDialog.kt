@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.ui.dialog
+package com.sza.fastmediasorter.ui.scheduledops
 
 import android.app.Dialog
 import android.app.TimePickerDialog

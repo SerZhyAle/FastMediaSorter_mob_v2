@@ -3672,4 +3672,5 @@
     <string name="settings_broadcast_feedback_guard_summary">Reduce la ganancia del micrófono cuando un oyente reproduce la emisión en voz alta cerca, para que el sonido no se realimente</string>
     <string name="broadcast_control_feedback_warning">Sonido reducido: el altavoz de un oyente se está acoplando al micrófono. Aleje el dispositivo receptor o baje su volumen.</string>
     <string name="broadcast_control_feedback_warning_cd">Acoplamiento acústico detectado, se redujo la ganancia del micrófono</string>
+    <string name="wear_watch_transfer_unconfirmed">El reloj no confirmó que guardó %1$s, así que el original se conservó en el teléfono.</string>
 </resources>

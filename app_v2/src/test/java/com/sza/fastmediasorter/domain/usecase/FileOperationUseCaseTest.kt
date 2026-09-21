@@ -69,12 +69,16 @@ class FileOperationUseCaseTest {
     }
 
     private fun copyOp(source: String, dest: String) = FileOperation.Copy(
-        sources = listOf(netFile(source)), destination = netFile(dest), overwrite = true,
+        sources = listOf(netFile(source)),
+        destination = netFile(dest),
+        overwrite = true,
     )
 
     // S3360: a real file on disk, because the watch-move tests assert on whether it survives.
     private fun moveOp(source: File, dest: String) = FileOperation.Move(
-        sources = listOf(source), destination = netFile(dest), overwrite = true,
+        sources = listOf(source),
+        destination = netFile(dest),
+        overwrite = true,
     )
 
     @Test
@@ -280,10 +284,15 @@ class FileOperationUseCaseTest {
             wearTransfers.value = watchQueueWith("t4", source, WearFileTransferOutcome.SUCCEEDED)
             "t4"
         }
-        // The watch answers only a transfer the phone has already announced, so this emission is
-        // parked until the operation has generated its id and is waiting for the verdict.
-        launch {
-            delay(1)
+        // The watch answers only a transfer the phone has already announced, so the emission waits
+        // for the id the operation generated rather than for a fixed instant: the use case reaches
+        // its first suspension point before enqueue, which lets virtual time run past one tick.
+        // backgroundScope, so a run where the id never arrives ends with the assertions rather than
+        // with this loop.
+        backgroundScope.launch {
+            while (!requestId.isCaptured) {
+                delay(1)
+            }
             WearSyncEvents.emitFileTransferAck(
                 WearFileTransferAck(requestId.captured, WearFileTransferAck.OUTCOME_SAVED)
             )

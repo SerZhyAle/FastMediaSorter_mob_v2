@@ -171,6 +171,18 @@ $gates = [ordered]@{
     # missing locales is one batch either way. Deliberately NOT passed -Quiet - that switch suppresses
     # the per-violation lines, and "which locale" is the whole content of this gate's report.
     'assert-play-listing-locales.ps1'  = @()
+    # S3364. Three store pre-publication checks added as one block because they share one subject
+    # (Rule 33): the shipped artifact a release publishes, not any one changed file. The identity
+    # gate reads the phone and wear build configurations (WO-G7), the ABI gate reads the built wear
+    # release APK, and the packaging gate measures the built VR-flavor APK against the Meta VRC
+    # limits - a miss reaches a user only when the owner submits an artifact to a store; each gate
+    # names its own measured pair or ABI set; and re-running one costs about a second. Thresholds
+    # come from store-prepublish-thresholds.psd1, so a store policy change is a data edit. Each gate
+    # degrades to a stated advisory skip (exit 0) when its artifact is not built yet, which is the
+    # same semantics the delivery-size gate above accepts for an unreachable release.
+    'assert-wear-phone-identity-parity.ps1' = @()   # S3364 - subject: the shipped phone+wear identity pair
+    'assert-wear-64bit-abi.ps1'             = @()   # S3364 - subject: the shipped wear release APK
+    'assert-meta-packaging-limits.ps1'      = @()   # S3364 - subject: the shipped VR-flavor release APK
     # S2597. The other half of the same listing tree: its locale sibling above judges the TEXTS,
     # this one judges the images the publisher declares in SINGLE_IMAGES. Rule 33 places it here on
     # the same four criteria, and for one more reason of its own - the defect it guards is invisible

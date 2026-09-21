@@ -3255,6 +3255,17 @@ scripts/quality/assert-memory-budget.ps1
   Exit: 1024 B are in `assert-always-loaded-budget.ps1` -SlackBytes - MEMORY.md is an always-loaded
 ```
 
+### assert-meta-packaging-limits.ps1
+
+```
+scripts/quality/assert-meta-packaging-limits.ps1
+  Params:
+    -ApkPath         [String]
+    -ObbPath         [String]
+    -Gate            [SwitchParameter]
+  Exit: 0 - every executed measurement passes, OR there is nothing to verify (no built
+```
+
 ### assert-migration-schema-conformance.ps1
 Ratchet gate: what a Room migration writes in SQL must match the exported schema Room validates the upgraded database against, and every migration must be registered - in every module that owns a Room database.
 
@@ -3973,6 +3984,16 @@ scripts/quality/assert-untracked-dialogs.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-wear-64bit-abi.ps1
+
+```
+scripts/quality/assert-wear-64bit-abi.ps1
+  Params:
+    -ApkPath         [String]
+    -Gate            [SwitchParameter]
+  Exit: 0 - arm64-v8a present in the checked APK, OR no built wear release artifact
+```
+
 ### assert-wear-canonical-key-parity.ps1
 S2579: fails when a watch mini-program's canonicalKey is neither a phone route key nor a declared watch-only program.
 
@@ -3997,6 +4018,19 @@ scripts/quality/assert-wear-mirrored-strings.ps1
     -Quiet         [SwitchParameter]
     -Scope         [String] = 'All'  {Authored|All}
   Exit: 0 - every declared pair is in step; or a divergence was reported without -Gate, matching the; 1 - a divergence was found and -Gate was passed.; 2 - could not verify: the declaration is missing, parses to zero pairs, or a strings.xml under
+```
+
+### assert-wear-phone-identity-parity.ps1
+
+```
+scripts/quality/assert-wear-phone-identity-parity.ps1
+  Params:
+    -PhoneApplicationIdOverride         [String]
+    -WearApplicationIdOverride          [String]
+    -PhoneStoreFileOverride             [String]
+    -WearStoreFileOverride              [String]
+    -Gate                               [SwitchParameter]
+  Exit: 0 - parity holds on every comparison that could run, OR an input could not be
 ```
 
 ### assert-wear-record-merge-parity.ps1

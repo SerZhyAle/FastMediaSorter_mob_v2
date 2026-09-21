@@ -3664,4 +3664,5 @@
     <string name="settings_broadcast_feedback_guard_summary">जब कोई श्रोता पास में प्रसारण को ज़ोर से बजाता है तो माइक्रोफ़ोन गेन घटा देता है, ताकि आवाज़ बढ़ती न जाए</string>
     <string name="broadcast_control_feedback_warning">आवाज़ कम की गई: श्रोता का स्पीकर माइक्रोफ़ोन में वापस आ रहा है। सुनने वाले उपकरण को दूर ले जाएँ या उसकी आवाज़ कम करें।</string>
     <string name="broadcast_control_feedback_warning_cd">ध्वनिक फ़ीडबैक मिला, माइक्रोफ़ोन गेन कम कर दिया गया</string>
+    <string name="wear_watch_transfer_unconfirmed">घड़ी ने %1$s को सहेजने की पुष्टि नहीं की, इसलिए मूल फ़ाइल फ़ोन पर रखी गई।</string>
 </resources>

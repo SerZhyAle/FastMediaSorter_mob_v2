@@ -3673,4 +3673,5 @@
     <string name="settings_broadcast_feedback_guard_summary">Abbassa il guadagno del microfono quando un ascoltatore riproduce la trasmissione ad alta voce nelle vicinanze, così il suono non si amplifica</string>
     <string name="broadcast_control_feedback_warning">Audio abbassato: l\'altoparlante di un ascoltatore rientra nel microfono. Allontana il dispositivo in ascolto o abbassane il volume.</string>
     <string name="broadcast_control_feedback_warning_cd">Rilevato feedback acustico, il guadagno del microfono è stato abbassato</string>
+    <string name="wear_watch_transfer_unconfirmed">L\'orologio non ha confermato il salvataggio di %1$s, quindi l\'originale è rimasto sul telefono.</string>
 </resources>

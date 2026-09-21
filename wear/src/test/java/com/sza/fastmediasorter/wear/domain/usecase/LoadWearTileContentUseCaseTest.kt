@@ -277,6 +277,9 @@ private class TileContentFakeCapabilities : WearRestrictedCapabilities {
     override val offersScreenCapture: Boolean = true
     override val offersContentTransfer: Boolean = true
     override val offersExternalEntryPoints: Boolean = true
+
+    // S3362: the same offering build again, so the programs grid keeps mirroring the full catalog.
+    override val offersScreenTakeoverPrograms: Boolean = true
 }
 
 private class TileContentFakeTileAssignmentRepository : WearTileAssignmentRepository {

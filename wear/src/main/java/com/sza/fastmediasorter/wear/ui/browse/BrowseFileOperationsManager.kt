@@ -49,7 +49,7 @@ class BrowseFileOperationsManager @Inject constructor(
     private lateinit var displayedFiles: StateFlow<List<WearMediaFile>>
     private var isNetworkSource: () -> Boolean = { false }
 
-    /** S3359: which share the listed files are read from, needed only by a copy onto the watch. */
+    /** S3359: which share the listed files are read from, needed by the two operations onto the watch. */
     private var networkSourceId: () -> String? = { null }
     private var onListInvalidated: () -> Unit = {}
 

@@ -791,16 +791,6 @@
       "titleUk": "Увімкнути безпечний режим"
     },
     {
-      "key": "rowEnableScheduledOps",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Use scheduled operations",
-      "titleRu": "Использовать операции по расписанию",
-      "titleUk": "Використовувати операції за розкладом"
-    },
-    {
       "key": "rowEnableSos",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -959,6 +949,16 @@
       "titleEn": "Mirror",
       "titleRu": "Зеркало",
       "titleUk": "Дзеркало"
+    },
+    {
+      "key": "rowOpenScheduledOpsScreen",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Scheduled file operations",
+      "titleRu": "Операции над файлами по расписанию",
+      "titleUk": "Операції над файлами за розкладом"
     },
     {
       "key": "rowOpenStopwatchSettings",
@@ -2571,6 +2571,16 @@
       "titleUk": "Системний трей"
     },
     {
+      "key": "rowDimClockOverlay",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_wallpaper_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show clock and status while dimmed",
+      "titleRu": "выводить часы и состояние во время затемнения",
+      "titleUk": "Показувати годинник і стан під час затемнення"
+    },
+    {
       "key": "rowLauncherAllAppsSwipeDown",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -3241,16 +3251,6 @@
       "titleUk": "Підтверджувати видалення"
     },
     {
-      "key": "rowDimClockOverlay",
-      "sectionId": "playback",
-      "destination": "PLAYBACK",
-      "layout": "fragment_settings_playback",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Show clock and status while dimmed",
-      "titleRu": "выводить часы и состояние во время затемнения",
-      "titleUk": "Показувати годинник і стан під час затемнення"
-    },
-    {
       "key": "rowDisableNineZone",
       "sectionId": "playback",
       "destination": "PLAYBACK",
@@ -3389,6 +3389,26 @@
       "titleEn": "Default sort mode",
       "titleRu": "Режим сортировки по умолчанию",
       "titleUk": "Режим сортування за замовчуванням"
+    },
+    {
+      "key": "btnScheduledHistoryClear",
+      "sectionId": "scheduled_operations",
+      "destination": "OPERATIONS",
+      "layout": "activity_scheduled_operations",
+      "kind": "BUTTON",
+      "titleEn": "Clear log",
+      "titleRu": "Очистить журнал",
+      "titleUk": "Очистити журнал"
+    },
+    {
+      "key": "rowScheduledOpsEnabled",
+      "sectionId": "scheduled_operations",
+      "destination": "OPERATIONS",
+      "layout": "activity_scheduled_operations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Use scheduled operations",
+      "titleRu": "Использовать операции по расписанию",
+      "titleUk": "Використовувати операції за розкладом"
     },
     {
       "key": "btnStopwatchSettingsApply",

@@ -159,11 +159,52 @@ class WearPhoneResourcePayloadTest {
     }
 
     @Test
+    fun `delete request carries the token and the length the watch measured`() {
+        val request = WearPhoneResourceDeleteRequest(
+            requestId = "req-del-1",
+            token = "7:DCIM/Camera/clip.mp4",
+            expectedSizeBytes = 2_048L
+        )
+
+        val json = JsonParser.parseString(gson.toJson(request)).asJsonObject
+        val restored = gson.fromJson(gson.toJson(request), WearPhoneResourceDeleteRequest::class.java)
+
+        assertEquals(setOf("schemaVersion", "requestId", "token", "expectedSizeBytes"), json.keySet())
+        assertEquals(request, restored)
+        assertEquals(WEAR_PHONE_RESOURCE_SCHEMA_VERSION, restored.schemaVersion)
+    }
+
+    @Test
+    fun `every delete outcome travels under its own member name`() {
+        WearPhoneResourceDeleteOutcome.entries.forEach { outcome ->
+            val ack = WearPhoneResourceDeleteAck(requestId = "req-del-2", outcome = outcome)
+            val json = JsonParser.parseString(gson.toJson(ack)).asJsonObject
+
+            // The watch has no @SerializedName of its own and resolves the member by name, so the
+            // serialised token is the whole contract - a renamed member reads as null there, and a
+            // null answer is "not confirmed", which silently withholds a move that did happen.
+            assertEquals(outcome.name, json["outcome"].asString)
+            assertEquals(
+                ack,
+                gson.fromJson(gson.toJson(ack), WearPhoneResourceDeleteAck::class.java)
+            )
+        }
+    }
+
+    @Test
+    fun `schema version is the one both modules declare`() {
+        // S3359: the delete pair joined this contract, so the stamp moved on both sides in one change.
+        assertEquals(7, WEAR_PHONE_RESOURCE_SCHEMA_VERSION)
+    }
+
+    @Test
     fun `forbidden data cannot be serialised by any payload type`() {
         val types = listOf(
             WearPhoneResourceRequest::class.java,
             WearPhoneResourceItem::class.java,
-            WearPhoneResourcePage::class.java
+            WearPhoneResourcePage::class.java,
+            WearPhoneResourceDeleteRequest::class.java,
+            WearPhoneResourceDeleteAck::class.java
         )
 
         types.forEach { type ->

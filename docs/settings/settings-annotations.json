@@ -334,6 +334,11 @@
     "ru": "Запускает немедленную ручную синхронизацию с настроенными удалёнными ресурсами.",
     "uk": "Запускає негайну ручну синхронізацію з налаштованими віддаленими ресурсами."
   },
+  "btnScheduledHistoryClear": {
+    "en": "Empties the scheduled-operations run history after a confirmation. The history itself lives on the program screen.",
+    "ru": "Очищает историю запусков запланированных операций после подтверждения. Сама история находится на экране программы.",
+    "uk": "Очищає історію запусків запланованих операцій після підтвердження. Сама історія знаходиться на екрані програми."
+  },
   "btnSystemInfo": {
     "en": "Displays device and app version information useful for troubleshooting.",
     "ru": "Показывает информацию об устройстве и версии приложения, полезную при отладке.",
@@ -894,10 +899,15 @@
     "ru": "Включает безопасный режим, ограничивающий деструктивные операции для защиты от случайной потери файлов.",
     "uk": "Вмикає безпечний режим, що обмежує деструктивні операції для захисту від випадкової втрати файлів."
   },
-  "rowEnableScheduledOps": {
+  "rowScheduledOpsEnabled": {
     "en": "Activates the scheduler so configured operations run automatically at their set times.",
     "ru": "Включает планировщик для автоматического выполнения настроенных операций в заданное время.",
     "uk": "Вмикає планувальник для автоматичного виконання налаштованих операцій у заданий час."
+  },
+  "rowOpenScheduledOpsScreen": {
+    "en": "Opens the scheduled file operations screen, where operations are created, edited and run, and the run history is read.",
+    "ru": "Открывает экран операций над файлами по расписанию - создание, изменение и запуск операций, просмотр истории запусков.",
+    "uk": "Відкриває екран операцій над файлами за розкладом - створення, редагування й запуск операцій, перегляд історії запусків."
   },
   "rowEnableStatistics": {
     "en": "Enables anonymous usage statistics collection to help improve the app.",

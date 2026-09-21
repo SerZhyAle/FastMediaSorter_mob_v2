@@ -49,7 +49,6 @@
     <string name="scheduled_ops_log_empty">لاگ خالی ہے۔</string>
     <string name="scheduled_ops_log_title">آپریشن لاگ</string>
     <string name="scheduled_ops_next_run">اگلا رن پر:</string>
-    <string name="scheduled_ops_no_destinations">منزلیں سیکشن میں پہلے منزلیں شامل کریں۔</string>
     <string name="scheduled_ops_notif_channel_name">شیڈول آپریشنز</string>
     <string name="scheduled_ops_notif_running">طے شدہ آپریشن چل رہا ہے..</string>
     <string name="scheduled_ops_op_copy">کاپی</string>
@@ -76,4 +75,13 @@
     <string name="scheduled_ops_toggle_hint">پس منظر میں کاپی کریں، منتقل کریں، حذف کریں۔</string>
     <string name="scheduled_ops_notif_permission_title">طے شدہ آپریشن کے لیے اجازت درکار ہے۔</string>
     <string name="scheduled_ops_notif_permission_text">تمام فائلوں کو رسائی فراہم کریں تاکہ بیک گراؤنڈ موو/ڈیلیٹ اصل فائلوں کو ہٹا سکے۔</string>
+    <string name="scheduled_ops_screen_title">شیڈول شدہ فائل کارروائیاں</string>
+    <string name="scheduled_ops_action_run_all">سب ابھی چلائیں</string>
+    <string name="scheduled_ops_action_pause_all">سب کو موقوف کریں</string>
+    <string name="scheduled_ops_action_resume_all">سب کو دوبارہ شروع کریں</string>
+    <string name="scheduled_ops_screen_empty">ابھی کوئی شیڈول شدہ کارروائی نہیں ہے۔ پہلی بنانے کے لیے + پر ٹیپ کریں۔</string>
+    <string name="scheduled_ops_link_subtitle">کارروائیوں اور چلانے کی تاریخ کا نظم کریں</string>
+    <string name="scheduled_ops_history_title">چلانے کی تاریخ</string>
+    <string name="scheduled_ops_history_empty">ابھی کوئی چلانا ریکارڈ نہیں ہوا۔</string>
+    <string name="scheduled_ops_history_clear_confirm">چلانے کی تاریخ صاف کریں؟</string>
 </resources>

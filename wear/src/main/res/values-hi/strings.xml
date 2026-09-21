@@ -886,4 +886,8 @@
     <string name="wear_onboarding_page_indicator">चरण %1$d / %2$d</string>
     <string name="dim_clock_overlay_toggle">मंद स्क्रीन पर घड़ी और स्थिति दिखाएँ</string>
     <string name="dim_clock_status_cd">मंद स्क्रीन पर घड़ी और स्थिति</string>
+    <string name="wear_file_op_copy_to_watch">घड़ी पर कॉपी करें</string>
+    <string name="wear_file_op_move_to_watch">घड़ी पर ले जाएँ</string>
+    <string name="wear_file_op_outcome_no_space">घड़ी पर पर्याप्त जगह नहीं है - जगह खाली करें और पुनः प्रयास करें</string>
+    <string name="wear_file_op_outcome_copied_source_kept">घड़ी पर कॉपी हो गया - मूल फ़ाइल अपनी जगह पर बनी है</string>
 </resources>

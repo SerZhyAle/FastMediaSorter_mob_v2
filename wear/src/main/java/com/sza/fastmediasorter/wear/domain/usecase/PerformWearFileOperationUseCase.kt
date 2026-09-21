@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.wear.data.files.WearMediaStoreFileWriter
 import com.sza.fastmediasorter.wear.data.files.WearSendToLauncher
 import com.sza.fastmediasorter.wear.data.files.WearWatchFilePublisher
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.files.WearFileNameConflictResolver
 import com.sza.fastmediasorter.wear.domain.files.WearSendToReachability
@@ -20,6 +21,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneRequest
+import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceDeleteOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
 import com.sza.fastmediasorter.wear.domain.model.kind
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
@@ -30,6 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -54,26 +57,36 @@ class PerformWearFileOperationUseCase @Inject constructor(
     private val stager: WearMediaFileStager,
     private val mediaStoreWriter: WearMediaStoreFileWriter,
     private val watchPublisher: WearWatchFilePublisher,
+    /** S3359: the one round trip that can ask the phone to destroy something, used by the move alone. */
+    private val phoneResourceClient: PhoneResourceClient,
     /** S1687's protocol routing, reused rather than duplicated: a copy reads the share as a play does. */
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
+    /** S3359: the share's own half of the move - the only call here that removes anything on a server. */
+    private val deleteNetworkFile: DeleteNetworkFileUseCase,
     private val sendToReceivers: WearSendToReceiversRepository,
     private val reachability: WearSendToReachability,
     private val sendToLauncher: WearSendToLauncher
 ) {
 
     /**
-     * [networkSourceId] names the share a network file is read from, and only a copy onto the watch
-     * needs it - every other operation either stays on the watch or crosses to the phone, where the
-     * listing's own connection has already been resolved.
+     * [networkSourceId] names the share a network file is read from and, on a move, removed from; only
+     * the two operations onto the watch need it - every other one either stays on the watch or crosses
+     * to the phone, where the listing's own connection has already been resolved.
+     *
+     * [phoneToken] addresses the phone's own original of a copy this watch holds, and only a move onto
+     * the watch needs it: it is the one operation that asks the other side to destroy something. The
+     * watch cannot re-derive it - the cached copy is named after the token's hash - so a caller that
+     * does not have it leaves the original alone rather than guessing (S3359).
      */
     operator fun invoke(
         files: List<WearMediaFile>,
         operation: WearFileOperation,
         isNetworkSource: Boolean,
-        networkSourceId: String? = null
+        networkSourceId: String? = null,
+        phoneToken: String? = null
     ): Flow<WearFileOperationResult> = flow {
         for (file in files) {
-            emit(runOne(file, operation, isNetworkSource, networkSourceId))
+            emit(runOne(file, operation, isNetworkSource, networkSourceId, phoneToken))
         }
     }.flowOn(Dispatchers.IO)
 
@@ -81,7 +94,8 @@ class PerformWearFileOperationUseCase @Inject constructor(
         file: WearMediaFile,
         operation: WearFileOperation,
         isNetworkSource: Boolean,
-        networkSourceId: String?
+        networkSourceId: String?,
+        phoneToken: String?
     ): WearFileOperationResult {
         val storageClass = capabilityPolicy.classify(file, isNetworkSource)
         if (operation.kind() !in capabilityPolicy.allowedOperations(file, isNetworkSource)) {
@@ -90,11 +104,14 @@ class PerformWearFileOperationUseCase @Inject constructor(
         return when (operation) {
             WearFileOperation.SendToPhone -> sendToPhone(file, storageClass, deleteSource = false)
             WearFileOperation.MoveToPhone -> sendToPhone(file, storageClass, deleteSource = true)
-            WearFileOperation.CopyToWatch -> copyToWatch(file, storageClass, networkSourceId)
-            // The removal half needs the source's own consent - the phone's for a copy it holds, a
-            // delete verb for a share that has none - so it is delivered after the copy it depends on.
-            WearFileOperation.MoveToWatch ->
-                WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_UNSUPPORTED)
+            WearFileOperation.CopyToWatch -> {
+                Timber.d("S3359: copy to watch class=$storageClass")
+                copyToWatch(file, storageClass, networkSourceId)
+            }
+            WearFileOperation.MoveToWatch -> {
+                Timber.d("S3359: move to watch class=$storageClass")
+                moveToWatch(file, storageClass, networkSourceId, phoneToken)
+            }
             WearFileOperation.Delete -> deleteLocal(file, storageClass)
             is WearFileOperation.Rename -> renameLocal(file, operation.newName, storageClass)
             is WearFileOperation.OpenOnPhone -> openOnPhone(file, operation.token)
@@ -229,6 +246,82 @@ class PerformWearFileOperationUseCase @Inject constructor(
             WearFileStorageClass.NETWORK -> copyNetworkFile(file, mimeType, collection, networkSourceId)
             WearFileStorageClass.APP_OWNED, WearFileStorageClass.MEDIA_STORE ->
                 WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_UNSUPPORTED)
+        }
+    }
+
+    /**
+     * The move: the copy above, and then whoever still holds the original asked to let it go.
+     *
+     * The order is the whole safety property of strategic goal 5 - nothing is asked of either source
+     * until the copy on this watch is written and published. Every answer other than a confirmed
+     * removal, a lost answer included, reports [WearFileOperationOutcome.COPIED_SOURCE_KEPT], because
+     * "the original may still be there" and "the original is gone" must never round to the same line.
+     *
+     * Which source is asked is the only difference between the two classes that reach here: the phone
+     * answers a request, and a share is removed from by this watch itself.
+     */
+    private suspend fun moveToWatch(
+        file: WearMediaFile,
+        storageClass: WearFileStorageClass,
+        networkSourceId: String?,
+        phoneToken: String?
+    ): WearFileOperationResult {
+        val hasRemovableOriginal = storageClass == WearFileStorageClass.PHONE_COPY ||
+            storageClass == WearFileStorageClass.NETWORK
+        if (!hasRemovableOriginal) {
+            return WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_UNSUPPORTED)
+        }
+        val copied = copyToWatch(file, storageClass, networkSourceId)
+        return when {
+            copied.outcome != WearFileOperationOutcome.SUCCEEDED -> copied
+            storageClass == WearFileStorageClass.NETWORK -> askTheShareToLetGo(file, copied, networkSourceId)
+            else -> askThePhoneToLetGo(file, copied, phoneToken)
+        }
+    }
+
+    /**
+     * The share's half of the move, kept beside the phone's so the one rule they share reads once:
+     * nothing but a confirmed removal turns the stored copy into a move.
+     *
+     * A share refuses for reasons the watch cannot tell apart from a network fault - a read-only
+     * account, a locked file, a connection lost between the read and the removal - and all of them
+     * leave a file on the server that the owner must be told is still there.
+     */
+    private suspend fun askTheShareToLetGo(
+        file: WearMediaFile,
+        copied: WearFileOperationResult,
+        networkSourceId: String?
+    ): WearFileOperationResult {
+        val removed = deleteNetworkFile(networkSourceId, file.uri.toString()).isSuccess
+        return if (removed) {
+            copied
+        } else {
+            copied.copy(outcome = WearFileOperationOutcome.COPIED_SOURCE_KEPT)
+        }
+    }
+
+    /**
+     * The half that can lose data, kept apart from the copy so its one rule reads alone: nothing but a
+     * confirmed removal turns the stored copy into a move.
+     *
+     * A missing token or a cached file that is gone by now both mean the ask cannot be made truthfully,
+     * so no ask is made at all - which is the same answer a refusal and a lost reply produce.
+     */
+    private suspend fun askThePhoneToLetGo(
+        file: WearMediaFile,
+        copied: WearFileOperationResult,
+        phoneToken: String?
+    ): WearFileOperationResult {
+        val copiedLength = stager.localFileOf(file)?.length()
+        val answer = if (phoneToken == null || copiedLength == null) {
+            null
+        } else {
+            phoneResourceClient.requestDelete(phoneToken, copiedLength)
+        }
+        return if (answer == WearPhoneResourceDeleteOutcome.DELETED) {
+            copied
+        } else {
+            copied.copy(outcome = WearFileOperationOutcome.COPIED_SOURCE_KEPT)
         }
     }
 

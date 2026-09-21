@@ -1,23 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S2511: a 2x2 grid of cells, standing for the tile's several mini-program shortcuts. -->
+<!--
+  S2511: the cells stand for the tile's mini-program shortcuts.
+  S3362: three of them, drawn the way MultiButtonLayout arranges three buttons - two above, one
+  centred below - because WO-V10 asks the preview to depict the real tile and the store artifact now
+  offers exactly three programs. The sideload build offers six and its extra cells sit behind the
+  same preview; a preview that under-promises is the safe direction, an over-promising one is not.
+  The background is black rather than the shared tile_preview_bg: WO-V13 asks every tile for a black
+  background, and this is the only preview of the five that a Play review ever sees.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="200dp"
     android:height="200dp"
     android:viewportWidth="200"
     android:viewportHeight="200">
     <path
-        android:fillColor="@color/tile_preview_bg"
+        android:fillColor="@android:color/black"
         android:pathData="M100,0 A100,100 0 1,1 99.9,0 Z" />
     <path
         android:fillColor="@color/tile_preview_accent"
-        android:pathData="M62,62 h30 v30 h-30 Z" />
+        android:pathData="M62,55 h30 v30 h-30 Z" />
     <path
         android:fillColor="@color/tile_preview_accent"
-        android:pathData="M108,62 h30 v30 h-30 Z" />
+        android:pathData="M108,55 h30 v30 h-30 Z" />
     <path
         android:fillColor="@color/tile_preview_accent"
-        android:pathData="M62,108 h30 v30 h-30 Z" />
-    <path
-        android:fillColor="@color/tile_preview_accent"
-        android:pathData="M108,108 h30 v30 h-30 Z" />
+        android:pathData="M85,101 h30 v30 h-30 Z" />
 </vector>

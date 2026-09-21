@@ -49,7 +49,6 @@
     <string name="scheduled_ops_log_empty">লগ খালি</string>
     <string name="scheduled_ops_log_title">অপারেশন লগ</string>
     <string name="scheduled_ops_next_run">পরবর্তী প্রচেষ্টা:</string>
-    <string name="scheduled_ops_no_destinations">প্রথমে গন্তব্য বিভাগে গন্তব্য যোগ করুন।</string>
     <string name="scheduled_ops_notif_channel_name">নির্ধারিত কার্যক্রম</string>
     <string name="scheduled_ops_notif_running">নির্ধারিত কার্যক্রম চলছে।</string>
     <string name="scheduled_ops_op_copy">অনুলিপি</string>
@@ -76,4 +75,13 @@
     <string name="scheduled_ops_toggle_hint">ব্যাকগ্রাউন্ডে কপি, মুভ, ডিলিট করুন।</string>
     <string name="scheduled_ops_notif_permission_title">নির্ধারিত কার্যক্রমের জন্য অনুমতি প্রয়োজন।</string>
     <string name="scheduled_ops_notif_permission_text">সমস্ত ফাইলে অ্যাক্সেস দিন যাতে ব্যাকগ্রাউন্ডে মুভ/ডিলিট অপারেশন মূল ফাইলগুলো মুছে ফেলতে পারে।</string>
+    <string name="scheduled_ops_screen_title">নির্ধারিত ফাইল কার্যক্রম</string>
+    <string name="scheduled_ops_action_run_all">সব এখন চালান</string>
+    <string name="scheduled_ops_action_pause_all">সব বিরতি দিন</string>
+    <string name="scheduled_ops_action_resume_all">সব পুনরায় চালু করুন</string>
+    <string name="scheduled_ops_screen_empty">এখনও কোনো নির্ধারিত কার্যক্রম নেই। প্রথমটি তৈরি করতে + ট্যাপ করুন।</string>
+    <string name="scheduled_ops_link_subtitle">কার্যক্রম ও চালানোর ইতিহাস পরিচালনা করুন</string>
+    <string name="scheduled_ops_history_title">চালানোর ইতিহাস</string>
+    <string name="scheduled_ops_history_empty">এখনও কোনো চালানো রেকর্ড নেই।</string>
+    <string name="scheduled_ops_history_clear_confirm">চালানোর ইতিহাস মুছে ফেলবেন?</string>
 </resources>

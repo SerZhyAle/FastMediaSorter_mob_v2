@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -72,54 +73,59 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private val viewModel: SettingsViewModel by viewModels()
     private val searchAdapter = SettingsSearchAdapter(::onSearchResultSelected)
     private var searchDebounceJob: Job? = null
-    private val keyboardManager = SettingsKeyboardNavigationManager(object : SettingsKeyboardNavigationManager.Callback {
-        override fun switchTab(delta: Int) {
-            binding.viewPager.currentItem = (binding.viewPager.currentItem + delta)
-                .coerceIn(0, (binding.viewPager.adapter?.itemCount ?: 1) - 1)
-        }
-        override fun tabCount(): Int = binding.viewPager.adapter?.itemCount ?: 0
-        override fun currentTab(): Int = binding.viewPager.currentItem
-        override fun openSearchOverlay() = this@SettingsActivity.openSearchOverlay()
-        override fun closeSearchOverlay() = this@SettingsActivity.closeSearchOverlay()
-        override fun isSearchVisible(): Boolean = binding.searchOverlay.isVisible
-        override fun isTextEditorFocused(): Boolean =
-            (currentFocus as? android.widget.TextView)?.onCheckIsTextEditor() == true
-        override fun clearFocusedTextEditor(): Boolean {
-            val focusedView = currentFocus ?: return false
-            if ((focusedView as? android.widget.TextView)?.onCheckIsTextEditor() != true) return false
-
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(focusedView.windowToken, 0)
-            focusedView.clearFocus()
-            return true
-        }
-        override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
-        override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.SETTINGS) }
-        override fun activateFocused(): Boolean = activateFocusedViewOrAncestor()
-        override fun moveFocus(direction: FocusDirection) {
-            val focusDir = when (direction) {
-                FocusDirection.UP, FocusDirection.PREVIOUS -> View.FOCUS_UP
-                FocusDirection.DOWN, FocusDirection.NEXT -> View.FOCUS_DOWN
-                FocusDirection.LEFT -> View.FOCUS_LEFT
-                FocusDirection.RIGHT -> View.FOCUS_RIGHT
-                FocusDirection.FIRST -> View.FOCUS_UP
-                FocusDirection.LAST -> View.FOCUS_DOWN
+    private val keyboardManager =
+        SettingsKeyboardNavigationManager(object : SettingsKeyboardNavigationManager.Callback {
+            override fun switchTab(delta: Int) {
+                binding.viewPager.currentItem = (binding.viewPager.currentItem + delta)
+                    .coerceIn(0, (binding.viewPager.adapter?.itemCount ?: 1) - 1)
             }
-            currentFocus?.focusSearch(focusDir)?.requestFocus()
-        }
-    })
+            override fun tabCount(): Int = binding.viewPager.adapter?.itemCount ?: 0
+            override fun currentTab(): Int = binding.viewPager.currentItem
+            override fun openSearchOverlay() = this@SettingsActivity.openSearchOverlay()
+            override fun closeSearchOverlay() = this@SettingsActivity.closeSearchOverlay()
+            override fun isSearchVisible(): Boolean = binding.searchOverlay.isVisible
+            override fun isTextEditorFocused(): Boolean =
+                (currentFocus as? android.widget.TextView)?.onCheckIsTextEditor() == true
+            override fun clearFocusedTextEditor(): Boolean {
+                val focusedView = currentFocus ?: return false
+                if ((focusedView as? android.widget.TextView)?.onCheckIsTextEditor() != true) return false
+
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(focusedView.windowToken, 0)
+                focusedView.clearFocus()
+                return true
+            }
+            override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
+            override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.SETTINGS) }
+            override fun activateFocused(): Boolean = activateFocusedViewOrAncestor()
+            override fun moveFocus(direction: FocusDirection) {
+                val focusDir = when (direction) {
+                    FocusDirection.UP, FocusDirection.PREVIOUS -> View.FOCUS_UP
+                    FocusDirection.DOWN, FocusDirection.NEXT -> View.FOCUS_DOWN
+                    FocusDirection.LEFT -> View.FOCUS_LEFT
+                    FocusDirection.RIGHT -> View.FOCUS_RIGHT
+                    FocusDirection.FIRST -> View.FOCUS_UP
+                    FocusDirection.LAST -> View.FOCUS_DOWN
+                }
+                currentFocus?.focusSearch(focusDir)?.requestFocus()
+            }
+        })
     private var setupStartUptimeMs: Long = 0L
     private var actionBarSizePx = 0
     private var statusBarInsetPx = 0
+
     // S0196 Phase 04: one-shot tag emitted after the first preferences page is laid out.
     private var firstPageRenderedLogged = false
-    
+
     companion object {
-        /** Intent extra: Long - pre-select this resource as source in the new scheduled operation dialog. */
-        const val EXTRA_SOURCE_RESOURCE_ID = "extra_source_resource_id"
         /** Intent extra: Int - open Settings on this tab index (0=General, 1=Media, 2=Playback, 3=Destinations). */
         const val EXTRA_INITIAL_TAB = "extra_initial_tab"
-        /** Intent extra: Boolean - open the Operations tab and expand the Scheduled section (S0353 widget deep-link). */
+
+        /**
+         * Intent extra: Boolean - legacy deep-link that used to open the Operations tab with the
+         * Scheduled section expanded. Since S3365 [onCreate] redirects it to the program screen;
+         * the constant stays because pre-update widgets hold the wire value in their intents.
+         */
         const val EXTRA_OPEN_SCHEDULED = "extra_open_scheduled"
 
         /** S0780: Intent extra - String section id; the owning tab fragment expands that group after opening. */
@@ -140,16 +146,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         private const val KEY_LAST_TAB_POSITION = "last_tab_position"
 
         internal fun resolveInitialTabPosition(
-            intent: Intent,
             adapterItemCount: Int,
             lastTabPosition: Int,
-            sourceResourceId: Long,
             initialTab: Int,
-            enableScheduledOperations: Boolean,
         ): Int {
-            val openScheduled = intent.getBooleanExtra(EXTRA_OPEN_SCHEDULED, false)
             return when {
-                (sourceResourceId != -1L || openScheduled) && enableScheduledOperations -> 3
                 initialTab in 0 until adapterItemCount -> initialTab
                 lastTabPosition in 0 until adapterItemCount -> lastTabPosition
                 else -> 0
@@ -184,7 +185,10 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
         fun openKeybindingRemap(context: Context) {
             context.startActivity(
-                android.content.Intent(context, com.sza.fastmediasorter.ui.keybinding.KeybindingRemapActivity::class.java)
+                android.content.Intent(
+                    context,
+                    com.sza.fastmediasorter.ui.keybinding.KeybindingRemapActivity::class.java
+                )
             )
         }
     }
@@ -192,6 +196,17 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     override fun shouldEnableEdgeToEdge(): Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // S3365: deep-links held by pre-update widgets and shortcuts carried EXTRA_OPEN_SCHEDULED at
+        // the settings activity; the scheduled section is gone, so forward them to the program screen
+        // and finish. The extra is removed so a re-delivered intent does not loop the redirect.
+        if (intent.getBooleanExtra(EXTRA_OPEN_SCHEDULED, false)) {
+            intent.removeExtra(EXTRA_OPEN_SCHEDULED)
+            Timber.d("S3365: redirecting stale scheduled deep-link to the program screen")
+            startActivity(android.content.Intent(this, ScheduledOperationsActivity::class.java))
+            finish()
+            super.onCreate(savedInstanceState)
+            return
+        }
         super.onCreate(savedInstanceState)
         // Measure actionBarSize and register insets listener before the first frame
         // to prevent toolbarContainer height from jumping on activity open.
@@ -203,7 +218,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         // targetSdk 35 regardless of shared edge-to-edge setup. Without this, the toolbar
         // title slides under the status bar on Android 15+ (observed on Samsung S25FE).
         if (shouldEnableEdgeToEdge() ||
-            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM
+        ) {
             applyEdgeToEdgeInsets()
         }
     }
@@ -222,7 +238,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [0ms] start setupViews")
         val adapter = SettingsPagerAdapter(this, settingsTabExtensions)
-        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] SettingsPagerAdapter created (tabCount=${adapter.itemCount})")
+        if (BuildConfig.DEBUG) {
+            Timber.d(
+                "SettingsActivity: [${elapsed()}ms] SettingsPagerAdapter created (tabCount=${adapter.itemCount})"
+            )
+        }
 
         binding.viewPager.adapter = adapter
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] viewPager.adapter set")
@@ -243,20 +263,18 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] TabLayoutMediator attached")
         setupConnectedTabs(adapter)
 
-        val sourceResourceId = intent.getLongExtra(EXTRA_SOURCE_RESOURCE_ID, -1L)
         val initialTab = intent.getIntExtra(EXTRA_INITIAL_TAB, -1)
         val lastTabPosition = getLastTabPosition()
         val initialPosition = resolveInitialTabPosition(
-            intent = intent,
             adapterItemCount = adapter.itemCount,
             lastTabPosition = lastTabPosition,
-            sourceResourceId = sourceResourceId,
             initialTab = initialTab,
-            enableScheduledOperations = BuildConfig.ENABLE_SCHEDULED_OPERATIONS,
         )
 
         if (BuildConfig.DEBUG) {
-            Timber.d("SettingsActivity: [${elapsed()}ms] initialPosition=$initialPosition lastTabPosition=$lastTabPosition")
+            Timber.d(
+                "SettingsActivity: [${elapsed()}ms] initialPosition=$initialPosition lastTabPosition=$lastTabPosition"
+            )
         }
 
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
@@ -543,26 +561,35 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             }
         }
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (binding.searchOverlay.isVisible) {
-                    closeSearchOverlay()
-                    return
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (binding.searchOverlay.isVisible) {
+                        closeSearchOverlay()
+                        return
+                    }
+                    // If the back stack is empty (e.g. process was restarted while Settings was open),
+                    // navigate up to MainActivity explicitly instead of going to home screen.
+                    if (isTaskRoot) {
+                        startActivity(
+                            android.content.Intent(
+                                this@SettingsActivity,
+                                com.sza.fastmediasorter.ui.main.MainActivity::class.java
+                            )
+                                .addFlags(
+                                    android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                                        android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                )
+                        )
+                        finish()
+                        return
+                    }
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
                 }
-                // If the back stack is empty (e.g. process was restarted while Settings was open),
-                // navigate up to MainActivity explicitly instead of going to home screen.
-                if (isTaskRoot) {
-                    startActivity(
-                        android.content.Intent(this@SettingsActivity, com.sza.fastmediasorter.ui.main.MainActivity::class.java)
-                            .addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                    )
-                    finish()
-                    return
-                }
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
             }
-        })
+        )
     }
 
     private fun openSearchOverlay() {
@@ -648,7 +675,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private fun getSettingsFragment(position: Int): androidx.fragment.app.Fragment? {
         return supportFragmentManager.findFragmentByTag("f$position")
     }
-    
+
     /**
      * Get last opened tab position from SharedPreferences.
      * Wrapped in StrictModeHelper to avoid violations.
@@ -659,7 +686,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
                 .getInt(KEY_LAST_TAB_POSITION, 0) // Default to first tab (General)
         }
     }
-    
+
     /**
      * Save current tab position to SharedPreferences.
      * Wrapped in StrictModeHelper to avoid violations.

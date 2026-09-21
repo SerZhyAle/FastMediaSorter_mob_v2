@@ -886,4 +886,8 @@
     <string name="wear_onboarding_page_indicator">Passo %1$d de %2$d</string>
     <string name="dim_clock_overlay_toggle">Mostrar relógio e status com a tela esmaecida</string>
     <string name="dim_clock_status_cd">Relógio e status na tela esmaecida</string>
+    <string name="wear_file_op_copy_to_watch">Copiar para o relógio</string>
+    <string name="wear_file_op_move_to_watch">Mover para o relógio</string>
+    <string name="wear_file_op_outcome_no_space">Não há espaço suficiente no relógio - libere espaço e tente novamente</string>
+    <string name="wear_file_op_outcome_copied_source_kept">Copiado para o relógio - o original permaneceu no lugar</string>
 </resources>

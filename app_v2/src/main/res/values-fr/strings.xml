@@ -3673,4 +3673,5 @@
     <string name="settings_broadcast_feedback_guard_summary">Baisse le gain du micro lorsqu\'un auditeur diffuse l\'émission à voix haute à proximité, afin que le son ne s\'amplifie pas</string>
     <string name="broadcast_control_feedback_warning">Son baissé : le haut-parleur d\'un auditeur revient dans le micro. Éloignez l\'appareil d\'écoute ou baissez son volume.</string>
     <string name="broadcast_control_feedback_warning_cd">Effet Larsen détecté, le gain du micro a été baissé</string>
+    <string name="wear_watch_transfer_unconfirmed">La montre n\'a pas confirmé l\'enregistrement de %1$s, donc l\'original est resté sur le téléphone.</string>
 </resources>

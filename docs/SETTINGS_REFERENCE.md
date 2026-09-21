@@ -205,7 +205,6 @@ _Available in: Standard, Legacy, VR_
 | Always show touch zones overlay | Keeps the touch zone grid permanently visible over the player instead of showing it only on tap. |
 | Big Buttons Mode | Enlarges the player control buttons for easier tapping on large or touch-only screens. |
 | Confirm delete | Shows a confirmation dialog before deleting a file from inside the player. |
-| Show clock and status while dimmed | Draws the clock and status line over the dimmed player screen, so the time stays readable while the picture is blacked out. |
 | Disable 9-zone tracking | Turns off the 9-zone touch grid; the fullscreen player switches to a simpler 3-zone layout (previous / zoom / next) with a left-edge command-panel area. |
 | Background Playback | Keeps audio playing when you leave the app or lock the screen. |
 | Enable Picture-in-Picture | Enables Picture-in-Picture mode so the video continues in a floating window when you leave the player. |
@@ -274,7 +273,6 @@ _Available in: Standard, Legacy, VR_
 | Allow moving | Allows files to be moved to Quick Sort destinations. |
 | Network Monitor | Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
-| Use scheduled operations | Activates the scheduler so configured operations run automatically at their set times. |
 | SOS emergency signal | Adds the SOS distress signal to the programs list: a loud Morse siren on the alarm channel, the rear flash and the screen strobing with it, and the same signal on the paired watch. |
 | Stopwatch | Enables a stopwatch within the app, for one run or several in a row. |
 | System information | Adds System information to the app's program menus and launcher surfaces, so the report is reachable without opening Settings. It is off by default and changes nothing about what the report contains. |
@@ -291,6 +289,7 @@ _Available in: Standard, Legacy, VR_
 | Ask for filename | Prompts you to enter a filename before each microphone recording starts. |
 | Enable microphone recording | Enables the built-in microphone recording feature. |
 | Mirror | Adds the mirror to the programs list: the front camera inside a bright field that lights the face. |
+| Scheduled file operations | Opens the scheduled file operations screen, where operations are created, edited and run, and the run history is read. |
 | Stopwatch settings | Opens the stopwatch's own options: participants, music and what the volume keys do. |
 | Overwrite existing file when copying | Overwrites the existing file at the destination when a name conflict occurs during copying. |
 | Overwrite existing file when moving | Overwrites the existing file at the destination when a name conflict occurs during moving. |
@@ -321,6 +320,7 @@ _Settings -> General -> System launcher settings_
 | Taskbar | Settings for the launcher taskbar at the bottom: recent and pinned apps, and which icons its tray shows. |
 | Top bar | Settings for the launcher's own top strip, which can replace the system status area. |
 | System tray | Settings for the launcher system tray: clock, Bluetooth, SIM indicators, network speed, and battery. |
+| Show clock and status while dimmed | Draws the clock and status line over the dimmed player screen, so the time stays readable while the picture is blacked out. |
 | All apps: swipe down | Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction runs only at the top of the list; by default it closes the panel and returns to the desktop. |
 | App to launch | The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action. |
 | All apps: swipe left | Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction unassigned by default. |

@@ -53,16 +53,7 @@ fun ScreenSettingsScreen(
     // S2093 / ADR-3: the mode is two values and so is editable from both sides; the picture it points
     // at stays a phone choice, because choosing one means opening a gallery.
     val backgroundLabel = stringResource(R.string.wear_setting_background_mode)
-    val backgroundItems = WearBackgroundMode.entries.map { mode ->
-        WearSettingsItem(fullWidth = true) { _ ->
-            BackgroundModeRow(
-                mode = mode,
-                groupLabel = backgroundLabel,
-                selected = uiState.backgroundMode == mode,
-                onSelect = { viewModel.setBackgroundMode(mode) }
-            )
-        }
-    }
+    val backgroundItems = backgroundModeItems(uiState, viewModel, backgroundLabel)
     // S2522 / S3023: color scheme options laid out in 2 columns.
     val colorSchemeLabel = stringResource(R.string.wear_setting_color_scheme)
     val colorSchemeItems = WearColorScheme.entries.map { scheme ->
@@ -105,8 +96,12 @@ fun ScreenSettingsScreen(
                 items(packSettingsRows(keepAwakeItems, columns)) { row -> WearSettingsRow(row) }
                 item { GroupCaption(text = displayModeLabel) }
                 items(packSettingsRows(displayModeItems, columns)) { row -> WearSettingsRow(row) }
-                item { GroupCaption(text = fileListLabel) }
-                items(packSettingsRows(fileListItems, columns)) { row -> WearSettingsRow(row) }
+                // S3362: the file list this group lays out belongs to the browse graph, which the
+                // store artifact does not carry. The group leaves with its subject, caption and all.
+                if (uiState.offersMediaAccess) {
+                    item { GroupCaption(text = fileListLabel) }
+                    items(packSettingsRows(fileListItems, columns)) { row -> WearSettingsRow(row) }
+                }
                 item { GroupCaption(text = backgroundLabel) }
                 items(packSettingsRows(backgroundItems, columns)) { row -> WearSettingsRow(row) }
                 item { GroupCaption(text = colorSchemeLabel) }
@@ -119,6 +114,34 @@ fun ScreenSettingsScreen(
         }
     }
 }
+
+/**
+ * The background modes this build lets the user choose between.
+ *
+ * S3362: IMAGE is "photo from phone" and its frame arrives over the content-transfer path, so where
+ * that path is absent the row could only ever resolve to the branded animation - a mode already on the
+ * list under its own name. The choice is withheld rather than turned into a synonym for its neighbour.
+ *
+ * Its own function for the reason [geometryModeItems] states below: the screen sits at detekt's length
+ * ceiling, and a row set that can be empty deserves to say so somewhere it can be read.
+ */
+@Composable
+private fun backgroundModeItems(
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel,
+    groupLabel: String
+): List<WearSettingsItem> = WearBackgroundMode.entries
+    .filter { mode -> mode != WearBackgroundMode.IMAGE || uiState.offersContentTransfer }
+    .map { mode ->
+        WearSettingsItem(fullWidth = true) { _ ->
+            BackgroundModeRow(
+                mode = mode,
+                groupLabel = groupLabel,
+                selected = uiState.backgroundMode == mode,
+                onSelect = { viewModel.setBackgroundMode(mode) }
+            )
+        }
+    }
 
 /**
  * S2773 / ADR-3: the geometry row, built only where the build variant allows the view to be changed.

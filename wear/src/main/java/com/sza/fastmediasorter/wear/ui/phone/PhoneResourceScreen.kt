@@ -897,7 +897,11 @@ private fun WearFileOperationOutcome.isSuccess(): Boolean = this == WearFileOper
     this == WearFileOperationOutcome.OPENED_ON_PHONE ||
     this == WearFileOperationOutcome.NOTIFIED_ON_PHONE ||
     // S2142: the errand is on the phone waiting for a tap - the watch's half of it worked.
-    this == WearFileOperationOutcome.AWAITING_PHONE_ACTION
+    this == WearFileOperationOutcome.AWAITING_PHONE_ACTION ||
+    // S3359: the copy is on the watch and only the removal was declined, so the line reports what the
+    // owner asked for happening in part. Painted as an error it read as "nothing was copied", which is
+    // the opposite of what the phone answered.
+    this == WearFileOperationOutcome.COPIED_SOURCE_KEPT
 
 private fun WearPhoneResourceResponseStatus?.toMessageRes(): Int = when (this) {
     WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE -> R.string.phone_resource_source_unavailable

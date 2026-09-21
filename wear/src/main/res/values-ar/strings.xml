@@ -886,4 +886,8 @@
     <string name="wear_onboarding_page_indicator">الخطوة %1$d من %2$d</string>
     <string name="dim_clock_overlay_toggle">إظهار الساعة والحالة أثناء التعتيم</string>
     <string name="dim_clock_status_cd">الساعة والحالة على الشاشة المعتمة</string>
+    <string name="wear_file_op_copy_to_watch">نسخ إلى الساعة</string>
+    <string name="wear_file_op_move_to_watch">نقل إلى الساعة</string>
+    <string name="wear_file_op_outcome_no_space">لا توجد مساحة كافية على الساعة - حرِّر بعض المساحة وحاول مرة أخرى</string>
+    <string name="wear_file_op_outcome_copied_source_kept">تم النسخ إلى الساعة - بقي الأصل في مكانه</string>
 </resources>

@@ -649,6 +649,22 @@ class LocalOperationStrategy @Inject constructor(
         return hasAllFilesAccess()
     }
 
+    /**
+     * Whether removing [path] would need the MediaStore consent dialog.
+     *
+     * S3359: the watch asks this phone to delete an original it has just copied, and that request is
+     * served by a listener service with no Activity to show a prompt on. The answer reuses
+     * [canDeleteDirectly] rather than restating the permission rule, so whatever counts as a direct
+     * delete keeps counting the same for both callers. A caller that gets `true` must leave the file
+     * alone: [deleteFile] would reach `createDeleteRequest` and raise
+     * [com.sza.fastmediasorter.domain.usecase.FileOperationUseCase.BatchDeletePermissionRequiredException]
+     * at a caller with nothing to launch it with.
+     */
+    internal fun requiresDeleteConsent(path: String): Boolean =
+        android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q &&
+            isSharedStoragePath(path) &&
+            !canDeleteDirectly()
+
     companion object {
         /** Deepest directory level the recursive walk descends into before it gives up. */
         private const val MAX_DIRECTORY_DEPTH = 64

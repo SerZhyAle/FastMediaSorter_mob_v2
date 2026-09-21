@@ -37,39 +37,51 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <!-- Clock Time (OutlinedTextClock for high contrast on black background) -->
-        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextClock
-            android:id="@+id/dimClockTime"
+        <!-- S3366: the clock block is the gesture surface for the launcher widget parity (tap,
+             long press, swipe seconds/dial); clickable is set in code, gated on the bound handler. -->
+        <LinearLayout
+            android:id="@+id/dimClockBlock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="false"
-            android:ellipsize="end"
             android:focusable="false"
-            android:maxLines="1"
-            android:textColor="@color/white"
-            android:textSize="@dimen/dim_clock_time_text_size"
-            android:textStyle="bold"
-            app:otv_outlineScale="@dimen/outline_text_stroke_scale"
-            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
-            tools:ignore="UnusedAttribute"
-            tools:text="14:32" />
+            android:orientation="vertical">
 
-        <!-- Clock Date (OutlinedTextClock with weekday and short date) -->
-        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextClock
-            android:id="@+id/dimClockDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dim_clock_date_margin_top"
-            android:clickable="false"
-            android:ellipsize="end"
-            android:focusable="false"
-            android:maxLines="1"
-            android:textColor="@color/white"
-            android:textSize="@dimen/dim_clock_date_text_size"
-            app:otv_outlineScale="@dimen/outline_text_stroke_scale"
-            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
-            tools:ignore="UnusedAttribute"
-            tools:text="Fri, Sep 18" />
+            <!-- Clock Time (OutlinedTextClock for high contrast on black background) -->
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextClock
+                android:id="@+id/dimClockTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:ellipsize="end"
+                android:focusable="false"
+                android:maxLines="1"
+                android:textColor="@color/white"
+                android:textSize="@dimen/dim_clock_time_text_size"
+                android:textStyle="bold"
+                app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                tools:ignore="UnusedAttribute"
+                tools:text="14:32" />
+
+            <!-- Clock Date (OutlinedTextClock with weekday and short date) -->
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextClock
+                android:id="@+id/dimClockDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dim_clock_date_margin_top"
+                android:clickable="false"
+                android:ellipsize="end"
+                android:focusable="false"
+                android:maxLines="1"
+                android:textColor="@color/white"
+                android:textSize="@dimen/dim_clock_date_text_size"
+                app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                tools:ignore="UnusedAttribute"
+                tools:text="Fri, Sep 18" />
+
+        </LinearLayout>
 
         <!-- Status row: battery rectangle + network/connectivity chips -->
         <LinearLayout

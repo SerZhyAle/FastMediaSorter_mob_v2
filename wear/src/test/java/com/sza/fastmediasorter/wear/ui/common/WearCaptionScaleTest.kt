@@ -19,6 +19,16 @@ class WearCaptionScaleTest {
         assertEquals(15f, next?.value)
     }
 
+    /**
+     * S3362: Wear OS review item WO-V14 sets 12sp as the smallest size essential text may take, and
+     * this floor is what every list and cell caption reaches on a long label or a large font scale.
+     * Pinned as a number because the review judges the number, not the mechanism around it.
+     */
+    @Test
+    fun `the floor is the smallest size the Wear review allows for essential text`() {
+        assertEquals(WO_V14_MIN_ESSENTIAL_SP, WearCaptionScale.Floor.value, EXACT)
+    }
+
     @Test
     fun `answers null at the floor`() {
         assertNull(WearCaptionScale.nextSmaller(WearCaptionScale.Floor))
@@ -58,5 +68,11 @@ class WearCaptionScaleTest {
         // Ceiling to floor at one sp per step, with headroom - a bound that fails loudly rather
         // than letting a non-terminating step run the suite out of time.
         const val MAX_EXPECTED_STEPS = 100
+
+        /** WO-V14: essential text may not be drawn below 12sp. */
+        const val WO_V14_MIN_ESSENTIAL_SP = 12f
+
+        /** The floor is a declared constant, so the comparison is exact rather than approximate. */
+        const val EXACT = 0f
     }
 }

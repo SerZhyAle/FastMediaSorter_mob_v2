@@ -35,6 +35,11 @@ Para cada tela e cada forma de entrada:
 • Widgets de tela inicial - abrir recurso, continuar a leitura, música aleatória, fotos da câmera.
 • Bloco nas Configurações rápidas para áudio em segundo plano. Busca em todas as configurações.
 
+No seu relógio:
+
+• Apps - Calculadora, Cronómetro e Mini-jogo.
+• Bloco Programas - adicione-o ao seu carrossel de blocos para abrir qualquer um deles com um toque.
+
 Livre, aberto e privado - o código-fonte é publicado sob a Apache License 2.0, e a navegação local, SMB, FTP e SFTP, além dos visualizadores de imagem, vídeo, áudio, PDF e EPUB, funcionam totalmente offline, sem nenhuma conta.
 
 Source and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2

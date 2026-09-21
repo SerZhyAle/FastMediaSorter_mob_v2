@@ -886,4 +886,8 @@
     <string name="wear_onboarding_page_indicator">Étape %1$d sur %2$d</string>
     <string name="dim_clock_overlay_toggle">Afficher l\'horloge et l\'état en mode atténué</string>
     <string name="dim_clock_status_cd">Horloge et état sur l\'écran atténué</string>
+    <string name="wear_file_op_copy_to_watch">Copier sur la montre</string>
+    <string name="wear_file_op_move_to_watch">Déplacer sur la montre</string>
+    <string name="wear_file_op_outcome_no_space">Pas assez d\'espace sur la montre - libérez de la place et réessayez</string>
+    <string name="wear_file_op_outcome_copied_source_kept">Copié sur la montre - l\'original est resté à sa place</string>
 </resources>

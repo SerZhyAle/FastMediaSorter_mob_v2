@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -21,20 +22,20 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
-import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
-import kotlinx.coroutines.launch
-
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.dimclock.WearDimClock
 import com.sza.fastmediasorter.wear.ui.common.dimclock.WearDimClockEntryPoint
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /** How long the acknowledgement ring takes to spread out and fade after a single tap - slow on purpose. */
 private const val TAP_MARK_DURATION_MS = 1400
@@ -75,7 +76,7 @@ private val TAP_MARK_STROKE = 2.dp
 @Composable
 internal fun WearDimOverlay(
     onExit: () -> Unit,
-    clock: @Composable () -> Unit = {
+    clock: @Composable (lastUserActivityMillis: Long) -> Unit = { lastUserActivityMillis ->
         val context = LocalContext.current
         val entryPoint = remember(context) {
             EntryPointAccessors.fromApplication(
@@ -84,12 +85,16 @@ internal fun WearDimOverlay(
             )
         }
         val preferencesRepository = entryPoint.preferencesRepository()
-        val dimClockOverlayEnabled by preferencesRepository.dimClockOverlayEnabled.collectAsStateWithLifecycle(initialValue = false)
+        val dimClockOverlayEnabled by preferencesRepository.dimClockOverlayEnabled.collectAsStateWithLifecycle(
+            initialValue = false
+        )
         if (dimClockOverlayEnabled) {
+            Timber.d("S3361: wear dim clock slot enabled=$dimClockOverlayEnabled")
             WearDimClock(
                 preferencesRepository = preferencesRepository,
                 powerStateObserver = entryPoint.powerStateObserver(),
-                systemInfoDataSource = entryPoint.systemInfoDataSource()
+                systemInfoDataSource = entryPoint.systemInfoDataSource(),
+                lastUserActivityMillis = lastUserActivityMillis
             )
         }
     }
@@ -100,6 +105,8 @@ internal fun WearDimOverlay(
     // so a tap during a ring restarts it from the new point instead of stacking a second ring.
     val tapProgress = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
+    // Bumped by every single tap; the clock's idle fade restarts from it (S3361).
+    val lastUserActivity = remember { mutableLongStateOf(0L) }
     // The callers pass a method reference, which is a fresh instance on every recomposition, and the
     // player recomposes about once a second while the track runs. Keying the gesture detector on it
     // would restart the detector mid-gesture and swallow the second half of a double tap.
@@ -119,6 +126,7 @@ internal fun WearDimOverlay(
                 detectTapGestures(
                     onTap = { point ->
                         tapMark = point
+                        lastUserActivity.longValue = System.currentTimeMillis()
                         scope.launch {
                             tapProgress.snapTo(0f)
                             tapProgress.animateTo(
@@ -146,6 +154,6 @@ internal fun WearDimOverlay(
             }
             .semantics { contentDescription = exitDesc }
     ) {
-        clock()
+        clock(lastUserActivity.longValue)
     }
 }

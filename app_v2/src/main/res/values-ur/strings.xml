@@ -3668,4 +3668,5 @@
     <string name="settings_broadcast_feedback_guard_summary">جب کوئی سننے والا قریب ہی نشریات اونچی آواز میں چلائے تو مائیکروفون گین کم کر دیتا ہے، تاکہ آواز بڑھتی نہ جائے</string>
     <string name="broadcast_control_feedback_warning">آواز کم کر دی گئی: سننے والے کا اسپیکر مائیکروفون میں واپس آ رہا ہے۔ سننے والا آلہ دور لے جائیں یا اس کی آواز کم کریں۔</string>
     <string name="broadcast_control_feedback_warning_cd">صوتی فیڈ بیک کا پتہ چلا، مائیکروفون گین کم کر دیا گیا</string>
+    <string name="wear_watch_transfer_unconfirmed">گھڑی نے %1$s محفوظ کرنے کی تصدیق نہیں کی، اس لیے اصل فون پر رکھا گیا۔</string>
 </resources>

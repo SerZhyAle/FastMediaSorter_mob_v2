@@ -3667,4 +3667,5 @@
     <string name="settings_broadcast_feedback_guard_summary">Senkt die Mikrofonverstärkung, wenn ein Zuhörer die Übertragung in der Nähe laut abspielt, damit sich der Ton nicht aufschaukelt</string>
     <string name="broadcast_control_feedback_warning">Ton abgesenkt: Der Lautsprecher eines Zuhörers koppelt in das Mikrofon zurück. Bringen Sie das Empfangsgerät weiter weg oder verringern Sie dessen Lautstärke.</string>
     <string name="broadcast_control_feedback_warning_cd">Akustische Rückkopplung erkannt, die Mikrofonverstärkung wurde gesenkt</string>
+    <string name="wear_watch_transfer_unconfirmed">Die Uhr hat das Speichern von %1$s nicht bestätigt, daher blieb das Original auf dem Smartphone.</string>
 </resources>

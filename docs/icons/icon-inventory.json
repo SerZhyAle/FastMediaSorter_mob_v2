@@ -1561,6 +1561,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowWatchCameraStandby",
+    "feature": "settings_watch_camera_standby",
+    "drawable": "ic_camera_capture",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowWaterFlashlight",
     "feature": "water_flashlight_settings_toggle_title",
     "drawable": "ic_water_flashlight",

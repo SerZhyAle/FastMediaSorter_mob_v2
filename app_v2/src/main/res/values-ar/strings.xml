@@ -3685,4 +3685,5 @@
     <string name="settings_broadcast_feedback_guard_summary">يخفض كسب الميكروفون عندما يشغّل أحد المستمعين البث بصوت عالٍ في الجوار، حتى لا يتصاعد الصوت</string>
     <string name="broadcast_control_feedback_warning">تم خفض الصوت: مكبّر صوت أحد المستمعين يعود إلى الميكروفون. أبعد جهاز الاستماع أو اخفض مستوى صوته.</string>
     <string name="broadcast_control_feedback_warning_cd">تم اكتشاف تغذية راجعة صوتية، وتم خفض كسب الميكروفون</string>
+    <string name="wear_watch_transfer_unconfirmed">لم تؤكد الساعة حفظ %1$s، لذا تم الاحتفاظ بالأصل على الهاتف.</string>
 </resources>

@@ -22,7 +22,14 @@ import androidx.wear.compose.material.LocalTextStyle
 import androidx.wear.compose.material.Text
 
 private const val CEILING_SP = 16f
-private const val FLOOR_SP = 11f
+
+/**
+ * S3362: 12sp, not 11. Wear OS review item WO-V14 sets 12sp as the smallest size essential text may
+ * take, and this floor is the size every list and cell caption in the module reaches on a long label
+ * or at a large system font scale - which is exactly essential text. The game counters read the same
+ * value, so they rise with it.
+ */
+private const val FLOOR_SP = 12f
 private const val STEP_SP = 1f
 
 /**
@@ -41,6 +48,7 @@ private val OUTLINE_WIDTH = 2.dp
  *
  * The ceiling and floor are fixed by the strategic spec (§3.3), not chosen here: below the floor
  * a caption on round glass is worse than truncated, so shrinking stops and ellipsis takes over.
+ * S3362 raised the floor to the 12sp WO-V14 sets for essential text; the reason is at [FLOOR_SP].
  */
 object WearCaptionScale {
 

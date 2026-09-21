@@ -234,16 +234,6 @@
 
                     </LinearLayout>
 
-                    <!-- S3256: Dim screen clock and status overlay toggle (landscape) -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowDimClockOverlay"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:str_title="@string/dim_clock_overlay_toggle"
-                        app:str_icon="@drawable/ic_world_clock"
-                        app:str_subtitle="@string/dim_clock_status_cd" />
-
                     <!-- S0609: Panel Stereo + Big Buttons paired into a weighted 2-column row (landscape). -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 

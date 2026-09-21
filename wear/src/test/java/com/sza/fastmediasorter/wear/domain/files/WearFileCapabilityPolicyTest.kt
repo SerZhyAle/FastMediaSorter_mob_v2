@@ -90,7 +90,7 @@ class WearFileCapabilityPolicyTest {
      * copy onto the watch takes their place.
      */
     @Test
-    fun `a paired phone copy trades the to-phone pair for a copy onto the watch`() {
+    fun `a paired phone copy trades the to-phone pair for both directions onto the watch`() {
         val dirs = appDirs()
 
         assertEquals(
@@ -98,7 +98,8 @@ class WearFileCapabilityPolicyTest {
                 WearFileOperationKind.DELETE,
                 WearFileOperationKind.RENAME,
                 WearFileOperationKind.OPEN_ON_PHONE,
-                WearFileOperationKind.COPY_TO_WATCH
+                WearFileOperationKind.COPY_TO_WATCH,
+                WearFileOperationKind.MOVE_TO_WATCH
             ),
             policyFor(dirs).allowedOperations(phoneCopy(dirs, "clip.mp4", VIDEO_MIME_TYPE), isNetworkSource = false)
         )
@@ -132,16 +133,16 @@ class WearFileCapabilityPolicyTest {
     }
 
     /**
-     * The one class that gains an operation rather than trading one: a share allows nothing of its
-     * own (S1863), and the copy is about the watch's storage rather than the server's.
+     * The one class that gains operations rather than trading them: a share allows nothing of its own
+     * (S1863), and both entries are about the watch's storage rather than the server's listing.
      */
     @Test
-    fun `a network audio file is offered the copy onto the watch and nothing else`() {
+    fun `a network audio file is offered both directions onto the watch and nothing else`() {
         val dirs = appDirs()
         val remote = mediaFile(File(dirs.cache, "track.mp3"), AUDIO_MIME_TYPE)
 
         assertEquals(
-            setOf(WearFileOperationKind.COPY_TO_WATCH),
+            setOf(WearFileOperationKind.COPY_TO_WATCH, WearFileOperationKind.MOVE_TO_WATCH),
             policyFor(dirs).allowedOperations(remote, isNetworkSource = true)
         )
     }
@@ -156,10 +157,11 @@ class WearFileCapabilityPolicyTest {
         val policy = policyFor(dirs, watchAvailable = false)
         val remote = mediaFile(File(dirs.cache, "track.mp3"), AUDIO_MIME_TYPE)
 
-        assertTrue(
-            WearFileOperationKind.COPY_TO_WATCH !in
-                policy.allowedOperations(phoneCopy(dirs, "clip.mp4", VIDEO_MIME_TYPE), isNetworkSource = false)
-        )
+        val phoneCopyAnswer =
+            policy.allowedOperations(phoneCopy(dirs, "clip.mp4", VIDEO_MIME_TYPE), isNetworkSource = false)
+        assertTrue(WearFileOperationKind.COPY_TO_WATCH !in phoneCopyAnswer)
+        // The move is withheld with the copy: it is a copy plus a removal, and the copy half cannot land.
+        assertTrue(WearFileOperationKind.MOVE_TO_WATCH !in phoneCopyAnswer)
         assertEquals(
             emptySet<WearFileOperationKind>(),
             policy.allowedOperations(remote, isNetworkSource = true)
@@ -281,8 +283,9 @@ class WearFileCapabilityPolicyTest {
     /**
      * The whole direction table in one case, because strategic §11 criteria 6, 7 and 9 are statements
      * about every class and every type at once: a later change that drops one cell - a document that
-     * starts offering a copy, a phone copy that gets its "to phone" pair back - fails here rather
-     * than on the one surface someone happens to open.
+     * starts offering a copy, a phone copy that gets its "to phone" pair back, a share that starts
+     * offering a move nothing can perform - fails here rather than on the one surface someone happens
+     * to open.
      */
     @Test
     fun `the direction table holds for every storage class and every type`() {
@@ -307,14 +310,18 @@ class WearFileCapabilityPolicyTest {
         mimeType: String,
         allowed: Set<WearFileOperationKind>
     ) {
-        assertTrue(
-            "$case offered a move onto the watch, which nothing performs yet",
-            WearFileOperationKind.MOVE_TO_WATCH !in allowed
-        )
         assertEquals(
             "$case answered the wrong way about copying onto the watch",
             storageClass in TO_WATCH_CLASSES && mimeType != DOCUMENT_MIME_TYPE,
             WearFileOperationKind.COPY_TO_WATCH in allowed
+        )
+        // S3359 phase 04: both sources of a borrowed file can now be made to let go of the original -
+        // the phone answers a request, a share is removed from by the watch - so the move follows the
+        // copy exactly. A file already on the watch still has nowhere else to go.
+        assertEquals(
+            "$case answered the wrong way about moving onto the watch",
+            storageClass in TO_WATCH_CLASSES && mimeType != DOCUMENT_MIME_TYPE,
+            WearFileOperationKind.MOVE_TO_WATCH in allowed
         )
         if (storageClass == WearFileStorageClass.PHONE_COPY) {
             assertTrue(

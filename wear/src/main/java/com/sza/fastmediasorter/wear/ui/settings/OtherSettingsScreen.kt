@@ -142,16 +142,7 @@ private fun otherSettingsItems(
     val sendAutomaticallyLabel = stringResource(R.string.wear_voice_note_policy_automatic)
     val keepOnWatchLabel = stringResource(R.string.wear_voice_note_policy_manual)
     return buildList {
-        add(
-            WearSettingsItem { narrow ->
-                StandardWearToggleChip(
-                    label = albumArtLabel,
-                    checked = uiState.downloadAlbumArt,
-                    onCheckedChange = { viewModel.toggleAlbumArt() },
-                    narrow = narrow
-                )
-            }
-        )
+        addAll(albumArtRows(uiState, viewModel, albumArtLabel))
         add(
             WearSettingsItem { narrow ->
                 StandardWearToggleChip(
@@ -178,35 +169,75 @@ private fun otherSettingsItems(
                 }
             )
         }
-        add(
-            WearSettingsItem { narrow ->
-                StandardWearToggleChip(
-                    label = backgroundPlaybackLabel,
-                    checked = uiState.backgroundPlaybackEnabled,
-                    // S2166 (strategic criterion 9): switching it ON asks for the notification
-                    // permission first, because the service's only control surface is its
-                    // notification - a session the owner cannot pause without reopening the app is
-                    // worse than no session. Switching it OFF never asks: nothing is left to
-                    // control. The branch is written here rather than in a helper because
-                    // assert-wear-settings-parity resolves this row's anchor by where its literal
-                    // is drawn, and a literal inside a helper resolves to that helper's call site.
-                    onCheckedChange = {
-                        if (uiState.backgroundPlaybackEnabled || notificationsAllowed) {
-                            viewModel.toggleBackgroundPlayback()
-                        } else {
-                            notificationsLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        }
-                    },
-                    narrow = narrow
-                )
+        // S3362: the session this switch keeps alive is the audio player's, and the store artifact
+        // declares neither the player nor the foreground service that would own it. Left visible, the
+        // switch could only ask for a notification permission this build does not declare - which the
+        // platform denies without a prompt - and then explain the denial.
+        if (uiState.offersMediaAccess) {
+            add(
+                WearSettingsItem { narrow ->
+                    StandardWearToggleChip(
+                        label = backgroundPlaybackLabel,
+                        checked = uiState.backgroundPlaybackEnabled,
+                        // S2166 (strategic criterion 9): switching it ON asks for the notification
+                        // permission first, because the service's only control surface is its
+                        // notification - a session the owner cannot pause without reopening the app is
+                        // worse than no session. Switching it OFF never asks: nothing is left to
+                        // control. The branch is written here rather than in a helper because
+                        // assert-wear-settings-parity resolves this row's anchor by where its literal
+                        // is drawn, and a literal inside a helper resolves to that helper's call site.
+                        onCheckedChange = {
+                            if (uiState.backgroundPlaybackEnabled || notificationsAllowed) {
+                                viewModel.toggleBackgroundPlayback()
+                            } else {
+                                notificationsLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                        },
+                        narrow = narrow
+                    )
+                }
+            )
+            if (uiState.backgroundPlaybackNeedsNotifications) {
+                add(settingsNoticeRow(notificationsNeededLabel))
             }
-        )
-        if (uiState.backgroundPlaybackNeedsNotifications) {
-            add(settingsNoticeRow(notificationsNeededLabel))
         }
-        addAll(voiceNoteSendPolicyRows(uiState, viewModel, sendAutomaticallyLabel, keepOnWatchLabel))
-        add(panelAutoHideRow(uiState, viewModel))
+        // S3362: the policy governs what happens to a finished voice note, and the recorder that would
+        // write one is withheld from the store artifact.
+        if (uiState.offersVoiceRecording) {
+            addAll(voiceNoteSendPolicyRows(uiState, viewModel, sendAutomaticallyLabel, keepOnWatchLabel))
+        }
+        // S3362: the panel it hides belongs to the three players, none of which the store artifact has.
+        if (uiState.offersMediaAccess) {
+            add(panelAutoHideRow(uiState, viewModel))
+        }
     }
+}
+
+/**
+ * S3362: the album-art switch, drawn only where there is a player to show the art in.
+ *
+ * A list rather than a nullable row, in the shape `geometryModeItems` already uses on the screen
+ * settings page: the caller adds what it is given, and the withholding is stated once, here.
+ */
+@Composable
+private fun albumArtRows(
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel,
+    albumArtLabel: String
+): List<WearSettingsItem> {
+    if (!uiState.offersMediaAccess) {
+        return emptyList()
+    }
+    return listOf(
+        WearSettingsItem { narrow ->
+            StandardWearToggleChip(
+                label = albumArtLabel,
+                checked = uiState.downloadAlbumArt,
+                onCheckedChange = { viewModel.toggleAlbumArt() },
+                narrow = narrow
+            )
+        }
+    )
 }
 
 /** A full-width line of explanation under the row it belongs to; it is text, never a control. */

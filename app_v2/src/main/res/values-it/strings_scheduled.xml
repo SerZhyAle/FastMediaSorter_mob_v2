@@ -49,7 +49,6 @@
     <string name="scheduled_ops_log_empty">Il registro è vuoto</string>
     <string name="scheduled_ops_log_title">Registro delle operazioni</string>
     <string name="scheduled_ops_next_run">Prossima corsa alle:</string>
-    <string name="scheduled_ops_no_destinations">Aggiungi prima le destinazioni nella sezione Destinazioni</string>
     <string name="scheduled_ops_notif_channel_name">Operazioni programmate</string>
     <string name="scheduled_ops_notif_running">Esecuzione dell\'operazione programmata.</string>
     <string name="scheduled_ops_op_copy">Copia</string>
@@ -76,4 +75,13 @@
     <string name="scheduled_ops_toggle_hint">Copia, sposta, elimina in background</string>
     <string name="scheduled_ops_notif_permission_title">L\'operazione programmata richiede un\'autorizzazione</string>
     <string name="scheduled_ops_notif_permission_text">Concedi l\'accesso a tutti i file in modo che la funzione Sposta/Elimina in background possa rimuovere i file originali.</string>
+    <string name="scheduled_ops_screen_title">Operazioni pianificate sui file</string>
+    <string name="scheduled_ops_action_run_all">Esegui tutto ora</string>
+    <string name="scheduled_ops_action_pause_all">Metti tutto in pausa</string>
+    <string name="scheduled_ops_action_resume_all">Riprendi tutto</string>
+    <string name="scheduled_ops_screen_empty">Non ci sono ancora operazioni pianificate. Tocca + per crearne la prima.</string>
+    <string name="scheduled_ops_link_subtitle">Gestisci le operazioni e la cronologia delle esecuzioni</string>
+    <string name="scheduled_ops_history_title">Cronologia delle esecuzioni</string>
+    <string name="scheduled_ops_history_empty">Nessuna esecuzione registrata.</string>
+    <string name="scheduled_ops_history_clear_confirm">Cancellare la cronologia delle esecuzioni?</string>
 </resources>

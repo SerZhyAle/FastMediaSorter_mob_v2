@@ -34,6 +34,12 @@ private val TO_PHONE_OPERATIONS = setOf(
     WearFileOperationKind.MOVE_TO_PHONE
 )
 
+/** Both directions of "keep this on the watch", offered together to every file the watch can store. */
+private val TO_WATCH_OPERATIONS = setOf(
+    WearFileOperationKind.COPY_TO_WATCH,
+    WearFileOperationKind.MOVE_TO_WATCH
+)
+
 /**
  * The single place that answers "what may this file be asked to do".
  *
@@ -97,11 +103,12 @@ class WearFileCapabilityPolicy @Inject constructor(
      * itself are both readable local files, yet the first must never be offered back to the phone
      * that still holds the original, and the second has nowhere else to go. So the class answer below
      * is the base and the source decides the direction on top of it (S3359 ADR-1): a phone copy trades
-     * the two "to phone" operations for the copy onto the watch, and a network entry - which allows
-     * nothing of its own - gains exactly that one.
+     * the two "to phone" operations for the two onto the watch, and a network entry - which allows
+     * nothing of its own - gains those two and keeps nothing else.
      *
-     * Moving to the watch is deliberately absent from both: removing the original needs the source's
-     * own consent, which neither the phone nor a read-only share has given yet.
+     * Both sources can be made to let go of the original: the phone answers a removal request, and a
+     * share is removed from by the watch itself. What the class decides is the direction, never which
+     * of the two operations is on offer.
      */
     fun allowedOperations(file: WearMediaFile, isNetworkSource: Boolean): Set<WearFileOperationKind> {
         val storageClass = classify(file, isNetworkSource)
@@ -114,16 +121,19 @@ class WearFileCapabilityPolicy @Inject constructor(
     }
 
     /**
-     * The copy onto the watch, offered only where it can actually end in a file the owner finds.
+     * Both operations onto the watch, offered only where they can end in a file the owner finds.
      *
      * Two conditions, both about the destination rather than the source. A type with no collection
      * reaches none of the watch's category lists, so a copy of one would be stored and unfindable
      * (strategic Non-goals). Below API 29 the publisher cannot insert a row at all, and withholding
      * the entry is what S2004 ADR-4 requires instead of offering it and refusing.
+     *
+     * The move rides on exactly those conditions rather than on one of its own: a move is a copy plus
+     * a removal, so wherever the copy cannot land the move has nothing to do either.
      */
     private fun toWatchOffer(file: WearMediaFile): Set<WearFileOperationKind> {
         val reachable = WearWatchFileTarget.collectionOf(file.mimeType) != null && watchPublisher.isAvailable()
-        return if (reachable) setOf(WearFileOperationKind.COPY_TO_WATCH) else emptySet()
+        return if (reachable) TO_WATCH_OPERATIONS else emptySet()
     }
 
     /**

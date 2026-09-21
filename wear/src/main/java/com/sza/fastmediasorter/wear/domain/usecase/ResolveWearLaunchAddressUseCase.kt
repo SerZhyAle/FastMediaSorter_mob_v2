@@ -95,16 +95,19 @@ class ResolveWearLaunchAddressUseCase @Inject constructor(
 
         WearDestinationId.BODY_SENSOR -> capabilities.offersBodySensorDiagnostics
 
+        // S3362: the two screens a swipe cannot leave. Declaring no permission is what kept them in
+        // the store-safe group below; WO-V3 is about the gesture, not about the manifest.
+        WearDestinationId.WATER_FLASHLIGHT,
+        WearDestinationId.SOS -> capabilities.offersScreenTakeoverPrograms
+
+        // S3362: the clipboard's one action is a Data Layer round trip to the paired phone.
+        WearDestinationId.CLIPBOARD -> capabilities.offersContentTransfer
+
         // The store-safe surface: no permission, no user content, no device data.
         WearDestinationId.APPS,
         WearDestinationId.CALCULATOR,
         WearDestinationId.GAME,
-        WearDestinationId.WATER_FLASHLIGHT,
         WearDestinationId.STOPWATCH,
-        WearDestinationId.CLIPBOARD,
-        // S3216: the siren goes out on the alarm channel and the strobe is the display itself, so the
-        // distress signal belongs to this group - it declares no permission and reads no user content.
-        WearDestinationId.SOS,
         WearDestinationId.HOME -> true
     }
 

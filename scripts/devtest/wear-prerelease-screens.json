@@ -270,9 +270,11 @@
       "screen": "ClipboardScreen",
       "expectRes": "wear_clipboard_send_action",
       "wearApp": "CLIPBOARD",
+      "flavors": ["noLegal"],
       "backAfter": 1,
       "note": "S3109. The marker is the send chip, not the title: this screen repeats its Apps chip label as its heading, so the title appears on the parent too and would match before the screen ever opened.",
-      "note2": "Inserted before the water flashlight rather than after it, so the entry that leaves the Apps list for Settings keeps the exit path it was measured with."
+      "note2": "Inserted before the water flashlight rather than after it, so the entry that leaves the Apps list for Settings keeps the exit path it was measured with.",
+      "note3": "S3362: scoped to noLegal. The send action is a Data Layer round trip to the paired phone, so the store artifact withholds the program under offersContentTransfer and its Apps row is gone there."
     },
     {
       "id": "apps-sos",
@@ -282,11 +284,12 @@
       "screen": "SosScreen",
       "expectRes": "wear_sos_arming_hint",
       "wearApp": "SOS",
+      "flavors": ["noLegal"],
       "backAfter": 1,
       "note": "S3216. Walked rather than excluded, and the arming state is why: the screen opens with its three mode chips and NOTHING running, so the walk sees a static surface and starts no siren. Tapping a chip is what raises the signal, and the walk never taps inside a screen. Compare WearBroadcastQrScreen, excluded because it has nothing to render until a live session exists - here the entrance itself is the renderable state.",
       "note2": "The marker is the arming hint, not the title: this screen repeats its Apps chip label SOS as its heading, so the title appears on the parent too and would match before the screen ever opened. The same trap the clipboard entry above records.",
       "note3": "backAfter 1 rather than the water flashlight's measured overshoot below: the key handler that also calls onLeave() lives only in the SIGNALLING half of this screen, so in the arming state a hardware key reaches the activity's back dispatcher alone and leaves exactly one level. Placed before the water flashlight for the reason the clipboard entry states - that entry is last on purpose because its exit lands on Home.",
-      "note4": "Nothing gates this screen: no permission, no sensor, no flavor flag, so it is present in the store artifact too (StoreBoundaryTest pins it)."
+      "note4": "S3362 replaced the earlier note here. It read that nothing gates this screen because it declares no permission, which was true of the manifest and wrong about the review: the signalling half consumes every pointer event so the swipe WO-V3 requires cannot leave it, and it strobes full-screen with the alarm stream at maximum. The store build now withholds it under offersScreenTakeoverPrograms, together with the water flashlight below."
     },
     {
       "id": "apps-water-flashlight",
@@ -296,8 +299,9 @@
       "screen": "WaterFlashlightScreen",
       "expectRes": "wear_water_flashlight_locked_hint",
       "wearApp": "WATER_FLASHLIGHT",
+      "flavors": ["noLegal"],
       "backAfter": 1,
-      "note": "S2516: the lock hint is the only static string the screen renders - the line above it is the clock, which is measured time and matches no fixed token. Nothing gates this screen: no permission, no sensor, no flavor flag.",
+      "note": "S2516: the lock hint is the only static string the screen renders - the line above it is the clock, which is measured time and matches no fixed token. S3362 scoped the entry to noLegal: the touch lock note2 describes IS the WO-V3 defect, so the store build withholds the program under offersScreenTakeoverPrograms.",
       "note2": "S2621: the screen consumes every touch on PointerEventPass.Initial so the wet-glass swipe cannot dismiss it, and MainActivity hides the visual back arrow on this route - but backAfter dispatches a hardware key event through adb, and onPreviewKeyEvent accepts any KeyUp and calls onLeave(), so the walk's own exit works.",
       "note3": "Last row of the Apps block on purpose. Measured on the Galaxy Watch 7 at 227 dp 2026-09-12: one backAfter key left the locked screen AND the Apps list, landing on Home - the key reaches onLeave() and the activity's back dispatcher both. Placed fourth, as it was, that stranded the voice recorder and voice notes entries after it on Home, both scored unreachable. Here the overshoot is the exit the next entry wants: settings starts from Home."
     },
@@ -305,11 +309,13 @@
       "id": "settings",
       "name": "Settings",
       "label": "Settings",
-      "expect": "Media Types",
+      "expect": "About",
       "screen": "SettingsScreen",
-      "expectRes": "media_types",
+      "expectRes": "about",
       "backAfter": 0,
-      "note": "Reached from the Home command bar, whose button is icon-only and carries the label as its content-description."
+      "note": "Reached from the Home command bar, whose button is icon-only and carries the label as its content-description.",
+      "note2": "S3362: the marker was Media Types, which the standard Settings list no longer draws - a row withheld with its subject would have failed this entry in the artifact that matters most. About is the last row of the list in BOTH flavors and appears on no screen above it, so it identifies arrival without being flavor-scoped.",
+      "note3": "S3362, unresolved and needing a device: with apps-clipboard, apps-sos and apps-water-flashlight scoped to noLegal, the standard walk leaves the Apps block after apps-stopwatch, whose backAfter 1 lands on the Apps LIST, while this entry is reached from Home. In noLegal the flashlight's measured two-level exit still ends the block on Home, so only the standard chain is affected. Its own note3 records that the stopwatch's real exit depth was never measured; measure it on a standard build before the next sweep and either correct that number or teach the walk a per-flavor backAfter - do not guess, because one BACK too many on Home calls moveTaskToBack and leaves the app."
     },
     {
       "id": "settings-media-types",
@@ -318,8 +324,10 @@
       "expect": "Audio",
       "screen": "MediaTypesSettingsScreen",
       "expectRes": "enable_audio",
+      "flavors": ["noLegal"],
       "backAfter": 1,
-      "note": "S2555: enable_audio was renamed from 'Enable Audio' to 'Audio' and the entry kept the old value. The screen draws it through settingsLabelFor(MUSIC), and MUSIC is in BrowseCategoryCatalog.DISABLEABLE_TYPES, so the toggle is always there; the parent SettingsScreen carries no 'Audio', which is what keeps the marker on the destination."
+      "note": "S2555: enable_audio was renamed from 'Enable Audio' to 'Audio' and the entry kept the old value. The screen draws it through settingsLabelFor(MUSIC), and MUSIC is in BrowseCategoryCatalog.DISABLEABLE_TYPES, so the toggle is always there; the parent SettingsScreen carries no 'Audio', which is what keeps the marker on the destination.",
+      "note2": "S3362: scoped to noLegal. The route is registered only behind offersMediaAccess (store-boundary-policy.json names it under media access), and the Settings list no longer draws the row where the route is absent, so a standard walk had nothing to tap and an unreachable verdict to spend."
     },
     {
       "id": "settings-slideshow",
@@ -328,7 +336,9 @@
       "expect": "Enable Slideshow",
       "screen": "SlideshowSettingsScreen",
       "expectRes": "enable_slideshow",
-      "backAfter": 1
+      "flavors": ["noLegal"],
+      "backAfter": 1,
+      "note": "S3362: scoped to noLegal for the same reason as settings-media-types - the route lives behind offersMediaAccess and the store Settings list no longer offers the row."
     },
     {
       "id": "settings-screen",
@@ -355,7 +365,9 @@
       "expect": "Resource Tile",
       "screen": "TileTargetsSettingsScreen",
       "expectRes": "wear_tile_resource_label",
-      "backAfter": 1
+      "flavors": ["noLegal"],
+      "backAfter": 1,
+      "note": "S3362: scoped to noLegal. The route is registered only behind offersRemoteSources, and the two tiles it assigns are declared in the sideload manifest alone, so the store build has neither the page nor anything to point it at."
     },
     {
       "id": "settings-about",

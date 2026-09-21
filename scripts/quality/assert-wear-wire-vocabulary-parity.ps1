@@ -144,6 +144,14 @@ $vocabularies = @(
        PhoneFile = 'domain/model/WearPhoneResourcePayload.kt'; WatchFile = 'domain/model/WearPhoneResourcePayload.kt'
        Type = 'WearPhoneResourceResponseStatus' },
 
+    # S3359: the delete round trip's answer. It travels as the one field of the ack the phone publishes,
+    # and only DELETED lets the watch report a move - a member the watch does not recognise deserialises
+    # to null and would be read as "not confirmed", which is safe but silently withholds a move that did
+    # happen. Same pairing as the two rows above: the phone pins its names, the watch relies on them.
+    @{ Name = 'WearPhoneResourceDeleteOutcome'; Kind = 'Mirrored'; Compare = 'serializedVsPlain'
+       PhoneFile = 'domain/model/WearPhoneResourcePayload.kt'; WatchFile = 'domain/model/WearPhoneResourcePayload.kt'
+       Type = 'WearPhoneResourceDeleteOutcome' },
+
     # S2641: the one row whose two sides are not same-named, and the reason the DISCOVERY half below
     # cannot be the only guard. The phone puts ResourceType.name into a source payload after filtering
     # by the WATCH_TRANSFERABLE subset; the watch resolves it by explicit branch in parseType and drops

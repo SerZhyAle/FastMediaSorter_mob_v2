@@ -506,7 +506,14 @@ class PhoneResourceViewModel @Inject constructor(
         }
         val local = actionTargetFor(entry)
         operationJob = viewModelScope.launch {
-            performFileOperation(listOf(local), operation, isNetworkSource = false).collect { result ->
+            // S3359: the entry's own token travels with the run, because a move asks the phone to
+            // delete the original and the copy's file name carries only that token's hash.
+            performFileOperation(
+                listOf(local),
+                operation,
+                isNetworkSource = false,
+                phoneToken = entry.token
+            ).collect { result ->
                 _operationNotice.value = result.outcome
             }
         }
@@ -560,7 +567,8 @@ class PhoneResourceViewModel @Inject constructor(
             size = entry.sizeBytes ?: delivered.length(),
             dateModified = 0L
         )
-        selectedMediaManager.selectFile(file = file, isNetworkSource = false)
+        // S3359: the token rides along so a player can ask the phone about the original it still holds.
+        selectedMediaManager.selectFile(file = file, isNetworkSource = false, phoneToken = entry.token)
         return PhoneFileOpenOutcome.Ready(fileId = file.id, mimeType = mime)
     }
 

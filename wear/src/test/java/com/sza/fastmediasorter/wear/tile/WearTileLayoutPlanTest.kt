@@ -127,6 +127,25 @@ class WearTileLayoutPlanTest {
         assertEquals(entries, plan.shown)
     }
 
+    /**
+     * S3362: the shape the store artifact's programs tile now has - three cells at the library's own
+     * capacity, with the overflow cell production always passes.
+     *
+     * `MultiButtonLayout` arranges three buttons itself, so the one thing this layer owes the tile is
+     * that nothing is cut and no way-out cell is added to a grid that did not overflow: an overflow
+     * cell on a three-program tile would be a seventh glyph the resources response never published.
+     */
+    @Test
+    fun `the three-program store grid keeps every cell and offers no way out`() {
+        val entries = shortcuts(3)
+
+        val plan = planShortcutGrid(entries, overflow = overflow)
+
+        assertEquals(entries, plan.shown)
+        assertEquals(0, plan.dropped)
+        assertFalse(plan.shown.contains(overflow))
+    }
+
     @Test
     fun `an empty list offers no way out either`() {
         val plan = planShortcutGrid(emptyList(), overflow = overflow, capacity = testCapacity)

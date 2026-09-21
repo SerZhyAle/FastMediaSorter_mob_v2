@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -37,6 +38,7 @@ class StoreBoundaryTest {
         assertFalse("content transfer", capabilities.offersContentTransfer)
         assertFalse("external entry points", capabilities.offersExternalEntryPoints)
         assertFalse("credential entry", capabilities.offersCredentialEntry)
+        assertFalse("screen takeover programs", capabilities.offersScreenTakeoverPrograms)
     }
 
     @Test
@@ -61,6 +63,13 @@ class StoreBoundaryTest {
         assertFalse(sections.contains(HomeSectionId.BROADCAST))
     }
 
+    /**
+     * S3362: three programs, and the list is asserted whole rather than by membership.
+     *
+     * The owner's ruling of 2026-09-21 is that the first publication carries the calculator, the
+     * mini-game and the stopwatch - nothing that takes the screen over, nothing that needs a phone.
+     * An equality check is what makes a fourth program a decision instead of an accident.
+     */
     @Test
     fun `the apps list offers only the programs that need nothing`() {
         val apps = WearAppCatalog.apps(capabilities).map { it.id }
@@ -69,12 +78,7 @@ class StoreBoundaryTest {
             listOf(
                 WearAppId.CALCULATOR,
                 WearAppId.GAME,
-                WearAppId.WATER_FLASHLIGHT,
-                WearAppId.STOPWATCH,
-                WearAppId.CLIPBOARD,
-                // S3216: the siren goes out on the alarm channel and the strobe is the display itself,
-                // so the distress signal declares no permission the store artifact withholds.
-                WearAppId.SOS
+                WearAppId.STOPWATCH
             ),
             apps
         )
@@ -88,6 +92,29 @@ class StoreBoundaryTest {
             "a withheld program is offered: $apps",
             WITHHELD_PROGRAMS.none { apps.contains(it) }
         )
+    }
+
+    /**
+     * S3362: a program id this build no longer offers resolves to no record, and never throws.
+     *
+     * The stored id outlives the install: a watch that ran the sideload build, or an earlier store
+     * build, keeps `lastUsedApp` in its own DataStore across an update. `HomeViewModel.availableApp`
+     * looks that id up in exactly this catalog and hands the result to `HomeSectionCatalog`, so a
+     * null here is what turns the row into the broadcast fallback the store build then drops as
+     * well. Asserted on the catalog rather than through the ViewModel because the catalog is what
+     * the lookup reads; constructing the ViewModel would prove the same fact through more moving
+     * parts, and the fake capabilities it would need are not the ones this flavor binds.
+     */
+    @Test
+    fun `a program id stored by an older build resolves to no record here`() {
+        val apps = WearAppCatalog.apps(capabilities)
+
+        WITHHELD_PROGRAMS.forEach { stored ->
+            assertNull(
+                "$stored was recorded as last used before the update and still resolves",
+                apps.firstOrNull { it.id == stored }
+            )
+        }
     }
 
     /**
@@ -125,7 +152,12 @@ class StoreBoundaryTest {
             WearAppId.BODY_SENSOR,
             WearAppId.BLOOD_PRESSURE,
             WearAppId.BROADCAST,
-            WearAppId.TOURIST
+            WearAppId.TOURIST,
+            // S3362: the two screens a swipe cannot leave (WO-V3) and the one program whose single
+            // action needs a paired phone.
+            WearAppId.WATER_FLASHLIGHT,
+            WearAppId.SOS,
+            WearAppId.CLIPBOARD
         )
     }
 }

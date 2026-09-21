@@ -71,7 +71,7 @@ import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
-import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.util.LimitedStorageReach
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.UserActionLogger
@@ -784,9 +784,13 @@ class BrowseManagerInitializer(
     }
 
     private fun openLegacyBrowseSettings(resourceId: Long) {
-        activity.startActivity(Intent(activity, SettingsActivity::class.java).apply {
-            putExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID, resourceId)
-        })
+        // S3365: the create-from-Browse action opens the program screen, which consumes the same
+        // source-resource extra the settings activity used to.
+        activity.startActivity(
+            Intent(activity, ScheduledOperationsActivity::class.java).apply {
+                putExtra(ScheduledOperationsActivity.EXTRA_SOURCE_RESOURCE_ID, resourceId)
+            }
+        )
     }
 
     private fun setupRowTouchHandling() {

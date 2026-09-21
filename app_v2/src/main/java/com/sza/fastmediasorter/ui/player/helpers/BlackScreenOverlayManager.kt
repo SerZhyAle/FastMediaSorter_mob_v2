@@ -113,6 +113,7 @@ class BlackScreenOverlayManager(
     }
 
     private fun applyDimMode(activity: Activity, clockEnabled: Boolean) {
+        Timber.d("S3361: player applyDimMode clockEnabled=$clockEnabled")
         if (clockEnabled) {
             addClockView(activity)
         } else {
@@ -135,9 +136,21 @@ class BlackScreenOverlayManager(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            bind(styleProvider, statusProvider, unitProvider)
+            bind(
+                styleProvider,
+                statusProvider,
+                unitProvider,
+                entryPoint.dimChipIconLoader(),
+                entryPoint.dimChipActionRouter(),
+                entryPoint.dimClockInteractionHandler(),
+            )
         }
         decorView.addView(clockView)
+        // The overlay owns every touch while dimmed; taps reach the clock only through this forward.
+        (overlayView as? DimOverlayView)?.onUserActivity = { clockView.onHostInteraction() }
+        // S3366: a chip or battery tap dismisses the dim overlay through the same path an exit
+        // gesture takes, before the router starts the intent.
+        clockView.onDimExitRequested = { hide() }
         dimClockView = clockView
     }
 

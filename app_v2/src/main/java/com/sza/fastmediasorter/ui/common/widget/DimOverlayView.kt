@@ -30,6 +30,9 @@ class DimOverlayView @JvmOverloads constructor(
     /** Callback invoked when a double-tap, long-press, or Back key dismisses the dim overlay. */
     var onExit: (() -> Unit)? = null
 
+    /** Invoked on any touch while dimmed; the clock overlay resets its idle fade on it (S3361). */
+    var onUserActivity: (() -> Unit)? = null
+
     private var tapX = 0f
     private var tapY = 0f
     private var animStartTime = 0L
@@ -89,6 +92,7 @@ class DimOverlayView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        onUserActivity?.invoke()
         gestureDetector.onTouchEvent(event)
         // Always consume all touch events while the dim overlay is displayed
         return true

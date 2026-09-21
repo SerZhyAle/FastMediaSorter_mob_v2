@@ -469,6 +469,16 @@ FMS ships about two dozen small programs of its own - the calculator, the stopwa
 
 Related specs: S1736 (this registry), S1925 (the OS-shortcut surface, which reads it), S2673 / S2889 (the programs menu's move onto it).
 
+## Scheduled Operations Program (S3365)
+
+The scheduled file operations are a sub-program in the registry's fullest sense: one `SubProgramEntry` on the `scheduled_tasks` route key puts them on all five surfaces, and the entry's `disable` is the very `enableScheduledOperations` setting that used to be the settings card's master toggle - availability, the widget's gate and "enable all" already read it, so no setting moved house in the data layer.
+
+**The screen, not a settings tab.** `ScheduledOperationsActivity` (`ui/scheduledops/`) owns the management surface: the master toggle row, the operations list, the create/edit dialog (`ScheduledOperationDialog`, relocated from `ui/dialog/` with the ViewModel and adapter), the group run controls (run all, pause/resume), the notification and battery-optimization permission flows, and the run history. The settings Operations tab keeps a single link row (`rowOpenScheduledOpsScreen`) that opens the screen; the embedded card that used to hold all of this is gone.
+
+**The engine did not move.** Planning, execution, the WorkManager self-rescheduling, boot-time rescheduling and backup integration are exactly as before (ADR-3) - only the interface layer was relocated. The run history is a structured read over the persisted `scheduled_operations_log.txt` (ADR-4: no Room change), parsed by `ScheduledLogEntryParser` into timestamp, operation, sides and an OK/ERROR result; the file's `yyyy-MM-dd HH:mm | OP | src → dst | message` shape is written by `ExecuteScheduledOperationUseCase` and is Locale.US by S2598.
+
+**Persisted keys are healed centrally.** The `scheduled_tasks` route key rides inside launcher cells and quick-access tiles saved on user devices; `AppLaunchPanelRouteIntents.scheduledTasks` now targets the screen, so those saved targets land there without migration. Widget status/row PendingIntents open the screen directly, and stale `EXTRA_OPEN_SCHEDULED` intents held by pre-update widgets are redirected from `SettingsActivity.onCreate` to it.
+
 ## Performance & Resource Optimization
 
 To maintain fast startup times (cold start), low memory consumption, and efficient CPU usage, the following patterns must be strictly enforced:

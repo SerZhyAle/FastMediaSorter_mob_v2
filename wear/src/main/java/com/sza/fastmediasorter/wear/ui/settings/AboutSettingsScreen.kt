@@ -104,19 +104,24 @@ fun AboutSettingsScreen(
                     message = portalMessage(watchPortalState)
                 )
             }
-            item {
-                WearLinkRow(
-                    label = stringResource(R.string.about_web_portal_on_phone),
-                    onClick = viewModel::openPortalOnPhone,
-                    modifier = Modifier.testTag(WearTestTags.WEAR_ABOUT_WEB_PORTAL_ON_PHONE),
-                    message = portalMessage(phonePortalState)
-                )
-            }
-            item {
-                SendLogsRow(
-                    state = logReportState,
-                    onSend = viewModel::sendLogReport
-                )
+            // S3362: both rows end on the paired phone - one hands it an address, the other a log
+            // file - and both travel the content-transfer path. Where that path is absent the press
+            // can only report that no phone answered, so the rows go with the path.
+            if (uiState.offersContentTransfer) {
+                item {
+                    WearLinkRow(
+                        label = stringResource(R.string.about_web_portal_on_phone),
+                        onClick = viewModel::openPortalOnPhone,
+                        modifier = Modifier.testTag(WearTestTags.WEAR_ABOUT_WEB_PORTAL_ON_PHONE),
+                        message = portalMessage(phonePortalState)
+                    )
+                }
+                item {
+                    SendLogsRow(
+                        state = logReportState,
+                        onSend = viewModel::sendLogReport
+                    )
+                }
             }
         }
     }

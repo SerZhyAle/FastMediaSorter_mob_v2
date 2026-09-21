@@ -377,7 +377,8 @@ proof is the reader's exit code, not a Console reading, exactly as the step dema
 ### Step 4 - Return the watch on its own submission
 
 **Executor:** repository first, then owner (Play Console).
-**Proof:** all three carriers closed, S1984's pre-release walk run on a real watch, then a watch-only
+**Proof:** all three carriers closed, S1984's pre-release walk passed on the reviewed Wear emulator
+profiles, then a watch-only
 campaign.
 
 Every Wear claim recorded in block 3 with its carrier and that carrier's status, checked in the

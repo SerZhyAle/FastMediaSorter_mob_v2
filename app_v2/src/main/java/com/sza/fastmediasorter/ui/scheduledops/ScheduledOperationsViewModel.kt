@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.ui.settings
+package com.sza.fastmediasorter.ui.scheduledops
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -47,9 +47,33 @@ class ScheduledOperationsViewModel @Inject constructor(
     val operations: StateFlow<List<ScheduledOperation>> = getScheduledOperationsUseCase()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // S3365: the screen's picker and list labels read the same resource list the settings screen
+    // fed the dialog; hidden-FK augmentation stays in the caller. Destinations are read at
+    // dialog-open time by the screen - the constructor keeps its baselined parameter count.
+    val resources: StateFlow<List<MediaResource>> = getResourcesUseCase()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // S3365: the program's off-switch - the same enableScheduledOperations setting the settings
+    // card owned, now the registry disable target (strategic S3365 §6.2 resolution).
+    val isEnabled: StateFlow<Boolean> = settingsRepository.getSettings()
+        .map { it.enableScheduledOperations }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     val isPaused: StateFlow<Boolean> = settingsRepository.getSettings()
         .map { it.scheduledOperationsPaused }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun setEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.updateSettings { it.copy(enableScheduledOperations = enabled) }
+        }
+    }
+
+    fun setPaused(paused: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.updateSettings { it.copy(scheduledOperationsPaused = paused) }
+        }
+    }
 
     fun upsert(operation: ScheduledOperation) {
         viewModelScope.launch { persistAndSchedule(operation) }
@@ -63,13 +87,17 @@ class ScheduledOperationsViewModel @Inject constructor(
             var op = draft.operation
             draft.sourceFolderPath?.let { path ->
                 val id = resolveLocalFolderResourceUseCase(
-                    path, draft.sourceFolderName ?: path, isWritable = !draft.sourceFolderReadOnly,
+                    path,
+                    draft.sourceFolderName ?: path,
+                    isWritable = !draft.sourceFolderReadOnly,
                 )
                 op = op.copy(sourceResourceId = id)
             }
             draft.targetFolderPath?.let { path ->
                 val id = resolveLocalFolderResourceUseCase(
-                    path, draft.targetFolderName ?: path, isWritable = true,
+                    path,
+                    draft.targetFolderName ?: path,
+                    isWritable = true,
                 )
                 op = op.copy(targetResourceId = id)
             }
@@ -106,7 +134,9 @@ class ScheduledOperationsViewModel @Inject constructor(
             )
             updateScheduledOperationUseCase(withNext)
             withNext
-        } else saved
+        } else {
+            saved
+        }
         if (scheduled.isEnabled) {
             workManagerScheduler.scheduleOperation(scheduled)
         } else {

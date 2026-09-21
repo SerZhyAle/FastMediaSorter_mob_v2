@@ -524,6 +524,16 @@
       "note": "The dialog's title is set programmatically, so the marker is a row inside it. StopwatchActivity opens the same dialog from btnStopwatchSettings; it is walked here, from settings, so the sweep does not photograph one surface twice."
     },
     {
+      "id": "settings-scheduled-operations",
+      "name": "Settings - Scheduled operations screen",
+      "resourceId": "rowOpenScheduledOpsScreen",
+      "from": "settings-operations",
+      "expect": "Scheduled file operations",
+      "expectRes": "scheduled_ops_screen_title",
+      "backAfter": 1,
+      "note": "S3365: the link row opens the standalone program screen that took over the extracted card; the sweep photographs it from its settings entry point so the row and the screen are covered together."
+    },
+    {
       "id": "settings-launcher",
       "name": "Settings - Launcher dialog",
       "resourceId": "rowLauncherSettings",
@@ -892,6 +902,31 @@
       "note": "ACTION_SEND receiver; the sweep sends nothing to the app."
     },
     {
+      "activity": "BroadcastControlActivity",
+      "reason": "no-static-marker",
+      "note": "S3365 scan surfacing: live broadcast-control host; its state exists only while a session runs."
+    },
+    {
+      "activity": "BroadcastEntryActivity",
+      "reason": "arg-external",
+      "note": "S3365 scan surfacing: entry trampoline that routes into the broadcast flow and finishes."
+    },
+    {
+      "activity": "TouristInfoActivity",
+      "reason": "needs-seeded-content",
+      "note": "S3365 scan surfacing: renders tourist info only for a configured destination."
+    },
+    {
+      "activity": "WatchListenLaunchActivity",
+      "reason": "arg-external",
+      "note": "S3365 scan surfacing: launch shim taking the record argument; forwards into the watch session."
+    },
+    {
+      "activity": "SosActivity",
+      "reason": "no-static-marker",
+      "note": "S3365 scan surfacing: SOS host whose screen is stateful (active distress session); its ticket shipped without extending the sweep data."
+    },
+    {
       "activity": "ResourceImportActivity",
       "reason": "arg-external",
       "note": "VIEW/SEND intent filters only."
@@ -955,7 +990,8 @@
     "app-launch-panel": "AppLaunchPanelActivity",
     "edit-app-launch-panel": "EditAppLaunchPanelActivity",
     "streams": "StreamsActivity",
-    "camera-capture": "CameraCaptureActivity"
+    "camera-capture": "CameraCaptureActivity",
+    "settings-scheduled-operations": "ScheduledOperationsActivity"
   },
   "_sectionCoverage": {
     "general": "settings-general",
@@ -971,6 +1007,7 @@
     "defaultApps": "settings-default-apps",
     "gestures": "settings-edge-gestures",
     "stopwatch": "settings-stopwatch",
+    "scheduled_operations": "settings-scheduled-operations",
     "launcher": "settings-launcher",
     "camera": "camera-settings",
     "translation": "player-translation-settings"
@@ -981,9 +1018,9 @@
     "and 36 are named in `excluded`. 24 + 36 = 60, with no record in both lists and none in neither.",
     "",
     "Settings sections: docs/settings/settings-manifest.json holds 17 distinct sectionId values.",
-    "15 are covered by a walk entry - 9 as settings pages, 6 as dialogs, two of those six (camera,",
-    "translation) from their host screen rather than from the settings entry, because no settings path",
-    "to them exists. 2 are named in `excludedSettingsSections`. 15 + 2 = 17.",
+    "16 are covered by a walk entry - 9 as settings pages, 7 as dialogs and screens, two of those",
+    "seven (camera, translation) from their host screen rather than from the settings entry, because",
+    "no settings path to them exists. 2 are named in `excludedSettingsSections`. 16 + 2 = 18.",
     "",
     "The step 03.4 gate re-derives both sums from the source files rather than trusting this note."
   ]

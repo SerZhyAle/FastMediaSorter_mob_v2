@@ -886,4 +886,8 @@
     <string name="wear_onboarding_page_indicator">第 %1$d 步，共 %2$d 步</string>
     <string name="dim_clock_overlay_toggle">变暗时显示时钟和状态</string>
     <string name="dim_clock_status_cd">变暗屏幕上的时钟和状态</string>
+    <string name="wear_file_op_copy_to_watch">复制到手表</string>
+    <string name="wear_file_op_move_to_watch">移动到手表</string>
+    <string name="wear_file_op_outcome_no_space">手表存储空间不足 - 请释放空间后重试</string>
+    <string name="wear_file_op_outcome_copied_source_kept">已复制到手表 - 原文件保持不变</string>
 </resources>

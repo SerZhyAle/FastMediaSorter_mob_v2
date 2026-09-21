@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.wear.domain.catalog.WearAppCatalog
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -33,6 +34,7 @@ class NoLegalBoundaryTest {
         assertTrue("content transfer", capabilities.offersContentTransfer)
         assertTrue("external entry points", capabilities.offersExternalEntryPoints)
         assertTrue("credential entry", capabilities.offersCredentialEntry)
+        assertTrue("screen takeover programs", capabilities.offersScreenTakeoverPrograms)
     }
 
     @Test
@@ -65,10 +67,31 @@ class NoLegalBoundaryTest {
             WearAppId.BODY_SENSOR,
             WearAppId.BLOOD_PRESSURE,
             WearAppId.BROADCAST,
-            WearAppId.TOURIST
+            WearAppId.TOURIST,
+            // S3362: the three the store build gave up last. They are the owner's own tools, which
+            // is the reason this half of the boundary exists at all - withholding them from Play
+            // must cost the sideload build nothing.
+            WearAppId.WATER_FLASHLIGHT,
+            WearAppId.SOS,
+            WearAppId.CLIPBOARD
         ).forEach { id ->
             assertTrue("$id is missing from the sideload apps list", apps.contains(id))
         }
+    }
+
+    /**
+     * S3362: every program the module declares is offered here, named or not.
+     *
+     * The membership case above can only catch the programs somebody thought to list. `WearAppId`
+     * is the closed set of watch programs and the sideload build is the whole product, so the two
+     * must be the same set - which is the S3178 non-goal stated as an assertion rather than as a
+     * list that has to be maintained alongside the catalog.
+     */
+    @Test
+    fun `every declared program is offered by the sideload build`() {
+        val apps = WearAppCatalog.apps(capabilities).map { it.id }
+
+        assertEquals(WearAppId.entries.toSet(), apps.toSet())
     }
 
     /**

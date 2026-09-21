@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.databinding.DialogLauncherWallpaperSettingsBindin
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.usecase.launcher.IsCameraWallpaperAvailableUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherWallpaperScreenCallbacks
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherWallpaperScreenManager
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherWallpaperSettingsManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -113,14 +114,30 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
             sourceManager = source,
             currentSettings = { viewModel.settings.value },
             isUpdating = { isUpdatingFromSettings },
-            applyMode = viewModel::applyLauncherWallpaperMode,
-            applyTuning = ::applyTuning,
-            applyPalette = { palette ->
-                viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(animationPalette = palette) })
-            },
-            applyScreens = ::applyScreens,
-        ).also { it.setup() }
+            callbacks = object : LauncherWallpaperScreenCallbacks {
+                override fun applyMode(mode: String) {
+                    viewModel.applyLauncherWallpaperMode(mode)
+                }
 
+                override fun applyTuning(intensity: Float?, speed: Float?, density: Float?) {
+                    this@LauncherWallpaperSettingsDialogFragment.applyTuning(intensity, speed, density)
+                }
+
+                override fun applyPalette(palette: String) {
+                    viewModel.updateSettings(
+                        viewModel.settings.value.withLauncher { copy(animationPalette = palette) }
+                    )
+                }
+
+                override fun applyScreens(count: Int?, showNumber: Boolean?) {
+                    this@LauncherWallpaperSettingsDialogFragment.applyScreens(count, showNumber)
+                }
+
+                override fun applyDimClock(enabled: Boolean) {
+                    viewModel.updateSettings(viewModel.settings.value.copy(dimClockOverlayEnabled = enabled))
+                }
+            },
+        ).also { it.setup() }
         viewLifecycleOwner.collectOnLifecycle(viewModel.settings) { settings ->
             isUpdatingFromSettings = true
             screenManager?.render(settings)

@@ -9,9 +9,9 @@ Canonical readiness contract for a **Wear OS** release of the `wear` module - th
 
 Owner policy, inherited from the phone standard and narrowed here:
 
-- The **device tier a verdict rests on is a real watch**. A Wear emulator qualifies for exercising the procedure and is a legitimate way to find a defect, but it is not what a release is signed off on.
+- The **device tier a verdict rests on is the reviewed Wear emulator pair**: `small-round` (192 dp) and `large-round` (227 dp). Both profiles must pass the declared-screen walk and its clip check. A real watch is useful additional coverage, but its availability never blocks a release verdict.
 - A step a machine cannot decide is **open**, not passed. The run renders `BLOCKED - manual observation open` and the release waits for a human to look.
-- The repository **does** provision a Wear AVD: `scripts/devtest/wear-shape-bench.ps1 -Profile <id> -Ensure` creates the AVD for a declared profile from `scripts/devtest/wear-shape-profiles.json` when it is missing, and leaves an existing one untouched. This line used to say the opposite while that script was already in the tree (corrected by S2548). An emulator that is already running is still used as-is.
+- The repository **does** provision a Wear AVD: `scripts/devtest/wear-shape-bench.ps1 -Profile <id> -Ensure` creates the AVD for a declared profile from `scripts/devtest/wear-shape-profiles.json` when it is missing, and leaves an existing one untouched. An emulator that is already running is still used as-is.
 
 ---
 

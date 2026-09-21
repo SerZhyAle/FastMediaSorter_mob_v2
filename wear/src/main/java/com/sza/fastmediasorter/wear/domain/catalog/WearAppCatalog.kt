@@ -52,9 +52,13 @@ object WearAppCatalog {
                 labelRes = R.string.system_info_title,
                 isAvailable = capabilities.offersDeviceDiagnostics
             ),
+            // S3362: the screen consumes every pointer event so a wet wrist cannot dismiss it, which
+            // is the gesture WO-V3 asks for on almost every screen - so the row leaves the store
+            // artifact with the program rather than shipping a screen the review cannot leave.
             WearApp(
                 id = WearAppId.WATER_FLASHLIGHT,
-                labelRes = R.string.wear_water_flashlight_app
+                labelRes = R.string.wear_water_flashlight_app,
+                isAvailable = capabilities.offersScreenTakeoverPrograms
             ),
             // S2995: health features (Motion Monitor) withheld from store builds (standard flavor)
             WearApp(
@@ -98,20 +102,25 @@ object WearAppCatalog {
                 // activity, so both answers must allow it.
                 isAvailable = capabilities.offersHealthFeatures && capabilities.offersDeviceDiagnostics
             ),
-            // S3109: listed in both flavors - moving text between the two devices needs no permission
-            // and no hardware, so there is nothing here for a store review to withhold. Appended
-            // rather than placed beside a program it resembles: the order of this list is the owner's.
+            // S3109: appended rather than placed beside a program it resembles - the order of this
+            // list is the owner's.
+            // S3362: its one action hands the text to the paired phone, so it belongs to the transfer
+            // capability. Without a companion the screen can only show an empty clipboard and a
+            // disabled button, which is what a Play reviewer would see.
             WearApp(
                 id = WearAppId.CLIPBOARD,
-                labelRes = R.string.wear_app_clipboard
+                labelRes = R.string.wear_app_clipboard,
+                isAvailable = capabilities.offersContentTransfer
             ),
-            // S3216: listed in both flavors - the siren goes out on the alarm channel and the strobe is
-            // the display itself, so the program declares no permission for a store review to withhold.
-            // Appended rather than placed beside the water flashlight it resembles: the order of this
-            // list is the owner's, and moving an existing program is not this ticket's to decide.
+            // S3216: appended rather than placed beside the water flashlight it resembles - the order
+            // of this list is the owner's, and moving an existing program is not that ticket's to
+            // decide.
+            // S3362: the same screen takeover as the water flashlight, plus a full-screen strobe and
+            // the alarm stream raised to its maximum, so both leave the store artifact together.
             WearApp(
                 id = WearAppId.SOS,
-                labelRes = R.string.wear_app_sos
+                labelRes = R.string.wear_app_sos,
+                isAvailable = capabilities.offersScreenTakeoverPrograms
             )
         ).filter { it.isAvailable }
     }

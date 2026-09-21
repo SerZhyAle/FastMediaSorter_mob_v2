@@ -3666,4 +3666,5 @@
     <string name="settings_broadcast_feedback_guard_summary">কাছাকাছি কোনও শ্রোতা সম্প্রচার জোরে বাজালে মাইক্রোফোনের গেইন কমিয়ে দেয়, যাতে শব্দ বেড়ে না যায়</string>
     <string name="broadcast_control_feedback_warning">শব্দ কমানো হয়েছে: শ্রোতার স্পিকার মাইক্রোফোনে ফিরে আসছে। শোনার ডিভাইসটি দূরে সরান বা তার ভলিউম কমান।</string>
     <string name="broadcast_control_feedback_warning_cd">শাব্দিক ফিডব্যাক শনাক্ত হয়েছে, মাইক্রোফোনের গেইন কমানো হয়েছে</string>
+    <string name="wear_watch_transfer_unconfirmed">ঘড়ি %1$s সংরক্ষণের নিশ্চয়তা দেয়নি, তাই মূলটি ফোনে রাখা হয়েছে।</string>
 </resources>

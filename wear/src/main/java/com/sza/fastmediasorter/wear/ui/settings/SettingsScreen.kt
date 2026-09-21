@@ -51,7 +51,6 @@ import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 private const val SINGLE_COLUMN = 1
@@ -81,17 +80,9 @@ fun SettingsScreen(
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
-            val destinations = buildList {
-                add(SettingsRoutes.MEDIA_TYPES to stringResource(R.string.media_types))
-                add(SettingsRoutes.SLIDESHOW to stringResource(R.string.slideshow_settings))
-                add(SettingsRoutes.SCREEN to stringResource(R.string.screen_settings_title))
-                add(SettingsRoutes.OTHER to stringResource(R.string.settings_group_other))
-                add(SettingsRoutes.TILE_TARGETS to stringResource(R.string.wear_tile_targets_title))
-                if (permissionRows.isNotEmpty()) {
-                    add(SettingsRoutes.PERMISSIONS to stringResource(R.string.wear_settings_permissions_title))
-                }
-                add(SettingsRoutes.ABOUT to stringResource(R.string.about))
-            }
+            // S3362: the row set is the route set. Built where the capability answers live rather than
+            // here, so a page this build does not register cannot be offered a way in.
+            val destinations = viewModel.destinationsFor(permissionRows.isNotEmpty())
             WearListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
@@ -112,12 +103,17 @@ fun SettingsScreen(
                     columns = columns,
                     onClick = navController::navigate
                 )
-                item {
-                    SyncSettingsCell(
-                        lastSyncedAtEpochMillis = uiState.lastSyncedAtEpochMillis,
-                        syncing = uiState.isSyncing,
-                        onSync = viewModel::syncSettings
-                    )
+                // S3362: the cell reports this watch's settings to a paired phone. Without content
+                // transfer there is no path to one, so the caption could only ever read "Never synced"
+                // in the error colour and the button below it could only ever fail.
+                if (uiState.offersContentTransfer) {
+                    item {
+                        SyncSettingsCell(
+                            lastSyncedAtEpochMillis = uiState.lastSyncedAtEpochMillis,
+                            syncing = uiState.isSyncing,
+                            onSync = viewModel::syncSettings
+                        )
+                    }
                 }
             }
         }
@@ -125,17 +121,17 @@ fun SettingsScreen(
 }
 
 private fun ScalingLazyListScope.settingsItems(
-    destinations: List<Pair<String, String>>,
+    destinations: List<String>,
     columns: Int,
     onClick: (String) -> Unit
 ) {
     if (columns == SINGLE_COLUMN) {
-        items(destinations) { (route, label) ->
+        items(destinations) { route ->
             Chip(
                 onClick = { onClick(route) },
                 label = {
                     Text(
-                        text = label,
+                        text = stringResource(labelResFor(route)),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -154,7 +150,8 @@ private fun ScalingLazyListScope.settingsItems(
             itemCount = rowDestinations.size,
             gap = GRID_GAP
         ) {
-            rowDestinations.forEach { (route, label) ->
+            rowDestinations.forEach { route ->
+                val label = stringResource(labelResFor(route))
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -259,6 +256,19 @@ private fun SyncSettingsCell(
 @Composable
 private fun formatSyncTime(epochMillis: Long): String =
     LocalWearDateTimeFormatter.current.formatDateTime(epochMillis, LocalWearUnitSystem.current)
+
+// S3362: the label follows the route the same way the icon below already does, so a row carries one
+// value and the two lookups cannot drift apart.
+private fun labelResFor(route: String): Int = when (route) {
+    SettingsRoutes.MEDIA_TYPES -> R.string.media_types
+    SettingsRoutes.SLIDESHOW -> R.string.slideshow_settings
+    SettingsRoutes.SCREEN -> R.string.screen_settings_title
+    SettingsRoutes.OTHER -> R.string.settings_group_other
+    SettingsRoutes.TILE_TARGETS -> R.string.wear_tile_targets_title
+    SettingsRoutes.PERMISSIONS -> R.string.wear_settings_permissions_title
+    SettingsRoutes.ABOUT -> R.string.about
+    else -> R.string.settings
+}
 
 private fun iconFor(route: String) = when (route) {
     SettingsRoutes.MEDIA_TYPES -> Icons.Filled.PermMedia

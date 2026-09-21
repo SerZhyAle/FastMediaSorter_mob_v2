@@ -74,6 +74,26 @@ data class SettingsUiState(
     /** S3256: clock and status overlay on dimmed screen. */
     val dimClockOverlayEnabled: Boolean = false,
 
+    /**
+     * S3362: whether this build reaches the user's own media. False withholds the rows that configure
+     * the library, the players and their album art, none of which the store artifact carries.
+     *
+     * The three capability answers default to the WITHHOLDING side, as [offersGeometryModeSwitch]
+     * already does: the view model fills all of them from `WearRestrictedCapabilities` before the
+     * first frame, so a default is only ever read where nobody said, and there the store boundary is
+     * the safe answer (`wear/config/store-boundary-policy.json` is an allowlist).
+     */
+    val offersMediaAccess: Boolean = false,
+
+    /** S3362: whether this build has a recorder, and so a send policy for the notes it would write. */
+    val offersVoiceRecording: Boolean = false,
+
+    /**
+     * S3362: whether content may cross the boundary of this watch. False withholds every row whose
+     * action ends on the paired phone, which the store artifact has no path to.
+     */
+    val offersContentTransfer: Boolean = false,
+
     /** S2093: epoch-millis the two sides last agreed, or 0 when they never have. */
     val lastSyncedAtEpochMillis: Long = 0L,
 

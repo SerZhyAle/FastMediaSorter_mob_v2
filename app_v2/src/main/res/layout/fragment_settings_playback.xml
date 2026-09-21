@@ -194,16 +194,6 @@
                         app:str_icon="@drawable/ic_black_screen"
                         app:str_subtitle="@string/settings_black_screen_button_desc" />
 
-                    <!-- S3256: Dim screen clock and status overlay toggle -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowDimClockOverlay"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:str_title="@string/dim_clock_overlay_toggle"
-                        app:str_icon="@drawable/ic_world_clock"
-                        app:str_subtitle="@string/dim_clock_status_cd" />
-
                     <!-- Picture-in-Picture (API 31+; outer wrapper preserved for runtime visibility gate) -->
                     <LinearLayout android:id="@+id/layoutPip" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 

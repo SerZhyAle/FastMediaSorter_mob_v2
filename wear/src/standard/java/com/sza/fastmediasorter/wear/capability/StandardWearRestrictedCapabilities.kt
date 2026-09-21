@@ -60,4 +60,11 @@ class StandardWearRestrictedCapabilities @Inject constructor() : WearRestrictedC
     override val offersContentTransfer: Boolean = false
 
     override val offersExternalEntryPoints: Boolean = false
+
+    /**
+     * S3362: the water flashlight and the distress signal swallow every pointer event so the wet
+     * glass cannot dismiss them, which is exactly the gesture WO-V3 requires from almost every
+     * screen; the store build therefore offers neither. The sideload build keeps both unchanged.
+     */
+    override val offersScreenTakeoverPrograms: Boolean = false
 }

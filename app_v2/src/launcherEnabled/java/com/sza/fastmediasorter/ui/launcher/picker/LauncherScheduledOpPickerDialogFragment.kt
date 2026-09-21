@@ -68,15 +68,11 @@ class LauncherScheduledOpPickerDialogFragment : DialogFragment() {
                 binding.btnOptionEmptyAction.text = getString(R.string.launcher_scheduled_op_create)
                 binding.btnOptionEmptyAction.isVisible = true
                 binding.btnOptionEmptyAction.setOnClickListener {
+                    // S3365: creating the first operation opens the program screen directly.
                     val intent = android.content.Intent(
                         requireContext(),
-                        com.sza.fastmediasorter.ui.settings.SettingsActivity::class.java
+                        com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity::class.java
                     ).apply {
-                        putExtra(
-                            com.sza.fastmediasorter.ui.settings.SettingsActivity.EXTRA_INITIAL_TAB,
-                            com.sza.fastmediasorter.ui.settings.SettingsActivity.TAB_OPERATIONS
-                        )
-                        putExtra(com.sza.fastmediasorter.ui.settings.SettingsActivity.EXTRA_OPEN_SCHEDULED, true)
                         addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     startActivity(intent)

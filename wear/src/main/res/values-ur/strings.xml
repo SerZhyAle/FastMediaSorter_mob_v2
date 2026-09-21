@@ -886,4 +886,8 @@
     <string name="wear_onboarding_page_indicator">مرحلہ %1$d از %2$d</string>
     <string name="dim_clock_overlay_toggle">مدھم حالت میں گھڑی اور حیثیت دکھائیں</string>
     <string name="dim_clock_status_cd">مدھم اسکرین پر گھڑی اور حیثیت</string>
+    <string name="wear_file_op_copy_to_watch">گھڑی پر کاپی کریں۔</string>
+    <string name="wear_file_op_move_to_watch">گھڑی پر منتقل کریں۔</string>
+    <string name="wear_file_op_outcome_no_space">گھڑی پر کافی جگہ نہیں ہے - جگہ خالی کریں اور دوبارہ کوشش کریں۔</string>
+    <string name="wear_file_op_outcome_copied_source_kept">گھڑی پر کاپی ہو گیا - اصل فائل اپنی جگہ پر ہی رہی۔</string>
 </resources>

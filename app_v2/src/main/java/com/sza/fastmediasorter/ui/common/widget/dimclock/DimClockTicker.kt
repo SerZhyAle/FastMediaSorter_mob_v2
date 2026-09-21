@@ -15,6 +15,7 @@ class DimClockTicker(
 ) {
 
     private var lastActivityTimeMs: Long = clock()
+    private var lastBurnInShiftMs: Long = clock()
     private var burnInStep: Int = 0
 
     /**
@@ -50,6 +51,18 @@ class DimClockTicker(
      * Returns current burn-in offset without advancing cycle.
      */
     fun currentBurnInOffsetDp(): Pair<Float, Float> = BURN_IN_POSITIONS[burnInStep]
+
+    /**
+     * Returns the offset to apply at [nowMs], advancing the cycle only once per [BURN_IN_PERIOD_MS]:
+     * the view ticks at the display cadence, which is faster than the shift period.
+     */
+    fun updateBurnInOffset(nowMs: Long = clock()): Pair<Float, Float> {
+        if (nowMs - lastBurnInShiftMs >= BURN_IN_PERIOD_MS) {
+            lastBurnInShiftMs = nowMs
+            nextBurnInOffsetDp()
+        }
+        return currentBurnInOffsetDp()
+    }
 
     companion object {
         const val CADENCE_SECONDS_MS: Long = 1_000L

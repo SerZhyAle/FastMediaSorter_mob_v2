@@ -211,6 +211,19 @@
       "notes": ""
     },
     {
+      "id": "D6",
+      "slug": "move-to-watch-deletes-phone-original",
+      "group": "D",
+      "channels": [
+        "/fms/watch/phone_resource/delete",
+        "/fms/phone/phone_resource/delete_ack"
+      ],
+      "logMarker": "/fms/phone/phone_resource/delete_ack",
+      "requiresPair": true,
+      "expectation": "Move to watch on a phone file: the watch publishes the copy, asks the phone to remove the original with the copied length, and reports moved only on a DELETED ack. A size mismatch, a phone that needs a system dialog, a companion switched off and a lost ack all leave the original in place and report copied-original-kept.",
+      "notes": "S3359 phase 03. The phone answers COPIED_ONLY whenever deleting would need the MediaStore consent dialog, which a listener service cannot show - so a phone without MANAGE_MEDIA or all-files access is the expected COPIED_ONLY case, not a defect."
+    },
+    {
       "id": "E1",
       "slug": "phone-photo-on-watch",
       "group": "E",

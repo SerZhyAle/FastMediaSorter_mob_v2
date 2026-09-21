@@ -65,7 +65,12 @@ object WearRoutes {
     const val VOICE_RECORDER = "quick_voice"
     const val VOICE_NOTES = "voice_notes"
 
-    /** S2516: the display used as a light, locked against touch. Carries its `canonicalKey` too. */
+    /**
+     * S2516: the display used as a light, locked against touch. Carries its `canonicalKey` too.
+     *
+     * S3362: registered only where `offersScreenTakeoverPrograms` is true. The touch lock is what the
+     * program is for and what WO-V3 refuses, so the store build carries neither the route nor the row.
+     */
     const val WATER_FLASHLIGHT = "water_flashlight"
 
     /** S2458: live motion and activity readings. Carries its `canonicalKey` like the programs above. */
@@ -134,14 +139,22 @@ object WearRoutes {
     const val TOURIST = "tourist_info"
 
     /**
-     * S3109: the watch's text clipboard and its send action. Ships in both watch flavors with no
-     * `WearRestrictedCapabilities` gate - it needs no permission and no hardware.
+     * S3109: the watch's text clipboard and its send action.
+     *
+     * S3216 recorded that it needs no permission and so shipped in both flavors. S3362 corrected the
+     * conclusion rather than the fact: the send action is a Data Layer round trip, so the program is
+     * registered behind `offersContentTransfer` and the store build, which declares no listener to
+     * answer it, offers neither the route nor the row.
      */
     const val CLIPBOARD = "clipboard"
 
     /**
      * S3216: the distress signal. Carries its `canonicalKey` like the programs above, and that key is
      * the phone's route key too - one program on two devices.
+     *
+     * S3362: registered behind `offersScreenTakeoverPrograms`, beside the water flashlight. Declaring
+     * no permission was never the whole review question - the signalling half swallows the dismiss
+     * gesture WO-V3 asks for and strobes full-screen with the alarm stream at its maximum.
      */
     const val SOS = "sos"
 

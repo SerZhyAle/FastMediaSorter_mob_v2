@@ -1,11 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
-import android.content.ContentUris
 import android.content.Context
-import android.content.Intent
-import android.graphics.Color
 import android.graphics.Typeface
-import android.provider.CalendarContract
 import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -14,22 +10,18 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.widget.FrameLayout
 import android.widget.TextClock
-import androidx.core.graphics.ColorUtils
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.GadgetLauncherClockBinding
 import com.sza.fastmediasorter.domain.model.UnitScale
 import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
-import com.sza.fastmediasorter.util.resolveActivityCompat
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 import kotlin.math.abs
-import kotlin.random.Random
 
 /**
  * S0404: time and date on the desktop. Weather is deliberately absent - S0426 extends this gadget
@@ -182,13 +174,22 @@ private class ClockGadgetView(
             ClockSwipeDirection.RIGHT -> stateStore.setSecondsVisible(false)
             ClockSwipeDirection.LEFT -> stateStore.setSecondsVisible(true)
             ClockSwipeDirection.UP -> {
-                stateStore.setDialColor(randomDialColor())
-                stateStore.setDialTypefaceName(randomTypefaceName(currentState.dialTypefaceName))
+                stateStore.setDialColor(
+                    ClockDialRandomizer.nextDialColor(randomizeSurfaceColor())
+                )
+                stateStore.setDialTypefaceName(
+                    ClockDialRandomizer.nextTypefaceName(currentState.dialTypefaceName)
+                )
             }
             ClockSwipeDirection.DOWN -> stateStore.setDialColor(null)
         }
         applyDisplayState(stateStore.read())
     }
+
+    private fun randomizeSurfaceColor(): Int = MaterialColors.getColor(
+        binding.gadgetClockTime,
+        com.google.android.material.R.attr.colorSurface,
+    )
 
     private fun applyDisplayState(state: ClockGadgetDisplayState) {
         displayState = state
@@ -223,46 +224,9 @@ private class ClockGadgetView(
         clock.format24Hour = pattern.takeIf { !imperial }
     }
 
-    private fun randomTypefaceName(currentName: String): String = ClockDialTypeface.entries
-        .filter { it.persistedName != currentName }
-        .random()
-        .persistedName
-
-    private fun randomDialColor(): Int {
-        val surfaceColor = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurface)
-        val lightness = if (ColorUtils.calculateLuminance(surfaceColor) > SURFACE_LIGHTNESS_THRESHOLD) {
-            LIGHT_SURFACE_DIAL_LIGHTNESS
-        } else {
-            DARK_SURFACE_DIAL_LIGHTNESS
-        }
-        repeat(MAX_RANDOM_COLOR_ATTEMPTS) {
-            val candidate = ColorUtils.HSLToColor(
-                floatArrayOf(Random.nextFloat() * HUE_DEGREES, DIAL_SATURATION, lightness)
-            )
-            if (ColorUtils.calculateContrast(candidate, surfaceColor) >= MINIMUM_DIAL_CONTRAST) {
-                return candidate
-            }
-        }
-        return if (ColorUtils.calculateLuminance(surfaceColor) > SURFACE_LIGHTNESS_THRESHOLD) {
-            Color.BLACK
-        } else {
-            Color.WHITE
-        }
-    }
-
     /** Long press opens the calendar at now; like the alarm intent, a missing app is a silent no-op. */
     private fun openCalendar(context: Context) {
-        val uri = CalendarContract.CONTENT_URI.buildUpon()
-            .appendPath("time")
-            .also { ContentUris.appendId(it, System.currentTimeMillis()) }
-            .build()
-        val intent = Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        if (context.packageManager.resolveActivityCompat(intent) == null) {
-            Timber.i("Launcher clock gadget: no calendar app to open")
-            return
-        }
-        runCatching { context.startActivity(intent) }
-            .onFailure { Timber.w(it, "Launcher clock gadget: calendar app refused to open") }
+        openCalendarAtNow(context)
     }
 
     private companion object {
@@ -271,13 +235,6 @@ private class ClockGadgetView(
          * date pattern is not used here: this line autosizes down to 9sp and has no room for a year.
          */
         const val WEEKDAY_FIELD = "EEE "
-        const val HUE_DEGREES = 360f
-        const val DIAL_SATURATION = 0.72f
-        const val LIGHT_SURFACE_DIAL_LIGHTNESS = 0.25f
-        const val DARK_SURFACE_DIAL_LIGHTNESS = 0.80f
-        const val SURFACE_LIGHTNESS_THRESHOLD = 0.5
-        const val MINIMUM_DIAL_CONTRAST = 4.5
-        const val MAX_RANDOM_COLOR_ATTEMPTS = 24
     }
 }
 
@@ -338,7 +295,9 @@ internal object ClockSwipeDirectionResolver {
     }
 }
 
-private enum class ClockDialTypeface(
+// S3366: internal rather than private - ClockDialRandomizer offers the same typeface choices and the
+// dim clock's up-swipe must rotate through exactly the widget's set.
+internal enum class ClockDialTypeface(
     val persistedName: String,
     private val familyName: String?,
 ) {

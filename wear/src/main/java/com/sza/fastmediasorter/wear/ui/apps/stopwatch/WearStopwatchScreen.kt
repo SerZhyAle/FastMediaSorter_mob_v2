@@ -20,12 +20,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.stopwatch.WearStopwatchResultLabels
 import com.sza.fastmediasorter.wear.domain.stopwatch.WearStopwatchResultRenderer
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
+import com.sza.fastmediasorter.wear.ui.common.WearFitText
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
@@ -104,10 +104,12 @@ fun WearStopwatchScreen(
                     .height(MENU_BUTTON_HEIGHT),
                 colors = ButtonDefaults.secondaryButtonColors()
             ) {
-                Text(
+                // S3362: the control is 26 dp tall and sized by the glass, so a large system font
+                // scale had nowhere to put the extra ink and the word was cut. It shrinks to fit for
+                // the same reason the region buttons do (WO-V1).
+                WearFitText(
                     text = stringResource(R.string.wear_stopwatch_menu),
-                    style = MaterialTheme.typography.button,
-                    maxLines = 1
+                    style = MaterialTheme.typography.button
                 )
             }
         }

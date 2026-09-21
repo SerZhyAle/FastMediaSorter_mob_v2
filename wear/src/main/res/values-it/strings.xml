@@ -886,4 +886,8 @@
     <string name="wear_onboarding_page_indicator">Passaggio %1$d di %2$d</string>
     <string name="dim_clock_overlay_toggle">Mostra orologio e stato a schermo attenuato</string>
     <string name="dim_clock_status_cd">Orologio e stato sullo schermo attenuato</string>
+    <string name="wear_file_op_copy_to_watch">Copia sull\'orologio</string>
+    <string name="wear_file_op_move_to_watch">Sposta sull\'orologio</string>
+    <string name="wear_file_op_outcome_no_space">Spazio insufficiente sull\'orologio: libera spazio e riprova</string>
+    <string name="wear_file_op_outcome_copied_source_kept">Copiato sull\'orologio: l\'originale è rimasto al suo posto</string>
 </resources>

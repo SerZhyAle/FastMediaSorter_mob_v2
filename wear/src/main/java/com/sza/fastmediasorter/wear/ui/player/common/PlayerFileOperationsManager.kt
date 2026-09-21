@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileOperationResult
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
+import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
 import com.sza.fastmediasorter.wear.ui.browse.MediaStoreConsentManager
 import com.sza.fastmediasorter.wear.ui.browse.WearFileOperationRunState
@@ -48,13 +49,21 @@ class PlayerFileOperationsManager @Inject constructor(
     private val capabilityPolicy: WearFileCapabilityPolicy,
     private val performFileOperation: PerformWearFileOperationUseCase,
     private val sendToReceiversRepository: WearSendToReceiversRepository,
-    private val playbackSetManager: PlaybackSetManager
+    private val playbackSetManager: PlaybackSetManager,
+    /**
+     * S3359: the hand-over that opened this player, read back for the phone token a move needs.
+     *
+     * Read here rather than bound by each player view model because the token belongs to the selection,
+     * not to the screen: every player already receives its file through this manager, and the id match
+     * below is what keeps a stale selection from addressing the phone about another file.
+     */
+    private val selectedMediaManager: SelectedMediaManager
 ) {
     private lateinit var scope: CoroutineScope
     private lateinit var currentFile: StateFlow<WearMediaFile?>
     private var isNetworkSource: () -> Boolean = { false }
 
-    /** S3359: the share the played file is read from, needed only by a copy onto the watch. */
+    /** S3359: the share the played file is read from, needed by the two operations onto the watch. */
     private var networkSourceId: () -> String? = { null }
 
     private val _operationRun = MutableStateFlow(WearFileOperationRunState())
@@ -142,7 +151,8 @@ class PlayerFileOperationsManager @Inject constructor(
     }
 
     private suspend fun collectRun(file: WearMediaFile, operation: WearFileOperation) {
-        performFileOperation(listOf(file), operation, isNetworkSource(), networkSourceId())
+        val phoneToken = selectedMediaManager.getSelectedFileById(file.id)?.phoneToken
+        performFileOperation(listOf(file), operation, isNetworkSource(), networkSourceId(), phoneToken)
             .catch { throwable ->
                 Timber.e(throwable, "Player file operation failed")
                 emit(WearFileOperationResult(file.name, WearFileOperationOutcome.FAILED))

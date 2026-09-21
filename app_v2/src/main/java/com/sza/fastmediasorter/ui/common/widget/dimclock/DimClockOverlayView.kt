@@ -5,12 +5,14 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import android.util.AttributeSet
+import android.view.GestureDetector
 import android.view.LayoutInflater
-import android.view.View
+import android.view.MotionEvent
+import android.view.ViewConfiguration
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextClock
-import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -24,8 +26,11 @@ import com.sza.fastmediasorter.domain.model.UnitScale
 import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * S3256: Reusable clock and status overlay for dimmed screens on phone (top-left aligned).
@@ -50,9 +55,21 @@ class DimClockOverlayView @JvmOverloads constructor(
     private var styleProvider: DimClockStyleProvider? = null
     private var statusProvider: DimStatusContentProvider? = null
     private var unitSystemProvider: UnitSystemProvider? = null
+    private var iconLoader: DimChipIconLoader? = null
+    private var actionRouter: DimChipActionRouter? = null
+    private var interactionHandler: DimClockInteractionHandler? = null
 
     private var observationJob: Job? = null
     private var currentUnitSystem: UnitSystem = UnitSystem.METRIC
+    private val ticker = DimClockTicker()
+    private var currentStyle: DimClockStyle? = null
+
+    /**
+     * S3366: invoked by a chip or battery tap before its intent starts - ADR-2's ordering, so the
+     * target activity is never drawn above a lit dim overlay at minimum brightness. The host wires
+     * this to the same dismissal path its dim overlay's exit gesture uses.
+     */
+    var onDimExitRequested: (() -> Unit)? = null
 
     init {
         isClickable = false
@@ -77,16 +94,28 @@ class DimClockOverlayView @JvmOverloads constructor(
 
     /**
      * Injects dependencies and starts observing style and status.
+     *
+     * S3366: [iconLoader], [actionRouter] and [interactionHandler] are null in the non-launcher
+     * flavor - there a chip keeps its static fallback icon, stays inert, and the clock block keeps
+     * no gestures, which is that flavor's frozen behavior.
      */
     fun bind(
         styleProvider: DimClockStyleProvider,
         statusProvider: DimStatusContentProvider,
         unitSystemProvider: UnitSystemProvider? = null,
+        iconLoader: DimChipIconLoader? = null,
+        actionRouter: DimChipActionRouter? = null,
+        interactionHandler: DimClockInteractionHandler? = null,
     ) {
         this.styleProvider = styleProvider
         this.statusProvider = statusProvider
         this.unitSystemProvider = unitSystemProvider
+        this.iconLoader = iconLoader
+        this.actionRouter = actionRouter
+        this.interactionHandler = interactionHandler
         applyStyle(styleProvider.getStyle())
+        setupBatteryBox()
+        setupClockBlock()
         startObserving()
     }
 
@@ -123,6 +152,13 @@ class DimClockOverlayView @JvmOverloads constructor(
                     }
                 }
             }
+
+            launch {
+                while (isActive) {
+                    applyTickerEffects()
+                    delay(ticker.getCadenceMs(currentStyle?.secondsVisible == true))
+                }
+            }
         }
     }
 
@@ -130,6 +166,7 @@ class DimClockOverlayView @JvmOverloads constructor(
      * Applies visual styling from DimClockStyle (typeface, dial color, seconds visibility).
      */
     fun applyStyle(style: DimClockStyle) {
+        currentStyle = style
         val timePattern = UnitScale.timePattern(currentUnitSystem, style.secondsVisible)
         val datePattern = WEEKDAY_FIELD + UnitScale.shortDatePattern(currentUnitSystem)
 
@@ -167,16 +204,9 @@ class DimClockOverlayView @JvmOverloads constructor(
     }
 
     private fun renderBattery(percent: Int, isCharging: Boolean) {
-        val batteryText = if (isCharging) "⚡ %" else "%"
-        binding.dimBatteryLevelText.text = batteryText
+        binding.dimBatteryLevelText.text = batteryTextFor(percent, isCharging)
 
-        val color = when {
-            percent < BATTERY_CRITICAL_PERCENT -> ContextCompat.getColor(context, R.color.error_color)
-            percent < BATTERY_WARNING_PERCENT -> ContextCompat.getColor(context, R.color.warning_color)
-            isCharging -> ContextCompat.getColor(context, R.color.success_color)
-            else -> ContextCompat.getColor(context, R.color.white)
-        }
-
+        val color = ContextCompat.getColor(context, batteryColorResFor(percent, isCharging))
         binding.dimBatteryLevelText.setTextColor(color)
         binding.dimBatteryBox.backgroundTintList = ColorStateList.valueOf(color)
     }
@@ -194,6 +224,7 @@ class DimClockOverlayView @JvmOverloads constructor(
     private fun populateChipContainer(container: LinearLayout, chips: List<DimStatusChip>) {
         container.removeAllViews()
         val inflater = LayoutInflater.from(context)
+        val router = actionRouter
         chips.forEach { chip ->
             val chipBinding = ItemDimStatusChipBinding.inflate(inflater, container, false)
             val chipView = chipBinding.root
@@ -204,6 +235,7 @@ class DimClockOverlayView @JvmOverloads constructor(
                 iconView.setImageResource(chip.iconResId)
                 iconView.imageTintList = ColorStateList.valueOf(Color.WHITE)
             }
+            loadApplicationIcon(chip, iconView)
             if (chip.count > 1) {
                 badgeView.isVisible = true
                 badgeView.text = chip.count.toString()
@@ -211,7 +243,107 @@ class DimClockOverlayView @JvmOverloads constructor(
                 badgeView.isVisible = false
             }
             chipView.contentDescription = chip.contentDescription
+            if (router != null) {
+                chipView.isClickable = true
+                chipView.isFocusable = true
+                chipView.setOnClickListener {
+                    onDimExitRequested?.invoke()
+                    Timber.d("S3366: notification chip tapped id=" + chip.id)
+                    router.openChip(chip)
+                }
+            }
             container.addView(chipView)
+        }
+    }
+
+    /**
+     * S3366: swaps the static fallback for the application's own icon once the loader resolves it.
+     * The fallback stays visible until then, so a slow lookup never blanks the chip; the tint and
+     * padding are cleared with the real icon because a coloured application glyph needs the chip's
+     * full square, exactly as on the launcher strip.
+     */
+    private fun loadApplicationIcon(chip: DimStatusChip, iconView: ImageView) {
+        val packageName = chip.packageName ?: return
+        val loader = iconLoader ?: return
+        findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
+            val drawable = loader.load(packageName) ?: return@launch
+            Timber.d("S3366: real icon applied for " + packageName)
+            iconView.setImageDrawable(drawable)
+            iconView.imageTintList = null
+            iconView.setPadding(0, 0, 0, 0)
+        }
+    }
+
+    /**
+     * S3366: the clock block becomes a gesture surface only when a handler owns its semantics.
+     * The detector decides direction through the handler (which shares the widget's resolver) and
+     * re-applies the style after a handled swipe, so a dial change is visible immediately; the
+     * double tap stays the wake-exit over the block, the exit gesture the owner kept as a guard.
+     */
+    private fun setupClockBlock() {
+        val handler = interactionHandler ?: return
+        val configuration = ViewConfiguration.get(context)
+        binding.dimClockBlock.isClickable = true
+        binding.dimClockBlock.isFocusable = true
+        binding.dimClockBlock.setOnClickListener {
+            handler.onClockTap { onDimExitRequested?.invoke() }
+        }
+        binding.dimClockBlock.setOnLongClickListener {
+            handler.onClockLongPress { onDimExitRequested?.invoke() }
+        }
+        val detector = GestureDetector(
+            context,
+            object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDown(e: MotionEvent): Boolean = true
+
+                override fun onSingleTapConfirmed(e: MotionEvent): Boolean =
+                    handler.onClockTap { onDimExitRequested?.invoke() }
+
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    onDimExitRequested?.invoke()
+                    return true
+                }
+
+                override fun onLongPress(e: MotionEvent) {
+                    handler.onClockLongPress { onDimExitRequested?.invoke() }
+                }
+
+                override fun onFling(
+                    e1: MotionEvent?,
+                    e2: MotionEvent,
+                    velocityX: Float,
+                    velocityY: Float,
+                ): Boolean {
+                    val handled = handler.onFling(
+                        distanceX = e2.x - (e1?.x ?: e2.x),
+                        distanceY = e2.y - (e1?.y ?: e2.y),
+                        velocityX = velocityX,
+                        velocityY = velocityY,
+                        touchSlop = configuration.scaledPagingTouchSlop.toFloat(),
+                        minimumFlingVelocity = configuration.scaledMinimumFlingVelocity.toFloat(),
+                    )
+                    if (handled) styleProvider?.let { applyStyle(it.getStyle()) }
+                    return handled
+                }
+            },
+        )
+        binding.dimClockBlock.setOnTouchListener { _, event -> detector.onTouchEvent(event) }
+    }
+
+    /**
+     * S3366: the battery box becomes a tap target only when a router can open the system
+     * battery-usage screen behind it - the same flavor gate the notification chips take.
+     */
+    private fun setupBatteryBox() {
+        val router = actionRouter ?: return
+        binding.dimBatteryBox.isClickable = true
+        binding.dimBatteryBox.isFocusable = true
+        binding.dimBatteryBox.contentDescription =
+            context.getString(R.string.app_launch_panel_os_battery)
+        binding.dimBatteryBox.setOnClickListener {
+            onDimExitRequested?.invoke()
+            Timber.d("S3366: battery box tapped")
+            router.openBatteryUsage()
         }
     }
 
@@ -230,9 +362,42 @@ class DimClockOverlayView @JvmOverloads constructor(
         binding.dimClockContentBlock.alpha = alpha
     }
 
+    /**
+     * One tick of the accepted extras: fade with idle time and drift the burn-in offset, the shift
+     * advancing at its own period even when the cadence tick is faster.
+     */
+    private fun applyTickerEffects() {
+        val now = System.currentTimeMillis()
+        applyAutoFadeAlpha(ticker.computeAutoFadeAlpha(now))
+        val (offsetXDp, offsetYDp) = ticker.updateBurnInOffset(now)
+        val density = resources.displayMetrics.density
+        applyBurnInShift(offsetXDp * density, offsetYDp * density)
+    }
+
+    /**
+     * The host DimOverlayView owns every touch while dimmed, so it forwards them here; this view is
+     * not clickable and would never see a tap otherwise.
+     */
+    fun onHostInteraction() {
+        ticker.onUserActivity()
+        applyAutoFadeAlpha(DimClockTicker.FULL_ALPHA)
+    }
+
     companion object {
         private const val WEEKDAY_FIELD = "EEE "
         private const val BATTERY_WARNING_PERCENT = 30
         private const val BATTERY_CRITICAL_PERCENT = 15
+
+        /** Bolt plus the percent value while charging, the bare number otherwise. */
+        internal fun batteryTextFor(percent: Int, isCharging: Boolean): String =
+            if (isCharging) "⚡ $percent%" else "$percent%"
+
+        /** The ladder: critical below 15, warning below 30, green while charging, white otherwise. */
+        internal fun batteryColorResFor(percent: Int, isCharging: Boolean): Int = when {
+            percent < BATTERY_CRITICAL_PERCENT -> R.color.error_color
+            percent < BATTERY_WARNING_PERCENT -> R.color.warning_color
+            isCharging -> R.color.success_color
+            else -> R.color.white
+        }
     }
 }

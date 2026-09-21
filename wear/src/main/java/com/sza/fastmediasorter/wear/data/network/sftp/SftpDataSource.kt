@@ -134,6 +134,42 @@ class SftpDataSource @Inject constructor(
             }
         }
 
+    /**
+     * Remove a file from the server.
+     *
+     * S3359: channel and session are opened and closed inside this call, because unlike a download
+     * nothing survives it that the caller could close. A server that refuses - a read-only account, a
+     * missing file - answers with a failure, so a removal that did not happen is never reported as one.
+     */
+    suspend fun deleteFile(sourceIn: NetworkSource, path: String): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            val source = endpointResolver.resolve(sourceIn)
+            var session: Session? = null
+            var channel: ChannelSftp? = null
+            try {
+                session = openSession(source)
+                channel = openChannel(session)
+                Timber.d("Deleting SFTP file: $path")
+
+                channel.rm(path)
+                Result.success(Unit)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: JSchException) {
+                failDelete(e, path)
+            } catch (e: SftpException) {
+                failDelete(e, path)
+            } finally {
+                runCatching { channel?.disconnect() }
+                runCatching { session?.disconnect() }
+            }
+        }
+
+    private fun failDelete(cause: Exception, path: String): Result<Unit> {
+        Timber.w(cause, "Failed to delete SFTP file for path=$path")
+        return Result.failure(cause)
+    }
+
     private fun failStream(
         cause: Exception,
         channel: ChannelSftp?,

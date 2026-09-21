@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.ui.settings
+package com.sza.fastmediasorter.ui.scheduledops
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

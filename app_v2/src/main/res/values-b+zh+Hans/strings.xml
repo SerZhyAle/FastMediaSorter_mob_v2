@@ -3663,4 +3663,5 @@
     <string name="settings_broadcast_feedback_guard_summary">当附近的听众外放广播时降低麦克风增益，避免声音不断放大</string>
     <string name="broadcast_control_feedback_warning">已降低音量：听众设备的扬声器正回授到麦克风。请将收听设备移远，或调低其音量。</string>
     <string name="broadcast_control_feedback_warning_cd">检测到声音回授，麦克风增益已降低</string>
+    <string name="wear_watch_transfer_unconfirmed">手表未确认保存 %1$s，因此原件保留在手机上。</string>
 </resources>

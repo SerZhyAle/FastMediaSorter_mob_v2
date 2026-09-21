@@ -14,7 +14,7 @@
   "sideloadFlavor": "noLegal",
 
   "standardAllowlist": {
-    "$comment": "The whole surface the first Play publication offers. Nothing outside this list may appear in the standard merged manifest or its route graph.",
+    "$comment": "The whole surface the first Play publication offers. Nothing outside this list may appear in the standard merged manifest or its route graph. S3362: `settings/permissions` is on the list because the route IS registered in every edition (S3226), even though the store artifact declares no runtime permission and therefore draws no menu entry to reach it - the list names the graph, not what a tap can find.",
     "permissions": [
       "android.permission.VIBRATE",
       "android.permission.WAKE_LOCK"
@@ -29,22 +29,22 @@
       "settings",
       "settings/screen",
       "settings/other",
+      "settings/permissions",
       "settings/about",
       "calculator",
       "stopwatch",
       "game",
-      "game_rules",
-      "water_flashlight",
-      "clipboard"
+      "game_rules"
     ],
     "capabilities": [
       "offersStoreSafeMiniPrograms"
     ],
     "libraryContributed": {
-      "$comment": "Declarations no source file in this module writes - they arrive from a dependency manifest or from the debug build type. They are allowlisted by name rather than by a wildcard, so a library that starts contributing something sensitive still surfaces as an unnamed declaration.",
+      "$comment": "Declarations no source file in this module writes - they arrive from a dependency manifest or from the debug build type. They are allowlisted by name rather than by a wildcard, so a library that starts contributing something sensitive still surfaces as an unnamed declaration. S3362: androidx.core's DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION is named twice because it is built from the applicationId, so the debug merge carries the `.debug.` infix and the RELEASE merge does not - allowlisting only the debug spelling failed the gate against the artifact that actually ships.",
       "permissions": [
         "android.permission.ACCESS_NETWORK_STATE",
-        "com.sza.fastmediasorter.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        "com.sza.fastmediasorter.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+        "com.sza.fastmediasorter.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
       ],
       "components": [
         "androidx.compose.ui.tooling.PreviewActivity",
@@ -202,7 +202,7 @@
     },
     {
       "category": "file sharing or transfer",
-      "$comment": "Handing a file to another application on the watch, and moving content between the watch and the paired phone.",
+      "$comment": "Handing a file to another application on the watch, and moving content between the watch and the paired phone. S3362: the clipboard program joins it - its only action is a Data Layer round trip, so without a companion the store artifact could offer nothing but an empty clipboard and a disabled button.",
       "capability": "offersContentTransfer",
       "permissions": [],
       "components": [
@@ -213,7 +213,19 @@
         "sync_result",
         "phone_resource",
         "phone_home",
-        "phone_camera"
+        "phone_camera",
+        "clipboard"
+      ]
+    },
+    {
+      "category": "screen takeover programs",
+      "$comment": "S3362: the water flashlight and the distress signal. Both consume every pointer event on the initial pass so a wet wrist cannot dismiss them, which is the gesture WO-V3 asks for on almost every screen and neither of the two exemptions it names. They also draw full-bleed white against WO-V13, and the signal raises the alarm stream to its maximum and strobes at about three flashes a second. No permission carries either one - the screens ARE the capability - which is why they read as store-safe until the review criteria are applied to the gesture rather than to the manifest.",
+      "capability": "offersScreenTakeoverPrograms",
+      "permissions": [],
+      "components": [],
+      "routes": [
+        "water_flashlight",
+        "sos"
       ]
     },
     {

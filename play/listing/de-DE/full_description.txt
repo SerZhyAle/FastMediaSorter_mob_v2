@@ -35,6 +35,11 @@ Für jeden Bildschirm und jede Eingabe:
 • Startbildschirm-Widgets - Ressource öffnen, Weiterlesen, Zufallsmusik, Kamerafotos.
 • Schnelleinstellungs-Kachel für Hintergrundaudio. Suche über alle Einstellungen.
 
+Auf Ihrer Uhr:
+
+• Apps - Taschenrechner, Stoppuhr und Minispiel.
+• Kachel „Programme“ - fügen Sie sie Ihrem Kachelkarussell hinzu, um jede dieser Apps mit einem Tipp zu öffnen.
+
 Frei, offen und privat - der Quellcode erscheint unter der Apache License 2.0, und lokales, SMB-, FTP- und SFTP-Browsen sowie die Betrachter für Bild, Video, Audio, PDF und EPUB funktionieren vollständig offline, ganz ohne Konto.
 
 Source and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2

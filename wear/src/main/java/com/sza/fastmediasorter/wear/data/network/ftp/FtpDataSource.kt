@@ -112,6 +112,35 @@ class FtpDataSource @Inject constructor(
             }
         }
 
+    /**
+     * Remove a file from the server.
+     *
+     * S3359: a session of its own, opened and torn down inside this call, because unlike a download
+     * nothing survives it that the caller could close. A server that answers "no" - a read-only
+     * account, a locked file - returns a failure rather than reporting a removal that never happened.
+     */
+    suspend fun deleteFile(source: NetworkSource, path: String): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            val client = FTPClient()
+            try {
+                openSession(client, source)
+                Timber.d("Deleting FTP file: $path")
+                if (client.deleteFile(path)) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(IOException("FTP refused to delete path=$path (code=${client.replyCode})"))
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IOException) {
+                Timber.w(e, "Failed to delete FTP file for path=$path")
+                Result.failure(e)
+            } finally {
+                runCatching { client.logout() }
+                runCatching { if (client.isConnected) client.disconnect() }
+            }
+        }
+
     private fun failStream(
         cause: Exception,
         client: FTPClient,

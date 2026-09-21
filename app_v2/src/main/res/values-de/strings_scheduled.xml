@@ -49,7 +49,6 @@
     <string name="scheduled_ops_log_empty">Das Protokoll ist leer</string>
     <string name="scheduled_ops_log_title">Betriebsprotokoll</string>
     <string name="scheduled_ops_next_run">Nächster Lauf um:</string>
-    <string name="scheduled_ops_no_destinations">Fügen Sie die Ziele zuerst im Abschnitt „Ziele“ hinzu.</string>
     <string name="scheduled_ops_notif_channel_name">Geplanter Betrieb</string>
     <string name="scheduled_ops_notif_running">Geplanter Vorgang wird ausgeführt.</string>
     <string name="scheduled_ops_op_copy">Kopie</string>
@@ -76,4 +75,13 @@
     <string name="scheduled_ops_toggle_hint">Kopieren, Verschieben, Löschen im Hintergrund</string>
     <string name="scheduled_ops_notif_permission_title">Für den geplanten Vorgang ist eine Genehmigung erforderlich.</string>
     <string name="scheduled_ops_notif_permission_text">Gewähren Sie Zugriff auf alle Dateien, damit der Hintergrundprozess „Verschieben/Löschen“ die Originaldateien entfernen kann.</string>
+    <string name="scheduled_ops_screen_title">Geplante Dateioperationen</string>
+    <string name="scheduled_ops_action_run_all">Alle jetzt ausführen</string>
+    <string name="scheduled_ops_action_pause_all">Alle pausieren</string>
+    <string name="scheduled_ops_action_resume_all">Alle fortsetzen</string>
+    <string name="scheduled_ops_screen_empty">Noch keine geplanten Vorgänge. Tippe auf +, um den ersten zu erstellen.</string>
+    <string name="scheduled_ops_link_subtitle">Vorgänge und Ausführungsverlauf verwalten</string>
+    <string name="scheduled_ops_history_title">Ausführungsverlauf</string>
+    <string name="scheduled_ops_history_empty">Noch keine Ausführungen aufgezeichnet.</string>
+    <string name="scheduled_ops_history_clear_confirm">Ausführungsverlauf löschen?</string>
 </resources>

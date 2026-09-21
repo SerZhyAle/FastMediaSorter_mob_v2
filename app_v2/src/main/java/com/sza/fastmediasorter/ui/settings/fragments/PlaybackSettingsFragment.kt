@@ -199,12 +199,6 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(current.copy(showBlackScreenButton = isChecked))
         }
 
-        binding.rowDimClockOverlay.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(dimClockOverlayEnabled = isChecked))
-        }
-
         binding.rowShowPlayerHint.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -333,9 +327,6 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             }
             if (binding.rowShowBlackScreenButton.isChecked != settings.showBlackScreenButton) {
                 binding.rowShowBlackScreenButton.setCheckedSilently(settings.showBlackScreenButton)
-            }
-            if (binding.rowDimClockOverlay.isChecked != settings.dimClockOverlayEnabled) {
-                binding.rowDimClockOverlay.setCheckedSilently(settings.dimClockOverlayEnabled)
             }
             if (binding.rowSmallControls.isChecked != settings.showSmallControls) {
                 binding.rowSmallControls.setCheckedSilently(settings.showSmallControls)
