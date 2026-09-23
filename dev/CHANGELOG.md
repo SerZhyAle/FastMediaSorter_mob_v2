@@ -34395,3 +34395,4 @@ Format: | datetime | file | target | description |
 | 2026-09-23 23:15:53 | `CLAUDE.md` | `spec-dev 04.4` | Rule 33 carries the seeded-owner sentence and baseline path [branch: DEBUG-v040] |
 | 2026-09-23 23:15:53 | `PLAN/S3422_orphaned-docs-quality-checks.md` | `spec-dev 04.6` | Inbox rewritten to judge-or-delete on the 0.10 facts; related tickets named [branch: DEBUG-v040] |
 | 2026-09-24 00:40:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/scheduledops/ScheduledOperationsScreenManager.kt` | `S3365` | Collect resources StateFlow in ScheduledOperationsScreenManager to fix empty resource names and auto-open [set of 2: app_v2/src/test/java/com/sza/fastmediasorter/ui/scheduledops/ScheduledOperationsViewModelTest.kt] [branch: DEBUG-v040] |
+| 2026-09-24 01:50:05 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.9240.148 - plateau merge from DEBUG-v040 [branch: DEBUG-v040] |

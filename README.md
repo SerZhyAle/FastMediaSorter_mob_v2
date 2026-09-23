@@ -60,10 +60,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.9191.906 (September 2026) - Fix Release
+## What's New in v2.60.9240.148 (September 2026)
+
+**New:**
+Encrypted file containers (.fd-sec), copy and move files to the watch, phone camera on the watch, scheduled operations screen with run history, live clock on the dimmed screen, launcher start menu and icon polish, better D-pad and keyboard control, region-restriction badge for streams, broadcast feedback-loop stop, SFTP host key pinning, translation overlay that stays on the picture.
 
 **Fixed:**
-Stopping the SOS signal no longer closes the app.
+SOS siren sound, background file operations refresh the open list, storage access notice shown once, stream type fallback, watch water flashlight gestures, OCR engine fallback.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

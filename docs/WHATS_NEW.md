@@ -6,7 +6,37 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.9191.906** (September 2026) - Fix Release
+**Current release: 2.60.9240.148** (September 2026)
+
+> Changes since version 2.60.9191.906
+
+---
+
+## What's New
+
+- **Encrypted file containers (.fd-sec)** - keep files in password-protected containers beside local and cloud files, with an optional remembered viewing password, on the phone and on the watch.
+- **More from the watch** - copy or move a phone or network file to the watch with a confirmation, use the phone camera from the watch, coloured plates on shortcut tiles, complication text in your language and a new icon accent palette.
+- **Scheduled operations screen** - scheduled tasks get their own screen with a run history.
+- **Dimmed screen** - a live clock face and status overlay, and one reliable tap response to wake it.
+- **Launcher polish** - a unified start menu sheet and decorated icon looks on app shortcuts and launch tiles.
+- **Keyboard and D-pad** - custom views respond to the D-pad, the focus ring survives row selection, and landscape layouts keep the same focus order.
+- **Streams** - a badge marks streams that may not play in your region.
+- **Broadcast** - a broadcast stops an acoustic feedback loop on its own.
+- **SFTP** - the server host key is checked on every connection, and you can pin it after a test connection.
+- **Translation overlay** - a long translation grows upward and shrinks its type instead of running off the picture.
+
+## What's Fixed
+
+- The SOS siren sounds like an alarm, not a beep.
+- File operations running in the background now update the open file list.
+- The limited storage access notice is shown only once.
+- A stream with an unrecognised media type is still classified by its address.
+- Gestures of the water flashlight on the watch no longer reset.
+- Sensitive screens stay protected, and OCR falls back between engines more reliably.
+
+---
+
+## Previous Release: 2.60.9191.906 (September 2026) - Fix Release
 
 > Fix: stopping the SOS signal crashes the app
 
