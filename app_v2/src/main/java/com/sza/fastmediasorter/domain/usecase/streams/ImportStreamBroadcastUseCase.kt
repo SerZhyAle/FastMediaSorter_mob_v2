@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorParser
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase.AddResult
-import timber.log.Timber
 import javax.inject.Inject
 
 class ImportStreamBroadcastUseCase @Inject constructor(

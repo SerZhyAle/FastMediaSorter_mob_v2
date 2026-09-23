@@ -22,18 +22,25 @@
 .PARAMETER Regenerate
     Delete the module's lint-baseline.xml first, so the run rewrites it from the current tree.
     Only ever run this AFTER the real defects are fixed - a baseline regenerated first records
-    them as accepted, which is the blanket regeneration S3155 exists to prevent.
+    them as accepted, which is the blanket regeneration S3155 exists to prevent. Requires -Reason;
+    after the file is written the identifier snapshot <module>/lint-baseline.ids is re-seeded through
+    assert-lint-baseline-absorption.ps1 -Update, which prints every newly accepted finding (S3459).
+
+.PARAMETER Reason
+    Why the regeneration is intentional. Mandatory with -Regenerate; recorded in the snapshot header.
 
 .PARAMETER Quiet
     Suppress UP-TO-DATE / NO-SOURCE / FROM-CACHE noise lines.
 
-.EXITCODES
+.NOTES
+    Exit codes:
     0 - lint ran and found no error above the baseline; or, under -Regenerate, the baseline was
         written (which gradle itself reports as a failure, on purpose - see the branch below).
     1 - the build domain is held by a live build, or lint failed (gradle's own exit code is
         propagated verbatim; gradle reports 1 when lint aborts on errors).
     2 - lint reported success but produced no XML report, so nothing was actually verified; or
-        -Regenerate wrote no baseline. Distinguished from a real failure because the fix is
+        -Regenerate wrote no baseline, ran without -Reason, or could not re-seed the identifier
+        snapshot. Distinguished from a real failure because the fix is
         different: a silently absent artifact is a harness defect, not a source defect.
 #>
 
@@ -43,14 +50,22 @@ param(
     [string]$Module,
 
     [switch]$Regenerate,
+    [string]$Reason,
     [switch]$Quiet
 )
 
 $ErrorActionPreference = "Stop"
 
+# Refused before the build domain is taken: a reasonless re-freeze is the CHECK-BASELINE rule 6 event.
+if ($Regenerate -and -not $Reason) {
+    Write-Error "check-lint.ps1 -Regenerate requires -Reason '<why>' - every row it writes is a finding accepted as permanent." -ErrorAction Continue
+    exit 2
+}
+
 $domain = if ($Module -eq 'wear') { 'Build.Wear' } else { 'Build.Phone' }
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
+. "$PSScriptRoot\..\quality\lib\check-subject.ps1"
 Enter-BuildLockOrExit -Reason "check-lint.ps1 -Module $Module" -Domain $domain
 try {
 
@@ -78,6 +93,7 @@ try {
     }
 
     Write-Host "Android lint - module: $Module" -ForegroundColor Cyan
+    Write-CheckSubject -Axes ([ordered]@{ module = $Module; flavor = "Standard"; buildtype = "Debug"; mode = "Lint" })
     Write-Host "Command: .\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor DarkGray
 
     & "$projectRoot\gradlew.bat" @gradleArgs 2>&1 | ForEach-Object {
@@ -98,7 +114,13 @@ try {
     if ($Regenerate) {
         if (Test-Path -LiteralPath $baseline) {
             Write-Host "`nBaseline regenerated: $Module\lint-baseline.xml" -ForegroundColor Green
-            Write-Host "Read it before committing - every row in it is a finding you are accepting." -ForegroundColor Yellow
+            $absorption = Join-Path $projectRoot 'scripts\quality\assert-lint-baseline-absorption.ps1'
+            & pwsh -NoProfile -File $absorption -Module $Module -Update -Reason $Reason
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error "Baseline written, but the identifier snapshot was not re-seeded (exit $LASTEXITCODE)." -ErrorAction Continue
+                exit 2
+            }
+            Write-Host "Read the accepted list above before committing - every row is a finding you are accepting." -ForegroundColor Yellow
             exit 0
         }
         Write-Error "Regeneration wrote no $Module\lint-baseline.xml (gradle exit $gradleExit)." -ErrorAction Continue

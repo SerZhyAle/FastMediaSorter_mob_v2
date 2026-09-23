@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.IconHueCatalog
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
@@ -105,6 +106,7 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
                     route.iconRes,
                     tintable = true,
                     accentRes = accent,
+                    plateHueRes = IconHueCatalog.forRoute(target.routeKey),
                 )
             }
             is AppLaunchPanelRouteTarget.FeatureSection -> {
@@ -116,19 +118,32 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
                     route.iconRes,
                     tintable = true,
                     accentRes = SubProgramAccentCatalog.accentFor(target.routeKey),
+                    plateHueRes = IconHueCatalog.forRoute(target.routeKey),
                 )
             }
             is AppLaunchPanelRouteTarget.OsShortcut -> {
                 val osTarget = OsShortcutCatalog.byKey(target.targetKey) ?: return null
                 if (!OsShortcutCatalog.isResolvable(context, target.targetKey)) return null
                 // OS-shortcut glyphs are monochrome (ic_settings, ic_wifi, ..) - tint to stay legible.
-                tileUi(tile, context.getString(osTarget.labelRes), osIconRes(osTarget), tintable = true)
+                tileUi(
+                    tile,
+                    context.getString(osTarget.labelRes),
+                    osIconRes(osTarget),
+                    tintable = true,
+                    plateHueRes = R.color.color_icon_accent,
+                )
             }
             is AppLaunchPanelRouteTarget.Resource -> {
                 val resource = resourceRepository.getResourceById(target.resourceId) ?: return null
                 // Resource badges are full-color per source (green/blue/..); only the cast glyph is mono.
                 val iconRes = ResourceTypeIconMap.iconFor(resource.type)
-                tileUi(tile, resource.name, iconRes, tintable = ResourceTypeIconMap.isMonochrome(resource.type))
+                tileUi(
+                    tile,
+                    resource.name,
+                    iconRes,
+                    tintable = ResourceTypeIconMap.isMonochrome(resource.type),
+                    plateHueRes = IconHueCatalog.forResourceType(resource.type),
+                )
             }
             null -> null
         }
@@ -170,6 +185,7 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
         iconRes: Int,
         tintable: Boolean,
         @ColorRes accentRes: Int? = null,
+        @ColorRes plateHueRes: Int? = null,
     ): AppLaunchPanelTileUi =
         AppLaunchPanelTileUi(
             slotIndex = tile.slotIndex,
@@ -180,6 +196,7 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
             isEmpty = false,
             tintable = tintable,
             accentRes = accentRes,
+            plateHueRes = plateHueRes,
         )
 
     private fun emptySlot(slot: Int): AppLaunchPanelTileUi =

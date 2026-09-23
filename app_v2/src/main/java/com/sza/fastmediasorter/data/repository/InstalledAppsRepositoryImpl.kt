@@ -17,14 +17,27 @@ import java.io.File
 import javax.inject.Inject
 
 /**
- * Subdirectory of the app cache directory holding one image per cached app icon. Declared here
- * because this class is the first reader of it; the icon store writing into it takes the same
- * constant rather than a second copy of the name.
+ * Subdirectory holding one image per cached app icon. Declared here because this class is the first
+ * reader of it; the icon store writing into it takes the same constant rather than a second copy of
+ * the name.
  */
 internal const val INSTALLED_APP_ICON_DIR = "installed_app_icons"
 
-/** Written by the refresh path; a row from an older build is rebuilt rather than migrated. */
-internal const val INSTALLED_APP_CACHE_FORMAT_VERSION = 1
+/**
+ * Where the icon files live: the no-backup files directory, not the cache directory. The system trims
+ * an app's cache in the background, oldest files first, and nothing rewrites an icon whose package did
+ * not change - so a trimmed cache left long-lived launcher cells on the placeholder for good. About a
+ * hundred small PNGs is not worth that; the files are derived data, so they stay out of backups.
+ */
+internal fun installedAppIconDirectory(context: Context): File =
+    File(context.noBackupFilesDir, INSTALLED_APP_ICON_DIR)
+
+/**
+ * Written by the refresh path; a row from an older build is rebuilt rather than migrated. Version 2
+ * moved the icon files out of the cache directory, so every version-1 row names a file that is no
+ * longer looked for.
+ */
+internal const val INSTALLED_APP_CACHE_FORMAT_VERSION = 2
 
 class InstalledAppsRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -33,7 +46,7 @@ class InstalledAppsRepositoryImpl @Inject constructor(
 ) : InstalledAppsRepository {
 
     private val iconDirectory: File
-        get() = File(context.cacheDir, INSTALLED_APP_ICON_DIR)
+        get() = installedAppIconDirectory(context)
 
     override fun observeApps(): Flow<List<InstalledApp>> =
         appDao.observeAll()
@@ -78,8 +91,8 @@ class InstalledAppsRepositoryImpl @Inject constructor(
         lastUpdateTime = entity.lastUpdateTime,
         category = entity.category,
         isSystemApp = entity.isSystemApp,
-        // The cache directory is reclaimable by the system, so a named file that is gone is an
-        // ordinary state: report no icon rather than a path that cannot be opened.
+        // A write can fail and a row from an older format names a file in the old location, so a
+        // named file that is gone is an ordinary state: report no icon rather than a dead path.
         iconFile = entity.iconFileName
             ?.let { File(iconDirectory, it) }
             ?.takeIf { it.isFile }

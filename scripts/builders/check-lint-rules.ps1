@@ -34,6 +34,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
+. "$PSScriptRoot\..\quality\lib\check-subject.ps1"
 Enter-BuildLockOrExit -Reason "check-lint-rules.ps1"
 try {
 
@@ -52,6 +53,7 @@ try {
     }
 
     Write-Host "Lint-rules detector test suite.." -ForegroundColor Cyan
+    Write-CheckSubject -Axes ([ordered]@{ module = "lint-rules"; mode = "Unit"; tests = $Tests })
     if ($Tests) {
         Write-Host "Tests filter: $Tests" -ForegroundColor Yellow
     }

@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellSeating
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
+import timber.log.Timber
 
 /**
  * S0404: desktop grid sizing. The column count is derived from the screen at render time and the
@@ -232,6 +233,7 @@ object LauncherGridGeometry {
             columns = columns,
             renderRowOf = drawnRowOf,
         )
+        Timber.d("S3411: renderPlan packed ${packed.size} headers across ${sections.size} sections")
         return cells.mapNotNull { item ->
             val drawnRow = drawnRowOf(item.cell) ?: return@mapNotNull null
             val packedPosition = packed[item.cell.target]

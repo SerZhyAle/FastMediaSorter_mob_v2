@@ -3,9 +3,9 @@
     <string name="addresource_accounts_load_failed">Не вдалося завантажити збережені акаунти. Спробуйте ще раз.</string>
     <string name="addresource_add_failed">Не вдалося додати ресурс. Спробуйте ще раз.</string>
     <string name="addresource_connection_failed">Не вдалося підключитися. Перевірте дані й спробуйте ще раз.</string>
-    <string name="addresource_folder_added_to_list">Теку додано до списку.</string>
+    <string name="addresource_folder_added_to_list">Папку додано до списку.</string>
     <string name="addresource_host_required">Укажіть ім\'я хоста.</string>
-    <string name="addresource_local_folders_found">Локальні теки знайдено. Виберіть, що додати.</string>
+    <string name="addresource_local_folders_found">Локальні папки знайдено. Виберіть, що додати.</string>
     <string name="addresource_none_selected">Виберіть хоча б один ресурс.</string>
     <string name="addresource_permission_needed">Нам потрібен цей дозвіл, щоб просканувати папки.</string>
     <string name="addresource_private_key_required">Додайте приватний ключ SSH.</string>
@@ -19,9 +19,9 @@
     <string name="addresource_save_credentials_failed">Не вдалося зберегти облікові дані. Спробуйте ще раз.</string>
     <string name="addresource_scan_failed_short">Сканування не завершилося. Спробуйте ще раз.</string>
     <string name="addresource_signed_out">Вийшли з акаунта.</string>
-    <string name="addresource_smb_scan_found_limited">SMB-сканування знайшло лише кілька спільних тек. Якщо у вас є спільні теки з нестандартними назвами, додайте їх вручну.</string>
-    <string name="addresource_smb_scan_found_more">SMB-сканування завершено. Якщо у вас є ще спільні теки з нестандартними назвами, додайте їх вручну.</string>
-    <string name="addresource_smb_scan_none_found">Спільних тек не знайдено. Якщо у вас нестандартні назви, додайте їх вручну.</string>
+    <string name="addresource_smb_scan_found_limited">SMB-сканування знайшло лише кілька спільних папок. Якщо у вас є спільні папки з нестандартними назвами, додайте їх вручну.</string>
+    <string name="addresource_smb_scan_found_more">SMB-сканування завершено. Якщо у вас є ще спільні папки з нестандартними назвами, додайте їх вручну.</string>
+    <string name="addresource_smb_scan_none_found">Спільних папок не знайдено. Якщо у вас нестандартні назви, додайте їх вручну.</string>
     <string name="addresource_some_resources_unavailable_after_add">%1$s. Деякі ресурси зараз недоступні.</string>
     <string name="addresource_validation_generic">Схоже, чогось не вистачає - перевірте форму та спробуйте знову.</string>
     <string name="import_auto">Автошук у Завантаженнях</string>

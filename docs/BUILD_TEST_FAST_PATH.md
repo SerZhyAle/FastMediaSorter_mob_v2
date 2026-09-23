@@ -38,7 +38,7 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 
 | Target | Wall clock | Verdict |
 | --- | ---: | --- |
-| `a.ps1 fg` (fast static gates, 64 gates concurrent since S2451) | 79 s | foreground |
+| `a.ps1 fg` (fast static gates, 68 gates concurrent since S2451) | 79 s | foreground |
 <!-- S2612 moved this measurement out of CLAUDE.md Rule 6, which was at its always-loaded ceiling.
      `fg` is the one target that ever crossed the 120 s threshold: 45 gates running one at a time
      reached 142.8 s and were preempted into the background twice, delivering the verdict the way
@@ -435,6 +435,8 @@ Use:
 ```
 
 **Never prove a wear change with `fk`/`fr`/`fc`/`fu` (S1807).** Those four check `app_v2` and exit 0 without compiling a single watch file, so the green they print is a verdict about the other module. Every fast check prints the module it checked in its own banner - read that line before quoting the exit code as proof.
+
+**The subject line (S3440, contract BUILD-EVIDENCE rule 1).** Beside the banner every fast target prints one machine-readable line in the same form for the phone and the watch: `subject: module=wear flavor=Standard buildtype=Debug mode=Code`. Keys are `module`, `flavor`, `buildtype`, `mode`, `scope` and `files`; an axis a check does not have is omitted, never printed empty. It comes from `Write-CheckSubject` in `scripts/quality/lib/check-subject.ps1`. `scripts/quality/assert-check-subject.ps1` refuses a check script - `scripts/builders/check-*.ps1` or `scripts/quality/assert-*.ps1` - that prints no such line; the checks that predate the rule sit in the shrink-only `scripts/quality/check-subject-baseline.txt`, and a row is deleted the moment its check prints the line (`-List` prints the worklist).
 
 **Exit 2 saying the build output is HELD is not your change (S2584).** A hung Gradle test worker can outlive the run that spawned it and keep that variant's `R.jar` open; every mode except `Code` starts by rewriting it, so the run cannot even begin. The check now probes the file, refuses with **exit 2** - "could not verify", never exit 1 - and prints the holder's pid, start time and CPU. Read it as "nothing was proven either way" and do not go looking for a defect in the code: two sessions on 2026-09-05 lost time editing working code over the raw `IOException: Couldn't delete .. R.jar` this replaces. `Build.Phone` will report FREE throughout and is not lying - it tracks the wrapper pid, while the holder is a worker outside the mechanism. **`fk` / `fkn` / `fw` still return a real verdict during such an incident**, because a Kotlin-only compile never rewrites the jar - they are the fallback while it lasts. Killing the holder is the owner's call (Rule 35); the reaper is `scripts/utils/agent-watchdog.ps1`.
 

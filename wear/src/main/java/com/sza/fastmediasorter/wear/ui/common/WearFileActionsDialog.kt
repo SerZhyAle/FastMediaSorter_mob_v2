@@ -108,6 +108,11 @@ private fun labelOf(kind: WearFileOperationKind): Int = when (kind) {
     WearFileOperationKind.RENAME -> R.string.wear_file_op_rename
     WearFileOperationKind.OPEN_ON_PHONE -> R.string.wear_file_op_open_on_phone
     WearFileOperationKind.SEND_TO_RECEIVER -> R.string.wear_file_op_send_to
+    // S3383: named here so the map stays total over the kinds. No caller of this dialog offers
+    // either one - both need the browse graph's credential screen - so these labels are what a
+    // future surface would inherit rather than invent.
+    WearFileOperationKind.ENCRYPT_FILEDO -> R.string.wear_filedo_op_encrypt
+    WearFileOperationKind.DECRYPT_FILEDO -> R.string.wear_filedo_op_decrypt
 }
 
 @DrawableRes
@@ -121,6 +126,8 @@ private fun iconOf(kind: WearFileOperationKind): Int = when (kind) {
     WearFileOperationKind.RENAME -> R.drawable.ic_edit
     WearFileOperationKind.OPEN_ON_PHONE -> R.drawable.ic_open_in_new
     WearFileOperationKind.SEND_TO_RECEIVER -> R.drawable.ic_share
+    WearFileOperationKind.ENCRYPT_FILEDO -> R.drawable.ic_lock
+    WearFileOperationKind.DECRYPT_FILEDO -> R.drawable.ic_lock_open
 }
 
 /**

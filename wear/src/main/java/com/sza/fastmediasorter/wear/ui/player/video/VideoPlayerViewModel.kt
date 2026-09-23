@@ -508,7 +508,8 @@ class VideoPlayerViewModel @Inject constructor(
                     Timber.d("Loading network video: ${selectedMedia.file.name}")
                     loadNetworkVideo(selectedMedia)
                 } else {
-                    Timber.d("Loading local video from SelectedMediaManager: ${selectedMedia.file.name}")
+                    // S3383: the id alone - this is the path a recovered FileDO file plays through.
+                    Timber.d("Loading local video from SelectedMediaManager: id=${selectedMedia.file.id}")
                     playLocalFile(selectedMedia.file)
                 }
             } else {

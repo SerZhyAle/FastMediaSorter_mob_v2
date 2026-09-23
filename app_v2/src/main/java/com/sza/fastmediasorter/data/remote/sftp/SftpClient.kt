@@ -83,6 +83,7 @@ class SftpClient @Inject constructor(
     private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
     private val idleDisconnectPolicy: com.sza.fastmediasorter.data.network.IdleDisconnectPolicy,
     private val networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor,
+    private val pinRegistry: SftpHostKeyPinRegistry,
 ) {
 
     companion object {
@@ -122,11 +123,13 @@ class SftpClient @Inject constructor(
 
     /** S0195: trigger network lifecycle bootstrap on first SFTP use. */
     private suspend fun <T> withConnection(
-        info: SftpConnectionInfo,
+        callerInfo: SftpConnectionInfo,
         block: suspend (ChannelSftp) -> Result<T>
     ): Result<T> {
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("SFTP")
+        // The pinned info flows on into the idle-disconnect arm so invalidation hits the same pool key.
+        val info = pinRegistry.withPin(callerInfo)
         val transportKey = rememberTransportKey(info)
         idleDisconnectPolicy.touch(transportKey)
         // S0219 Pillar C: rearm the idle timer on every completion path (success or failure), not
@@ -151,10 +154,11 @@ class SftpClient @Inject constructor(
     fun getConnectionForExoPlayer(connectionInfo: SftpConnectionInfo): SftpConnectionPool.ExoPlayerConnection {
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("SFTP")
-        val transportKey = rememberTransportKey(connectionInfo)
+        val pinned = pinRegistry.withPinBlocking(connectionInfo)
+        val transportKey = rememberTransportKey(pinned)
         idleDisconnectPolicy.touch(transportKey)
-        return pool.getConnectionForExoPlayer(connectionInfo).also {
-            armTransport(connectionInfo)
+        return pool.getConnectionForExoPlayer(pinned).also {
+            armTransport(pinned)
         }
     }
 
@@ -714,7 +718,7 @@ class SftpClient @Inject constructor(
         username: String,
         password: String,
         expectedFingerprint: String? = null
-    ): Result<Unit> =
+    ): Result<String?> =
         SftpConnectionTester.testConnection(host, port, username, password, expectedFingerprint)
 
     suspend fun testConnectionWithPrivateKey(
@@ -724,7 +728,7 @@ class SftpClient @Inject constructor(
         privateKey: String,
         passphrase: String? = null,
         expectedFingerprint: String? = null
-    ): Result<Unit> = SftpConnectionTester.testConnectionWithPrivateKey(host, port, username, privateKey, passphrase, expectedFingerprint)
+    ): Result<String?> = SftpConnectionTester.testConnectionWithPrivateKey(host, port, username, privateKey, passphrase, expectedFingerprint)
 
     private fun ensureDirectoryExists(channel: ChannelSftp, remotePath: String) =
         SftpConnectionTester.ensureDirectoryExists(channel, remotePath)
@@ -733,7 +737,8 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
     ): Result<java.io.InputStream> {
-        val transportKey = rememberTransportKey(connectionInfo)
+        val pinned = pinRegistry.withPin(connectionInfo)
+        val transportKey = rememberTransportKey(pinned)
         idleDisconnectPolicy.touch(transportKey)
         // S0219 Pillar C: rearm idle timer on every non-cancellation completion path.
         // Note: the InputStream lifetime extends past this function, but idle-disconnect concerns
@@ -741,13 +746,13 @@ class SftpClient @Inject constructor(
         // the stream is open regardless of the idle timer.
         var cancelled = false
         return try {
-            pool.openInputStream(connectionInfo, remotePath)
+            pool.openInputStream(pinned, remotePath)
         } catch (e: CancellationException) {
             cancelled = true
             throw e
         } finally {
             if (!cancelled && trackedTransportKeys.contains(transportKey)) {
-                armTransport(connectionInfo)
+                armTransport(pinned)
             }
         }
     }

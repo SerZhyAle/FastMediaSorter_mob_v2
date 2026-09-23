@@ -1,7 +1,5 @@
 package com.sza.fastmediasorter.ui.xr.browse
 
-import timber.log.Timber
-
 /**
  * Maps controller ray UV hits onto the browse grid: resolves the hovered cell, fires selection on a
  * rising-edge trigger, and treats the far-left/far-right strips as page-flip bands. Mirrors the

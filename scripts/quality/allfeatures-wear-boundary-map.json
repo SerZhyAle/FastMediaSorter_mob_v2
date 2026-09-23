@@ -180,6 +180,13 @@
       ]
     },
     {
+      "category": "screen takeover programs",
+      "ids": [
+        "wear.water_flashlight",
+        "programs-tools.sos-distress-signal-on-phone-and-watch"
+      ]
+    },
+    {
       "category": "tiles deeplinks services and receivers",
       "ids": [
         "wear-os.phone-initiated-open-when-app-closed",

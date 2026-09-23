@@ -8,6 +8,8 @@
 
 **📦 Download:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
 
+Installing the APK directly? Android warns about a package it has not seen before - [why the warning appears, and what to tap](docs/INSTALL_TRUST.md).
+
 ## About the Project
 
 **FastMediaSorter v2** is a powerful Android application for quick and convenient sorting of media files (images, videos, GIFs, audio, documents). It is designed as a single center for managing files from various sources: local device folders, network drives (SMB, SFTP, FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
@@ -100,7 +102,7 @@ Features include:
 
 - [What It Replaces](#what-fastmediasorter-replaces-)
 - [Download](#download-)
-- [Product Flavors](#product-flavors-)
+- [Editions](#editions-)
 - [Key Features](#key-features)
 - [Supported Media Formats](#supported-media-formats-)
 - [Screenshots](#screenshots-)
@@ -112,35 +114,35 @@ Features include:
 - [First Steps](#first-steps-quick-usage-guide-)
 - [Tech Stack](#technology-stack)
 
-## Product Flavors 🎯
+## Editions 🎯
 
-FastMediaSorter v2 ships **seven flavors** - five for everyday phones and tablets (Standard, Lite, Photos, Legacy, FOSS) plus two headset and sideload builds, VR and noLegal. The exact capability grid is generated from the build in [FLAVOR_MATRIX.md](docs/FLAVOR_MATRIX.md):
+FastMediaSorter v2 ships **seven editions** - five for everyday phones and tablets (Standard, Lite, Photos, Legacy, FOSS) plus two headset and sideload builds, VR and noLegal. The exact capability grid is generated from the build in [FLAVOR_MATRIX.md](docs/FLAVOR_MATRIX.md):
 
-| Flavor | Description | Features |
+| Edition | Description | Features |
 |--------|-------------|----------|
 | **Standard** | Full-featured version | Broadest feature set for media, documents, OCR, and integrations |
 | **Lite** | Lightweight daily-use version | Local files only - video, audio and images; no network sources, cloud, documents or Streams |
 | **Photos** | Image-centric version | Images only, with network sources and cloud; no video and no audio |
 | **Legacy** | Compatibility-focused version | Same feature set as Standard, built for older Android devices (API 23-25) |
-| **FOSS** | F-Droid catalogue build | No proprietary SDKs: local media, documents, EPUB and SMB/FTP/SFTP; no cloud, no Streams, no OCR, no translation, no Cast and no Wear OS companion |
+| **FOSS** | F-Droid catalog build | No proprietary SDKs: local media, documents, EPUB and SMB/FTP/SFTP; no cloud, no Streams, no OCR, no translation, no Cast and no Wear OS companion |
 | **VR** | Store-clean headset build | Full media set for headsets; no Google Cast and no Wear OS companion |
 | **noLegal** | Sideload build | Everything in Standard plus the OpenXR immersive player and sideload-only extras |
 
-### Which Flavor Should I Download?
+### Which Edition Should I Download?
 
 - **Standard** ⭐ **(Recommended)**: Best default choice for most users
 - **Lite**: Prefer this if you want a lighter package and simpler setup
 - **Photos**: Prefer this for photo-first workflows
 - **Legacy**: Choose this for older Android devices (API 23-25)
-- **FOSS**: Choose this from the F-Droid catalogue when you want a build free of proprietary SDKs
+- **FOSS**: Choose this from the F-Droid catalog when you want a build free of proprietary SDKs
 - **VR**: Choose this for an XR headset - the store build without Cast and Wear support
 - **noLegal**: Sideload only - pick it when you need the OpenXR immersive player
 
-For exact feature-by-flavor availability, use the canonical documentation:
+For exact feature-by-edition availability, use the canonical documentation:
 
 - [Feature Inventory (canonical)](docs/FEATURES.md)
 - [How-To (feature availability table)](docs/HOW_TO.md)
-- [Quick Start (flavor chooser)](docs/QUICK_START.md)
+- [Quick Start (edition chooser)](docs/QUICK_START.md)
 - [Program Limitations](docs/LIMITATIONS.md)
 
 ## Download 📥
@@ -157,7 +159,7 @@ Available on GitHub Store - install, update, and discover apps directly from Git
 
 🔗 **[Download All Builds from Google Drive](https://drive.google.com/drive/folders/1_U47It406WWQKaXkGGzNVPcKE4OPV0Jp?usp=sharing)**
 
-| Flavor | File Name | Description |
+| Edition | File Name | Description |
 |--------|-----------|-------------|
 | **Standard** | `FastMediaSorter_standard_release.zip` | Full features (Cloud, OCR, EPUB, Translation) |
 | **Lite** | `FastMediaSorter_lite_release.zip` | Local media only (Videos, Audio, Images; no network, cloud, documents or Streams) |
@@ -201,7 +203,7 @@ Full-size images:
 - 🎵 **Lyrics Support:** View song lyrics for the currently playing track. Automatically searches by metadata (Artist/Title) using `api.lyrics.ovh`, with fallback to filename parsing.
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
-- 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "File Manager Mode".
+- 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "All Files mode".
 - ⌨️ **Keyboard & Mouse Support:** Full keyboard navigation (arrow keys, shortcuts like Ctrl+A/C/X, F2, F5, Delete, Backspace) and mouse support (right-click context menu, hover effects, focus indicators) for ChromeOS and desktop mode.
 - 🔍 **Sorting and Filtering:** Order files by name, date, size, and duration. Apply filters for quick search. Support for hidden files (starting with `.`) with dedicated toggle.
 - ↩️ **Undo & Trash:** Ability to undo the last action (copy, move, delete) with soft-delete to `.trash/` folder. Includes "Empty Trash" functionality for resources.
@@ -229,7 +231,7 @@ FastMediaSorter v2 supports a wide range of formats:
 - **Video:** MP4, MKV, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG
 - **Audio:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS, DTS, DTS-HD
 - **Documents:** TXT, MD, LOG, JSON, XML, PDF, **EPUB**
-- **Binary Files** (File Manager Mode): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO, and 60+ other formats
+- **Binary Files** (All Files mode): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO, and 60+ other formats
 
 ## Usage Scenarios 💡
 

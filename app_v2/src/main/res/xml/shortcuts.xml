@@ -5,7 +5,7 @@
     <shortcut
         android:shortcutId="favorites"
         android:enabled="true"
-        android:icon="@drawable/ic_resource_favorites"
+        android:icon="@drawable/ic_shortcut_favorites"
         android:shortcutShortLabel="@string/shortcut_favorites_short"
         android:shortcutLongLabel="@string/shortcut_favorites_long">
         <intent
@@ -18,7 +18,7 @@
     <shortcut
         android:shortcutId="slideshow"
         android:enabled="true"
-        android:icon="@drawable/ic_slideshow"
+        android:icon="@drawable/ic_shortcut_slideshow"
         android:shortcutShortLabel="@string/shortcut_slideshow_short"
         android:shortcutLongLabel="@string/shortcut_slideshow_long">
         <intent
@@ -31,7 +31,7 @@
     <shortcut
         android:shortcutId="broadcast"
         android:enabled="true"
-        android:icon="@drawable/ic_display"
+        android:icon="@drawable/ic_shortcut_broadcast"
         android:shortcutShortLabel="@string/shortcut_broadcast_short"
         android:shortcutLongLabel="@string/shortcut_broadcast_long">
         <intent

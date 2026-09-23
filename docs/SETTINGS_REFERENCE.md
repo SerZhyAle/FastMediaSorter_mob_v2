@@ -56,7 +56,7 @@ _Generated from the app. Do not edit by hand._
 | Debug logs and test tools | Tools for viewing logs, running integration tests, and diagnosing app issues. |
 | File browser interface | Settings that control the layout and behavior of the file browser. |
 | General interface settings | Settings that control the overall look and interaction style of the app. |
-| Main window interface | Settings that control which optional panels and menus appear on the main window. |
+| Main screen interface | Settings that control which optional panels and menus appear on the main window. |
 | Remote resources (SMB/(S)FTP/Cloud) | Settings for connecting to remote file sources: SMB network shares, FTP/SFTP servers, and cloud storage. |
 | Background sync, network and cache | Settings for background sync, network connection limits, and local cache management. |
 | Allow All Files mode | Grants access to all files on the device, including system folders (requires All Files permission). |
@@ -74,14 +74,14 @@ _Generated from the app. Do not edit by hand._
 | Enable Favorites | Enables the Favorites feature so you can mark and quickly access starred files. |
 | Statistics collection | Enables anonymous usage statistics collection to help improve the app. |
 | Preload thumbnails | Preloads thumbnails for files ahead of scrolling so the grid loads faster. |
-| File operations in overflow menu | Moves file operations (copy, move, delete) into the overflow menu instead of showing them as buttons. |
+| File operations in the three-dots menu | Moves file operations (copy, move, delete) into the overflow menu instead of showing them as buttons. |
 | Hide quick action buttons on thumbnails | Hides the quick action buttons overlaid on thumbnails in grid view. |
 | Favorites | Chooses favorites as the data set to export or import. |
 | Resources | Chooses resources as the data set to export or import. |
 | Settings | Chooses app settings as the data set to export or import. |
 | Pinned streams | Chooses the pinned stream list as the data set to export or import. |
 | Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. |
-| Primary startup window | Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or Resource Manager. |
+| Primary startup window | Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the main screen. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
 | Statistics | Opens the usage statistics screen. |
 | Power saving mode | Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%. |
@@ -90,7 +90,7 @@ _Generated from the app. Do not edit by hand._
 | Secure sensitive screens | Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default. |
 | Show hidden files | Shows files and folders whose names begin with a dot (hidden by convention). |
 | Programs panel | Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu. |
-| Show streams panel in main window | Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section. |
+| Show streams panel on the main screen | Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section. |
 | Show subfolders separately | Lists subfolders as individual items in the file browser instead of navigating into them directly. |
 | In cloud resources | Enables adding cloud storage (Google Drive, etc.) as remote resources. |
 | Computer on the internet (S)FTP | Enables adding internet-accessible FTP/SFTP servers as remote resources. |
@@ -239,8 +239,8 @@ _Available in: Standard, Legacy, VR_
 | Wear Companion | Opens settings for the Wear OS companion app pairing and configuration. |
 | How to install on a watch | Opens the site page explaining how to install FastMedia Wear on a watch, in the interface language. |
 | Add widget to the Android home screen.. | Launches the widget picker so you can add an app widget to the home screen. |
-| Add a widget to the launcher desktop | Launches the same widget picker, but puts the chosen widget on the launcher's own desktop instead of the Android home screen. Shown only while launcher mode is on. |
-| Max recipients (1-30) | Sets the maximum number of recipients (1-30) when sharing files. |
+| Add a gadget to the launcher desktop | Opens the gadget picker and puts the chosen gadget on the launcher's own desktop instead of the Android home screen. Shown only while launcher mode is on. |
+| Max destinations (1-30) | Sets the maximum number of recipients (1-30) when sharing files. |
 | Additional programs and scenarios | Settings for supplementary programs and scenarios: camera text translation, the calculator, and the mini-game. |
 | App behavior and operating rules | Settings that control how the app behaves and what operations are allowed. |
 | Photography | Settings for taking photos with the in-app camera and choosing where captured photos are saved. |
@@ -270,6 +270,7 @@ _Available in: Standard, Legacy, VR_
 | Mini-game | Enables the hidden mini-game built into the app. |
 | Calculator | Enables a quick-access calculator within the app. |
 | Allow copying | Allows files to be copied to Quick Sort destinations. |
+| FileDO encryption operations | Shows "Encrypt with FileDO" and "Decrypt with FileDO" in the operations menu of every file. Opening an .fd-sec file works whether this is on or off. |
 | Allow moving | Allows files to be moved to Quick Sort destinations. |
 | Network Monitor | Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
@@ -313,7 +314,7 @@ _Settings -> General -> System launcher settings_
 | Grant notification access | Opens the system notification-access screen. Shown only while the launcher's foreign-notification row is on and the system has not granted the access. |
 | Reset launcher settings | Resets the launcher configuration and desktop cells back to defaults after confirmation. |
 | Choose | Opens the picker for the wallpaper source - the image file for My image, or the lens for the two camera modes. |
-| Appearance | Settings for launcher appearance: desktop wallpaper mode and widget backdrop opacity. |
+| Appearance | Settings for launcher appearance: desktop wallpaper mode and gadget backdrop opacity. |
 | Desktop | Settings for the launcher desktop itself: icon grid density, the edit lock and the wallpaper. |
 | Gestures | Settings for launcher desktop gestures: swipe up, down, left, right, and double-tap actions. |
 | System | Entry to the Android home-app chooser, where the system launcher is selected. |
@@ -349,7 +350,7 @@ _Settings -> General -> System launcher settings_
 | Show recent apps | Shows recently used apps on the launcher desktop. |
 | Show status tray | Master switch for the launcher's tray block; the switches below it decide which indicators the block contains. |
 | Taskbar position | Puts the taskbar with the Start button along the bottom or the top edge of the desktop. |
-| Start panel rows | Sets how many rows tall the Start panel is drawn: a taller panel holds more recent apps and stacks the tray indicators one above another. |
+| Taskbar rows | Sets how many rows tall the Start panel is drawn: a taller panel holds more recent apps and stacks the tray indicators one above another. |
 | Top status bar | Moves the clock with seconds to the left of the launcher top bar and the device indicators to the right, freeing the Start panel for more recent apps; available only while the system status area is replaced. |
 | Battery | Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10; while charging the number carries a lightning mark and turns green on mains, blue on USB and purple on a wireless pad. |
 | Bluetooth | Shows a Bluetooth icon in the launcher tray while the adapter is on. |
@@ -372,7 +373,7 @@ _Settings -> Destinations -> Configure gestures_
 
 | Setting | What it does |
 |---|---|
-| Edit app panel | Opens the editor for the customizable app-launch panel shown in edge-gesture zones. |
+| Edit quick-access panel | Opens the editor for the customizable app-launch panel shown in edge-gesture zones. |
 | Select resource.. | Opens a folder picker for where captured screenshots are saved. |
 | General gesture settings | Section header for the general edge-gesture settings - screenshot destination, clipboard copy, and the app-launch panel editor. |
 | Save screenshots to clipboard | Also copies every captured screenshot to the clipboard, ready to paste. |
@@ -464,7 +465,7 @@ _Reached from Wear OS watch app -> Settings._
 | Auto rotation | Lets the watch screen follow the wrist. Watch-only: the row is absent on a watch with no rotation sensor. |
 | Watch Background | Chooses what the watch draws behind the app screens: the branded waves-and-particles animation, or an image picked on the phone. The picked image is cropped and scaled to the watch frame on the phone and travels the file channel, so the watch receives a ready frame and never resizes anything. When the image is missing or has not arrived, the watch draws the animation instead. A constant dim sits between the background and the content so text stays readable over a light picture, and the background is not drawn while the app is away from the foreground or in ambient mode. |
 | Keep playing in background | Keeps audio playing on Wear OS after the app is minimized, with a notification to control it. Off by default. |
-| Colour scheme | Chooses the colour scheme the watch interface is drawn in: a plain dark or light scheme, or one of three accent families - green, blue or red - in either. The set matches the phone's, so a pair can be set the same way, and the accent hues are the phone's own values so a family reads as the same family on both devices. Dark is the default and reproduces the appearance the watch had before this setting existed. There is no follow-the-system option, because Wear OS gives no system light/dark switch and would always report dark. Choosing a light scheme also lightens the layer drawn behind every screen and the veil over a delivered photo, so dark content stays readable over any background. Editable on the watch and in the phone companion window; a change made on either side reaches the other. |
+| Color scheme | Chooses the colour scheme the watch interface is drawn in: a plain dark or light scheme, or one of three accent families - green, blue or red - in either. The set matches the phone's, so a pair can be set the same way, and the accent hues are the phone's own values so a family reads as the same family on both devices. Dark is the default and reproduces the appearance the watch had before this setting existed. There is no follow-the-system option, because Wear OS gives no system light/dark switch and would always report dark. Choosing a light scheme also lightens the layer drawn behind every screen and the veil over a delivered photo, so dark content stays readable over any background. Editable on the watch and in the phone companion window; a change made on either side reaches the other. |
 | Show clock and status while dimmed | Shows the clock with the battery level and the connection state while the watch screen is dimmed, instead of leaving it blank. The same decision is made once on the phone and synced to the watch, so both devices dim the same way; the row here flips it on this watch until the next push from the phone. |
 | Disable animations | On Wear OS, removes the video controls panel transition while keeping the same controls available immediately. |
 | Download album art | Downloads and displays cover art for audio tracks on Wear OS. |
@@ -473,6 +474,7 @@ _Reached from Wear OS watch app -> Settings._
 | Images | Enables viewing and browsing of image files on Wear OS. |
 | Enable slideshow | Enables automatic slideshow presentation of media files on Wear OS. |
 | Video | Enables playback and browsing of video files on Wear OS. |
+| FileDO encryption | Adds Encrypt FileDO and Decrypt FileDO to a file's action menu on the watch, for one file at a time, where the watch can write a container beside it - its own files and the Download and Documents folders; both ask for a password. Off by default. A .fd-sec container opens from the file list with its password whether this is on or off. |
 | Files view | Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails. |
 | Keep screen on | Keeps the watch screen on across every screen outside the players, the startup splash and the permission screen included; the audio, video and image players hold it on regardless. |
 | Original layout | Lays the watch screens out the way they were before the geometry was tightened for the Google Play store review: content takes the full width of the display, and the round glass cuts the outer edges of the calculator's outermost keys and of the game board. That clipping is what the setting is for, not a fault in it - the owner asked for the layout he had built over several rounds rather than the one the review bought. It applies to every watch screen at once, not to the calculator alone: the lists, the players and Streams follow the same geometry, because one shared layer answers how much room the glass leaves and every screen asks it. Turning it off returns the reviewed layout, which stands clear of the arc everywhere. Offered only in the sideloaded build, which is never submitted to the store; the published build always uses the reviewed layout. The change takes effect at once, with no restart. |

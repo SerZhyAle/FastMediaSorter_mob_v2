@@ -11,9 +11,15 @@ import com.sza.fastmediasorter.utils.UserActionLogger
 internal class PlayerInputDispatcher(private val activity: PlayerActivity) {
 
     fun onKeyDown(keyCode: Int, event: KeyEvent?, superHandler: (Int, KeyEvent?) -> Boolean): Boolean {
-        UserActionLogger.logKey(keyCode, event?.action ?: KeyEvent.ACTION_DOWN, KeyEvent.keyCodeToString(keyCode), "PlayerActivity")
+        UserActionLogger.logKey(
+            keyCode,
+            event?.action ?: KeyEvent.ACTION_DOWN,
+            KeyEvent.keyCodeToString(keyCode),
+            "PlayerActivity"
+        )
         if ((keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ESCAPE) &&
-            activity.pdfViewerManager.isInFullscreenMode()) {
+            activity.pdfViewerManager.isInFullscreenMode()
+        ) {
             activity.pdfViewerManager.exitFullscreenMode()
             return true
         }
@@ -45,8 +51,9 @@ internal class PlayerInputDispatcher(private val activity: PlayerActivity) {
             // reserved for joystick-specific routing
         }
         val action = activity.gamepadInputManager.handleMotionEvent(event, InputSurface.PLAYER)
-        if (action is GamepadAction.PlayerAction && routePlayerGamepadAction(action)) return true
-        return activity.keyboardHandler.handlePointerEvent(activity.window.decorView, event) || superHandler(event)
+        return (action is GamepadAction.PlayerAction && routePlayerGamepadAction(action)) ||
+            activity.keyboardHandler.handlePointerEvent(activity.window.decorView, event) ||
+            superHandler(event)
     }
 
     /** Routes a [GamepadAction.PlayerAction] to the same callbacks used by keyboard input. */

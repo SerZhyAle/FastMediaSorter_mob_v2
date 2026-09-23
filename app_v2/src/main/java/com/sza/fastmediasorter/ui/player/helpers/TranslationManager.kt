@@ -404,6 +404,10 @@ class TranslationManager(
     ): List<TranslatedTextBlock>? =
         recognitionBackend.recognizeAndTranslateBlocks(bitmap, sourceLang, targetLang)
 
+    /** The last [recognizeAndTranslateBlocks] returned nothing because the assumed OCR language was refused. */
+    val lastBlocksRefusedForLanguage: Boolean
+        get() = recognitionBackend.lastBlocksRefusedForLanguage
+
     /**
      * Recognize word-level text boxes for in-place selection mapping (no translation).
      */

@@ -14,6 +14,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextClock
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -71,25 +72,40 @@ class DimClockOverlayView @JvmOverloads constructor(
      */
     var onDimExitRequested: (() -> Unit)? = null
 
+    var onUnhandledMotionEvent: ((MotionEvent) -> Unit)? = null
+
     init {
         isClickable = false
         isFocusable = false
         contentDescription = context.getString(R.string.dim_clock_status_cd)
 
-        // Safe bounds handling (CLAUDE.md Rule 17)
         ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
-            val safeInsets = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
-            val basePadding = resources.getDimensionPixelSize(R.dimen.dim_clock_padding)
-            binding.dimClockContentBlock.setPadding(
-                basePadding + safeInsets.left,
-                basePadding + safeInsets.top,
-                basePadding + safeInsets.right,
-                basePadding + safeInsets.bottom
-            )
+            applySafePadding(insets)
             insets
         }
+    }
+
+    /**
+     * Rule 17 safe bounds. The dim screen hides the system bars, and a hidden bar reports a zero inset,
+     * so the bars are read ignoring visibility: the status bar's height is what clears the camera cutout.
+     */
+    private fun applySafePadding(insets: WindowInsetsCompat) {
+        val padding = contentPaddingFor(
+            barsIgnoringVisibility = insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars()),
+            cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout()),
+            basePadding = resources.getDimensionPixelSize(R.dimen.dim_clock_padding),
+            minimumShift = resources.getDimensionPixelSize(R.dimen.dim_clock_edge_offset),
+            isRtl = layoutDirection == LAYOUT_DIRECTION_RTL,
+        )
+        Timber.d("S3369: dim clock padding start=${padding.left} top=${padding.top}")
+        binding.dimClockContentBlock.setPaddingRelative(padding.left, padding.top, padding.right, padding.bottom)
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) onHostInteraction()
+        if (super.dispatchTouchEvent(event)) return true
+        onUnhandledMotionEvent?.invoke(event)
+        return true
     }
 
     /**
@@ -121,6 +137,10 @@ class DimClockOverlayView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        // This view joins the decor after the window's inset pass, which never re-runs for a late child
+        // on its own - the S3369 padding stayed at its XML default until the root insets were read here.
+        ViewCompat.getRootWindowInsets(this)?.let(::applySafePadding)
+        ViewCompat.requestApplyInsets(this)
         startObserving()
     }
 
@@ -387,6 +407,30 @@ class DimClockOverlayView @JvmOverloads constructor(
         private const val WEEKDAY_FIELD = "EEE "
         private const val BATTERY_WARNING_PERCENT = 30
         private const val BATTERY_CRITICAL_PERCENT = 15
+
+        /**
+         * Content padding as start, top, end, bottom (the [Insets] fields read relative). The top shift
+         * clears the taller of the status bar and the cutout; the start edge takes the same shift on top
+         * of its own safe inset, so the block sits as far in from the side as it sits down from the top.
+         */
+        internal fun contentPaddingFor(
+            barsIgnoringVisibility: Insets,
+            cutout: Insets,
+            basePadding: Int,
+            minimumShift: Int,
+            isRtl: Boolean,
+        ): Insets {
+            val safe = Insets.max(barsIgnoringVisibility, cutout)
+            val shift = maxOf(safe.top, minimumShift)
+            val startSafe = if (isRtl) safe.right else safe.left
+            val endSafe = if (isRtl) safe.left else safe.right
+            return Insets.of(
+                basePadding + startSafe + shift,
+                basePadding + shift,
+                basePadding + endSafe,
+                basePadding + safe.bottom,
+            )
+        }
 
         /** Bolt plus the percent value while charging, the bare number otherwise. */
         internal fun batteryTextFor(percent: Int, isCharging: Boolean): String =

@@ -4,7 +4,6 @@ import android.view.View
 import android.widget.ListPopupWindow
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
-import timber.log.Timber
 
 /** Context actions for a command shown in the taskbar's recents strip. */
 class LauncherTaskbarRecentMenuManager(

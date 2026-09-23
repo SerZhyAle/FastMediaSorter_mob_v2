@@ -202,7 +202,7 @@ FastMediaSorter - це додаток для керування медіафай
 
 З питань, що стосуються цих Умов використання:
 
-- **Email:** <serzhyale@gmail.com>
+- **Email:** <sza@ukr.net>
 - **GitHub:** <https://github.com/SerZhyAle/FastMediaSorter_mob_v2>
 
 ## 17. Підтвердження

@@ -151,6 +151,8 @@ class ProvisionDownloadsDestinationUseCaseTest {
         val result = useCase()
 
         assertTrue(result)
-        coVerify(exactly = 1) { resourceRepository.addResource(match { it.path == downloadsDir.absolutePath && it.isDestination }) }
+        coVerify(
+            exactly = 1
+        ) { resourceRepository.addResource(match { it.path == downloadsDir.absolutePath && it.isDestination }) }
     }
 }

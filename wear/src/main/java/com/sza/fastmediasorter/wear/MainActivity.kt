@@ -69,6 +69,7 @@ import com.sza.fastmediasorter.wear.domain.model.UnitSystem
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
+import com.sza.fastmediasorter.wear.domain.model.WearFdSecMode
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
 import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
@@ -130,6 +131,7 @@ import com.sza.fastmediasorter.wear.ui.common.testlaunch.WearTestLaunchOverrideR
 import com.sza.fastmediasorter.wear.ui.common.testlaunch.rememberWearTestScreenMetrics
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
 import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
+import com.sza.fastmediasorter.wear.ui.fdsec.FdSecCredentialScreen
 import com.sza.fastmediasorter.wear.ui.folder.WearFolderWalkScreen
 import com.sza.fastmediasorter.wear.ui.home.HomeScreen
 import com.sza.fastmediasorter.wear.ui.home.LocalHomeScreen
@@ -967,6 +969,28 @@ private fun NavGraphBuilder.playerRoutes(navController: NavHostController) {
         })
     }
 
+    // S3383: the credential screen for a FileDO container. Not registered among PLAYER_ROUTES - it
+    // renders no content and must keep the list that led here underneath it, because two of its
+    // three modes come straight back to that list.
+    composable(
+        route = WearRoutes.FDSEC_CREDENTIAL_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType },
+            navArgument(WearRoutes.ARG_FDSEC_MODE) { type = NavType.StringType }
+        )
+    ) {
+        FdSecCredentialScreen(
+            onFinished = { navController.popBackStack() },
+            onOpen = { route ->
+                // The credential screen leaves the stack with the viewer: a back press from the
+                // recovered file belongs to the list it was opened from, never to a second prompt.
+                navController.navigate(route) {
+                    popUpTo(WearRoutes.FDSEC_CREDENTIAL_PATTERN) { inclusive = true }
+                }
+            }
+        )
+    }
+
     composable(
         route = WearRoutes.DOCUMENT_VIEWER_PATTERN,
         arguments = listOf(
@@ -1543,6 +1567,9 @@ private fun NavGraphBuilder.localFolderRoutes(
                     ).fileId
                 }
                 navController.navigate(playerRouteFor(fileId, row.mimeType, fileName = row.name))
+            },
+            onOpenContainer = { fileId ->
+                navController.navigate(WearRoutes.fdSecCredential(fileId, WearFdSecMode.OPEN))
             },
             onExit = { navController.popBackStack() }
         )

@@ -18,6 +18,49 @@
         Fix   = 'Each listed File:Line holds a ticket id in a permanent log, or a probe whose ticket left BlockNeedUserTest - delete the Timber line, or flip the ticket back if the device test is still pending.'
     }
 
+    'no-secrets-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-no-secrets.ps1 -Gate -List -ChangedFiles "<your,files>"'
+        Fix   = 'A secret-shaped literal is in your changed set, and the finding names the detector that matched. Move the value out of the source - a local properties file, an ambient CI token, or the encrypted store behind CryptoHelper. Only when the literal is a fixture or test-only value, add an entry with its reason to scripts/quality/no-secrets-allowlist.txt; an entry with no reason is itself refused.'
+    }
+
+    'a11y-semantics-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-a11y-semantics.ps1 -Gate -List -ChangedFiles "<your,files>"'
+        Fix   = 'An element your change touched cannot be described to a screen reader, and the listing names the rule. icon-only-no-name: give the icon-only control a non-empty android:contentDescription. custom-view-no-a11y: expose the role and the state of the custom view through an accessibility delegate - AccessibilityNodeInfo(Compat), an AccessibilityDelegate, ExploreByTouchHelper, or a replaced AccessibilityAction; a contentDescription alone names the node and leaves its role unspoken. touch-target-undersized: raise the target to 48dp, or give it minWidth/minHeight that reach the floor. A genuinely decorative image is exempted by marking it android:importantForAccessibility="no" AND adding a reasoned row to scripts/quality/a11y-decorative-allowlist.txt - never by calling an interactive control decorative. The baseline in scripts/quality/a11y-semantics-baseline.txt only ratchets down.'
+    }
+
+    'manifest-risk-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-manifest-risk-diff.ps1 -Gate -ChangedFiles "<your,manifests>"'
+        Fix   = 'A permission, exported component, cleartext allowance, backup attribute or foreground service type in your manifest has no row in docs/manifest-risk-registry.jsonl. Add one line - kind, key, modules, flavors, sources and a one-sentence justification a reviewer who has never seen the code can read - or drop the declaration. A row that names neither a flavor nor the source set gating it is refused too.'
+    }
+
+    'fileop-journal-pairing-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-fileop-journal-pairing.ps1 -List'
+        Fix   = 'A destructive operation in the transfer strategy trees reaches neither the mutation journal nor an opt-out, and the finding names the file and the operation. Record the change as a Mutation so Browse can reconcile and undo it. When the operation disposes only of state the app itself created - a temp file, a pending MediaStore row, an in-memory progress entry - add a row with its reason to scripts/quality/fileops-read-only-allowlist.txt instead; a row without a reason is refused. The frozen baseline in fileop-journal-pairing-baseline.txt may shrink, never grow.'
+    }
+    'mutation-producer-registration-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-mutation-producer-registration.ps1 -List'
+        Fix   = 'A component the framework starts outside the ui/ tree - a Worker, a Service, a receiver, a widget provider, a FileObserver - changes user content and neither records a Mutation nor declares how the screen stays correct, and the finding names the file and the collaborator it mutates through. Nothing redraws because a Worker ran, so an open Browse list keeps a row whose file is gone. Record the change through MutationRecorder, or add a row to scripts/quality/mutation-producer-registry.txt: "refresh:<Class>.<member>" when the surface that started it redraws instead - the gate resolves the class and requires the member to exist, so an unwired refresh is refused - or "own-state" when it removes only what the app itself created. A row without a reason is refused.'
+    }
+    'no-test-retry-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-no-test-retry.ps1 -Gate -List'
+        Fix   = 'A retry annotation, a retry TestRule, a retry runner or the Gradle test-retry plugin reaches a test of this repository, and the finding names the file, the detector and the line. Delete it: retry-to-green does not remove the flake, it removes the report of it, at a fixed probability, forever. If the test really is intermittent, add a row to docs/test-flaky-quarantine.jsonl naming the test id exactly as the JUnit report spells it, the symptom, a live Sxxxx and the date - the CI triage step then keeps that failure visible in every run instead of hiding it.'
+    }
+
+    'log-redaction-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-log-redaction.ps1 -List'
+        Fix   = 'A Timber call in the network, cloud, remote or transfer trees interpolates a credential without the masking seam. Wrap the value in SecretMasker.mask / maskFull / maskPath, or log the fact rather than the value. The baseline in scripts/quality/log-redaction-baseline.txt only ratchets down.'
+    }
+
+    'credential-encryption-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-credential-encryption.ps1 -List'
+        Fix   = 'A persisted credential-shaped field is declared a plain String. Store it through CryptoHelper and name the column for what it holds (encryptedPassword, as NetworkCredentialsEntity does), or mark the property @Ignore / get() when nothing is written at rest.'
+    }
+
+    'diagnostics-redaction-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-diagnostics-redaction.ps1 -List'
+        Fix   = 'A field of a diagnostics or log-report payload carries a path, an account or a credential unmasked, and that payload leaves the device. Put the value through SecretMasker before it reaches the payload and name the field for it (maskedPath), or drop the field from the export.'
+    }
+
     'neuroslop-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-neuroslop.ps1 -Gate -ChangedFiles "<your,files>"'
         Fix   = 'A banned pattern grew in your files (CLAUDE.md Rule 19): trivial comment, empty catch, hardcoded layout colour, lifecycle-unsafe collect, GlobalScope, non-Timber log, shipped TODO(), long dash. Remove it - the baseline only ratchets down.'
@@ -53,6 +96,16 @@
         Fix   = 'A documentation page carries a typographic dash in prose. Replace it with the house-style hyphen: pwsh -NoProfile -File scripts/utils/fix-house-style.ps1 -Area Prose -Rules long-dash -Path <page> -Apply. The generated FEATURES_noLegal pages are a parked draft, not an excuse.'
     }
 
+    'detekt-baseline-deleted-files ($pruneModule)' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/prune-detekt-baseline.ps1 -Module <app_v2|wear> -Deleted "<deleted .kt paths>"'
+        Fix   = 'Entries of deleted Kotlin files remain in the module detekt baseline. Remove them with the same command plus -Apply -Reason <ticket>; the advisory line above names the exact file list.'
+    }
+
+    'docs-termbase' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-docs-termbase.ps1'
+        Fix   = 'A documentation page uses a forbidden synonym, or a docs/termbase.jsonl record is malformed. Write the word each FAIL line suggests, or repair the named record; a concept missing from the termbase gets a complete record first (docs/COMMUNICATION_POLICY.md section 7.2). A deliberate quote is excused with <!-- termbase-ignore: <word or term id> --> on its line or the line above.'
+    }
+
     'memory-budget-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-memory-budget.ps1 -Gate'
         Fix   = 'The always-loaded agent-memory index is over its ceiling, and every turn of every session pays for the overshoot. Split the biggest SECTION into a second-level .claude/agent-memory/android-rd-specialist/INDEX_<topic>.md and leave one pointer line behind - measure first (bytes per section), never trim a hook mid-sentence, because a squeezed pointer costs its bytes while saying nothing. Raising the ceiling is refused by the gate itself.'
@@ -76,6 +129,11 @@
     'detekt-baseline-absorption' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-detekt-baseline-absorption.ps1 -Gate'
         Fix   = 'A committed detekt baseline absorbed live findings wholesale - re-freeze only the intended entries, or fix the findings instead of accepting them.'
+    }
+
+    'lint-baseline-absorption' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-lint-baseline-absorption.ps1 -Gate'
+        Fix   = 'An Android lint baseline carries a finding its committed lint-baseline.ids snapshot does not - fix the finding, or accept the re-freeze explicitly with -Module <m> -Update -Reason and name the printed identifiers in the dev-log row.'
     }
 
     'flavor-matrix-doc-gate' = @{
@@ -223,6 +281,10 @@
         Fix   = 'A phone screen in your changed set is mapped to no entry of scripts/devtest/ui-sweep-screens.json and named in no excluded list, so the UI sweep neither walks it nor declares it skipped - it would ship unwalked in silence. Add it to the walk list with the label that opens it and a marker the destination renders (expect + expectRes, where the resolved string must CONTAIN expect, because the sweep matches the UI tree by substring), or to the matching excluded list with a reason from the closed set the file declares in reasonSet. The other three shapes are drift in an existing entry: an expectRes that no longer resolves, a marker alive in resources but referenced by no layout, menu or source under app_v2/src/main (so it could never match a node), and an exclusion carrying no reason. Scope (S2824): this per-ticket run is fixed-input - fatal only when the set carries the screen list, dev/ACTIVITY_CATALOG/app_v2.jsonl or docs/settings/settings-manifest.json, advisory otherwise, so a neighbour''s unclassified screen is not yours to fix. The whole-tree run is .\a.ps1 fg.'
     }
 
+    'baseline-inventory-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-baseline-inventory.ps1 -Gate'
+        Fix   = 'A ratchet baseline has no row in scripts/quality/baseline-inventory.jsonl, a row names a file that is gone, or a row is malformed. Add one JSON line for a new baseline: file, shape (count|set|xml), owner, write (down-only|seed-only|hand-only|raise-with-reason|guarded|wholesale), verdict (safe|exception). A writer that stores the current measurement whatever the direction is wholesale and cannot be safe (contract CHECK-BASELINE rule 4): make it down-only, or give it -Reason and a printed accept list, or record verdict exception with a carrier ticket and a reason. Criterion: docs/DEV_OPS.md, section The two baseline shapes and the inventory.'
+    }
     'bridge-scenario-coverage-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-bridge-scenario-coverage.ps1 -Gate'
         Fix   = 'A Data Layer route declared in either WearDataLayerPaths.kt is named by no scenario in scripts/devtest/bridge-scenarios.json and explained by no excluded[] record, so the joint-device campaign will never measure it - the S2861 gap class that hid two of thirty-eight routes, both of them exactly where the campaign''s only confirmed defect lived. Add the route to the new scenario''s channels[] (the string is the verdict marker logcat filters on), or add an excluded[] record with the reason no scenario will ever cover it. The other shapes: a route declared in one catalog only (the mirror is broken - declare it on both sides or drop it), an excluded record with no reason, an excluded path no catalog declares, or a path both scenario-named and excluded. Scope (S2723): the per-ticket run judges only routes your changed set owns - a catalogue or registry file in the set, or a registry record your edit touched; a neighbour''s unclassified route is not yours to fix. The whole-tree run is .\a.ps1 fg.'
@@ -306,6 +368,10 @@
         Fix   = 'The changelog row could not be written - read the error above; never edit dev/CHANGELOG.md by hand to work around it.'
     }
 
+    'icon-style-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-icon-style.ps1 -Gate'
+        Fix   = 'A product glyph left the measured style of ICON-RENDER 0.10 section 10 item A (24 grid, one paint, stroke width 2, one unit of margin, box or mass centred, weight 1.3), an icon size left the tiers 16/20/24/32/40/48 dp, or an exception went stale. Point the size at @dimen/icon_tier_NN; wrap the drawing in one group that scales or moves it into the live area (temp scripts are no substitute - the path data stays untouched), or add name | rule | reason to scripts/quality/icon-style-exceptions.txt when it is an illustration or another ticket replaces it; delete a stale line.'
+    }
     'wear-wire-vocabulary-parity-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-wire-vocabulary-parity.ps1 -Gate'
         Fix   = 'A phone/watch wire vocabulary outside settings diverged between app_v2 and wear, a LocalOnly safety rule failed, or a new mirrored enum was added without being declared in the gate table. Align the declarations or declare the new enum in $vocabularies.'

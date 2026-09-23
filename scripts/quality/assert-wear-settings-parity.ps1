@@ -72,8 +72,19 @@
 
     A row literal may sit inside a helper composable defined below its call site (the bottom-helper
     idiom these screens use). Both order checks resolve such a literal to the helper's FIRST
-    INVOCATION - the place the row is drawn - with the literal position breaking ties between rows
-    inside one helper. Rows written inline resolve at their own literal position.
+    INVOCATION - the place the row is drawn - and repeat that walk until the root function is
+    reached, because a helper is itself routinely called from another helper rather than from the
+    screen's root. The result is the chain of positions from the outermost call down to the literal,
+    and the two checks compare chains lexicographically, so rows are only ever ranked against each
+    other at the level where their paths actually diverge. Rows written inline in the root resolve at
+    their own literal position.
+
+    S3373: one level of escalation was not enough, and a single level ranks positions taken from
+    different depths. OtherSettingsScreen draws its album-art row from albumArtRows(), called inside
+    otherSettingsItems(), which the root calls in turn: the album-art literal resolved to the inner
+    call site while its neighbour written directly in otherSettingsItems() resolved to that function's
+    own call site, far earlier in the file, and the gate reported a reversal of two rows the screen
+    draws in the declared order.
 
     Rule 33 class, stated at birth: PER-TICKET. Its evidence exists only at the moment of the change -
     the author is the one who knows whether a new setting was meant to be one-sided - and the settings
@@ -298,26 +309,62 @@ function Read-MenuMap {
 }
 
 # S2169: where a row anchor or tag is DRAWN in one file. A literal inside a non-root function
-# escalates to that function's first invocation (bottom helpers are defined below their call
-# sites); the literal index stays as the tie-break between rows sharing one helper.
+# escalates to that function's first invocation (bottom helpers are defined below their call sites),
+# and S3373 repeats the walk up to the root function, returning the whole chain of positions -
+# outermost call first, literal last. Ranking two rows means comparing their chains, not two numbers
+# taken from whatever depth each row happened to sit at.
 function Get-RowPosition {
     param([string]$Source, [string]$Token, [string]$RootFun)
 
     $literal = $Source.IndexOf($Token, [System.StringComparison]::Ordinal)
     if ($literal -lt 0) { return $null }
 
-    $declName = $null
-    foreach ($decl in [regex]::Matches($Source, '(?m)^\s*(?:private\s+|internal\s+)?fun\s+(?<name>\w+)\s*\(')) {
-        if ($decl.Index -gt $literal) { break }
-        $declName = $decl.Groups['name'].Value
+    $chain = [System.Collections.Generic.List[int]]::new()
+    $chain.Add($literal)
+    $helper = $null
+    $invoked = $true
+    $walked = @{}
+    $cursor = $literal
+    while ($true) {
+        $declName = $null
+        foreach ($decl in [regex]::Matches($Source, '(?m)^\s*(?:private\s+|internal\s+)?fun\s+(?<name>\w+)\s*\(')) {
+            if ($decl.Index -gt $cursor) { break }
+            $declName = $decl.Groups['name'].Value
+        }
+        # A recursive helper would send the walk round the same function for ever; it resolves where
+        # it stands instead.
+        if ($null -eq $declName -or $declName -eq $RootFun -or $walked.ContainsKey($declName)) { break }
+        $walked[$declName] = $true
+        if ($null -eq $helper) { $helper = $declName }
+        $call = [regex]::Match($Source, "(?<!fun\s)\b$([regex]::Escape($declName))\s*\(")
+        if (-not $call.Success) {
+            $invoked = $false
+            break
+        }
+        $cursor = $call.Index
+        $chain.Insert(0, $cursor)
     }
-    if ($null -eq $declName -or $declName -eq $RootFun) {
-        return [pscustomobject]@{ Draw = $literal; Literal = $literal; Helper = $null; Invoked = $true }
+    return [pscustomobject]@{
+        Chain   = $chain.ToArray()
+        Draw    = $chain[0]
+        Literal = $literal
+        Helper  = $helper
+        Invoked = $invoked
     }
-    foreach ($inv in [regex]::Matches($Source, "(?<!fun\s)\b$([regex]::Escape($declName))\s*\(")) {
-        return [pscustomobject]@{ Draw = $inv.Index; Literal = $literal; Helper = $declName; Invoked = $true }
+}
+
+# S3373: is $First drawn before $Second. Lexicographic over the two chains, so rows sharing an outer
+# call are separated by the first position at which their paths differ.
+function Test-RowBefore {
+    param([pscustomobject]$First, [pscustomobject]$Second)
+
+    $a = $First.Chain
+    $b = $Second.Chain
+    $shared = [Math]::Min($a.Count, $b.Count)
+    for ($i = 0; $i -lt $shared; $i++) {
+        if ($a[$i] -ne $b[$i]) { return $a[$i] -lt $b[$i] }
     }
-    return [pscustomobject]@{ Draw = $literal; Literal = $literal; Helper = $declName; Invoked = $false }
+    return $a.Count -lt $b.Count
 }
 
 # S2464: parses property names and their Kotlin types from data class WearSettingsPayload(...).
@@ -616,8 +663,7 @@ foreach ($group in $watchMap.Keys) {
         for ($i = 1; $i -lt $present.Count; $i++) {
             $a = $present[$i - 1]
             $b = $present[$i]
-            $ordered = $b.Pos.Draw -gt $a.Pos.Draw -or
-                ($b.Pos.Draw -eq $a.Pos.Draw -and $b.Pos.Literal -gt $a.Pos.Literal)
+            $ordered = Test-RowBefore -First $a.Pos -Second $b.Pos
             if (-not $ordered) {
                 $findings += "S2169: watch group $group - '$($a.Field)' (anchor $($a.Anchor)) is declared before '$($b.Field)' (anchor $($b.Anchor)) but $($paths[$fileKey]) draws them the other way round."
             }
@@ -643,8 +689,7 @@ foreach ($group in $phoneMap.Keys) {
             continue
         }
         if ($null -ne $prevRow) {
-            $ordered = $pos.Draw -gt $prevRow.Pos.Draw -or
-                ($pos.Draw -eq $prevRow.Pos.Draw -and $pos.Literal -gt $prevRow.Pos.Literal)
+            $ordered = Test-RowBefore -First $prevRow.Pos -Second $pos
             if (-not $ordered) {
                 $findings += "S2169: companion window draws '$($prevRow.Tag)' ($($prevRow.Field)) before '$($entry.Tag)' ($f), but the menu map declares group $($prevRow.Group) before $group with the rows in the opposite order."
             }

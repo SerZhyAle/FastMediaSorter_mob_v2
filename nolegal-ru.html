@@ -58,7 +58,7 @@
     </a>
 
     <header>
-        <canvas id="headerCanvas"></canvas>
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
         <div class="lang-switcher">
             <a href="nolegal.html" class="lang-btn">EN</a>
             <a href="nolegal-ru.html" class="lang-btn active">RU</a>
@@ -85,6 +85,9 @@
         <h2 class="section-title">📦 Загрузка для sideload</h2>
         <p class="topology-lead">Сборка noLegal только для ручной установки (sideload). Скачайте подписанный APK
         ниже и установите вручную - её нет на основном сайте и ни в одном сторе.</p>
+        <p class="topology-lead">Android предупреждает об APK, который видит впервые.
+            <a href="docs/INSTALL_TRUST_RU.html" target="_blank" rel="noopener">Почему появляется предупреждение - и что
+                нажимать</a>.</p>
         <div id="apkDownloads" class="apk-downloads" data-flavors="noLegal">
             <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest"
                 target="_blank" rel="noopener">Открыть последний релиз на GitHub →</a>
@@ -349,50 +352,8 @@
         <p style="margin-top: 1.5rem; font-size: 0.8rem; opacity: 0.5;">&copy; 2024-2026 Fast Media Sorter Project.</p>
     </footer>
 
-    <!-- Анимированный canvas (общий с основным сайтом) -->
-    <script>
-        (function () {
-            var canvas = document.getElementById('headerCanvas');
-            if (!canvas) return;
-            var ctx = canvas.getContext('2d');
-            var header = canvas.parentElement;
-            var width, height, animId;
-
-            function resize() {
-                width = canvas.width = header.offsetWidth;
-                height = canvas.height = header.offsetHeight;
-            }
-
-            var time = 0;
-            function draw() {
-                ctx.fillStyle = 'rgba(7, 5, 18, 0.15)';
-                ctx.fillRect(0, 0, width, height);
-                time += 0.002;
-                ctx.lineWidth = 1.5;
-                for (var j = 0; j < 4; j++) {
-                    ctx.beginPath();
-                    var phaseShift = j * 20;
-                    for (var i = 0; i <= width; i += 20) {
-                        var y = height / 2 +
-                            Math.sin(i * 0.0025 + time + phaseShift) * height * 0.3 *
-                            Math.sin(time * 0.3 + j * 0.25);
-                        if (i === 0) ctx.moveTo(i, y);
-                        else ctx.lineTo(i, y);
-                    }
-                    ctx.strokeStyle = 'hsla(' + (350 + j * 8) + ', 80%, 62%, 0.22)';
-                    ctx.stroke();
-                }
-                animId = requestAnimationFrame(draw);
-            }
-
-            window.addEventListener('resize', function () { resize(); });
-            document.addEventListener('visibilitychange', function () {
-                if (document.hidden) { cancelAnimationFrame(animId); } else { draw(); }
-            });
-            resize();
-            draw();
-        }());
-    </script>
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <script src="documentation/assets/wave-particles.js"></script>
 
 </body>
 

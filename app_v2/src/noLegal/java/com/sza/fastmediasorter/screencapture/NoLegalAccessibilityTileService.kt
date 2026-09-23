@@ -11,7 +11,6 @@ import androidx.annotation.RequiresApi
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.AccessibilityServiceControl
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

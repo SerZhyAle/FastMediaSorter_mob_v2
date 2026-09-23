@@ -28,6 +28,14 @@
     empty collection when the contract declares `@Multibinds` in src/main, which fifteen of them do,
     so an absent contribution is a legal state rather than a missing binding.
 
+    Qualified bindings are out of scope for a harder reason (S3372): the graph key is the pair
+    (qualifier, type), and nothing lexical ties the qualifier at the injection site to the one on the
+    provider. Reading the type alone made `@Named("googleWebClientId") provideWebClientId(): String`
+    in src/cloudEnabled stand for every `String` src/main injects, and the gate declared foss and lite
+    broken over a binding neither of them asks for. A verdict that cannot be right in either direction
+    is worse than no verdict, so a provider carrying any annotation outside the known non-qualifier
+    set below is skipped.
+
 .PARAMETER Gate
     Exit 1 on findings instead of only reporting them. assert-fast-gates.ps1 supplies this to every
     gate it runs, so a gate that does not declare it dies on a parameter-binding error and the batch
@@ -191,6 +199,14 @@ for ($i = $ssFrom; $i -le $ssTo; $i++) {
 }
 
 # --- 3. Bindings per source set -------------------------------------------------------------------
+# Annotations that may sit between @Provides/@Binds and the declaration without making the binding
+# key qualified. Anything else in that window is treated as a qualifier (@Named, @ApplicationContext,
+# and this project's own @CompiledCapabilities / @SupportedMediaSection all land here).
+$nonQualifierAnnotations = [System.Collections.Generic.HashSet[string]]::new(
+    [string[]]@('Provides', 'Binds', 'Singleton', 'Reusable', 'JvmStatic', 'JvmSuppressWildcards',
+        'IntoSet', 'IntoMap', 'ElementsIntoSet'),
+    [System.StringComparer]::Ordinal)
+
 # Key: source set name -> set of simple type names it provides through a single (non-multibound)
 # @Provides / @Binds.
 $providedBy = @{}
@@ -214,12 +230,21 @@ foreach ($dir in $sourceSetDirs) {
             # Walk forward over the remaining annotations to the declaration itself, remembering
             # whether any of them makes this a multibinding contribution.
             $multibound = $false
+            $qualified = $false
             $declStart = -1
             for ($n = $k; $n -lt [Math]::Min($k + 8, $text.Count); $n++) {
                 if ($text[$n] -match '@(IntoSet|IntoMap|ElementsIntoSet)\b') { $multibound = $true }
+                # Only a line that is nothing but an annotation qualifies the binding itself; an
+                # annotation on the declaration line belongs to a parameter (`@ApplicationContext
+                # context: Context`), which says nothing about the key this function provides.
+                if ($text[$n] -match '^\s*@') {
+                    foreach ($a in [regex]::Matches($text[$n], '@([A-Za-z_]\w*)')) {
+                        if (-not $nonQualifierAnnotations.Contains($a.Groups[1].Value)) { $qualified = $true }
+                    }
+                }
                 if ($text[$n] -match '\bfun\s') { $declStart = $n; break }
             }
-            if ($multibound -or $declStart -lt 0) { continue }
+            if ($multibound -or $qualified -or $declStart -lt 0) { continue }
 
             # The return type may sit on a later line than `fun`; joining a short window keeps a
             # wrapped signature readable without pulling in the next declaration.

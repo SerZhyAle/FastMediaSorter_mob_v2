@@ -29,4 +29,5 @@
     <string name="translation_source_language_and_ocr">Вихідна мова та OCR</string>
     <string name="translation_started">Переклад запущено..</string>
     <string name="translation_target_language">Перекласти на</string>
+    <string name="ocr_language_assumed_unreadable">Текст написаний письмом, для якого розпізнавання не налаштоване, тому переклад поверх зображення не показано. Виберіть мову оригіналу в налаштуваннях перекладу.</string>
 </resources>

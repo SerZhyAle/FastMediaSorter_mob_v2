@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.common.widget
 import android.content.Context
 import android.util.AttributeSet
 import com.google.android.material.textfield.TextInputEditText
-import timber.log.Timber
 
 /**
  * A [TextInputEditText] whose caret arithmetic survives a programmatic text clear.

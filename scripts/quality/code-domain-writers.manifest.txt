@@ -62,6 +62,7 @@ scripts/quality/assert-acceptance-preconditions.ps1 | B | Code.Scripts | scripts
 scripts/quality/split-detekt-baseline.ps1 | B | Code.Phone, Code.Wear | config/detekt/baseline-<module>-format.xml, -signal.xml
 scripts/quality/prune-detekt-baseline.ps1 | B | Code.Phone, Code.Wear | config/detekt/baseline-<module>.xml
 scripts/quality/assert-detekt-baseline-absorption.ps1 | B | Code.Phone, Code.Wear | config/detekt/baseline-<module>.ids
+scripts/quality/assert-lint-baseline-absorption.ps1 | B | Code.Phone, Code.Wear | <module>/lint-baseline.ids
 scripts/quality/migrate-locale-fingerprints-module.ps1 | B | Code.Scripts | scripts/quality/locale-source-fingerprints.json, locale-untranslated-baseline.txt
 scripts/utils/fix-house-style.ps1 | B | Code.Phone, Code.Wear, Code.Scripts | docs/ prose and app_v2/wear strings*.xml
 scripts/wear/generate-wear-resource-icons.ps1 | B | Code.Wear | wear res/drawable/ico_*.xml and the registry .kt

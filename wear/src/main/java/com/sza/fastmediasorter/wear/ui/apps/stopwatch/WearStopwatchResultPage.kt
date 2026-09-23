@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.apps.stopwatch
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,8 +39,10 @@ fun WearStopwatchResultPage(
     // S3362: the page is raised over the stopwatch rather than hosted by its own scaffold, so the
     // indicator is drawn here beside the list it belongs to - the same place the menu sheet of this
     // program draws its own. Without it a result long enough to scroll scrolled with no scroll bar,
-    // which is Wear OS review item WO-V8 and one of the causes of an earlier rejection.
-    Box(modifier = Modifier.fillMaxSize()) {
+    // which is Wear OS review item WO-V8 and one of the causes of an earlier rejection. It paints the
+    // scheme's background for the reason the menu sheet does (S3114): walked at font scale 1.3 on the
+    // 192 dp emulator, the laps, the running reading and the Back chip were drawn over one another.
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background)) {
         WearListColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState

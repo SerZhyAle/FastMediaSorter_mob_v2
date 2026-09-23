@@ -477,7 +477,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 ).show()
                 is AddResourceEvent.ShowTestResult -> connectionManager.showTestResultDialog(
                     event.message,
-                    event.isSuccess
+                    event.isSuccess,
+                    event.presentedFingerprint
                 )
                 is AddResourceEvent.LoadResourceForCopy -> {
                     Timber.d("LoadResourceForCopy event: ${event.resource.name}, type=${event.resource.type}")

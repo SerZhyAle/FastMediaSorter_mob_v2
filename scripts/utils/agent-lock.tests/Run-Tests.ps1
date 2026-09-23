@@ -532,7 +532,8 @@ try {
     # The fail-closed remainder is the point of the branch, so it is asserted rather than assumed:
     # naming content trees must not become a habit of naming any directory that shows up. corex/ is
     # unrecognised source, and benchmark/ and watchface/ are real Gradle modules with no Build.*
-    # domain of their own - all three must keep taking every code domain.
+    # domain of their own - all three must keep taking every code domain. Since S3456 they reach it
+    # through an explicit "Code" rule, which assert-lock-path-coverage.ps1 requires of every root.
     $stillClosed = @(
         'corex/androidx/core/content/ContextCompat.java', 'benchmark/src/A.kt', 'watchface/src/A.kt'
     )

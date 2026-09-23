@@ -1,0 +1,28 @@
+# Decorative exceptions for scripts/quality/assert-a11y-semantics.ps1 (S3371 phase 07).
+#
+# An INTERACTIVE element that carries an icon only must declare an accessible name. The one way
+# out is to be genuinely decorative, and that is a decision somebody writes down here - never a
+# silence the rule happens not to reach. An element is exempt when BOTH hold:
+#   1. the layout marks it invisible to accessibility services -
+#      android:importantForAccessibility="no" / "noHideDescendants", or contentDescription="@null";
+#   2. a row below names it and says why.
+# Marking without a row is still a finding: that is the difference between a decision and a habit.
+#
+# Row shape:  <layout-file>.xml:<resource-id>  # <reason>
+# A row with no reason, or with a key that is not that shape, is refused - a reason nobody wrote
+# is one nobody can re-judge in a year.
+#
+# NEVER call an interactive control decorative to lower the count. A control the user can press
+# has a name, and the gate's baseline exists precisely so that real debt can stay visible instead
+# of being renamed into an exception.
+#
+# SURVEY, 2026-09-22, first full run over every app_v2 source set:
+#   56 icon-only elements carried no accessible name. 29 of them sit in
+#   layout-land/activity_player_unified.xml and declare android:contentDescription="@null" while
+#   being the player's command buttons - search, translate, copy, rename, delete, favourite,
+#   share, fullscreen, previous, next. Those are controls, not decoration, so none of them is
+#   listed here; they are frozen in a11y-semantics-baseline.txt as debt with a ceiling. The
+#   remaining 27 are unnamed icon buttons and one runtime-named status chip - also debt.
+#   The survey found no genuinely decorative interactive element, so this file ships with no row.
+#   The shape above is live and proved by scripts/quality.tests/AssertA11ySemantics.Tests.ps1;
+#   the first real decorative case adds the first row.

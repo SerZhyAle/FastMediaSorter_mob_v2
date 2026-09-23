@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearSourceTombstonePayload
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
+import dagger.Lazy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,15 +29,23 @@ import timber.log.Timber
  */
 class NetworkSourceRepositoryImpl(
     private val encryptedPrefs: SharedPreferences,
-    private val smbDataSource: SmbDataSource,
-    private val ftpConnectionTest: FtpConnectionTest,
-    private val sftpConnectionTest: SftpConnectionTest
+    // S3368: Lazy, so constructing this repository does not load the SMB, FTP and SFTP protocol
+    // stacks. The repository is built on paths as early as the cold-start injection and as ordinary
+    // as the home screen's last-used row, while the three protocol objects below have exactly one
+    // reader - [testConnection], reached from the network-sources screen long after start.
+    private val smbDataSource: Lazy<SmbDataSource>,
+    private val ftpConnectionTest: Lazy<FtpConnectionTest>,
+    private val sftpConnectionTest: Lazy<SftpConnectionTest>
 ) : NetworkSourceRepository {
 
     private val gson = Gson()
     private val sourcesKey = "network_sources"
     private val tombstonesKey = "network_source_tombstones"
     private val sourcesFlow = MutableStateFlow(readSourcesFromPrefs())
+
+    init {
+        Timber.d("S3368: NetworkSourceRepositoryImpl constructed - protocol stacks deferred behind Lazy")
+    }
 
     override suspend fun getAllSources(): List<NetworkSource> = withContext(Dispatchers.IO) {
         val sources = readSourcesFromPrefs()
@@ -145,17 +154,18 @@ class NetworkSourceRepositoryImpl(
         try {
             when (source.type) {
                 NetworkSourceType.SMB -> {
-                    val result = smbDataSource.connect(source)
+                    val smb = smbDataSource.get()
+                    val result = smb.connect(source)
                     if (result.isSuccess) {
-                        val isConnected = smbDataSource.isConnected()
-                        smbDataSource.disconnect()
+                        val isConnected = smb.isConnected()
+                        smb.disconnect()
                         Result.success(isConnected)
                     } else {
                         Result.failure(result.exceptionOrNull() ?: Exception("Connection failed"))
                     }
                 }
-                NetworkSourceType.FTP -> ftpConnectionTest.testFtp(source)
-                NetworkSourceType.SFTP -> sftpConnectionTest.testSftp(source)
+                NetworkSourceType.FTP -> ftpConnectionTest.get().testFtp(source)
+                NetworkSourceType.SFTP -> sftpConnectionTest.get().testSftp(source)
                 else -> Result.failure(UnsupportedOperationException("Source type not supported: ${source.type}"))
             }
         } catch (e: Exception) {

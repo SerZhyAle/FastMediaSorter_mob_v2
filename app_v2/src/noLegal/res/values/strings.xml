@@ -7,7 +7,7 @@
     <string name="s0183_apk_install_rationale_btn_settings">Open Settings</string>
     <string name="s0183_apk_install_rationale_btn_cancel">Cancel</string>
     <string name="s0183_apk_install_success">APK installed</string>
-    <string name="s0183_apk_install_cancelled">Installation cancelled</string>
+    <string name="s0183_apk_install_cancelled">Installation canceled</string>
     <string name="s0183_apk_install_failed">Installation failed</string>
     <!-- S1686: the installer's reason, which used to be discarded. -->
     <string name="s1686_apk_install_failed_downgrade">Installation failed: a newer version is already installed</string>

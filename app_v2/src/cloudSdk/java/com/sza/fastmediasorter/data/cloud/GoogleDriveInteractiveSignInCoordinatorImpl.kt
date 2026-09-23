@@ -43,6 +43,9 @@ class GoogleDriveInteractiveSignInCoordinatorImpl @Inject constructor(
     override fun consumePendingInteractiveResult(): AuthResult? =
         browserAuthManager.consumePendingInteractiveResult()
 
+    // Credential Manager and the GMS authorization client throw undeclared runtime types; this is
+    // the sign-in boundary, so any failure must become an AuthResult rather than crash the picker.
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun runIdentitySignIn(activity: Activity): AuthResult {
         return try {
             // S0744: force the Credential Manager account chooser so the user can pick the account
@@ -103,6 +106,9 @@ class GoogleDriveInteractiveSignInCoordinatorImpl @Inject constructor(
         }
     }
 
+    // Launching the Custom Tab can fail with any runtime type from the browser package; the user
+    // gets the launch-failed message instead of a crash.
+    @Suppress("TooGenericExceptionCaught")
     private fun startBrowserSignIn(activity: Activity): GoogleDriveInteractiveSignInCoordinator.StartResult {
         return try {
             browserAuthManager.startInteractiveSignIn(activity)

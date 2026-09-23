@@ -317,6 +317,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(viewModel.settings.value.copy(useTrash = isChecked))
             binding.btnClearTrash.isVisible = isChecked
         }
+        binding.rowEnableFileDoOperations.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(enableFileDoOperations = isChecked))
+        }
         binding.btnClearTrash.setOnClickListener {
             viewModel.clearAllTrash(requireContext())
         }
@@ -589,6 +593,8 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             binding.rowConfirmMove.setCheckedSilently(settings.confirmMove)
                             binding.rowUseTrash.setCheckedSilently(settings.useTrash)
                             binding.btnClearTrash.isVisible = settings.useTrash
+                            binding.rowEnableFileDoOperations
+                                .setCheckedSilently(settings.enableFileDoOperations)
                             binding.layoutConfirmDelete.visibility =
                                 if (settings.enableSafeMode) View.VISIBLE else View.GONE
                             binding.layoutConfirmMove.visibility =

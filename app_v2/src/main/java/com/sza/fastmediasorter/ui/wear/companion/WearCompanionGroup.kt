@@ -14,7 +14,6 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.viewinterop.AndroidView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-import timber.log.Timber
 
 /**
  * S2000: one collapsible group in the companion window, and the unit the window grows by.

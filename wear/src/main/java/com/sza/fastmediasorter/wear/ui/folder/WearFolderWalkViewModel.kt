@@ -1,17 +1,25 @@
 package com.sza.fastmediasorter.wear.ui.folder
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.files.WearFdSecUseCase
 import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
 import com.sza.fastmediasorter.wear.domain.model.WearFolderEntry
+import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearNetworkFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearFolderLevelRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearNetworkFilePlaybackUseCase
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -61,7 +69,11 @@ private const val SUBSCRIPTION_TIMEOUT_MS = 5000L
 class WearFolderWalkViewModel @Inject constructor(
     private val repository: WearFolderLevelRepository,
     preferencesRepository: WearPreferencesRepository,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    private val selectedMedia: SelectedMediaManager,
+    private val fdSec: WearFdSecUseCase,
+    private val prepareNetworkFile: PrepareWearNetworkFilePlaybackUseCase,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     val fileListViewMode: StateFlow<WearViewMode> = preferencesRepository.fileListViewMode
@@ -135,6 +147,65 @@ class WearFolderWalkViewModel @Inject constructor(
             load(FIRST_OFFSET)
         }
         return stepped
+    }
+
+    /**
+     * S3383: publishes [entry] for the credential screen when it is a FileDO container, answering the
+     * id that screen resolves it by; null for anything else, which the host opens in a player as before.
+     *
+     * Decided here rather than in the host because a shared-storage row reaches its file through the
+     * relative path of the level it was listed on, and the level is this view model's state.
+     */
+    fun containerIdFor(entry: WearFolderEntry): Long? {
+        val uri = entry.uri
+        val level = trail.lastOrNull()?.address ?: startAddress
+        return when {
+            uri == null || !fdSec.isContainer(entry.name) -> null
+            level is WearFolderAddress.NetworkLevel -> networkContainerId(entry, uri, level)
+            else -> localContainerId(entry, uri, level)
+        }
+    }
+
+    /**
+     * S3407: a network row goes through the hand-off the walk already opens network files with, so
+     * the credential screen fetches the container over the share's own protocol exactly as a player
+     * would fetch the file.
+     */
+    private fun networkContainerId(entry: WearFolderEntry, uri: Uri, level: WearFolderAddress.NetworkLevel): Long {
+        Timber.d("S3407: network walk routes a container to the credential screen")
+        return prepareNetworkFile(
+            WearNetworkFileOpenRequest(
+                sourceId = level.sourceId,
+                uri = uri,
+                name = entry.name,
+                mimeType = entry.mimeType,
+                sizeBytes = entry.sizeBytes,
+                dateModifiedEpochSeconds = entry.dateModifiedEpochSeconds
+            )
+        ).fileId
+    }
+
+    private fun localContainerId(entry: WearFolderEntry, uri: Uri, level: WearFolderAddress): Long {
+        val container = WearMediaFile(
+            id = uri.toString().hashCode().toLong(),
+            name = entry.name,
+            uri = uri,
+            mimeType = entry.mimeType,
+            size = entry.sizeBytes,
+            dateModified = entry.dateModifiedEpochSeconds,
+            relativePath = (level as? WearFolderAddress.MediaStoreFolder)?.relativePath
+        )
+        selectedMedia.selectFile(file = container, isNetworkSource = false)
+        Timber.d("S3383: folder walk routes a container to the credential screen")
+        return container.id
+    }
+
+    /**
+     * S3383: deletes what a viewed container left in the private cache. Called whenever the walk is
+     * shown again, which is the moment the viewer of a recovered copy has been left.
+     */
+    fun discardOpenedContainers() {
+        viewModelScope.launch { fdSec.discardOpened(context.cacheDir) }
     }
 
     /** Appends the next window of the current level, or does nothing once it is exhausted. */

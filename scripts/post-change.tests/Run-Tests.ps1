@@ -13,14 +13,15 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
 $facadePath = Join-Path $repoRoot 'scripts/post-change.ps1'
 $hintsPath = Join-Path $repoRoot 'scripts/quality/gate-recovery-hints.psd1'
 
-# S3150: the closure is one surface spread over three files - the facade plus the two libraries it
-# dot-sources, extracted when the facade passed the 2000-line ceiling of CLAUDE.md Rule 2. Every
-# assertion below is about that surface, so a block moving between the files must not change a
+# S3150: the closure is one surface spread over the facade plus the libraries it dot-sources, each
+# extracted when the facade passed the 2000-line ceiling of CLAUDE.md Rule 2 (S3386 added the third).
+# Every assertion below is about that surface, so a block moving between the files must not change a
 # verdict here; only the two assertions immediately after this one are about the facade FILE, where
 # the gate dispatch has to stay, because scripts/quality/assert-gate-placement.ps1 reads it there.
 $closureLibraryPaths = @(
     (Join-Path $repoRoot 'scripts/quality/lib/post-change-step-runners.ps1'),
-    (Join-Path $repoRoot 'scripts/quality/lib/post-change-changed-set.ps1')
+    (Join-Path $repoRoot 'scripts/quality/lib/post-change-changed-set.ps1'),
+    (Join-Path $repoRoot 'scripts/quality/lib/post-change-code-lock-release.ps1')
 )
 foreach ($libraryPath in $closureLibraryPaths) {
     if (-not (Test-Path -LiteralPath $libraryPath)) {

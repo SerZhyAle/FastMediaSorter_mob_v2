@@ -5,7 +5,15 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M20,15.31L23.31,12 20,8.69V4h-4.69L12,0.69 8.69,4H4v4.69L0.69,12 4,15.31V20h4.69L12,23.31 15.31,20H20v-4.69zM12,18V6c3.31,0 6,2.69 6,6s-2.69,6 -6,6z" />
+    <!-- S3433 fit: moves the ink into the 20-unit live area of the 24 grid (ICON-RENDER 0.10
+         item A); the path data is the original drawing, untouched. -->
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:scaleX="0.973"
+        android:scaleY="0.973">
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M20,15.31L23.31,12 20,8.69V4h-4.69L12,0.69 8.69,4H4v4.69L0.69,12 4,15.31V20h4.69L12,23.31 15.31,20H20v-4.69zM12,18V6c3.31,0 6,2.69 6,6s-2.69,6 -6,6z" />
+    </group>
 </vector>

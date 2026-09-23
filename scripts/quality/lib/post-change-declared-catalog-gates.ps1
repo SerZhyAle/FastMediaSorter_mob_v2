@@ -4,12 +4,19 @@
     declaration against the module it claims to describe.
 
 .DESCRIPTION
-    Five gates with one shape: a file in the repository declares what the product contains - the
+    Six gates with one shape: a file in the repository declares what the product contains - the
     watch settings pair, the mini-program route catalog, the wear pre-release walk list, the phone UI
-    sweep list, the bridge scenario registry - and the gate refuses a member of the product that the
-    declaration names nowhere. All five are PER-TICKET by Rule 33, and all five are SCOPED with
+    sweep list, the bridge scenario registry, the ratchet-baseline inventory - and the gate refuses a
+    member the declaration names nowhere. All six are PER-TICKET by Rule 33, and all six are SCOPED with
     -ChangedFiles for the same reason: each reads its catalog whole, so an unscoped FATAL would refuse
     this closure over a neighbour's unclassified work.
+
+    One gate of another shape lives beside the inventory gate because it enforces the same contract
+    (CHECK-BASELINE rule 4): the lint baseline absorption gate (S3459), a set comparison that needs
+    no scoping because it reads only the two files that trigger it.
+
+    Last, the check-subject gate (S3440): the declaration is the shrink-only list of check scripts
+    that predate the subject line, and the member is every check script in the tree.
 
     Extracted here because the facade crossed the 2000-line ceiling of CLAUDE.md Rule 2 (S2380). It is
     DOT-SOURCED, not invoked, so $root, $pwsh, $changedFiles, $ScopeToFile, Invoke-Gate, Skip-Step and
@@ -131,4 +138,50 @@ if (Test-AnyChangedFile '(^|/)WearDataLayerPaths\.kt$|(^|/)scripts/devtest/bridg
 }
 else {
     Skip-Step "bridge-scenario-coverage-gate" "not applicable - no changed file is a route catalog or the bridge scenario registry"
+}
+
+# S3438: a ratchet baseline with no row in scripts/quality/baseline-inventory.jsonl, or a row that
+# declares a wholesale writer safe. PER-TICKET by Rule 33: only the author of a new baseline knows
+# its shape and how it is written (contract CHECK-BASELINE rule 3), and the answer is cheapest in the
+# change that creates the file. Fixed-input like the gates above: a finding is charged only when the
+# inventory or that baseline file is in the changed set.
+if (Test-AnyChangedFile 'baseline[^/]*\.(txt|ids|xml)$|(^|/)scripts/quality/(baseline-inventory\.jsonl|assert-baseline-inventory\.ps1)$') {
+    $argvBaselineInventory = @('-NoProfile', '-File',
+        (Join-Path $root "scripts/quality/assert-baseline-inventory.ps1"), '-Gate', '-Quiet')
+    if ($ScopeToFile -and $changedFiles.Count -gt 0) {
+        $argvBaselineInventory += @('-ChangedFiles', ($changedFiles -join ','))
+    }
+    Invoke-FixedInputGate "baseline-inventory-gate" $argvBaselineInventory 'assert-baseline-inventory.ps1'
+}
+else {
+    Skip-Step "baseline-inventory-gate" "not applicable - no changed file is a ratchet baseline or the baseline inventory"
+}
+
+# S3459: the lint twin of detekt-baseline-absorption (S1356). check-lint.ps1 -Regenerate and the CI
+# regenerate-lint-baseline dispatch both rewrite <module>/lint-baseline.xml from every live finding;
+# this refuses an XML carrying an identifier the committed <module>/lint-baseline.ids does not.
+# Fatal, never advisory: a warning would reproduce the silent absorption politely. Pure text.
+if (Test-AnyChangedFile '(^|/)(app_v2|wear)/lint-baseline\.(xml|ids)$') {
+    Invoke-Gate "lint-baseline-absorption" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-lint-baseline-absorption.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "lint-baseline-absorption" "not applicable - no lint baseline or its identifier snapshot among the changed files"
+}
+
+# S3440: a check script that prints no `subject:` line naming what it checked (contract BUILD-EVIDENCE
+# rule 1). PER-TICKET by Rule 33: only the author of a new check knows its subject, and the line is
+# cheapest in the change that adds the check. Fixed-input like the gates above: a finding is charged
+# only when its own check, the shrink-only baseline, the gate or the subject library is in the set.
+if (Test-AnyChangedFile '(^|/)scripts/(builders/check-[^/]*|quality/assert-[^/]*|quality/lib/check-subject)\.ps1$|(^|/)scripts/quality/check-subject-baseline\.txt$') {
+    $argvCheckSubject = @('-NoProfile', '-File',
+        (Join-Path $root "scripts/quality/assert-check-subject.ps1"), '-Gate', '-Quiet')
+    if ($ScopeToFile -and $changedFiles.Count -gt 0) {
+        $argvCheckSubject += @('-ChangedFiles', ($changedFiles -join ','))
+    }
+    Invoke-FixedInputGate "check-subject-gate" $argvCheckSubject 'assert-check-subject.ps1'
+}
+else {
+    Skip-Step "check-subject-gate" "not applicable - no changed file is a check script or the check-subject baseline"
 }

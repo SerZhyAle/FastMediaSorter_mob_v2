@@ -40,7 +40,9 @@ class GeneralSettingsLogHelper(
     private val saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase,
 ) {
     fun setupVersionInfo() {
-        val versionInfo = "${com.sza.fastmediasorter.BuildConfig.VERSION_NAME} | Build ${com.sza.fastmediasorter.BuildConfig.VERSION_CODE} | sza@ukr.net"
+        val versionName = com.sza.fastmediasorter.BuildConfig.VERSION_NAME
+        val versionCode = com.sza.fastmediasorter.BuildConfig.VERSION_CODE
+        val versionInfo = "$versionName | Build $versionCode | ${SupportIntentFactory.SUPPORT_EMAIL}"
         // Keep a compact hardware line under the version so screenshot-only bug reports still identify the device.
         binding.tvVersionInfo.text = "$versionInfo\n${buildDeviceSummary()}"
         binding.tvVersionInfo.setOnClickListener { openEmailClient() }
@@ -126,7 +128,13 @@ class GeneralSettingsLogHelper(
             if (!fragment.isAdded || fragment.view == null) return@launch
             ScrollableTextDialog.show(
                 context = fragment.requireContext(),
-                title = if (fullLog) fragment.getString(R.string.settings_application_log_title) else fragment.getString(R.string.show_current_session_log),
+                title = if (fullLog) {
+                    fragment.getString(
+                        R.string.settings_application_log_title
+                    )
+                } else {
+                    fragment.getString(R.string.show_current_session_log)
+                },
                 message = logText,
                 monospace = true,
                 onSaveClick = { showSaveLogToResourceDialog(fullLog = fullLog, logText = logText) }
@@ -209,10 +217,10 @@ class GeneralSettingsLogHelper(
 
     private fun openEmailClient() {
         // S0118: route the bug-report channel through SupportIntentFactory so the
-        // mailto target lives in one place. Subject keeps the existing wording so
-        // downstream support filters do not need to be retrained.
+        // mailto target lives in one place. The "About .. (mobile)" prefix stays so support
+        // filters keep matching; S3392 corrected the product name to the one that ships.
         val version = com.sza.fastmediasorter.BuildConfig.VERSION_NAME
-        val subject = "About FastImageSorter (mobile) $version"
+        val subject = "About FastMediaSorter (mobile) $version"
         val intent = android.content.Intent.createChooser(
             SupportIntentFactory.build(
                 context = fragment.requireContext(),

@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.common
 
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import timber.log.Timber
 
 /**
  * Asks the IME to show the keyboard for [view] as an implicit request.

@@ -32,7 +32,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -105,17 +104,20 @@ class PerformWearFileOperationUseCase @Inject constructor(
             WearFileOperation.SendToPhone -> sendToPhone(file, storageClass, deleteSource = false)
             WearFileOperation.MoveToPhone -> sendToPhone(file, storageClass, deleteSource = true)
             WearFileOperation.CopyToWatch -> {
-                Timber.d("S3359: copy to watch class=$storageClass")
                 copyToWatch(file, storageClass, networkSourceId)
             }
             WearFileOperation.MoveToWatch -> {
-                Timber.d("S3359: move to watch class=$storageClass")
                 moveToWatch(file, storageClass, networkSourceId, phoneToken)
             }
             WearFileOperation.Delete -> deleteLocal(file, storageClass)
             is WearFileOperation.Rename -> renameLocal(file, operation.newName, storageClass)
             is WearFileOperation.OpenOnPhone -> openOnPhone(file, operation.token)
             is WearFileOperation.SendToReceiver -> sendToReceiver(file, operation.receiverId)
+            // S3383: the batch engine never runs either one. Both need a credential the wearer types
+            // on a screen of their own, and the FD-SEC contract forbids bulk packing outright, so a
+            // caller that got one here is asking for something this engine must not invent.
+            WearFileOperation.EncryptFileDo, WearFileOperation.DecryptFileDo ->
+                WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_UNSUPPORTED)
         }
     }
 

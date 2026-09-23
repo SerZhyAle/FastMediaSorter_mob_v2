@@ -44,6 +44,7 @@ import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineState
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.model.MAX_COUNTER_DISPLAY_COUNT
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.WearFdSecMode
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
@@ -107,13 +108,7 @@ fun BrowseScreen(
 
     val mediaType = parseMediaType(mediaTypeArg)
 
-    // Initialize ViewModel with navigation args
-    LaunchedEffect(mediaTypeArg, sourceId) {
-        // S2130: the raw token travels too. Documents, "all" and "recents" carry no MediaType, so
-        // collapsing the argument into one would hand the ViewModel a music request for all three.
-        viewModel.setNavigationArgs(mediaType, sourceId, sourceName, mediaTypeArg)
-        viewModel.loadMediaFiles()
-    }
+    BrowseLoadEffect(viewModel, BrowseNavigationArgs(mediaType, mediaTypeArg, sourceId, sourceName))
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val fileListViewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
@@ -191,12 +186,46 @@ fun BrowseScreen(
             onReceiversVisibilityChange = { showReceivers = it }
         ),
         viewModel = viewModel,
-        requestRename = { initialName -> requestRename(initialName) }
+        requestRename = { initialName -> requestRename(initialName) },
+        requestFileDo = fileDoNavigator(viewModel, navController)
     )
 
     BrowseRefineMenuHost(refine = refineState, viewModel = viewModel)
 
     MediaStoreConsentPrompt(viewModel = viewModel)
+}
+
+private data class BrowseNavigationArgs(
+    val mediaType: MediaType,
+    val rawMediaType: String?,
+    val sourceId: String?,
+    val sourceName: String?
+)
+
+/** Hands the navigation arguments to the ViewModel and loads the list for them. */
+@Composable
+private fun BrowseLoadEffect(viewModel: BrowseViewModel, args: BrowseNavigationArgs) {
+    LaunchedEffect(args.rawMediaType, args.sourceId) {
+        // S2130: the raw token travels too. Documents, "all" and "recents" carry no MediaType, so
+        // collapsing the argument into one would hand the ViewModel a music request for all three.
+        viewModel.setNavigationArgs(args.mediaType, args.sourceId, args.sourceName, args.rawMediaType)
+        viewModel.loadMediaFiles()
+        // S3383: this effect runs again whenever the list returns to the screen, which is the moment
+        // a container's viewer has been left and its recovered plaintext must go.
+        viewModel.fileOperations.discardOpenedContainers()
+    }
+}
+
+/**
+ * S3383: the file is published first - the credential screen resolves its target through the
+ * selected-media manager, exactly as every player screen does, so no path travels in a route.
+ */
+private fun fileDoNavigator(
+    viewModel: BrowseViewModel,
+    navController: NavController
+): (WearMediaFile, WearFdSecMode) -> Unit = { file, mode ->
+    viewModel.selectFile(file)
+    navController.navigate(WearRoutes.fdSecCredential(file.id, mode))
 }
 
 private data class BrowseDialogVisibilities(
@@ -214,13 +243,14 @@ private fun BrowseScreenDialogs(
     operations: BrowseOperationsUi,
     visibilities: BrowseDialogVisibilities,
     viewModel: BrowseViewModel,
-    requestRename: (String?) -> Unit
+    requestRename: (String?) -> Unit,
+    requestFileDo: (WearMediaFile, WearFdSecMode) -> Unit
 ) {
     val totalCount = (uiState as? BrowseUiState.Success)?.files?.size ?: 0
-    val selectedFileName = (uiState as? BrowseUiState.Success)
+    val selectedFile = (uiState as? BrowseUiState.Success)
         ?.files
         ?.firstOrNull { it.id in operations.selectedIds }
-        ?.name
+    val selectedFileName = selectedFile?.name
 
     BrowseDialogsHost(
         state = BrowseDialogsState(
@@ -238,7 +268,8 @@ private fun BrowseScreenDialogs(
         onActionsVisibilityChange = visibilities.onActionsVisibilityChange,
         onDeleteVisibilityChange = visibilities.onDeleteVisibilityChange,
         onReceiversVisibilityChange = visibilities.onReceiversVisibilityChange,
-        onRequestRename = requestRename
+        onRequestRename = requestRename,
+        onRequestFileDo = { mode -> selectedFile?.let { requestFileDo(it, mode) } }
     )
 }
 
@@ -678,8 +709,14 @@ private fun BrowseDialogsHost(
     onActionsVisibilityChange: (Boolean) -> Unit,
     onDeleteVisibilityChange: (Boolean) -> Unit,
     onReceiversVisibilityChange: (Boolean) -> Unit,
-    onRequestRename: (String?) -> Unit
+    onRequestRename: (String?) -> Unit,
+    onRequestFileDo: (WearFdSecMode) -> Unit
 ) {
+    fun closeAndRun(operation: WearFileOperation): () -> Unit = {
+        onActionsVisibilityChange(false)
+        viewModel.fileOperations.runOperation(operation)
+    }
+
     if (state.showActions) {
         FileActionsDialog(
             state = FileActionsDialogState(
@@ -695,25 +732,21 @@ private fun BrowseDialogsHost(
                     onActionsVisibilityChange(false)
                     onReceiversVisibilityChange(true)
                 },
-                onSendToPhone = {
-                    onActionsVisibilityChange(false)
-                    viewModel.fileOperations.runOperation(WearFileOperation.SendToPhone)
-                },
-                onMoveToPhone = {
-                    onActionsVisibilityChange(false)
-                    viewModel.fileOperations.runOperation(WearFileOperation.MoveToPhone)
-                },
-                onCopyToWatch = {
-                    onActionsVisibilityChange(false)
-                    viewModel.fileOperations.runOperation(WearFileOperation.CopyToWatch)
-                },
-                onMoveToWatch = {
-                    onActionsVisibilityChange(false)
-                    viewModel.fileOperations.runOperation(WearFileOperation.MoveToWatch)
-                },
+                onSendToPhone = closeAndRun(WearFileOperation.SendToPhone),
+                onMoveToPhone = closeAndRun(WearFileOperation.MoveToPhone),
+                onCopyToWatch = closeAndRun(WearFileOperation.CopyToWatch),
+                onMoveToWatch = closeAndRun(WearFileOperation.MoveToWatch),
                 onRenameRequested = {
                     onActionsVisibilityChange(false)
                     onRequestRename(state.selectedFileName)
+                },
+                onEncryptFileDo = {
+                    onActionsVisibilityChange(false)
+                    onRequestFileDo(WearFdSecMode.ENCRYPT)
+                },
+                onDecryptFileDo = {
+                    onActionsVisibilityChange(false)
+                    onRequestFileDo(WearFdSecMode.DECRYPT)
                 },
                 onDeleteRequested = {
                     onActionsVisibilityChange(false)
@@ -777,7 +810,14 @@ private fun browseFileActions(
             Timber.d("Browse: tap ignored while a file operation is running")
         } else if (selectedIds.isEmpty()) {
             viewModel.selectFile(file)
-            navigateToPlayer(navController, file, mediaType)
+            // S3383: a container is opened like any other file, only it asks for a credential first.
+            // Recognised here, at the point of opening, because it is not media until it is opened -
+            // and this entrance is never behind the settings switch, which governs only writing one.
+            if (viewModel.fileOperations.isContainer(file)) {
+                navController.navigate(WearRoutes.fdSecCredential(file.id, WearFdSecMode.OPEN))
+            } else {
+                navigateToPlayer(navController, file, mediaType)
+            }
         } else {
             viewModel.fileOperations.toggleSelection(file)
         }

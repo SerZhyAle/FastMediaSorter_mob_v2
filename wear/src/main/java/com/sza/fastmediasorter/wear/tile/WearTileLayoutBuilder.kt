@@ -1,12 +1,15 @@
 package com.sza.fastmediasorter.wear.tile
 
 import android.content.Context
+import androidx.core.content.ContextCompat
 import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.DeviceParametersBuilders
 import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.ModifiersBuilders
 import androidx.wear.protolayout.material.Button
+import androidx.wear.protolayout.material.ButtonColors
+import androidx.wear.protolayout.material.ButtonDefaults
 import androidx.wear.protolayout.material.CompactChip
 import androidx.wear.protolayout.material.Text
 import androidx.wear.protolayout.material.Typography
@@ -120,15 +123,22 @@ class WearTileLayoutBuilder @Inject constructor(
             )
         }
 
+        Timber.d("S3434: shortcut tile draws decorated plates for %d cells", plan.shown.size)
         val layoutBuilder = MultiButtonLayout.Builder()
         plan.shown.forEach { shortcut ->
             val clickable = ModifiersBuilders.Clickable.Builder()
                 .setOnClick(buildLaunchAction(shortcut.launchTarget))
                 .setId(shortcut.launchTarget.clickId())
                 .build()
+            // S3434: the decorated look - the glyph on a plate in its entity's hue, sized by the plate.
+            val plate = ContextCompat.getColor(context, tilePlateHueFor(shortcut.destinationId))
             layoutBuilder.addButtonContent(
                 Button.Builder(context, clickable)
-                    .setIconContent(tileImageResourceId(tileShortcutIconFor(shortcut.destinationId)))
+                    .setButtonColors(ButtonColors(plate, onPlateColorFor(plate)))
+                    .setIconContent(
+                        tileImageResourceId(tileShortcutIconFor(shortcut.destinationId)),
+                        DimensionBuilders.dp(ButtonDefaults.DEFAULT_SIZE.value * TILE_PLATE_GLYPH_RATIO)
+                    )
                     .setContentDescription(shortcut.contentDescription)
                     .build()
             )

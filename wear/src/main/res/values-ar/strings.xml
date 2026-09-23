@@ -38,9 +38,7 @@
     <string name="password">كلمة المرور</string>
     <string name="test_connection">اختبار</string>
     <string name="save">حفظ</string>
-    <string name="smb_sources">مشاركات SMB</string>
     <string name="done">تم</string>
-    <string name="wear_no_sources">لا توجد مصادر شبكة.\nزامن من الهاتف أو أضف يدويًا.</string>
     <string name="wear_sync_from_phone">مزامنة من الهاتف</string>
     <string name="wear_sync_receiving">جارٍ استلام البيانات..</string>
     <string name="wear_sync_receiving_from">جارٍ الاستلام من %s..</string>
@@ -49,7 +47,6 @@
     <string name="wear_sync_browse_now">تصفح الآن</string>
     <string name="wear_export_to_phone">إرسال إلى الهاتف</string>
     <string name="wear_export_success">تم إرسال المصادر</string>
-    <string name="delete_source">حذف المصدر</string>
     <string name="delete_source_confirm">حذف \u201c%s\u201d؟</string>
     <string name="protocol">البروتوكول</string>
     <string name="port">المنفذ</string>
@@ -563,7 +560,6 @@
     <string name="wear_color_scheme_light_blue">أزرق فاتح</string>
     <string name="wear_color_scheme_light_red">أحمر فاتح</string>
     <string name="wear_water_flashlight_app">مصباح الماء</string>
-    <string name="wear_water_flashlight_locked_hint">مقفل. استخدم الأزرار</string>
     <string name="system_info_section_environment">البيئة</string>
     <string name="system_info_environment_light">الضوء</string>
     <string name="system_info_environment_pressure">الضغط</string>
@@ -890,4 +886,25 @@
     <string name="wear_file_op_move_to_watch">نقل إلى الساعة</string>
     <string name="wear_file_op_outcome_no_space">لا توجد مساحة كافية على الساعة - حرِّر بعض المساحة وحاول مرة أخرى</string>
     <string name="wear_file_op_outcome_copied_source_kept">تم النسخ إلى الساعة - بقي الأصل في مكانه</string>
+    <string name="wear_filedo_op_encrypt">تشفير FileDO</string>
+    <string name="wear_filedo_op_decrypt">فك تشفير FileDO</string>
+    <string name="wear_settings_filedo_operations">تشفير FileDO</string>
+    <string name="wear_filedo_title_encrypt">تشفير</string>
+    <string name="wear_filedo_title_decrypt">فك التشفير</string>
+    <string name="wear_filedo_title_open">فتح الحاوية</string>
+    <string name="wear_filedo_password_hint">كلمة المرور</string>
+    <string name="wear_filedo_password_repeat_hint">أعد إدخال كلمة المرور</string>
+    <string name="wear_filedo_password_mismatch">الإدخالان غير متطابقين</string>
+    <string name="wear_filedo_empty_warning">كلمة المرور الفارغة لا تحمي شيئًا. أي شخص يحصل على الملف يفتحه.</string>
+    <string name="wear_filedo_working">جارٍ التنفيذ..</string>
+    <string name="wear_filedo_result_packed">تم التشفير. الأصل لا يزال موجودًا.</string>
+    <string name="wear_filedo_result_restored">تم فك التشفير.</string>
+    <string name="wear_filedo_result_wrong">كلمة مرور خاطئة، أو ليست حاوية، أو تم تعديل الملف.</string>
+    <string name="wear_filedo_result_damaged">الملف تالف.</string>
+    <string name="wear_filedo_result_unsupported">هذا التطبيق لا يقرأ هذه الحاوية.</string>
+    <string name="wear_filedo_result_memory">لا توجد ذاكرة كافية في هذه الساعة لهذه الحاوية.</string>
+    <string name="wear_filedo_result_failed">تعذر الإكمال.</string>
+    <string name="wear_filedo_result_not_viewable">الساعة لا تفتح هذا النوع من الملفات.</string>
+    <string name="wear_filedo_remember">تذكر كلمة المرور</string>
+    <string name="wear_filedo_remembered_forgotten">كلمة المرور المحفوظة لم تتطابق وتم نسيانها. أدخل كلمة المرور.</string>
 </resources>

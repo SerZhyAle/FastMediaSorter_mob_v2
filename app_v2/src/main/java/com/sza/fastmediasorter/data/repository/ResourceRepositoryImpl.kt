@@ -495,7 +495,7 @@ class ResourceRepositoryImpl @Inject constructor(
             username = credentialsEntity.username,
             password = credentialsEntity.password,
             privateKey = privateKey
-        )
+        ).map { it.message }
     }
     
     private suspend fun testFtpConnection(resource: MediaResource): Result<String> {

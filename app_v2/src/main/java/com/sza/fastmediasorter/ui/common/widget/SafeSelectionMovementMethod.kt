@@ -25,6 +25,9 @@ import timber.log.Timber
  */
 class SafeSelectionMovementMethod : ArrowKeyMovementMethod() {
 
+    // IndexOutOfBoundsException is the exact type SpannableStringBuilder.setSpan throws here;
+    // detekt lists it as generic by name only.
+    @Suppress("TooGenericExceptionCaught")
     override fun onTouchEvent(widget: TextView, buffer: Spannable, event: MotionEvent): Boolean =
         try {
             super.onTouchEvent(widget, buffer, event)

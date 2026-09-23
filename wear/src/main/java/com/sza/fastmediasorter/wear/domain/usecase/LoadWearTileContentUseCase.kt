@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearTileAssignmentRepository
+import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -31,7 +32,9 @@ import javax.inject.Inject
 class LoadWearTileContentUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val tileAssignmentRepository: WearTileAssignmentRepository,
-    private val networkSourceRepository: NetworkSourceRepository,
+    // S3368: Lazy - a tile service start must not construct the network-source repository's protocol
+    // stacks; only the RESOURCE tile kind reads the sources, and only when that tile is on the face.
+    private val networkSourceRepository: Lazy<NetworkSourceRepository>,
     private val wearStreamChannelRepository: WearStreamChannelRepository,
     private val wearFavoritesRepository: WearFavoritesRepository,
     private val preferencesRepository: WearPreferencesRepository,
@@ -115,7 +118,7 @@ class LoadWearTileContentUseCase @Inject constructor(
         return when {
             assignment == null -> WearTileContent.Unassigned(WearTileKind.RESOURCE)
             else -> {
-                val sources = networkSourceRepository.getAllSources()
+                val sources = networkSourceRepository.get().getAllSources()
                 val source = sources.findByTargetRef(assignment)
                 if (source == null) {
                     WearTileContent.TargetMissing(WearTileKind.RESOURCE)

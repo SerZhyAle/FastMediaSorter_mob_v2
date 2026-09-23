@@ -51,7 +51,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Quick capture |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Voice recording |
 | <img src="icons/svg/ic_widget_random_music.svg" alt="ic_widget_random_music" width="24" height="24"> | Random Music |
-| <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Scheduled Tasks |
+| <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Scheduled Operations |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen video recording |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Settings |
 | <img src="icons/svg/ic_sos.svg" alt="ic_sos" width="24" height="24"> | SOS emergency signal |
@@ -112,7 +112,6 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Allow rename |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Camera OCR translation |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Enable photo capture |
-| <img src="icons/svg/ic_world_clock.svg" alt="ic_world_clock" width="24" height="24"> | Show clock and status while dimmed |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Calculator |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Enable Favorites |
@@ -120,7 +119,6 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Enable text recognition |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Background Playback |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Enable Picture-in-Picture |
-| <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Use scheduled operations |
 | <img src="icons/svg/ic_sos.svg" alt="ic_sos" width="24" height="24"> | SOS emergency signal |
 | <img src="icons/svg/ic_stopwatch.svg" alt="ic_stopwatch" width="24" height="24"> | Stopwatch |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Enable Streams |
@@ -145,6 +143,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Support video |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Suppress media control on watch |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Enable video recording |
+| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Let my watch see my camera |
 | <img src="icons/svg/ic_water_flashlight.svg" alt="ic_water_flashlight" width="24" height="24"> | Water flashlight |
 
 ## Player commands

@@ -35,7 +35,7 @@
     <string name="scheduled_ops_confirm_delete">Видалити це завдання?</string>
     <string name="scheduled_ops_enabled">Операцію увімкнено</string>
     <string name="scheduled_ops_error_source_required">Оберіть джерело</string>
-    <string name="scheduled_ops_error_target_required">Оберіть отримувача</string>
+    <string name="scheduled_ops_error_target_required">Оберіть призначення</string>
     <string name="scheduled_ops_every_hours">Кожних годин</string>
     <string name="scheduled_ops_every_minutes">Кожних хвилин</string>
     <string name="scheduled_ops_filter_all_files">Усі файли (включаючи немедіафайли)</string>

@@ -11,6 +11,7 @@ import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemAppLaunchPanelTileBinding
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
+import com.sza.fastmediasorter.ui.icon.GlyphPlateDrawable
 
 /**
  * Renders the fixed 15-slot quick-launch grid. A filled tile shows the resolved icon + label; an empty
@@ -58,10 +59,20 @@ class AppLaunchPanelTileAdapter(
                 // Ghost look: a dimmed placeholder reads as "add here", distinct from a filled tile.
                 binding.cardPanelTile.alpha = GHOST_ALPHA
             } else {
-                binding.ivPanelTileIcon.setImageDrawable(tile.icon)
-                // Tint only monochrome glyphs (decided per icon source in tile.tintable) so they stay legible
-                // on the light tile; full-color app icons and colored resource badges are left untinted (S1124).
-                applyIconTint(monochrome = tile.tintable, accentRes = tile.accentRes)
+                val plateHue = tile.plateHueRes
+                val glyph = tile.icon
+                if (plateHue != null && glyph != null) {
+                    // S3433: a product glyph takes the decorated look of an in-app launch grid. The plate
+                    // ignores a view tint, and clearing it keeps a recycled tint from reaching the next tile.
+                    val plate = ContextCompat.getColor(context, plateHue)
+                    binding.ivPanelTileIcon.setImageDrawable(GlyphPlateDrawable(glyph, plate))
+                    ImageViewCompat.setImageTintList(binding.ivPanelTileIcon, null)
+                } else {
+                    binding.ivPanelTileIcon.setImageDrawable(tile.icon)
+                    // Tint only monochrome glyphs (decided per icon source in tile.tintable) so they stay legible
+                    // on the light tile; full-color app icons and colored resource badges are left untinted (S1124).
+                    applyIconTint(monochrome = tile.tintable, accentRes = tile.accentRes)
+                }
                 binding.tvPanelTileLabel.text = tile.label
                 binding.cardPanelTile.contentDescription = tile.label
                 binding.cardPanelTile.alpha = 1f

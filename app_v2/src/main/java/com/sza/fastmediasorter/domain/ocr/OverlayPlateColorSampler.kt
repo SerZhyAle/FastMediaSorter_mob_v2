@@ -28,7 +28,7 @@ object OverlayPlateColorSampler {
     /**
      * Ceiling on how many plate pixels one call may read.
      *
-     * CHOSEN HERE, NOT DERIVED. `docs/OCR_OVERLAY_ACCURACY.md` section 8 states a pixel ceiling
+     * CHOSEN HERE, NOT DERIVED. `ocr-overlay-accuracy.md` section 8 states a pixel ceiling
      * is ours to derive and does not supply one, so citing that document for this value would be
      * citing it for the opposite of what it says. It exists to satisfy the owner's constraint that
      * sampling cost not be proportional to plate area (strategic spec section 3.1). `Carrier: S1717`.
@@ -49,7 +49,7 @@ object OverlayPlateColorSampler {
      * Euclidean RGB distance (0..441.67) at which a sampled pixel stops counting as paper
      * and becomes an ink candidate.
      *
-     * CHOSEN HERE, NOT DERIVED. The exchange argues the SHAPE - `docs/OCR_OVERLAY_ACCURACY.md`
+     * CHOSEN HERE, NOT DERIVED. The exchange argues the SHAPE - `ocr-overlay-accuracy.md`
      * section 5, row "Ink colour is a median, never a mean", measured rgb(61,61,61) for the mean
      * against rgb(7,7,7) for the median on source rgb(17,17,17) over rgb(253,253,253) - but it
      * supplies no separation distance. `Carrier: S1717`.
@@ -67,7 +67,7 @@ object OverlayPlateColorSampler {
     /**
      * Thinnest ring, in pixels, the orientation vote will use on a short line.
      *
-     * INHERITED. `docs/OCR_OVERLAY_ACCURACY.md` section 5, row "Paper/ink orientation decided by
+     * INHERITED. `ocr-overlay-accuracy.md` section 5, row "Paper/ink orientation decided by
      * a ring outside the block, 1/3 line height per side, floor 2 px, >= 40 votes" - recorded there
      * as "not applicable yet", because we did not form an ink/paper pair until this ticket.
      */
@@ -77,7 +77,7 @@ object OverlayPlateColorSampler {
      * Thickest ring, in pixels, regardless of line height.
      *
      * MEASURED on this project's corpus, and the only threshold here that is:
-     * `docs/OCR_OVERLAY_ACCURACY.md` section 13.2 measured a 16 px free vertical band between lines
+     * `ocr-overlay-accuracy.md` section 13.2 measured a 16 px free vertical band between lines
      * on the `uniform-multiline-text` scene, and states that a ring taller than that reads the
      * neighbouring line's ink instead of paper - which is the failure this ticket was opened for.
      * One scene, so it is a bound with a source, not a derivation. `Carrier: S1716`.

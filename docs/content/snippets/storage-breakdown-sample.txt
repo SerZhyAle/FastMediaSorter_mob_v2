@@ -1,0 +1,9 @@
+Internal Storage (128 GB Total, 42 GB Free):
+├── Videos: 48.2 GB (37% - 142 files)
+│   ├── /DCIM/Camera: 28.5 GB
+│   └── /Movies/Recorded: 19.7 GB
+├── Audio: 18.6 GB (14% - 1,840 tracks)
+│   ├── /Music/FLAC: 12.1 GB
+│   └── /Music/MP3: 6.5 GB
+├── Photos: 14.1 GB (11% - 4,210 images)
+└── System & Apps: 5.1 GB (4%)

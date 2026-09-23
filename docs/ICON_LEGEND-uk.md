@@ -38,7 +38,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Дата і час |
 | <img src="icons/svg/ic_developer_options.svg" alt="ic_developer_options" width="24" height="24"> | Для розробників |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Дисплей |
-| <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Вибране |
+| <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Обране |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Фронтальний ліхтарик |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Міні-гра |
 | <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Завантажити за посиланням |
@@ -51,7 +51,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Швидка зйомка |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Запис із диктофона |
 | <img src="icons/svg/ic_widget_random_music.svg" alt="ic_widget_random_music" width="24" height="24"> | Випадкова музика |
-| <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Завдання за розкладом |
+| <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Операції за розкладом |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Відеозапис екрана |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Налаштування |
 | <img src="icons/svg/ic_sos.svg" alt="ic_sos" width="24" height="24"> | Аварійний сигнал SOS |
@@ -100,7 +100,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляції |
 | <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Фонова синхронізація, мережа й кеш |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Взаємодія з операційною системою |
-| <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Відео, налаштування програвача |
+| <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Відео, налаштування плеєра |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Відеозйомка |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear-супутник |
 
@@ -112,7 +112,6 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Дозволити перейменування |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Швидкий переклад з камери |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Увімкнути зйомку фото |
-| <img src="icons/svg/ic_world_clock.svg" alt="ic_world_clock" width="24" height="24"> | Показувати годинник і стан під час затемнення |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Мінігра |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Калькулятор |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Увімкнути обране |
@@ -120,7 +119,6 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Дозволити розпізнавання тексту |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фонове відтворення |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Увімкнути картинку в картинці |
-| <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Використовувати операції за розкладом |
 | <img src="icons/svg/ic_sos.svg" alt="ic_sos" width="24" height="24"> | Аварійний сигнал SOS |
 | <img src="icons/svg/ic_stopwatch.svg" alt="ic_stopwatch" width="24" height="24"> | Секундомір |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Увімкнути трансляції |
@@ -145,6 +143,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Підтримка відео |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Пригнічувати медіа-керування на годиннику |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Увімкнути запис відео |
+| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Дозволити годиннику бачити мою камеру |
 | <img src="icons/svg/ic_water_flashlight.svg" alt="ic_water_flashlight" width="24" height="24"> | Водний ліхтар |
 
 ## Команди плеєра

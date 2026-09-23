@@ -203,3 +203,6 @@
 -keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.SosMode {
     <fields>;
 }
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearFdSecMode {
+    <fields>;
+}

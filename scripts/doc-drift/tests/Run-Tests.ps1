@@ -118,6 +118,39 @@ try {
             $roomSchemaPin.docs.ContainsKey('docs/DEV_OPS.md')
     }
 
+    # S3445: absent-dependency claims. A synthetic tree, so the verdict never depends on the live docs.
+    . (Join-Path $driftDir 'AbsentDependencyClaims.ps1')
+    $claimRoot = Join-Path $tempRoot 'claims'
+    New-Item -ItemType Directory -Path (Join-Path $claimRoot 'gradle') -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $claimRoot 'app_v2') -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $claimRoot 'docs') -Force | Out-Null
+    $claimManifest = Join-Path $claimRoot 'claims.psd1'
+    Set-Content -LiteralPath $claimManifest -Value @'
+@{ Claims = @( @{ name = 'demo'; coordinate = 'com.example:ocr'; reason = 'removed'; docs = @('docs/README.md'); patterns = @('(?i)Example OCR') } ) }
+'@
+    $claimToml = Join-Path $claimRoot 'gradle/libs.versions.toml'
+    $claimBuild = Join-Path $claimRoot 'app_v2/build.gradle.kts'
+    Set-Content -LiteralPath $claimToml -Value '[libraries]'
+    Set-Content -LiteralPath $claimBuild -Value "    // com.example:ocr was removed`n    implementation(`"com.example:other:1.0`")"
+    Set-Content -LiteralPath (Join-Path $claimRoot 'docs/README.md') -Value "Text is read by Example OCR.`nExample OCR is mentioned on purpose. <!-- absent-dependency-ignore: demo -->"
+
+    Assert-Scenario 'claim-absent-dependency-is-finding' {
+        $found = @(Get-AbsentDependencyClaimFindings -RepoRoot $claimRoot -ManifestPath $claimManifest)
+        $found.Count -eq 1 -and $found[0] -match '^CLAIM \| docs/README\.md:1 \| demo'
+    }
+    Set-Content -LiteralPath $claimToml -Value "[libraries]`nocr = { group = `"com.example`", name = `"ocr`", version = `"1.0`" }"
+    Assert-Scenario 'claim-catalog-dependency-silences' {
+        @(Get-AbsentDependencyClaimFindings -RepoRoot $claimRoot -ManifestPath $claimManifest).Count -eq 0
+    }
+    Set-Content -LiteralPath $claimToml -Value '[libraries]'
+    Set-Content -LiteralPath $claimBuild -Value '    implementation("com.example:ocr:1.0")'
+    Assert-Scenario 'claim-build-literal-dependency-silences' {
+        @(Get-AbsentDependencyClaimFindings -RepoRoot $claimRoot -ManifestPath $claimManifest).Count -eq 0
+    }
+    Assert-Scenario 'claim-live-manifest-parses' {
+        @(Get-AbsentDependencyClaimDocPaths -RepoRoot $repoRoot).Count -gt 0
+    }
+
     Write-Output 'doc-drift tests: PASS'
     exit 0
 } catch {

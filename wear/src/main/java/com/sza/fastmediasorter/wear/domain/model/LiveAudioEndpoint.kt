@@ -15,7 +15,16 @@ data class LiveAudioEndpoint(val host: String, val port: Int) {
     val url: String
         get() = "http://$host:$port$LISTEN_PATH"
 
+    /**
+     * LIVE-BROADCAST producer rule 1: a loopback host is never handed to anyone. The server reports
+     * one only when no LAN interface was up at bind time, which makes it a refusal, not an address.
+     */
+    val isLoopback: Boolean
+        get() = host.startsWith(LOOPBACK_PREFIX)
+
     companion object {
+        private const val LOOPBACK_PREFIX = "127."
+
         /** The server answers this one path and does not look at it - see `LiveAudioLanServer`. */
         const val LISTEN_PATH = "/listen"
     }

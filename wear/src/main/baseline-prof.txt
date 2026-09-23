@@ -1,0 +1,41 @@
+# S3368: startup baseline profile for the wear module (ART human-readable format, classes only).
+#
+# Research artifact 02: the artifact shipped no profile and the first cold start after an install ran
+# interpreted/JIT-only, which is most of the class-load cost measured in artifact 01. These rules ask
+# AOT compilation for the classes the startup trace actually loads before the first frame.
+#
+# Deliberately absent: the SMB/FTP/SFTP data sources, the connection tests, and the thumbnail
+# pipeline (data/network/**, data/thumbnail/**) - S3368 phase 02 deferred them off the startup path,
+# and profiling them would pull their cost into every install's compile pass.
+
+# The module's startup-hot packages (explicit per package: a module-wide wildcard would sweep the
+# deferred network-protocol and thumbnail packages back in).
+Lcom/sza/fastmediasorter/wear/domain/usecase/**;
+Lcom/sza/fastmediasorter/wear/domain/repository/**;
+Lcom/sza/fastmediasorter/wear/domain/model/**;
+Lcom/sza/fastmediasorter/wear/domain/capability/**;
+Lcom/sza/fastmediasorter/wear/domain/catalog/**;
+Lcom/sza/fastmediasorter/wear/data/preferences/**;
+Lcom/sza/fastmediasorter/wear/core/**;
+Lcom/sza/fastmediasorter/wear/di/**;
+
+# The entry points and their Hilt/Dagger generated collaborators (names outside the packages above).
+Lcom/sza/fastmediasorter/wear/MainActivity;
+Lcom/sza/fastmediasorter/wear/FastMediaSorterWearApp;
+Lcom/sza/fastmediasorter/wear/Hilt_MainActivity;
+Lcom/sza/fastmediasorter/wear/Hilt_FastMediaSorterWearApp;
+Lcom/sza/fastmediasorter/wear/MainActivity_Factory;
+Lcom/sza/fastmediasorter/wear/MainActivity_Companion;
+Lcom/sza/fastmediasorter/wear/FastMediaSorterWearApp_Factory;
+
+# Startup-hot library packages: dependency injection, lifecycle, coroutines, and the compose
+# runtime that draws the first frame. Narrow on purpose - boot classpath images already carry the
+# Kotlin stdlib and the framework.
+Ldagger/**;
+Ldagger/hilt/**;
+Landroidx/lifecycle/**;
+Landroidx/activity/**;
+Landroidx/core/os/**;
+Lkotlinx/coroutines/**;
+Landroidx/compose/runtime/**;
+Landroidx/wear/compose/foundation/**;

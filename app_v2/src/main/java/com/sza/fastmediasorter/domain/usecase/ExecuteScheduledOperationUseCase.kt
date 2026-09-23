@@ -6,10 +6,11 @@ import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
+import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.TimeFilter
+import com.sza.fastmediasorter.domain.mutation.MutationRecorder
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
@@ -47,6 +48,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     private val checkLocalFolderWritableUseCase: CheckLocalFolderWritableUseCase,
     private val refreshResourceFileCountsUseCase: RefreshResourceFileCountsUseCase,
     private val statsSink: StatsSink,
+    private val mutationRecorder: MutationRecorder,
 ) {
     // S2598: Locale.US, not the interface language - this stamp goes into a persisted log line that
     // outlives a language change, and an Arabic or Bengali interface would render its digits in a script
@@ -91,7 +93,9 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                 return ScheduledExecutionResult(operationId, 0, listOf(msg))
             }
             t
-        } else null
+        } else {
+            null
+        }
 
         val srcLabel = "${sourceResource.name} [${sourceResource.type.name}]"
         val dstLabel = targetResource?.let { "${it.name} [${it.type.name}]" } ?: "-"
@@ -182,7 +186,18 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                             srcLabel = srcLabel,
                             dstLabel = dstLabel,
                             addError = { errors.add(it) },
-                            incrementSuccess = { successCount++ },
+                            // S3376: bound to incrementSuccess rather than to the branch above it, because
+                            // handleFileResult calls this only for a success with skippedCount == 0 - a
+                            // record on a skip or a partial would claim a move the disk did not make.
+                            incrementSuccess = {
+                                successCount++
+                                recordScheduledMutation(
+                                    ScheduledOpType.MOVE,
+                                    file,
+                                    sourceResource,
+                                    targetResource
+                                )
+                            },
                             setPermissionStop = { permissionStop = true }
                         )
                     }
@@ -207,7 +222,15 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                             srcLabel = srcLabel,
                             dstLabel = dstLabel,
                             addError = { errors.add(it) },
-                            incrementSuccess = { successCount++ },
+                            incrementSuccess = {
+                                successCount++
+                                recordScheduledMutation(
+                                    ScheduledOpType.DELETE,
+                                    file,
+                                    sourceResource,
+                                    targetResource
+                                )
+                            },
                             setPermissionStop = { permissionStop = true }
                         )
                     }
@@ -226,7 +249,6 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                 )
             }
             ScheduledExecutionResult(operationId, successCount, errors, permissionRequired = permissionStop)
-
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -246,8 +268,12 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         return if (target.type.isNetworkResource) {
             try {
                 val result = resourceRepository.testConnection(target)
-                if (result.isSuccess) null
-                else "Target '${target.name}' is unreachable: ${result.exceptionOrNull()?.message ?: "connection failed"}"
+                if (result.isSuccess) {
+                    null
+                } else {
+                    val cause = result.exceptionOrNull()?.message ?: "connection failed"
+                    "Target '${target.name}' is unreachable: $cause"
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -262,8 +288,11 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             if (writable) null else "Target directory '${target.path}' is not writable"
         } else {
             val dir = File(target.path)
-            if (dir.exists() && dir.isDirectory) null
-            else "Target directory '${target.path}' does not exist"
+            if (dir.exists() && dir.isDirectory) {
+                null
+            } else {
+                "Target directory '${target.path}' does not exist"
+            }
         }
     }
 
@@ -281,9 +310,9 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             )
         } else {
             val types = mutableSetOf<MediaType>()
-            if (FileTypeFlags.hasImages(mask))    types += setOf(MediaType.IMAGE, MediaType.GIF)
-            if (FileTypeFlags.hasAudio(mask))     types += MediaType.AUDIO
-            if (FileTypeFlags.hasVideo(mask))     types += MediaType.VIDEO
+            if (FileTypeFlags.hasImages(mask)) types += setOf(MediaType.IMAGE, MediaType.GIF)
+            if (FileTypeFlags.hasAudio(mask)) types += MediaType.AUDIO
+            if (FileTypeFlags.hasVideo(mask)) types += MediaType.VIDEO
             if (FileTypeFlags.hasDocuments(mask)) {
                 types += setOf(MediaType.PDF, MediaType.EPUB, MediaType.TEXT, MediaType.OFFICE_DOCUMENT)
             }
@@ -300,9 +329,9 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     }
 
     private fun matchesTypeMask(file: MediaFile, mask: Int): Boolean {
-        if (FileTypeFlags.hasImages(mask)    && (file.type == MediaType.IMAGE || file.type == MediaType.GIF)) return true
-        if (FileTypeFlags.hasAudio(mask)     && file.type == MediaType.AUDIO)  return true
-        if (FileTypeFlags.hasVideo(mask)     && file.type == MediaType.VIDEO)  return true
+        if (FileTypeFlags.hasImages(mask) && (file.type == MediaType.IMAGE || file.type == MediaType.GIF)) return true
+        if (FileTypeFlags.hasAudio(mask) && file.type == MediaType.AUDIO) return true
+        if (FileTypeFlags.hasVideo(mask) && file.type == MediaType.VIDEO) return true
         if (FileTypeFlags.hasDocuments(mask) && file.type.isDocumentFile()) return true
         return false
     }
@@ -340,7 +369,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     ) {
         when {
             result is FileOperationResult.Success ||
-            result is FileOperationResult.PartialSuccess -> {
+                result is FileOperationResult.PartialSuccess -> {
                 val skippedCount = when (result) {
                     is FileOperationResult.Success -> result.skippedCount
                     is FileOperationResult.PartialSuccess -> result.skippedCount
@@ -356,7 +385,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                 }
             }
             result is FileOperationResult.PermissionRequired ||
-            result is FileOperationResult.AuthenticationRequired -> {
+                result is FileOperationResult.AuthenticationRequired -> {
                 setPermissionStop()
                 val err = permissionStopError(result)
                 addError(err)
@@ -372,6 +401,38 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                 addError(fallbackErrMessage)
                 logOp(ts, opName, srcLabel, dstLabel, "ERROR: ${file.name}: $fallbackErrMessage")
                 Timber.d("ScheduledOp[$operationId] $opLabel ERROR ${file.name}")
+            }
+        }
+    }
+
+    /**
+     * S3376: registers one processed file in the mutation journal so an open Browse list reconciles it on
+     * its next resume. The scheduler is a background actor - unlike Browse's own delete, nothing calls
+     * `reloadFiles()` when a schedule fires, and a remote resource is outside the local FileObserver's
+     * reach entirely, so the journal is the only channel that reaches the surface.
+     *
+     * COPY records nothing - it destroys no source, and an entry would tell the reconciler to drop a row
+     * whose file is still on disk.
+     */
+    private fun recordScheduledMutation(
+        operationType: ScheduledOpType,
+        file: MediaFile,
+        source: MediaResource,
+        target: MediaResource?
+    ) {
+        when (operationType) {
+            ScheduledOpType.COPY -> return
+            ScheduledOpType.DELETE -> mutationRecorder.recordDelete(source.id, file.path, source.type)
+            ScheduledOpType.MOVE -> {
+                if (target == null) return
+                mutationRecorder.recordMove(
+                    srcResourceId = source.id,
+                    srcResourceType = source.type,
+                    srcRawPath = file.path,
+                    dstResourceId = target.id,
+                    dstResourceType = target.type,
+                    dstRawPath = "${target.path.trimEnd('/')}/${file.name}"
+                )
             }
         }
     }

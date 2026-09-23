@@ -14,7 +14,7 @@
     <string name="draw_overlay_toolbar_rect">Прямокутник</string>
     <string name="draw_save_failed_toast">Не вдалося зберегти</string>
     <string name="draw_save_ok_toast">Збережено</string>
-    <string name="draw_save_remote_failed">Не вдалося зберегти в цю теку. Рисунок залишився на цьому пристрої - спробуйте ще раз.</string>
+    <string name="draw_save_remote_failed">Не вдалося зберегти в цю папку. Рисунок залишився на цьому пристрої - спробуйте ще раз.</string>
     <string name="draw_settings_brush_size">Розмір пензля</string>
     <string name="draw_settings_opacity">Непрозорість</string>
     <string name="draw_settings_text_large">Великий</string>

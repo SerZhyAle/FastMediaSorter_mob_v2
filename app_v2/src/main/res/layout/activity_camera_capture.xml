@@ -90,7 +90,7 @@
             app:icon="@drawable/ic_cancel"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="20dp"
+            app:iconSize="@dimen/icon_tier_20"
             app:iconTint="@android:color/white"
             app:strokeColor="@color/camera_capture_control_stroke" />
 
@@ -128,7 +128,7 @@
             app:icon="@drawable/ic_microphone"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="20dp"
+            app:iconSize="@dimen/icon_tier_20"
             app:iconTint="@android:color/white"
             app:strokeColor="@color/camera_capture_control_stroke"
             tools:visibility="visible" />
@@ -149,7 +149,7 @@
             app:icon="@drawable/ic_camera_flash_off"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="20dp"
+            app:iconSize="@dimen/icon_tier_20"
             app:iconTint="@android:color/white"
             app:strokeColor="@color/camera_capture_control_stroke"
             tools:visibility="visible" />
@@ -172,7 +172,7 @@
             app:icon="@drawable/ic_image"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="20dp"
+            app:iconSize="@dimen/icon_tier_20"
             tools:visibility="visible" />
 
         <!-- S1417: opens the camera-settings sheet, so it carries the app's settings glyph. It used
@@ -192,7 +192,7 @@
             app:icon="@drawable/ic_tune"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="20dp"
+            app:iconSize="@dimen/icon_tier_20"
             tools:visibility="visible" />
     </LinearLayout>
 
@@ -428,7 +428,7 @@
             app:icon="@drawable/ic_pause"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="24dp"
+            app:iconSize="@dimen/icon_tier_24"
             app:iconTint="@android:color/white"
             app:strokeColor="@color/camera_capture_control_stroke"
             tools:visibility="visible" />
@@ -471,7 +471,7 @@
             app:icon="@drawable/ic_camera_send_to"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="22dp"
+            app:iconSize="@dimen/icon_tier_24"
             app:iconTint="@android:color/white"
             app:strokeColor="@color/camera_capture_control_stroke"
             tools:visibility="visible" />
@@ -494,7 +494,7 @@
             app:icon="@drawable/ic_camera_switch"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="24dp"
+            app:iconSize="@dimen/icon_tier_24"
             app:iconTint="@android:color/white"
             app:strokeColor="@color/camera_capture_control_stroke"
             tools:visibility="visible" />

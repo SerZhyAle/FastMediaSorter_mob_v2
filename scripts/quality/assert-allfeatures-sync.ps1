@@ -81,7 +81,8 @@
           policy or the flavor matrix missing or malformed).
           Distinct from 1 on purpose: "the gate is broken" is not "the code is
           bad" - and an unreadable input must not read as a pass, which is the one
-          way this check could silently switch itself off.
+          way this check could silently switch itself off. Also: -UpdateBaseline would
+          lower the floor or drop a gate row without -Reason (nothing is written).
       4 - Code.Scripts is held by another session, so no baseline was written. The queue
           place is held - wait for the turn in the background and rerun (S2635).
 
@@ -94,7 +95,13 @@
     Print only the expected/actual summary line.
 
 .PARAMETER UpdateBaseline
-    Rewrite both baselines - the record count and the id/gate pairs - then exit 0.
+    Rewrite both baselines - the record count and the id/gate pairs - then exit 0. Raising
+    the floor and adding gate rows need nothing; lowering the floor or dropping a gate row
+    needs -Reason, and every added or dropped row is printed (S3460).
+
+.PARAMETER Reason
+    Why -UpdateBaseline may lower the floor or drop a gate row. Recorded as a header line of
+    the gate baseline.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-allfeatures-sync.ps1
@@ -105,11 +112,13 @@
 param(
     [switch]$Gate,
     [switch]$Quiet,
-    [switch]$UpdateBaseline
+    [switch]$UpdateBaseline,
+    [string]$Reason
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'lib/baseline-set-writer.ps1')
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
@@ -160,11 +169,27 @@ if ($UpdateBaseline) {
         if ($kv.Value) { $gateRows += "$($kv.Key) $($kv.Value)" }
     }
     $gateRows = @($gateRows | Sort-Object)
+    # S3460: both files guard against LOSS, so the harmful direction is the reverse of a debt set -
+    # a lower floor and a dropped gate row need -Reason; a higher floor and a new gate row do not.
+    $previousCount = 0
+    if (Test-Path -LiteralPath $baselineFile) {
+        $rawPrevious = (Get-Content -LiteralPath $baselineFile -Raw).Trim()
+        if ($rawPrevious -match '^\d+$') { $previousCount = [int]$rawPrevious }
+    }
+    $previousRows = @()
+    if (Test-Path -LiteralPath $gateBaselineFile) {
+        $previousRows = @(Get-Content -LiteralPath $gateBaselineFile -Encoding UTF8 | ForEach-Object { $_.Trim() } |
+            Where-Object { $_ -and -not $_.StartsWith('#') } | ForEach-Object { ($_ -split '\s+', 2) -join ' ' })
+    }
+    $floorAllowed = Test-BaselineFloorWrite -Gate 'assert-allfeatures-sync' -Previous $previousCount -Current $count -Reason $Reason
+    $rowsAllowed = Test-BaselineWrite -Gate 'assert-allfeatures-sync' -Previous $previousRows -Current $gateRows `
+        -Reason $Reason -Guard Removals
+    if (-not ($floorAllowed -and $rowsAllowed)) { exit 2 }
     $scope = $null
     try {
         $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-allfeatures-sync.ps1 -UpdateBaseline'
         Set-Content -LiteralPath $baselineFile -Value "$count" -Encoding utf8 -NoNewline
-        Set-Content -LiteralPath $gateBaselineFile -Value $gateRows -Encoding utf8
+        Set-Content -LiteralPath $gateBaselineFile -Value (@(Get-BaselineReasonLine -Reason $Reason) + $gateRows) -Encoding utf8
     }
     finally { Exit-CodeLockScope -Scope $scope }
     Write-Host "assert-allfeatures-sync: baselines updated -> count $count, gated records $($gateRows.Count)"

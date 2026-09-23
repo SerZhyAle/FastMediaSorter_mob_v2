@@ -59,8 +59,10 @@ class ScheduledOperationsActivity : BaseActivity<ActivityScheduledOperationsBind
         screenManager.observeData()
     }
 
-    override fun onResume() {
-        super.onResume()
+    // BaseActivity defers setupViews() to binding.root.post{}, so onResume() fires before
+    // screenManager exists; onResumeWithViews() is the contract for post-setup resume work.
+    override fun onResumeWithViews() {
+        super.onResumeWithViews()
         screenManager.updateNotificationPermissionButton()
     }
 }

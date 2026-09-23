@@ -20,6 +20,7 @@ class SftpClientTest {
             dagger.Lazy { mockk(relaxed = true) },
             mockk<IdleDisconnectPolicy>(relaxed = true),
             mockk<NetworkStateMonitor>(relaxed = true),
+            mockk<SftpHostKeyPinRegistry>(relaxed = true),
         )
 
         val info = SftpClient.SftpConnectionInfo(host = "anyhost", port = 22, username = "u", password = "p")

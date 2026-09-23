@@ -62,7 +62,7 @@ class LoadWearTileContentUseCaseTest {
         return LoadWearTileContentUseCase(
             contextAnsweringResourceIds(),
             tileAssignmentRepository,
-            networkSourceRepository,
+            dagger.Lazy { networkSourceRepository },
             wearStreamChannelRepository,
             wearFavoritesRepository,
             preferences,
@@ -82,7 +82,7 @@ class LoadWearTileContentUseCaseTest {
         useCase = LoadWearTileContentUseCase(
             contextAnsweringResourceIds(),
             tileAssignmentRepository,
-            networkSourceRepository,
+            dagger.Lazy { networkSourceRepository },
             wearStreamChannelRepository,
             wearFavoritesRepository,
             preferencesRepository,

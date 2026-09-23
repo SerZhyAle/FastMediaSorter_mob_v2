@@ -1297,14 +1297,6 @@
   },
   {
     "surface": "settings-row",
-    "key": "rowDimClockOverlay",
-    "feature": "dim_clock_overlay_toggle",
-    "drawable": "ic_world_clock",
-    "assetFormat": "vector",
-    "public": true
-  },
-  {
-    "surface": "settings-row",
     "key": "rowEmbeddedGame",
     "feature": "game_settings_toggle_title",
     "drawable": "ic_game_kryvavitsa",
@@ -1356,14 +1348,6 @@
     "key": "rowEnablePip",
     "feature": "setting_enable_pip",
     "drawable": "ic_picture_in_picture",
-    "assetFormat": "vector",
-    "public": true
-  },
-  {
-    "surface": "settings-row",
-    "key": "rowEnableScheduledOps",
-    "feature": "scheduled_ops_toggle",
-    "drawable": "ic_schedule",
     "assetFormat": "vector",
     "public": true
   },

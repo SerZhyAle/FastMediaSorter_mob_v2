@@ -1,0 +1,58 @@
+# S3371 phase 06 step 06.5 - internal route forms held on user devices.
+#
+# Columns: surface | stored form | expected resolution
+#   surface "cell"  = LauncherCellCommand, the TEXT target column of a launcher desktop cell and the
+#                     `target` string a backup's launcherCells section restores verbatim.
+#   surface "panel" = AppLaunchPanelRouteTarget, the `targetId` of an INTERNAL_ROUTE panel tile.
+# Expected kinds: route, route-section, section, resource, stream, os, action, scheduled-op,
+#                 favorite, app, unresolvable.
+#
+# A row is never edited once written - a format change appends a row.
+
+# --- The original S0404 feature form. S1440 added `fns:` as a SEPARATE command precisely so that
+# --- `fn:` keeps encoding as it always did; a placed cell outlives the release that wrote it.
+cell | fn:calculator | route:calculator
+cell | fn:ocr | route:ocr
+cell | fn:streams | route:streams
+cell | fn:wear_companion | route:wear_companion
+cell | fn:sos | route:sos
+
+# --- S1440 feature-section form.
+cell | fns:network_monitor:wifi | route-section:network_monitor:wifi
+
+# --- Section headers. `everything_else` is the stored value S1744 deliberately did NOT rename when it
+# --- renamed the constant to SECTION_MAIN, and `settings` is the S2735 persistence token a backup
+# --- restores untouched.
+cell | sec:everything_else | section:everything_else
+cell | sec:app_functions | section:app_functions
+cell | sec:settings | section:settings
+
+# --- Stream cells. The payload was the catalog row's UUID until S1832; Migration52To53 rewrote the
+# --- ones whose row still existed, and the reader keeps resolving the old form because a cell whose
+# --- row was already gone - and any backup taken before that change - still carries it.
+cell | stream:9f1c2d88-5b4e-4d6a-8b0a-2b9f3d1e7c45 | stream:9f1c2d88-5b4e-4d6a-8b0a-2b9f3d1e7c45
+cell | stream:web://cdn.example.org/live/ch1.m3u8 | stream:web://cdn.example.org/live/ch1.m3u8
+
+# --- The remaining cell namespaces.
+cell | res:12:SLIDESHOW | resource:12:SLIDESHOW
+cell | os:wifi | os:wifi
+cell | act:exit_launcher_mode | action:exit_launcher_mode
+cell | op:7 | scheduled-op:7
+cell | fav:3:/DCIM/Camera/IMG_0042.jpg | favorite:3:/DCIM/Camera/IMG_0042.jpg
+cell | app:com.android.chrome | app:com.android.chrome
+
+# --- Tolerance, not history: the decoder states that an unknown prefix, an empty payload and an
+# --- unknown mode all yield null rather than throwing, so a target from a newer build renders as
+# --- unavailable instead of crashing an older one.
+cell | fn: | unresolvable
+cell | res:12:ROTATE | unresolvable
+
+# --- The panel tile vocabulary. It is NOT the cell vocabulary: the feature-section prefix is spelled
+# --- `fn-section:` here and `fns:` on a cell, so a stored form of one surface must not resolve on the
+# --- other - the last row is what pins that.
+panel | fn:streams | route:streams
+panel | fn:favorites | route:favorites
+panel | fn-section:network_monitor:wifi | route-section:network_monitor:wifi
+panel | resource:12 | resource:12
+panel | os:wifi | os:wifi
+panel | fns:network_monitor:wifi | unresolvable

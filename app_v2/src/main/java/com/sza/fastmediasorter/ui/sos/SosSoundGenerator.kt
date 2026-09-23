@@ -62,7 +62,6 @@ class SosSoundGenerator @Inject constructor() {
             SosSirenWaveform.peakRatio(samples),
             SosSirenWaveform.rmsRatio(samples, SAMPLE_RATE_HZ),
         )
-        Timber.d("S3347: phone siren rendered with the band-limited warbled waveform")
         val attributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ALARM)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)

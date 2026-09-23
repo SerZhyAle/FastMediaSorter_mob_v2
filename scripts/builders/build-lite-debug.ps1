@@ -1,5 +1,11 @@
 # Build Lite Debug APK
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
+#
+# Exit codes:
+#   0 - the APK was built and located
+#   1 - gradle failed (its own non-zero code is passed through), the APK was not found, or the build lock was refused
+#   2 - the wait for the build lock timed out
+#   3 - no usable JDK, so gradle was never started
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
 . "$PSScriptRoot\..\utils\project-paths.ps1"

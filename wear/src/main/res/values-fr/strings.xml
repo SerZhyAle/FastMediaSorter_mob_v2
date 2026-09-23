@@ -38,9 +38,7 @@
     <string name="password">Mot de passe</string>
     <string name="test_connection">Tester</string>
     <string name="save">Enregistrer</string>
-    <string name="smb_sources">Partages SMB</string>
     <string name="done">Terminé</string>
-    <string name="wear_no_sources">Aucune source réseau.\nSynchronisez depuis le téléphone ou ajoutez manuellement.</string>
     <string name="wear_sync_from_phone">Synchroniser depuis le téléphone</string>
     <string name="wear_sync_receiving">Réception des données..</string>
     <string name="wear_sync_receiving_from">Réception depuis %s..</string>
@@ -49,7 +47,6 @@
     <string name="wear_sync_browse_now">Parcourir maintenant</string>
     <string name="wear_export_to_phone">Envoyer au téléphone</string>
     <string name="wear_export_success">Sources envoyées</string>
-    <string name="delete_source">Supprimer la source</string>
     <string name="delete_source_confirm">Supprimer \u201c%s\u201d?</string>
     <string name="protocol">Protocole</string>
     <string name="port">Port</string>
@@ -563,7 +560,6 @@
     <string name="wear_color_scheme_light_blue">Bleu clair</string>
     <string name="wear_color_scheme_light_red">Rouge clair</string>
     <string name="wear_water_flashlight_app">Lampe d\'eau</string>
-    <string name="wear_water_flashlight_locked_hint">Verrouillé. Utilisez les boutons</string>
     <string name="system_info_section_environment">Environnement</string>
     <string name="system_info_environment_light">Lumière</string>
     <string name="system_info_environment_pressure">Pression</string>
@@ -890,4 +886,25 @@
     <string name="wear_file_op_move_to_watch">Déplacer sur la montre</string>
     <string name="wear_file_op_outcome_no_space">Pas assez d\'espace sur la montre - libérez de la place et réessayez</string>
     <string name="wear_file_op_outcome_copied_source_kept">Copié sur la montre - l\'original est resté à sa place</string>
+    <string name="wear_filedo_op_encrypt">Chiffrer FileDO</string>
+    <string name="wear_filedo_op_decrypt">Déchiffrer FileDO</string>
+    <string name="wear_settings_filedo_operations">Chiffrement FileDO</string>
+    <string name="wear_filedo_title_encrypt">Chiffrer</string>
+    <string name="wear_filedo_title_decrypt">Déchiffrer</string>
+    <string name="wear_filedo_title_open">Ouvrir le conteneur</string>
+    <string name="wear_filedo_password_hint">Mot de passe</string>
+    <string name="wear_filedo_password_repeat_hint">Répétez le mot de passe</string>
+    <string name="wear_filedo_password_mismatch">Les deux saisies diffèrent</string>
+    <string name="wear_filedo_empty_warning">Un mot de passe vide ne protège rien. Quiconque obtient le fichier l\'ouvre.</string>
+    <string name="wear_filedo_working">En cours..</string>
+    <string name="wear_filedo_result_packed">Chiffré. L\'original est toujours là.</string>
+    <string name="wear_filedo_result_restored">Déchiffré.</string>
+    <string name="wear_filedo_result_wrong">Mot de passe incorrect, pas un conteneur, ou le fichier a été modifié.</string>
+    <string name="wear_filedo_result_damaged">Le fichier est endommagé.</string>
+    <string name="wear_filedo_result_unsupported">Cette application ne lit pas ce conteneur.</string>
+    <string name="wear_filedo_result_memory">Pas assez de mémoire sur cette montre pour ce conteneur.</string>
+    <string name="wear_filedo_result_failed">Impossible de terminer.</string>
+    <string name="wear_filedo_result_not_viewable">La montre n\'ouvre pas ce type de fichier.</string>
+    <string name="wear_filedo_remember">Mémoriser le mot de passe</string>
+    <string name="wear_filedo_remembered_forgotten">Le mot de passe enregistré ne convenait pas et a été oublié. Saisissez le mot de passe.</string>
 </resources>

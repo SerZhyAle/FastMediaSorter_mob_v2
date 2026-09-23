@@ -48,7 +48,8 @@ class StepsGadget @Inject constructor(
     override val iconRes: Int = R.drawable.ic_steps
     override val requiresResourceParam: Boolean = false
 
-    override fun isAvailable(): Boolean = BuildConfig.IS_NO_LEGAL_FLAVOR && availability.isAvailable(SensorCapability.STEP_COUNTER)
+    override fun isAvailable(): Boolean =
+        BuildConfig.IS_NO_LEGAL_FLAVOR && availability.isAvailable(SensorCapability.STEP_COUNTER)
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
         StepsGadgetView(

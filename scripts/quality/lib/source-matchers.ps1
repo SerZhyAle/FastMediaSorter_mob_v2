@@ -939,6 +939,18 @@ function Get-SourceRules {
                     'which posts the teardown as a looper message so the session''s dispatch loop finishes first. ' +
                     'A release taken from inside a Player.Listener removes the controller''s record mid-dispatch and ' +
                     'media3 1.11.0 throws a fatal NPE there (androidx/media #3375). This baseline is 0 and is never raised.')),
+        # S3401: deleting a `Timber.d("Sxxxx: ..")` probe that was an effect's only statement left the
+        # effect behind with an empty body - seven such shells in wear on 2026-09-23, each launching a
+        # coroutine that does nothing. detekt has no rule for an empty lambda argument, and
+        # remove-ticket-probes.ps1 covers only the scripted removal, so a hand removal needs this gate.
+        # Both modules share one entry: the baseline is 0, so no cleanup exists for a regression to hide behind.
+        (New-RegexRule -Name 'empty-compose-effect' `
+                -Pattern ([regex]'(?:\bLaunchedEffect\((?:[^()\r\n]|\([^()\r\n]*\))*\)|\bSideEffect)[\t ]*\{\s*\}') `
+                -Roots @('app_v2/src', 'wear/src') `
+                -PathFilter '^(app_v2|wear)/src/' `
+                -FailMessage ('empty Compose effect (S3401) - a LaunchedEffect(..) {} or SideEffect {} with nothing inside, usually left ' +
+                    'when a Timber.d("Sxxxx: ..") probe that was its only statement was deleted. Delete the effect block too, and its ' +
+                    'import when the file no longer calls it; scripts/quality/remove-ticket-probes.ps1 does both. This baseline is 0 and is never raised.')),
         # S1693: growth stop for findViewById, not a placement rule. Whether one call is legitimate
         # (custom View, adapter, runtime-resolved layout, documented host-neutral helper) or legacy
         # is NOT lexically decidable - both shapes look identical - so this rule counts growth only.

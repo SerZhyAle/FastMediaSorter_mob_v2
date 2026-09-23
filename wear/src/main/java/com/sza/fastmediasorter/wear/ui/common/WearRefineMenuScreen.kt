@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -89,8 +88,6 @@ fun WearRefineMenuScreen(
         onDismissRequest = actions.onDismiss
     ) {
         val listState = rememberWearListState(initialCenterItemIndex = REFINE_MENU_OPEN_ANCHOR)
-        LaunchedEffect(Unit) {
-        }
         val filterColors = ChipDefaults.childChipColors()
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val widthDp = maxWidth.value.toInt()

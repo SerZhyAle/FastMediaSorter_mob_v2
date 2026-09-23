@@ -124,7 +124,7 @@ class CorpusReportTest {
 
     /**
      * S2036: what the live absolute box thresholds are worth on each scene, as a fraction of its median
-     * annotated line height - the one number ADR-3 of `docs/OCR_OVERLAY_ACCURACY.md` §12.1 is read from.
+     * annotated line height - the one number ADR-3 of `ocr-overlay-accuracy.md` §12.1 is read from.
      */
     private fun StringBuilder.appendThresholdFractions(scenes: List<SceneAnnotation>) {
         val fractions = scenes.map(ThresholdFraction::of)

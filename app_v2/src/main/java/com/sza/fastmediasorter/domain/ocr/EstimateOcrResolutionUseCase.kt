@@ -18,7 +18,7 @@ import kotlin.math.roundToInt
  * - [OcrSourceKind.CAMERA_PHOTO] - the scene width follows from the subject distance and the
  *   35 mm-equivalent focal length by similar triangles, so a photo carrying both EXIF tags gets
  *   arithmetic rather than an assumed page size (S1876). A photo carrying neither falls back to the
- *   floor: `docs/OCR_OVERLAY_ACCURACY.md` rules out the neighbouring project's 11-inch book page
+ *   floor: `ocr-overlay-accuracy.md` rules out the neighbouring project's 11-inch book page
  *   for our material, and inventing a replacement constant is the guess this class exists to
  *   remove. Which rule serves those photos is the ticket's one remaining open question.
  * - [OcrSourceKind.UNKNOWN] - the caller could not tell, so the floor is declared rather than a
@@ -79,7 +79,7 @@ class EstimateOcrResolutionUseCase {
     companion object {
         /**
          * Inherited from the neighbouring project's rule "DPI declared, floor 70, upscale below
-         * 120 DPI" (`docs/OCR_OVERLAY_ACCURACY.md`). Only the floor transfers here; the upscale
+         * 120 DPI" (`ocr-overlay-accuracy.md`). Only the floor transfers here; the upscale
          * ladder is out of scope for S1715 and the estimator behind it was rejected for our
          * material.
          */

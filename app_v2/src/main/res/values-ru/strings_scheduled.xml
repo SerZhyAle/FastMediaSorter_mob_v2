@@ -30,12 +30,12 @@
     <string name="scheduled_ops_col_operation">Операция</string>
     <string name="scheduled_ops_col_schedule">Расписание</string>
     <string name="scheduled_ops_col_source">Источник</string>
-    <string name="scheduled_ops_col_target">Получатель</string>
+    <string name="scheduled_ops_col_target">Назначение</string>
     <string name="scheduled_ops_confirm_clear">Очистить все задания по расписанию?</string>
     <string name="scheduled_ops_confirm_delete">Удалить это задание?</string>
     <string name="scheduled_ops_enabled">Операция включена</string>
     <string name="scheduled_ops_error_source_required">Выберите источник</string>
-    <string name="scheduled_ops_error_target_required">Выберите получателя</string>
+    <string name="scheduled_ops_error_target_required">Выберите назначение</string>
     <string name="scheduled_ops_every_hours">Каждых часов</string>
     <string name="scheduled_ops_every_minutes">Каждых минут</string>
     <string name="scheduled_ops_filter_all_files">Все файлы (включая немедиафайлы)</string>
@@ -65,7 +65,7 @@
     <string name="scheduled_ops_source">Источник</string>
     <string name="scheduled_ops_starting_from">Начиная с</string>
     <string name="scheduled_ops_status_error_tooltip">Последний запуск завершился с ошибкой. Откройте журнал для подробностей.</string>
-    <string name="scheduled_ops_target">Получатель</string>
+    <string name="scheduled_ops_target">Назначение</string>
     <string name="scheduled_ops_time_all">Все</string>
     <string name="scheduled_ops_time_last_day">Новые за сутки</string>
     <string name="scheduled_ops_time_last_hour">Новые за час</string>

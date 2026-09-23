@@ -82,7 +82,6 @@
     <string name="renamed_n_files">Rinominati %1$d file.</string>
     <string name="rename_failed_generic">Impossibile rinominare il file.</string>
     <string name="rename_file_name_empty">Il nome del file non può essere vuoto.</string>
-    <string name="error_delete">Impossibile eliminare i file</string>
     <string name="error_all_operations_failed">Nessuna operazione completata.</string>
     <string name="all_copy_operations_failed">Impossibile copiare i file selezionati.\n\n%1$s</string>
     <string name="all_move_operations_failed">Impossibile spostare i file selezionati.\n\n%1$s</string>
@@ -1408,7 +1407,7 @@
     <string name="files_scanned_count">%1$d file scansionati</string>
     <string name="wear_companion">App companion per Wear</string>
     <string name="tooltip_wear_companion_title">App companion per Wear</string>
-    <string name="tooltip_wear_companion_message">Invia le tue risorse di rete (SMB, FTP, cloud) a un orologio Wear OS abbinato, così puoi sfogliarle e riprodurle direttamente dal polso. Tocca il pulsante per scegliere quali tipi di file sincronizzare e regolare le impostazioni di riproduzione dell\'orologio.</string>
+    <string name="tooltip_wear_companion_message">Invia le tue risorse di rete (SMB, FTP, SFTP) a un orologio Wear OS abbinato, così puoi sfogliarle e riprodurle direttamente dal polso. Tocca il pulsante per scegliere quali tipi di file sincronizzare e regolare le impostazioni di riproduzione dell\'orologio.</string>
     <string name="wear_sync_description">Invia le sorgenti di rete all\'orologio Wear OS collegato.</string>
     <string name="wear_push_to_watch">Invia all\'orologio</string>
     <string name="wear_sync_ready">Pronto per la sincronizzazione</string>
@@ -3674,4 +3673,24 @@
     <string name="broadcast_control_feedback_warning">Audio abbassato: l\'altoparlante di un ascoltatore rientra nel microfono. Allontana il dispositivo in ascolto o abbassane il volume.</string>
     <string name="broadcast_control_feedback_warning_cd">Rilevato feedback acustico, il guadagno del microfono è stato abbassato</string>
     <string name="wear_watch_transfer_unconfirmed">L\'orologio non ha confermato il salvataggio di %1$s, quindi l\'originale è rimasto sul telefono.</string>
+    <string name="filedo_operations_title">Operazioni di cifratura FileDO</string>
+    <string name="filedo_operations_summary">Mostra «Cifra con FileDO» e «Decifra con FileDO» nel menu delle operazioni di ogni file</string>
+    <string name="filedo_encrypt">Cifra con FileDO</string>
+    <string name="filedo_decrypt">Decifra con FileDO</string>
+    <string name="filedo_password_title_encrypt">Password per il contenitore</string>
+    <string name="filedo_password_title_decrypt">Password del contenitore</string>
+    <string name="filedo_password_hint">Password</string>
+    <string name="filedo_password_repeat_hint">Ripeti la password</string>
+    <string name="filedo_password_mismatch">Le due password non coincidono</string>
+    <string name="filedo_password_empty_warning">Una password vuota non dà alcuna segretezza. Il file è solo nascosto a uno sguardo distratto e chiunque conosca il formato può aprirlo.</string>
+    <string name="filedo_no_recovery_warning">Non c\'è modo di recuperare una password dimenticata.</string>
+    <string name="filedo_outcome_wrong_credential">Impossibile aprire il file: la password è errata, il file non è mai stato un contenitore oppure è stato manomesso. Questi tre casi non si possono distinguere.</string>
+    <string name="filedo_outcome_damaged">Il contenitore è danneggiato: è troncato oppure il suo contenuto non corrisponde a ciò che sigilla.</string>
+    <string name="filedo_outcome_unsupported">Questo contenitore usa una versione di formato che questa app non legge.</string>
+    <string name="filedo_outcome_failed">L\'operazione non è terminata: %1$s</string>
+    <string name="filedo_encrypted_ok">Contenitore scritto. L\'originale non è stato toccato.</string>
+    <string name="filedo_decrypted_ok">File ripristinato.</string>
+    <string name="filedo_open_refused_executable">Questo contenitore contiene un programma o uno script. Non viene aperto.</string>
+    <string name="filedo_password_remember">Ricorda la password e provala su ogni file .fd-sec</string>
+    <string name="filedo_remembered_password_forgotten">La password salvata non ha aperto questo file ed è stata dimenticata. Inserisci la password di questo file.</string>
 </resources>

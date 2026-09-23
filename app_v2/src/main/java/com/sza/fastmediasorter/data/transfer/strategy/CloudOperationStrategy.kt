@@ -427,9 +427,10 @@ class CloudOperationStrategy @Inject constructor(
     }
 
     private suspend fun getClientOrThrow(provider: CloudProvider): CloudStorageClient =
-        getClient(provider) ?: throw Exception("Not authenticated: ${provider.name}")
+        authenticatedClient(provider) ?: throw Exception("Not authenticated: ${provider.name}")
 
-    private suspend fun getClient(provider: CloudProvider): CloudStorageClient? {
+    /** The provider's client with a session, restored from storage when none is loaded; null without one. */
+    internal suspend fun authenticatedClient(provider: CloudProvider): CloudStorageClient? {
         val client: CloudStorageClient = when (provider) {
             CloudProvider.GOOGLE_DRIVE -> googleDriveClient
             CloudProvider.DROPBOX -> dropboxClient

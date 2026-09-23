@@ -179,6 +179,10 @@ class PlayerMediaLoaderManager(
         // S0346 Pillar B: how long the next track may take to start before the user gets a
         // "loading next track" toast. Approximate per strategic spec; tuned on the car scenario.
         private const val AUDIO_READINESS_FEEDBACK_THRESHOLD_MS = 2000L
+
+        // The settings screen offers 1..600 s; the clamp guards a hand-edited or migrated value.
+        private const val PANEL_AUTO_HIDE_MAX_SECONDS = 600
+        private const val MILLIS_PER_SECOND = 1000
     }
 
     private val stereoDetector = com.sza.fastmediasorter.ui.player.StereoDetector()
@@ -1061,7 +1065,8 @@ class PlayerMediaLoaderManager(
             showAudioFileInfo(currentFile)
         } else {
             // For video: auto-hide controls after configured delay
-            val delayMs = viewModel.settings.value.playerPanelAutoHideSeconds.coerceIn(1, 600) * 1000
+            val autoHideSeconds = viewModel.settings.value.playerPanelAutoHideSeconds
+            val delayMs = autoHideSeconds.coerceIn(1, PANEL_AUTO_HIDE_MAX_SECONDS) * MILLIS_PER_SECOND
             binding.playerView.controllerShowTimeoutMs = delayMs
 
             // S1005: reveal the transport controller when a video opens (mirrors the audio branch). The

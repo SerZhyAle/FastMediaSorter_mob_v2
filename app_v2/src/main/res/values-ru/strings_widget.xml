@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widget_add_to_home_screen">Добавить на главный экран</string>
-    <string name="widget_already_added">Виджет уже добавлен на главный экран</string>
+    <string name="widget_add_to_home_screen">Добавить на домашний экран</string>
+    <string name="widget_already_added">Виджет уже добавлен на домашний экран</string>
     <string name="widget_calculator_description">Открыть встроенный калькулятор</string>
     <string name="widget_calculator_label">Калькулятор</string>
     <string name="widget_camera_ocr_translate_description">Быстрый захват, распознавание и перевод текста с помощью камеры.</string>
@@ -36,12 +36,12 @@
     <string name="settings_add_home_widget_title">Добавить виджет на домашний экран Android..</string>
     <string name="widget_picker_dialog_title">Выберите виджет</string>
     <!-- S0353 Scheduled Tasks widget -->
-    <string name="widget_scheduled_tasks_label">Задачи по расписанию</string>
+    <string name="widget_scheduled_tasks_label">Операции по расписанию</string>
     <string name="widget_scheduled_tasks_description">Статус и управление запланированными операциями</string>
     <string name="widget_scheduled_run_all">Запустить все</string>
     <string name="widget_scheduled_pause_all">Приостановить все</string>
     <string name="widget_scheduled_resume_all">Возобновить все</string>
-    <string name="widget_scheduled_empty">Нет запланированных задач</string>
+    <string name="widget_scheduled_empty">Нет операций по расписанию</string>
     <string name="widget_scheduled_active_count">Активных: %1$d</string>
     <string name="widget_scheduled_last_ok">Последняя: OK %1$s</string>
     <string name="widget_scheduled_last_error">Последняя: ошибка %1$s</string>

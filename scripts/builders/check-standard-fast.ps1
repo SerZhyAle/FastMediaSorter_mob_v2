@@ -103,6 +103,7 @@ $ErrorActionPreference = "Stop"
 . "$PSScriptRoot\..\utils\gradle-modules.ps1"
 . "$PSScriptRoot\gradle-run-verdict.ps1"
 . "$PSScriptRoot\gradle-worker-reaper.ps1"
+. "$PSScriptRoot\..\quality\lib\check-subject.ps1"
 
 # S2121: validate the module BEFORE taking a lock or launching gradle. An unknown module used to be
 # impossible here only because a ValidateSet listed two of the five projects the build declares;
@@ -491,6 +492,9 @@ elseif ($Tests) {
 $checkLabel = if ($Flavor) { "$Module/$Flavor" } else { $Module }
 Write-Host "Fast $checkLabel check.." -ForegroundColor Cyan
 Write-Host "Mode: $Mode" -ForegroundColor Yellow
+# S3440: the same axes as the banner in the one machine-readable form (BUILD-EVIDENCE rule 1), so the
+# phone and watch targets are read by one rule and a gate can refuse a check that names nothing.
+Write-CheckSubject -Axes ([ordered]@{ module = $Module; flavor = $Flavor; buildtype = $BuildType; mode = $Mode })
 Write-Host "Build type: $BuildType" -ForegroundColor Yellow
 if ($targetDevice) {
     # Printed beside the mode because this line is what a step-1.4 log quotes as proof of WHICH device

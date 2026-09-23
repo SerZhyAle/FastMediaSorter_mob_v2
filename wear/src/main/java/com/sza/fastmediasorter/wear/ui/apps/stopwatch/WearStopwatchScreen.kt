@@ -73,7 +73,12 @@ fun WearStopwatchScreen(
     // stopped screen releases the claim and the watch dims on its own schedule.
     KeepScreenOnEffect(enabled = uiState.anyRunning)
 
-    WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {
+    // S3362: the result page is a list raised over the stopwatch, and its title reaches the clock, so
+    // while it is up the clock scrolls away with it instead of being drawn over the title.
+    WearScreenScaffold(
+        contentPadding = PaddingValues(0.dp),
+        scrollState = if (resultOpen) resultListState else null
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

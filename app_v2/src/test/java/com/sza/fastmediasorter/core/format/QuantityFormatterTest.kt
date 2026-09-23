@@ -106,7 +106,7 @@ class QuantityFormatterTest {
     fun `spoken form names the unit in full`() {
         Locale.setDefault(Locale.US)
         val spoken = newFormatter().contentDescription(Quantity.Altitude(FIVE), UnitSystem.METRIC)
-        assertEquals("5 metres", spoken)
+        assertEquals("5 meters", spoken)
     }
 
     private fun newFormatter() = QuantityFormatter(context)

@@ -203,4 +203,7 @@ private fun WearFileOperation.mutatesList(): Boolean = when (this) {
     is WearFileOperation.Rename -> true
     is WearFileOperation.OpenOnPhone -> false
     is WearFileOperation.SendToReceiver -> false
+    // S3383: the player menu never offers either one, and both write a new file beside the old, so
+    // the honest answer if one ever arrived is that the listing behind the player is stale.
+    WearFileOperation.EncryptFileDo, WearFileOperation.DecryptFileDo -> true
 }

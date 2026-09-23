@@ -53,6 +53,14 @@ data class SettingsUiState(
 
     /** S2209: disable visual transition and decorative animations across the Wear OS app. */
     val isAnimationsDisabled: Boolean = false,
+
+    /**
+     * S3383: whether a file's action menu offers the two FileDO encryption operations.
+     *
+     * Opening a container is not behind it, so this false is "do not offer to write one", never
+     * "do not read one".
+     */
+    val fileDoOperationsEnabled: Boolean = false,
     /** S2536: the charge at which this watch quietens itself. Judged locally, never sent as a verdict. */
     val powerSavingTrigger: PowerSavingTrigger = PowerSavingTrigger.DEFAULT,
 

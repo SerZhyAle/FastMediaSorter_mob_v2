@@ -19,8 +19,16 @@ class ApplyWatchStreamPinsDeltaUseCaseTest {
         val streamSourceRepo = mockk<StreamSourceRepository>(relaxed = true)
         val useCase = ApplyWatchStreamPinsDeltaUseCase(streamSourceRepo)
 
-        val delta1 = WearStreamPinDeltaItem(urlOrIdentity = "https://stream.example.com/one", isPinned = true, changedAt = 1000L)
-        val delta2 = WearStreamPinDeltaItem(urlOrIdentity = "https://stream.example.com/two", isPinned = false, changedAt = 2000L)
+        val delta1 = WearStreamPinDeltaItem(
+            urlOrIdentity = "https://stream.example.com/one",
+            isPinned = true,
+            changedAt = 1000L
+        )
+        val delta2 = WearStreamPinDeltaItem(
+            urlOrIdentity = "https://stream.example.com/two",
+            isPinned = false,
+            changedAt = 2000L
+        )
         val payload = WearStreamPinsDeltaPayload(items = listOf(delta1, delta2))
 
         coEvery { streamSourceRepo.pinByIdentity(any()) } returns Unit
@@ -32,4 +40,3 @@ class ApplyWatchStreamPinsDeltaUseCaseTest {
         coVerify(exactly = 1) { streamSourceRepo.unpinByIdentity("web://stream.example.com/two") }
     }
 }
-

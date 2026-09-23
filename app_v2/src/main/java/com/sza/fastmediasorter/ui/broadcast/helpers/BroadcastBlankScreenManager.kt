@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.widget.DimHeadingProvider
 import com.sza.fastmediasorter.ui.common.widget.DimOverlayView
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimChipActionRouter
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimChipIconLoader
@@ -46,6 +47,7 @@ class BroadcastBlankScreenManager @Inject constructor(
     private val dimChipIconLoader: Lazy<DimChipIconLoader>,
     private val dimChipActionRouter: Lazy<DimChipActionRouter>,
     private val dimClockInteractionHandler: Lazy<DimClockInteractionHandler>,
+    private val dimHeadingProvider: Lazy<DimHeadingProvider>,
 ) {
     private var blanked = false
 
@@ -105,7 +107,9 @@ class BroadcastBlankScreenManager @Inject constructor(
         val view = DimOverlayView(activity).apply {
             contentDescription = activity.getString(R.string.broadcast_control_blank_screen_cd)
             onExit = { hide(activity) }
+            headingLookup = { dimHeadingProvider.get().current() }
         }
+        dimHeadingProvider.get().setActive(true)
         content.addView(
             view,
             ViewGroup.LayoutParams(
@@ -114,6 +118,7 @@ class BroadcastBlankScreenManager @Inject constructor(
             ),
         )
         overlay = WeakReference(view)
+        Timber.d("S3370: broadcast blank screen dim shown")
 
         SystemBarsManager(activity).enterFullscreenMode()
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
@@ -141,7 +146,6 @@ class BroadcastBlankScreenManager @Inject constructor(
     }
 
     private fun applyDimMode(activity: AppCompatActivity, clockEnabled: Boolean) {
-        Timber.d("S3361: broadcast applyDimMode clockEnabled=$clockEnabled")
         // hide() may have won the race while the read was in flight.
         if (overlay?.get() == null) return
         if (clockEnabled) {
@@ -183,6 +187,7 @@ class BroadcastBlankScreenManager @Inject constructor(
     private fun hide(activity: AppCompatActivity) {
         blanked = false
         backCallback?.get()?.isEnabled = false
+        dimHeadingProvider.get().setActive(false)
 
         dimClockView?.get()?.let { clock ->
             (clock.parent as? ViewGroup)?.removeView(clock)

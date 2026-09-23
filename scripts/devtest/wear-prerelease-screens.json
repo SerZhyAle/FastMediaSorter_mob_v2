@@ -40,7 +40,7 @@
       "id": "permission-gate",
       "name": "Permission gate (first launch only)",
       "label": "Grant",
-      "expect": "Apps",
+      "expect": "Programs",
       "screen": "HomeScreen",
       "expectRes": "wear_section_apps",
       "homeSection": "APPS",
@@ -52,7 +52,7 @@
     {
       "id": "home",
       "name": "Home",
-      "expect": "Apps",
+      "expect": "Programs",
       "screen": "HomeScreen",
       "expectRes": "wear_section_apps",
       "homeSection": "APPS",
@@ -124,8 +124,8 @@
     },
     {
       "id": "favourites",
-      "name": "Favourites",
-      "label": "Favourites",
+      "name": "Favorites",
+      "label": "Favorites",
       "expect": "Nothing marked yet",
       "screen": "FavouritesScreen",
       "expectRes": "wear_favourites_empty",
@@ -161,8 +161,8 @@
     },
     {
       "id": "apps",
-      "name": "Apps",
-      "label": "Apps",
+      "name": "Programs",
+      "label": "Programs",
       "expect": "Calculator",
       "screen": "AppsScreen",
       "expectRes": "wear_app_calculator",
@@ -257,10 +257,10 @@
       "screen": "WearStopwatchScreen",
       "expectRes": "wear_stopwatch_menu",
       "wearApp": "STOPWATCH",
-      "backAfter": 1,
+      "backAfter": { "noLegal": 1, "standard": 2 },
       "note": "S2825: the marker is the menu control label at the bottom of the measurement surface, the only static text on a screen whose regions show dynamic time. The Start/Stop/Lap/Reset labels are state-dependent and drawn inside WearStopwatchRegions; Menu is always present and absent from the Apps list label Stopwatch. Available in both flavors without a capability guard.",
       "note2": "S2846: MainActivity hides the visual back arrow on the stopwatch route (line 668), but backAfter dispatches a hardware key event through adb, and onPreviewKeyEvent in the scaffold accepts any KeyUp and calls onLeave(), so the walk's own exit works. Same mechanism as WaterFlashlightScreen.",
-      "note3": "Unmeasured, and the one risk left in this block: WaterFlashlightScreen shares this exit mechanism and was measured leaving TWO levels on one key (see its note3). If the stopwatch does the same, it lands on Home and the flashlight entry after it scores unreachable - read the tree before changing either number."
+      "note3": "Measured on the small-round emulator 2026-09-22, standard build: one key lands on the Apps LIST, the second on Home - unlike WaterFlashlightScreen, whose single key leaves two levels. The depth is therefore per-flavor, and a number cannot say both: in noLegal this entry is mid-block (clipboard, sos and water flashlight follow it on the list) and owes one key; in standard it ENDS the block, and the second key is the climb to Home where the settings entry starts. A number here would strand one chain or overshoot the other - one BACK too many on Home calls moveTaskToBack and leaves the app."
     },
     {
       "id": "apps-clipboard",
@@ -297,13 +297,14 @@
       "label": "Water flashlight",
       "expect": "Locked",
       "screen": "WaterFlashlightScreen",
-      "expectRes": "wear_water_flashlight_locked_hint",
+      "expectRes": "wear_water_flashlight_exit_hint",
       "wearApp": "WATER_FLASHLIGHT",
       "flavors": ["noLegal"],
-      "backAfter": 1,
+      "backAfter": 2,
+      "backBurst": 3,
       "note": "S2516: the lock hint is the only static string the screen renders - the line above it is the clock, which is measured time and matches no fixed token. S3362 scoped the entry to noLegal: the touch lock note2 describes IS the WO-V3 defect, so the store build withholds the program under offersScreenTakeoverPrograms.",
-      "note2": "S2621: the screen consumes every touch on PointerEventPass.Initial so the wet-glass swipe cannot dismiss it, and MainActivity hides the visual back arrow on this route - but backAfter dispatches a hardware key event through adb, and onPreviewKeyEvent accepts any KeyUp and calls onLeave(), so the walk's own exit works.",
-      "note3": "Last row of the Apps block on purpose. Measured on the Galaxy Watch 7 at 227 dp 2026-09-12: one backAfter key left the locked screen AND the Apps list, landing on Home - the key reaches onLeave() and the activity's back dispatcher both. Placed fourth, as it was, that stranded the voice recorder and voice notes entries after it on Home, both scored unreachable. Here the overshoot is the exit the next entry wants: settings starts from Home."
+      "note2": "S2621/S3394: the screen consumes every touch on PointerEventPass.Initial so the wet-glass swipe cannot dismiss it, and MainActivity hides the visual back arrow on this route. Since S3394 a single back no longer leaves either - water produces exactly that - and only three backs inside two seconds do, so this entry sets backBurst 3: its first backAfter key is three BACKs in one adb call.",
+      "note3": "Last row of the Apps block on purpose: settings, the next entry, starts from Home. Measured on the Galaxy Watch 7 at 227 dp 2026-09-12, one key used to leave the locked screen AND the Apps list, because it reached onLeave() and the activity's back dispatcher both. Since S3394 the screen's own BackHandler takes the back, so the burst leaves one level only and backAfter 2 spends the second key on the Apps list."
     },
     {
       "id": "settings",
@@ -315,7 +316,7 @@
       "backAfter": 0,
       "note": "Reached from the Home command bar, whose button is icon-only and carries the label as its content-description.",
       "note2": "S3362: the marker was Media Types, which the standard Settings list no longer draws - a row withheld with its subject would have failed this entry in the artifact that matters most. About is the last row of the list in BOTH flavors and appears on no screen above it, so it identifies arrival without being flavor-scoped.",
-      "note3": "S3362, unresolved and needing a device: with apps-clipboard, apps-sos and apps-water-flashlight scoped to noLegal, the standard walk leaves the Apps block after apps-stopwatch, whose backAfter 1 lands on the Apps LIST, while this entry is reached from Home. In noLegal the flashlight's measured two-level exit still ends the block on Home, so only the standard chain is affected. Its own note3 records that the stopwatch's real exit depth was never measured; measure it on a standard build before the next sweep and either correct that number or teach the walk a per-flavor backAfter - do not guess, because one BACK too many on Home calls moveTaskToBack and leaves the app."
+      "note3": "S3362: with apps-clipboard, apps-sos and apps-water-flashlight scoped to noLegal, the standard walk leaves the Apps block after apps-stopwatch, while this entry is reached from Home. Resolved by the per-flavor backAfter on apps-stopwatch, whose standard depth of 2 was measured on the small-round emulator 2026-09-22 (its note3)."
     },
     {
       "id": "settings-media-types",
@@ -353,10 +354,11 @@
       "id": "settings-other",
       "name": "Settings - Other",
       "label": "Other",
-      "expect": "Download Album Art",
+      "expect": "Disable animations",
       "screen": "OtherSettingsScreen",
-      "expectRes": "download_album_art",
-      "backAfter": 1
+      "expectRes": "pref_disable_animations",
+      "backAfter": 1,
+      "note": "The marker was Download Album Art, and the first standard walk to reach this screen (small round, 2026-09-22) scored it failed: OtherSettingsScreen.albumArtRows returns an empty list when offersMediaAccess is false, so the store build withholds the row with its subject - the same gating that scoped settings-media-types and settings-slideshow in S3362. Disable animations is added unconditionally in both flavors, which makes it the flavor-neutral marker; the album-art row remains noLegal-only screen content and is judged by no entry here."
     },
     {
       "id": "settings-tile-targets",
@@ -373,11 +375,12 @@
       "id": "settings-about",
       "name": "Settings - About",
       "label": "About",
-      "expect": "Web Portal",
+      "expect": "Build:",
       "screen": "AboutSettingsScreen",
-      "expectRes": "about_web_portal",
+      "expectRes": "build_number",
       "backAfter": 2,
-      "note": "Last page of the settings block: two levels back leave the page and the section, so the next entry starts from Home."
+      "note": "Last page of the settings block: two levels back leave the page and the section, so the next entry starts from Home.",
+      "note2": "S3362: the marker was Web Portal, which the store build no longer draws - that row goes with the content-transfer path, like Open on phone after it. The build line is drawn in both flavors and on no screen above About, and its format string starts with the matched prefix."
     }
   ],
   "excluded": [
@@ -389,7 +392,7 @@
     {
       "screen": "AddNetworkSourceScreen",
       "reason": "absent-from-this-flavor",
-      "note": "WO-P6 refuses credential entry on a watch, so S2486 gated the way in: NetworkSourcesScreen renders the Add Source chip only when WearRestrictedCapabilities.offersCredentialEntry is true, which the standard store build answers false. This sweep judges that build, so the screen has no route into it and a walk entry could only ever fail.",
+      "note": "WO-P6 refuses credential entry on a watch, so S2486 gated the way in: NetworkSourcesScreen renders the Add resource chip only when WearRestrictedCapabilities.offersCredentialEntry is true, which the standard store build answers false. This sweep judges that build, so the screen has no route into it and a walk entry could only ever fail.",
       "note2": "S2555: measured on emulator-5554 2026-09-05 - the Resources screen carried only the empty hint, Sync from Phone and Back."
     },
     {
@@ -506,6 +509,11 @@
       "screen": "SyncResultScreen",
       "reason": "needs-seeded-content",
       "note": "Its route arguments are the counts a completed sync produces, so it needs a phone that answered."
+    },
+    {
+      "screen": "FdSecCredentialScreen",
+      "reason": "needs-seeded-content",
+      "note": "S3383: reached only by tapping a .fd-sec container or picking Encrypt/Decrypt FileDO on a file, so the walk needs a seeded file on the watch and, for the menu entries, a switch it may not flip."
     },
     {
       "screen": "TileTargetPickerScreen",

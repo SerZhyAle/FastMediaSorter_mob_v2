@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.domain.usecase.launcher
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

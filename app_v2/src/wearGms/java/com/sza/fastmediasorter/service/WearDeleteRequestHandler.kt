@@ -52,7 +52,6 @@ class WearDeleteRequestHandler @Inject constructor(
             publish(request.requestId, WearPhoneResourceDeleteOutcome.COMPANION_DISABLED, refusal = true)
             return
         }
-        Timber.d("S3359: watch delete request served, expected size ${request.expectedSizeBytes}")
         val outcome = deleteWatchRequestedFile(request.token, request.expectedSizeBytes)
         publish(request.requestId, outcome, refusal = false)
     }

@@ -97,7 +97,11 @@
     Exit 1 when an unbaselined disagreement is found. Without it the script only reports.
 
 .PARAMETER UpdateBaseline
-    Rewrite the baseline from the current tree.
+    Rewrite the baseline from the current tree. Dropping keys needs nothing; adding one needs
+    -Reason, and every added or dropped key is printed (S3460).
+
+.PARAMETER Reason
+    Why -UpdateBaseline may accept a new disagreement. Recorded as a header line.
 
 .PARAMETER List
     Print every migration with its statement count and verdict, including the baselined ones.
@@ -124,7 +128,8 @@
       1  an unbaselined disagreement was found, under -Gate.
       2  cannot verify - a registry row's migration directory, schema directory, registration file
          or named @Database class file is missing, that file carries no @Database annotation, or its
-         declared version cannot be read. Every such message names the database.
+         declared version cannot be read. Every such message names the database. Also:
+         -UpdateBaseline would add a key without -Reason (nothing is written).
       4  Code.Scripts is held by another session, so no baseline was written. The queue place is
          held - wait for the turn in the background and rerun (S2635).
 #>
@@ -135,6 +140,7 @@ param(
     [switch]$List,
     [switch]$Quiet,
     [string]$Module,
+    [string]$Reason,
     [switch]$Help
 )
 
@@ -474,11 +480,20 @@ foreach ($db in $databases) {
 # ---- baseline ---------------------------------------------------------------------------
 if ($UpdateBaseline) {
     . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+    . (Join-Path $PSScriptRoot 'lib/baseline-set-writer.ps1')
+    $previous = @()
+    if (Test-Path $baselineFile) {
+        $previous = @(Get-Content $baselineFile | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') })
+    }
+    $currentKeys = @($findings | ForEach-Object { $_.Key })
+    $writeAllowed = Test-BaselineWrite -Gate 'assert-migration-schema-conformance' `
+        -Previous $previous -Current $currentKeys -Reason $Reason
+    if (-not $writeAllowed) { exit 2 }
     $scope = $null
     try {
         $scope = Enter-CodeLockOrExit -Path $baselineFile `
             -Reason 'assert-migration-schema-conformance.ps1 -UpdateBaseline'
-        ($findings | ForEach-Object { $_.Key }) | Set-Content -Path $baselineFile -Encoding utf8NoBOM
+        (@(Get-BaselineReasonLine -Reason $Reason) + $currentKeys) | Set-Content -Path $baselineFile -Encoding utf8NoBOM
     }
     finally { Exit-CodeLockScope -Scope $scope }
     Write-Host ("assert-migration-schema-conformance: baseline rewritten - {0} accepted disagreement(s)." -f $findings.Count)

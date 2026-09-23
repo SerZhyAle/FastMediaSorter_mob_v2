@@ -27,7 +27,11 @@
 
 .PARAMETER UpdateBaseline
     Rewrite the baseline from the current measurement. Reason comments for names that survive are
-    preserved; a newly added name lands without one and should be given a reason by hand.
+    preserved. Dropping names needs nothing; adding one needs -Reason, which becomes the reason
+    comment of every added name, and every added or dropped name is printed (S3460).
+
+.PARAMETER Reason
+    Why -UpdateBaseline may keep the newly unreferenced names.
 
 .PARAMETER List
     Print the current baseline with its reasons and exit.
@@ -46,7 +50,8 @@
       0 - no new unreferenced name (or reporting mode, which never fails).
       1 - under -Gate: at least one unreferenced name is not in the baseline.
       2 - cannot verify: the module, its values directory, or the strings file could not be read.
-          Never conflated with 0 - a gate that could not look has not passed.
+          Never conflated with 0 - a gate that could not look has not passed. Also: -UpdateBaseline
+          would add a name without -Reason (nothing is written).
       4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
           held - wait for the turn in the background and rerun (S2635).
 
@@ -63,13 +68,15 @@ param(
     [switch]$List,
     [switch]$Quiet,
     [string]$Module = 'app_v2',
-    [string]$File = 'strings.xml'
+    [string]$File = 'strings.xml',
+    [string]$Reason = ''
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'lib/android-string-liveness.ps1')
+. (Join-Path $PSScriptRoot 'lib/baseline-set-writer.ps1')
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
@@ -117,8 +124,13 @@ if ($UpdateBaseline) {
     $lines.Add('# Names measured as unreferenced that are deliberately KEPT. One per line, with the reason.')
     $lines.Add("# Regenerate the measurement with: pwsh -NoProfile -File scripts/utils/audit-unreferenced-strings.ps1 -Module $Module -File $File")
     $lines.Add('# A new name here needs a written reason - an unexplained entry is how the previous 397 accumulated.')
+    if (-not (Test-BaselineWrite -Gate 'assert-unreferenced-strings' -Previous @($baseline.Keys) -Current $current -Reason $Reason)) {
+        exit 2
+    }
     foreach ($name in $current) {
-        $reason = if ($baseline.Contains($name) -and $baseline[$name]) { $baseline[$name] } else { 'TODO: state why this name is kept' }
+        $reason = if (-not $baseline.Contains($name)) { $Reason.Trim() }
+        elseif ($baseline[$name]) { $baseline[$name] }
+        else { 'TODO: state why this name is kept' }
         $lines.Add(("{0}  # {1}" -f $name, $reason))
     }
     $scope = $null

@@ -555,13 +555,41 @@ internal class AddResourceConnectionManager(
         }
     }
 
-    fun showTestResultDialog(message: String, isSuccess: Boolean) {
+    fun showTestResultDialog(message: String, isSuccess: Boolean, presentedFingerprint: String? = null) {
         val title = if (isSuccess) {
             activity.getString(R.string.connection_test_success_title)
         } else {
             activity.getString(R.string.connection_test_failed_title)
         }
-        ScrollableTextDialog.show(context = activity, title = title, message = message, showSave = false)
+        val currentFingerprint = sftpForm.etSftpHostKeyFingerprint.text?.toString()?.trim().orEmpty()
+        val canOfferPin = isSuccess && !presentedFingerprint.isNullOrBlank() && currentFingerprint.isEmpty()
+
+        val fullMessage = if (canOfferPin) {
+            "$message\n\n${activity.getString(R.string.sftp_host_key_presented_format, presentedFingerprint)}"
+        } else {
+            message
+        }
+
+        if (canOfferPin) {
+            ScrollableTextDialog.show(
+                context = activity,
+                title = title,
+                message = fullMessage,
+                showSave = false,
+                actionButtonText = activity.getString(R.string.sftp_pin_host_key),
+                onActionClick = {
+                    sftpForm.headerSftpServerVerification.setExpanded(true, notify = false)
+                    sftpForm.etSftpHostKeyFingerprint.setText(presentedFingerprint)
+                    Toast.makeText(
+                        activity,
+                        activity.getString(R.string.sftp_host_key_pinned_toast),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            )
+        } else {
+            ScrollableTextDialog.show(context = activity, title = title, message = fullMessage, showSave = false)
+        }
     }
 
     fun showLocalNetworkPermissionRationale() {

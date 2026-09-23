@@ -1,0 +1,90 @@
+package com.sza.fastmediasorter.wear.data.heading
+
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import com.sza.fastmediasorter.wear.domain.model.HeadingAccuracy
+import com.sza.fastmediasorter.wear.domain.model.HeadingReading
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.emptyFlow
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * S3370: device heading for the dim overlay's spark pair - the wear module's first heading source.
+ *
+ * Cold by construction: the listener is registered when a collector arrives and unregistered in
+ * `awaitClose` when the last one leaves, so the dim screen keeps its OLED economy (strategic §3.2) -
+ * no sensor work while no overlay is up. A watch without the rotation-vector sensor yields
+ * [emptyFlow], which the overlay reads as the white/random fallback, not as an error.
+ */
+@Singleton
+class CompassHeadingDataSource @Inject constructor(
+    @ApplicationContext private val context: Context,
+) {
+
+    fun readings(): Flow<HeadingReading> {
+        val manager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+        val sensor = manager?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        // One return rather than a guard-return per condition: detekt caps a function at two
+        // (ReturnCount), and the phone's OrientationReadingSource holds the same shape.
+        return if (manager == null || sensor == null) {
+            emptyFlow()
+        } else {
+            callbackFlow {
+                // Reused across events on purpose: both callbacks arrive on one handler thread,
+                // and a fresh pair of arrays per sample would allocate on every sensor tick.
+                val rotationMatrix = FloatArray(ROTATION_MATRIX_SIZE)
+                val orientation = FloatArray(ORIENTATION_SIZE)
+                var accuracy = HeadingAccuracy.UNRELIABLE
+                var lastEmittedAtMillis = 0L
+
+                val listener = object : SensorEventListener {
+                    override fun onSensorChanged(event: SensorEvent) {
+                        val now = System.currentTimeMillis()
+                        if (now - lastEmittedAtMillis < MIN_UPDATE_INTERVAL_MS) return
+                        lastEmittedAtMillis = now
+
+                        SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+                        SensorManager.getOrientation(rotationMatrix, orientation)
+                        trySend(
+                            HeadingReading(
+                                azimuthDegrees = toBearing(orientation[AZIMUTH_INDEX]),
+                                accuracy = accuracy,
+                                takenAtMillis = now,
+                            ),
+                        )
+                    }
+
+                    override fun onAccuracyChanged(changed: Sensor?, status: Int) {
+                        accuracy = HeadingAccuracy.fromPlatformStatus(status)
+                    }
+                }
+
+                manager.registerListener(listener, sensor, UPDATE_INTERVAL_MICROS)
+                awaitClose { manager.unregisterListener(listener) }
+            }.conflate()
+        }
+    }
+
+    /** Platform azimuth is radians in -PI..PI; the overlay wants degrees in 0..360. */
+    private fun toBearing(azimuthRadians: Float): Float {
+        val degrees = Math.toDegrees(azimuthRadians.toDouble()).toFloat()
+        return (degrees + FULL_CIRCLE_DEGREES) % FULL_CIRCLE_DEGREES
+    }
+
+    private companion object {
+        const val ROTATION_MATRIX_SIZE = 9
+        const val ORIENTATION_SIZE = 3
+        const val AZIMUTH_INDEX = 0
+        const val FULL_CIRCLE_DEGREES = 360f
+        const val MIN_UPDATE_INTERVAL_MS = 1000L
+        const val UPDATE_INTERVAL_MICROS = 1_000_000
+    }
+}

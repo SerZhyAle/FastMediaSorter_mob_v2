@@ -21,7 +21,6 @@ import com.sza.fastmediasorter.ui.networkmonitor.helpers.copyMonitorValue
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.formatChartValue
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * S1433: the Monitor's first screen - the active connection above a grid of section tiles.

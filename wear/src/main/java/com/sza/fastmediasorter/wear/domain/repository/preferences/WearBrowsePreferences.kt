@@ -63,4 +63,14 @@ interface WearBrowsePreferences {
      */
     val lastUsedApp: Flow<WearAppId?>
     suspend fun setLastUsedApp(id: WearAppId)
+
+    /**
+     * S3383: whether a file's action menu offers the two FileDO encryption operations.
+     *
+     * Off until the wearer turns it on. Opening a `.fd-sec` container is not behind it: the file can
+     * arrive from the phone, and a wearer who receives one expects it to open rather than to need a
+     * setting found first.
+     */
+    val fileDoOperationsEnabled: Flow<Boolean>
+    suspend fun setFileDoOperationsEnabled(enabled: Boolean)
 }

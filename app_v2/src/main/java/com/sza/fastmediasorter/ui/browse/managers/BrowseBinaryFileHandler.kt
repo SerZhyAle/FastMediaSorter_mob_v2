@@ -13,8 +13,8 @@ import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import com.sza.fastmediasorter.ui.browse.sheets.BrowseBinaryFileBottomSheet
+import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import com.sza.fastmediasorter.util.BinaryFileTypeDetector
 import timber.log.Timber
 import java.io.File
@@ -56,14 +56,21 @@ class BrowseBinaryFileHandler(
 
         BrowseBinaryFileBottomSheet.newInstance(
             mediaFile = mediaFile,
-            onShare = { shareFile(mediaFile) },
-            onOpenWith = { openWithDefaultApp(mediaFile) },
-            onCopy = { onSelectFile(mediaFile.path); onShowCopyDialog() },
-            onMove = { onSelectFile(mediaFile.path); onShowMoveDialog() },
-            onRename = { onSelectFile(mediaFile.path); onShowRenameDialog() },
-            onDelete = { onSelectFile(mediaFile.path); onShowDeleteConfirmation() },
+            callbacks = BrowseBinaryFileBottomSheet.Callbacks(
+                onShare = { shareFile(mediaFile) },
+                onOpenWith = { openWithDefaultApp(mediaFile) },
+                onCopy = { selectAndShow(mediaFile, onShowCopyDialog) },
+                onMove = { selectAndShow(mediaFile, onShowMoveDialog) },
+                onRename = { selectAndShow(mediaFile, onShowRenameDialog) },
+                onDelete = { selectAndShow(mediaFile, onShowDeleteConfirmation) },
+            ),
             menuActions = binaryFileMenuActions,
         ).show(host.supportFragmentManager, "browse_binary_file_sheet")
+    }
+
+    private fun selectAndShow(mediaFile: MediaFile, showDialog: () -> Unit) {
+        onSelectFile(mediaFile.path)
+        showDialog()
     }
 
     fun openWithDefaultApp(mediaFile: MediaFile) {

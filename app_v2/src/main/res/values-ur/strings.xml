@@ -81,7 +81,6 @@
     <string name="renamed_n_files">%1$d فائلوں کے نام تبدیل ہو گئے۔</string>
     <string name="rename_failed_generic">اس فائل کا نام تبدیل نہیں ہو سکا۔</string>
     <string name="rename_file_name_empty">فائل کا نام خالی نہیں ہو سکتا۔</string>
-    <string name="error_delete">فائلیں حذف نہیں ہو سکیں</string>
     <string name="error_all_operations_failed">کچھ بھی مکمل نہیں ہوا۔</string>
     <string name="all_copy_operations_failed">منتخب فائلیں کاپی نہیں ہو سکیں۔\n\n%1$s</string>
     <string name="all_move_operations_failed">منتخب فائلیں منتقل نہیں ہو سکیں۔\n\n%1$s</string>
@@ -1404,7 +1403,7 @@
     <string name="files_scanned_count">%1$d فائلیں سکین ہو گئیں۔</string>
     <string name="wear_companion">Wear ساتھی</string>
     <string name="tooltip_wear_companion_title">Wear ساتھی</string>
-    <string name="tooltip_wear_companion_message">اپنے نیٹ ورک وسائل (SMB، FTP، کلاؤڈ) جوڑی بنائی گئی Wear OS گھڑی کو بھیجیں تاکہ آپ انہیں براہ راست اپنی کلائی سے دیکھ اور چلا سکیں۔ یہ چننے کے لیے کہ کون سی میڈیا اقسام ہم آہنگ ہوں، اور گھڑی کی پلے بیک ترتیبات ٹھیک کرنے کے لیے، بٹن پر ٹیپ کریں۔</string>
+    <string name="tooltip_wear_companion_message">اپنے نیٹ ورک وسائل (SMB، FTP، SFTP) جوڑی بنائی گئی Wear OS گھڑی کو بھیجیں تاکہ آپ انہیں براہ راست اپنی کلائی سے دیکھ اور چلا سکیں۔ یہ چننے کے لیے کہ کون سی میڈیا اقسام ہم آہنگ ہوں، اور گھڑی کی پلے بیک ترتیبات ٹھیک کرنے کے لیے، بٹن پر ٹیپ کریں۔</string>
     <string name="wear_sync_description">نیٹ ورک ذرائع اپنی منسلک Wear OS گھڑی کو بھیجیں۔</string>
     <string name="wear_push_to_watch">گھڑی کو بھیجیں</string>
     <string name="wear_sync_ready">مطابقت پذیری کے لیے تیار</string>
@@ -3669,4 +3668,24 @@
     <string name="broadcast_control_feedback_warning">آواز کم کر دی گئی: سننے والے کا اسپیکر مائیکروفون میں واپس آ رہا ہے۔ سننے والا آلہ دور لے جائیں یا اس کی آواز کم کریں۔</string>
     <string name="broadcast_control_feedback_warning_cd">صوتی فیڈ بیک کا پتہ چلا، مائیکروفون گین کم کر دیا گیا</string>
     <string name="wear_watch_transfer_unconfirmed">گھڑی نے %1$s محفوظ کرنے کی تصدیق نہیں کی، اس لیے اصل فون پر رکھا گیا۔</string>
+    <string name="filedo_operations_title">FileDO انکرپشن آپریشنز</string>
+    <string name="filedo_operations_summary">ہر فائل کے آپریشنز مینو میں “FileDO سے انکرپٹ کریں” اور “FileDO سے ڈکرپٹ کریں” دکھائیں</string>
+    <string name="filedo_encrypt">FileDO سے انکرپٹ کریں</string>
+    <string name="filedo_decrypt">FileDO سے ڈکرپٹ کریں</string>
+    <string name="filedo_password_title_encrypt">کنٹینر کے لیے پاس ورڈ</string>
+    <string name="filedo_password_title_decrypt">کنٹینر کا پاس ورڈ</string>
+    <string name="filedo_password_hint">پاس ورڈ</string>
+    <string name="filedo_password_repeat_hint">پاس ورڈ دوبارہ درج کریں</string>
+    <string name="filedo_password_mismatch">دونوں پاس ورڈ مختلف ہیں</string>
+    <string name="filedo_password_empty_warning">خالی پاس ورڈ کوئی رازداری نہیں دیتا۔ فائل صرف سرسری نظر سے چھپی رہتی ہے، اور فارمیٹ جاننے والا کوئی بھی اسے کھول سکتا ہے۔</string>
+    <string name="filedo_no_recovery_warning">بھولا ہوا پاس ورڈ بحال کرنے کا کوئی طریقہ نہیں ہے۔</string>
+    <string name="filedo_outcome_wrong_credential">فائل نہیں کھل سکی: پاس ورڈ غلط ہے، فائل کبھی کنٹینر تھی ہی نہیں، یا اس میں چھیڑ چھاڑ کی گئی ہے۔ ان تینوں میں فرق نہیں کیا جا سکتا۔</string>
+    <string name="filedo_outcome_damaged">کنٹینر خراب ہے: یہ نامکمل ہے یا اس کا مواد اس سے میل نہیں کھاتا جسے یہ سیل کرتا ہے۔</string>
+    <string name="filedo_outcome_unsupported">یہ کنٹینر ایسا فارمیٹ ورژن استعمال کرتا ہے جسے یہ ایپ نہیں پڑھتی۔</string>
+    <string name="filedo_outcome_failed">آپریشن مکمل نہیں ہوا: %1$s</string>
+    <string name="filedo_encrypted_ok">کنٹینر لکھ دیا گیا۔ اصل فائل جوں کی توں ہے۔</string>
+    <string name="filedo_decrypted_ok">فائل بحال کر دی گئی۔</string>
+    <string name="filedo_open_refused_executable">اس کنٹینر میں کوئی پروگرام یا اسکرپٹ ہے۔ اسے نہیں کھولا جائے گا۔</string>
+    <string name="filedo_password_remember">پاس ورڈ یاد رکھیں اور ہر .fd-sec فائل پر آزمائیں</string>
+    <string name="filedo_remembered_password_forgotten">محفوظ پاس ورڈ نے یہ فائل نہیں کھولی اور اسے بھلا دیا گیا۔ اس فائل کا پاس ورڈ درج کریں۔</string>
 </resources>

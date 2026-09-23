@@ -67,21 +67,19 @@ class ApplyTransferPayloadUseCase @Inject constructor(
         return importPinnedStreams(payload).getOrThrow()
     }
 
-    private fun <T : Any> parse(bytes: ByteArray, type: Class<T>, kind: TransferDataKind): T {
-        val json = try {
-            gson.fromJson(bytes.decodeToString(), JsonObject::class.java)
+    private fun <T : Any> parse(bytes: ByteArray, type: Class<T>, kind: TransferDataKind): T =
+        try {
+            decodeOrNull(bytes, type, kind)
         } catch (e: JsonSyntaxException) {
             throw IncompatibleTransferFile(kind, e)
         } ?: throw IncompatibleTransferFile(kind)
+
+    private fun <T : Any> decodeOrNull(bytes: ByteArray, type: Class<T>, kind: TransferDataKind): T? {
+        val json = gson.fromJson(bytes.decodeToString(), JsonObject::class.java) ?: return null
         // Every kind this build writes stamps its own name, so a file whose stamp names another
         // kind is refused here rather than deserialized into a payload of defaults.
         val declared = json.get(FIELD_KIND)?.takeIf { it.isJsonPrimitive }?.asString
-        if (declared != null && declared != kind.name) throw IncompatibleTransferFile(kind)
-        return try {
-            gson.fromJson(json, type) ?: throw IncompatibleTransferFile(kind)
-        } catch (e: JsonSyntaxException) {
-            throw IncompatibleTransferFile(kind, e)
-        }
+        return if (declared != null && declared != kind.name) null else gson.fromJson(json, type)
     }
 
     private companion object {

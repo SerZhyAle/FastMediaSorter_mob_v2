@@ -22,10 +22,10 @@ internal object PdfThumbnailSheet {
         onPageScrollSelected: (Int) -> Unit,
         onPagePicked: (Int) -> Unit,
     ) {
-        val wrapper = rendererWrapper ?: return
-        if (pdfPageCount <= 1) return
-
-        val host = root.context as? FragmentActivity ?: run {
+        val wrapper = rendererWrapper
+        val host = root.context as? FragmentActivity
+        if (wrapper == null || pdfPageCount <= 1) return
+        if (host == null) {
             Timber.w("PdfThumbnailSheet: host is not a FragmentActivity, cannot show thumbnail sheet")
             return
         }

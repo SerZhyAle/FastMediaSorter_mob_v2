@@ -2236,6 +2236,32 @@
     "note": "Published as the \"Bouncy Castle Licence\"; the text is verbatim MIT with their copyright, so scanners report NOASSERTION and the identifier is set by hand."
   },
   {
+    "coordinate": "org.bouncycastle:bcprov-jdk18on",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Bouncy Castle Provider",
+    "spdx": "MIT",
+    "licenseUrl": "https://www.bouncycastle.org/licence.html",
+    "sourceUrl": "https://github.com/bcgit/bc-java",
+    "oss": true,
+    "shippedIn": [
+      "foss",
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": true,
+    "via": "com.hierynomus:smbj",
+    "bundled": false,
+    "note": "Published as the \"Bouncy Castle Licence\"; the text is verbatim MIT with their copyright, so scanners report NOASSERTION and the identifier is set by hand."
+  },
+  {
     "coordinate": "org.jetbrains.kotlinx:kotlinx-coroutines-android",
     "modules": [
       "app_v2",

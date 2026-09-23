@@ -28,22 +28,13 @@
       "note": "Only journalled when the batch is run with -IncludeDetekt, so this claim is often below the sample floor and reports 'no telemetry' instead of a verdict."
     },
     {
-      "id": "rule-6-fg-claude",
-      "doc": "CLAUDE.md",
-      "pattern": "`fg` measures ([0-9.]+) s",
-      "verdict": "foreground",
-      "runner": "assert-fast-gates",
-      "gate": "(batch)",
-      "note": "Rule 6 itself. This copy is the one that actually decides: CLAUDE.md is in context on every turn, so a stale figure here is read far more often than the table it was copied from."
-    },
-    {
       "id": "rule-6-fg-agents",
       "doc": "AGENTS.md",
       "pattern": "`fg` runs ([0-9.]+) s",
       "verdict": "foreground",
       "runner": "assert-fast-gates",
       "gate": "(batch)",
-      "note": "The same figure restated for non-Claude agents. Listed separately because it is a separate hand-written copy and drifts on its own."
+      "note": "The same figure restated for non-Claude agents - the one hand-written copy left outside the table. CLAUDE.md Rule 6 carries no number any more and points at the table instead, so it has no claim here (S3390)."
     }
   ]
 }

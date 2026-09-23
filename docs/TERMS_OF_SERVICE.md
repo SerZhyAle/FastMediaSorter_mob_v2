@@ -202,7 +202,7 @@ These Terms, together with our Privacy Policy, constitute the entire agreement b
 
 For questions about these Terms of Service:
 
-- **Email:** <serzhyale@gmail.com>
+- **Email:** <sza@ukr.net>
 - **GitHub:** <https://github.com/SerZhyAle/FastMediaSorter_mob_v2>
 
 ## 17. Acknowledgment

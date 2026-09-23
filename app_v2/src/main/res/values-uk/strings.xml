@@ -49,9 +49,9 @@
     <string name="translate">Перекласти</string>
     <string name="no_files_selected">Файли не вибрані</string>
     <string name="msg_last_filter_restored">Відновлено останній фільтр: %1$s</string>
-    <string name="warning_files_may_remain_in_source">Деякі файли могли залишитися у вихідній теці. Перевірте джерело й теку призначення. Заторкнуто: %1$d.</string>
+    <string name="warning_files_may_remain_in_source">Деякі файли могли залишитися у вихідній папці. Перевірте джерело й папку призначення. Заторкнуто: %1$d.</string>
     <string name="please_wait">Будь ласка, зачекайте..</string>
-    <string name="favorites">Вибране</string>
+    <string name="favorites">Обране</string>
     <string name="resource">Ресурс</string>
     <string name="media_type">Тип медіа</string>
 
@@ -63,7 +63,7 @@
     <string name="copied_n_files">Скопіювали %1$d файлів.</string>
     <string name="copied_n_of_m_files">Скопіювали %1$d з %2$d файлів.</string>
     <string name="copy_failed">Не вдалося скопіювати файли.</string>
-    <string name="no_destinations_available">Ресурси-отримувачі не налаштовано</string>
+    <string name="no_destinations_available">Ресурси-призначення не налаштовано</string>
 
     <!-- Archive destination picker (reused copy/move dialog in ARCHIVE mode) -->
 
@@ -78,7 +78,6 @@
     <string name="renamed_n_files">Перейменували %1$d файлів.</string>
     <string name="rename_failed_generic">Не вдалося перейменувати файл.</string>
     <string name="rename_file_name_empty">Ім’я файлу не може бути порожнім.</string>
-    <string name="error_delete">Не вдалося видалити файли</string>
     <string name="error_all_operations_failed">Нічого не вийшло.</string>
     <string name="all_copy_operations_failed">Не вдалося скопіювати вибрані файли.\n\n%1$s</string>
     <string name="all_move_operations_failed">Не вдалося перемістити вибрані файли.\n\n%1$s</string>
@@ -100,7 +99,7 @@
 
     <!-- GIF Editing -->
 
-    <string name="open_in_default_player">Відкрити у програвачі за замовчуванням</string>
+    <string name="open_in_default_player">Відкрити у плеєрі за замовчуванням</string>
     <string name="download_and_open">Завантажити і відкрити</string>
     <string name="downloading_file">Завантаження файлу..</string>
     <string name="downloaded_successfully">Успішно завантажено</string>
@@ -153,7 +152,7 @@
     <string name="play_random_short">Випадковий</string>
     <string name="scroll_to_top">На початок списку</string>
     <string name="scroll_to_bottom">В кінець списку</string>
-    <string name="empty_state_message">Ласкаво просимо! Екран порожній - саме таким ми його й випустили.\n\nДодайте сюди теки пристрою та відкрийте налаштування, щоб справа пішла.</string>
+    <string name="empty_state_message">Ласкаво просимо! Екран порожній - саме таким ми його й випустили.\n\nДодайте сюди папки пристрою та відкрийте налаштування, щоб справа пішла.</string>
     <string name="no_media_files_found">У цій папці немає медіафайлів. Ми чесно обшукали всі кутки.</string>
     <string name="recent_media">Нещодавні медіа</string>
     <string name="virtual_all_music">Вся музика</string>
@@ -167,11 +166,11 @@
     <string name="virtual_comment_camera_photos">Фото та відео з камери пристрою</string>
     <string name="virtual_comment_all_images">Локальні зображення (jpg, png, gif, webp..)</string>
     <string name="virtual_comment_all_docs">Локальні документи (PDF, EPUB, текст, Office)</string>
-    <string name="special_virtual_folders">Спеціальні папки</string>
+    <string name="special_virtual_folders">Віртуальні ресурси</string>
     <string name="virtual_resource_already_added">Вже додано</string>
     <string name="virtual_resource_added">Ресурс «%1$s» додано</string>
     <string name="rescan_all_virtual_warning_title">Повторне сканування всіх ресурсів</string>
-    <string name="rescan_all_virtual_warning_message">Список включає віртуальні агрегуючі папки (Вся музика, Усі відео, Усі зображення, Усі документи). Повне сканування може зайняти значний час. Продовжити?</string>
+    <string name="rescan_all_virtual_warning_message">Список включає віртуальні ресурси (Вся музика, Усі відео, Усі зображення, Усі документи). Повне сканування може зайняти значний час. Продовжити?</string>
     <string name="connection_failed">Помилка підключення</string>
     <string name="loading_indicator">Завантаження..</string>
     <string name="connecting">Підключення до  ресурсу..</string>
@@ -189,12 +188,12 @@
 
     <!-- DVD VOB Route Error -->
     <string name="error_vob_route_title">Відтворення DVD VOB недоступне</string>
-    <string name="error_vob_route_message">Цей DVD Program Stream (.vob) не вдалося відтворити по мережі.\n\nСкопіюйте файл локально або використовуйте програвач із підтримкою DVD PS через SMB/SFTP/FTP.</string>
+    <string name="error_vob_route_message">Цей DVD Program Stream (.vob) не вдалося відтворити по мережі.\n\nСкопіюйте файл локально або використовуйте плеєр із підтримкою DVD PS через SMB/SFTP/FTP.</string>
 
     <!-- BD-TS Playback Error -->
     <string name="error_bdts_format_title">Формат не підтримується</string>
     <string name="error_bdts_format_message">Blu-ray Transport Stream (.m2ts) не вдалося відтворити.\n\nЯкщо всі аудіодоріжки використовують лише TrueHD або DTS-HD MA, оберіть іншу доріжку або перекодуйте файл у MP4/MKV (HandBrake, ffmpeg).</string>
-    <string name="warning_m2ts_audio_unsupported">Аудіодоріжки недоступні в цій збірці: %1$s.\nВідтворення без звуку. Підтримуються: AC-3, E-AC-3, DTS (core), AAC.</string>
+    <string name="warning_m2ts_audio_unsupported">Аудіодоріжки недоступні в цій редакції: %1$s.\nВідтворення без звуку. Підтримуються: AC-3, E-AC-3, DTS (core), AAC.</string>
 
     <!-- Cloud Connection Error Messages -->
     <string name="error_cloud_auth_expired">Не вдається отримати доступ до \"%1$s\" - автентифікація втрачена або сесія завершилась</string>
@@ -204,7 +203,7 @@
     <!-- B2: Generic network error messages for NetworkErrorMessageMapper -->
     <string name="error_network_timeout">З\'єднання вичерпано. Перевірте мережу та повторіть спробу.</string>
     <!-- S1014: shown when a companion/SFTP shared folder cannot be reached on any address. -->
-    <string name="error_companion_connect_guidance">Не вдалося підключитися до спільної теки. У тій самій мережі Wi-Fi, що й ПК, вона підключається сама; з іншої мережі ПК має бути доступним - налаштуйте проброс порту на роутері чи доступ з інтернету в застосунку-компаньйоні.</string>
+    <string name="error_companion_connect_guidance">Не вдалося підключитися до спільної папки. У тій самій мережі Wi-Fi, що й ПК, вона підключається сама; з іншої мережі ПК має бути доступним - налаштуйте проброс порту на роутері чи доступ з інтернету в застосунку-компаньйоні.</string>
     <string name="error_network_access_denied">Доступ заборонено. Перевірте облікові дані.</string>
     <string name="error_network_not_found">Файл або ресурс не знайдено.</string>
     <string name="error_network_connection_lost">З\'єднання відсутнє.</string>
@@ -340,7 +339,7 @@
     <string name="hint_server_path">Шлях на сервері (необов’язково)</string>
     <string name="hint_cloud_folder_id">ID хмарної папки</string>
     <string name="hint_comment">Коментар (необов’язково)</string>
-    <string name="hint_access_pin">PIN-код (4-6 цифр)</string>
+    <string name="hint_access_pin">ПІН-код (4-6 цифр)</string>
     <string name="hint_slideshow_interval">Інтервал слайдшоу (секунди)</string>
     <string name="label_media_types">Типи медіа</string>
     <string name="label_scanning_settings">Умови сканування вмісту</string>
@@ -350,7 +349,7 @@
     <string name="label_additional_options">Додаткові параметри</string>
     <string name="label_statistics">Статистика</string>
     <string name="label_scan_subdirectories">Сканувати підпапки</string>
-    <string name="label_all_files">Режим файлового менеджера (показ та керування всіма файлами)</string>
+    <string name="label_all_files">Режим «Усі файли» (показ та керування всіма файлами)</string>
     <string name="label_disable_thumbnails">Вимкнути мініатюри</string>
     <string name="label_show_hidden_files">Показувати приховані файли</string>
     <string name="label_show_subfolders_as_items">Показувати підпапки як елементи</string>
@@ -393,7 +392,7 @@
     <string name="permissions_required_title">Потрібні дозволи</string>
     <string name="support_images_description">Підтримка статичних зображень</string>
     <string name="supported_image_formats">Підтримується: JPG, PNG, BMP, WEBP</string>
-    <string name="max_recipients">Макс. отримувачів (1-30)</string>
+    <string name="max_recipients">Макс. призначень (1-30)</string>
     <string name="max_recipients_error">Значення повинно бути від 1 до 30</string>
     <string name="load_full_size_images">Завантажувати зображення повністю</string>
     <string name="load_full_size_images_hint">Вмикає жести масштабування та обертання в режимі командної панелі, але використовує більше даних і пам\'яті. За замовчуванням вимк. (завантажується 1920px).</string>
@@ -449,7 +448,7 @@
     <string name="show_command_panel_by_default">Показувати панель команд за замовчуванням</string>
     <string name="show_detailed_errors">Показувати детальні помилки</string>
     <string name="show_player_hint">Показувати підказку сенсорних зон при першому запуску</string>
-    <string name="show_player_hint_description">Відображати оверлей сенсорних зон при першому відкритті програвача</string>
+    <string name="show_player_hint_description">Відображати оверлей сенсорних зон при першому відкритті плеєра</string>
     <string name="always_show_touch_zones_overlay">Завжди показувати сітку сенсорних зон</string>
     <string name="always_show_touch_zones_overlay_description">Відображати напівпрозору сітку сенсорних зон поверх медіа у повноекранному режимі</string>
     <string name="show_hint_now">Показати підказку наступного разу</string>
@@ -463,7 +462,7 @@
     <string name="overwrite_on_move">Перезаписувати при переміщенні</string>
     <string name="add_destination">+ Додати</string>
     <string name="destinations_list_header">Призначення швидкого сортування</string>
-    <string name="add_resources_first_message">Спочатку додайте теки на головному екрані, перш ніж позначати їх для швидкого сортування.</string>
+    <string name="add_resources_first_message">Спочатку додайте ресурси на головному екрані, потім позначте їх для швидкого сортування.</string>
     <string name="register_as_destination">Швидке сортування</string>
 
     <!-- Edit Folder -->
@@ -476,7 +475,7 @@
     <string name="tooltip_allow_separate_window_title">Дозволити нові вікна</string>
     <string name="tooltip_allow_separate_window_message">Коли увімкнено, на екранах огляду та плеєра з’являється дія «Відкрити в новому вікні», що запускає обрану папку або файл в окремому вікні Android. Корисно на пристроях, що підтримують багатовіконний режим (планшети, складні пристрої, ChromeOS, великі дисплеї). Коли вимкнено, дія прихована і все відкривається в поточному вікні.</string>
     <string name="resource_type_local">Локальні</string>
-    <string name="resource_type_smb">Мережева папка SMB</string>
+    <string name="resource_type_smb">Мережева папка (SMB)</string>
     <string name="resource_type_sftp">SFTP</string>
     <string name="resource_type_ftp">FTP</string>
     <string name="resource_type_cloud">Хмара</string>
@@ -490,18 +489,18 @@
     <string name="resource_name_hint">Якщо порожньо - автогенерація</string>
     <string name="access_pin">ПІН-код доступу</string>
     <string name="pin_incorrect">Невірний ПІН-код</string>
-    <string name="scan_subdirectories">З підтеками</string>
-    <string name="show_subfolders_as_items">Показувати підтеки окремо</string>
-    <string name="show_subfolders_as_items_hint">Відображати підтеки як клікабельні елементи. Натисніть для входу в теку.</string>
+    <string name="scan_subdirectories">З підпапками</string>
+    <string name="show_subfolders_as_items">Показувати підпапки окремо</string>
+    <string name="show_subfolders_as_items_hint">Відображати підпапки як клікабельні елементи. Натисніть для входу в папку.</string>
     <string name="disable_thumbnails">Вимкнути мініатюри</string>
     <string name="read_only_mode">Лише читання</string>
     <string name="error_read_only">Цей ресурс доступний тільки для читання</string>
 
     <!-- Empty state -->
     <string name="no_files_found">Тут порожньо. Ми перевірили двічі.</string>
-    <string name="empty_folder">Порожня тека</string>
-    <string name="empty_folder_hint">Тека зовсім порожня - жодного медіафайлу на горизонті.</string>
-    <string name="empty_folder_hint_subdirectories">У кореневій теці немає файлів.\nУвімкніть \"З підтеками\" в налаштуваннях ресурсу для пошуку у вкладених теках.</string>
+    <string name="empty_folder">Порожня папка</string>
+    <string name="empty_folder_hint">Папка зовсім порожня - жодного медіафайлу на горизонті.</string>
+    <string name="empty_folder_hint_subdirectories">У кореневій папці немає файлів.\nУвімкніть \"З підпапками\" в налаштуваннях ресурсу для пошуку у вкладених папках.</string>
     <string name="favorites_empty_title">Немає обраного</string>
     <string name="favorites_empty_hint">Позначте файли зірочкою, щоб зібрати їх тут. Без тиску.</string>
 
@@ -583,10 +582,10 @@
     <string name="tooltip_grid_size_title">Розмір іконок сітки</string>
     <string name="tooltip_grid_size_message">Розмір мініатюр у пікселях для сіткового вигляду. За замовчуванням: 96dp. Діапазон: 32-256dp (крок 8dp).</string>
     <string name="tooltip_destinations_title">Призначення</string>
-    <string name="tooltip_destinations_message">Цілі швидкого сортування для ефективної організації файлів. Максимум 30 призначень. Кожне має номер та колір для легкої ідентифікації.</string>
+    <string name="tooltip_destinations_message">Призначення швидкого сортування для швидкої організації файлів. До 30 призначень. Кожне має свій номер і колір, щоб їх легко розрізняти.</string>
     <string name="tooltip_touch_zones_title">Сенсорні зони</string>
     <string name="hint_touch_zone_3zone" formatted="false">Режим командної панелі\n\nЛіві 20% - Попередній файл\nЦентр 60% - Вибір / Дії\nПраві 20% - Наступний файл\n\nНатисніть будь-де для закриття</string>
-    <string name="hint_touch_zone_media">Режим відтворення медіа\n\nСенсорні зони активні лише у верхній частині.\nНижня частина зарезервована для елементів керування програвача.\n\nНатисніть будь-де для закриття</string>
+    <string name="hint_touch_zone_media">Режим відтворення медіа\n\nСенсорні зони активні лише у верхній частині.\nНижня частина зарезервована для елементів керування плеєра.\n\nНатисніть будь-де для закриття</string>
     <string name="tooltip_touch_zones_message">9 невидимих зон (сітка 3×3) для керування жестами у повноекранному режимі. Комбінації Ліво/Центр/Право та Верх/Середина/Низ викликають різні дії: навігація, операції з файлами, керування панелями.</string>
     <string name="tooltip_safe_mode_title">Безпечний режим</string>
     <string name="tooltip_safe_mode_message">Підтвердження перед деструктивними операціями. При ввімкненні застосунок запитує підтвердження перед видаленням або переміщенням файлів для уникнення випадкової втрати даних.</string>
@@ -622,11 +621,11 @@
     <string name="no_music_source_selected">Джерело музики не вибрано</string>
     <string name="resource_not_found">Ресурс не знайдено</string>
     <string name="error_resource_unavailable">Ресурс \"%1$s\" недоступний. Перевірте підключення або налаштування ресурсу.</string>
-    <string name="error_folder_load_failed">Не вдалося відкрити теку.</string>
-    <string name="error_favorite_status_update_failed">Не вдалося оновити статус вибраного.</string>
-    <string name="error_add_destination_failed">Не вдалося додати цю теку до швидкого сортування.</string>
-    <string name="error_cloud_provider_not_configured">Для цієї теки не налаштовано хмарний сервіс.</string>
-    <string name="error_folder_loading_blocked_by_video_player">Не можна відкрити теку, поки відтворюється відео.\n\nЗараз відеоплеєр використовує мережу з пріоритетом.\n\nЗакрийте плеєр і спробуйте ще раз.</string>
+    <string name="error_folder_load_failed">Не вдалося відкрити папку.</string>
+    <string name="error_favorite_status_update_failed">Не вдалося оновити статус обраного.</string>
+    <string name="error_add_destination_failed">Не вдалося додати цей ресурс до швидкого сортування.</string>
+    <string name="error_cloud_provider_not_configured">Для цієї папки не налаштовано хмарний сервіс.</string>
+    <string name="error_folder_loading_blocked_by_video_player">Не можна відкрити папку, поки відтворюється відео.\n\nЗараз відеоплеєр використовує мережу з пріоритетом.\n\nЗакрийте плеєр і спробуйте ще раз.</string>
     <string name="error_folder_loading_blocked_by_video_player_details">Пріоритет мережі для відеоплеєра допомагає уникнути перевантаження та ривків відтворення.</string>
     <string name="tooltip_slideshow_music_title">Фонова музика слайдшоу</string>
     <string name="tooltip_slideshow_music_message">При увімкненні музичні файли з обраного ресурсу будуть відтворюватися у випадковому порядку під час слайдшоу зображень/GIF. Виберіть ресурс з вашою музичною колекцією.</string>
@@ -639,7 +638,7 @@
 
     <!-- Збереження кадру відео (Save Frame) -->
     <string name="menu_save_frame">Зберегти кадр</string>
-    <string name="select_snapshot_destination">Вибрати ресурс-отримувач</string>
+    <string name="select_snapshot_destination">Вибрати ресурс-призначення</string>
     <string name="tooltip_video_snapshot_title">Призначення для збереження кадру</string>
     <string name="tooltip_video_snapshot_message">Під час натискання «Зберегти кадр» у плеєрі поточний кадр зберігається у вибраному форматі: PNG або JPG. Для JPG використовується якість 85%, щоб зменшити розмір файла. Якщо ресурс-отримувач не вибрано, кадр зберігається в Downloads.\n\nПрацює для будь-якого джерела відео: локального, мережевого (SMB/SFTP/FTP) та хмарного.</string>
     <string name="save_frame_saved_to_resource">Кадр збережено в: %s</string>
@@ -708,16 +707,16 @@
     <string name="search_in_youtube_music_no_app">Програму YouTube Music не знайдено</string>
 
     <!-- Add Resource -->
-    <string name="add_local_folder">Додати локальну теку</string>
-    <string name="local_folder">Локальна тека</string>
-    <string name="add_folders_from_device_storage">Додати теки з пам\'яті пристрою</string>
+    <string name="add_local_folder">Додати локальну папку</string>
+    <string name="local_folder">Локальна папка</string>
+    <string name="add_folders_from_device_storage">Додати папки з пам\'яті пристрою</string>
     <string name="scan_button">СКАНУВАТИ</string>
     <string name="add_manually_button">Додати вручну</string>
     <string name="resources_to_add">Ресурси для додавання:</string>
     <string name="add_to_resources_button">Додати до ресурсів</string>
     <string name="scan_network_button">Сканувати мережу</string>
     <string name="create_network_resource_smb">Створення мережевого ресурсу (SMB)</string>
-    <string name="network_folder">Мережева тека</string>
+    <string name="network_folder">Мережева папка</string>
     <string name="network_folder_description">Додати SMB мережеві ресурси</string>
 
     <!-- Validation Messages -->
@@ -771,7 +770,7 @@
     <string name="onedrive_connection_test_failed">Помилка підключення: %1$s</string>
 
     <string name="no_folders_found">Папки не знайдено. Можливо, вони соромляться.</string>
-    <string name="add_as_destination">Додати до отримувачів</string>
+    <string name="add_as_destination">Додати до призначень</string>
     <string name="folder_icon">Значок папки</string>
     <string name="loading">Завантаження..</string>
     <string name="sorting_in_progress">Сортування..</string>
@@ -881,7 +880,7 @@
     <string name="remove_action">Видалити</string>
     <string name="destination_removed">Призначення видалено: %1$s</string>
     <string name="slide_interval_error">Мінімальний інтервал 5 хвилин</string>
-    <string name="storage_permission_granted_continue">Доступ до сховища надано. Продовжуйте вибирати теку.</string>
+    <string name="storage_permission_granted_continue">Доступ до сховища надано. Продовжуйте вибирати папку.</string>
 
     <!-- File Operations -->
     <string name="msg_copy_started">Копіюємо до %1$s..</string>
@@ -994,7 +993,7 @@
     <string name="enter_name_hint">Введіть ім\'я або фрагмент шляху</string>
 
     <!-- External Player Fallback -->
-    <string name="open_in_external_player">Відкрити у зовнішньому програвачі</string>
+    <string name="open_in_external_player">Відкрити у зовнішньому плеєрі</string>
     <string name="open_with">Відкрити за допомогою</string>
     <!-- S0301 Office viewer fallback dialog (noLegal). Факти, без обіцянок щодо точності. -->
     <string name="office_viewer_fallback_title">Цей документ не можна показати тут</string>
@@ -1007,10 +1006,10 @@
     <string name="no_app_to_open">Немає застосунку для відкриття цього файлу</string>
     <string name="error_opening_file_simple">Не вдалося відкрити файл</string>
     <string name="error_sharing_file">Не вдалося надіслати файл</string>
-    <string name="error_opening_external_player">Не вдалося відкрити зовнішній програвач. Спробуйте ще раз або виберіть інший застосунок.</string>
-    <string name="unsupported_format_network_hint">Для відтворення цього файлу у зовнішньому програвачі спочатку скопіюйте його на локальний ресурс.</string>
-    <string name="unsupported_format_use_external_player">Формат не підтримується. Спробуйте відкрити у зовнішньому програвачі.</string>
-    <string name="unsupported_format_copy_to_local">Формат не підтримується. Скопіюйте файл на локальний ресурс, щоб використовувати зовнішній програвач.</string>
+    <string name="error_opening_external_player">Не вдалося відкрити зовнішній плеєр. Спробуйте ще раз або виберіть інший застосунок.</string>
+    <string name="unsupported_format_network_hint">Для відтворення цього файлу у зовнішньому плеєрі спочатку скопіюйте його на локальний ресурс.</string>
+    <string name="unsupported_format_use_external_player">Формат не підтримується. Спробуйте відкрити у зовнішньому плеєрі.</string>
+    <string name="unsupported_format_copy_to_local">Формат не підтримується. Скопіюйте файл на локальний ресурс, щоб використовувати зовнішній плеєр.</string>
     <string name="heic_not_supported_on_device">Для відображення %1$s потрібен %2$s або новіший.</string>
     <string name="panel_copy_to">Копіювати до..</string>
     <string name="panel_move_to">Перемістити до..</string>
@@ -1039,9 +1038,9 @@
     <string name="toast_failed_to_prepare_file">Не вдалося підготувати файл</string>
     <string name="toast_error_google_lens">Помилка надсилання до Google Lens</string>
     <string name="toast_text_saved">Текст збережено</string>
-    <string name="toast_failed_to_load_destinations">Не вдалося завантажити теки</string>
+    <string name="toast_failed_to_load_destinations">Не вдалося завантажити папки</string>
     <string name="toast_resources_refreshed">Ресурси оновлено</string>
-    <string name="toast_error_loading_destinations">Не вдалося завантажити теки призначення. Спробуйте ще раз.</string>
+    <string name="toast_error_loading_destinations">Не вдалося завантажити папки призначення. Спробуйте ще раз.</string>
     <string name="toast_move_cancelled">Переміщення скасовано</string>
     <string name="toast_copy_cancelled">Копіювання скасовано</string>
     <string name="toast_delete_cancelled">Видалення скасовано</string>
@@ -1095,13 +1094,13 @@
 
     <!-- Folder Selection & Permissions -->
     <string name="continue_limited">Продовжити (Обмежено)</string>
-    <string name="select_folder">Вибрати теку</string>
-    <string name="btn_select_folder_description">Вибрати теку призначення</string>
+    <string name="select_folder">Вибрати папку</string>
+    <string name="btn_select_folder_description">Вибрати папку призначення</string>
     <string name="folder_path_hint">напр. /storage/emulated/0/МояТека</string>
-    <string name="browse_folders">Переглянути теки</string>
-    <string name="folder_not_found">Теку не знайдено</string>
-    <string name="cannot_read_folder">Неможливо прочитати теку - перевірте дозволи</string>
-    <string name="quick_select_common_folders">Швидкий вибір стандартних тек</string>
+    <string name="browse_folders">Переглянути папки</string>
+    <string name="folder_not_found">Папку не знайдено</string>
+    <string name="cannot_read_folder">Неможливо прочитати папку - перевірте дозволи</string>
+    <string name="quick_select_common_folders">Швидкий вибір стандартних папок</string>
     <string name="folder_root">📁 Корінь (/storage/emulated/0)</string>
     <string name="folder_dcim">DCIM</string>
     <string name="folder_pictures">Pictures</string>
@@ -1111,12 +1110,12 @@
     <string name="folder_telegram">Telegram</string>
     <string name="folder_instagram">Instagram</string>
     <string name="or_enter_path_manually">АБО Введіть шлях вручну</string>
-    <string name="folder_path">Шлях до теки</string>
+    <string name="folder_path">Шлях до папки</string>
     <string name="validate_and_select">Перевірити та вибрати</string>
     <string name="or_use_system_picker">АБО Системний файловий менеджер</string>
     <string name="browse_with_system_picker">Переглянути через системний менеджер</string>
-    <string name="current_path">Поточна тека</string>
-    <string name="select_current_folder">Вибрати цю теку</string>
+    <string name="current_path">Поточна папка</string>
+    <string name="select_current_folder">Вибрати цю папку</string>
     <!-- Trash System -->
     <string name="no_files_to_restore">Немає видалених файлів для відновлення</string>
     <string name="failed_to_restore_files">Не вдалося відновити файли</string>
@@ -1131,7 +1130,7 @@
     <string name="tooltip_use_trash_title">Видалення до кошика</string>
     <string name="tooltip_use_trash_message">При ввімкненій опції видалені локальні файли переміщуються до прихованої папки .trash і можуть бути відновлені через Undo. На Android 12+ для деяких спільних папок потрібен доступ MANAGE_MEDIA; без нього кошик може перейти на остаточне видалення. При вимкненій - файли видаляються негайно і місце звільняється одразу. Мережеві та хмарні файли завжди видаляються остаточно.</string>
 
-    <string name="folder_selection_limitations">⚠️ Обмежений доступ до тек\n\nБез дозволу \"Доступ до всіх файлів\" ви можете вибрати лише стандартні теки Android.\n\nЩоб вибрати будь-яку теку на пристрої, будь ласка, надайте дозвіл коли буде запропоновано.</string>
+    <string name="folder_selection_limitations">⚠️ Обмежений доступ до папок\n\nБез дозволу \"Доступ до всіх файлів\" ви можете вибрати лише стандартні папки Android.\n\nЩоб вибрати будь-яку папку на пристрої, будь ласка, надайте дозвіл коли буде запропоновано.</string>
     <!-- Media Settings Categories -->
 
     <!-- General Settings Categories -->
@@ -1188,7 +1187,7 @@
     <string name="dialog_integration_test_chipCloudProviders_text">Хмарні провайдери</string>
     <string name="dialog_integration_test_chipThreeDVr_text">3DVR прогін</string>
     <string name="dialog_integration_test_chipFailedOnly_text">Тільки помилки</string>
-    <string name="dialog_integration_test_chipFavorites_text">Вибране</string>
+    <string name="dialog_integration_test_chipFavorites_text">Обране</string>
     <string name="dialog_integration_test_chipGif_text">GIF</string>
     <string name="dialog_integration_test_chipImage_text">Зображення</string>
     <string name="dialog_integration_test_chipLocal_text">Локальні</string>
@@ -1213,7 +1212,7 @@
     <string name="fragment_settings_images_tilImageSizeMin_hint">Мін (КБ)</string>
     <string name="fragment_settings_video_tilVideoSizeMax_hint">Макс (КБ)</string>
     <string name="fragment_settings_video_tilVideoSizeMin_hint">Мін (КБ)</string>
-    <string name="item_folder_tvFolderName_text">Назва теки</string>
+    <string name="item_folder_tvFolderName_text">Назва папки</string>
     <string name="item_resource_to_add_btnTypeAudio_text">A</string>
     <string name="item_resource_to_add_btnTypeGif_text">G</string>
     <string name="item_resource_to_add_btnTypeImage_text">I</string>
@@ -1366,7 +1365,7 @@
     <string name="replaced_n_occurrences">Замін виконано: %1$d</string>
     <string name="resource_added">Ресурс додано</string>
     <string name="resource_comment">Коментар</string>
-    <string name="resource_pin_code">PIN-код (необов\'язково)</string>
+    <string name="resource_pin_code">ПІН-код (необов\'язково)</string>
     <string name="resource_pin_code_hint">4-6 цифр для захисту цього ресурсу</string>
     <string name="resource_type_icon">Іконка типу ресурсу</string>
     <string name="cd_resource_icon_quick_slideshow">Запустити слайдшоу</string>
@@ -1429,7 +1428,7 @@
     <string name="cb_local_scan_subdirectories_desc">Шукати медіафайли в усіх вкладених підпапках</string>
     <string name="cb_local_add_to_destinations_desc">Позначити цю папку як призначення для швидкого сортування</string>
     <string name="cb_local_read_only_mode_desc">Забороняє операції з файлами (копіювання, переміщення, видалення)</string>
-    <string name="cb_smb_add_to_destinations_desc">Позначити цей ресурс як призначення для швидкого сортування</string>
+    <string name="cb_smb_add_to_destinations_desc">Позначити цю мережеву папку як призначення для швидкого сортування</string>
     <string name="cb_smb_read_only_mode_desc">Забороняє операції з файлами (копіювання, переміщення, видалення)</string>
     <string name="cb_smb_scan_subdirectories_desc">Шукати медіафайли в усіх вкладених підпапках</string>
     <string name="cb_smb_all_files_desc">Показувати всі типи файлів, а не лише медіа</string>
@@ -1476,8 +1475,8 @@
     <!-- Standalone Player File Operations -->
     <string name="confirm_delete_standalone">Видалити «%1$s»?</string>
     <string name="open_in_fms">Відкрити в FastMediaSorter</string>
-    <string name="cd_add_to_favorites">Додати до вибраного</string>
-    <string name="cd_remove_from_favorites">Прибрати з вибраного</string>
+    <string name="cd_add_to_favorites">Додати до обраного</string>
+    <string name="cd_remove_from_favorites">Прибрати з обраного</string>
 
     <!-- Quick Settings Tile -->
     <string name="tile_audio_label">FMS Аудіо</string>
@@ -1584,11 +1583,11 @@
     <string name="action_create_folder">Створити папку</string>
     <string name="action_create_text_file">Створити нотатку</string>
     <string name="action_create_drawing">Створити рисунок</string>
-    <string name="error_text_note_create_failed">Не вдалося створити нотатку тут. Спробуйте іншу теку.</string>
-    <string name="error_drawing_create_failed">Не вдалося створити рисунок тут. Спробуйте іншу теку.</string>
+    <string name="error_text_note_create_failed">Не вдалося створити нотатку тут. Спробуйте іншу папку.</string>
+    <string name="error_drawing_create_failed">Не вдалося створити рисунок тут. Спробуйте іншу папку.</string>
     <string name="menu_automate_source">Автоматизація..</string>
-    <string name="menu_add_receiver">До списку сортування</string>
-    <string name="msg_added_as_receiver">Ресурс додано до списку сортування</string>
+    <string name="menu_add_receiver">До швидкого сортування</string>
+    <string name="msg_added_as_receiver">Ресурс додано до швидкого сортування</string>
     <string name="btn_edit_receiver">Налаштувати</string>
     <string name="create_folder_title">Нова папка</string>
     <string name="create_folder_hint">Ім\'я папки</string>
@@ -1605,24 +1604,24 @@
     <string name="archive_name_hint">Ім\'я архіву (без .zip)</string>
     <string name="archive_name_empty_error">Ім\'я архіву не може бути порожнім</string>
     <string name="archive_name_invalid_chars_error">Ім\'я містить недопустимі символи</string>
-    <string name="archive_destination_label">Тека призначення: %1$s</string>
+    <string name="archive_destination_label">Папка призначення: %1$s</string>
     <string name="archive_action_btn">Архівувати</string>
     <string name="archive_progress_title">Створення архіву..</string>
     <string name="archive_progress_message">%1$d з %2$d: %3$s</string>
     <string name="archive_success">Архів створено: %1$s (%2$d файлів)</string>
     <string name="archive_error">Помилка архівації: %1$s</string>
-    <string name="archive_destination_not_found">Тека призначення більше недоступна.</string>
+    <string name="archive_destination_not_found">Папка призначення більше недоступна.</string>
     <string name="archive_create_failed">Не вдалося створити архів. Спробуйте ще раз.</string>
     <string name="archive_error_network_not_supported">Архівація підтримується лише для локальних файлів. Мережеві та хмарні джерела не підтримуються.</string>
     <string name="unarchive_dialog_title">Розпакувати архів?</string>
-    <string name="unarchive_dialog_message">\"%1$s\" -> тека \"%2$s\"</string>
+    <string name="unarchive_dialog_message">\"%1$s\" -> папка \"%2$s\"</string>
     <string name="unarchive_action_extract">Розпакувати</string>
     <string name="unarchive_progress_title">Розпакування архіву..</string>
     <string name="unarchive_progress_entry">Вилучення: %1$s</string>
     <string name="unarchive_success">Архів розпаковано</string>
     <string name="unarchive_error_zip_bomb">Архів занадто великий або занадто глибокий</string>
     <string name="unarchive_error_no_space">Недостатньо місця</string>
-    <string name="unarchive_error_create_dir">Не вдалося створити теку розпакування</string>
+    <string name="unarchive_error_create_dir">Не вдалося створити папку розпакування</string>
     <string name="unarchive_error_generic">Помилка розпакування: %1$s</string>
     <string name="unarchive_network_not_supported">Розпакування підтримується лише для локальних ресурсів і SD-карти.</string>
     <string name="unarchive_only_zip_supported">Підтримуються лише ZIP-архіви.</string>
@@ -1643,12 +1642,12 @@
     <!-- Wear OS sync -->
     <string name="wear_companion">Wear-супутник</string>
     <string name="tooltip_wear_companion_title">Wear-супутник</string>
-    <string name="tooltip_wear_companion_message">Надішліть свої мережеві ресурси (SMB, FTP, хмара) на спарений годинник Wear OS, щоб переглядати та відтворювати їх просто із зап\'ястя. Натисніть кнопку, щоб вибрати, які типи медіа синхронізувати, і налаштувати відтворення на годиннику.</string>
-    <string name="wear_sync_description">Передайте мережеві джерела на підключений годинник Wear OS.</string>
+    <string name="tooltip_wear_companion_message">Надішліть свої мережеві ресурси (SMB, FTP, SFTP) на спарений годинник Wear OS, щоб переглядати та відтворювати їх просто із зап\'ястя. Натисніть кнопку, щоб вибрати, які типи медіа синхронізувати, і налаштувати відтворення на годиннику.</string>
+    <string name="wear_sync_description">Передайте мережеві ресурси на підключений годинник Wear OS.</string>
     <string name="wear_push_to_watch">Надіслати на годинник</string>
     <string name="wear_sync_ready">Готово до синхронізації</string>
     <string name="wear_sync_sending">Надсилання на годинник..</string>
-    <string name="wear_sync_success">Надіслано %d джерел на годинник</string>
+    <string name="wear_sync_success">Ресурсів надіслано на годинник: %d</string>
     <string name="wear_sync_failed">Не вдалося синхронізувати дані з годинником. Спробуйте ще раз.</string>
     <string name="wear_settings_audio">Аудіо</string>
     <string name="wear_settings_video">Відео</string>
@@ -1659,8 +1658,8 @@
     <string name="wear_push_settings_failed">Не вдалося надіслати налаштування на годинник. Спробуйте ще раз.</string>
 
     <!-- Import from Watch strings (S0111 Phase 03) -->
-    <string name="wear_import_pending_title">Отримано джерела годинника</string>
-    <string name="wear_import_pending_desc">%1$d джерел від %2$s</string>
+    <string name="wear_import_pending_title">Отримано ресурси з годинника</string>
+    <string name="wear_import_pending_desc">Ресурси (%1$d) від %2$s</string>
     <string name="wear_import_accept">Імпортувати</string>
     <string name="wear_import_dismiss">Відхилити</string>
     <!-- Now Playing on Watch strings (S0111 Phase 05) -->
@@ -1757,7 +1756,7 @@
 
     <!-- S0082: банер першого запуску на Chrome OS -->
     <string name="chromeos_banner_title">Запуск на Chrome OS</string>
-    <string name="chromeos_banner_body">Доступ до тек - через системний діалог. Cast і вібрація можуть бути недоступні.</string>
+    <string name="chromeos_banner_body">Доступ до папок - через системний діалог. Cast і вібрація можуть бути недоступні.</string>
     <string name="chromeos_banner_action">Зрозуміло</string>
     <string name="chromeos_banner_shown_pref_key">chromeos_banner_shown</string>
 
@@ -1783,7 +1782,7 @@
     <string name="s0116_toast_saved_to_downloads">Збережено у Завантаження: %1$s</string>
     <string name="s0116_toast_drm_blocked">Захищений контент - завантаження неможливе</string>
     <string name="s0116_toast_mux_failed">Не вдалося зібрати MP4 (codec: %1$s)</string>
-    <string name="s0116_toast_streaming_disabled">Трансляції недоступні у цій збірці</string>
+    <string name="s0116_toast_streaming_disabled">Трансляції недоступні в цій редакції</string>
     <string name="s0116_toast_auth_required">Потрібен вхід для %1$s - відкрийте налаштування</string>
 
     <!-- S0151: Instagram/Threads social preview-only UX strings -->
@@ -1844,7 +1843,7 @@
     <string name="receive_share_no_content">Не отримано контенту для імпорту</string>
     <string name="receive_share_cache_failed">Не вдалося підготувати спільний файл. Спробуйте ще раз.</string>
     <string name="link_download_error_ytmusic_audio_only">Не вдалося зберегти аудіодоріжку з YouTube Music. Посилання не повернуло відтворюваний аудіофайл.</string>
-    <string name="receive_share_copy_to_folder_failed">Не вдалося зберегти спільний файл у цю теку. Спробуйте ще раз.</string>
+    <string name="receive_share_copy_to_folder_failed">Не вдалося зберегти спільний файл у цю папку. Спробуйте ще раз.</string>
     <string name="favorites_slideshow_open_first">Спочатку відкрийте Обране, а потім запустіть там слайд-шоу.</string>
     <string name="google_sign_in_cancelled">Вхід через Google скасовано</string>
 
@@ -1868,7 +1867,7 @@
     <string name="rotation_toggle_sensor_on_desc">Поворот екрана: розблоковано</string>
     <string name="rotation_toggle_sensor_off_desc">Поворот екрана: заблоковано</string>
     <string name="link_download_notif_text_preview_only_signed_in">Не вдалося отримати вміст сторінки. Вхід в акаунт не потрібен.</string>
-    <string name="error_reason_local_destination_permission_denied">Не вдалося зберегти - Android не дозволяє запис у цю теку. Спробуйте зберегти в Music, Movies, Pictures або Downloads.</string>
+    <string name="error_reason_local_destination_permission_denied">Не вдалося зберегти - Android не дозволяє запис у цю папку. Спробуйте зберегти в Music, Movies, Pictures або Downloads.</string>
     <string name="s0266_apk_download_preparing">Готується встановлення..</string>
     <string name="s0281_google_oauth_only_note">Не вдалося скачати з YouTube. Вхід у Google тут не зберігається..</string>
     <string name="browse_transfer_progress_background">У фон</string>
@@ -2006,19 +2005,19 @@
     <string name="s0413_audio_queue_unplayable">Не вдалося відтворити жоден файл.</string>
     <string name="settings_remote_sources_title">Віддалені ресурси (SMB/(S)FTP/Хмара)</string>
     <string name="settings_remote_source_smb_title">Локальна мережа (Ethernet) SMB</string>
-    <string name="settings_remote_source_smb_subtitle">Спільні теки в домашній мережі або на NAS</string>
+    <string name="settings_remote_source_smb_subtitle">Спільні папки в домашній мережі або на NAS</string>
     <string name="settings_remote_source_smb_help_title">Джерела SMB</string>
-    <string name="settings_remote_source_smb_help_message">Доступ до спільних тек у локальній мережі - наприклад, домашній NAS, комп\'ютер із Windows та увімкненим спільним доступом, роутер із USB-накопичувачем або інший пристрій із підтримкою SMB.</string>
+    <string name="settings_remote_source_smb_help_message">Доступ до спільних папок у локальній мережі - наприклад, домашній NAS, комп\'ютер із Windows та увімкненим спільним доступом, роутер із USB-накопичувачем або інший пристрій із підтримкою SMB.</string>
     <string name="settings_remote_source_ftp_title">Комп\'ютер в інтернеті (S)FTP</string>
-    <string name="settings_remote_source_ftp_subtitle">Теки на сервері через FTP та SFTP</string>
+    <string name="settings_remote_source_ftp_subtitle">Папки на сервері через FTP та SFTP</string>
     <string name="settings_remote_source_ftp_help_title">Джерела (S)FTP</string>
-    <string name="settings_remote_source_ftp_help_message">Доступ до тек на сервері через FTP або SFTP - наприклад, домашній сервер, NAS, вебхостинг або роутер із підтримкою (S)FTP.</string>
+    <string name="settings_remote_source_ftp_help_message">Доступ до папок на сервері через FTP або SFTP - наприклад, домашній сервер, NAS, вебхостинг або роутер із підтримкою (S)FTP.</string>
     <string name="settings_remote_source_cloud_title">У хмарних ресурсах</string>
     <string name="settings_remote_source_cloud_subtitle">Google Drive, OneDrive, Dropbox</string>
     <string name="settings_remote_source_cloud_help_title">Хмарні джерела</string>
-    <string name="settings_remote_source_cloud_help_message">Доступ до файлів у хмарних сховищах - Google Drive, OneDrive та Dropbox. Підключіть обліковий запис, щоб відкривати свої теки безпосередньо в застосунку.</string>
-    <string name="settings_remote_source_disable_confirm_title">Сховати ці теки?</string>
-    <string name="settings_remote_source_disable_confirm_message">Теки цього джерела буде сховано, а не видалено. Збережені ресурси залишаться й з\'являться знову, коли ви увімкнете джерело.</string>
+    <string name="settings_remote_source_cloud_help_message">Доступ до файлів у хмарних сховищах - Google Drive, OneDrive та Dropbox. Підключіть обліковий запис, щоб відкривати свої папки безпосередньо в застосунку.</string>
+    <string name="settings_remote_source_disable_confirm_title">Сховати ці папки?</string>
+    <string name="settings_remote_source_disable_confirm_message">Папки цього джерела буде сховано, а не видалено. Збережені ресурси залишаться й з\'являться знову, коли ви увімкнете джерело.</string>
     <string name="screenshot_accessibility_service_description">Дозволяє FastMediaSorter робити знімки екрана краєвим жестом і зберігати їх без діалогу на кожен знімок. Це стосується лише знімків - відеозапис екрана окремий і на початку кожного запису запитує дозвіл Android.</string>
     <string name="screenshot_accessibility_permission_rationale">Щоб робити знімки краєвим жестом, увімкніть службу доступності FastMediaSorter:\n\n1. Натисніть «Відкрити налаштування» та увімкніть FastMediaSorter у списку доступності.\n2. Якщо показано Controlled by restricted setting або App was denied access: відкрийте цей застосунок у «Про застосунок», натисніть меню (3 крапки), виберіть Allow restricted settings, підтвердьте та поверніться, щоб увімкнути.\n\nНе вдається ввімкнути? Натисніть «Старий спосіб» - версія, що запитує дозвіл на кожен знімок.</string>
     <string name="screen_capture_rate_limited">Занадто частий знімок, спробуйте ще раз</string>
@@ -2090,7 +2089,7 @@
     <string name="settings_statistics_open">Статистика</string>
     <string name="statistics_card_sorted">Відсортовано (копіюв. + перемещ.)</string>
     <string name="statistics_card_freed">Звільнено</string>
-    <string name="statistics_card_player_time">Час у програвачі</string>
+    <string name="statistics_card_player_time">Час у плеєрі</string>
     <string name="statistics_distribution_title">За типами</string>
     <string name="statistics_distribution_value_format">%1$d%% (%2$s)</string>
     <string name="statistics_category_operations">Операції</string>
@@ -2250,7 +2249,7 @@
     <string name="stream_access_geo">🌐 Регіон</string>
     <string name="stream_access_geo_desc">Можливо, обмежений регіоном - може не відтворюватися у вашому регіоні</string>
     <string name="programs">Програми</string>
-    <string name="error_scan_timeout">Тека завантажується надто довго. Перевірте мережу та повторіть спробу.</string>
+    <string name="error_scan_timeout">Папка завантажується надто довго. Перевірте мережу та повторіть спробу.</string>
     <string name="cast_stream_unsupported_protocol">Цю трансляцію не можна транслювати на Chromecast</string>
     <string name="screenshot_gesture_action_open_app">Запустити вибрану програму</string>
     <string name="streams_shortcut_channel_missing">Цієї трансляції більше немає в списку</string>
@@ -2268,7 +2267,7 @@
     <string name="app_picker_title">Виберіть програму</string>
     <string name="app_launch_panel_title">Швидкий запуск</string>
     <string name="app_launch_panel_edit_action">Змінити</string>
-    <string name="screenshot_gesture_action_open_panel">Відкрити панель програм</string>
+    <string name="screenshot_gesture_action_open_panel">Відкрити панель швидкого доступу</string>
     <string name="statistics_metric_files_renamed">Перейменовано</string>
     <string name="statistics_metric_favorites_added">Додано до обраного</string>
     <string name="statistics_metric_favorites_removed">Прибрано з обраного</string>
@@ -2286,7 +2285,7 @@
     <string name="app_launch_panel_route_calculator">Калькулятор</string>
     <string name="app_launch_panel_route_game">Міні-гра</string>
     <string name="app_launch_panel_route_streams">Трансляції</string>
-    <string name="app_launch_panel_route_favorites">Вибране</string>
+    <string name="app_launch_panel_route_favorites">Обране</string>
     <string name="app_launch_panel_os_settings">Налаштування</string>
     <string name="app_launch_panel_os_wifi">Wi-Fi</string>
     <string name="app_launch_panel_os_bluetooth">Bluetooth</string>
@@ -2310,7 +2309,7 @@
     <string name="app_launch_panel_reset">Скидання панелі</string>
     <string name="app_launch_panel_reset_confirm_title">Скинути панель?</string>
     <string name="app_launch_panel_reset_confirm_message">Панель повернеться до типового набору програм і ярликів, як після встановлення.</string>
-    <string name="app_launch_panel_settings_edit_button">Редакція панелі програм</string>
+    <string name="app_launch_panel_settings_edit_button">Змінити панель швидкого доступу</string>
     <string name="streams_edit">Змінити</string>
     <string name="streams_send_link">Надіслати посилання</string>
     <string name="streams_share_chooser_title">Поділитися посиланням на трансляцію</string>
@@ -2356,7 +2355,7 @@
     <string name="camera_geotag_permission_denied">Для геотегування потрібен дозвіл на геолокацію</string>
     <string name="setting_show_programs_panel_title">Панель програм</string>
     <string name="setting_show_programs_panel_summary">Дублювати меню програм горизонтальною смугою над списком ресурсів. Приховує кнопку «три крапки».</string>
-    <string name="setting_show_streams_panel_title">Показувати панель трансляцій у головному вікні</string>
+    <string name="setting_show_streams_panel_title">Показувати панель трансляцій на головному екрані</string>
     <string name="setting_show_streams_panel_summary">Показувати закріплені канали горизонтальною смугою над списком ресурсів, із переходом до трансляцій.</string>
     <string name="panel_remove_title">Прибрати з панелі?</string>
     <string name="panel_remove_program_message">%1$s буде прихований. Увімкнути знову можна в налаштуваннях.</string>
@@ -2423,7 +2422,7 @@
     <string name="remove_resource">Видалити ресурс</string>
     <string name="recording_pause">Призупинити запис</string>
     <string name="recording_resume">Продовжити запис</string>
-    <string name="settings_category_main_window_interface">Інтерфейс головного вікна</string>
+    <string name="settings_category_main_window_interface">Інтерфейс головного екрана</string>
     <string name="streams_move_up">Вгору</string>
     <string name="streams_move_down">Вниз</string>
     <string name="streams_move_to_top">На самий верх</string>
@@ -2464,7 +2463,7 @@
     <string name="resource_import_from_file">Імпорт із файлу</string>
     <string name="resource_import_from_barcode">Імпорт за штрих-кодом</string>
     <string name="resource_import_section_title">Імпорт готової конфігурації</string>
-    <string name="companion_publish_folders_guide">Як опублікувати теки ПК для Android</string>
+    <string name="companion_publish_folders_guide">Як опублікувати папки ПК для Android</string>
     <string name="setting_edge_gesture_config_button">Налаштувати жести</string>
     <string name="edge_gesture_config_dialog_title">Крайові жести</string>
     <string name="edge_gesture_tab_left_top">Ліворуч зверху</string>
@@ -2495,7 +2494,7 @@
     <string name="gesture_action_explain_share">Робить знімок екрана та відкриває системне меню «Поділитися».</string>
     <string name="gesture_action_explain_crop_and_share">Робить знімок екрана, дає змогу обрізати його та ділиться результатом.</string>
     <string name="gesture_action_explain_open_app">Відкриває програму, вибрану для цього жесту. Якщо програму не вибрано, відкриває FastMediaSorter.</string>
-    <string name="gesture_action_explain_open_panel">Відкриває панель швидкого запуску застосунків.</string>
+    <string name="gesture_action_explain_open_panel">Відкриває панель швидкого доступу.</string>
     <string name="gesture_action_explain_launch_camera">Відкриває вбудовану камеру.</string>
     <string name="gesture_action_explain_take_photo">Робить фото вбудованою камерою та зберігає його.</string>
     <string name="gesture_action_explain_take_photo_send_to">Робить фото та надсилає його вибраним отримувачам.</string>
@@ -2575,7 +2574,7 @@
     <string name="launcher_taskbar_start">Пуск</string>
     <string name="launcher_menu_open_app">Відкрити FastMediaSorter</string>
     <string name="launcher_menu_resources">Мої ресурси</string>
-    <string name="launcher_menu_all_apps">Усі програми</string>
+    <string name="launcher_menu_all_apps">Усі застосунки</string>
     <string name="launcher_menu_android_settings">Налаштування Android</string>
     <string name="launcher_menu_app_settings">Налаштування програми</string>
     <string name="launcher_menu_exit_mode">Вийти з режиму лаунчера</string>
@@ -2612,9 +2611,9 @@
     <string name="launcher_edit_kind_resource">Мій ресурс</string>
     <string name="launcher_edit_kind_stream">Трансляція</string>
     <string name="launcher_edit_kind_os">Налаштування Android</string>
-    <string name="launcher_edit_kind_gadget">Віджет</string>
+    <string name="launcher_edit_kind_gadget">Ґаджет</string>
     <string name="launcher_edit_pick_stream_title">Виберіть трансляцію</string>
-    <string name="launcher_edit_pick_gadget_title">Виберіть віджет</string>
+    <string name="launcher_edit_pick_gadget_title">Виберіть ґаджет</string>
     <string name="launcher_edit_remove_cell_named">Прибрати %1$s з робочого столу</string>
     <string name="launcher_edit_mode_browse">Перегляд</string>
     <string name="launcher_edit_mode_slideshow">Слайд-шоу</string>
@@ -2748,8 +2747,8 @@
     <string name="pdf_text_selection_word_not_found">Не вдалося знайти це слово - виділіть вручну</string>
     <string name="launcher_settings_replace_status_area_title">Приховувати системний рядок стану</string>
     <string name="launcher_gadget_favorites_empty">В обраному поки порожньо. Натисніть, щоб відкрити.</string>
-    <string name="launcher_gadget_scheduled_empty">Запланованих завдань поки немає. Натисніть, щоб створити.</string>
-    <string name="settings_add_launcher_widget">Додати віджет на робочий стіл лаунчера</string>
+    <string name="launcher_gadget_scheduled_empty">Операцій за розкладом поки немає. Натисніть, щоб створити.</string>
+    <string name="settings_add_launcher_widget">Додати ґаджет на робочий стіл лаунчера</string>
     <string name="launcher_widget_placed">Додано на робочий стіл лаунчера</string>
     <string name="launcher_widget_no_room">На робочому столі лаунчера немає місця. Звільніть його та спробуйте ще раз.</string>
     <string name="launcher_contact_no_app">На цьому пристрої нічим виконати цю дію з контактом.</string>
@@ -2783,7 +2782,7 @@
     <string name="removable_volume_button_label">%1$s - вільно %2$s</string>
     <string name="removable_volume_button_description">Знімний носій %1$s, вільно %2$s. Відкриває цей том.</string>
     <string name="removable_volume_access_request">Щоб читати %1$s, виберіть цей том у системному діалозі - застосунок отримає доступ лише до вибраної папки.</string>
-    <string name="launcher_edit_resize_hint_drag">Потягніть за цей ріг, щоб змінити розмір віджета.</string>
+    <string name="launcher_edit_resize_hint_drag">Потягніть за цей ріг, щоб змінити розмір ґаджета.</string>
     <string name="launcher_edit_kind_action">Дія лаунчера</string>
     <string name="launcher_settings_reset_title">Скидання налаштувань лаунчера</string>
     <string name="launcher_settings_reset_message">Налаштування системного лаунчера буде скинуто до значень за умовчанням. Робочий стіл, закріплені значки та шпалери повернуться до вигляду, який був одразу після встановлення. Інші дані застосунку не зачіпаються.</string>
@@ -2945,7 +2944,7 @@
     <string name="launcher_signal_transfer">Передавання файлів</string>
     <string name="launcher_signal_scheduled_ops">Триває завдання за розкладом</string>
     <string name="launcher_signal_duplicate_scan">Пошук дублікатів</string>
-    <string name="launcher_signal_network_sync">Синхронізація мережевих тек</string>
+    <string name="launcher_signal_network_sync">Синхронізація мережевих папок</string>
     <string name="launcher_signal_overflow_from">%1$d+</string>
     <string name="launcher_signal_list_title">Активні сигнали</string>
     <string name="launcher_settings_group_taskbar">Панель задач</string>
@@ -3024,8 +3023,8 @@
     <string name="streams_unavailable_offline_title">Немає мережі</string>
     <string name="streams_unavailable_offline_message">«%1$s» зупинився - на пристрої немає мережі. Перевірте підключення та спробуйте ще раз.</string>
     <string name="launcher_settings_top_status_strip_title">Верхній рядок стану</string>
-    <string name="launcher_settings_top_status_strip_summary">Годинник із секундами переходить у лівий край верхньої смуги, показники пристрою - у правий, а панель «Пуск» звільняється під більшу кількість нещодавніх застосунків.</string>
-    <string name="launcher_settings_tray_moved_hint">Поки режим увімкнено, показники живуть на верхній смузі. Вимкніть його, щоб повернути їх до панелі «Пуск».</string>
+    <string name="launcher_settings_top_status_strip_summary">Годинник із секундами переходить у лівий край верхньої смуги, показники пристрою - у правий, а панель задач звільняється під більшу кількість нещодавніх застосунків.</string>
+    <string name="launcher_settings_tray_moved_hint">Поки режим увімкнено, показники живуть на верхній смузі. Вимкніть його, щоб повернути їх на панель задач.</string>
     <string name="gesture_slot_app_label">Програма для запуску</string>
     <string name="gesture_slot_app_none">Не вибрано - натисніть, щоб вибрати</string>
     <string name="gesture_slot_app_reset">Очистити вибір</string>
@@ -3233,14 +3232,14 @@
     <string name="launcher_settings_foreign_notifications_summary_no_access">Очікує доступу до сповіщень. Надайте його на системному екрані, і значки стануть видимі.</string>
     <string name="launcher_settings_foreign_notifications_summary_on">Працює. Смуга показує значок і число сповіщень; текст сповіщень не читається.</string>
     <string name="launcher_settings_foreign_notifications_grant">Надати доступ до сповіщень</string>
-    <string name="launcher_settings_show_recents_subtitle">Показувати значки нещодавно відкритих програм на панелі завдань</string>
-    <string name="launcher_settings_show_pinned_subtitle">Показувати закріплені ярлики програм на панелі завдань</string>
-    <string name="launcher_settings_show_tray_subtitle">Показувати годинник та індикатори пристрою на панелі завдань</string>
+    <string name="launcher_settings_show_recents_subtitle">Показувати значки нещодавно відкритих застосунків на панелі задач</string>
+    <string name="launcher_settings_show_pinned_subtitle">Показувати закріплені ярлики застосунків на панелі задач</string>
+    <string name="launcher_settings_show_tray_subtitle">Показувати годинник та індикатори пристрою на панелі задач</string>
     <string name="launcher_settings_tray_clock_subtitle">Відображати поточний час у треї статусу</string>
     <string name="launcher_settings_tray_network_subtitle">Відображати значок підключення Wi-Fi або мобільної мережі</string>
     <string name="launcher_settings_tray_battery_subtitle">Відображати рівень заряду та індикатор живлення</string>
     <string name="launcher_settings_replace_status_area_subtitle">Приховувати верхній рядок стану Android на робочому столі для звільнення місця</string>
-    <string name="launcher_settings_lock_desktop_subtitle">Заборонити переміщення, додавання та видалення значків і віджетів на робочому столі</string>
+    <string name="launcher_settings_lock_desktop_subtitle">Заборонити переміщення, додавання та видалення значків і ґаджетів на робочому столі</string>
     <string name="launcher_section_main">Головне</string>
     <string name="launcher_now_playing_artwork">Обкладинка альбому</string>
     <string name="launcher_gadget_translator">Перекладач</string>
@@ -3252,9 +3251,9 @@
     <string name="launcher_translator_unavailable">Ця пара мов недоступна без мережі.</string>
     <string name="launcher_translator_attribution">Переклад Google</string>
     <string name="launcher_translator_direction">%1$s на %2$s</string>
-    <string name="launcher_section_widgets">Віджети</string>
+    <string name="launcher_section_widgets">Ґаджети</string>
     <string name="launcher_section_resources">Ресурси</string>
-    <string name="launcher_section_android_apps">Програми</string>
+    <string name="launcher_section_android_apps">Застосунки</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">Прозорість підкладки віджетів</string>
     <string name="launcher_settings_widget_backdrop_alpha_0">0% (Прозоро)</string>
     <string name="launcher_settings_widget_backdrop_alpha_25">25% (За замовчуванням)</string>
@@ -3275,7 +3274,7 @@
     <string name="launcher_gadget_media_document_open">Натисніть, щоб відкрити у читалці</string>
     <string name="launcher_edit_streams_loading">Завантаження трансляцій..</string>
     <string name="launcher_tray_indicator_action">%1$s. Натисніть, щоб відкрити відповідний розділ налаштувань Android</string>
-    <string name="launcher_home_cell_too_wide">Віджет ширший за сітку робочого столу. Поверніть екран або виберіть вужчий віджет.</string>
+    <string name="launcher_home_cell_too_wide">Ґаджет ширший за сітку робочого столу. Поверніть екран або виберіть вужчий ґаджет.</string>
     <string name="launcher_section_create">Створити розділ..</string>
     <string name="launcher_section_name_title">Назва розділу</string>
     <string name="launcher_section_name_hint">Наприклад: Робота</string>
@@ -3299,7 +3298,7 @@
     <string name="wear_resource_selection_title">Ресурси для годинника</string>
     <string name="wear_resource_selection_hint">На годинник можна надіслати лише мережеві ресурси (SMB, FTP, SFTP), тому в списку лише вони. Позначте ті, які потрібно надіслати.</string>
     <string name="wear_resource_selection_select_all">Вибрати всі</string>
-    <string name="wear_resource_selection_empty">Мережевих ресурсів поки немає. На годинник можна надіслати лише SMB, FTP і SFTP - додайте такий ресурс на екрані ресурсів і поверніться сюди, щоб вибрати, що отримає годинник.</string>
+    <string name="wear_resource_selection_empty">Мережевих ресурсів поки немає. На годинник можна надіслати лише SMB, FTP і SFTP - додайте такий ресурс на головному екрані й поверніться сюди, щоб вибрати, що отримає годинник.</string>
     <string name="wear_sync_nothing_selected">На годинник поки не позначено жодного ресурсу. Відкрийте «Ресурси для годинника» та позначте ті, які потрібно надіслати.</string>
     <string name="wear_settings_view_mode">Вигляд головного екрана та ресурсів</string>
     <string name="wear_settings_view_mode_list">Список</string>
@@ -3490,7 +3489,7 @@
     <string name="wear_settings_documents_desc">Перегляд та синхронізація документів на годиннику</string>
     <string name="launcher_home_gadget_failed">%1$s не запустився. Решта робочого столу доступна.</string>
     <string name="launcher_settings_tray_speed_title">Швидкість передачі</string>
-    <string name="launcher_settings_tray_speed_subtitle">Показує загальну швидкість прийому та передачі в панелі завдань; оновлюється раз на секунду при увімкненні.</string>
+    <string name="launcher_settings_tray_speed_subtitle">Показує загальну швидкість прийому та передачі на панелі задач; оновлюється раз на секунду при увімкненні.</string>
     <string name="launcher_tray_bluetooth_connected">Bluetooth, %1$d підкл.</string>
     <string name="launcher_tray_sim_data_type">SIM %1$d, сигнал %2$d з 4, %3$s</string>
     <string name="launcher_tray_sim_roaming">SIM %1$d, сигнал %2$d з 4, роумінг</string>
@@ -3617,11 +3616,11 @@
     <string name="exif_orientation_mirror_rotate_90">Віддзеркалено та повернуто на 90° за годинниковою стрілкою</string>
     <string name="exif_orientation_rotate_270">Повернуто на 270° за годинниковою стрілкою</string>
     <string name="exif_orientation_unknown">Невідомо (%1$d)</string>
-    <string name="storage_reach_limited_browse">У цій теці доступні лише фото, відео та звук. Щоб побачити документи, додайте теку знову й виберіть її у системному вікні.</string>
+    <string name="storage_reach_limited_browse">У цій папці доступні лише фото, відео та звук. Щоб побачити документи, додайте папку знову й виберіть її у системному вікні.</string>
     <string name="file_count_reach_limited">%1$s - лише фото, відео та звук</string>
     <string name="reach_limited_nothing_readable">Документи не читаються</string>
-    <string name="storage_reach_limited_virtual">Документи та інші файли на цьому пристрої застосунку не видно. Щоб відкрити їх, додайте потрібну теку через системне вікно вибору.</string>
-    <string name="storage_reach_limited_browse_reconnect">У цій теці доступні лише фото, відео та звук. Щоб побачити документи, відкрийте меню з трьома крапками в рядку теки на головному екрані та виберіть «Перепідключити ресурс».</string>
+    <string name="storage_reach_limited_virtual">Документи та інші файли на цьому пристрої застосунку не видно. Щоб відкрити їх, додайте потрібну папку через системне вікно вибору.</string>
+    <string name="storage_reach_limited_browse_reconnect">У цій папці доступні лише фото, відео та звук. Щоб побачити документи, відкрийте меню з трьома крапками в рядку папки на головному екрані та виберіть «Перепідключити ресурс».</string>
     <string name="wear_settings_group_media_types">Типи медіа</string>
     <string name="wear_settings_group_slideshow">Слайд-шоу</string>
     <string name="wear_settings_group_screen">Екран</string>
@@ -3687,7 +3686,7 @@
     <string name="mirror_video_button">Записати відео</string>
     <string name="mirror_zoom_button">Збільшення %1$sx</string>
     <string name="mirror_no_front_camera">На цьому пристрої немає фронтальної камери, тому дзеркало не відкриється</string>
-    <string name="launcher_settings_screen_timeout_subtitle_no_lock">Гасить екран до чорного під час простою на робочому столі. Ця збірка не може блокувати пристрій.</string>
+    <string name="launcher_settings_screen_timeout_subtitle_no_lock">Гасить екран до чорного під час простою на робочому столі. Ця редакція не може блокувати пристрій.</string>
     <string name="launcher_settings_tray_tethering_title">Роздача Wi-Fi</string>
     <string name="launcher_settings_tray_tethering_subtitle">Показувати стан роздачі в треї</string>
     <string name="launcher_tray_tethering_on">Роздача Wi-Fi увімкнена</string>
@@ -3757,7 +3756,7 @@
     <string name="widget_none_available">Немає доступних віджетів. Спочатку увімкніть програму в налаштуваннях.</string>
     <string name="mirror_capture_error_file">Не вдалося підготувати файл для зйомки</string>
     <string name="mirror_capture_error_camera">Камера не змогла завершити зйомку</string>
-    <string name="mirror_capture_error_save">Зйомка вийшла, але не збереглася в теку</string>
+    <string name="mirror_capture_error_save">Зйомка вийшла, але не збереглася в папку</string>
     <string name="streams_logo_prompt_title">Логотипи станцій</string>
     <string name="broadcast_notification_title">Мовлення звуку</string>
     <string name="broadcast_notification_text">Пряме мовлення звуку активне</string>
@@ -3898,7 +3897,7 @@
     <string name="launcher_youtube_channel_window_stop">Зупинити відтворення</string>
     <string name="launcher_youtube_channel_window_open">Відкрити канал</string>
     <string name="settings_streams_visualize_as_music">Візуалізувати аудіотрансляції як музику</string>
-    <string name="settings_streams_visualize_as_music_summary">Натискання на радіостанцію відкриває повноекранний програвач із візуалізацією замість нижньої міні-панелі.</string>
+    <string name="settings_streams_visualize_as_music_summary">Натискання на радіостанцію відкриває повноекранний плеєр із візуалізацією замість нижньої міні-панелі.</string>
     <string name="translation_unavailable_device_licence">Переклад не ліцензовано для цього типу пристроїв</string>
     <string name="broadcast_entry_title">Мовлення</string>
     <string name="broadcast_entry_start">Почати мовлення</string>
@@ -3914,7 +3913,7 @@
     <string name="wear_companion_summary_off">Вимк</string>
     <string name="wear_companion_summary_slideshow_on">Увімк, кожні %1$d с</string>
     <string name="wear_listen_record_saved">Запис збережено</string>
-    <string name="wear_listen_record_saved_fallback">Запис збережено в локальну теку</string>
+    <string name="wear_listen_record_saved_fallback">Запис збережено в локальну папку</string>
     <string name="wear_listen_record_failed">Не вдалося зберегти запис</string>
     <string name="watch_listen_label">Слухати годинник</string>
     <string name="watch_listen_record_label">Запис з годинника</string>
@@ -3926,7 +3925,7 @@
     <string name="watch_listen_state_waiting">Чекаємо на годинник</string>
     <string name="watch_listen_state_listening">Слухаємо</string>
     <string name="watch_listen_state_recording">Записуємо</string>
-    <string name="wear_sync_removed">Видалено %d джерел з годинника</string>
+    <string name="wear_sync_removed">Ресурсів видалено з годинника: %d</string>
     <string name="wear_sync_settings_no_ack">Годинник не підтвердив отримання налаштувань. Можливо, він вимкнений або поза зоною зв\'язку.</string>
     <string name="tourist_info_title">Турист</string>
     <string name="tourist_info_panel_desc">Панель навігації та телеметрії в реальному часі</string>
@@ -4007,8 +4006,8 @@
     <string name="broadcast_control_blank_screen">Затемнити екран</string>
     <string name="broadcast_control_blank_screen_cd">Закрити застосунок чорним екраном, не зупиняючи мовлення</string>
     <string name="broadcast_share_save_failed">Не вдалося зберегти файл</string>
-    <string name="launcher_settings_taskbar_rows_title">Рядків панелі «Пуск»</string>
-    <string name="launcher_settings_taskbar_rows_subtitle">Вища панель показує більше останніх програм, а індикатори трея стають один над одним</string>
+    <string name="launcher_settings_taskbar_rows_title">Рядків панелі задач</string>
+    <string name="launcher_settings_taskbar_rows_subtitle">Вища панель задач показує більше нещодавніх застосунків, а індикатори трея стають один над одним</string>
     <string name="tourist_unit_mph">миль/год</string>
     <string name="tourist_unit_feet">фт</string>
     <string name="tourist_unit_miles">миль</string>
@@ -4041,10 +4040,10 @@
     <string name="launcher_primary_window_home_desc">Застосунок стає домашнім екраном пристрою</string>
     <string name="launcher_primary_window_desktop_title">Робочий стіл як основне вікно</string>
     <string name="launcher_primary_window_desktop_desc">Відкривати робочий стіл усередині програми, не змінюючи домашній екран пристрою</string>
-    <string name="launcher_primary_window_resource_manager_title">Менеджер ресурсів</string>
+    <string name="launcher_primary_window_resource_manager_title">Головний екран</string>
     <string name="launcher_primary_window_resource_manager_desc">Відкривати керування файлами та ресурсами напряму</string>
     <string name="setting_launcher_primary_window_title">Основне стартове вікно</string>
-    <string name="setting_launcher_primary_window_desc">Вибір режиму: домашній екран пристрою, робочий стіл усередині програми або Менеджер ресурсів</string>
+    <string name="setting_launcher_primary_window_desc">Вибір режиму: домашній екран пристрою, робочий стіл усередині застосунку або головний екран</string>
     <string name="broadcast_default_stream_title">Мовлення з телефона</string>
     <string name="broadcast_share_help">Як це дивитися</string>
     <string name="sos_title">Аварійний сигнал SOS</string>
@@ -4061,10 +4060,10 @@
     <string name="sos_help_message">Повторює сигнал SOS за Морзе: гучна сирена на каналі будильника, задній спалах і мигтючий екран. Можна вибрати звук, світло або і те й інше. Запуск тут вмикає сигнал і на парному годиннику, а зупинка на будь-якому пристрої гасить обидва. Через 30 хвилин сигнал вимикається сам, щоб зберегти батарею та спалах.</string>
     <string name="tourist_action_sos">Сигнал SOS</string>
     <string name="data_transfer_row_title">Імпорт та експорт даних</string>
-    <string name="data_transfer_row_subtitle">Налаштування, вибране, закріплені трансляції та ресурси - у файл або в Google Drive</string>
+    <string name="data_transfer_row_subtitle">Налаштування, обране, закріплені трансляції та ресурси - у файл або в Google Drive</string>
     <string name="data_transfer_dialog_title">Імпорт та експорт даних</string>
     <string name="data_transfer_kind_settings">Налаштування</string>
-    <string name="data_transfer_kind_favorites">Вибране</string>
+    <string name="data_transfer_kind_favorites">Обране</string>
     <string name="data_transfer_kind_streams">Закріплені трансляції</string>
     <string name="data_transfer_kind_resources">Ресурси</string>
     <string name="data_transfer_direction_export">Вивантажити</string>
@@ -4088,7 +4087,7 @@
     <string name="launcher_settings_screen_timeout_on_charge_title">Таймаут екрана під час заряджання</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">Гасить екран у разі неактивності, доки підключено зарядку</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Таймаут екрана під час заряджання</string>
-    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Гасить екран у разі неактивності, доки підключено зарядку. Ця збірка не може блокувати пристрій.</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Гасить екран у разі неактивності, доки підключено зарядку. Ця редакція не може блокувати пристрій.</string>
     <string name="settings_watch_camera_standby">Дозволити годиннику бачити мою камеру</string>
     <string name="settings_watch_camera_standby_summary">Вмикає камеру одразу, щоб парний годинник міг відкрити зображення пізніше, поки телефон лежить у кишені</string>
     <string name="settings_watch_camera_standby_failed">Не вдалося увімкнути камеру для годинника</string>
@@ -4097,4 +4096,30 @@
     <string name="broadcast_control_feedback_warning">Звук приглушено: динамік слухача потрапляє в мікрофон. Віднесіть пристрій далі або зменште його гучність.</string>
     <string name="broadcast_control_feedback_warning_cd">Виявлено акустичну петлю, посилення мікрофона знижено</string>
     <string name="wear_watch_transfer_unconfirmed">Годинник не підтвердив збереження %1$s, тому оригінал залишився на телефоні.</string>
+    <string name="filedo_operations_title">Операції шифрування FileDO</string>
+    <string name="filedo_operations_summary">Показувати «Зашифрувати FileDO» та «Розшифрувати FileDO» у меню операцій кожного файлу</string>
+    <string name="filedo_encrypt">Зашифрувати FileDO</string>
+    <string name="filedo_decrypt">Розшифрувати FileDO</string>
+    <string name="filedo_password_title_encrypt">Пароль контейнера</string>
+    <string name="filedo_password_title_decrypt">Пароль контейнера</string>
+    <string name="filedo_password_hint">Пароль</string>
+    <string name="filedo_password_repeat_hint">Повторіть пароль</string>
+    <string name="filedo_password_mismatch">Паролі не збігаються</string>
+    <string name="filedo_password_empty_warning">Порожній пароль не дає жодної секретності. Файл лише схований від побіжного погляду, і будь-хто, хто знає формат, відкриє його.</string>
+    <string name="filedo_no_recovery_warning">Забутий пароль відновити неможливо.</string>
+    <string name="filedo_outcome_wrong_credential">Не вдалося відкрити файл: невірний пароль, файл ніколи не був контейнером, або його підмінили. Ці три випадки розрізнити неможливо.</string>
+    <string name="filedo_outcome_damaged">Контейнер пошкоджено: він обрізаний або його вміст не збігається із запечатаним.</string>
+    <string name="filedo_outcome_unsupported">Цей контейнер використовує версію формату, яку застосунок не читає.</string>
+    <string name="filedo_outcome_failed">Операція не завершилася: %1$s</string>
+    <string name="filedo_encrypted_ok">Контейнер записано. Оригінал не змінено.</string>
+    <string name="filedo_decrypted_ok">Файл відновлено.</string>
+    <string name="filedo_open_refused_executable">У контейнері програма або скрипт. Він не відкривається.</string>
+    <string name="filedo_password_remember">Запам\'ятати пароль і пробувати його для всіх файлів .fd-sec</string>
+    <string name="filedo_remembered_password_forgotten">Збережений пароль не відкрив цей файл і забутий. Введіть пароль для цього файлу.</string>
+    <string name="stream_access_restricted">🔒 Обмежений</string>
+    <string name="stream_access_restricted_desc">Можливо, обмежений доступ - може не відтворюватися у вашому середовищі або регіоні</string>
+    <string name="stream_info_access_restricted">Обмежений</string>
+    <string name="sftp_host_key_presented_format">Відбиток ключа сервера:\n%1$s</string>
+    <string name="sftp_pin_host_key">Закріпити ключ</string>
+    <string name="sftp_host_key_pinned_toast">Відбиток ключа сервера закріплено</string>
 </resources>

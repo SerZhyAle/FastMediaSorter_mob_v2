@@ -67,9 +67,9 @@ class SendToBottomSheet : BaseAppBottomSheet() {
     override val contentLayout: Int = R.layout.sheet_send_to
     override val requestKey: String = REQUEST_KEY
 
-    override fun bindContent(sheetContent: View) {
-        _binding = SheetSendToBinding.bind(sheetContent)
-        val currentContent = content
+    override fun bindContent(content: View) {
+        _binding = SheetSendToBinding.bind(content)
+        val currentContent = this.content
         val currentSettings = settings
         if (currentContent == null || currentSettings == null) {
             Timber.i("SendToBottomSheet: content or settings missing, dismissing")

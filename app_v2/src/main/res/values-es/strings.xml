@@ -82,7 +82,6 @@
     <string name="renamed_n_files">Se renombraron %1$d archivos.</string>
     <string name="rename_failed_generic">No se pudo renombrar ese archivo.</string>
     <string name="rename_file_name_empty">El nombre del archivo no puede estar vacío.</string>
-    <string name="error_delete">No se pudieron eliminar los archivos</string>
     <string name="error_all_operations_failed">No se completó nada.</string>
     <string name="all_copy_operations_failed">No se pudieron copiar los archivos seleccionados.\n\n%1$s</string>
     <string name="all_move_operations_failed">No se pudieron mover los archivos seleccionados.\n\n%1$s</string>
@@ -1408,7 +1407,7 @@
     <string name="files_scanned_count">%1$d archivos escaneados</string>
     <string name="wear_companion">Complemento para Wear</string>
     <string name="tooltip_wear_companion_title">Complemento para Wear</string>
-    <string name="tooltip_wear_companion_message">Envía tus recursos de red (SMB, FTP, nube) a un reloj Wear OS emparejado para poder explorarlos y reproducirlos directamente desde la muñeca. Toca el botón para elegir qué tipos de medios se sincronizan y ajustar la reproducción en el reloj.</string>
+    <string name="tooltip_wear_companion_message">Envía tus recursos de red (SMB, FTP, SFTP) a un reloj Wear OS emparejado para poder explorarlos y reproducirlos directamente desde la muñeca. Toca el botón para elegir qué tipos de medios se sincronizan y ajustar la reproducción en el reloj.</string>
     <string name="wear_sync_description">Envía los recursos de red a tu reloj Wear OS conectado.</string>
     <string name="wear_push_to_watch">Enviar al reloj</string>
     <string name="wear_sync_ready">Listo para sincronizar</string>
@@ -3673,4 +3672,24 @@
     <string name="broadcast_control_feedback_warning">Sonido reducido: el altavoz de un oyente se está acoplando al micrófono. Aleje el dispositivo receptor o baje su volumen.</string>
     <string name="broadcast_control_feedback_warning_cd">Acoplamiento acústico detectado, se redujo la ganancia del micrófono</string>
     <string name="wear_watch_transfer_unconfirmed">El reloj no confirmó que guardó %1$s, así que el original se conservó en el teléfono.</string>
+    <string name="filedo_operations_title">Operaciones de cifrado FileDO</string>
+    <string name="filedo_operations_summary">Mostrar «Cifrar con FileDO» y «Descifrar con FileDO» en el menú de operaciones de cada archivo</string>
+    <string name="filedo_encrypt">Cifrar con FileDO</string>
+    <string name="filedo_decrypt">Descifrar con FileDO</string>
+    <string name="filedo_password_title_encrypt">Contraseña para el contenedor</string>
+    <string name="filedo_password_title_decrypt">Contraseña del contenedor</string>
+    <string name="filedo_password_hint">Contraseña</string>
+    <string name="filedo_password_repeat_hint">Repite la contraseña</string>
+    <string name="filedo_password_mismatch">Las dos contraseñas no coinciden</string>
+    <string name="filedo_password_empty_warning">Una contraseña vacía no da ningún secreto. El archivo solo queda oculto a una mirada casual y cualquiera que conozca el formato puede abrirlo.</string>
+    <string name="filedo_no_recovery_warning">No hay forma de recuperar una contraseña olvidada.</string>
+    <string name="filedo_outcome_wrong_credential">No se pudo abrir el archivo: la contraseña es incorrecta, el archivo nunca fue un contenedor o ha sido manipulado. Estos tres casos no se pueden distinguir.</string>
+    <string name="filedo_outcome_damaged">El contenedor está dañado: está truncado o su contenido no coincide con lo que sella.</string>
+    <string name="filedo_outcome_unsupported">Este contenedor usa una versión de formato que esta aplicación no lee.</string>
+    <string name="filedo_outcome_failed">La operación no terminó: %1$s</string>
+    <string name="filedo_encrypted_ok">Contenedor escrito. El original no se ha tocado.</string>
+    <string name="filedo_decrypted_ok">Archivo restaurado.</string>
+    <string name="filedo_open_refused_executable">Este contenedor guarda un programa o un script. No se abre.</string>
+    <string name="filedo_password_remember">Recordar la contraseña y probarla en cada archivo .fd-sec</string>
+    <string name="filedo_remembered_password_forgotten">La contraseña guardada no abrió este archivo y se ha olvidado. Introduce la contraseña de este archivo.</string>
 </resources>

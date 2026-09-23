@@ -22,7 +22,7 @@ permalink: /docs/howto/index-uk.html
 - <img src="../icons/doc/ic_profile_car_head_unit.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«У мене Android-магнітола в машині, хочу слухати свою музику»_ → [Музика в автомобілі](scenario-car-music-uk.md)
 - <img src="../icons/doc/ic_display.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу FastMedia на смарт-годиннику й не знаю, з чого почати»_ → [Встановити FastMedia на годинник](wear-install-uk.md) • [Веб-портал Wear OS](../wear/index-uk.md)
 - <img src="../icons/doc/ic_audio.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу слухати свою музику або треки з телефона на смарт-годиннику»_ → [Музика на смарт-годиннику](scenario-watch-music-uk.md)
-- <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу підключити смарт-годинник напряму до спільної теки ПК або NAS»_ → [Підключення годинника до мережевих ресурсів](scenario-watch-network-uk.md)
+- <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу підключити смарт-годинник напряму до спільної папки ПК або NAS»_ → [Підключення годинника до мережевих ресурсів](scenario-watch-network-uk.md)
 - <img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу дивитися телеканали на смарт-годиннику»_ → [Телевізор на смарт-годиннику](scenario-watch-tv-uk.md)
 - <img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу слухати інтернет-радіо на Android-магнітолі або плеєрі»_ → [Інтернет-радіо і Трансляції](scenario-internet-radio-uk.md)
 - <img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Мені надіслали посилання на мовлення, і я хочу його відкрити»_ → [Як дивитися мовлення](watch-broadcast-uk.md)
@@ -32,7 +32,7 @@ permalink: /docs/howto/index-uk.html
 - <img src="../icons/doc/ic_vr_headset.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу дивитися SBS 3D-фільми на телефоні або повністю зануритися на Quest»_ → [Іммерсивний кінотеатр OpenXR VR](../HOW_TO-uk.md#іммерсивний-кінотеатр-openxr-vr)
 - <img src="../icons/doc/ic_calculator.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу швидко обчислювати математичні формули прямо з тексту документів або фото»_ → [Швидкі обчислення з тексту та OCR](../HOW_TO-uk.md#швидкі-обчислення-з-тексту-та-ocr)
 - <img src="../icons/doc/ic_edit_20.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу створювати та редагувати нотатки Markdown прямо на хмарі або мережевому диску»_ → [Хмарні нотатки Markdown та код](../HOW_TO-uk.md#хмарні-нотатки-markdown-та-код)
-- <img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу, щоб старий планшет показував мої теки, годинник і погоду замість сітки піктограм»_ → [Застосунок замість домашнього екрана](scenario-launcher-mode-uk.md) • [Веб-портал Лаунчера](../launcher/index-uk.md)
+- <img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> _«Хочу, щоб старий планшет показував мої папки, годинник і погоду замість сітки піктограм»_ → [Застосунок замість домашнього екрана](scenario-launcher-mode-uk.md) • [Веб-портал Лаунчера](../launcher/index-uk.md)
 
 ---
 
@@ -57,7 +57,7 @@ permalink: /docs/howto/index-uk.html
 | [<img src="../icons/doc/ic_vr_headset.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Іммерсивний кінотеатр OpenXR VR](../HOW_TO-uk.md#іммерсивний-кінотеатр-openxr-vr) | Single-eye 3D для SBS/OU/180°/360° у звичайному плеєрі на будь-якій версії; повне занурення на Quest (збірка noLegal) | ~10 хв | Будь-яка (плоске 3D) / noLegal (занурення) |
 | [<img src="../icons/doc/ic_calculator.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Швидкі обчислення з тексту та OCR](../HOW_TO-uk.md#швидкі-обчислення-з-тексту-та-ocr) | Виділяйте формулы та числа в PDF або результатах розпізнавання тексту для швидкого розрахунку | ~5 хв | Standard / Legacy / VR / noLegal |
 | [<img src="../icons/doc/ic_edit_20.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Хмарні нотатки Markdown та код](../HOW_TO-uk.md#хмарні-нотатки-markdown-та-код) | Створюйте та редагуйте текстові нотатки та файли коду прямо на мережевих і хмарних дисках | ~10 хв | Standard / Legacy / VR / noLegal |
-| [<img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Застосунок замість домашнього екрана](scenario-launcher-mode-uk.md) | Домашній екран замінюється робочим столом із вашими теками, годинником, погодою, застосунками та панеллю задач | ~10 хв | Standard / noLegal |
+| [<img src="../icons/doc/ic_launcher_mode.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Застосунок замість домашнього екрана](scenario-launcher-mode-uk.md) | Домашній екран замінюється робочим столом із вашими папками, годинником, погодою, застосунками та панеллю задач | ~10 хв | Standard / noLegal |
 
 ---
 

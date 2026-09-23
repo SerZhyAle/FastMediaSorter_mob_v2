@@ -52,11 +52,8 @@ class LiveContactDataSource @Inject constructor(
     private val cache = ConcurrentHashMap<String, CachedContact>()
 
     /** Null when the address book cannot answer for this key - see the class KDoc. */
-    suspend fun read(lookupKey: String): LiveContactDetails? {
-        val details = if (lookupKey.isBlank() || !isGranted()) null else cached(lookupKey).details
-        val photo = details?.photoUri != null
-        return details
-    }
+    suspend fun read(lookupKey: String): LiveContactDetails? =
+        if (lookupKey.isBlank() || !isGranted()) null else cached(lookupKey).details
 
     /**
      * Emits once on collection and again whenever the address book changes.

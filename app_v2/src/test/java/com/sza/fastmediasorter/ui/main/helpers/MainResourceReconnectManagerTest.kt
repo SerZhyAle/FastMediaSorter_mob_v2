@@ -6,7 +6,6 @@ import android.os.Looper
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.testing.createMediaResource
 import org.junit.Assert.assertEquals

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface SettingsRepository {
     fun getSettings(): Flow<AppSettings>
     suspend fun updateSettings(settings: AppSettings)
+
     /**
      * S0876: serialized read-modify-write. All callers competing for the same window (e.g. the
      * Welcome enable-all fan-out's concurrent deliverable-install writers) must go through this
@@ -26,8 +27,10 @@ interface SettingsRepository {
     suspend fun setResourceGridMode(isGridMode: Boolean)
     suspend fun updateEmbeddedGameEnabled(enabled: Boolean)
     suspend fun updateScheduledOperationsPaused(paused: Boolean)
+
     /** S0473: persists the opt-in statistics flag (also surfaced in [getSettings]). */
     suspend fun setStatisticsEnabled(enabled: Boolean)
+
     /** S3256: persists the dim clock overlay toggle. */
     suspend fun updateDimClockOverlayEnabled(enabled: Boolean)
     suspend fun isTouchZoneHintShown(type: TouchZoneHintType): Boolean

@@ -243,7 +243,6 @@
     <ID>CyclomaticComplexMethod:ResourceFormViewModel.kt$ResourceFormViewModel$fun onFieldChanged(fieldKey: ResourceFieldKey, value: Any?)</ID>
     <ID>CyclomaticComplexMethod:ResourceOpsMenuManager.kt$ResourceOpsMenuManager$fun showMenu( anchor: android.view.View, viewModel: BrowseViewModel, isScheduleEnabled: Boolean = false, onAutomateSource: (() -&gt; Unit)? = null, onAddToDestinations: (() -&gt; Unit)? = null, onArchive: (() -&gt; Unit)? = null, isDestinationsFull: Boolean = false, onCameraCapture: (() -&gt; Unit)? = null, isCameraVisible: Boolean = false, // S0371: record-video command, gated independently of the camera-photo command. onVideoCapture: (() -&gt; Unit)? = null, isVideoVisible: Boolean = false, // S0184: multi-window entry point, controlled by user setting + device capability default. allowSeparateWindow: Boolean = false, openBrowseInNewWindow: ((Long) -&gt; Unit)? = null, // S0096: black screen for audio - shown only for audio-only libraries isAudioOnly: Boolean = false, onBlackScreenClicked: (() -&gt; Unit)? = null, // S0374: adaptive overflow - top-bar commands that did not fit are surfaced here. isOverflowed: (Int) -&gt; Boolean = { false }, callbacks: BrowseButtonSetupHelper.ButtonCallbacks? = null, onSortClicked: (() -&gt; Unit)? = null )</ID>
     <ID>CyclomaticComplexMethod:ResourceRepositoryImpl.kt$ResourceRepositoryImpl$override suspend fun getFilteredResources( filterByType: Set&lt;ResourceType&gt;?, filterByMediaType: Set&lt;MediaType&gt;?, filterByName: String?, sortMode: SortMode ): List&lt;MediaResource&gt;</ID>
-    <ID>CyclomaticComplexMethod:RestoreDeletedUseCase.kt$RestoreDeletedUseCase$suspend operator fun invoke(currentPath: String): Result&lt;Int&gt;</ID>
     <ID>CyclomaticComplexMethod:SafUriExtractor.kt$SafUriExtractor$fun extractImageInfo(uriPath: String): DetailedMediaInfo</ID>
     <ID>CyclomaticComplexMethod:ScanLocalFoldersUseCase.kt$ScanLocalFoldersUseCase$suspend operator fun invoke(): Result&lt;List&lt;MediaResource&gt;&gt;</ID>
     <ID>CyclomaticComplexMethod:ScheduledOperationDialog.kt$ScheduledOperationDialog$private fun trySave()</ID>
@@ -3666,7 +3665,6 @@
     <ID>SwallowedException:PlayerMediaLoaderManager.kt$PlayerMediaLoaderManager$e: TimeoutCancellationException</ID>
     <ID>SwallowedException:PlayerSettingsManager.kt$PlayerSettingsManager$e: Exception</ID>
     <ID>SwallowedException:RecognitionBackend.kt$RecognitionBackend$e: DeliveredNativeLibraryIncompatibleException</ID>
-    <ID>SwallowedException:RestoreDeletedUseCase.kt$RestoreDeletedUseCase$e: Exception</ID>
     <ID>SwallowedException:RetryPolicyTest.kt$RetryPolicyTest$e: NetworkAccessDeniedException</ID>
     <ID>SwallowedException:RetryPolicyTest.kt$RetryPolicyTest$e: NetworkException</ID>
     <ID>SwallowedException:RetryPolicyTest.kt$RetryPolicyTest$e: NetworkTimeoutException</ID>
@@ -4076,7 +4074,6 @@
     <ID>TooGenericExceptionCaught:ResourceNavigationCoordinator.kt$ResourceNavigationCoordinator$e: Exception</ID>
     <ID>TooGenericExceptionCaught:ResourceOrderManager.kt$ResourceOrderManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:ResourceScanCoordinator.kt$ResourceScanCoordinator$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:RestoreDeletedUseCase.kt$RestoreDeletedUseCase$e: Exception</ID>
     <ID>TooGenericExceptionCaught:RestoreFromGoogleDriveUseCase.kt$RestoreFromGoogleDriveUseCase$e: Exception</ID>
     <ID>TooGenericExceptionCaught:RetryPolicy.kt$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:ReviewRequestManager.kt$ReviewRequestManager$e: Exception</ID>
@@ -4323,8 +4320,6 @@
     <ID>UnusedPrivateMember:NetworkFileManager.kt$NetworkFileManager$private suspend fun copyContentUriToTemp(mediaFile: MediaFile): File</ID>
     <ID>UnusedPrivateMember:PlayerActivity.kt$PlayerActivity$private fun performCopyOperation(destination: MediaResource)</ID>
     <ID>UnusedPrivateMember:PlayerActivity.kt$PlayerActivity$private fun performMoveOperation(destination: MediaResource)</ID>
-    <ID>UnusedPrivateMember:RestoreDeletedUseCase.kt$RestoreDeletedUseCase$private suspend fun deleteDirectory(dirPath: String, strategy: Any): Result&lt;Unit&gt;</ID>
-    <ID>UnusedPrivateMember:RestoreDeletedUseCase.kt$RestoreDeletedUseCase$private suspend fun readMetadata(metadataPath: String, strategy: Any): TrashMetadata?</ID>
     <ID>UnusedPrivateMember:SmbConnectionManager.kt$SmbConnectionManager$private fun getNormalClient()</ID>
     <ID>UnusedPrivateMember:SmbFileOperationHandler.kt$SmbFileOperationHandler$private suspend fun copySmbToSmb(sourcePath: String, destPath: String): SmbResult&lt;String&gt;</ID>
     <ID>UnusedPrivateMember:SmbFileOperationHandler.kt$SmbFileOperationHandler$private suspend fun deleteFromSmb(smbPath: String): SmbResult&lt;Unit&gt;</ID>

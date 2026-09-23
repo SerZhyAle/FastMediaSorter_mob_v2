@@ -97,7 +97,6 @@ class SettingsManifestExportTest {
         return entries
     }
 
-
     // Mirrors LocalizedKeywordCollector title precedence: title res, inline title, hint res, inline hint.
     private fun resolveTitle(raw: RawSettingsSearchEntry, res: Resources): String {
         raw.titleResId?.let { return safeString(res, it) }
@@ -141,7 +140,10 @@ class SettingsManifestExportTest {
     fun `transient permission-prompt buttons are not indexed`() {
         val keys = buildManifest().map { it.key }.toSet()
         assertFalse("btnNotificationPermission must be de-indexed (S0604)", "btnNotificationPermission" in keys)
-        assertFalse("btnScheduledNotificationPermission must be de-indexed (S0604)", "btnScheduledNotificationPermission" in keys)
+        assertFalse(
+            "btnScheduledNotificationPermission must be de-indexed (S0604)",
+            "btnScheduledNotificationPermission" in keys
+        )
     }
 
     @Test

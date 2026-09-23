@@ -82,7 +82,6 @@
     <string name="renamed_n_files">%1$d fichiers renommés.</string>
     <string name="rename_failed_generic">Impossible de renommer ce fichier.</string>
     <string name="rename_file_name_empty">Le nom du fichier ne peut pas être vide.</string>
-    <string name="error_delete">Impossible de supprimer les fichiers</string>
     <string name="error_all_operations_failed">Aucune opération n\'a abouti.</string>
     <string name="all_copy_operations_failed">Impossible de copier les fichiers sélectionnés.\n\n%1$s</string>
     <string name="all_move_operations_failed">Impossible de déplacer les fichiers sélectionnés.\n\n%1$s</string>
@@ -1408,7 +1407,7 @@
     <string name="files_scanned_count">%1$d fichiers scannés</string>
     <string name="wear_companion">Compagnon Wear</string>
     <string name="tooltip_wear_companion_title">Compagnon Wear</string>
-    <string name="tooltip_wear_companion_message">Envoyez vos ressources réseau (SMB, FTP, cloud) vers une montre Wear OS associée afin de les parcourir et de les lire directement depuis votre poignet. Appuyez sur le bouton pour choisir les types de médias à synchroniser et régler les paramètres de lecture de la montre.</string>
+    <string name="tooltip_wear_companion_message">Envoyez vos ressources réseau (SMB, FTP, SFTP) vers une montre Wear OS associée afin de les parcourir et de les lire directement depuis votre poignet. Appuyez sur le bouton pour choisir les types de médias à synchroniser et régler les paramètres de lecture de la montre.</string>
     <string name="wear_sync_description">Envoyez les sources réseau vers votre montre Wear OS associée.</string>
     <string name="wear_push_to_watch">Envoyer vers la montre</string>
     <string name="wear_sync_ready">Prêt à synchroniser</string>
@@ -3674,4 +3673,24 @@
     <string name="broadcast_control_feedback_warning">Son baissé : le haut-parleur d\'un auditeur revient dans le micro. Éloignez l\'appareil d\'écoute ou baissez son volume.</string>
     <string name="broadcast_control_feedback_warning_cd">Effet Larsen détecté, le gain du micro a été baissé</string>
     <string name="wear_watch_transfer_unconfirmed">La montre n\'a pas confirmé l\'enregistrement de %1$s, donc l\'original est resté sur le téléphone.</string>
+    <string name="filedo_operations_title">Opérations de chiffrement FileDO</string>
+    <string name="filedo_operations_summary">Afficher « Chiffrer avec FileDO » et « Déchiffrer avec FileDO » dans le menu des opérations de chaque fichier</string>
+    <string name="filedo_encrypt">Chiffrer avec FileDO</string>
+    <string name="filedo_decrypt">Déchiffrer avec FileDO</string>
+    <string name="filedo_password_title_encrypt">Mot de passe pour le conteneur</string>
+    <string name="filedo_password_title_decrypt">Mot de passe du conteneur</string>
+    <string name="filedo_password_hint">Mot de passe</string>
+    <string name="filedo_password_repeat_hint">Répétez le mot de passe</string>
+    <string name="filedo_password_mismatch">Les deux mots de passe diffèrent</string>
+    <string name="filedo_password_empty_warning">Un mot de passe vide n\'apporte aucun secret. Le fichier est seulement caché d\'un regard rapide, et quiconque connaît le format peut l\'ouvrir.</string>
+    <string name="filedo_no_recovery_warning">Un mot de passe oublié ne peut pas être récupéré.</string>
+    <string name="filedo_outcome_wrong_credential">Impossible d\'ouvrir le fichier : le mot de passe est incorrect, le fichier n\'a jamais été un conteneur ou il a été altéré. Ces trois cas ne peuvent pas être distingués.</string>
+    <string name="filedo_outcome_damaged">Le conteneur est endommagé : il est tronqué ou son contenu ne correspond pas à ce qu\'il scelle.</string>
+    <string name="filedo_outcome_unsupported">Ce conteneur utilise une version de format que cette application ne lit pas.</string>
+    <string name="filedo_outcome_failed">L\'opération n\'a pas abouti : %1$s</string>
+    <string name="filedo_encrypted_ok">Conteneur écrit. L\'original est intact.</string>
+    <string name="filedo_decrypted_ok">Fichier restauré.</string>
+    <string name="filedo_open_refused_executable">Ce conteneur renferme un programme ou un script. Il n\'est pas ouvert.</string>
+    <string name="filedo_password_remember">Mémoriser le mot de passe et l\'essayer sur chaque fichier .fd-sec</string>
+    <string name="filedo_remembered_password_forgotten">Le mot de passe enregistré n\'a pas ouvert ce fichier et a été oublié. Saisissez le mot de passe de ce fichier.</string>
 </resources>

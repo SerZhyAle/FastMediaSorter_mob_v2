@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S2601: the interface-language row - its picker, the restart handshake, and the split download a

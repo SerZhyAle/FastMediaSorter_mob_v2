@@ -158,7 +158,10 @@ class PlayerImageTranslationManager(
                             binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
                             safeViews.btnTranslationFontDecrease?.visibility = View.GONE
                             safeViews.btnTranslationFontIncrease?.visibility = View.GONE
-                            activity.showError(activity.getString(R.string.translation_no_text_found))
+                            // The rule 10 refusal already told the user why and what to change.
+                            if (!activity.translationManager.lastBlocksRefusedForLanguage) {
+                                activity.showError(activity.getString(R.string.translation_no_text_found))
+                            }
                         },
                         onError = { message ->
                             activity.loadingIndicatorCoordinator.hide(LoadingSource.TRANSLATION)

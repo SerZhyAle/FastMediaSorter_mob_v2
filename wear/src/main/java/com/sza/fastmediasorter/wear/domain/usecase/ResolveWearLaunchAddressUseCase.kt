@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.wear.domain.model.findByTargetRef
 import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
+import dagger.Lazy
 import javax.inject.Inject
 
 /**
@@ -29,7 +30,11 @@ import javax.inject.Inject
  * removed; the navigation branch maps the address it gets back.
  */
 class ResolveWearLaunchAddressUseCase @Inject constructor(
-    private val networkSourceRepository: NetworkSourceRepository,
+    // S3368: Lazy, so the network-source repository (the SMB/FTP/SFTP stacks and the encrypted-prefs
+    // store behind it) is not constructed during this use case's own construction - which happens on
+    // every cold start, since MainActivity injects this field. Only a tile that names a resource
+    // reaches [resolveResource], the one reader.
+    private val networkSourceRepository: Lazy<NetworkSourceRepository>,
     private val streamChannelRepository: WearStreamChannelRepository,
     private val prepareWearStreamPlayback: PrepareWearStreamPlaybackUseCase,
     private val prepareWearFilePlayback: PrepareWearFilePlaybackUseCase,
@@ -119,7 +124,8 @@ class ResolveWearLaunchAddressUseCase @Inject constructor(
 
     /** The overview screen re-reads the store from its id, so the address survives a cold start as is. */
     private suspend fun resolveResource(ref: WearTileTargetRef.Resource): WearLaunchAddress? =
-        networkSourceRepository.getAllSources()
+        networkSourceRepository.get()
+            .getAllSources()
             .findByTargetRef(ref)
             ?.let { WearLaunchAddress.SourceOverview(it.id, it.name) }
 

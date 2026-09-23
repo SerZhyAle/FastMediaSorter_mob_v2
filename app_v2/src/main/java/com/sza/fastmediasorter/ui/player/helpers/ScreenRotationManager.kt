@@ -56,16 +56,7 @@ class ScreenRotationManager {
             return
         }
 
-        val orientation = when {
-            // ADR-5: use UNSPECIFIED instead of reading ACCELEROMETER_ROTATION.
-            // UNSPECIFIED hands full control to the OS, which correctly honours the
-            // system auto-rotate setting on all devices (including Samsung One UI where
-            // ACCELEROMETER_ROTATION may stay 1 even when rotation is locked in Quick
-            // Settings). Also reacts to runtime OS setting changes without an onResume.
-            followSystem -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            sensorEnabled -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
-            else -> ActivityInfo.SCREEN_ORIENTATION_LOCKED
-        }
+        val orientation = orientationFor(followSystem, sensorEnabled)
 
         Timber.d(
             "ScreenRotationManager: apply followSystem=$followSystem " +
@@ -91,4 +82,21 @@ class ScreenRotationManager {
      * rotation must not drive fullscreen/command-panel switching.
      */
     fun followsDevice(): Boolean = currentFollowSystem || currentSensorEnabled
+
+    companion object {
+        /**
+         * The player's orientation for its two rotation settings. Shared with the dim screen, which
+         * takes the player's policy over whatever host raised it (S3369).
+         */
+        fun orientationFor(followSystem: Boolean, sensorEnabled: Boolean): Int = when {
+            // ADR-5: use UNSPECIFIED instead of reading ACCELEROMETER_ROTATION.
+            // UNSPECIFIED hands full control to the OS, which correctly honours the
+            // system auto-rotate setting on all devices (including Samsung One UI where
+            // ACCELEROMETER_ROTATION may stay 1 even when rotation is locked in Quick
+            // Settings). Also reacts to runtime OS setting changes without an onResume.
+            followSystem -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            sensorEnabled -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
+            else -> ActivityInfo.SCREEN_ORIENTATION_LOCKED
+        }
+    }
 }

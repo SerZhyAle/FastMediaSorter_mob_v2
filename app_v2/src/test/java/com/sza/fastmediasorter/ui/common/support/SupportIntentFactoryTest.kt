@@ -163,8 +163,12 @@ class SupportIntentFactoryTest {
         assertEquals("application/zip", intent.type)
         val recipients = intent.getStringArrayExtra(Intent.EXTRA_EMAIL)
         assertNotNull(recipients)
-        assertTrue("Recipient must be the crash-report address", recipients!!.contains("serzhyale@gmail.com"))
-        assertEquals("Crash", intent.getStringExtra(Intent.EXTRA_SUBJECT))
+        assertTrue("Recipient must be the one support address", recipients!!.contains("sza@ukr.net"))
+        assertEquals(
+            "Crash subject must name the version",
+            "Crash ${com.sza.fastmediasorter.BuildConfig.VERSION_NAME}",
+            intent.getStringExtra(Intent.EXTRA_SUBJECT),
+        )
         assertEquals("stack", intent.getStringExtra(Intent.EXTRA_TEXT))
         assertTrue("Attachment intent must carry a stream", intent.hasExtra(Intent.EXTRA_STREAM))
         assertTrue(

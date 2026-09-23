@@ -120,7 +120,7 @@
     <string name="file_not_found_name">File not found: %1$s</string>
     <string name="file_not_found_title">File Not Found</string>
     <string name="file_operation_progress_preparing">Preparing..</string>
-    <string name="file_ops_in_overflow_menu">File operations in overflow menu</string>
+    <string name="file_ops_in_overflow_menu">File operations in the three-dots menu</string>
     <string name="file_ops_moved_to_menu_hint">File actions moved to ⋮ menu on each file</string>
     <string name="file_path_label">Path: %1$s</string>
     <string name="file_renamed_successfully">Renamed.</string>

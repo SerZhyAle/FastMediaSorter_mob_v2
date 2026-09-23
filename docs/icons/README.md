@@ -3,6 +3,50 @@
 This folder holds the machine-generated icon system that lets the user docs show the
 **real interface icons** from FastMediaSorter next to the features they belong to.
 
+## The portfolio contract above this folder
+
+Which glyph stands for which meaning, and what that meaning is called in EN/RU/UK, is
+decided outside this repository by the cross-project contract `ICON-SET` (with
+`ICON-RENDER` for colour, themes and sizes, and `ICON-EXTERNAL` for third-party marks and
+downloaded pictures) - see `docs/CROSS_PROJECT_CONTRACTS.md`. This folder is this
+product's inventory of what it ships; the contract is what it must ship. Before adding a
+control or a doc icon, find its meaning in the contract's `CATALOG.md`; a meaning that is
+not there is added to the contract first. This product is the contract's reference
+implementation, so its glyphs are exported from here:
+
+```
+pwsh -NoProfile -File scripts/docs/export-icon-contract.ps1 -CatalogRoot <catalog root>
+```
+
+## Looks and the style gates
+
+Since `ICON-RENDER` 0.10 (S3433) one glyph has three looks, and all three are the same drawing:
+
+- **mono** - the glyph in one theme colour. Toolbars, menus, buttons, settings, the player,
+  the status bar, quick settings.
+- **colour** - the same glyph in its hue, where the colour says what kind of thing a row is: a
+  resource type, a media type, a program. A resource-type glyph (`ic_resource_*`) is one white
+  paint with a root `android:tint="@color/color_source_<type>"`, so it shows its hue untinted
+  and a caller's tint still replaces it.
+- **decorated** - the same glyph on a flat circle of its hue: the quick-launch panel's product
+  tiles (`GlyphPlateDrawable`), and the app shortcuts on the home screen
+  (`DecoratedShortcutIcons` for the dynamic and stream ones; `ic_shortcut_*` for the three
+  static ones, adaptive on API 26+ and a 7.1 circle on API 25).
+
+The hue comes from `IconHueCatalog`, which only chooses: a program's tone stays in
+`SubProgramAccentCatalog`, a media type's in `MediaTypeColorCatalog`, a source's in
+`color_source_*`. The glyph on a plate is white wherever white reaches 3:1 against the plate
+and near-black otherwise (`PlateContrast`). A look is derived, never drawn: a coloured copy of
+a glyph is the drift this rule exists to stop.
+
+`scripts/quality/assert-icon-style.ps1` holds every `ic_*` vector of both modules to the
+measured style (24 grid, one paint, stroke width 2, one unit of margin, box or mass centred,
+line weight at least 1.3) and every icon size to the tiers 16/20/24/32/40/48 dp
+(`@dimen/icon_tier_NN`). Illustrations, glyphs another ticket replaces and the large slots are
+declared in `scripts/quality/icon-style-exceptions.txt`, each with its reason; a line that goes
+stale fails the gate. The contract export writes the same measurement into `CATALOG.md`,
+"Style report".
+
 ## Convention: icons, not emoji
 
 - User documentation uses the actual app icons under `docs/icons/svg/`, not decorative

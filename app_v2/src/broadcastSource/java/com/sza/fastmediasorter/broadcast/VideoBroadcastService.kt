@@ -22,6 +22,7 @@ import com.pedro.rtspserver.server.IpType
 import com.pedro.rtspserver.server.ServerClient
 import com.pedro.rtspserver.util.RtspServerStreamClient
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.network.LanAddressResolver
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
@@ -174,6 +175,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     private suspend fun openSession() {
         val config = readSessionConfig()
         val port = config.rtspPort
+        val lanHost = resolveLanHostOrFail() ?: return
 
         try {
             // Always headless: the control screen attaches its preview later through BroadcastPreviewProvider,
@@ -214,7 +216,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             val streamClient = configureStreamClient(camera)
             val lensId = startStreamOnLens(camera)
 
-            val endpoint = streamClient.getEndPointConnection()
+            val endpoint = publishableEndpoint(streamClient.getEndPointConnection(), lanHost)
             val endpointDto = BroadcastEndpointDto(
                 url = endpoint,
                 transport = "RTSP",
@@ -256,6 +258,26 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             leaveForegroundAndStop()
         }
     }
+
+    /**
+     * LIVE-BROADCAST producer rule 1: with no LAN address the session never starts, so neither the camera
+     * nor the microphone opens for a descriptor nobody could reach.
+     */
+    private fun resolveLanHostOrFail(): String? {
+        val lanHost = LanAddressResolver(this).resolve()
+        if (lanHost == null) {
+            Timber.w("VideoBroadcastService: no LAN address, session not started")
+            _state.value = BroadcastState.Failed(BroadcastFailure.NETWORK_UNAVAILABLE, "No LAN address")
+            isStreaming.set(false)
+            leaveForegroundAndStop()
+        }
+        return lanHost
+    }
+
+    private fun publishableEndpoint(libraryEndpoint: String, lanHost: String): String =
+        checkNotNull(RtspEndpointAddress.onLanHost(libraryEndpoint, lanHost)) {
+            "RTSP endpoint $libraryEndpoint cannot be published on $lanHost"
+        }
 
     private fun configureStreamClient(camera: RtspServerCamera2): RtspServerStreamClient {
         val streamClient = camera.streamClient

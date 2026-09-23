@@ -75,7 +75,10 @@
                          drifted value back, print one RESTORED line per value, clear the journal.
                          -NoRestore reports the drift instead and exits 13 when there is any
     text                 input text -Text "<string>" (spaces handled)
-    key                  input keyevent -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME)
+    key                  input keyevent -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME).
+                         -LongPress sends it with FLAG_LONG_PRESS. -Repeat N sends it N times in
+                         ONE `input keyevent` call, so the presses land inside one short window -
+                         the water flashlight leaves only on three quick backs (S3394)
     prefs                pull settings.preferences.pb via run-as to temp/scratch/ (debuggable build only)
     pull                 fetch a file off the device: -Remote <path> [-Local <path>] [-Latest].
                          Without -Local the file lands in temp/scratch/ under its own name.
@@ -287,6 +290,8 @@ param(
     [int]$Duration = 300,
     [string]$Text,
     [string]$Key,
+    # key: send the press with FLAG_LONG_PRESS (`input keyevent --longpress`).
+    [switch]$LongPress,
     [string]$Cmd,
     [string]$Remote,
     [string]$Local,
@@ -319,6 +324,8 @@ param(
     [double]$Axis,
     # rotary: how many times to repeat the turn. A list is scrolled by repeating a small turn, not by
     # sending one large axis value - the platform flings on the latter.
+    # key: how many presses to send, all in one `input keyevent` call. One adb round trip per press is
+    # slow enough over wireless adb to fall out of a screen's counting window (S3394, three backs).
     [int]$Repeat = 1,
     # Confirmation for the one-way verbs (wipe-data, uninstall). This script is called by agents and by
     # other scripts, so an interactive prompt is not available - a required flag is the only gate that can
@@ -933,7 +940,7 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  tap        input tap -X <x> -Y <y>" -ForegroundColor White
         Write-Host "  swipe      input swipe -X <x> -Y <y> -X2 <x> -Y2 <y> [-Duration ms]" -ForegroundColor White
         Write-Host "  text       input text -Text <string>" -ForegroundColor White
-        Write-Host "  key        input keyevent -Key <name-or-code>" -ForegroundColor White
+        Write-Host "  key        input keyevent -Key <name-or-code> [-LongPress] [-Repeat N]" -ForegroundColor White
         Write-Host "  prefs      pull settings.preferences.pb to temp/scratch/ (run-as)" -ForegroundColor White
         Write-Host "  pull       fetch a file: -Remote <path> [-Local <path>] [-Latest] -> temp/scratch/" -ForegroundColor White
         Write-Host "  push       send a file: -Local <path> -Remote <path>" -ForegroundColor White
@@ -1532,9 +1539,16 @@ switch ($Verb.ToLowerInvariant()) {
         $id = Select-Device
         $script:result.device = $id
         if (-not $Key) { Fail 1 "key needs -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME)" }
-        Invoke-Adb $id @('shell', 'input', 'keyevent', $Key) | Out-Null
-        if ($Json) { Emit-Ok @{ id = $id; key = $Key } }
-        Write-Host "KEY $Key on $id" -ForegroundColor Green
+        if ($Repeat -lt 1) { Fail 1 "key needs -Repeat >= 1" }
+        $keyArgs = @('shell', 'input', 'keyevent')
+        if ($LongPress) { $keyArgs += '--longpress' }
+        # `input keyevent` takes several codes and sends them back to back, which is what keeps a
+        # burst inside one counting window; a loop of adb calls would pay a round trip per press.
+        $keyArgs += @(1..$Repeat | ForEach-Object { $Key })
+        Invoke-Adb $id $keyArgs | Out-Null
+        if ($Json) { Emit-Ok @{ id = $id; key = $Key; longPress = [bool]$LongPress; repeat = $Repeat } }
+        $keyNote = "$(if ($LongPress) { ' (long press)' })$(if ($Repeat -gt 1) { " x$Repeat" })"
+        Write-Host "KEY $Key$keyNote on $id" -ForegroundColor Green
         exit 0
     }
 

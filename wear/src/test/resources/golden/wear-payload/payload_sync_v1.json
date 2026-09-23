@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "sentAt": 1706000000000,
+  "phoneName": "Pixel 6a",
+  "sources": [
+    {
+      "id": "src-nas-01",
+      "type": "SMB",
+      "name": "Family NAS",
+      "server": "192.168.1.50",
+      "port": 445,
+      "username": "family",
+      "password": "hunter2",
+      "shareName": "media",
+      "basePath": "/photos",
+      "domain": "WORKGROUP"
+    },
+    {
+      "id": "src-sftp-02",
+      "type": "SFTP",
+      "name": "Studio desktop",
+      "server": "10.0.0.14",
+      "port": 2222,
+      "username": "studio",
+      "password": "",
+      "sshPrivateKey": "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaA==\n-----END OPENSSH PRIVATE KEY-----"
+    }
+  ]
+}

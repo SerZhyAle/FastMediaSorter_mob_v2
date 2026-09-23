@@ -1178,6 +1178,8 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         if (geometryManager.consumeOrientationChange()) {
             editModeManager.onOrientationChanged()
         }
+        // S3369: the absorbed change never re-inflates the dim screen's clock panel on its own.
+        blackScreenOverlayManager.onHostConfigurationChanged()
     }
 
     companion object {

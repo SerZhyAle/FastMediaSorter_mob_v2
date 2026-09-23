@@ -42,7 +42,9 @@ class LinkDownloadCookieJarTest {
     @Test
     fun `falls back to store when session has none`() {
         every { context.cookiesFor("example.com") } returns null
-        every { store.loadForHostAccountOrBest("example.com", null) } returns listOf(httpCookie("auth", "fromStore", domain = ".example.com"))
+        every {
+            store.loadForHostAccountOrBest("example.com", null)
+        } returns listOf(httpCookie("auth", "fromStore", domain = ".example.com"))
 
         val cookies = jar.loadForRequest("https://example.com/x".toHttpUrl())
 

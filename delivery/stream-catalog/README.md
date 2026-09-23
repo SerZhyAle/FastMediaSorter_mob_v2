@@ -10,6 +10,15 @@ This is a downloadable resource distributed like the other on-demand extensions 
 [`../INVENTORY.md`](../INVENTORY.md), but it is intentionally **mutable** - we revise it periodically
 and the change ships to users without an app release.
 
+> **The format is `STREAM-BANK` 2.1 and is not defined here.** The CSV columns, the atlas and tile-pack
+> geometry, the ZIP container rules, the merge that never deletes a user's own rows and the shape of
+> `artwork-manifest.json` all live in the shared contracts catalog, because a second player reads them
+> and a copy in the producer's own tree is how two readers start to disagree.
+> `docs/CROSS_PROJECT_CONTRACTS.md` says where it is. This file is the **producer's operating page**:
+> what is live today, which command publishes it, and what the maintainer must not do by hand. The
+> catalog's 2026-08-20 amendment points back here for exactly one thing - which asset revision is
+> current, which is a fact about today rather than a contract.
+
 ## Hosting (GitHub Release asset, zipped)
 
 Distributed the same way as the other downloadable extensions: as a **GitHub Release asset** under the
@@ -42,18 +51,12 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 
 ### Atlas byte ceiling - 31457280 B (30 MiB), shared with three consumers (S1827)
 
-The favicon atlas is bundled only while it fits **31457280 bytes**. The number is not a local choice:
-three independent code bases carry their own copy of it, and each one discards an over-cap atlas
-differently. None of them tells the user.
-
-| Consumer | Constant | What it does over the cap |
-|---|---|---|
-| This publisher | `$MaxAtlasBytes` in `scripts/streams/collect-stream-candidates.ps1` | `Assert-AtlasBudget` stops the build and rolls the atlas back; publish would otherwise bundle CSV-only |
-| The app | `ImportStreamCatalogUseCase.MAX_ATLAS_BYTES` | drops the atlas, `FaviconAtlasStore.write(null, coords)` wipes **every** favicon |
-| StreamsPlayer (separate repository) | `StreamBankReader.MaximumAtlasBytes` | keeps the previously installed atlas and applies the new CSV's indices to it, so channels show **other stations' logos** while looking healthy |
-
-That third row is why a CSV-only publish is worse than it reads: on our side it degrades visibly, on
-theirs it corrupts silently. `-AllowFaviconlessPublish` acknowledges both.
+The favicon atlas is bundled only while it fits **31457280 bytes** - our side of the ceiling, held here
+as `$MaxAtlasBytes` in `scripts/streams/collect-stream-candidates.ps1`, where `Assert-AtlasBudget` stops
+the build and rolls the atlas back rather than letting publish bundle the CSV alone. The number is not a
+local choice and neither is what a consumer does when it is exceeded: the `STREAM-BANK` consumer
+registry names every code base that carries its own copy, and the amendment of 2026-08-20 says what each
+must do. Read it before changing the number. `-AllowFaviconlessPublish` is the acknowledged override.
 
 Current occupancy, measured 2026-08-20: **6 992 874 B = 22,2 %** of the ceiling, 5 743 tiles packed at
 about 1 218 B per tile - room for roughly 25 800 tiles at that density. Every atlas build now prints
@@ -75,22 +78,16 @@ The `-v2` suffix is the element revision: a rebuilt atlas that is not tile-compa
 under a new suffix, so an older app keeps resolving the payload it was pinned against. The `-v1` pair
 from 2026-07-26 stays published unchanged for consumers pinned against it.
 
-Slicing contract (a third-party consumer of this catalog can crop the same tiles):
+The sheet's geometry, its two ceilings and the rule that a consumer derives the row count from the image
+rather than assuming one are `STREAM-BANK`, in the atlas document and the 2026-08-20 amendment - not
+here. What this page records is the state of the build:
 
-- One sheet of `240 x 135` tiles, `34` columns per row. The width is therefore always `8160` px; the
-  **height follows the tile count** and is not fixed. The 2026-08-20 build is `8160 x 11340` with 2830
-  tiles in 84 rows. Do not assume a row count - derive it, or read it off the image.
-- Two ceilings bound the sheet, and the packer refuses rather than truncating when either is reached.
-  A side may not exceed `16383` px, which is the WebP dimension limit and caps the sheet at 121 rows
-  (`4114` tiles); the encoded file may not exceed 48 MiB, the limit StreamsPlayer declared. The
-  2026-08-20 build sits at 15.9 MiB, a third of that allowance.
+- The 2026-08-20 build is `8160 x 11340` with 2830 tiles in 84 rows, encoded at 15.9 MiB - roughly a
+  third of the ceiling the consumer declared for this asset.
 - Until 2026-08-20 the sheet was capped at 60 rows (2040 tiles) by a self-imposed `8192 x 8192` budget,
   and anything past it was dropped with a warning while the run still succeeded - 877 of 2917 video
   channels had no tile for that reason alone. A build that cannot place every tile now fails and names
   how many channels it would have left uncovered (S1831).
-- A tile's ordinal maps to its cell by `col = index % 34`, `row = index / 34`; its pixel rect is
-  `left = col * 240`, `top = row * 135`, `right = left + 240`, `bottom = top + 135`. Equivalently
-  `index = row * 34 + col`.
 - Only VIDEO channels have a tile; audio/radio rows are skipped by the packer. A channel that did not
   answer during the capture pass also has no tile - 87 of 2917 in the 2026-08-20 build, and that is now
   the *only* reason a video channel lacks one.
@@ -99,16 +96,9 @@ Slicing contract (a third-party consumer of this catalog can crop the same tiles
   interrupted pass resumes instead of recapturing). Add `-PreviewFromCacheOnly` to repack from the cache
   and open no stream at all - the way to rebuild the sheet without spending requests on broadcasters.
 
-Sidecar `channel-preview-coords.json` - a flat JSON object mapping each channel `url` to its zero-based
-tile `index` (keyed by `url`, the stable per-channel key, mirroring the favicon sidecar):
-
-```
-{ "https://chan/a.m3u8": 0, "https://chan/b.m3u8": 33, "https://chan/c.m3u8": 68 }
-```
-
-Non-integer values are skipped defensively; an absent sidecar means "no atlas installed" (every tile
-falls back to the favicon). The tile geometry above is the shared invariant between the offline packer
-and the on-device slicer - changing it on one side without the other drifts every rect.
+The sidecar `channel-preview-coords.json` and its `url -> index` keying are `STREAM-BANK` as well. The
+one thing worth repeating in an operator's page: the geometry is a shared invariant between this offline
+packer and every slicer, so changing it on one side alone drifts every rect on the other.
 
 ## Station logo atlas (separate release asset)
 
@@ -122,20 +112,10 @@ https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-s
 https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-logo-coords-v2.json
 ```
 
-Slicing contract:
-
-- One sheet (the 2026-08-07 build is `8024 x 4624`, 6.9 MB, 2006 tiles covering 2350 channels), holding
-  a fixed grid of `136 x 136` tiles, `59` columns per row.
-- A tile's ordinal maps to its cell by `col = index % 59`, `row = index / 59`; its pixel rect is
-  `left = col * 136`, `top = row * 136`, `right = left + 136`, `bottom = top + 136`.
-- Tiles are **square**, unlike the preview sheet's 16:9 frames: a logo is fitted whole rather than
-  cropped, and is almost always square, so a 16:9 tile spent nearly half its width on empty padding.
-  The consumer letterboxes the square tile into its own cell.
-- The side is **even** on purpose. The sheet is lossy WebP, which is always 4:2:0, so an odd tile size
-  would put every second boundary mid-chroma-block and bleed one tile's edge colour into the next.
-- Padding around a logo is **transparent**, so one sheet serves both light and dark themes. Decode
-  tiles as ARGB - flattening them paints the padding black.
-- Not restricted to radio: a video channel whose frame capture failed uses the same tier.
+The grid, the square tile, the even side, the transparent padding and the consumer's obligation to
+letterbox and decode ARGB are `STREAM-BANK` - the atlas document and the 2026-08-20 amendment. State of
+the build: the 2026-08-07 sheet is `8024 x 4624`, 6.9 MB, 2006 tiles covering 2350 channels. This tier
+is not restricted to radio - a video channel whose frame capture failed lands here too.
 
 Source artwork comes from the favicon crawl's cache, `temp/stream-logo-src/`, keyed by SHA-1 of the
 station homepage. A `<hash>.img` is the largest artwork that site offered (apple-touch-icon, og:image,
@@ -167,18 +147,11 @@ https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-s
 https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-logo-tiles-v3.zip
 ```
 
-Container contract:
+The container - a ZIP of STORED entries named by decimal slot index - is `STREAM-BANK`, item G2 of the
+2026-08-20 amendment. State of the build: the 2026-08-07 packs hold 1949 preview entries (10,7 MiB) and
+2006 logo entries (6,0 MiB), cut from the published sheets in lossy WebP, with alpha on the logo tiles,
+so an index resolves to the same picture in either container.
 
-- A ZIP whose entries are **stored uncompressed** - the tiles are already compressed images, and
-  stored entries keep random access cheap.
-- An entry name is the slot **index as a plain decimal string, with no extension** (`0`, `1`, `1880`) -
-  the same index the `url -> index` sidecar carries, which is shared with the sprite sheet unchanged.
-- An entry is one tile image at the geometry of its sheet (`240 x 135` preview, `136 x 136` logo).
-  Its format is whatever the packer emitted - the 2026-08-07 build uses lossy WebP, with alpha for the
-  logo tiles.
-- A slot with no captured artwork has no entry, exactly as it has no sidecar key.
-- The packs are cut FROM the published sheets, so an index resolves to the same picture in either
-  container. The 2026-08-07 build: 1949 preview entries (10,7 MiB) and 2006 logo entries (6,0 MiB).
 - Rebuild command: `pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithTilePacks -PublishTilePacks`
   (needs `ffmpeg` and `gh`; reads a finished sheet, so it costs seconds).
 
@@ -192,28 +165,15 @@ https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-s
 
 The app fetches the tile packs under **stable names** - `channel-preview-tiles.zip`,
 `channel-preview-coords.json`, `stream-logo-tiles.zip`, `stream-logo-coords.json` - and learns that a
-rebuild happened from this manifest, published by the same run that uploads the payload:
+rebuild happened from this manifest, published by the same run that uploads the payload.
 
-```json
-{
-  "schemaVersion": 1,
-  "generatedAt": "2026-08-07T14:58:44Z",
-  "sets": {
-    "channelPreview": { "stamp": "<sha256 of the pack>", "files": [ { "name": "..", "size": 0, "sha256": ".." } ] },
-    "streamLogo":     { "stamp": "<sha256 of the pack>", "files": [ ... ] }
-  }
-}
-```
+Its shape and the rules around it are `STREAM-BANK`, item L of the 2026-09-22 amendment - written there
+on 2026-09-22, when this page turned out to be the only place in the portfolio that described a file
+every consumer had already been told to poll.
 
-- `stamp` is the pack's own SHA-256. It changes exactly when the artwork changes, which is the only
-  event a consumer needs to notice.
-- A manifest that is absent, unreachable or unparseable means **"nothing new"** - never an error. A
-  storage failure must not become an application failure.
-- The per-file `sha256` values are published for third parties and for diagnosis. The app does not
-  gate on them: it validates a downloaded pack structurally (the archive opens, every entry name is a
-  decimal slot index), which is the same class of check the catalog import applies to `streams.csv`.
-- The revisioned `-vN` packs are **never deleted**. Builds shipped before S1483 pin them by hash and
-  would lose their artwork if those names disappeared.
+What stays here, because it is about our publishing and not about the format: the revisioned `-vN` packs
+are **never deleted**. Builds shipped before S1483 pin them by hash and would lose their artwork if
+those names disappeared.
 
 ### Why a rebuild needed fresh pins before S1483 (S1200)
 
@@ -227,29 +187,16 @@ new pins in an app build, and the mirror is deliberately not allowed to change h
 
 UTF-8, no BOM, RFC-4180 (fields with `,` `"` or newline are quoted; inner `"` doubled).
 First row is the header. One stream per row, grouped by `media_kind`, then `category`, then `topic`,
-then `name`.
+then `name` - a maintainer convention, not something a consumer may rely on.
 
-| Column | Meaning |
-|--------|---------|
-| `category` | High-level rubric, canonical set `Radio`, `Live TV`, `On-demand video`, `Test streams`; provider aliases are folded into these (S2233). |
-| `topic` | Genre / theme for filtering, the closed rubric set (S1477); unknown values fold into `General` (e.g. `Jazz`, `Classical`, `Ambient`, `News`, `Movies & Series`). |
-| `name` | Display title. |
-| `url` | Direct playable stream URL (playlists already resolved to the underlying stream). |
-| `media_kind` | `AUDIO` \| `VIDEO` \| `RTSP` - drives launch routing (inline audio vs fullscreen video). |
-| `protocol` | `PROGRESSIVE` \| `HLS` \| `DASH` \| `ICECAST` \| `SHOUTCAST` \| `RTSP` \| `UNKNOWN`. |
-| `format` | Container/codec hint (`mp3`, `aac`, `ogg`, `opus`, `flac`, `m3u8`, `mpd`, `mp4`, ..). |
-| `bitrate` | Audio bitrate in kbps as text; empty if unknown. |
-| `is_live` | `true` for live/continuous streams, `false` for VOD. |
-| `https` | `true` if the URL is HTTPS; `false` for cleartext `http://` (relevant to the network-security policy). |
-| `language` | Canonical lowercase language name(s); regional variants and typos fold to the base name, multi-value comma-separated (e.g. `english`, `english,german`). Unknown tokens stay verbatim. |
-| `country` | ISO-3166 alpha-2, uppercase; full names and `uk`/`usa` aliases fold to the code, unknown values stay verbatim. |
-| `homepage` | Attribution / source page. |
-| `source_kind` | `TEST` \| `PUBLIC_RADIO` \| `COMMUNITY` \| `PUBLIC_BROADCASTER` \| `GOV` \| `CREATIVE_COMMONS` \| `PUBLIC_DOMAIN`. |
-| `license_note` | Short reason the stream is free to access. |
-| `notes` | Free-text remarks. |
-| `confidence` | `high` \| `medium` \| `low` - our confidence the URL is correct/stable. |
-| `favicon_index` | Zero-based tile ordinal into `favicon-atlas.png` (32 px, 16-col grid); blank = no favicon. |
-| `access` | `` (open) \| `geo` = region-restricted (returned HTTP 403/451 from the maintainer's network - **may still play** for a user in-region). Heuristic, not a guarantee: a 403 can also be hotlink / IP-block. Produced only by the deep-signal probe (S1117). |
+**The 19 columns, their value sets and their blank defaults are `STREAM-BANK`**, in the catalog's
+catalog-format document. They are not restated here: a consumer matches by header name and a second
+copy of the column list in the producer's own tree is how the two stop agreeing. What binds the
+producer is narrower and belongs on this page - existing columns are never reordered and never
+removed, and a new column is appended at the end.
+
+Two of the folding rules the producer applies before writing a cell are ours and are documented with
+the scripts that apply them: facet normalization (S2233) and name repair (S2645), both below.
 
 ## Inclusion policy
 
@@ -430,7 +377,7 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -NormalizeFa
 ```
 
 The canonical value contract itself (which aliases fold where) is documented in
-`dev/handoff/streams-source-spec/03_catalog_format.md` §2.4.
+`stream-catalog/03_catalog_format.md` §2.4.
 
 ### Name repair rewrite (S2645)
 
@@ -465,7 +412,7 @@ review run produced. The second run finds nothing left to change and writes two 
 Publishing refuses outright when the name column was never repaired (`Assert-CatalogNamesClean`). The
 refusal names the count per class and points back at this mode; it never strips anything itself, because a
 silent repair on the publish path is an unrecorded change to the shipped bank. The guarantees a published
-bank now carries are in `dev/handoff/streams-source-spec/03_catalog_format.md` §2.5.
+bank now carries are in `stream-catalog/03_catalog_format.md` §2.5.
 
 The 2026-09-06 pass: 112 rows repaired, 1 224 given a token beside their name, 398 replaced by their token,
 62 identity duplicates collapsed, 19 211 -> 19 149 rows.

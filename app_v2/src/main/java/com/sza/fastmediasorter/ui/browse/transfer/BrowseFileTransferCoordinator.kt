@@ -128,11 +128,14 @@ class BrowseFileTransferCoordinator @Inject constructor(
 
     fun readActiveRequest(): BrowseFileTransferRequest? = requestStore.readActiveRequest()
 
-    fun consumeStoredTerminalEvent(): BrowseFileTransferTerminalEvent? =
+    // Both callers are Browse collectors bound to the main dispatcher, and the store reads and deletes a
+    // file there - StrictMode flagged it after every finished transfer.
+    suspend fun consumeStoredTerminalEvent(): BrowseFileTransferTerminalEvent? = withContext(Dispatchers.IO) {
         requestStore.consumeTerminalEvent()?.toEvent()
+    }
 
-    fun clearStoredTerminalEvent() {
-        requestStore.clearTerminalEvent()
+    suspend fun clearStoredTerminalEvent() {
+        withContext(Dispatchers.IO) { requestStore.clearTerminalEvent() }
     }
 
     suspend fun publishTerminalEvent(event: BrowseFileTransferTerminalEvent) {

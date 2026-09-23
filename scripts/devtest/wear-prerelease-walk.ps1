@@ -423,7 +423,11 @@ function Invoke-ReachControl {
 
     $reach = {
         if ($ResourceId) { Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', $ResourceId) }
-        else { Invoke-AdbVerb -Arguments @('tap-label', '-Label', $Label) }
+        # -Exact, because the default substring match taps the wrong control whenever a label is a
+        # prefix of another visible one: measured on the small-round emulator 2026-09-22, the
+        # settings-screen label 'Screen' matched the screen-off rim control's 'Screen off' and
+        # dimmed the display mid-walk, spending a failed verdict on a screen that was never opened.
+        else { Invoke-AdbVerb -Arguments @('tap-label', '-Label', $Label, '-Exact') }
     }
 
     # Reach for the control where the walk is standing BEFORE moving the list (S2767). Most entries
@@ -456,6 +460,23 @@ function Invoke-ReachControl {
         if ($null -ne $current) { $lastSeen = $current }
     }
     return $tap
+}
+
+function Resolve-WalkBackAfter {
+    # The BACK presses one entry owes after its screen opened. A number binds every flavor; a map
+    # keyed by flavor says them apart, because the depth depends on what the SAME run walks next:
+    # apps-stopwatch ends the Apps block in standard (its second key climbs from the Apps list to
+    # Home, where the settings entry starts) but is mid-block in noLegal (one key; the list is the
+    # next entry's parent). Measured on the small-round emulator 2026-09-22 - see the entry's note3.
+    param([Parameter(Mandatory)]$Screen, [string]$Flavor)
+    $value = $Screen.backAfter
+    if ($null -eq $value) { return 1 }
+    if ($value -is [int] -or $value -is [long] -or $value -is [double]) { return [int]$value }
+    $property = $value.PSObject.Properties[$Flavor]
+    if ($null -eq $property) {
+        Stop-Run 2 "entry '$($Screen.id)' declares backAfter as a flavor map with no '$Flavor' key - the installed build's exit depth is undeclared"
+    }
+    return [int]$property.Value
 }
 
 function Restore-WalkPosition {
@@ -705,7 +726,7 @@ foreach ($screen in $screens) {
     # Still not found: hunt for it the same way the tap above hunts for a control, instead of judging
     # the screen by the slice of it that happens to be in view. A marker is chosen because it belongs
     # to the destination, not because it fits on 480 px - `Clear` is the calculator's C key at the
-    # bottom of a scrolling keypad, and `Favourites` is the last Home section, below the fold on a
+    # bottom of a scrolling keypad, and `Favorites` is the last Home section, below the fold on a
     # small round face; both were reported missing from screens that were plainly showing (S1984).
     # Downwards first, because that is where most of a list is; then back to the top for a marker the
     # list had already scrolled past.
@@ -794,8 +815,15 @@ foreach ($screen in $screens) {
     # How many levels this entry sits above the next one. A nested block - the settings pages, the
     # mini-programs - declares 0 on the section it opens and 1 on each page inside it, so the walk
     # comes back out by the same number of steps it went in by.
-    $backAfter = if ($null -ne $screen.backAfter) { [int]$screen.backAfter } else { 1 }
-    for ($b = 0; $b -lt $backAfter; $b++) { Invoke-AdbVerb -Arguments @('key', '-Key', 'BACK') | Out-Null }
+    $backAfter = Resolve-WalkBackAfter -Screen $screen -Flavor $result.flavor
+    # `backBurst` is for a screen that refuses a single back on purpose (S3394, the water flashlight):
+    # one back is exactly the input that screen exists to survive, so its FIRST level is left by that
+    # many backs sent in one call, inside the screen's counting window. The remaining levels are plain.
+    for ($b = 0; $b -lt $backAfter; $b++) {
+        $backArgs = @('key', '-Key', 'BACK')
+        if ($b -eq 0 -and $screen.backBurst) { $backArgs += @('-Repeat', "$($screen.backBurst)") }
+        Invoke-AdbVerb -Arguments $backArgs | Out-Null
+    }
     $position = Pop-WearWalkPosition -Position $position -BackAfter $backAfter
 }
 
@@ -867,7 +895,6 @@ Restore-AmbientSetting
 Close-DeviceStateJournal
 
 $walkPath = Join-Path $outPath 'walk.json'
-[pscustomobject]$result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $walkPath -Encoding UTF8
 
 # S2767: an unreachable screen counts against the run exactly as a failed one does. It satisfied no
 # Play requirement, and letting it pass would be the green verdict about the unseen that this walk
@@ -882,6 +909,11 @@ $verdict = if ($result.counts.failed -gt 0 -or $result.counts.unreachable -gt 0 
 
 $result.exitCode = $verdict
 $result.ok = ($verdict -eq 0)
+
+# The artifact is stamped AFTER the verdict: written before it, the file carried the initializer's
+# exitCode 2 on the 2026-09-22 02:10 run while the process exited 1, and the session reading the
+# file afterwards saw a could-not-verify where the run had judged and failed.
+[pscustomobject]$result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $walkPath -Encoding UTF8
 
 if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 8 -Compress }
 else {

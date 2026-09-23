@@ -66,8 +66,8 @@
     
     <dimen name="item_icon_size">72dp</dimen>
     <dimen name="item_icon_size_medium">56dp</dimen>
-    <dimen name="item_icon_size_small">40dp</dimen>
-    <dimen name="item_icon_size_tiny">20dp</dimen>
+    <dimen name="item_icon_size_small">@dimen/icon_tier_40</dimen>
+    <dimen name="item_icon_size_tiny">@dimen/icon_tier_20</dimen>
     <dimen name="item_network_icon_size">56dp</dimen>
     <dimen name="item_thumbnail_size">160dp</dimen>
     <dimen name="item_grid_thumbnail_size">200dp</dimen>

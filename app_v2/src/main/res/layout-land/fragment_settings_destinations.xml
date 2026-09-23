@@ -277,6 +277,14 @@
 
                         </LinearLayout>
 
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableFileDoOperations"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_tiny"
+                            app:str_title="@string/filedo_operations_title"
+                            app:str_subtitle="@string/filedo_operations_summary" />
+
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

@@ -2,7 +2,9 @@ package com.sza.fastmediasorter.ui.launcher.gadget
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
@@ -16,8 +18,6 @@ import com.sza.fastmediasorter.domain.model.sensors.SensorCapability
 import com.sza.fastmediasorter.domain.repository.SensorAvailabilityRepository
 import com.sza.fastmediasorter.domain.usecase.sensors.ObserveCompassUseCase
 import com.sza.fastmediasorter.domain.usecase.sensors.ObserveMotionUseCase
-import android.content.Intent
-import android.net.Uri
 import com.sza.fastmediasorter.util.resolveActivityCompat
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope

@@ -38,7 +38,9 @@ private data class FakeCapabilities(
  * serves every case and a new withholding case is one line instead of a six-line copy.
  */
 private fun useCaseWith(capabilities: WearRestrictedCapabilities) = ResolveWearLaunchAddressUseCase(
-    networkSourceRepository = mockk<NetworkSourceRepository>(),
+    // S3368: the deferred dependency is satisfied with a SAM Lazy over the mock; none of these cases
+    // reads the sources, so the mock inside is never even created.
+    networkSourceRepository = dagger.Lazy { mockk<NetworkSourceRepository>() },
     streamChannelRepository = mockk<WearStreamChannelRepository>(),
     prepareWearStreamPlayback = mockk<PrepareWearStreamPlaybackUseCase>(),
     prepareWearFilePlayback = mockk<PrepareWearFilePlaybackUseCase>(),

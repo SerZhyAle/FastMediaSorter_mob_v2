@@ -183,6 +183,45 @@ Assert-Equal -Label 'unreachable is counted in its own right' `
 Assert-Equal -Label 'an unreachable screen loses the walk its exit 0' `
     -Expected $true -Actual ($walkText -match '\$result\.counts\.unreachable -gt 0')
 
+# --- S3362 follow-up: the tap is whole-value, and backAfter can name a flavor --------------------
+#
+# Both defects were measured on the small-round emulator 2026-09-22, standard build: the reach for
+# the settings-screen label 'Screen' substring-matched the screen-off rim control's 'Screen off'
+# and dimmed the display mid-walk, and the Apps block ended on the Apps list because one number
+# cannot give apps-stopwatch a depth of one in noLegal (mid-block) and two in standard (block end).
+
+Assert-Equal -Label 'the reach taps a label by whole-value match, never a prefix' `
+    -Expected $true -Actual ($walkText -match '''tap-label'', ''-Label'', \$Label, ''-Exact''')
+
+Assert-Equal -Label 'backAfter resolves through a function, so a flavor map is possible' `
+    -Expected $true -Actual ($walkText -match 'function Resolve-WalkBackAfter')
+
+Assert-Equal -Label 'the entry loop asks the resolver for its BACK count' `
+    -Expected $true -Actual ($walkText -match '\$backAfter = Resolve-WalkBackAfter -Screen \$screen')
+
+# S3394: the water flashlight refuses a single back on purpose, which is what a plain
+# `input keyevent BACK` is - without the burst the walk would stay inside it for the rest of the run.
+Assert-Equal -Label 'a screen declaring backBurst gets its first BACK sent as that many presses' `
+    -Expected $true -Actual ($walkText -match '\$b -eq 0 -and \$screen\.backBurst\) \{ \$backArgs \+= @\(''-Repeat''')
+
+$declaredScreens = (Get-Content -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'wear-prerelease-screens.json') -Raw | ConvertFrom-Json).screens
+$waterFlashlight = @($declaredScreens | Where-Object { $_.id -eq 'apps-water-flashlight' })[0]
+Assert-Equal -Label 'the water flashlight leaves by a burst of three, then one key for the Apps list' `
+    -Expected '3/2' -Actual "$($waterFlashlight.backBurst)/$($waterFlashlight.backAfter)"
+
+Assert-Equal -Label 'no declared entry still carries the retired backLongPress field' `
+    -Expected 0 -Actual @($declaredScreens | Where-Object { $_.PSObject.Properties['backLongPress'] }).Count
+
+Assert-Equal -Label 'a flavor map without the installed flavor stops the run, never guesses' `
+    -Expected $true -Actual ($walkText -match "Stop-Run 2 .*backAfter as a flavor map with no")
+
+Assert-Equal -Label 'the declared list carries the measured stopwatch depth per flavor' `
+    -Expected $true -Actual ((Get-Content -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'wear-prerelease-screens.json') -Raw) -match '"backAfter": \{ "noLegal": 1, "standard": 2 \}')
+
+Assert-Equal -Label 'walk.json is written after the verdict stamps exitCode and ok' `
+    -Expected $true `
+    -Actual ($walkText.IndexOf('$result.exitCode = $verdict') -lt $walkText.IndexOf("Set-Content -LiteralPath `$walkPath"))
+
 $verdictScript = Join-Path (Split-Path -Parent $PSScriptRoot) 'prerelease-verdict.ps1'
 Assert-Equal -Label 'the verdict script is where the tests expect it' `
     -Expected $true -Actual (Test-Path -LiteralPath $verdictScript)

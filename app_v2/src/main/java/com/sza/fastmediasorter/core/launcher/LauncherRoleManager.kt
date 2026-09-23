@@ -193,8 +193,6 @@ class LauncherRoleManager @Inject constructor(
     private fun createRoleRequestIntent(): Intent? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
         val tvDevice = isTvDevice()
-        if (tvDevice) {
-        }
         val roleManager = if (tvDevice) null else context.getSystemService(RoleManager::class.java)
         return roleManager
             ?.takeIf { it.isRoleAvailable(RoleManager.ROLE_HOME) }

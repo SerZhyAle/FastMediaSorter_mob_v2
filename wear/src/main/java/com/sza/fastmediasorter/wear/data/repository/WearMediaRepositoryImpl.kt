@@ -4,7 +4,9 @@ import android.content.ContentResolver
 import android.content.ContentUris
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
+import com.sza.fastmediasorter.data.security.fdsec.FdSecFormat
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
@@ -17,6 +19,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.Locale
 
 private const val EXTERNAL_VOLUME = "external"
 private const val UNKNOWN_NAME = "Unknown"
@@ -110,6 +113,10 @@ class WearMediaRepositoryImpl(
         if (isVideo) mediaFiles.addAll(queryMediaStore(MediaType.VIDEO))
         if (isImages) mediaFiles.addAll(queryMediaStore(MediaType.PHOTO))
         if (isDocs) mediaFiles.addAll(queryDocuments())
+        // S3383: a container has no type until it is opened, so no type switch can hide it, and no
+        // mime selection above can find it - MediaStore indexes it as octet-stream or as nothing.
+        mediaFiles.addAll(queryContainers())
+        Timber.d("S3383: flat listing includes FileDO containers")
 
         mediaFiles.sortedByDescending { it.dateModified }
     }
@@ -169,9 +176,21 @@ class WearMediaRepositoryImpl(
         mediaType = null
     )
 
+    /** S3383: FileDO containers, recognised by name exactly as the rest of the watch recognises them. */
+    private fun queryContainers(): List<WearMediaFile> = readFiles(
+        contentUri = MediaStore.Files.getContentUri(EXTERNAL_VOLUME),
+        projection = BASE_PROJECTION,
+        selection = "LOWER(${MediaStore.MediaColumns.DISPLAY_NAME}) LIKE ?",
+        selectionArgs = arrayOf("%${FdSecFormat.CONTAINER_SUFFIX.lowercase(Locale.ROOT)}"),
+        mediaType = null
+    )
+
     /**
      * [mediaType] is null on the `MediaStore.Files` path: the four audio columns exist only on the
      * audio collection, and a cursor over any other one does not carry them.
+     *
+     * S3383: `RELATIVE_PATH` is projected wherever it exists. The column is absent below API 29, and
+     * naming it there fails the whole query rather than answering null.
      */
     private fun readFiles(
         contentUri: Uri,
@@ -183,7 +202,11 @@ class WearMediaRepositoryImpl(
         val files = mutableListOf<WearMediaFile>()
         contentResolver.query(
             contentUri,
-            projection,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                projection + MediaStore.MediaColumns.RELATIVE_PATH
+            } else {
+                projection
+            },
             selection,
             selectionArgs,
             NEWEST_FIRST
@@ -209,7 +232,8 @@ class WearMediaRepositoryImpl(
             albumArt = getAlbumArtUri(getLongOrDefault(columns.albumId, NO_ALBUM_ID)),
             artist = getStringOrNull(columns.artist),
             album = getStringOrNull(columns.album),
-            title = getStringOrNull(columns.title)
+            title = getStringOrNull(columns.title),
+            relativePath = getStringOrNull(columns.relativePath)
         )
     }
 
@@ -285,6 +309,7 @@ class WearMediaRepositoryImpl(
         val artist = cursor.audioColumn(isMusic, MediaStore.Audio.AudioColumns.ARTIST)
         val album = cursor.audioColumn(isMusic, MediaStore.Audio.AudioColumns.ALBUM)
         val title = cursor.audioColumn(isMusic, MediaStore.Audio.AudioColumns.TITLE)
+        val relativePath = cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
     }
 }
 

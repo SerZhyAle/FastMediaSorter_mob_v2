@@ -662,6 +662,9 @@ class PlayerActivity :
             lastAppliedOrientation = newConfig.orientation
             rebindLayoutForOrientation()
         }
+        if (::blackScreenOverlayManager.isInitialized) {
+            blackScreenOverlayManager.onHostConfigurationChanged()
+        }
         if (::commandPanelController.isInitialized) commandPanelController.notifyMultiWindowModeChanged()
         commandPanelController.updateOrientation(newConfig)
         // Hardware keyboard attach/detach arrives as a configuration change - re-evaluate slot number badges.

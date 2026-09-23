@@ -23,14 +23,14 @@ object SftpConnectionTester {
 
     private const val CONNECTION_TIMEOUT = 10_000
 
-    /** Test password-based SFTP connection. Returns [Result.failure] on any error. */
+    /** Test password-based SFTP connection. Returns [Result.success] with presented host key fingerprint or [Result.failure] on any error. */
     suspend fun testConnection(
         host: String,
         port: Int = 22,
         username: String,
         password: String,
         expectedFingerprint: String? = null
-    ): Result<Unit> = withContext(Dispatchers.IO) {
+    ): Result<String?> = withContext(Dispatchers.IO) {
         var testSession: Session? = null
         var testChannel: ChannelSftp? = null
         var pinnedCanonical: String? = null
@@ -58,10 +58,12 @@ object SftpConnectionTester {
             testSession.timeout = CONNECTION_TIMEOUT
             testSession.connect(CONNECTION_TIMEOUT)
 
+            val presentedFingerprint = SshFingerprintNormalizer.fromBase64Key(testSession.hostKey?.key)
+
             testChannel = testSession.openChannel("sftp") as ChannelSftp
             testChannel.connect(CONNECTION_TIMEOUT)
 
-            Result.success(Unit)
+            Result.success(presentedFingerprint)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             mapTestFailure(e, pinnedCanonical)
@@ -83,7 +85,7 @@ object SftpConnectionTester {
         privateKey: String,
         passphrase: String? = null,
         expectedFingerprint: String? = null
-    ): Result<Unit> = withContext(Dispatchers.IO) {
+    ): Result<String?> = withContext(Dispatchers.IO) {
         var testSession: Session? = null
         var testChannel: ChannelSftp? = null
         var pinnedCanonical: String? = null
@@ -118,10 +120,12 @@ object SftpConnectionTester {
             testSession.timeout = CONNECTION_TIMEOUT
             testSession.connect(CONNECTION_TIMEOUT)
 
+            val presentedFingerprint = SshFingerprintNormalizer.fromBase64Key(testSession.hostKey?.key)
+
             testChannel = testSession.openChannel("sftp") as ChannelSftp
             testChannel.connect(CONNECTION_TIMEOUT)
 
-            Result.success(Unit)
+            Result.success(presentedFingerprint)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             mapTestFailure(e, pinnedCanonical)
@@ -158,7 +162,7 @@ object SftpConnectionTester {
      * [HostKeyMismatchException] so the UI can distinguish a possible server impersonation from an
      * authentication failure (wrong password / wrong key). All other failures pass through verbatim.
      */
-    private fun mapTestFailure(e: Throwable, pinnedCanonical: String?): Result<Unit> {
+    private fun <T> mapTestFailure(e: Throwable, pinnedCanonical: String?): Result<T> {
         if (pinnedCanonical != null && isHostKeyRejection(e)) {
             return Result.failure(HostKeyMismatchException(expected = pinnedCanonical, actual = e.message ?: "unknown"))
         }

@@ -405,6 +405,14 @@ class AudioPlayerViewModel @Inject constructor(
                             isPlaying = background.isPlaying
                         )
                     }
+                    // S3395: a stream reached by paging is in neither store, so the selection that
+                    // survived the hand-off still names the stream the screen opened on. Left alone it
+                    // sends the next page down the wrong uri, and the favourite mark onto the wrong
+                    // station - the set has already answered which stream this is, so follow it.
+                    networkSelection = networkSelection?.copy(
+                        file = file,
+                        streamUri = file.uri.toString()
+                    )
                     fetchRemoteAlbumArt(file)
                 } else {
                     _uiState.update {
@@ -583,7 +591,8 @@ class AudioPlayerViewModel @Inject constructor(
                     Timber.d("Loading network audio: ${selectedMedia.file.name}")
                     loadNetworkAudio(selectedMedia)
                 } else {
-                    Timber.d("Loading local audio from SelectedMediaManager: ${selectedMedia.file.name}")
+                    // S3383: the id alone - this is the path a recovered FileDO file plays through.
+                    Timber.d("Loading local audio from SelectedMediaManager: id=${selectedMedia.file.id}")
                     fetchRemoteAlbumArt(selectedMedia.file)
                     playLocalFile(selectedMedia.file)
                 }
@@ -718,9 +727,14 @@ class AudioPlayerViewModel @Inject constructor(
         val uri = exoPlayer.currentMediaItem?.localConfiguration?.uri?.toString() ?: return
         val streamMediaKind = ClassifyWearStreamMediaKindUseCase.AUDIO
             .takeIf { networkSelection?.isDirectStream == true }
+        // S3395: the navigation argument names the stream the screen was OPENED with, and a page turn
+        // moves what is playing without moving it. The uri beside it is read live, so handing the
+        // argument over made the session describe one stream while carrying another one's sound, and
+        // the hand-back then re-pointed the playback set onto the stream nobody was listening to.
+        val playingFileId = _uiState.value.mediaFile?.id ?: fileId
         val intent = WearPlaybackService.startIntent(
             context = context,
-            fileId = fileId,
+            fileId = playingFileId,
             mediaUri = uri,
             positionMs = exoPlayer.currentPosition,
             streamMediaKind = streamMediaKind

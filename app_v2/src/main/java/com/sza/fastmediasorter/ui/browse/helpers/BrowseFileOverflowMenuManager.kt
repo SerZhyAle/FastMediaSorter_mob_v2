@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.usecase.WriteFdSecBesideRemoteFileUseCase
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner.PlayerCommand
 import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.scopes.ActivityScoped
@@ -122,6 +123,37 @@ class BrowseFileOverflowMenuManager @Inject constructor(
             entries.organize += MenuEntry(context.getString(R.string.action_open_in_separate_window)) {
                 onNewWindow(file)
             }
+        }
+        addFileDoEntries(entries, menuContext, actions)
+    }
+
+    /**
+     * S3382: the FileDO container pair. Encrypting is offered for anything that is not already a
+     * container and decrypting only for one that is, because packing a container again is refused
+     * by the contract and unpacking anything else can only end in the indistinguishable
+     * wrong-credential-or-tamper outcome.
+     *
+     * S3408, S3409: a local, document-tree, network-share and cloud file all get the pair. Opening a
+     * container to view it works from every source and needs no menu entry. The name is checked
+     * beside the path: a document id from some providers is opaque and carries no extension.
+     */
+    private fun addFileDoEntries(
+        entries: GroupedEntries,
+        menuContext: BrowseFileMenuContext,
+        actions: BrowseFileMenuActions,
+    ) {
+        val file = menuContext.file
+        val offered = menuContext.appSettings.enableFileDoOperations && menuContext.isWritable
+        if (!offered || !WriteFdSecBesideRemoteFileUseCase.canWriteBeside(file.path)) return
+        val isContainer = file.path.endsWith(FD_SEC_SUFFIX, ignoreCase = true) ||
+            file.name.endsWith(FD_SEC_SUFFIX, ignoreCase = true)
+        val onEncrypt = actions.onEncryptFileDo
+        if (!isContainer && !file.isDirectory && onEncrypt != null) {
+            entries.organize += MenuEntry(context.getString(R.string.filedo_encrypt)) { onEncrypt(file) }
+        }
+        val onDecrypt = actions.onDecryptFileDo
+        if (isContainer && onDecrypt != null) {
+            entries.organize += MenuEntry(context.getString(R.string.filedo_decrypt)) { onDecrypt(file) }
         }
     }
 
@@ -334,4 +366,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         }
     }
 
+    private companion object {
+        const val FD_SEC_SUFFIX = ".fd-sec"
+    }
 }

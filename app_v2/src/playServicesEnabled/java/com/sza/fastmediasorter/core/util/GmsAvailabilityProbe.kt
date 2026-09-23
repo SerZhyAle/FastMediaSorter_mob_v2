@@ -22,6 +22,9 @@ internal object GmsAvailabilityProbe {
      */
     const val IS_SUPPORTED: Boolean = true
 
+    // A broken or stubbed Play Services install throws undeclared runtime types from this query;
+    // any of them means "unavailable", never a crash of the caller.
+    @Suppress("TooGenericExceptionCaught")
     fun evaluate(context: Context, minApkVersion: Int): GmsAvailabilityChecker.Status {
         return try {
             val code = GoogleApiAvailability.getInstance()

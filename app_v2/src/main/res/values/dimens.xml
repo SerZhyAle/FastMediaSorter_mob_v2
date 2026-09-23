@@ -84,14 +84,23 @@
     <dimen name="button_height">48dp</dimen>
     <dimen name="button_height_small">36dp</dimen>
     <dimen name="game_control_button_size">72dp</dimen>
-    <dimen name="game_control_icon_size">32dp</dimen>
+    <dimen name="game_control_icon_size">@dimen/icon_tier_32</dimen>
     <dimen name="list_item_height">48dp</dimen>
-    <dimen name="icon_size_large">48dp</dimen>
-    <dimen name="icon_size_normal">32dp</dimen>
-    <dimen name="icon_size_small">24dp</dimen>
-    <dimen name="icon_size_button">20dp</dimen>
-    <dimen name="icon_size_menu">18dp</dimen>
-    <dimen name="icon_size_tiny">16dp</dimen>
+    <dimen name="icon_size_normal">@dimen/icon_tier_32</dimen>
+    <dimen name="icon_size_small">@dimen/icon_tier_24</dimen>
+    <dimen name="icon_size_button">@dimen/icon_tier_20</dimen>
+    <dimen name="icon_size_menu">@dimen/icon_tier_20</dimen>  <!-- S3433: was 18dp -->
+    <!-- S3433: the icon size tiers of the icon contract (ICON-RENDER 0.10 section 10, item E). Every bare
+         glyph size in this product points at one of these; a size between tiers blurs a 2-unit line, and
+         one value under several names drifts one name at a time. scripts/quality/assert-icon-style.ps1
+         refuses an icon size off the tiers unless scripts/quality/icon-style-exceptions.txt declares it. -->
+    <dimen name="icon_tier_16">16dp</dimen>
+    <dimen name="icon_tier_20">20dp</dimen>
+    <dimen name="icon_tier_24">24dp</dimen>
+    <dimen name="icon_tier_32">32dp</dimen>
+    <dimen name="icon_tier_40">40dp</dimen>
+    <dimen name="icon_tier_48">48dp</dimen>
+    <dimen name="icon_size_tiny">@dimen/icon_tier_16</dimen>
     <!-- S1401: edge of a cached app-icon raster. The nominal launcher cell is the largest surface that
          ever draws one, so a bigger bitmap could not show more detail and would only cost cache space. -->
     <dimen name="installed_app_icon_cache_size">96dp</dimen>
@@ -228,14 +237,14 @@
     <!-- S0374 Browse top command bar +20% (Browse-scoped, do not reuse on other screens) -->
     <!-- Container slot height (48dp base ×1.2). Do NOT point at control_button_size: that is shared with Main/Game. -->
     <dimen name="browse_cmd_button_size">58dp</dimen>
-    <!-- Visible button height cap. Must be >= browse_cmd_icon_size (29dp) so the +20% glyph is not vertically clamped by MaterialButton. -->
-    <dimen name="browse_cmd_button_min_height">29dp</dimen>
-    <dimen name="browse_cmd_button_max_height">29dp</dimen>
+    <!-- Visible button height cap. Must be >= browse_cmd_icon_size (32dp) so the glyph is not vertically clamped by MaterialButton. -->
+    <dimen name="browse_cmd_button_min_height">32dp</dimen>  <!-- S3433: was 29dp, follows the icon tier -->
+    <dimen name="browse_cmd_button_max_height">32dp</dimen>  <!-- S3433: was 29dp, follows the icon tier -->
     <!-- Tap-target width bounds (32dp / 100dp base ×1.2). -->
     <dimen name="browse_cmd_button_min_width">38dp</dimen>
     <dimen name="browse_cmd_button_max_width">120dp</dimen>
-    <!-- Icon glyph size (24dp vector intrinsic ×1.2); buttons had no app:iconSize before. -->
-    <dimen name="browse_cmd_icon_size">29dp</dimen>
+    <!-- Icon glyph size: the 32 tier, the nearest to S0374's 24dp x 1.2 that keeps a 2-unit line crisp. -->
+    <dimen name="browse_cmd_icon_size">@dimen/icon_tier_32</dimen>
     <!-- Portrait/landscape label text (10sp base ×1.2). -->
     <dimen name="browse_cmd_text_size">12sp</dimen>
 
@@ -351,7 +360,7 @@
 
     <!-- Resource Management (Add/Edit Resource) -->
     <dimen name="resource_card_margin_bottom">4dp</dimen>
-    <dimen name="resource_card_icon_size">32dp</dimen>
+    <dimen name="resource_card_icon_size">@dimen/icon_tier_32</dimen>
     <dimen name="resource_card_icon_margin_end">10dp</dimen>
     <dimen name="resource_card_title_text_size">16sp</dimen>
     <dimen name="resource_card_desc_text_size">14sp</dimen>
@@ -384,7 +393,7 @@
     <dimen name="settings_item_min_height">36dp</dimen>
     <dimen name="settings_item_margin_bottom">2dp</dimen>
     <dimen name="settings_switch_margin_end">10dp</dimen>
-    <dimen name="settings_help_icon_size">24dp</dimen>
+    <dimen name="settings_help_icon_size">@dimen/icon_tier_24</dimen>
     <dimen name="settings_help_icon_margin">4dp</dimen>
     <dimen name="settings_nested_margin_start">24dp</dimen>
     <!-- S1161: below this a settings group card stops fitting its own rows, so the multi-column
@@ -398,7 +407,7 @@
     <dimen name="settings_dropdown_wide_width">280dp</dimen>
     <!-- Max width cap for numeric settings inputs (e.g. network parallelism): stays compact on wide screens, shrinks on narrow ones. -->
     <dimen name="settings_input_numeric_max_width">140dp</dimen>
-    <dimen name="settings_icon_size">18dp</dimen>
+    <dimen name="settings_icon_size">@dimen/icon_tier_20</dimen>  <!-- S3433: was 18dp -->
 
     <!-- Dialog Layouts -->
     <dimen name="dialog_min_width">150dp</dimen>
@@ -444,14 +453,14 @@
     <dimen name="item_padding_small">6dp</dimen>
     <dimen name="item_padding_tiny">2dp</dimen>
     <dimen name="item_margin_tiny">2dp</dimen>
-    <dimen name="item_icon_size">48dp</dimen>
-    <dimen name="item_icon_size_medium">32dp</dimen>
-    <dimen name="item_icon_size_small">24dp</dimen>
-    <dimen name="item_icon_size_tiny">16dp</dimen>
-    <dimen name="widget_icon_size_large">40dp</dimen>
+    <dimen name="item_icon_size">@dimen/icon_tier_48</dimen>
+    <dimen name="item_icon_size_medium">@dimen/icon_tier_32</dimen>
+    <dimen name="item_icon_size_small">@dimen/icon_tier_24</dimen>
+    <dimen name="item_icon_size_tiny">@dimen/icon_tier_16</dimen>
+    <dimen name="widget_icon_size_large">@dimen/icon_tier_40</dimen>
     <dimen name="widget_stopwatch_toggle_size">48dp</dimen>
     <dimen name="widget_stopwatch_reading_text_size">22sp</dimen>
-    <dimen name="item_network_icon_size">36dp</dimen>
+    <dimen name="item_network_icon_size">@dimen/icon_tier_40</dimen>  <!-- S3433: was 36dp -->
     <dimen name="item_thumbnail_size">120dp</dimen>
     <dimen name="item_grid_thumbnail_size">150dp</dimen>
     <dimen name="item_title_text_size">16sp</dimen>
@@ -489,8 +498,8 @@
     <dimen name="settings_text_size_header">18sp</dimen>
     <dimen name="settings_width_input_small">120dp</dimen>
     <dimen name="settings_width_input_medium">140dp</dimen>
-    <dimen name="settings_width_icon">32dp</dimen>
-    <dimen name="settings_height_icon">32dp</dimen>
+    <dimen name="settings_width_icon">@dimen/icon_tier_32</dimen>
+    <dimen name="settings_height_icon">@dimen/icon_tier_32</dimen>
     <dimen name="settings_height_container_min">150dp</dimen>
     <dimen name="settings_margin_end_large">36dp</dimen>
     <dimen name="settings_margin_indent_level_2">48dp</dimen>
@@ -832,8 +841,8 @@
     <dimen name="mini_now_playing_artwork">32dp</dimen>
 
     <!-- Resource icon composer (S0034) -->
-    <dimen name="resource_icon_composite_size">48dp</dimen>
-    <dimen name="resource_icon_badge_size">27dp</dimen>
+    <dimen name="resource_icon_composite_size">@dimen/icon_tier_48</dimen>
+    <dimen name="resource_icon_badge_size">@dimen/icon_tier_24</dimen>  <!-- S3433: was 27dp -->
     <dimen name="resource_icon_theme_inset">8dp</dimen>
 
     <!-- Icon picker grid (S0034) -->
@@ -974,9 +983,9 @@
     <dimen name="tourist_secondary_card_elevation">2dp</dimen>
     <dimen name="tourist_card_stroke_width">1.5dp</dimen>
     <dimen name="tourist_secondary_card_stroke_width">1dp</dimen>
-    <dimen name="tourist_hero_icon_size">28dp</dimen>
-    <dimen name="tourist_hero_icon_size_land">24dp</dimen>
-    <dimen name="tourist_tile_icon_size">20dp</dimen>
+    <dimen name="tourist_hero_icon_size">@dimen/icon_tier_32</dimen>  <!-- S3433: was 28dp -->
+    <dimen name="tourist_hero_icon_size_land">@dimen/icon_tier_24</dimen>
+    <dimen name="tourist_tile_icon_size">@dimen/icon_tier_20</dimen>
     <dimen name="tourist_tile_padding">10dp</dimen>
     <dimen name="tourist_compass_rose_size">120dp</dimen>
     <dimen name="tourist_compass_rose_size_land">140dp</dimen>
@@ -988,6 +997,7 @@
     <!-- S3256: Dim screen clock and status overlay dimensions -->
     <dimen name="launcher_cell_outline_width">1dp</dimen>
     <dimen name="dim_clock_padding">16dp</dimen>
+    <dimen name="dim_clock_edge_offset">16dp</dimen>
     <dimen name="dim_clock_chip_size">24dp</dimen>
     <dimen name="dim_clock_chip_padding">2dp</dimen>
     <dimen name="dim_clock_chip_spacing">6dp</dimen>

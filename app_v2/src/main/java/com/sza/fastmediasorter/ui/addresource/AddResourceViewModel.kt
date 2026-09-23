@@ -50,7 +50,11 @@ data class AddResourceState(
 sealed class AddResourceEvent {
     data class ShowError(val message: String) : AddResourceEvent()
     data class ShowMessage(val message: String) : AddResourceEvent()
-    data class ShowTestResult(val message: String, val isSuccess: Boolean) : AddResourceEvent()
+    data class ShowTestResult(
+        val message: String,
+        val isSuccess: Boolean,
+        val presentedFingerprint: String? = null
+    ) : AddResourceEvent()
     data class LoadResourceForCopy(
         val resource: MediaResource,
         val username: String? = null,

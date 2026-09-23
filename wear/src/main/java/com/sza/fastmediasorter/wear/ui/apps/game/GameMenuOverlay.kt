@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.apps.game
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearActionCloud
@@ -38,9 +40,13 @@ fun GameMenuOverlay(
     scrollState: ScrollState,
     modifier: Modifier = Modifier
 ) {
+    // S3362: the menu paints the scheme's background, for the reason the stopwatch menu does (S3114):
+    // walked on the 192 dp emulator, the board read through every gap between the buttons, and a
+    // reviewer could not tell which surface a tap would reach.
     Box(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colors.background)
     ) {
         val wearActions = GameMenuEntry.entries.map { entry ->
             WearAction(

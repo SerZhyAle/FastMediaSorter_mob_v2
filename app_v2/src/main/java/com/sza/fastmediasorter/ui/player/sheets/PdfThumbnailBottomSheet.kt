@@ -31,6 +31,7 @@ class PdfThumbnailBottomSheet : BaseAppBottomSheet() {
 
     companion object {
         private const val REQUEST_KEY = "pdf_thumbnail_sheet"
+        private const val SPAN_COUNT = 3
 
         fun newInstance(
             rendererWrapper: PdfRendererWrapper,
@@ -61,7 +62,7 @@ class PdfThumbnailBottomSheet : BaseAppBottomSheet() {
         val binding = BottomSheetPdfThumbnailsBinding.bind(content)
         binding.tvThumbnailTitle.text = "${getString(R.string.pdf_thumbnails)} ($pdfPageCount)"
 
-        val spanCount = 3
+        val spanCount = SPAN_COUNT
         val gridAdapter = PdfThumbnailAdapter(
             rendererWrapper = wrapper,
             pageCount = pdfPageCount,

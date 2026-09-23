@@ -48,5 +48,4 @@ class AuthSessionsListViewModel @Inject constructor(
     fun addAccount(loginUrl: String, onLaunchWebView: (url: String) -> Unit) {
         onLaunchWebView(loginUrl)
     }
-
 }

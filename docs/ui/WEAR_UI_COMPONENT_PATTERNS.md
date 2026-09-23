@@ -141,6 +141,8 @@ For list items requiring long-press action menus (file lists, voice notes), `Lon
 #### Standard Toggle Chip (`StandardWearToggleChip`)
 The module's one toggle row, shipped in S3260 - it replaced the hand-rolled `WearSettingsToggleCell`, which is deleted. Standard `ToggleChip` architecture, project toggle state colors:
 
+A full-width row wraps its label with no line cap (S3362): one line and an ellipsis truncated the settings labels on the 192 dp review emulator, which WO-V1 fails. A `narrow` cell keeps the two-line cap.
+
 ```kotlin
 @Composable
 fun StandardWearToggleChip(
@@ -167,7 +169,7 @@ fun StandardWearToggleChip(
             Text(
                 text = label,
                 style = MaterialTheme.typography.caption1,
-                maxLines = if (narrow) 2 else 1,
+                maxLines = if (narrow) 2 else Int.MAX_VALUE,
                 overflow = TextOverflow.Ellipsis
             )
         },

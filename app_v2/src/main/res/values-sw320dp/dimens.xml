@@ -42,7 +42,7 @@
     <!-- Items - reduced padding/thumbnails -->
     <dimen name="item_padding">12dp</dimen>
     <dimen name="item_padding_vertical">8dp</dimen>
-    <dimen name="item_icon_size">40dp</dimen>
+    <dimen name="item_icon_size">@dimen/icon_tier_40</dimen>
     <dimen name="item_thumbnail_size">80dp</dimen>
     <dimen name="item_grid_thumbnail_size">100dp</dimen>
     

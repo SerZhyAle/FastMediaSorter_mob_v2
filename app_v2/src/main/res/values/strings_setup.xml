@@ -27,12 +27,12 @@
     <string name="welcome_profile_personal_smartphone_title">Personal smartphone</string>
     <string name="welcome_profile_photo_frame_desc">Turns the device into a digital photo frame. Disables video, audio, and file operations; opens slideshow immediately on launch.</string>
     <string name="welcome_profile_photo_frame_title">Photo frame</string>
-    <string name="welcome_profile_selector_title">Device Usage Profile</string>
+    <string name="welcome_profile_selector_title">Device profile</string>
     <string name="welcome_profile_tv_media_box_desc">Best for TV and media centers. Optimizes DPAD/remote navigation, uses large buttons, and hides tiny touch controls.</string>
     <string name="welcome_profile_tv_media_box_title">TV / media box</string>
     <string name="welcome_profile_video_player_desc">Best for video-only devices. Hides photos, music, and document viewers; prioritizes quick video playback and thumbnails.</string>
     <string name="welcome_profile_video_player_title">Video player</string>
-    <string name="welcome_profile_vr_headset_desc">Best for virtual reality devices. Pre-enables 3D/360° layouts and immersive controls on supported hardware flavors.</string>
+    <string name="welcome_profile_vr_headset_desc">Best for virtual reality devices. Pre-enables 3D/360° layouts and immersive controls on supported headsets.</string>
     <string name="welcome_profile_vr_headset_title">VR headset</string>
     <string name="welcome_recommended_badge">(Recommended)</string>
     <string name="welcome_title_1">Welcome to FastMediaSorter!</string>
@@ -60,7 +60,7 @@
     <string name="sysinfo_field_display_count">Displays</string>
     <string name="sysinfo_field_fingerprint">Fingerprint</string>
     <string name="sysinfo_field_first_install">First install</string>
-    <string name="sysinfo_field_flavor">Flavor</string>
+    <string name="sysinfo_field_flavor">Edition</string>
     <string name="sysinfo_field_font_scale">Font scale</string>
     <string name="sysinfo_field_gles">OpenGL ES</string>
     <string name="sysinfo_field_hdr">HDR</string>
@@ -115,7 +115,7 @@
     <string name="welcome_theme_auto">Auto</string>
     <string name="welcome_theme_light">Light</string>
     <string name="welcome_theme_dark">Dark</string>
-    <string name="welcome_networks_title">Network sources</string>
+    <string name="welcome_networks_title">Network resources</string>
     <string name="welcome_networks_description">Add media from network shares and remote storage.</string>
     <!-- S0399 device-profile page -->
     <string name="welcome_profiles_title">How will you use this device?</string>
@@ -180,5 +180,5 @@
     <string name="welcome_role_streams">Streams</string>
     <string name="welcome_role_streams_detail">Internet radio, TV and video channels from a ready-made catalog</string>
     <string name="welcome_role_wear">Watch app</string>
-    <string name="welcome_role_wear_detail">A Wear OS companion - browse and play right on your wrist</string>
+    <string name="welcome_role_wear_detail">The watch app - browse and play right on your wrist</string>
 </resources>

@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceDeleteOutcome
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequestKind
+import com.sza.fastmediasorter.domain.mutation.MutationRecorder
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -20,7 +22,8 @@ import javax.inject.Inject
  */
 class DeleteWatchRequestedFileUseCase @Inject constructor(
     private val openPhoneResourceChannel: OpenPhoneResourceChannelUseCase,
-    private val localOperationStrategy: LocalOperationStrategy
+    private val localOperationStrategy: LocalOperationStrategy,
+    private val mutationRecorder: MutationRecorder
 ) {
 
     /**
@@ -53,7 +56,7 @@ class DeleteWatchRequestedFileUseCase @Inject constructor(
                 )
                 WearPhoneResourceDeleteOutcome.SIZE_MISMATCH
             }
-            else -> remove(approved)
+            else -> remove(approved, PhoneResourceToken.parse(token)?.resourceId)
         }
     }
 
@@ -61,8 +64,19 @@ class DeleteWatchRequestedFileUseCase @Inject constructor(
      * The delete goes through the app's own local strategy, which unindexes and rescans the path the
      * same way every other delete on this phone does - a row left behind would show the owner a file
      * that is no longer there.
+     *
+     * S3376: [resourceId] comes from the token, which carries it by construction, and is what the
+     * mutation journal is keyed by. The watch bridge is a background actor - no Browse surface redraws
+     * because the watch asked for something - so without the journal entry an open list keeps the row
+     * until something else forces a full reload, and for a resource the local FileObserver is not
+     * watching that may be never. Registered only on the branch below where the file is actually gone:
+     * the three refusal outcomes leave it on the phone, and an entry for one of those would tell the
+     * reconciler to drop a row it must keep.
      */
-    private suspend fun remove(approved: PhoneResourceChannel.Approved): WearPhoneResourceDeleteOutcome {
+    private suspend fun remove(
+        approved: PhoneResourceChannel.Approved,
+        resourceId: Long?
+    ): WearPhoneResourceDeleteOutcome {
         val path = approved.file.absolutePath
         if (localOperationStrategy.requiresDeleteConsent(path)) {
             Timber.i("Watch delete request: %s needs the system dialog, leaving the original", approved.name)
@@ -70,6 +84,11 @@ class DeleteWatchRequestedFileUseCase @Inject constructor(
         }
         val deleted = localOperationStrategy.deleteFile(path)
         return if (deleted.isSuccess) {
+            // Only phone-owned storage reaches this use case - the channel refuses every network
+            // resource - so LOCAL is the resource type, not a convenient default.
+            if (resourceId != null) {
+                mutationRecorder.recordDelete(resourceId, path, ResourceType.LOCAL)
+            }
             WearPhoneResourceDeleteOutcome.DELETED
         } else {
             // A refusal the owner can act on by hand, not a developer defect: the file is still on the

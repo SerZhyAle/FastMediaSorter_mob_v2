@@ -22,7 +22,4 @@ class PlayerOverlayPanel @JvmOverloads constructor(
     attrs,
     defStyleAttr,
     R.style.Widget_FastMediaSorter_Player_OverlayPanel,
-) {
-    init {
-    }
-}
+)

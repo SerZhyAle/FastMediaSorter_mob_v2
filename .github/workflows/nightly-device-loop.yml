@@ -1,0 +1,140 @@
+name: Nightly device loop
+
+# S3371 phase 05: the nightly contour. LeakCanary has shipped in the debug build for a long time and
+# nothing ever executed it as a contour - a leak was found when somebody happened to be watching a
+# debug device. This workflow walks the critical flows declared in scripts/quality/leak-watch-flows.txt
+# on an emulator every night and fails on any retained instance.
+#
+# Nightly and manual only, never on a push or a PR (strategic ADR-4). An emulator run measured
+# 3 min 15 s of device time on the workstation and costs far more on a cold runner, and the contour
+# has to prove itself stable before it is allowed to block a merge. The cadence decision and its
+# cost row live in docs/BUILD_VS_RELEASE.md.
+#
+# Phase 07 joined its state-restore scenarios through LEAKWATCH_FILTER below, as that handover note
+# said it would: one comma, one package. The run now walks the critical flows for retained instances
+# AND executes the critical rows of docs/STATE_RESTORE_MATRIX.md, and the summary below reports the
+# two halves separately - a rotation that lost its screen is not a leak, and calling it one would
+# send the next reader looking for a heap problem that is not there.
+
+on:
+  schedule:
+    # 02:23 UTC daily. Off the hour and off the two weekly scans (03:17 and 04:41 UTC) so three
+    # scheduled runs never queue behind one another on the shared scheduler.
+    - cron: '23 2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  # The instrumentation runner argument that selects the contour. A package, not a class list, so a
+  # suite added later runs by the fact of being placed.
+  LEAKWATCH_FILTER: com.sza.fastmediasorter.leakwatch,com.sza.fastmediasorter.staterestore
+
+jobs:
+  leak-watch:
+    name: Leak watch over the critical flows
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Gradle (deps + build cache)
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # Required so the Linux runner can use hardware-accelerated KVM; without it the emulator falls
+      # back to software rendering and the run outlives its own timeout.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Fetch prebuilt native AARs
+        run: bash ./scripts/ci/fetch-prebuilt-libs.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Run the leak-watch suite on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_3a
+          cores: 2
+          ram-size: 4096M
+          heap-size: 512M
+          disk-size: 8192M
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          # Animations off: an animation still running when the Activity is destroyed holds a view
+          # reference for its duration and reads as a retained instance that no product code owns.
+          disable-animations: true
+          script: |
+            ./gradlew :app_v2:connectedStandardDebugAndroidTest --stacktrace \
+              -Pandroid.testInstrumentationRunnerArguments.package=$LEAKWATCH_FILTER
+        env:
+          DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
+
+      # LeakCanary's instrumentation writes heap dumps and a text analysis to the device rather than
+      # a machine-readable file, so the JSON below is built from the JUnit report the run produced.
+      # It is what a reader opens first: which flow retained something, and whether the seeded canary
+      # was detected at all - a suite whose canary did not fire proves nothing, however green it is.
+      - name: Summarise the leak-watch verdict as JSON
+        if: always()
+        shell: pwsh
+        run: |
+          $resultsDir = 'app_v2/build/outputs/androidTest-results/connected'
+          $files = @(Get-ChildItem -Path $resultsDir -Recurse -Filter '*.xml' -File -ErrorAction SilentlyContinue)
+          $cases = [System.Collections.Generic.List[object]]::new()
+          foreach ($file in $files) {
+            $document = New-Object System.Xml.XmlDocument
+            $document.Load($file.FullName)
+            foreach ($case in $document.SelectNodes('//testcase')) {
+              $failed = @($case.SelectNodes('failure')).Count -gt 0 -or @($case.SelectNodes('error')).Count -gt 0
+              $cases.Add([pscustomobject]@{ test = $case.GetAttribute('name'); testClass = $case.GetAttribute('classname'); passed = (-not $failed) })
+            }
+          }
+          $canary = @($cases | Where-Object { $_.test -like 'aSeededLeak*' })
+          $summary = [ordered]@{
+            suite                  = $env:LEAKWATCH_FILTER
+            reportFiles            = $files.Count
+            tests                  = $cases.Count
+            retainedFlows          = @($cases | Where-Object { -not $_.passed -and $_.test -notlike 'aSeededLeak*' -and $_.testClass -notlike '*.staterestore.*' } | ForEach-Object { $_.test })
+            stateRestoreFailures   = @($cases | Where-Object { -not $_.passed -and $_.testClass -like '*.staterestore.*' } | ForEach-Object { $_.test })
+            seededScenarioDetected = ($canary.Count -gt 0 -and @($canary | Where-Object { $_.passed }).Count -eq $canary.Count)
+          }
+          ($summary | ConvertTo-Json -Depth 5) | Set-Content -Path leak-watch-report.json -Encoding utf8NoBOM
+          Get-Content leak-watch-report.json
+          if ($cases.Count -eq 0) {
+            Write-Host '::error title=Leak watch ran nothing::the instrumentation filter matched no test, so this run proves nothing about the critical flows.'
+            exit 1
+          }
+          if (-not $summary.seededScenarioDetected) {
+            Write-Host '::error title=Leak-watch canary did not fire::the seeded scenario was not detected, so a clean verdict from this run means only that the harness is inactive.'
+            exit 1
+          }
+
+      - name: Upload the leak-watch report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: leak-watch-report
+          path: |
+            leak-watch-report.json
+            app_v2/build/reports/androidTests/connected/
+            app_v2/build/outputs/androidTest-results/connected/
+          if-no-files-found: warn
+          retention-days: 30

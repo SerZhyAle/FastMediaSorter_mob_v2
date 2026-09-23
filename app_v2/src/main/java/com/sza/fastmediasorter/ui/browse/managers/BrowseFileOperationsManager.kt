@@ -176,7 +176,9 @@ class BrowseFileOperationsManager(
             if (state.isTerminal && state.workId != null && !browseTransferCoordinator.isTerminalHandled(state.workId)) {
                 val stored = browseTransferCoordinator.consumeStoredTerminalEvent()
                 val terminalEvent = stored ?: state.terminalFallback
-                if (terminalEvent != null) {
+                // The consume suspends on IO, and the terminalEvents collector may handle the same
+                // work id in that window.
+                if (terminalEvent != null && !browseTransferCoordinator.isTerminalHandled(state.workId)) {
                     handleTerminalEvent(terminalEvent, clearStoredMirror = false)
                 }
             }
@@ -293,7 +295,9 @@ class BrowseFileOperationsManager(
         lastAutoAttachPath = null
         modalDetachedByUser = false
         if (clearStoredMirror) {
-            browseTransferCoordinator.clearStoredTerminalEvent()
+            // Launched rather than awaited so markTerminalHandled below stays synchronous and the
+            // activeTransferFlow collector cannot handle this event a second time.
+            coroutineScope.launch { browseTransferCoordinator.clearStoredTerminalEvent() }
         }
         browseTransferCoordinator.markTerminalHandled(event.workId)
         browseTransferCoordinator.clearTerminalReplay()

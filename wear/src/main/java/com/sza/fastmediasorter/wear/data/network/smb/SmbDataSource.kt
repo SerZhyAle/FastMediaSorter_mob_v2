@@ -48,6 +48,10 @@ class SmbDataSource(
 
     private val client = SMBClient(config)
 
+    init {
+        Timber.d("S3368: SmbDataSource constructed - the SMBJ stack just built, deferred path reached")
+    }
+
     /**
      * Connect to SMB server and authenticate.
      */

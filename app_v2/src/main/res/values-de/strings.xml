@@ -81,7 +81,6 @@
     <string name="renamed_n_files">%1$d Dateien umbenannt.</string>
     <string name="rename_failed_generic">Die Datei konnte nicht umbenannt werden.</string>
     <string name="rename_file_name_empty">Der Dateiname darf nicht leer sein.</string>
-    <string name="error_delete">Dateien konnten nicht gelöscht werden</string>
     <string name="error_all_operations_failed">Nichts wurde abgeschlossen.</string>
     <string name="all_copy_operations_failed">Die ausgewählten Dateien konnten nicht kopiert werden.\n\n%1$s</string>
     <string name="all_move_operations_failed">Die ausgewählten Dateien konnten nicht verschoben werden.\n\n%1$s</string>
@@ -1404,7 +1403,7 @@
     <string name="files_scanned_count">%1$d Dateien durchsucht</string>
     <string name="wear_companion">Wear Companion</string>
     <string name="tooltip_wear_companion_title">Wear Companion</string>
-    <string name="tooltip_wear_companion_message">Sende deine Netzwerkressourcen (SMB, FTP, Cloud) an eine gekoppelte Wear-OS-Uhr, damit du sie direkt vom Handgelenk aus durchsuchen und abspielen kannst. Tippe auf die Taste, um zu wählen, welche Medientypen synchronisiert werden, und um die Wiedergabeeinstellungen der Uhr anzupassen.</string>
+    <string name="tooltip_wear_companion_message">Sende deine Netzwerkressourcen (SMB, FTP, SFTP) an eine gekoppelte Wear-OS-Uhr, damit du sie direkt vom Handgelenk aus durchsuchen und abspielen kannst. Tippe auf die Taste, um zu wählen, welche Medientypen synchronisiert werden, und um die Wiedergabeeinstellungen der Uhr anzupassen.</string>
     <string name="wear_sync_description">Sende Netzwerkressourcen an deine verbundene Wear-OS-Uhr.</string>
     <string name="wear_push_to_watch">An die Uhr senden</string>
     <string name="wear_sync_ready">Bereit zum Synchronisieren</string>
@@ -3668,4 +3667,24 @@
     <string name="broadcast_control_feedback_warning">Ton abgesenkt: Der Lautsprecher eines Zuhörers koppelt in das Mikrofon zurück. Bringen Sie das Empfangsgerät weiter weg oder verringern Sie dessen Lautstärke.</string>
     <string name="broadcast_control_feedback_warning_cd">Akustische Rückkopplung erkannt, die Mikrofonverstärkung wurde gesenkt</string>
     <string name="wear_watch_transfer_unconfirmed">Die Uhr hat das Speichern von %1$s nicht bestätigt, daher blieb das Original auf dem Smartphone.</string>
+    <string name="filedo_operations_title">FileDO-Verschlüsselung</string>
+    <string name="filedo_operations_summary">„Mit FileDO verschlüsseln“ und „Mit FileDO entschlüsseln“ im Operationsmenü jeder Datei anzeigen</string>
+    <string name="filedo_encrypt">Mit FileDO verschlüsseln</string>
+    <string name="filedo_decrypt">Mit FileDO entschlüsseln</string>
+    <string name="filedo_password_title_encrypt">Passwort für den Container</string>
+    <string name="filedo_password_title_decrypt">Passwort des Containers</string>
+    <string name="filedo_password_hint">Passwort</string>
+    <string name="filedo_password_repeat_hint">Passwort wiederholen</string>
+    <string name="filedo_password_mismatch">Die beiden Passwörter stimmen nicht überein</string>
+    <string name="filedo_password_empty_warning">Ein leeres Passwort bietet keine Geheimhaltung. Die Datei ist nur vor einem flüchtigen Blick verborgen, und wer das Format kennt, kann sie öffnen.</string>
+    <string name="filedo_no_recovery_warning">Ein vergessenes Passwort lässt sich nicht wiederherstellen.</string>
+    <string name="filedo_outcome_wrong_credential">Die Datei konnte nicht geöffnet werden: Das Passwort ist falsch, die Datei war nie ein Container oder sie wurde manipuliert. Diese drei Fälle lassen sich nicht unterscheiden.</string>
+    <string name="filedo_outcome_damaged">Der Container ist beschädigt: Er ist abgeschnitten oder sein Inhalt passt nicht zu dem, was er versiegelt.</string>
+    <string name="filedo_outcome_unsupported">Dieser Container nutzt eine Formatversion, die diese App nicht liest.</string>
+    <string name="filedo_outcome_failed">Die Operation wurde nicht abgeschlossen: %1$s</string>
+    <string name="filedo_encrypted_ok">Container geschrieben. Das Original bleibt unverändert.</string>
+    <string name="filedo_decrypted_ok">Datei wiederhergestellt.</string>
+    <string name="filedo_open_refused_executable">Dieser Container enthält ein Programm oder ein Skript. Er wird nicht geöffnet.</string>
+    <string name="filedo_password_remember">Passwort merken und bei jeder .fd-sec-Datei versuchen</string>
+    <string name="filedo_remembered_password_forgotten">Das gespeicherte Passwort hat diese Datei nicht geöffnet und wurde vergessen. Gib das Passwort für diese Datei ein.</string>
 </resources>

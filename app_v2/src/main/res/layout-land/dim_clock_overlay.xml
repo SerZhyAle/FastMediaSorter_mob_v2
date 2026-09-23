@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="false"
+    android:focusable="false">
+
+    <LinearLayout
+        android:id="@+id/dimClockContentBlock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:clickable="false"
+        android:focusable="false"
+        android:orientation="vertical"
+        android:padding="@dimen/dim_clock_padding">
+
+        <LinearLayout
+            android:id="@+id/dimNotificationsRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:clickable="false"
+            android:focusable="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/dimClockBlock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:focusable="false"
+            android:orientation="vertical">
+
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextClock
+                android:id="@+id/dimClockTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:ellipsize="end"
+                android:focusable="false"
+                android:maxLines="1"
+                android:textColor="@color/white"
+                android:textAppearance="@style/TextAppearance.FastMediaSorter.DimClock.Time"
+                android:textStyle="bold"
+                app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width" />
+
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextClock
+                android:id="@+id/dimClockDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dim_clock_date_margin_top"
+                android:clickable="false"
+                android:ellipsize="end"
+                android:focusable="false"
+                android:maxLines="1"
+                android:textColor="@color/white"
+                android:textAppearance="@style/TextAppearance.FastMediaSorter.DimClock.Date"
+                app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/dimStatusRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:clickable="false"
+            android:focusable="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:id="@+id/dimBatteryBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/dim_clock_chip_spacing"
+                android:background="@drawable/dim_clock_battery_outline"
+                android:clickable="false"
+                android:focusable="false"
+                android:paddingStart="@dimen/dim_clock_battery_padding_h"
+                android:paddingTop="@dimen/dim_clock_battery_padding_v"
+                android:paddingEnd="@dimen/dim_clock_battery_padding_h"
+                android:paddingBottom="@dimen/dim_clock_battery_padding_v">
+
+                <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+                    android:id="@+id/dimBatteryLevelText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:textColor="@color/white"
+                    android:textAppearance="@style/TextAppearance.FastMediaSorter.DimClock.Battery"
+                    android:textStyle="bold"
+                    app:otv_outlineWidth="@dimen/launcher_cell_outline_width" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/dimNetworkChipsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:focusable="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

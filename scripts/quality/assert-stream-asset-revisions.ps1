@@ -9,11 +9,20 @@
     is exactly the problem: the survival of a pinned revision rests on the absence of an
     action rather than on a rule (S1828).
 
-    The pinned names live in one place, the consumer registry
-    docs/STREAM_CATALOG_CONSUMERS.md, between the literal markers
+    The pinned names live in one place, the `STREAM-BANK` consumer registry
+    (`CONSUMERS.md` of the stream-catalog domain), between the literal markers
     <!-- pinned-assets:begin --> and <!-- pinned-assets:end -->. This gate reads them there
     rather than holding its own copy: a second independent literal is the failure the same
     registry documents for the 30 MiB atlas ceiling.
+
+    That registry lives in the shared contracts catalog, which is OUTSIDE this repository and whose
+    location is named in exactly one tracked file - CLAUDE.md. So this gate never spells it: it takes
+    -CatalogRoot, falls back to $env:FMS_CONTRACTS_ROOT, and returns 3 (could not verify) when
+    neither resolves. A checkout without the catalog is the ordinary case, not a defect, and a gate
+    that failed there would be permanently red for everyone but the maintainer. Until 2026-09-22 the
+    path was hard-coded under the repo root, where the catalog has never been mounted: the gate had
+    been returning 2 on every run, and `a.ps1 fg` counted it among its failures without anyone
+    reading which one it was.
 
     A pinned row carries a Coverage token. `default` means the publisher's current revision
     defaults still produce the name on every run, and the gate fails when such a row stops
@@ -29,14 +38,19 @@
     Exit codes:
       0  every `default` pinned asset is still produced by the publisher.
       1  a pinned asset marked `default` would stop being published - the run is refused.
-      2  the gate itself cannot run: registry or publisher missing, markers absent, the
-         pinned block empty, an unknown Coverage token, or a revision parameter whose
+      2  the gate itself cannot run: the publisher is missing, the markers are absent, the
+         pinned block is empty, a Coverage token is unknown, or a revision parameter's
          default could not be read.
+      3  could not verify: the shared contracts catalog is not reachable from this machine,
+         so the consumer registry could not be read at all. Not a finding about the tree.
 #>
 param(
     [switch] $Gate,
     [switch] $Quiet,
-    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
+    # The shared contracts catalog's root. Never defaulted to a literal path here - CLAUDE.md is the
+    # one tracked file allowed to name it, and a clone of this repository does not have it at all.
+    [string] $CatalogRoot = $env:FMS_CONTRACTS_ROOT
 )
 
 $ErrorActionPreference = 'Stop'
@@ -46,14 +60,24 @@ function Deny([string] $message, [int] $code) {
     exit $code
 }
 
-$registryPath = Join-Path $RepoRoot 'docs/STREAM_CATALOG_CONSUMERS.md'
+function Skip([string] $message) {
+    if (-not $Quiet) { Write-Host "stream-asset-revisions: SKIP - $message" }
+    exit 3
+}
+
+if ([string]::IsNullOrWhiteSpace($CatalogRoot)) {
+    Skip 'the shared contracts catalog is not configured - set FMS_CONTRACTS_ROOT (CLAUDE.md names its location).'
+}
+$registryPath = Join-Path $CatalogRoot 'stream-catalog/CONSUMERS.md'
+if (-not (Test-Path -LiteralPath $registryPath)) {
+    Skip "the STREAM-BANK consumer registry is not readable at '$registryPath'."
+}
 $publisherPaths = @(
     Join-Path $RepoRoot 'scripts/streams/collect-stream-candidates.ps1'
     Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'scripts/streams/modules') -Filter '*.ps1' -File -ErrorAction SilentlyContinue |
         Select-Object -ExpandProperty FullName
 )
 
-if (-not (Test-Path $registryPath)) { Deny "cannot run - $registryPath missing." 2 }
 if (-not (Test-Path $publisherPaths[0])) { Deny "cannot run - $($publisherPaths[0]) missing." 2 }
 
 $registry = Get-Content $registryPath -Raw
@@ -128,7 +152,7 @@ if ($lost.Count -gt 0) {
     $detail = ($lost | ForEach-Object { "  - $_" }) -join "`n"
     Deny ("a pinned asset would stop being published:`n$detail`n" +
         "  Fix by restoring the revision default, or by recording the displaced rows as 'frozen' in " +
-        "docs/STREAM_CATALOG_CONSUMERS.md in the same change - a frozen row is never republished but is never deleted either.") 1
+        "the STREAM-BANK consumer registry in the same change - a frozen row is never republished but is never deleted either.") 1
 }
 
 if (-not $Quiet) {

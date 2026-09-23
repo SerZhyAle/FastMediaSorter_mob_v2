@@ -4,7 +4,7 @@ appId: com.sza.fastmediasorter.debug
 # Description: Verifies the primary-window choice and the Launcher Settings entry point in General Settings.
 #
 # S3024 consolidated the former standalone enable toggle into rowLauncherPrimaryWindow (Home screen /
-# In-app Desktop / Resource Manager); rowLauncherModeEnabled exists in no layout since then.
+# In-app Desktop / Main screen); rowLauncherModeEnabled exists in no layout since then.
 #
 # No home role needed: this flow asserts that both controls are PRESENT, never that the settings row
 # is active, so it passes with launcher mode off. That is why it carries no `maestro-requires` marker

@@ -229,6 +229,13 @@
     <color name="color_media_docs">#FFFFCC80</color>      <!-- Orange 200 -->
     <color name="color_media_other">#FFB0BEC5</color>     <!-- Blue Grey 200 -->
 
+    <!-- S3433: night tones of the source hues, measured on #121212: local 9.31, smb 8.46, sftp 10.82,
+         ftp 5.27, cloud 10.19. -->
+    <color name="color_source_local">#FF81C784</color>     <!-- Green 300 -->
+    <color name="color_source_smb">#FF64B5F6</color>       <!-- Blue 300 -->
+    <color name="color_source_sftp">#FFFFB74D</color>      <!-- Orange 300 -->
+    <color name="color_source_ftp">#FFBA68C8</color>       <!-- Purple 300 -->
+    <color name="color_source_cloud">#FF4DD0E1</color>     <!-- Cyan 300 -->
     <!-- S2510: night members of the per-mini-program accent palette. The catalog hands callers a
          resource id rather than a resolved colour precisely so this file is picked automatically;
          a name present only in values/ would serve the light tone in dark mode. -->

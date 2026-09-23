@@ -9,7 +9,6 @@ import android.service.quicksettings.TileService
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.broadcast.BroadcastEntryActivity
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * S2818: Quick Settings tile for Live Broadcast. A conductor, not a toggle (strategic ADR-2): every

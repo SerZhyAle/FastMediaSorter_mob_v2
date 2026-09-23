@@ -50,7 +50,11 @@
     Exit 1 when an unbaselined migration has no test. Without it the script only reports.
 
 .PARAMETER UpdateBaseline
-    Rewrite the baseline from the current tree.
+    Rewrite the baseline from the current tree. Dropping tokens needs nothing; adding one needs
+    -Reason, and every added or dropped token is printed (S3460).
+
+.PARAMETER Reason
+    Why -UpdateBaseline may accept a new untested migration. Recorded as a header line.
 
 .PARAMETER List
     Print every migration and its test status, grouped by database.
@@ -62,7 +66,8 @@
 .NOTES
     Exit codes: 0 no unbaselined gap (or reporting only), 1 unbaselined gap under -Gate,
     2 cannot verify (a registry row's migration directory, schema directory or registration file is
-      missing - the message names the database),
+      missing - the message names the database; or -UpdateBaseline would add a token without
+      -Reason, and nothing is written),
     4 Code.Scripts is held by another session, so no baseline was written. The queue place is held -
       wait for the turn in the background and rerun (S2635).
 #>
@@ -71,7 +76,8 @@ param(
     [switch]$Gate,
     [switch]$UpdateBaseline,
     [switch]$List,
-    [string]$Module
+    [string]$Module,
+    [string]$Reason
 )
 
 Set-StrictMode -Version Latest
@@ -164,10 +170,19 @@ $untested = @($records | Where-Object { -not $_.Tested })
 
 if ($UpdateBaseline) {
     . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+    . (Join-Path $PSScriptRoot 'lib/baseline-set-writer.ps1')
+    $previous = @()
+    if (Test-Path $baselineFile) {
+        $previous = @(Get-Content $baselineFile | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') })
+    }
+    $currentKeys = @($untested | ForEach-Object { $_.Key })
+    $writeAllowed = Test-BaselineWrite -Gate 'assert-migration-test-pairing' `
+        -Previous $previous -Current $currentKeys -Reason $Reason
+    if (-not $writeAllowed) { exit 2 }
     $scope = $null
     try {
         $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-migration-test-pairing.ps1 -UpdateBaseline'
-        ($untested | ForEach-Object { $_.Key }) | Set-Content -Path $baselineFile -Encoding utf8NoBOM
+        (@(Get-BaselineReasonLine -Reason $Reason) + $currentKeys) | Set-Content -Path $baselineFile -Encoding utf8NoBOM
     }
     finally { Exit-CodeLockScope -Scope $scope }
     Write-Host ("assert-migration-test-pairing: baseline rewritten - {0} untested migration(s)." -f $untested.Count)

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.navigation
 
 import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat
+import com.sza.fastmediasorter.wear.domain.model.WearFdSecMode
 import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
 
 /**
@@ -166,6 +167,9 @@ object WearRoutes {
     const val ARG_FILE_ID = "fileId"
     const val ARG_TILE_KIND = "tileKind"
 
+    /** S3383: which of the three FileDO errands the credential screen was opened for. */
+    const val ARG_FDSEC_MODE = "fdSecMode"
+
     /** S2532: which document format was refused, named by [WearDocumentFormat.name]. */
     const val ARG_DOCUMENT_FORMAT = "documentFormat"
 
@@ -199,6 +203,14 @@ object WearRoutes {
     const val AUDIO_PLAYER_PATTERN = "audio_player/{$ARG_FILE_ID}"
     const val VIDEO_PLAYER_PATTERN = "video_player/{$ARG_FILE_ID}"
     const val IMAGE_VIEWER_PATTERN = "image_viewer/{$ARG_FILE_ID}"
+
+    /**
+     * S3383: where a FileDO container's credential is typed, for all three errands.
+     *
+     * Not a content route: it renders nothing of the file and must keep the browse list underneath
+     * it on the back stack, because two of the three modes return to that list.
+     */
+    const val FDSEC_CREDENTIAL_PATTERN = "fdsec_credential/{$ARG_FILE_ID}/{$ARG_FDSEC_MODE}"
 
     /** S2532: the watch's own reader for a document it renders, the fourth of the content screens. */
     const val DOCUMENT_VIEWER_PATTERN = "document_viewer/{$ARG_FILE_ID}"
@@ -256,6 +268,9 @@ object WearRoutes {
     fun imageViewer(fileId: Long): String = "image_viewer/$fileId"
 
     fun documentViewer(fileId: Long): String = "document_viewer/$fileId"
+
+    /** S3383: enum names need no encoding, like [unsupportedFile] below. */
+    fun fdSecCredential(fileId: Long, mode: WearFdSecMode): String = "fdsec_credential/$fileId/${mode.name}"
 
     /** The refusal, told which format it is refusing. Enum names need no encoding. */
     fun unsupportedFile(format: WearDocumentFormat): String = "unsupported_file/${format.name}"

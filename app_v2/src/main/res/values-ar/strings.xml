@@ -85,7 +85,6 @@
     <string name="renamed_n_files">تمت إعادة تسمية %1$d ملف.</string>
     <string name="rename_failed_generic">تعذرت إعادة تسمية هذا الملف.</string>
     <string name="rename_file_name_empty">لا يمكن أن يكون اسم الملف فارغًا.</string>
-    <string name="error_delete">تعذّر حذف الملفات</string>
     <string name="error_all_operations_failed">لم تكتمل أي عملية.</string>
     <string name="all_copy_operations_failed">تعذر نسخ الملفات المحددة.\n\n%1$s</string>
     <string name="all_move_operations_failed">تعذر نقل الملفات المحددة.\n\n%1$s</string>
@@ -1419,7 +1418,7 @@
     <string name="files_scanned_count">تم فحص الملفات %1$d</string>
     <string name="wear_companion">تطبيق Wear المرافق</string>
     <string name="tooltip_wear_companion_title">تطبيق Wear المرافق</string>
-    <string name="tooltip_wear_companion_message">أرسل موارد الشبكة لديك (SMB وFTP والسحابة) إلى ساعة Wear OS مقترنة لتتصفحها وتشغّلها مباشرة من معصمك. انقر على الزر لاختيار أنواع الوسائط التي تتم مزامنتها وضبط إعدادات التشغيل على الساعة.</string>
+    <string name="tooltip_wear_companion_message">أرسل موارد الشبكة لديك (SMB وFTP وSFTP) إلى ساعة Wear OS مقترنة لتتصفحها وتشغّلها مباشرة من معصمك. انقر على الزر لاختيار أنواع الوسائط التي تتم مزامنتها وضبط إعدادات التشغيل على الساعة.</string>
     <string name="wear_sync_description">أرسل مصادر الشبكة إلى ساعة Wear OS المتصلة.</string>
     <string name="wear_push_to_watch">الإرسال إلى الساعة</string>
     <string name="wear_sync_ready">جاهز للمزامنة</string>
@@ -3686,4 +3685,24 @@
     <string name="broadcast_control_feedback_warning">تم خفض الصوت: مكبّر صوت أحد المستمعين يعود إلى الميكروفون. أبعد جهاز الاستماع أو اخفض مستوى صوته.</string>
     <string name="broadcast_control_feedback_warning_cd">تم اكتشاف تغذية راجعة صوتية، وتم خفض كسب الميكروفون</string>
     <string name="wear_watch_transfer_unconfirmed">لم تؤكد الساعة حفظ %1$s، لذا تم الاحتفاظ بالأصل على الهاتف.</string>
+    <string name="filedo_operations_title">عمليات تشفير FileDO</string>
+    <string name="filedo_operations_summary">إظهار «التشفير باستخدام FileDO» و«فك التشفير باستخدام FileDO» في قائمة العمليات لكل ملف</string>
+    <string name="filedo_encrypt">التشفير باستخدام FileDO</string>
+    <string name="filedo_decrypt">فك التشفير باستخدام FileDO</string>
+    <string name="filedo_password_title_encrypt">كلمة مرور للحاوية</string>
+    <string name="filedo_password_title_decrypt">كلمة مرور الحاوية</string>
+    <string name="filedo_password_hint">كلمة المرور</string>
+    <string name="filedo_password_repeat_hint">أعد إدخال كلمة المرور</string>
+    <string name="filedo_password_mismatch">كلمتا المرور غير متطابقتين</string>
+    <string name="filedo_password_empty_warning">كلمة المرور الفارغة لا توفر أي سرية. الملف مخفي فقط عن النظرة العابرة، ويستطيع أي شخص يعرف التنسيق فتحه.</string>
+    <string name="filedo_no_recovery_warning">لا توجد طريقة لاستعادة كلمة مرور منسية.</string>
+    <string name="filedo_outcome_wrong_credential">تعذر فتح الملف: كلمة المرور خاطئة، أو أن الملف لم يكن حاوية أصلًا، أو أنه تم العبث به. لا يمكن التمييز بين هذه الحالات الثلاث.</string>
+    <string name="filedo_outcome_damaged">الحاوية تالفة: إنها مقتطعة أو أن محتواها لا يطابق ما تختمه.</string>
+    <string name="filedo_outcome_unsupported">تستخدم هذه الحاوية إصدار تنسيق لا يقرؤه هذا التطبيق.</string>
+    <string name="filedo_outcome_failed">لم تكتمل العملية: %1$s</string>
+    <string name="filedo_encrypted_ok">تمت كتابة الحاوية. الأصل لم يُمس.</string>
+    <string name="filedo_decrypted_ok">تمت استعادة الملف.</string>
+    <string name="filedo_open_refused_executable">تحتوي هذه الحاوية على برنامج أو نص برمجي. لن يتم فتحها.</string>
+    <string name="filedo_password_remember">تذكر كلمة المرور وتجربتها على كل ملف .fd-sec</string>
+    <string name="filedo_remembered_password_forgotten">كلمة المرور المحفوظة لم تفتح هذا الملف وتم نسيانها. أدخل كلمة المرور لهذا الملف.</string>
 </resources>

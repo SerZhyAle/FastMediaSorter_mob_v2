@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S3433: the decorated look of Slideshow for its static app shortcut (ICON-RENDER 0.10 section 10, item E):
+     the plate fills the adaptive background and the glyph sits at 44 of 108 units, so the launcher's own
+     mask shapes it instead of shrinking a bare glyph onto a white disc. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/color_icon_plate_accent" />
+    <foreground>
+        <inset
+            android:drawable="@drawable/ic_slideshow"
+            android:inset="29.6%" />
+    </foreground>
+</adaptive-icon>

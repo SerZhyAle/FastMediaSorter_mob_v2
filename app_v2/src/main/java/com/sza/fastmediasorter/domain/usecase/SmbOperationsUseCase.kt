@@ -318,6 +318,11 @@ class SmbOperationsUseCase @Inject constructor(
         }
     }
 
+    data class SftpTestResult(
+        val message: String,
+        val presentedFingerprint: String? = null
+    )
+
     /** Test SFTP connection with given credentials (password or private key) */
     suspend fun testSftpConnection(
         host: String,
@@ -327,7 +332,7 @@ class SmbOperationsUseCase @Inject constructor(
         privateKey: String? = null,
         keyPassphrase: String? = null,
         expectedFingerprint: String? = null
-    ): Result<String> = withContext(ioDispatcher) {
+    ): Result<SftpTestResult> = withContext(ioDispatcher) {
         try {
             // S1006: test the reachable endpoint of the resource's candidate set (LAN at home, WAN in
             // transit); resolves to the given host unchanged for a single-address resource, so the test
@@ -345,7 +350,13 @@ class SmbOperationsUseCase @Inject constructor(
                 // S0473: a remote source connected successfully.
                 statsSink.record(StatsEvent.SourceConnected())
                 val authMethod = if (privateKey != null) "private key" else "password"
-                Result.success("SFTP connection successful to $useHost:$usePort using $authMethod")
+                val presentedFingerprint = result.getOrNull()
+                Result.success(
+                    SftpTestResult(
+                        message = "SFTP connection successful to $useHost:$usePort using $authMethod",
+                        presentedFingerprint = presentedFingerprint
+                    )
+                )
             } else {
                 Result.failure(result.exceptionOrNull() ?: Exception("SFTP connection failed"))
             }

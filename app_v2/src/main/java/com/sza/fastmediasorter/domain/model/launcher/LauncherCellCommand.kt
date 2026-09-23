@@ -216,7 +216,8 @@ sealed interface LauncherCellCommand {
          *
          * The literal is a persistence token: it is written verbatim into a cell's `target` and the
          * settings backup restores that string untouched, so it is never renamed once shipped. The
-         * caption is looked up separately through [LauncherSectionCatalog][com.sza.fastmediasorter.core.launcher.LauncherSectionCatalog],
+         * caption is looked up separately through
+         * [LauncherSectionCatalog][com.sza.fastmediasorter.core.launcher.LauncherSectionCatalog],
          * which is what lets the user rename the section without the desktop losing track of it.
          */
         const val SECTION_SETTINGS = "settings"

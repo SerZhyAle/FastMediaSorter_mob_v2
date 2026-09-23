@@ -138,6 +138,9 @@ Before any batch of new or updated strings is merged:
 
 ## 7. Glossary (canonical terms)
 
+- `docs/termbase.jsonl` is the primary source of canonical terms for the user documentation corpus: one record per concept with its canonical name, a plain definition, forbidden synonyms, the UI string keys that show it, and the approved RU/UK names. The documentation is written in American English (en-US).
+- The canonical name is the one the user sees on screen. Where the screen itself is inconsistent - two names for one thing, or a British spelling - the termbase records one canonical choice and the deviating string is a defect to fix in the string.
+- The rules below are the UI-string side of the same glossary and stay in force for strings.
 - The Browse window (the screen that lists files and folders) is called the **file browser**.
 - Qualified variants are allowed when the media type is relevant: "video file browser", "image browser", "document browser".
 - The word "explorer" is forbidden for this window in user-facing text.
@@ -149,3 +152,15 @@ Before any batch of new or updated strings is merged:
 - **Folder** (directory) is a filesystem directory that exists independently of the app: a local Android folder, or a folder on a remote SMB / (S)FTP / cloud server. Use "folder" only for genuine directory work: the system or manual folder picker, the folder a resource points to, subfolder scanning, creating a folder on disk, cloud-provider folder IDs, current / parent-directory navigation.
 - Never call a resource a "folder": e.g. the "Add resource" action must not open a dialog titled "Add folder".
 - Two distinct icons back this split: `ic_resource` (a stacked collection) marks the resource concept; `ic_folder` marks a genuine folder. Never swap them (S0842).
+
+### 7.2 Termbase replenishment (S2974)
+
+An author who meets a concept while writing a documentation page:
+
+1. Looks it up in `docs/termbase.jsonl` by `id`, `canonical_en` or `forbidden_synonyms_en`.
+2. If it is absent, adds one complete record - every field of the schema, the UI string keys that show it, and the RU/UK names taken from `values-ru/` and `values-uk/`.
+3. Runs `pwsh -NoProfile -File scripts/quality/assert-docs-termbase.ps1`; exit 0 is required before the page is closed.
+4. Uses the canonical name on the page.
+
+- A deliberate quote of a forbidden word, for example explaining what other apps call a screen, is excused with `<!-- termbase-ignore: <word or term id> -->` on the same line or the line above.
+- Forbidden synonyms list only words that are wrong everywhere in the corpus. A word that is right in another sense - "widget" for an Android home-screen widget - gets its own record instead. A British spelling is written as `word => replacement`, so the gate suggests the en-US word rather than the host term.

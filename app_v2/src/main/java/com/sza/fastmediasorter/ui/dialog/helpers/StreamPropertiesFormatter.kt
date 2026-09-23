@@ -142,11 +142,18 @@ class StreamPropertiesFormatter(private val resources: StreamInfoResources) {
         else -> R.string.stream_info_outcome_never
     }
 
-    /** Blank and null both mean open: S1117 stores the restriction, not its absence. */
+    /**
+     * Blank and null both mean open (S1117). STREAM-BANK rule 10 amendment E treats `access` as an opaque
+     * restriction flag, so a token this build does not know is still a restriction, never "open".
+     */
     @StringRes
-    private fun accessRes(code: String?): Int = when (code?.trim()?.lowercase()) {
-        ACCESS_GEO -> R.string.stream_info_access_geo
-        else -> R.string.stream_info_access_open
+    private fun accessRes(code: String?): Int {
+        val trimmed = code?.trim()?.lowercase()
+        return when {
+            trimmed.isNullOrEmpty() -> R.string.stream_info_access_open
+            trimmed == ACCESS_GEO -> R.string.stream_info_access_geo
+            else -> R.string.stream_info_access_restricted
+        }
     }
 
     private companion object {

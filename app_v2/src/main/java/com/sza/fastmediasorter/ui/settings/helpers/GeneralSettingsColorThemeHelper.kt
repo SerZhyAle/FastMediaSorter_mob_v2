@@ -84,7 +84,6 @@ class GeneralSettingsColorThemeHelper(
                 LocaleHelper.markReturnToSettings(fragment.requireContext())
                 LocaleHelper.restartApp(fragment.requireActivity())
             }
-
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 setIsUpdatingSpinner(true)
                 binding.spinnerColorTheme.setSelection(valueToPosition(previousValue))

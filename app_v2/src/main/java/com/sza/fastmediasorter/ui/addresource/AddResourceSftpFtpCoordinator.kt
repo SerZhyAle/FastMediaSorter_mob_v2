@@ -89,9 +89,15 @@ internal class AddResourceSftpFtpCoordinator(
                     smbOperationsUseCase.testSftpConnection(
                         host = host, port = port, username = username, password = password,
                         expectedFingerprint = canonicalFingerprint
-                    ).onSuccess { message ->
+                    ).onSuccess { testResult ->
                         Timber.d("SFTP test connection successful")
-                        bridge.emit(AddResourceEvent.ShowTestResult(message, isSuccess = true))
+                        bridge.emit(
+                            AddResourceEvent.ShowTestResult(
+                                message = testResult.message,
+                                isSuccess = true,
+                                presentedFingerprint = testResult.presentedFingerprint
+                            )
+                        )
                     }.onFailure { e ->
                         Timber.e(e, "SFTP test connection failed")
                         emitSftpTestFailure(e)
@@ -137,9 +143,15 @@ internal class AddResourceSftpFtpCoordinator(
             smbOperationsUseCase.testSftpConnection(
                 host = host, port = port, username = username, password = password,
                 expectedFingerprint = canonicalFingerprint
-            ).onSuccess { message ->
+            ).onSuccess { testResult ->
                 Timber.d("SFTP test connection successful")
-                bridge.emit(AddResourceEvent.ShowTestResult(message, isSuccess = true))
+                bridge.emit(
+                    AddResourceEvent.ShowTestResult(
+                        message = testResult.message,
+                        isSuccess = true,
+                        presentedFingerprint = testResult.presentedFingerprint
+                    )
+                )
             }.onFailure { e ->
                 Timber.e(e, "SFTP test connection failed")
                 emitSftpTestFailure(e)

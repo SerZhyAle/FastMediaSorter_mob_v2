@@ -192,6 +192,62 @@ $g = Invoke-Runner $rootG @('config/detekt/detekt.yml')
 Assert-Equal 'G1 exit 2' 2 $g.Exit
 Assert-Match 'G2 says cannot verify' 'CANNOT VERIFY' $g.Output
 
+# S3387: -Deleted runs no analyser, so these cases need no dependency cache and pin only the
+# name-level contract.
+function Invoke-DeletedRunner([string] $Root, [string[]] $Deleted, [string[]] $Files, [switch] $Apply, [string] $Reason) {
+    $argv = @('-NoProfile', '-File', $runner, '-RepoRoot', $Root, '-Module', 'app_v2', '-Deleted', ($Deleted -join ','))
+    if ($Files) { $argv += @('-Files', ($Files -join ',')) }
+    if ($Apply) { $argv += '-Apply' }
+    if ($Reason) { $argv += @('-Reason', $Reason) }
+    $out = & pwsh @argv 2>&1 | Out-String
+    return @{ Exit = $LASTEXITCODE; Output = $out }
+}
+
+$goneIds = @('ReturnCount:Gone.kt$Gone$fun a(): String', 'MagicNumber:Gone.kt$Gone$7')
+$gonePath = 'app_v2/src/main/java/com/sza/fastmediasorter/Gone.kt'
+$fixturePath = 'app_v2/src/main/java/com/sza/fastmediasorter/Fixture.kt'
+
+Write-Host 'H: entries of a deleted file are reported, then pruned, and nothing else is touched'
+$rootH = New-FakeRepo 'h-deleted' @{ 'main/java/com/sza/fastmediasorter/Fixture.kt' = $clean } (@($deadId) + $goneIds)
+$h1 = Invoke-DeletedRunner $rootH @($gonePath)
+Assert-Equal 'H1 report run exits 3' 3 $h1.Exit $h1.Output
+Assert-Match 'H2 lists the dead entry' 'DEAD MagicNumber:Gone\.kt' $h1.Output
+Assert-Equal 'H3 report run writes nothing' 3 (Get-BaselineIds $rootH).Count
+$h2 = Invoke-DeletedRunner $rootH @($gonePath) -Apply -Reason 'suite H'
+Assert-Equal 'H4 apply exits 0' 0 $h2.Exit $h2.Output
+Assert-Match 'H5 says it pruned' 'PRUNED' $h2.Output
+$hLeft = Get-BaselineIds $rootH
+Assert-Equal 'H6 one entry survives' 1 $hLeft.Count
+Assert-Equal 'H7 the survivor is the other file''s' $deadId ($hLeft -join '|')
+$h3 = Invoke-DeletedRunner $rootH @($gonePath)
+Assert-Equal 'H8 a second report run finds nothing - exit 0' 0 $h3.Exit $h3.Output
+
+Write-Host 'I: a deleted name that survives in another source set is a refusal naming the survivor'
+$rootI = New-FakeRepo 'i-survivor' @{ 'vr/java/com/sza/fastmediasorter/Gone.kt' = $clean } $goneIds
+$i = Invoke-DeletedRunner $rootI @($gonePath) -Apply -Reason 'suite I'
+Assert-Equal 'I1 exit 2' 2 $i.Exit $i.Output
+Assert-Match 'I2 names the survivor' 'app_v2/src/vr/java/com/sza/fastmediasorter/Gone\.kt' $i.Output
+Assert-Equal 'I3 nothing deleted' 2 (Get-BaselineIds $rootI).Count
+
+Write-Host 'J: a path named as deleted but still on disk is a refusal'
+$rootJ = New-FakeRepo 'j-ondisk' @{ 'main/java/com/sza/fastmediasorter/Fixture.kt' = $clean } @($deadId)
+$j = Invoke-DeletedRunner $rootJ @($fixturePath) -Apply -Reason 'suite J'
+Assert-Equal 'J1 exit 2' 2 $j.Exit $j.Output
+Assert-Match 'J2 says still on disk' 'still on disk' $j.Output
+Assert-Equal 'J3 nothing deleted' 1 (Get-BaselineIds $rootJ).Count
+
+Write-Host 'K: -Files and -Deleted together are a refusal'
+$rootK = New-FakeRepo 'k-both' @{ 'main/java/com/sza/fastmediasorter/Fixture.kt' = $clean } (@($deadId) + $goneIds)
+$k = Invoke-DeletedRunner $rootK @($gonePath) -Files @($fixturePath) -Apply -Reason 'suite K'
+Assert-Equal 'K1 exit 2' 2 $k.Exit $k.Output
+Assert-Equal 'K2 nothing deleted' 3 (Get-BaselineIds $rootK).Count
+
+Write-Host 'L: a deleted file with no baseline entry is a clean pass'
+$rootL = New-FakeRepo 'l-clean' @{ 'main/java/com/sza/fastmediasorter/Fixture.kt' = $clean } @($deadId)
+$l = Invoke-DeletedRunner $rootL @($gonePath)
+Assert-Equal 'L1 exit 0' 0 $l.Exit $l.Output
+Assert-Match 'L2 says nothing left behind' 'nothing left behind' $l.Output
+
 if (Test-Path $sandbox) { Remove-Item $sandbox -Recurse -Force }
 Write-Host 'sandbox removed'
 

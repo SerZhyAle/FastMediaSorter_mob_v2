@@ -7,6 +7,13 @@
     `Timber.d("Sxxxx: ...")` call for an explicitly selected ticket id. It can
     resolve the selection from the archive journal and removes `import timber.log.Timber` only
     when the resulting file has no remaining Timber call. Every modified source file is backed up.
+
+    A probe that was the whole body of an `.also {}` callback or of an `if`/`else` branch leaves
+    that wrapper empty, which detekt reports as EmptyIfBlock/EmptyElseBlock (S3398). In a file it
+    changed, the command therefore also removes an emptied `.also {}`, an empty `if` with no
+    `else`, and an empty `else`, and turns `if (c) {} else { .. }` into `if (!(c)) { .. }`.
+    It also removes a `LaunchedEffect(..) {}` or `SideEffect {}` left empty, and that effect's
+    import once the file no longer calls it (S3401).
 .NOTES
     Exit codes: 0 completed (including an idempotent no-op); 1 invalid input or write failure;
     3 refused - a named ticket is still in BlockNeedUserTest, so its probe is required (use -Force).
@@ -79,6 +86,8 @@ if (-not $Force) {
 $probeStartPattern = [regex]'(?:timber\.log\.)?Timber\.d\(\s*"(?<id>S\d{4}):'
 $timberCallPattern = [regex]'(?<![A-Za-z0-9_.])(?:timber\.log\.)?Timber\.'
 $timberImportPattern = [regex]'(?m)^\s*import timber\.log\.Timber\r?\n'
+# One key level of nested parentheses covers `LaunchedEffect(list.size)` and `LaunchedEffect(f(x))`.
+$emptyEffectLine = '^[\t ]*(?:LaunchedEffect\((?:[^()\r\n]|\([^()\r\n]*\))*\)|SideEffect)[\t ]*\{\s*\}[\t ]*(?:\r?\n|$)'
 $changed = [System.Collections.Generic.List[string]]::new()
 $removed = 0
 
@@ -145,6 +154,28 @@ foreach ($sourceRoot in @('app_v2/src', 'wear/src')) {
         # A probe can be the body of an `also` callback or occupy its own indented line. Keep the
         # surrounding expression valid and avoid introducing whitespace-only or duplicate blank lines.
         $after = [regex]::Replace($after, '\.also\s*\{\s*\}', '')
+        # A probe may be the sole statement in a branch. Keep the non-empty branch when the empty
+        # arm has an `else`, and otherwise remove only the now-empty conditional wrapper.
+        $after = [regex]::Replace(
+            $after,
+            '(?m)^(?<indent>[\t ]*)if\s*\((?<condition>[^\r\n]+)\)\s*\{\s*\}\s*else\s*\{',
+            '${indent}if (!(${condition})) {'
+        )
+        $after = [regex]::Replace($after, '(?m)^[\t ]*if\s*\([^\r\n]+\)\s*\{\s*\}\r?\n?', '')
+        $after = [regex]::Replace($after, '(?m)\}[\t ]*else\s*\{\s*\}', '}')
+        # S3401: a probe that was the only statement of a Compose effect left `LaunchedEffect(k) {}`
+        # behind - a coroutine launched on first composition that does nothing. Seven such shells sat
+        # in wear on 2026-09-23 because detekt has no rule for an empty lambda argument. The
+        # `empty-compose-effect` source gate now refuses one, so this exit path must not produce it.
+        # A shell that opened its enclosing block also takes the blank line after it, or the block
+        # would start with an empty line.
+        $after = [regex]::Replace($after, "(?m)(?<=\{[\t ]*\r?\n)$emptyEffectLine(?:[\t ]*\r?\n)?", '')
+        $after = [regex]::Replace($after, "(?m)$emptyEffectLine", '')
+        foreach ($effect in @('LaunchedEffect', 'SideEffect')) {
+            if (-not [regex]::IsMatch($after, "(?<![A-Za-z0-9_.])$effect\s*[({]")) {
+                $after = [regex]::Replace($after, "(?m)^[\t ]*import androidx\.compose\.runtime\.$effect\r?\n", '')
+            }
+        }
         $after = [regex]::Replace($after, '(?m)[\t ]+(?=\r?$)', '')
         # S2925: collapse in the file's own newline style. A fixed CRLF here wrote two carriage
         # returns into an LF file on 2026-09-11 (WearSettingsStepperCell.kt).

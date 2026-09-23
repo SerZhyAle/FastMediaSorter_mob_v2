@@ -5,7 +5,6 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * S2818 / S3060: Activity proxy routing all broadcast entry surfaces (launcher shortcut, Quick Settings

@@ -179,9 +179,11 @@ private fun ScalingLazyListScope.settingsItems(
                         // to the settings screens themselves via StandardWearToggleChip. S2755 keeps
                         // the wrap and only names what happens once both lines are spent - the label
                         // still wraps first, and a font scale that outgrows two lines now ends the
-                        // second one with an ellipsis instead of cutting a glyph in half.
+                        // second one with an ellipsis instead of cutting a glyph in half. S3362:
+                        // caption2 (12sp), because WO-V14 allows 10sp only for non-essential text
+                        // and this label is the only text naming the destination.
                         text = label,
-                        style = MaterialTheme.typography.caption3,
+                        style = MaterialTheme.typography.caption2,
                         maxLines = MENU_LABEL_MAX_LINES,
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,

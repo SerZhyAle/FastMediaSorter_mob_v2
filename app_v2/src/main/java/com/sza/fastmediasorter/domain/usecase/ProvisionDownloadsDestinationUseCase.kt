@@ -59,8 +59,13 @@ class ProvisionDownloadsDestinationUseCase @Inject constructor(
             type = ResourceType.LOCAL,
             profile = ResourceProfile.NONE,
             supportedMediaTypes = setOf(
-                MediaType.IMAGE, MediaType.VIDEO, MediaType.AUDIO,
-                MediaType.GIF, MediaType.TEXT, MediaType.PDF, MediaType.EPUB,
+                MediaType.IMAGE,
+                MediaType.VIDEO,
+                MediaType.AUDIO,
+                MediaType.GIF,
+                MediaType.TEXT,
+                MediaType.PDF,
+                MediaType.EPUB,
                 MediaType.OFFICE_DOCUMENT
             ),
             isDestination = true,
@@ -93,12 +98,7 @@ class ProvisionDownloadsDestinationUseCase @Inject constructor(
         }
     }
 
-    private fun isDownloadsPath(path: String, downloadsPath: String): Boolean {
-        if (path == downloadsPath) return true
-        if (path.startsWith("content://")) {
-            val resolved = UriPathResolver.getPath(context, Uri.parse(path))
-            if (resolved == downloadsPath) return true
-        }
-        return false
-    }
+    private fun isDownloadsPath(path: String, downloadsPath: String): Boolean =
+        path == downloadsPath ||
+            (path.startsWith("content://") && UriPathResolver.getPath(context, Uri.parse(path)) == downloadsPath)
 }

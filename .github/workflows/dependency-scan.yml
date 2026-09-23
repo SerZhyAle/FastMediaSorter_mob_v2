@@ -1,0 +1,133 @@
+name: Dependency scan
+
+# S3371 dependency admission. Three contours, one file:
+#
+#   submit-graph       on a push to main, hands GitHub the resolved dependency graph of both
+#                      modules. This is what makes the PR review below see anything at all - the
+#                      review compares the base graph with the head graph - and it is also what
+#                      feeds the advisory and out-of-date reporting GitHub already runs against
+#                      the repository, which is why no version-check plugin was added for that.
+#   dependency-review  on a pull request, refuses a new dependency carrying a known vulnerability
+#                      or a licence outside scripts/quality/dependency-license-allowlist.json.
+#   sbom               weekly, writes a CycloneDX SBOM per module and uploads it.
+#
+# OWASP dependency-check was considered and rejected: it needs an NVD API key, which is an
+# external secret this project does not carry. Revisit only if the native advisory feed proves
+# insufficient, and record that decision here when it does.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'gradle/libs.versions.toml'
+      - '**/build.gradle.kts'
+      - 'settings.gradle.kts'
+      - '.github/workflows/dependency-scan.yml'
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '41 4 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  submit-graph:
+    name: Submit the dependency graph
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Submit the resolved graph
+        uses: gradle/actions/dependency-submission@v5
+
+  dependency-review:
+    name: Advisory and licence review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # The allowlist is the source of truth and is read, never restated here: an SPDX id goes to
+      # allow-licenses, and a licence that is NOT an SPDX identifier - Google's own SDK terms, a
+      # composite expression - is admitted per package instead, so a new artifact under the same
+      # terms is still reviewed.
+      - name: Read the licence allowlist
+        id: allowlist
+        run: |
+          set -euo pipefail
+          file=scripts/quality/dependency-license-allowlist.json
+          echo "spdx=$(jq -r '[.licenses[] | select(.spdx == true) | .id] | join(", ")' "$file")" >> "$GITHUB_OUTPUT"
+          echo "packages=$(jq -r '[.licenses[] | select(.spdx == false) | .packages[]] | join(", ")' "$file")" >> "$GITHUB_OUTPUT"
+
+      - name: Review the dependency diff
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: low
+          allow-licenses: ${{ steps.allowlist.outputs.spdx }}
+          allow-dependencies-licenses: ${{ steps.allowlist.outputs.packages }}
+          comment-summary-in-pr: on-failure
+
+  sbom:
+    name: CycloneDX SBOM
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Gradle (deps + build cache)
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Fetch prebuilt native AARs
+        run: bash ./scripts/ci/fetch-prebuilt-libs.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # Through the repository's own builder rather than a raw gradlew line, so the task name and
+      # the "reported success but wrote nothing" check have one home shared with local runs.
+      - name: Produce the SBOMs
+        shell: pwsh
+        run: |
+          pwsh -NoProfile -File scripts/builders/build-sbom.ps1 -Module app_v2 -OutDir artifacts/sbom
+          pwsh -NoProfile -File scripts/builders/build-sbom.ps1 -Module wear -OutDir artifacts/sbom
+
+      - name: Upload the SBOMs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cyclonedx-sbom
+          path: artifacts/sbom/*.json
+          if-no-files-found: error
+          retention-days: 90

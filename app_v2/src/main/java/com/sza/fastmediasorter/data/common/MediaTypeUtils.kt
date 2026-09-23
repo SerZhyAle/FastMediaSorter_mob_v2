@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.common
 
+import com.sza.fastmediasorter.data.security.fdsec.FdSecFormat
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.util.BinaryFileTypeDetector
@@ -90,6 +91,10 @@ object MediaTypeUtils {
             PDF_EXTENSIONS.contains(extension) -> MediaType.PDF
             EPUB_EXTENSIONS.contains(extension) -> MediaType.EPUB
             OFFICE_DOCUMENT_EXTENSIONS.contains(extension) -> MediaType.OFFICE_DOCUMENT
+            // S3382: what a FileDO container holds is sealed inside it and unknown until a password
+            // opens it, so it lists wherever unknown binaries list, and Browse recognises it by
+            // name before any viewer is handed the ciphertext.
+            extension == FdSecFormat.CONTAINER_EXTENSION -> MediaType.BINARY_OTHER
             // Task 6: Check for binary file types
             BinaryFileTypeDetector.isBinaryExtension(extension) -> BinaryFileTypeDetector.detectType(extension)
             else -> null

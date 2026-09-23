@@ -758,6 +758,14 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
         lastUsedAppValue = id
     }
 
+    // S3383: WATCH_ONLY, so never part of the exchange either; held for the repository contract.
+    var fileDoOperationsEnabledValue = false
+    override val fileDoOperationsEnabled: Flow<Boolean> = MutableStateFlow(fileDoOperationsEnabledValue)
+
+    override suspend fun setFileDoOperationsEnabled(enabled: Boolean) {
+        fileDoOperationsEnabledValue = enabled
+    }
+
     override suspend fun setStreamsSectionEnabled(enabled: Boolean) {
         streamsSectionEnabledValue = enabled
     }

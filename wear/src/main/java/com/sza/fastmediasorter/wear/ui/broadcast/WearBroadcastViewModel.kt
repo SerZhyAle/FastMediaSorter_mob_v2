@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.wear.service.VoiceRecordingService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.StateFlow
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -28,10 +27,6 @@ class WearBroadcastViewModel @Inject constructor(
 ) : ViewModel() {
 
     val state: StateFlow<WearBroadcastSessionState> = sessionHolder.state
-
-    init {
-        Timber.d("S3353: broadcast screen opened with no battery-optimization block")
-    }
 
     /**
      * `startForegroundService` because the service raises a microphone foreground notification on its

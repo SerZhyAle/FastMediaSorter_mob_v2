@@ -67,6 +67,9 @@ private const val INDEX_GEOMETRY_MODE = 20
 /** S3256: appended to combine list for dim clock and status overlay preference. */
 private const val INDEX_DIM_CLOCK_OVERLAY = 21
 
+/** S3383: appended for the reason stated above - the reads are positional and unchecked. */
+private const val INDEX_FILEDO_OPERATIONS = 22
+
 /**
  * ViewModel for Settings screen.
  * Manages loading and updating of app settings.
@@ -174,7 +177,8 @@ class SettingsViewModel @Inject constructor(
         // S2773: the RESOLVED view, not the stored choice - the row has to show what the watch is laid
         // out with from the moment it is installed, and the stored choice is null until first touched.
         observeGeometryMode(),
-        preferencesRepository.dimClockOverlayEnabled
+        preferencesRepository.dimClockOverlayEnabled,
+        preferencesRepository.fileDoOperationsEnabled
     )
 
     private fun loadSettings() {
@@ -203,6 +207,7 @@ class SettingsViewModel @Inject constructor(
                 val colorScheme = values[INDEX_COLOR_SCHEME] as WearColorScheme
                 val geometryMode = values[INDEX_GEOMETRY_MODE] as WearGeometryMode
                 val dimClockOverlay = values[INDEX_DIM_CLOCK_OVERLAY] as Boolean
+                val fileDoOperations = values[INDEX_FILEDO_OPERATIONS] as Boolean
                 _uiState.value.copy(
                     backgroundMode = background,
                     colorScheme = colorScheme,
@@ -228,6 +233,7 @@ class SettingsViewModel @Inject constructor(
                     geometryMode = geometryMode,
                     offersGeometryModeSwitch = geometryDefaults.offersModeSwitch,
                     dimClockOverlayEnabled = dimClockOverlay,
+                    fileDoOperationsEnabled = fileDoOperations,
                     isLoading = false
                 )
             }.collect { combinedState ->
@@ -447,6 +453,12 @@ class SettingsViewModel @Inject constructor(
     fun toggleAutoRotation() {
         viewModelScope.launch {
             preferencesRepository.setAutoRotationEnabled(!_uiState.value.isAutoRotationEnabled)
+        }
+    }
+
+    fun toggleFileDoOperations() {
+        viewModelScope.launch {
+            preferencesRepository.setFileDoOperationsEnabled(!_uiState.value.fileDoOperationsEnabled)
         }
     }
 

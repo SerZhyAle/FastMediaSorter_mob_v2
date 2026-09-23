@@ -46,6 +46,15 @@ internal object WearPreferenceKeys {
      */
     val WEAR_GEOMETRY_MODE = stringPreferencesKey("wear_geometry_mode")
 
+    /**
+     * S3383: whether the FileDO encryption operations appear in a file's action menu.
+     *
+     * Absent reads as off, which is what makes the update ship without putting two new entries in
+     * front of a wearer who never asked for them. The extension entrance is deliberately not gated
+     * by it - a `.fd-sec` file may arrive from the phone, and it must still open.
+     */
+    val FILEDO_OPERATIONS_ENABLED = booleanPreferencesKey("wear_filedo_operations_enabled")
+
     val SHUFFLE_ENABLED = booleanPreferencesKey("wear_shuffle_enabled")
 
     val VIEW_MODE = stringPreferencesKey("wear_view_mode")

@@ -24,21 +24,37 @@ Skills `/build`, `/skill-release` and `/skill-release-wear` reference this file 
 
 ## CI cost map
 
-Three GitHub Actions workflows exist. `android-ci.yml` fires on a push to `main` **and** on a push to a `DEBUG-v0NN` branch; the other two are keyed to `main` (push) or a pull request targeting `main`.
+Six GitHub Actions workflows exist. `android-ci.yml` fires on a push to `main` **and** on a push to a `DEBUG-v0NN` branch; two more are keyed to `main` (push) or a pull request targeting `main`; two are on a clock and fire on no push at all; the sixth is the nightly device loop, which is on a clock as well.
 
 | Workflow | Triggers | Fires on a `DEBUG-v0NN` push? |
 |----------|----------|:-----------------------------:|
-| `android-ci.yml` (jobs `verify`, `verify-wear`, `static-gates`, `build-flavors`, `release-check`, `notify`; `regenerate-lint-baseline` on manual dispatch only) | push to `main` and to `DEBUG-v*`, PR to `main`, manual dispatch. Both push and PR are path-filtered to `app_v2/**`, `wear/**`, `gradle/**`, `*.kts`, `gradlew*`, `scripts/**`, `dev/**` and the workflow file itself | **Yes** |
+| `android-ci.yml` (jobs `verify`, `verify-wear`, `static-gates`, `manifest-risk`, `build-flavors`, `release-check`, `notify`; `regenerate-lint-baseline` on manual dispatch only) | push to `main` and to `DEBUG-v*`, PR to `main`, manual dispatch. Both push and PR are path-filtered to `app_v2/**`, `wear/**`, `gradle/**`, `*.kts`, `gradlew*`, `scripts/**`, `dev/**` and the workflow file itself | **Yes** |
 | `maestro-tests.yml` (emulator E2E; job `maestro-tests`) | PR to `main`, manual dispatch | No |
 | `jekyll-gh-pages.yml` (site deploy; jobs `build`, `deploy`) | push to `main` (path-filtered to the site sources), manual dispatch | No |
+| `security-scan.yml` (full-tree secret scan; job `secret-scan`) | weekly schedule (Monday 03:17 UTC), manual dispatch | No |
+| `dependency-scan.yml` (jobs `submit-graph`, `dependency-review`, `sbom`) | push to `main` (path-filtered to the version catalog, the build scripts and the workflow file), PR to `main`, weekly schedule (Monday 04:41 UTC), manual dispatch | No |
+| `nightly-device-loop.yml` (leak watch over the critical flows; job `leak-watch`) | nightly schedule (02:23 UTC), manual dispatch | No |
 
 That path filter is not much of a narrowing in practice: it carries `dev/**`, and `scripts/add_to_dev_log.ps1` writes `dev/CHANGELOG.md` on every closure, so a DEBUG push carrying a dev-log row fires the whole pipeline even when no Kotlin changed.
+
+### The nightly device loop: cadence and measured cost
+
+Decided in S3371 phase 05 (strategic ADR-4): **nightly schedule plus manual dispatch now, PR gating deferred until the contour is stable.** A leak-watch run needs a booted emulator and an instrumented install, and a contour that has never run unattended has no failure history to judge a false positive against - gating a merge on it before that history exists buys a blocked PR queue instead of a found leak. The decision is reversible in one `on:` block once the nightly runs have a record.
+
+What the contour costs, measured 2026-09-22 on the dedicated test phone (`SM-G996U1`, Android 15) via `check-standard-fast.ps1 -Mode ConnectedAndroidTest -Tests com.sza.fastmediasorter.leakwatch`:
+
+| Stage | Measured | Basis |
+|-------|----------|-------|
+| Instrumented execution, 6 tests | **28.2 s** | `testsuite time` in the connected androidTest XML: five flow walks at 1.1-2.0 s each, plus 20.2 s for the seeded-canary test, whose heap dump and analysis is most of the run |
+| Whole Gradle task, warm daemon, app APK already built | **2 min 2 s** | `connectedStandardDebugAndroidTest`, 28 of 89 tasks executed - androidTest compile, dex, package, install, run |
+| Whole Gradle task, everything to dex and package | **3 min 12 s** | the same task with 62 of 89 tasks executed |
+| CI run on `ubuntu-latest` | **not measured** | the workflow has not run yet. It adds an emulator boot, a cold Gradle configuration and a cold dependency cache to the figures above; the closest reference in this repository is `maestro-tests.yml`, which budgets 35 minutes for the same emulator action. The job is capped at 45 minutes and the number is replaced by the first real run, not estimated here |
 
 ### What a DEBUG push actually costs
 
 Nothing in money - because the repository is public, not because CI stays quiet. The distinction is the point of this subsection: the two premises fail differently.
 
-- `gh api repos/SerZhyAle/FastMediaSorter_mob_v2 --jq .visibility` returns `public`, and every job in all three workflows declares `runs-on: ubuntu-latest`. Standard GitHub-hosted runners on a public repository are free and uncapped.
+- `gh api repos/SerZhyAle/FastMediaSorter_mob_v2 --jq .visibility` returns `public`, and every job in all six workflows declares `runs-on: ubuntu-latest`. Standard GitHub-hosted runners on a public repository are free and uncapped.
 - Measured 2026-09-13 over all six DEBUG-branch runs to date (`gh api repos/SerZhyAle/FastMediaSorter_mob_v2/actions/runs/<id>/timing`): `billable.UBUNTU.total_ms` is `0` for every one, including run `34694019558`, which ran 31 minutes before hitting its own `timeout-minutes`.
 - What it does spend is wall clock and signal. Those six runs measured 1.9 to 31.0 minutes; four were cancelled by a newer push inside twenty minutes (`concurrency: cancel-in-progress`); a failing run mails a notification.
 

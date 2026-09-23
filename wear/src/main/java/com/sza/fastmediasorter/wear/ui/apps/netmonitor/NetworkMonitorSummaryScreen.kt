@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,9 +63,6 @@ fun NetworkMonitorSummaryScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snapshot = state.snapshot
     val nonSummarySections = state.sections.filter { it != WearNetworkSection.Summary }
-
-    LaunchedEffect(nonSummarySections.size) {
-    }
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

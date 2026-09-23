@@ -33,7 +33,7 @@
     <string name="game_score">Рахунок: %1$d</string>
     <string name="game_settings_help_message">Вмикає локальну покрокову головоломку. Гра залишається вимкненою, доки ви її не ввімкнете.</string>
     <string name="game_settings_help_title">Мінігра</string>
-    <string name="game_settings_toggle_subtitle">Показувати гру в головному меню та віджеті запуску</string>
+    <string name="game_settings_toggle_subtitle">Показувати гру в меню програм, на панелі швидкого доступу та на робочому столі лаунчера</string>
     <string name="game_settings_toggle_title">Мінігра</string>
     <string name="game_status_game_over">Кривавиця спіймала вас. Почніть нову гру й спробуйте ще раз.</string>
     <string name="game_status_invalid_board">На цьому полі не можна грати. Змініть розмір або відкрийте готове поле.</string>

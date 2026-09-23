@@ -34,12 +34,18 @@
 
 .PARAMETER UpdateBaseline
     Rewrite the baseline from the current corpus. Authoring mode, never used by a gate run.
+    Dropping entries needs nothing; adding one needs -Reason, and every added or dropped key is
+    printed (S3460, CHECK-BASELINE rule 6).
+
+.PARAMETER Reason
+    Why -UpdateBaseline may accept new entries. Recorded as a header line of the baseline.
 
 .NOTES
     Exit codes:
       0 - clean, or violations reported in audit mode.
       1 - `-Gate` found a criterion outside the baseline that names no precondition.
-      2 - the spec corpus or the baseline cannot be read.
+      2 - the spec corpus or the baseline cannot be read, or -UpdateBaseline would add an entry
+          without -Reason (nothing is written).
       4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
           held - wait for the turn in the background and rerun (S2635).
 #>
@@ -48,7 +54,8 @@ param(
     [switch] $Gate,
     [switch] $Quiet,
     [string] $Path,
-    [switch] $UpdateBaseline
+    [switch] $UpdateBaseline,
+    [string] $Reason
 )
 
 Set-StrictMode -Version Latest
@@ -61,6 +68,7 @@ $planRoot = Join-Path $repoRoot 'PLAN'
 $baselinePath = Join-Path $PSScriptRoot 'acceptance-precondition-baseline.txt'
 
 . (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+. (Join-Path $PSScriptRoot 'lib/baseline-set-writer.ps1')
 
 # S3075: this gate reads acceptance sections out of PLAN/Sxxxx_*.md, and PLAN/ is gitignored - so a
 # fresh clone, a release worktree and a CI runner carry no subject at all.
@@ -178,12 +186,21 @@ if ($UpdateBaseline) {
         '# S1914 acceptance-precondition baseline.',
         '# A debt record, not an approval: every line is a criterion that claims accumulated state',
         '# survives without naming the state that must exist first. Entries leave this list when the',
-        '# criterion is reworded; nothing is added except by a deliberate -UpdateBaseline run.'
-    )
+        '# criterion is reworded; nothing is added except by a deliberate -UpdateBaseline -Reason run.'
+    ) + @(Get-BaselineReasonLine -Reason $Reason)
+    $previous = @()
+    if (Test-Path -LiteralPath $baselinePath) {
+        $previous = @(Get-Content -LiteralPath $baselinePath | ForEach-Object { $_.Trim() } |
+            Where-Object { $_ -and -not $_.StartsWith('#') })
+    }
+    $currentKeys = @(@($violations) | ForEach-Object { $_.Key })
+    if (-not (Test-BaselineWrite -Gate 'assert-acceptance-preconditions' -Previous $previous -Current $currentKeys -Reason $Reason)) {
+        exit 2
+    }
     $scope = $null
     try {
         $scope = Enter-CodeLockOrExit -Path $baselinePath -Reason 'assert-acceptance-preconditions.ps1 -UpdateBaseline'
-        Set-Content -LiteralPath $baselinePath -Value ($header + (@($violations) | ForEach-Object { $_.Key })) -Encoding utf8
+        Set-Content -LiteralPath $baselinePath -Value ($header + $currentKeys) -Encoding utf8
     }
     finally { Exit-CodeLockScope -Scope $scope }
     Write-Host "assert-acceptance-preconditions: baseline rewritten with $(@($violations).Count) entry(ies)."

@@ -5,7 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +28,6 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
-import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.StandardWearToggleChip
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -37,9 +36,9 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsStepperCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlin.math.abs
 
+private const val CHIPS_PER_ROW = 1
 private const val THREE_SECONDS = 3
 private const val FIVE_SECONDS = 5
 private const val TEN_SECONDS = 10
@@ -88,8 +87,10 @@ fun OtherSettingsScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val columns = GridColumnFit.columnsFor(WearViewMode.GRID_2, maxWidth.value.toInt())
+        // S3362: one control per row on every watch. On the 192 dp and 227 dp review emulators two
+        // toggles sharing a row cut each label to a few letters - truncated essential text under WO-V1.
+        Box(modifier = Modifier.fillMaxSize()) {
+            val columns = CHIPS_PER_ROW
             WearListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
@@ -111,9 +112,8 @@ fun OtherSettingsScreen(
 /**
  * The controls of this screen, built apart from the layout that renders them.
  *
- * S1949: the two toggles stay under the 32-character threshold in every locale (31 in French, 20 in
- * German), so neither declares full width. When the watch reports no rotation sensor the run holds
- * one item, and the packing rule gives that lone item the whole width by itself.
+ * S1949 packed the short toggles two to a row; S3362 draws every control on its own row, so no item
+ * needs to declare full width to stay readable.
  *
  * S1862: the send-policy pair is a radio group rather than a switch, because the setting chooses
  * between two named models and a switch would have to leave one of them unnamed - "off" would say
@@ -210,6 +210,32 @@ private fun otherSettingsItems(
         if (uiState.offersMediaAccess) {
             add(panelAutoHideRow(uiState, viewModel))
         }
+        // S3362: the switch only governs the two file-menu entries that write a container, and the file
+        // menu belongs to the browse graph the store artifact does not carry.
+        if (uiState.offersMediaAccess) {
+            add(fileDoOperationsRow(uiState, viewModel))
+        }
+    }
+}
+
+/**
+ * S3383: last on the page. Opening a `.fd-sec` container never depends on
+ * this switch - only the two menu entries that WRITE one do, which is why the row is a plain toggle
+ * with nothing withheld behind a flavor.
+ */
+@Composable
+private fun fileDoOperationsRow(
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel
+): WearSettingsItem {
+    val label = stringResource(R.string.wear_settings_filedo_operations)
+    return WearSettingsItem { narrow ->
+        StandardWearToggleChip(
+            label = label,
+            checked = uiState.fileDoOperationsEnabled,
+            onCheckedChange = { viewModel.toggleFileDoOperations() },
+            narrow = narrow
+        )
     }
 }
 

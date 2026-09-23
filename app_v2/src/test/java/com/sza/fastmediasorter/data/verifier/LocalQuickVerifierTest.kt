@@ -46,4 +46,3 @@ class LocalQuickVerifierTest {
         assertTrue(verifier.missingFiles(1L, emptyList()).isEmpty())
     }
 }
-

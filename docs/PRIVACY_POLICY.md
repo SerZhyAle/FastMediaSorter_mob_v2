@@ -56,6 +56,23 @@ All data stored in app's private, encrypted storage:
 - ❌ **No servers**: Your data never goes to our servers (we don't have any)
 - ❌ No third-party data sharing
 
+### What the App Counts on Your Device
+
+"No analytics" above means nothing is sent anywhere. The app does keep a few numbers for you, on your
+device only:
+
+- **Always**: when it first ran, which app version and edition was installed then, and how many times it
+  has been opened. Four values, and they never leave the device.
+- **Only if you turn on statistics**: totals of what you did with the app - files copied, moved, deleted
+  or renamed, photos taken, minutes watched or listened to, and similar counts. Plain numbers, no file
+  names and no history of individual actions.
+- **Turning statistics off deletes those totals**, and the statistics screen disappears with them. The
+  four values above stay.
+- **Nothing is ever sent on its own.** The statistics screen has a "send to author" button; the report
+  is written for you to read, and it is your email app that sends it, only when you press send. It
+  carries the app version, edition, your device model and Android version, and no identifier of you.
+- **Nothing links one session to another**: no user id, no device id, no install id.
+
 ## Logging and Debug Files
 
 - In DEBUG builds the app may optionally write diagnostic logs to a file in the app-specific external storage directory to help troubleshooting when ADB is not available.  

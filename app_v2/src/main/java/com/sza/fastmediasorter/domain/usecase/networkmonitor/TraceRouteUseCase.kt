@@ -43,8 +43,9 @@ class TraceRouteUseCase @Inject constructor(
         var reachedTarget = false
 
         try {
-            for (ttl in 1..capHops) {
-                if (!isActive) break
+            var ttl = 1
+            var ladderDone = false
+            while (!ladderDone && ttl <= capHops && isActive) {
                 val result = hostProbe.probe(cleanHost, timeoutPerHopMs, ttl = ttl)
                 hops.add(result)
 
@@ -52,21 +53,12 @@ class TraceRouteUseCase @Inject constructor(
                     send(TraceRouteState.Hop(ttl, result))
                 }
 
-                when (result) {
-                    is HostProbeResult.Reached -> {
-                        reachedTarget = true
-                        break
-                    }
-                    is HostProbeResult.NotMeasurable -> {
-                        // Mechanism is unavailable or unresolvable name - no point in continuing ladder
-                        if (ttl == 1) {
-                            break
-                        }
-                    }
-                    else -> {
-                        // HopAnswered or NotReached (silent hop) -> continue ladder
-                    }
-                }
+                reachedTarget = result is HostProbeResult.Reached
+                // An unmeasurable first hop means the mechanism is unavailable or the name does not
+                // resolve, so no later hop can answer either; a silent or answered hop continues.
+                val unmeasurableFirstHop = result is HostProbeResult.NotMeasurable && ttl == 1
+                ladderDone = reachedTarget || unmeasurableFirstHop
+                ttl++
             }
             send(TraceRouteState.Finished(cleanHost, hops, reachedTarget))
         } finally {

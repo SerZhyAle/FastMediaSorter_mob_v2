@@ -303,6 +303,16 @@ class VoiceRecordingService : Service() {
         val endpoint = withContext(Dispatchers.IO) {
             lanServer.start(serviceScope, sessionManager.liveSink)
         }
+        if (endpoint.isLoopback) {
+            // S3416: the request screen's readiness check ran before this service started, so Wi-Fi
+            // lost in between reaches here as a loopback address. Failed goes first so the teardown
+            // this triggers keeps it instead of clearing it to Idle.
+            Timber.i("No LAN address at bind time; refusing the listening session")
+            listenSession.publish(ListenSessionState.Failed)
+            listenAckSender.answerRefusal(ListenRefusal.NO_NETWORK)
+            stopSession()
+            return
+        }
         listenSession.publish(ListenSessionState.Live(endpoint))
         // The address goes to the phone from here rather than from the confirmation screen: the
         // session outlives that screen by design (ADR-4), so a wrist dropped between the tap and the

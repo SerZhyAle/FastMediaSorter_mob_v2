@@ -298,7 +298,13 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                                 break
                             }
                             is OpenResult.Streaming -> {
-                                return runStreaming(opened, settings, callbacks, originalUrl, canonicalAudioOnly, accountId)
+                                return runStreaming(
+                                    opened,
+                                    settings,
+                                    callbacks,
+                                    originalUrl,
+                                    canonicalAudioOnly,
+                                )
                             }
                             is OpenResult.Batch -> return runBatch(opened, settings, callbacks)
                             is OpenResult.SocialPreviewOnly -> {
@@ -353,7 +359,11 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             if (stream == null) {
                 val previewHost = socialPreviewHost
                 if (previewHost != null) {
-                    val hadSession = runCatching { authSessionRepository.hasAnySession(previewHost) }.getOrDefault(false)
+                    val hadSession = runCatching {
+                        authSessionRepository.hasAnySession(
+                            previewHost
+                        )
+                    }.getOrDefault(false)
                     val accountDisplayName = accountId?.let { id ->
                         runCatching {
                             authSessionRepository.listAccountsForHost(previewHost)
@@ -601,7 +611,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         callbacks: Callbacks,
         originalUrl: String,
         canonicalAudioOnly: Boolean,
-        accountId: String?,
     ): Result {
         val quality = MediaQualityPreference.fromSettings(
             maxResolution = settings.linkDownloadMaxResolution,

@@ -34,6 +34,7 @@ abstract class ScreenCaptureModule {
     abstract fun bindGestureAccessibilityActions(
         impl: NoLegalGestureAccessibilityActions
     ): GestureAccessibilityActions
+
     // S1881: noLegal accessibility service control binding.
     @Binds
     abstract fun bindAccessibilityServiceControl(

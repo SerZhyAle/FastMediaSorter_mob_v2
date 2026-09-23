@@ -46,5 +46,4 @@ class WebViewAuthViewModel @Inject constructor(
             onSaved(id)
         }
     }
-
 }

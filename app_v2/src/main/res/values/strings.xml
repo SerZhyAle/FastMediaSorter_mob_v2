@@ -98,7 +98,6 @@
     <string name="renamed_n_files">Renamed %1$d files.</string>
     <string name="rename_failed_generic">Could not rename that file.</string>
     <string name="rename_file_name_empty">File name cannot be empty.</string>
-    <string name="error_delete">Could not delete the files</string>
     <string name="error_all_operations_failed">Nothing completed.</string>
     <string name="all_copy_operations_failed">Could not copy the selected files.\n\n%1$s</string>
     <string name="all_move_operations_failed">Could not move the selected files.\n\n%1$s</string>
@@ -152,11 +151,11 @@
     <string name="virtual_comment_camera_photos">Photos and videos from the device camera</string>
     <string name="virtual_comment_all_images">Local image files (jpg, png, gif, webp..)</string>
     <string name="virtual_comment_all_docs">Local documents (PDF, EPUB, text, Office)</string>
-    <string name="special_virtual_folders">Special Folders</string>
+    <string name="special_virtual_folders">Virtual resources</string>
     <string name="virtual_resource_already_added">Already added</string>
     <string name="virtual_resource_added">Resource \"%1$s\" added</string>
     <string name="rescan_all_virtual_warning_title">Rescan All Resources</string>
-    <string name="rescan_all_virtual_warning_message">The list includes virtual aggregate folders (All Music, All Videos, All Images, All Documents). Full rescan may take significant time. Continue?</string>
+    <string name="rescan_all_virtual_warning_message">The list includes virtual resources (All Music, All Videos, All Images, All Documents). Full rescan may take significant time. Continue?</string>
     <string name="connection_failed">Connection failed</string>
     <string name="retry">Retry</string>
     <string name="select_resource_type">Select Resource Type</string>
@@ -174,7 +173,7 @@
     <!-- BD-TS Playback Error -->
     <string name="error_bdts_format_title">Format Not Supported</string>
     <string name="error_bdts_format_message">Blu-ray Transport Stream (.m2ts) could not be played.\n\nIf all audio tracks use TrueHD or DTS-HD MA, select a different track or transcode the file to MP4/MKV (HandBrake, ffmpeg).</string>
-    <string name="warning_m2ts_audio_unsupported">Audio tracks not decodable in this build: %1$s.\nPlaying without sound. Supported: AC-3, E-AC-3, DTS (core), AAC.</string>
+    <string name="warning_m2ts_audio_unsupported">Audio tracks not decodable in this edition: %1$s.\nPlaying without sound. Supported: AC-3, E-AC-3, DTS (core), AAC.</string>
 
     <!-- Cloud Connection Error Messages -->
     <string name="error_cloud_auth_expired">Cannot access \"%1$s\" - authentication expired or session timed out</string>
@@ -261,7 +260,7 @@
     <string name="restore_no_backup">No backup found for this account.</string>
     <string name="restore_failed">Couldn\'t restore your settings and resources. Try again.</string>
     <string name="backup_account">Account: %s</string>
-    <string name="google_sign_in_cancelled">Google sign-in was cancelled</string>
+    <string name="google_sign_in_cancelled">Google sign-in was canceled</string>
     <string name="battery_optimization_hint_title">Battery Optimization Warning</string>
     <string name="battery_optimization_hint_message">Battery optimization may prevent background audio playback. Disable battery optimization for FastMediaSorter in system settings for reliable background audio.</string>
     <string name="no_internet_connection">No internet connection. Try again later.</string>
@@ -306,7 +305,7 @@
     <string name="permissions_required_title">Permissions required</string>
     <string name="support_images_description">Support static images</string>
     <string name="supported_image_formats">Supported: JPG, PNG, BMP, WEBP</string>
-    <string name="max_recipients">Max recipients (1-30)</string>
+    <string name="max_recipients">Max destinations (1-30)</string>
     <string name="max_recipients_error">Value must be between 1 and 30</string>
     <string name="load_full_size_images">Load images at full resolution</string>
     <string name="load_full_size_images_hint">Enables pinch-to-zoom and rotation gestures in command panel mode, but uses more data and memory. Off by default (loads 1920px resolution).</string>
@@ -330,7 +329,7 @@
     <string name="error_resource_unavailable">Resource \"%1$s\" is unavailable. Check the connection or resource settings.</string>
     <string name="error_folder_load_failed">Could not open the folder.</string>
     <string name="error_favorite_status_update_failed">Could not update favorite status.</string>
-    <string name="error_add_destination_failed">Could not add this folder to Quick Sort.</string>
+    <string name="error_add_destination_failed">Could not add this resource to Quick Sort.</string>
     <string name="error_cloud_provider_not_configured">Cloud service is not set up for this folder.</string>
     <string name="error_folder_loading_blocked_by_video_player">Cannot load this folder while a video is playing.\n\nThe video player is using the network connection right now.\n\nClose the player and try again.</string>
     <string name="error_folder_loading_blocked_by_video_player_details">Video playback keeps priority to avoid network congestion and playback stutter.</string>
@@ -394,14 +393,14 @@
     <string name="overwrite_on_move">Overwrite existing file when moving</string>
     <string name="add_destination">+ Add</string>
     <string name="destinations_list_header">Quick Sort destinations</string>
-    <string name="add_resources_first_message">Add the folders first at the main screen, before mark any for quick sort.</string>
-    <string name="register_as_destination">Mark for quick sort</string>
+    <string name="add_resources_first_message">Add resources on the main screen first, then mark them for Quick Sort.</string>
+    <string name="register_as_destination">Mark for Quick Sort</string>
 
     <!-- Resource editor (add / duplicate / type) -->
     <string name="add_resource_title">Add Resource</string>
     <string name="copy_resource_title">Duplicate Resource Settings</string>
     <string name="resource_type_local">Local</string>
-    <string name="resource_type_smb">Network folder SMB</string>
+    <string name="resource_type_smb">Network folder (SMB)</string>
     <string name="resource_type_sftp">SFTP</string>
     <string name="resource_type_ftp">FTP</string>
     <string name="resource_type_cloud">Cloud</string>
@@ -434,22 +433,22 @@
 
     <!-- Checkbox subtitle descriptions (Add Resource) -->
     <string name="cb_local_scan_subdirectories_desc">Search for media files in all nested subdirectories</string>
-    <string name="cb_local_add_to_destinations_desc">Mark this folder as a quick sort destination</string>
+    <string name="cb_local_add_to_destinations_desc">Mark this folder as a Quick Sort destination</string>
     <string name="cb_local_read_only_mode_desc">Prevents file operations (copy, move, delete)</string>
-    <string name="cb_smb_add_to_destinations_desc">Mark this share as a quick sort destination</string>
+    <string name="cb_smb_add_to_destinations_desc">Mark this network folder as a Quick Sort destination</string>
     <string name="cb_smb_read_only_mode_desc">Prevents file operations (copy, move, delete)</string>
     <string name="cb_smb_scan_subdirectories_desc">Search for media files in all nested subdirectories</string>
     <string name="cb_smb_all_files_desc">Show all file types, not just media</string>
     <string name="cb_smb_disable_thumbnails_desc">Show file extension icons instead of previews</string>
     <string name="cb_smb_remember_file_list_desc">Cache file list locally for faster loading</string>
-    <string name="cb_sftp_add_to_destinations_desc">Mark this server as a quick sort destination</string>
+    <string name="cb_sftp_add_to_destinations_desc">Mark this server as a Quick Sort destination</string>
     <string name="cb_sftp_read_only_mode_desc">Prevents file operations (copy, move, delete)</string>
     <string name="cb_sftp_scan_subdirectories_desc">Search for media files in all nested subdirectories</string>
     <string name="cb_sftp_all_files_desc">Show all file types, not just media</string>
     <string name="cb_sftp_disable_thumbnails_desc">Show file extension icons instead of previews</string>
     <string name="cb_sftp_remember_file_list_desc">Cache file list locally for faster loading</string>
     <string name="cb_cloud_read_only_mode_desc">Prevents file operations (copy, move, delete)</string>
-    <string name="cb_cloud_picker_add_as_destination_desc">Mark this cloud folder as a quick sort destination</string>
+    <string name="cb_cloud_picker_add_as_destination_desc">Mark this cloud folder as a Quick Sort destination</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">Search for media files in all nested subdirectories</string>
     <string name="virtual_camera_photos">Camera Photos</string>
     <string name="network_delete_warning">Files will be permanently deleted from the network location</string>
@@ -630,7 +629,7 @@
     <string name="tooltip_grid_size_title">Grid Icon Size</string>
     <string name="tooltip_grid_size_message">Thumbnail size in pixels for grid view. Default: 96dp. Range: 32-256dp (increments of 8dp).</string>
     <string name="tooltip_destinations_title">Destinations</string>
-    <string name="tooltip_destinations_message">Quick sort targets for fast file organization. Maximum 30 destinations. Each has a number and color for easy identification.</string>
+    <string name="tooltip_destinations_message">Quick Sort destinations for fast file organization. Up to 30 destinations. Each has a number and color for easy identification.</string>
     <string name="tooltip_touch_zones_title">Touch Zones</string>
     <string name="hint_touch_zone_3zone" formatted="false">Command Panel Mode\n\nLeft 20% - Previous file\nCenter 60% - Select / Actions\nRight 20% - Next file\n\nTap anywhere to dismiss</string>
     <string name="hint_touch_zone_media">Media Playback Mode\n\nTouch zones active in upper area only.\nBottom part is reserved for player controls.\n\nTap anywhere to dismiss</string>
@@ -1052,8 +1051,8 @@
     <string name="msg_share_scan_failed">Couldn\'t scan the shares. Try again.</string>
     <string name="msg_select_share">Shares on %1$s</string>
     <!-- S0064: manual share name entry dialog -->
-    <string name="msg_dropbox_auth_cancelled">Dropbox authentication cancelled</string>
-    <string name="msg_onedrive_auth_cancelled">OneDrive authentication cancelled</string>
+    <string name="msg_dropbox_auth_cancelled">Dropbox authentication canceled</string>
+    <string name="msg_onedrive_auth_cancelled">OneDrive authentication canceled</string>
     <string name="msg_already_authenticated">Already authenticated</string>
     <string name="select_folder_copy_location">Select folder location for the copy</string>
     <string name="select_cloud_folder_copy">Select cloud folder for the copy</string>
@@ -1083,7 +1082,7 @@
     <string name="msg_gif_network_speed_success">Speed changed to %1$.1fx, saved to Downloads</string>
     <string name="msg_gif_network_first_frame_success">First frame saved to Downloads</string>
     <string name="msg_no_file_to_edit">No file to edit</string>
-    <string name="msg_operation_cancelled">Operation cancelled</string>
+    <string name="msg_operation_cancelled">Operation canceled</string>
     <string name="msg_no_file_to_delete">No file to delete</string>
     <string name="slideshow_enabled_message">Slideshow enabled with %1$d seconds interval</string>
     <string name="slideshow_stopped_connection_lost">Slideshow stopped. Connection to %1$s was lost.</string>
@@ -1201,9 +1200,9 @@
     <string name="toast_failed_to_load_destinations">Failed to load destinations</string>
     <string name="toast_resources_refreshed">Resources refreshed</string>
     <string name="toast_error_loading_destinations">Couldn\'t load the destinations. Try again.</string>
-    <string name="toast_move_cancelled">Move operation cancelled</string>
-    <string name="toast_copy_cancelled">Copy operation cancelled</string>
-    <string name="toast_delete_cancelled">Delete operation cancelled</string>
+    <string name="toast_move_cancelled">Move operation canceled</string>
+    <string name="toast_copy_cancelled">Copy operation canceled</string>
+    <string name="toast_delete_cancelled">Delete operation canceled</string>
     <string name="toast_unexpected_result">Unexpected result</string>
     <string name="error_deletion_failed">Deletion failed</string>
     <string name="toast_filter_applied">Filter applied successfully</string>
@@ -1281,7 +1280,7 @@
     <string name="undo_delete_only">Only delete actions can be undone.</string>
     <string name="invalid_undo_operation_data">This undo action is no longer available.</string>
     <string name="undo_failed">Couldn\'t undo that action. Try again.</string>
-    <string name="undo_rename_cancelled">Rename cancelled.</string>
+    <string name="undo_rename_cancelled">Rename canceled.</string>
     <string name="use_trash">Use trash folder (.trash)</string>
     <string name="use_trash_summary">Move deleted files to .trash instead of permanent deletion. Allows recovery before closing resource.</string>
     <string name="tooltip_use_trash_title">Move to trash</string>
@@ -1310,7 +1309,7 @@
     <string name="activity_main_tvScanProgress_text">Scanning resources..</string>
     <string name="activity_player_btnDelete_text">Delete</string>
     <string name="activity_player_btnPlayPause_text">▶</string>
-    <string name="activity_player_btnSlideShow_text">SlideShow</string>
+    <string name="activity_player_btnSlideShow_text">Slideshow</string>
     <string name="activity_player_unified_btnOcrImage_text">OCR</string>
     <string name="activity_player_unified_btnOcrImageCmd_text">OCR</string>
     <string name="activity_player_unified_btnOcrPdfCmd_text">OCR</string>
@@ -1458,7 +1457,7 @@
     <string name="label_is_destination">Use as destination folder</string>
     <string name="label_is_read_only">Read-only mode</string>
     <string name="label_scan_subdirectories">Scan subdirectories</string>
-    <string name="label_all_files">File Manager Mode (browse and manage all files)</string>
+    <string name="label_all_files">All Files mode (browse and manage all files)</string>
     <string name="label_disable_thumbnails">Disable thumbnails</string>
     <string name="label_show_hidden_files">Show hidden files</string>
     <string name="label_show_subfolders_as_items">Show subfolders as items</string>
@@ -1539,7 +1538,7 @@
     <string name="sleep_timer_off">Off</string>
     <string name="sleep_timer_minutes">%d min</string>
     <string name="sleep_timer_hours">%1$d h %2$d min</string>
-    <string name="sleep_timer_cancelled">Sleep timer cancelled</string>
+    <string name="sleep_timer_cancelled">Sleep timer canceled</string>
     <string name="sleep_timer_set">Sleep timer set for %s</string>
 
     <!-- Remember file list -->
@@ -1676,8 +1675,8 @@
     <string name="error_folder_rename_failed">Could not rename the folder.</string>
     <string name="error_some_operations_failed">%1$d of %2$d operations failed</string>
     <string name="menu_automate_source">Automation..</string>
-    <string name="menu_add_receiver">Add to Sort List</string>
-    <string name="msg_added_as_receiver">Resource added to Sort List</string>
+    <string name="menu_add_receiver">Add to Quick Sort</string>
+    <string name="msg_added_as_receiver">Resource added to Quick Sort</string>
     <string name="btn_edit_receiver">Configure</string>
 
     <!-- Archive selected files (task_1_3) -->
@@ -1759,12 +1758,12 @@
     <!-- Wear OS sync -->
     <string name="wear_companion">Wear Companion</string>
     <string name="tooltip_wear_companion_title">Wear Companion</string>
-    <string name="tooltip_wear_companion_message">Send your network resources (SMB, FTP, cloud) to a paired Wear OS watch so you can browse and play them straight from your wrist. Tap the button to choose which media types sync and tune the watch playback settings.</string>
-    <string name="wear_sync_description">Push network sources to your connected Wear OS watch.</string>
+    <string name="tooltip_wear_companion_message">Send your network resources (SMB, FTP, SFTP) to a paired Wear OS watch so you can browse and play them straight from your wrist. Tap the button to choose which media types sync and tune the watch playback settings.</string>
+    <string name="wear_sync_description">Push network resources to your connected Wear OS watch.</string>
     <string name="wear_push_to_watch">Push to Watch</string>
     <string name="wear_sync_ready">Ready to sync</string>
     <string name="wear_sync_sending">Sending to watch..</string>
-    <string name="wear_sync_success">Sent %d source(s) to watch</string>
+    <string name="wear_sync_success">Sent %d resource(s) to the watch</string>
     <string name="wear_sync_failed">Couldn\'t sync with the watch. Try again.</string>
     <string name="wear_settings_audio">Audio</string>
     <string name="wear_settings_video">Video</string>
@@ -1775,8 +1774,8 @@
     <string name="wear_push_settings_failed">Couldn\'t send the watch settings. Try again.</string>
 
     <!-- Import from Watch strings (S0111 Phase 03) -->
-    <string name="wear_import_pending_title">Watch sources received</string>
-    <string name="wear_import_pending_desc">%1$d sources from %2$s</string>
+    <string name="wear_import_pending_title">Watch resources received</string>
+    <string name="wear_import_pending_desc">%1$d resources from %2$s</string>
     <string name="wear_import_accept">Import</string>
     <string name="wear_import_dismiss">Dismiss</string>
     <!-- Now Playing on Watch strings (S0111 Phase 05) -->
@@ -1819,7 +1818,7 @@
     <string name="mic_recording_filename_title">Save Recording</string>
     <string name="mic_recording_saved">Recording saved: %s</string>
     <string name="mic_recording_error_save">Failed to save recording</string>
-    <string name="mic_recording_cancelled">Recording cancelled</string>
+    <string name="mic_recording_cancelled">Recording canceled</string>
 
     <!-- Camera Capture Settings -->
     <string name="tooltip_saved_authorizations_title">Saved authorizations</string>
@@ -1881,7 +1880,7 @@
     <string name="s0116_toast_saved_to_downloads">Saved to Downloads: %1$s</string>
     <string name="s0116_toast_drm_blocked">Protected content - download not possible</string>
     <string name="s0116_toast_mux_failed">Could not assemble MP4 (codec: %1$s)</string>
-    <string name="s0116_toast_streaming_disabled">Streams not available in this build</string>
+    <string name="s0116_toast_streaming_disabled">Streams are not available in this edition</string>
     <string name="s0116_toast_auth_required">Sign-in required for %1$s - open Settings</string>
 
     <!-- S0151: Instagram/Threads social preview-only UX strings -->
@@ -2081,7 +2080,7 @@
     <string name="setting_gesture_overlay_title">Gesture overlay</string>
     <string name="setting_gesture_overlay_summary">Show up to 4 thin gesture strips at the screen edges, over other apps</string>
     <string name="setting_gesture_strip_visible_title">Show the gesture strip</string>
-    <string name="setting_gesture_strip_visible_summary">Show a semi-transparent grey guide on the first 4 px; the rest stays transparent</string>
+    <string name="setting_gesture_strip_visible_summary">Show a semi-transparent gray guide on the first 4 px; the rest stays transparent</string>
     <string name="setting_gesture_overlay_help_title">Gesture overlay</string>
     <string name="setting_gesture_overlay_help_message">Up to four invisible strips sit at the screen edges: two on the left and two on the right, each covering the 10-40 percent or 60-90 percent band of the screen height. From a strip you swipe in one of three directions - up, down, or inward - and every swipe runs the action assigned to it: a screenshot, the camera, device control (flashlight, volume, brightness), opening an app, and more. Which zones are on, whether their guides are visible, and the action per direction are all set in \"Configure gestures\". Requires the \"Display over other apps\" permission.</string>
     <string name="setting_screenshot_destination_title">Save screenshots to..</string>
@@ -2161,7 +2160,7 @@
     <string name="share_target_desc_email">Email as attachment</string>
     <string name="share_target_desc_keep_text">Save text to Keep</string>
     <string name="share_target_desc_keep_drawing">Save image to Keep</string>
-    <string name="share_target_desc_lens">Analyse image with Lens</string>
+    <string name="share_target_desc_lens">Analyze image with Lens</string>
     <string name="share_target_desc_package_app">Send via installed app</string>
     <string name="share_target_help_system_share">Opens the system app chooser. Share the file with any installed app.</string>
     <string name="share_target_help_open_in">Opens the file in any compatible app on this device.</string>
@@ -2178,7 +2177,6 @@
     <string name="statistics_title">Statistics</string>
     <string name="settings_statistics_open">Statistics</string>
     <!-- Author contact for "Send to author"; an address, not localizable copy (S0473 §5.1). -->
-    <string name="statistics_author_email" translatable="false">serzhyale@gmail.com</string>
     <string name="statistics_card_sorted">Sorted (copied + moved)</string>
     <string name="statistics_card_freed">Freed space</string>
     <string name="statistics_card_player_time">Player time</string>
@@ -2355,7 +2353,7 @@
     <string name="app_picker_title">Choose an app</string>
     <string name="app_launch_panel_title">Quick launch</string>
     <string name="app_launch_panel_edit_action">Edit</string>
-    <string name="screenshot_gesture_action_open_panel">Open app panel</string>
+    <string name="screenshot_gesture_action_open_panel">Open quick-access panel</string>
     <string name="statistics_metric_files_renamed">Renamed</string>
     <string name="statistics_metric_favorites_added">Added to favorites</string>
     <string name="statistics_metric_favorites_removed">Removed from favorites</string>
@@ -2397,7 +2395,7 @@
     <string name="app_launch_panel_reset">Reset panel</string>
     <string name="app_launch_panel_reset_confirm_title">Reset panel?</string>
     <string name="app_launch_panel_reset_confirm_message">The panel returns to the default set of apps and shortcuts created at install.</string>
-    <string name="app_launch_panel_settings_edit_button">Edit app panel</string>
+    <string name="app_launch_panel_settings_edit_button">Edit quick-access panel</string>
     <string name="streams_edit">Edit</string>
     <string name="streams_send_link">Send link</string>
     <string name="streams_share_chooser_title">Share stream link</string>
@@ -2443,7 +2441,7 @@
     <string name="camera_geotag_permission_denied">Geotagging needs location permission</string>
     <string name="setting_show_programs_panel_title">Programs panel</string>
     <string name="setting_show_programs_panel_summary">Mirror the programs menu as a horizontal bar above the resource list. Hides the three-dots button.</string>
-    <string name="setting_show_streams_panel_title">Show streams panel in main window</string>
+    <string name="setting_show_streams_panel_title">Show streams panel on the main screen</string>
     <string name="setting_show_streams_panel_summary">Show pinned channels as a horizontal bar above the resource list, with a shortcut to Streams.</string>
     <string name="panel_remove_title">Remove from panel?</string>
     <string name="panel_remove_program_message">%1$s will be hidden. You can turn it back on in Settings.</string>
@@ -2508,7 +2506,7 @@
     <string name="camera_scenario_ocr_translate">Text recognition</string>
     <string name="recording_pause">Pause recording</string>
     <string name="recording_resume">Resume recording</string>
-    <string name="settings_category_main_window_interface">Main window interface</string>
+    <string name="settings_category_main_window_interface">Main screen interface</string>
     <string name="streams_move_up">Move up</string>
     <string name="streams_move_down">Move down</string>
     <string name="streams_move_to_top">Move to top</string>
@@ -2575,17 +2573,17 @@
     <string name="gesture_action_explain_silent_screenshot">Captures the screen without a shutter sound and saves it.</string>
     <string name="gesture_action_explain_open_in_player">Captures the screen and opens the shot in the viewer.</string>
     <string name="gesture_action_explain_open_in_draw">Captures the screen and opens it for drawing and editing.</string>
-    <string name="gesture_action_explain_ocr_translate">Captures the screen, recognises the text and translates it.</string>
+    <string name="gesture_action_explain_ocr_translate">Captures the screen, recognizes the text and translates it.</string>
     <string name="gesture_action_explain_send_to_recipients">Captures the screen and sends it to your chosen recipients.</string>
     <string name="gesture_action_explain_share">Captures the screen and opens the system share sheet.</string>
     <string name="gesture_action_explain_crop_and_share">Captures the screen, lets you crop it, then shares the result.</string>
     <string name="gesture_action_explain_open_app">Opens the app you pick for this gesture. With no app picked, opens FastMediaSorter.</string>
-    <string name="gesture_action_explain_open_panel">Opens the quick app-launch panel.</string>
+    <string name="gesture_action_explain_open_panel">Opens the quick-access panel.</string>
     <string name="gesture_action_explain_launch_camera">Opens the in-app camera.</string>
     <string name="gesture_action_explain_take_photo">Takes a photo with the in-app camera and saves it.</string>
     <string name="gesture_action_explain_take_photo_send_to">Takes a photo and sends it to your chosen recipients.</string>
     <string name="gesture_action_explain_take_photo_edit">Takes a photo and opens it for editing.</string>
-    <string name="gesture_action_explain_take_photo_ocr_translate">Takes a photo, recognises the text and translates it.</string>
+    <string name="gesture_action_explain_take_photo_ocr_translate">Takes a photo, recognizes the text and translates it.</string>
     <string name="gesture_action_explain_start_video_recording">Opens the camera in video mode, ready to record.</string>
     <string name="gesture_action_explain_start_audio_recording">Toggles the quick voice recorder on or off.</string>
     <string name="gesture_action_explain_start_screen_recording">Toggles screen video recording on or off.</string>
@@ -2697,9 +2695,9 @@
     <string name="launcher_edit_kind_resource">My resource</string>
     <string name="launcher_edit_kind_stream">Stream</string>
     <string name="launcher_edit_kind_os">Android setting</string>
-    <string name="launcher_edit_kind_gadget">Widget</string>
+    <string name="launcher_edit_kind_gadget">Gadget</string>
     <string name="launcher_edit_pick_stream_title">Choose a stream</string>
-    <string name="launcher_edit_pick_gadget_title">Choose a widget</string>
+    <string name="launcher_edit_pick_gadget_title">Choose a gadget</string>
     <string name="launcher_edit_remove_cell_named">Remove %1$s from desktop</string>
     <string name="launcher_edit_mode_browse">Browse</string>
     <string name="launcher_edit_mode_slideshow">Slideshow</string>
@@ -2818,9 +2816,9 @@
     <string name="browse_transfer_indicator_action">%1$s. Tap to reopen the progress dialog</string>
     <string name="pdf_text_selection_word_not_found">Could not find that word - select it manually</string>
     <string name="launcher_settings_replace_status_area_title">Hide system status bar</string>
-    <string name="launcher_gadget_favorites_empty">Nothing in favourites yet. Tap to open them.</string>
-    <string name="launcher_gadget_scheduled_empty">No scheduled tasks yet. Tap to set one up.</string>
-    <string name="settings_add_launcher_widget">Add a widget to the launcher desktop</string>
+    <string name="launcher_gadget_favorites_empty">Nothing in favorites yet. Tap to open them.</string>
+    <string name="launcher_gadget_scheduled_empty">No scheduled operations yet. Tap to set one up.</string>
+    <string name="settings_add_launcher_widget">Add a gadget to the launcher desktop</string>
     <string name="launcher_widget_placed">Added to the launcher desktop</string>
     <string name="launcher_widget_no_room">No room on the launcher desktop. Free a spot and try again.</string>
     <string name="launcher_contact_no_app">Nothing on this device can open that contact action.</string>
@@ -2854,7 +2852,7 @@
     <string name="removable_volume_button_label">%1$s - %2$s free</string>
     <string name="removable_volume_button_description">Removable medium %1$s, %2$s free. Opens this volume.</string>
     <string name="removable_volume_access_request">To read %1$s, pick this volume in the system dialog that opens next - the app gets access only to the folder you choose.</string>
-    <string name="launcher_edit_resize_hint_drag">Drag this corner to resize the widget.</string>
+    <string name="launcher_edit_resize_hint_drag">Drag this corner to resize the gadget.</string>
     <string name="launcher_edit_kind_action">Launcher action</string>
     <string name="launcher_settings_reset_title">Reset launcher settings</string>
     <string name="launcher_settings_reset_message">System launcher settings will be reset to their defaults. The desktop layout, the pinned icons and the wallpaper return to the state they had right after installation. Nothing outside the launcher is affected.</string>
@@ -2936,7 +2934,7 @@
     <string name="launcher_gadget_chart_reset_description">Clears the chart and starts it again from now</string>
     <string name="launcher_gadget_chart_empty">No readings yet - the chart fills as you move.</string>
     <string name="launcher_gadget_speed_chart_description">Speed chart. Now %1$s, %2$s since the reset</string>
-    <string name="launcher_gadget_altitude_chart_description">Altitude chart. Now %1$s, %2$s since the reset, %3$s travelled</string>
+    <string name="launcher_gadget_altitude_chart_description">Altitude chart. Now %1$s, %2$s since the reset, %3$s traveled</string>
     <string name="launcher_gadget_steps">Steps</string>
     <string name="launcher_gadget_steps_since_boot">Since the phone started</string>
     <string name="launcher_gadget_steps_description">Steps: %1$s since the phone started</string>
@@ -3095,8 +3093,8 @@
     <string name="streams_unavailable_offline_title">No connection</string>
     <string name="streams_unavailable_offline_message">\"%1$s\" stopped - your device is offline. Check your connection and try again.</string>
     <string name="launcher_settings_top_status_strip_title">Top status bar</string>
-    <string name="launcher_settings_top_status_strip_summary">The clock with seconds moves to the left of the top bar and the device indicators to the right, freeing the Start panel for more recent apps.</string>
-    <string name="launcher_settings_tray_moved_hint">The indicators are on the top bar while that mode is on. Turn it off to bring them back to the Start panel.</string>
+    <string name="launcher_settings_top_status_strip_summary">The clock with seconds moves to the left of the top bar and the device indicators to the right, freeing the taskbar for more recent apps.</string>
+    <string name="launcher_settings_tray_moved_hint">The indicators are on the top bar while that mode is on. Turn it off to bring them back to the taskbar.</string>
     <string name="gesture_slot_app_label">App to launch</string>
     <string name="gesture_slot_app_none">Not chosen - tap to pick an app</string>
     <string name="gesture_slot_app_reset">Clear choice</string>
@@ -3314,7 +3312,7 @@
     <string name="launcher_settings_tray_network_subtitle">Display Wi-Fi or mobile network status icon</string>
     <string name="launcher_settings_tray_battery_subtitle">Display battery level and charging indicator</string>
     <string name="launcher_settings_replace_status_area_subtitle">Hide the Android top status bar on the desktop to free screen space</string>
-    <string name="launcher_settings_lock_desktop_subtitle">Prevent moving, adding, or deleting icons and widgets on the desktop</string>
+    <string name="launcher_settings_lock_desktop_subtitle">Prevent moving, adding, or deleting icons and gadgets on the desktop</string>
     <string name="launcher_section_main">Main</string>
     <string name="launcher_now_playing_artwork">Album art</string>
     <string name="launcher_gadget_translator">Translator</string>
@@ -3326,7 +3324,7 @@
     <string name="launcher_translator_unavailable">This language pair is not available offline.</string>
     <string name="launcher_translator_attribution">Translated by Google</string>
     <string name="launcher_translator_direction">%1$s to %2$s</string>
-    <string name="launcher_section_widgets">Widgets</string>
+    <string name="launcher_section_widgets">Gadgets</string>
     <string name="launcher_section_resources">Resources</string>
     <string name="launcher_section_android_apps">Apps</string>
     <string name="launcher_settings_widget_backdrop_alpha_title">Widget backdrop opacity</string>
@@ -3349,7 +3347,7 @@
     <string name="launcher_gadget_media_document_open">Tap to open in the reader</string>
     <string name="launcher_edit_streams_loading">Loading streams..</string>
     <string name="launcher_tray_indicator_action">%1$s. Tap to open the matching Android settings</string>
-    <string name="launcher_home_cell_too_wide">This widget is wider than the desktop grid. Rotate the screen or pick a narrower widget.</string>
+    <string name="launcher_home_cell_too_wide">This gadget is wider than the desktop grid. Rotate the screen or pick a narrower gadget.</string>
     <string name="launcher_section_create">Create a section..</string>
     <string name="launcher_section_name_title">Section name</string>
     <string name="launcher_section_name_hint">For example: Work</string>
@@ -3365,15 +3363,15 @@
     <string name="front_flashlight_settings_toggle_title">Front flashlight</string>
     <string name="front_flashlight_settings_toggle_subtitle">Turn the screen itself into a lamp</string>
     <string name="front_flashlight_help_title">Front flashlight</string>
-    <string name="front_flashlight_help_message">The screen lights up at full brightness and works as a lamp. The clock sits a quarter of the way down. Below it the large button picks another colour, and it is remembered for the next time, while the five steps beside it set the brightness. Swiping up or down moves through the same five steps. A single tap anywhere closes the flashlight.</string>
-    <string name="front_flashlight_color_button">Light colour</string>
+    <string name="front_flashlight_help_message">The screen lights up at full brightness and works as a lamp. The clock sits a quarter of the way down. Below it the large button picks another color, and it is remembered for the next time, while the five steps beside it set the brightness. Swiping up or down moves through the same five steps. A single tap anywhere closes the flashlight.</string>
+    <string name="front_flashlight_color_button">Light color</string>
     <string name="released_tickets_button">In this build</string>
     <string name="released_tickets_title">Tickets in this build</string>
     <string name="released_tickets_empty">This build carries no ticket listing. Rebuild the app to generate one.</string>
     <string name="wear_resource_selection_title">Resources for the watch</string>
     <string name="wear_resource_selection_hint">Only network resources (SMB, FTP, SFTP) can be sent to the watch, so only those are listed. Tick the ones to send.</string>
     <string name="wear_resource_selection_select_all">Select all</string>
-    <string name="wear_resource_selection_empty">No network resources yet. Only SMB, FTP and SFTP resources can be sent to the watch - add one on the Resources screen, then come back to pick what the watch gets.</string>
+    <string name="wear_resource_selection_empty">No network resources yet. Only SMB, FTP and SFTP resources can be sent to the watch - add one on the main screen, then come back to pick what the watch gets.</string>
     <string name="wear_sync_nothing_selected">No resources are marked for the watch yet. Open Resources for the watch and tick the ones to send.</string>
     <string name="wear_settings_view_mode">Home and Resources view</string>
     <string name="wear_settings_view_mode_list">List</string>
@@ -3458,7 +3456,7 @@
     <string name="wear_watch_operation_unsupported">Files on the watch cannot be renamed or deleted from the phone yet.</string>
     <string name="wear_watch_transfer_too_large">%1$s is too large for the watch (limit 32 MB).</string>
     <string name="wear_watch_transfer_unreachable">The watch is not connected, so %1$s was not sent.</string>
-    <string name="wear_watch_transfer_cancelled">Sending %1$s to the watch was cancelled.</string>
+    <string name="wear_watch_transfer_cancelled">Sending %1$s to the watch was canceled.</string>
     <string name="wear_watch_transfer_failed_file">%1$s did not reach the watch.</string>
     <string name="camera_lens_switching">Switching..</string>
     <string name="sysinfo_field_camera_active_array">Active sensor area</string>
@@ -3760,7 +3758,7 @@
     <string name="mirror_video_button">Record video</string>
     <string name="mirror_zoom_button">Zoom %1$sx</string>
     <string name="mirror_no_front_camera">This device has no front camera, so the mirror cannot open</string>
-    <string name="launcher_settings_screen_timeout_subtitle_no_lock">Turns the screen black when the desktop is idle. This build cannot lock the device.</string>
+    <string name="launcher_settings_screen_timeout_subtitle_no_lock">Turns the screen black when the desktop is idle. This edition cannot lock the device.</string>
     <string name="launcher_settings_tray_tethering_title">Wi-Fi Hotspot</string>
     <string name="launcher_settings_tray_tethering_subtitle">Show hotspot status in tray</string>
     <string name="launcher_tray_tethering_on">Wi-Fi Hotspot on</string>
@@ -3783,7 +3781,7 @@
     <string name="stopwatch_region_label">Participant %1$d</string>
     <string name="stopwatch_laps_empty">No laps yet - press Lap while it runs.</string>
     <string name="stopwatch_lap_line">%1$d.  %2$s</string>
-    <string name="wear_settings_color_scheme">Watch colour scheme</string>
+    <string name="wear_settings_color_scheme">Watch color scheme</string>
     <string name="wear_color_scheme_dark">Dark</string>
     <string name="wear_color_scheme_light">Light</string>
     <string name="wear_color_scheme_dark_green">Dark green</string>
@@ -3877,9 +3875,9 @@
     <string name="launcher_wallpaper_section_source">Source</string>
     <string name="launcher_wallpaper_section_tuning">Appearance</string>
     <string name="launcher_wallpaper_section_power">Battery</string>
-    <string name="launcher_wallpaper_desc_branded">Coloured waves with drifting particles, animated all the time the desktop is open.</string>
+    <string name="launcher_wallpaper_desc_branded">Colored waves with drifting particles, animated all the time the desktop is open.</string>
     <string name="launcher_wallpaper_desc_static_stripes">The same waves, but frozen: one fresh frame is drawn each time you return to the desktop, and nothing moves after that.</string>
-    <string name="launcher_wallpaper_desc_none">No wallpaper at all - the desktop shows the flat colour of the current theme.</string>
+    <string name="launcher_wallpaper_desc_none">No wallpaper at all - the desktop shows the flat color of the current theme.</string>
     <string name="launcher_wallpaper_desc_image">Your own picture, still or animated, cropped to fill the screen.</string>
     <string name="launcher_wallpaper_desc_camera">A live picture from the camera, refreshed continuously. It costs the most battery of all the modes.</string>
     <string name="launcher_wallpaper_desc_instant_photo">One photo taken by the camera each time you return to the desktop; the camera is released immediately afterwards.</string>
@@ -3946,13 +3944,13 @@
     <string name="unit_speed_mph">%1$s mph</string>
     <string name="unit_altitude_metres">%1$s m</string>
     <string name="unit_altitude_feet">%1$s ft</string>
-    <string name="unit_speed_kmh_spoken">%1$s kilometres per hour</string>
+    <string name="unit_speed_kmh_spoken">%1$s kilometers per hour</string>
     <string name="unit_speed_mph_spoken">%1$s miles per hour</string>
-    <string name="unit_altitude_metres_spoken">%1$s metres</string>
+    <string name="unit_altitude_metres_spoken">%1$s meters</string>
     <string name="unit_altitude_feet_spoken">%1$s feet</string>
     <string name="unit_distance_kilometres">%1$s km</string>
     <string name="unit_distance_miles">%1$s mi</string>
-    <string name="unit_distance_kilometres_spoken">%1$s kilometres</string>
+    <string name="unit_distance_kilometres_spoken">%1$s kilometers</string>
     <string name="unit_distance_miles_spoken">%1$s miles</string>
     <string name="launcher_gadget_chart_altitude_now">Now %1$s</string>
     <string name="settings_broadcast_channels_mono">Mono</string>
@@ -3999,7 +3997,7 @@
     <string name="watch_listen_state_waiting">Waiting for the watch</string>
     <string name="watch_listen_state_listening">Listening</string>
     <string name="watch_listen_state_recording">Recording</string>
-    <string name="wear_sync_removed">Removed %d source(s) from watch</string>
+    <string name="wear_sync_removed">Removed %d resource(s) from the watch</string>
     <string name="wear_sync_settings_no_ack">The watch did not confirm the settings. It may be off or out of range.</string>
     <string name="tourist_info_title">Tourist</string>
     <string name="tourist_info_panel_desc">Real-time navigation and telemetry dashboard</string>
@@ -4080,8 +4078,8 @@
     <string name="broadcast_control_blank_screen">Blank screen</string>
     <string name="broadcast_control_blank_screen_cd">Cover the app with a black screen while the broadcast keeps running</string>
     <string name="broadcast_share_save_failed">Could not save file</string>
-    <string name="launcher_settings_taskbar_rows_title">Start panel rows</string>
-    <string name="launcher_settings_taskbar_rows_subtitle">A taller panel shows more recent apps and stacks the tray indicators</string>
+    <string name="launcher_settings_taskbar_rows_title">Taskbar rows</string>
+    <string name="launcher_settings_taskbar_rows_subtitle">A taller taskbar shows more recent apps and stacks the tray indicators</string>
     <string name="tourist_unit_mph">mph</string>
     <string name="tourist_unit_feet">ft</string>
     <string name="tourist_unit_miles">mi</string>
@@ -4114,10 +4112,10 @@
     <string name="launcher_primary_window_home_desc">The app becomes your device home screen</string>
     <string name="launcher_primary_window_desktop_title">Desktop as primary window</string>
     <string name="launcher_primary_window_desktop_desc">Open desktop inside the app without changing the device home screen</string>
-    <string name="launcher_primary_window_resource_manager_title">Resource Manager</string>
+    <string name="launcher_primary_window_resource_manager_title">Main screen</string>
     <string name="launcher_primary_window_resource_manager_desc">Open file and media resource management directly</string>
     <string name="setting_launcher_primary_window_title">Primary startup window</string>
-    <string name="setting_launcher_primary_window_desc">Choose whether the app opens as the device home screen, in-app desktop, or Resource Manager</string>
+    <string name="setting_launcher_primary_window_desc">Choose whether the app opens as the device home screen, in-app desktop, or main screen</string>
 
     <string-array name="launcher_primary_window_options">
         <item>@string/launcher_primary_window_home_title</item>
@@ -4167,7 +4165,7 @@
     <string name="launcher_settings_screen_timeout_on_charge_title">Screen timeout when on charge</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">Turns off the screen after inactivity while the charger is connected</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Screen timeout when on charge</string>
-    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Turns the screen black after inactivity while the charger is connected. This build cannot lock the device.</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Turns the screen black after inactivity while the charger is connected. This edition cannot lock the device.</string>
     <string name="settings_watch_camera_standby">Let my watch see my camera</string>
     <string name="settings_watch_camera_standby_summary">Starts the camera now, so the paired watch can open the picture later while the phone stays in your pocket</string>
     <string name="settings_watch_camera_standby_failed">Could not start the camera for the watch</string>
@@ -4176,4 +4174,30 @@
     <string name="broadcast_control_feedback_warning">Sound turned down: a listener\'s speaker is feeding back into the microphone. Move the listening device away or lower its volume.</string>
     <string name="broadcast_control_feedback_warning_cd">Acoustic feedback detected, the microphone gain was turned down</string>
     <string name="wear_watch_transfer_unconfirmed">The watch did not confirm saving %1$s, so the original was kept on the phone.</string>
+    <string name="filedo_operations_title">FileDO encryption operations</string>
+    <string name="filedo_operations_summary">Show \"Encrypt with FileDO\" and \"Decrypt with FileDO\" in the operations menu of every file</string>
+    <string name="filedo_encrypt">Encrypt with FileDO</string>
+    <string name="filedo_decrypt">Decrypt with FileDO</string>
+    <string name="filedo_password_title_encrypt">Password for the container</string>
+    <string name="filedo_password_title_decrypt">Password of the container</string>
+    <string name="filedo_password_hint">Password</string>
+    <string name="filedo_password_repeat_hint">Repeat the password</string>
+    <string name="filedo_password_mismatch">The two passwords differ</string>
+    <string name="filedo_password_empty_warning">An empty password gives no secrecy. The file is only hidden from a casual look and anybody who knows the format can open it.</string>
+    <string name="filedo_no_recovery_warning">There is no way to recover a forgotten password.</string>
+    <string name="filedo_outcome_wrong_credential">Could not open the file: the password is wrong, the file was never a container, or it has been tampered with. These three cannot be told apart.</string>
+    <string name="filedo_outcome_damaged">The container is damaged: it is truncated or its contents do not match what it seals.</string>
+    <string name="filedo_outcome_unsupported">This container uses a format version this app does not read.</string>
+    <string name="filedo_outcome_failed">The operation did not finish: %1$s</string>
+    <string name="filedo_encrypted_ok">Container written. The original is untouched.</string>
+    <string name="filedo_decrypted_ok">File restored.</string>
+    <string name="filedo_open_refused_executable">This container holds a program or a script. It is not opened.</string>
+    <string name="filedo_password_remember">Remember the password and try it on every .fd-sec file</string>
+    <string name="filedo_remembered_password_forgotten">The saved password did not open this file and was forgotten. Enter the password for this file.</string>
+    <string name="stream_access_restricted">🔒 Restricted</string>
+    <string name="stream_access_restricted_desc">May have access restrictions - might not play in your environment or region</string>
+    <string name="stream_info_access_restricted">Restricted</string>
+    <string name="sftp_host_key_presented_format">Server host key fingerprint:\n%1$s</string>
+    <string name="sftp_pin_host_key">Pin Host Key</string>
+    <string name="sftp_host_key_pinned_toast">Server host key fingerprint pinned</string>
 </resources>

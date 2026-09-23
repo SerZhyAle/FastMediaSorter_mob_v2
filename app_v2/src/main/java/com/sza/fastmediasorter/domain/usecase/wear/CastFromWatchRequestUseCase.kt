@@ -27,13 +27,14 @@ class CastFromWatchRequestUseCase @Inject constructor(
      * nothing is casting yet, which is the same "act on the phone" sentence as an unchosen receiver.
      */
     private suspend fun decide(request: WearCastRequest): WearCastOutcome {
-        val controller = activeCastControllerHolder.current() ?: return WearCastOutcome.PICKER_NEEDED
-        if (!controller.isCastAvailable) {
-            return WearCastOutcome.CAST_UNAVAILABLE
-        }
-        return when (val resolution = resolve(request)) {
-            is Resolution.Refused -> resolution.outcome
-            is Resolution.Ready -> handOver(controller, resolution.file)
+        val controller = activeCastControllerHolder.current()
+        return when {
+            controller == null -> WearCastOutcome.PICKER_NEEDED
+            !controller.isCastAvailable -> WearCastOutcome.CAST_UNAVAILABLE
+            else -> when (val resolution = resolve(request)) {
+                is Resolution.Refused -> resolution.outcome
+                is Resolution.Ready -> handOver(controller, resolution.file)
+            }
         }
     }
 

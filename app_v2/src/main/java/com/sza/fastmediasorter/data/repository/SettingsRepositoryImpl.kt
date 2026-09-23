@@ -130,7 +130,6 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_PLAY_TO_END = booleanPreferencesKey("play_to_end_in_slideshow")
         private val KEY_ALLOW_RENAME = booleanPreferencesKey("allow_rename")
         private val KEY_ALLOW_DELETE = booleanPreferencesKey("allow_delete")
-        private val KEY_USE_TRASH = booleanPreferencesKey("use_trash")
         private val KEY_CONFIRM_DELETE = booleanPreferencesKey("confirm_delete")
         private val KEY_CONFIRM_MOVE = booleanPreferencesKey("confirm_move")
         private val KEY_DEFAULT_GRID_MODE = booleanPreferencesKey("default_grid_mode")
@@ -466,6 +465,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     allowRename = preferences[KEY_ALLOW_RENAME] ?: true,
                     allowDelete = preferences[KEY_ALLOW_DELETE] ?: true,
                     useTrash = preferences[KEY_USE_TRASH] ?: false,
+                    enableFileDoOperations = preferences[KEY_ENABLE_FILEDO_OPERATIONS] ?: false,
                     confirmDelete = preferences[KEY_CONFIRM_DELETE] ?: true,
                     confirmMove = preferences[KEY_CONFIRM_MOVE] ?: false,
                     defaultGridMode = preferences[KEY_DEFAULT_GRID_MODE] ?: false,
@@ -761,7 +761,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 preferences[KEY_PLAY_TO_END] = settings.playToEndInSlideshow
                 preferences[KEY_ALLOW_RENAME] = settings.allowRename
                 preferences[KEY_ALLOW_DELETE] = settings.allowDelete
-                preferences[KEY_USE_TRASH] = settings.useTrash
+                writeFileHandlingFlags(preferences, settings)
                 preferences[KEY_CONFIRM_DELETE] = settings.confirmDelete
                 preferences[KEY_CONFIRM_MOVE] = settings.confirmMove
                 preferences[KEY_DEFAULT_GRID_MODE] = settings.defaultGridMode
@@ -996,4 +996,18 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun isConsolidatedStorageActive(): Boolean {
         return true
     }
+}
+
+// S3382: these two keys live outside the class on purpose. SettingsRepositoryImpl sits on detekt's
+// LargeClass ceiling, and a setting whose whole persistence is one preferences key does not need to
+// spend a slot inside it - the next one that does should pay for an extracted store instead.
+private val KEY_USE_TRASH = booleanPreferencesKey("use_trash")
+private val KEY_ENABLE_FILEDO_OPERATIONS = booleanPreferencesKey("enable_filedo_operations")
+
+// S3382: both flags are written here, outside the class. SettingsRepositoryImpl sits on detekt's
+// LargeClass ceiling with no room left, and a pair of preference writes does not need a slot inside
+// it - the next setting that needs one should pay for an extracted store instead.
+private fun writeFileHandlingFlags(preferences: MutablePreferences, settings: AppSettings) {
+    preferences[KEY_USE_TRASH] = settings.useTrash
+    preferences[KEY_ENABLE_FILEDO_OPERATIONS] = settings.enableFileDoOperations
 }

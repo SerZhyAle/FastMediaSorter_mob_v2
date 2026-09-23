@@ -599,6 +599,7 @@ Build Legacy Debug APK
 scripts/builders/build-legacy-debug.ps1
   Build Legacy Debug APK
   (no param block)
+  Exit: 0 - the APK was built and located; 1 - gradle failed (its own non-zero code is passed through), the APK was not found, or the build lock was refused; 2 - the wait for the build lock timed out; 3 - no usable JDK, so gradle was never started
 ```
 
 ### build-legacy-device.ps1
@@ -619,6 +620,7 @@ Build Legacy Release APK
 scripts/builders/build-legacy-release.ps1
   Build Legacy Release APK
   (no param block)
+  Exit: 0 - the APK was built and located; 1 - gradle failed (its own non-zero code is passed through), the APK was not found, or the build lock was refused; 2 - the wait for the build lock timed out; 3 - no usable JDK, so gradle was never started
 ```
 
 ### build-lite-debug.ps1
@@ -628,6 +630,7 @@ Build Lite Debug APK
 scripts/builders/build-lite-debug.ps1
   Build Lite Debug APK
   (no param block)
+  Exit: 0 - the APK was built and located; 1 - gradle failed (its own non-zero code is passed through), the APK was not found, or the build lock was refused; 2 - the wait for the build lock timed out; 3 - no usable JDK, so gradle was never started
 ```
 
 ### build-lite-device.ps1
@@ -648,6 +651,7 @@ Build Lite Release APK
 scripts/builders/build-lite-release.ps1
   Build Lite Release APK
   (no param block)
+  Exit: 0 - the APK was built and located; 1 - gradle failed (its own non-zero code is passed through), the APK was not found, or the build lock was refused; 2 - the wait for the build lock timed out; 3 - no usable JDK, so gradle was never started
 ```
 
 ### build-nolegal-debug.ps1
@@ -697,6 +701,7 @@ Build Photos Debug APK
 scripts/builders/build-photos-debug.ps1
   Build Photos Debug APK
   (no param block)
+  Exit: 0 - the APK was built and located; 1 - gradle failed (its own non-zero code is passed through), the APK was not found, or the build lock was refused; 2 - the wait for the build lock timed out; 3 - no usable JDK, so gradle was never started
 ```
 
 ### build-photos-device.ps1
@@ -717,6 +722,7 @@ Build Photos Release APK
 scripts/builders/build-photos-release.ps1
   Build Photos Release APK
   (no param block)
+  Exit: 0 - the APK was built and located; 1 - gradle failed (its own non-zero code is passed through), the APK was not found, or the build lock was refused; 2 - the wait for the build lock timed out; 3 - no usable JDK, so gradle was never started
 ```
 
 ### build-queue-refusal.ps1
@@ -735,6 +741,18 @@ Release build script
 scripts/builders/build-release.ps1
   Release build script
   (no param block)
+```
+
+### build-sbom.ps1
+S3371: produce the CycloneDX SBOM for one module.
+
+```
+scripts/builders/build-sbom.ps1
+  S3371: produce the CycloneDX SBOM for one module.
+  Params:
+    -Module         [String] = 'app_v2'  {app_v2|wear}
+    -OutDir         [String]
+  Exit: 0 - the SBOM was written; its path is printed.; 1 - the gradle task failed, or it reported success and wrote no file.; 2 - the module name is not one this repository has.; 4 - the module's build domain is held by another session (Enter-BuildLockOrExit).
 ```
 
 ### build-standard-debug.ps1
@@ -799,6 +817,7 @@ scripts/builders/build-wear-debug.PS1
   Params:
     -AutoVersion         [SwitchParameter] = $true
     -Flavor              [String] = 'standard'  {standard|noLegal}
+    -BuildType           [String] = 'debug'  {debug|release}
     -Install             [SwitchParameter]
     -DeviceId            [String]
 ```
@@ -839,6 +858,7 @@ scripts/builders/check-lint.ps1
   Params:
     -Module      (req)  [String]  {app_v2|wear}
     -Regenerate         [SwitchParameter]
+    -Reason             [String]
     -Quiet              [SwitchParameter]
   Exit: 0 - lint ran and found no error above the baseline; or, under -Regenerate, the baseline was
 ```
@@ -1108,6 +1128,20 @@ scripts/ci/ensure-prebuilt-libs.ps1
   Exit: 0 - every AAR in the manifest is present and non-empty (fetched now, or already there).; 1 - an AAR is missing and could not be fetched (no CLI, or the download failed or was empty).; 2 - the manifest is absent, empty, or could not be read.
 ```
 
+### triage-junit-flaky.ps1
+CI triage: classify every failing test of a JUnit report against the flaky quarantine ledger. A quarantined failure is a named warning; a failure nobody quarantined stays a hard failure.
+
+```
+scripts/ci/triage-junit-flaky.ps1
+  CI triage: classify every failing test of a JUnit report against the flaky quarantine ledger. A quarantined failure is a named warning; a failure nobody quarantined stays a hard failure.
+  Params:
+    -ResultsDir         [String]
+    -Ledger             [String]
+    -RepoRoot           [String]
+    -Help               [SwitchParameter]
+  Exit: 0 no failing test, or every failing test carries a quarantine row.; 1 at least one failing test has no row in the ledger, or a ledger row is malformed.; 2 cannot verify: the results directory does not exist or holds no JUnit XML, or the ledger
+```
+
 ## scripts\ci\ensure-prebuilt-libs.tests
 
 ### Run-Tests.ps1
@@ -1145,6 +1179,7 @@ scripts/devtest/adb.ps1
     -Duration             [Int32] = 300
     -Text                 [String]
     -Key                  [String]
+    -LongPress            [SwitchParameter]
     -Cmd                  [String]
     -Remote               [String]
     -Local                [String]
@@ -1936,6 +1971,15 @@ scripts/devtest/wear-prerelease-walk.tests/Run-Tests.ps1
 
 ## scripts\doc-drift
 
+### AbsentDependencyClaims.ps1
+a document may not credit a capability to a dependency no build ships (S3445)
+
+```
+scripts/doc-drift/AbsentDependencyClaims.ps1
+  a document may not credit a capability to a dependency no build ships (S3445)
+  (no param block)
+```
+
 ### check-rule-prompt-drift.ps1
 Rule/prompt executable drift audit (S0315). Finds executable mismatch between the canonical rules (CLAUDE.md), prompt skills, agent profiles, AGENTS.md, copilot instructions, workflow docs, and the scripts that actually exist on disk.
 
@@ -2082,6 +2126,25 @@ scripts/docs/apply-doc-icons.ps1
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 ```
 
+### capture-docs-screenshots.ps1
+Capture Documentation Screenshots Automation Harness
+
+```
+scripts/docs/capture-docs-screenshots.ps1
+  Capture Documentation Screenshots Automation Harness
+  Params:
+    -Profile                [String] = 'phone'  {phone|tablet|wear-round|wear-square|all}
+    -Locale                 [String] = 'en'  {en|ru|uk}
+    -Theme                  [String] = 'dark'  {dark|light}
+    -ShotId                 [String]
+    -List                   [SwitchParameter]
+    -DryRun                 [SwitchParameter]
+    -SetupDemoMode          [SwitchParameter]
+    -SetupTestMedia         [SwitchParameter]
+    -DeviceSerial           [String]
+  Exit: 0 - the requested shots were listed, dry-run or captured; 1 - the manifest is missing, or a capture step failed
+```
+
 ### check-settings-annotations.ps1
 S0440 Phase 02 - settings annotations coverage/parity checker.
 
@@ -2106,6 +2169,18 @@ scripts/docs/export-doc-icon-pngs.ps1
   Exit: 4 = Code.Scripts is held by another session, so nothing was written or pruned - the place in
 ```
 
+### export-icon-contract.ps1
+Regenerate the conformance artifacts of the ICON-SET contract from its vocabulary.
+
+```
+scripts/docs/export-icon-contract.ps1
+  Regenerate the conformance artifacts of the ICON-SET contract from its vocabulary.
+  Params:
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - every artifact was written and the vocabulary is consistent.; 1 - the vocabulary is inconsistent (duplicate id, dangling reference, unknown enum value) or
+```
+
 ### export-icon-svgs.ps1
 S0815 Phase 2 - export app VectorDrawable icons to lightweight web SVGs.
 
@@ -2115,6 +2190,28 @@ scripts/docs/export-icon-svgs.ps1
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
   Exit: 0 - the generated tree is complete and current.; 1 - the inventory is missing, or a source drawable named by it is absent.; 4 - Code.Scripts is held by another session: nothing was written or pruned,
+```
+
+### generate-docs-pages.ps1
+Generator: Documentation HTML Pages Compiler
+
+```
+scripts/docs/generate-docs-pages.ps1
+  Generator: Documentation HTML Pages Compiler
+  Params:
+    -Check              [SwitchParameter]
+    -ContentDir         [String] = "docs/content/recipes"
+    -OutputDir          [String] = "documentation"
+```
+
+### generate-docs-search-index.ps1
+Generator for Documentation Search Index (JSON)
+
+```
+scripts/docs/generate-docs-search-index.ps1
+  Generator for Documentation Search Index (JSON)
+  Params:
+    -OutputPath         [String] = "documentation/assets/search-index.json"
 ```
 
 ### generate-flavor-matrix.ps1
@@ -2206,6 +2303,34 @@ scripts/docs/strip-landing-meta-icons.ps1
 ```
 
 ## scripts\docs\lib
+
+### icon-contract-looks.ps1
+The palette and the decorated look of ICON-RENDER 0.10 section 10 items B, D and E, for the icon contract exporter.
+
+```
+scripts/docs/lib/icon-contract-looks.ps1
+  The palette and the decorated look of ICON-RENDER 0.10 section 10 items B, D and E, for the icon contract exporter.
+  (no param block)
+```
+
+### icon-contract-svg.ps1
+VectorDrawable -> SVG conversion shared by the icon contract exporter and the icon style gate.
+
+```
+scripts/docs/lib/icon-contract-svg.ps1
+  VectorDrawable -> SVG conversion shared by the icon contract exporter and the icon style gate.
+  (no param block)
+  Exit: 3 { return @(('#' + (($h.ToCharArray() | ForEach-Object { "$_$_" }) -join '')), $null) }; 6 { return @(('#' + $h.ToUpper()), $null) }; 8 {
+```
+
+### icon-style-rules.ps1
+The measurable glyph style of ICON-RENDER 0.10 section 10 item A, shared by the icon contract exporter and scripts/quality/assert-icon-style.ps1.
+
+```
+scripts/docs/lib/icon-style-rules.ps1
+  The measurable glyph style of ICON-RENDER 0.10 section 10 item A, shared by the icon contract exporter and scripts/quality/assert-icon-style.ps1.
+  (no param block)
+```
 
 ### vectordrawable-svg.ps1
 Shared Android VectorDrawable -> web SVG converter (S0815 core, extracted S0889).
@@ -2492,6 +2617,23 @@ scripts/quality/assert-16kb-alignment.ps1
   Exit: 0 - all checked 64-bit .so have every LOAD segment aligned >= 16 KB, OR nothing
 ```
 
+### assert-a11y-semantics.ps1
+S3371 ratchet gate: an interactive element must carry an accessible name, a custom interactive view must expose role and state, and a touch target must reach the platform floor.
+
+```
+scripts/quality/assert-a11y-semantics.ps1
+  S3371 ratchet gate: an interactive element must carry an accessible name, a custom interactive view must expose role and state, and a touch target must reach the platform floor.
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+    -RepoRoot               [String]
+    -BaselinePath           [String]
+    -AllowlistPath          [String]
+  Exit: 0 - pass: at or below baseline, no growth in the named files, a report/list run, or a
+```
+
 ### assert-acceptance-preconditions.ps1
 Refuse an acceptance criterion that rests on accumulated state without naming it (S1914).
 
@@ -2503,7 +2645,8 @@ scripts/quality/assert-acceptance-preconditions.ps1
     -Quiet                  [SwitchParameter]
     -Path                   [String]
     -UpdateBaseline         [SwitchParameter]
-  Exit: 0 - clean, or violations reported in audit mode.; 1 - `-Gate` found a criterion outside the baseline that names no precondition.; 2 - the spec corpus or the baseline cannot be read.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+    -Reason                 [String]
+  Exit: 0 - clean, or violations reported in audit mode.; 1 - `-Gate` found a criterion outside the baseline that names no precondition.; 2 - the spec corpus or the baseline cannot be read, or -UpdateBaseline would add an entry
 ```
 
 ### assert-activity-locale-wrapper.ps1
@@ -2542,6 +2685,7 @@ scripts/quality/assert-allfeatures-sync.ps1
     -Gate                   [SwitchParameter]
     -Quiet                  [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
+    -Reason                 [String]
   Exit: 0 - clean (or audit mode).; 1 - substantive failure: validation error, record-count regression, a record
 ```
 
@@ -2610,6 +2754,19 @@ scripts/quality/assert-backup-rules-consistent.ps1
   Exit: 0 - clean, every pre-31 exclusion is repeated in both API 31+ sections; 1 - at least one exclusion is missing, or a root element is wrong; 2 - cannot verify: a rules file is missing or is not well-formed XML
 ```
 
+### assert-baseline-inventory.ps1
+S3438: every ratchet baseline in the repository declares its shape, owner, write path and CHECK-BASELINE rule-4 verdict in scripts/quality/baseline-inventory.jsonl.
+
+```
+scripts/quality/assert-baseline-inventory.ps1
+  S3438: every ratchet baseline in the repository declares its shape, owner, write path and CHECK-BASELINE rule-4 verdict in scripts/quality/baseline-inventory.jsonl.
+  Params:
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
+  Exit: 0 - every baseline is declared and every row is well-formed; or findings without -Gate.; 1 - a chargeable finding and -Gate was passed.; 2 - could not verify: the inventory is missing, unreadable, or holds a line that is not JSON.; 3 - findings exist, but neither the inventory nor any of their files is in -ChangedFiles.
+```
+
 ### assert-bridge-scenario-coverage.ps1
 S2880 - binds the bridge scenario registry to the Data Layer route catalogs it must cover.
 
@@ -2625,6 +2782,21 @@ scripts/quality/assert-bridge-scenario-coverage.ps1
     -Registry               [String]
     -BaselineFile           [String]
   Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: a catalog or the registry is missing or unreadable. Never conflated
+```
+
+### assert-check-subject.ps1
+S3440: every check names the subject it checked - contract BUILD-EVIDENCE rule 1.
+
+```
+scripts/quality/assert-check-subject.ps1
+  S3440: every check names the subject it checked - contract BUILD-EVIDENCE rule 1.
+  Params:
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
+    -List                 [SwitchParameter]
+    -Root                 [String]
+  Exit: 0 - every check names its subject or is listed; or findings without -Gate; or -List.; 1 - a chargeable finding and -Gate was passed.; 2 - could not verify: the baseline is missing, or no check was found under the root.; 3 - findings exist, but none of their files, the baseline, this gate or the library is in
 ```
 
 ### assert-ci-cost-map.ps1
@@ -2663,6 +2835,22 @@ scripts/quality/assert-codex-transcript-hygiene.ps1
   Params:
     -Id  (req)  [String]
   Exit: 0 - not applicable (wrong runtime, or no rollout found), or applicable with zero findings.; 2 - measure-codex-transcript.ps1 itself could not verify (its own exit 2).; 3 - applicable, and one or more findings (advisory).
+```
+
+### assert-credential-encryption.ps1
+Ratchet gate: a persisted credential field must be declared as ciphertext, not as a plain String.
+
+```
+scripts/quality/assert-credential-encryption.ps1
+  Ratchet gate: a persisted credential field must be declared as ciphertext, not as a plain String.
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+    -RepoRoot               [String]
+    -BaselinePath           [String]
+  Exit: 0 - pass: at or below baseline, a report/list run, or a completed baseline write.; 1 - fail: the count rose above the baseline, or -UpdateBaseline was asked to RAISE it.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
 ```
 
 ### assert-ctor-arg-slots.ps1
@@ -2777,6 +2965,22 @@ scripts/quality/assert-device-ready-module.ps1
   Exit: 0 PASS, or findings reported without -Gate.; 1 FAIL - at least one call site names no module, and -Gate was supplied.; 2 Cannot verify - the repository root does not carry the probe this gate is about.
 ```
 
+### assert-diagnostics-redaction.ps1
+Ratchet gate: a diagnostics or log-report payload field carrying a path or a credential must be masked.
+
+```
+scripts/quality/assert-diagnostics-redaction.ps1
+  Ratchet gate: a diagnostics or log-report payload field carrying a path or a credential must be masked.
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+    -RepoRoot               [String]
+    -BaselinePath           [String]
+  Exit: 0 - pass: at or below baseline, a report/list run, or a completed baseline write.; 1 - fail: the count rose above the baseline, or -UpdateBaseline was asked to RAISE it.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+```
+
 ### assert-dialog-cancel-style.ps1
 Ratchet gate: a dialog/bottom-sheet cancel button must use the unified DialogCancel style (target: 0 one-offs).
 
@@ -2823,7 +3027,77 @@ scripts/quality/assert-doc-pin-drift.ps1
     -Gate                 [SwitchParameter]
     -Quiet                [SwitchParameter]
     -ChangedFiles         [String[]]
-  Exit: 0 - no drift (doc pins match Gradle).; 1 - drift found (FAIL / INCONSISTENT / MISSING), or the underlying checker could
+  Exit: 0 - no drift (doc pins match Gradle).; 1 - drift found (FAIL / INCONSISTENT / MISSING), a CLAIM finding, or the underlying
+```
+
+### assert-docs-coverage.ps1
+Quality Gate: Assert 100% Feature Documentation Coverage
+
+```
+scripts/quality/assert-docs-coverage.ps1
+  Quality Gate: Assert 100% Feature Documentation Coverage
+  Params:
+    -VerboseOutput         [SwitchParameter]
+    -SummaryOnly           [SwitchParameter]
+```
+
+### assert-docs-crosslinks.ps1
+Quality Gate: Assert Documentation Cross-Links and Bookmarks
+
+```
+scripts/quality/assert-docs-crosslinks.ps1
+  Quality Gate: Assert Documentation Cross-Links and Bookmarks
+  Params:
+    -Strict         [SwitchParameter]
+    -Path           [String] = "documentation"
+```
+
+### assert-docs-external-content.ps1
+Quality Gate: Assert External Documentation Content & Decoupling
+
+```
+scripts/quality/assert-docs-external-content.ps1
+  Quality Gate: Assert External Documentation Content & Decoupling
+  Params:
+    -Check              [SwitchParameter]
+    -ContentDir         [String] = "docs/content/recipes"
+    -SnippetDir         [String] = "docs/content/snippets"
+```
+
+### assert-docs-screenshots.ps1
+Quality Gate: Assert Documentation Screenshots and Image Bookmarks
+
+```
+scripts/quality/assert-docs-screenshots.ps1
+  Quality Gate: Assert Documentation Screenshots and Image Bookmarks
+  Params:
+    -Strict         [SwitchParameter]
+    -Path           [String] = "documentation"
+```
+
+### assert-docs-search.ps1
+Quality Gate: Assert Documentation Search & Responsiveness
+
+```
+scripts/quality/assert-docs-search.ps1
+  Quality Gate: Assert Documentation Search & Responsiveness
+  Params:
+    -Strict         [SwitchParameter]
+```
+
+### assert-docs-termbase.ps1
+Gate: the documentation termbase is well-formed and no corpus page uses a forbidden synonym (S2974).
+
+```
+scripts/quality/assert-docs-termbase.ps1
+  Gate: the documentation termbase is well-formed and no corpus page uses a forbidden synonym (S2974).
+  Params:
+    -Termbase             [String] = 'docs/termbase.jsonl'
+    -CorpusRoot           [String] = 'documentation'
+    -ChangedFiles         [String[]] = @()
+    -Quiet                [SwitchParameter]
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - the termbase is valid and no judged page uses a forbidden synonym; 1 - at least one schema finding or forbidden synonym, each printed as FAIL <path>:<line>: ..; 2 - cannot verify: the termbase or docs/flavors/flavor-matrix.json is missing or unreadable,
 ```
 
 ### assert-document-registry-coverage.ps1
@@ -2927,6 +3201,24 @@ scripts/quality/assert-file-line-ceiling.ps1
   Exit: 0 - at or below the baseline, or -Report was given; 1 - above the baseline: a file crossed the ceiling that did not before; 2 - cannot verify: a source root or the baseline file is missing or unreadable
 ```
 
+### assert-fileop-journal-pairing.ps1
+Ratchet gate: a destructive file operation declared in the transfer strategy trees must name how it reaches the mutation journal - a call here, a registering caller, or a read-only reason - and the set of operations doing none of those may never grow.
+
+```
+scripts/quality/assert-fileop-journal-pairing.ps1
+  Ratchet gate: a destructive file operation declared in the transfer strategy trees must name how it reaches the mutation journal - a call here, a registering caller, or a read-only reason - and the set of operations doing none of those may never grow.
+  Params:
+    -Gate                   [SwitchParameter]
+    -List                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -RepoRoot               [String]
+    -AllowlistPath          [String]
+    -BaselinePath           [String]
+    -Reason                 [String]
+    -Help                   [SwitchParameter]
+  Exit: 0 every destructive declaration is paired, allowlisted or baselined (or reporting only).; 1 under -Gate: an unpaired declaration outside both opt-outs, or a reasonless allowlist row.; 2 cannot verify - not one scanned tree exists under -RepoRoot; or -UpdateBaseline would grow
+```
+
 ### assert-flavor-binding-coverage.ps1
 S2447: a Hilt binding that lives only in flavor-specific source sets, for a type src/main injects unconditionally - the shape that fails hiltJavaCompile in whichever flavor mounts neither half.
 
@@ -3007,17 +3299,19 @@ scripts/quality/assert-focus-parity.ps1
 ```
 
 ### assert-gate-count-prose.ps1
-S2935: fail when docs/BUILD_TEST_FAST_PATH.md claims a fast-gate count the live $gates table in assert-fast-gates.ps1 disagrees with.
+S2935: fail when a document states a gate population the live tree disagrees with - the fast-gate count in docs/BUILD_TEST_FAST_PATH.md, and the assert-*.ps1 inventory in section 9 of docs/RULES_DIGEST.md.
 
 ```
 scripts/quality/assert-gate-count-prose.ps1
-  S2935: fail when docs/BUILD_TEST_FAST_PATH.md claims a fast-gate count the live $gates table in assert-fast-gates.ps1 disagrees with.
+  S2935: fail when a document states a gate population the live tree disagrees with - the fast-gate count in docs/BUILD_TEST_FAST_PATH.md, and the assert-*.ps1 inventory in section 9 of docs/RULES_DIGEST.md.
   Params:
-    -Gate               [SwitchParameter]
-    -Quiet              [SwitchParameter]
-    -RunnerPath         [String]
-    -DocPath            [String]
-  Exit: 0 - the documented count matches the live table, or a finding exists and -Gate was absent.; 1 - the documented count contradicts the live table, and -Gate was passed.; 2 - could not verify: either file is absent, the runner does not parse, it holds no single
+    -Gate                  [SwitchParameter]
+    -Quiet                 [SwitchParameter]
+    -RunnerPath            [String]
+    -DocPath               [String]
+    -DigestPath            [String]
+    -GateDirectory         [String]
+  Exit: 0 - both documented populations match the live tree, or a finding exists and -Gate was absent.; 1 - a documented population contradicts the live tree, and -Gate was passed.; 2 - could not verify: a file or the gate directory is absent, the runner does not parse, it
 ```
 
 ### assert-gate-hints-sync.ps1
@@ -3106,7 +3400,8 @@ scripts/quality/assert-guide-coverage.ps1
     -UpdateBaseline         [SwitchParameter]
     -Json                   [SwitchParameter]
     -Quiet                  [SwitchParameter]
-  Exit: 0 - clean, or audit mode (no -Gate).; 1 - -Gate and at least one uncovered id is not in the baseline.; 2 - the gate cannot run: the inventory, the registry, or the guide set is missing.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place
+    -Reason                 [String]
+  Exit: 0 - clean, or audit mode (no -Gate).; 1 - -Gate and at least one uncovered id is not in the baseline.; 2 - the gate cannot run: the inventory, the registry, or the guide set is missing.
 ```
 
 ### assert-harness-drift.ps1
@@ -3158,6 +3453,35 @@ scripts/quality/assert-icon-inventory-sync.ps1
     -RepoRoot                    [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -TimeoutSeconds              [Int32] = 600
   Exit: 0 - every enforced check passed, or the inventory was regenerated.; 1 - a check failed.; 2 - regeneration could not run (gradle returned non-zero).; 4 - Code.Scripts is held by another session: nothing was written, the place in
+```
+
+### assert-icon-style.ps1
+S3433: every product glyph holds the measured icon style of ICON-RENDER 0.10 section 10 item A, and every icon size sits on the tiers of item E.
+
+```
+scripts/quality/assert-icon-style.ps1
+  S3433: every product glyph holds the measured icon style of ICON-RENDER 0.10 section 10 item A, and every icon size sits on the tiers of item E.
+  Params:
+    -ChangedFiles         [String] = ''
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - every judged glyph holds the style or is excused; no stale exception (full run).; 1 - a glyph breaks a rule nobody excused, or an exception is stale.; 2 - could not verify: no repo venv, the measure failed, or a drawable could not be converted.; 3 - advisory: -ChangedFiles carries no product glyph, dimens, layout, exceptions file or rule
+```
+
+### assert-install-trust.ps1
+S3451 conformance gate for contract INSTALL-TRUST 1.0 rules 1, 6 and 7.
+
+```
+scripts/quality/assert-install-trust.ps1
+  S3451 conformance gate for contract INSTALL-TRUST 1.0 rules 1, 6 and 7.
+  Params:
+    -Root                [String]
+    -Declaration         [String]
+    -Gate                [SwitchParameter]
+    -Quiet               [SwitchParameter]
+    -Help                [SwitchParameter]
+  Exit: 0 - every rule-1, rule-6 and rule-7 check passed.; 1 - at least one ORDER, SURFACE, UNDECLARED, CLAIM or CODE finding.; 2 - cannot verify: the root or the declaration is missing or unreadable.
 ```
 
 ### assert-invoked-tracked.ps1
@@ -3212,6 +3536,23 @@ scripts/quality/assert-layout-variant-id-parity.ps1
     -Quiet         [SwitchParameter]
 ```
 
+### assert-lint-baseline-absorption.ps1
+S3459 gate: refuse an Android lint baseline that ABSORBED a finding absent from the committed identifier snapshot. The lint twin of assert-detekt-baseline-absorption.ps1 (S1356).
+
+```
+scripts/quality/assert-lint-baseline-absorption.ps1
+  S3459 gate: refuse an Android lint baseline that ABSORBED a finding absent from the committed identifier snapshot. The lint twin of assert-detekt-baseline-absorption.ps1 (S1356).
+  Params:
+    -Module               [String]  {app_v2|wear}
+    -Gate                 [SwitchParameter]
+    -Update               [SwitchParameter]
+    -Reason               [String]
+    -MaxListed            [Int32] = 50
+    -BaselineFile         [String]
+    -SnapshotFile         [String]
+  Exit: 0 PASS - no absorbed identifier, or -Update completed, or absorption found without -Gate.; 1 FAIL - -Gate and the baseline absorbed at least one identifier missing from the snapshot.; 2 Cannot verify - a baseline or snapshot is missing or unparseable, -Update without -Reason, or
+```
+
 ### assert-listener-symmetry.ps1
 Ratchet gate: listener and callback registration symmetry must never degrade.
 
@@ -3226,6 +3567,35 @@ scripts/quality/assert-listener-symmetry.ps1
   Exit: 0 - pass: at or below baseline, a report/list run, or a completed baseline write.; 1 - fail: the count rose above the baseline, or -UpdateBaseline was asked to RAISE it.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
 ```
 
+### assert-lock-path-coverage.ps1
+Every tracked path of the repository matches a lock path rule (S3456).
+
+```
+scripts/quality/assert-lock-path-coverage.ps1
+  Every tracked path of the repository matches a lock path rule (S3456).
+  Params:
+    -ProfilePath         [String]
+    -Entries             [String[]]
+    -Quiet               [SwitchParameter]
+  Exit: 0 - every path matches a rule.; 1 - at least one path matches no rule.; 2 - cannot verify: the profile is missing, unreadable or has no pathRules, or git failed.
+```
+
+### assert-log-redaction.ps1
+Ratchet gate: a credential interpolated into a Timber call in the network trees must be masked.
+
+```
+scripts/quality/assert-log-redaction.ps1
+  Ratchet gate: a credential interpolated into a Timber call in the network trees must be masked.
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+    -RepoRoot               [String]
+    -BaselinePath           [String]
+  Exit: 0 - pass: at or below baseline, a report/list run, or a completed baseline write.; 1 - fail: the count rose above the baseline, or -UpdateBaseline was asked to RAISE it.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+```
+
 ### assert-maestro-oracle.ps1
 Audit Maestro flow YAML for violations of the oracle convention (S1612).
 
@@ -3236,6 +3606,23 @@ scripts/quality/assert-maestro-oracle.ps1
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
   Exit: 0 - clean: no violation found.; 1 - substantive failure: at least one violation remains.; 2 - the gate itself cannot run (no scan root exists / a file is unreadable).
+```
+
+### assert-manifest-risk-diff.ps1
+Refuse a manifest risk declaration that carries no justification row (S3371, security profile).
+
+```
+scripts/quality/assert-manifest-risk-diff.ps1
+  Refuse a manifest risk declaration that carries no justification row (S3371, security profile).
+  Params:
+    -Gate                 [SwitchParameter]
+    -ChangedFiles         [String[]]
+    -List                 [SwitchParameter]
+    -Manifests            [String[]]
+    -Flavor               [String]
+    -RepoRoot             [String]
+    -RegistryPath         [String]
+  Exit: 0 - pass: every declaration in the selection has a well-formed registry row, or a report run.; 1 - fail: a declaration has no row, or a row lacks a justification or a scope.; 2 - cannot verify: the registry is missing or holds a line that is not JSON.
 ```
 
 ### assert-memory-budget.ps1
@@ -3278,6 +3665,7 @@ scripts/quality/assert-migration-schema-conformance.ps1
     -List                   [SwitchParameter]
     -Quiet                  [SwitchParameter]
     -Module                 [String]
+    -Reason                 [String]
     -Help                   [SwitchParameter]
   Exit: 0 no unbaselined disagreement (or reporting only, without -Gate).; 1 an unbaselined disagreement was found, under -Gate.; 2 cannot verify - a registry row's migration directory, schema directory, registration file
 ```
@@ -3293,6 +3681,7 @@ scripts/quality/assert-migration-test-pairing.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -Module                 [String]
+    -Reason                 [String]
   Exit: 2 cannot verify (a registry row's migration directory, schema directory or registration file is
 ```
 
@@ -3306,6 +3695,21 @@ scripts/quality/assert-module-version-parity.ps1
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
   Exit: 0 - clean, both modules state one version under the documented derivation; 1 - versionName differs, or the versionCode derivation is broken; 2 - cannot verify: a build file is missing or states no version constants
+```
+
+### assert-mutation-producer-registration.ps1
+Gate: a component the framework starts, outside the surface tree, that changes user content must either reach the mutation journal or carry a registry row saying how the change reaches the screen.
+
+```
+scripts/quality/assert-mutation-producer-registration.ps1
+  Gate: a component the framework starts, outside the surface tree, that changes user content must either reach the mutation journal or carry a registry row saying how the change reaches the screen.
+  Params:
+    -Gate                 [SwitchParameter]
+    -List                 [SwitchParameter]
+    -RepoRoot             [String]
+    -RegistryPath         [String]
+    -Help                 [SwitchParameter]
+  Exit: 0 every surfaceless producer journals or carries a valid registry row (or reporting only).; 1 under -Gate: an unregistered producer, a reasonless row, or a refresh: row naming a member
 ```
 
 ### assert-neuroslop.ps1
@@ -3370,6 +3774,36 @@ scripts/quality/assert-no-release-probes.ps1
     -Module  (req)  [String]  {app_v2|wear}
     -Quiet          [SwitchParameter]
   Exit: 0 - no probes found in the module's src/main.; 1 - one or more probes found; the release must not proceed.; 2 - cannot verify: the module directory is absent, or the shared harness library is unavailable.
+```
+
+### assert-no-secrets.ps1
+Refuse a secret-shaped literal before it reaches version control (S3371, security profile).
+
+```
+scripts/quality/assert-no-secrets.ps1
+  Refuse a secret-shaped literal before it reaches version control (S3371, security profile).
+  Params:
+    -Gate                  [SwitchParameter]
+    -Full                  [SwitchParameter]
+    -ChangedFiles          [String[]]
+    -List                  [SwitchParameter]
+    -RepoRoot              [String]
+    -AllowlistPath         [String]
+  Exit: 0 - pass: no finding survived the allowlist, or a report run.; 1 - fail: at least one finding survived, or the allowlist holds an entry with no reason.; 2 - cannot verify: the allowlist is missing, or -Full was asked for outside a git work tree.
+```
+
+### assert-no-test-retry.ps1
+Gate: no test in either module may be re-run to green. A retry annotation, a retry TestRule, a retry runner or the Gradle test-retry plugin is refused wherever a test source can reach it.
+
+```
+scripts/quality/assert-no-test-retry.ps1
+  Gate: no test in either module may be re-run to green. A retry annotation, a retry TestRule, a retry runner or the Gradle test-retry plugin is refused wherever a test source can reach it.
+  Params:
+    -Gate             [SwitchParameter]
+    -List             [SwitchParameter]
+    -RepoRoot         [String]
+    -Help             [SwitchParameter]
+  Exit: 0 no retry mechanism in any test source or build script (or reporting only).; 1 under -Gate: at least one retry mechanism was found.; 2 cannot verify - not one scanned test tree exists under -RepoRoot, so a green verdict would
 ```
 
 ### assert-no-ticket-logs.ps1
@@ -3469,6 +3903,21 @@ scripts/quality/assert-packaging-excludes-parity.ps1
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
   Exit: 0 - clean, every module carrying a shared library repeats its payload exclusions; 1 - a module is missing an exclusion, or an unknown payload prefix appeared; 2 - cannot verify: a build file is missing, or has no packaging/resources block to read
+```
+
+### assert-perf-budget.ps1
+Release-scope gate: a budgeted performance metric must have a fresh measurement, and that measurement must stay inside the budget plus its stated tolerance.
+
+```
+scripts/quality/assert-perf-budget.ps1
+  Release-scope gate: a budgeted performance metric must have a fresh measurement, and that measurement must stay inside the budget plus its stated tolerance.
+  Params:
+    -Gate               [SwitchParameter]
+    -Measured           [String]
+    -BudgetPath         [String]
+    -Quiet              [SwitchParameter]
+    -Help               [SwitchParameter]
+  Exit: 0 every budgeted metric is inside its budget plus tolerance, or the recorded measurement of
 ```
 
 ### assert-play-listing-graphics.ps1
@@ -3709,6 +4158,19 @@ scripts/quality/assert-sdk-pin-claims.ps1
   Exit: 0 - every scanned claim matches the build files (or mismatches found without -Gate).; 1 - at least one claim contradicts the build files, and -Gate was passed.; 2 - could not verify: the build file or its pin could not be read, so nothing was compared.
 ```
 
+### assert-security-posture.ps1
+Assert docs/SECURITY_POSTURE.md still describes what the app declares and links (S3380).
+
+```
+scripts/quality/assert-security-posture.ps1
+  Assert docs/SECURITY_POSTURE.md still describes what the app declares and links (S3380).
+  Params:
+    -RepoRoot         [String]
+    -Quiet            [SwitchParameter]
+    -Gate             [SwitchParameter]
+  Exit: 0 every check passed.; 1 at least one check failed; each finding is printed with its subject.; 2 could not verify - the inventory document or a required input is missing or unreadable.
+```
+
 ### assert-sensitive-settings-annotated.ps1
 S1254: secret masking in the settings dump must survive R8 field renaming.
 
@@ -3810,10 +4272,11 @@ Contract gate: every pinned stream-catalog asset the publisher still owns must k
 scripts/quality/assert-stream-asset-revisions.ps1
   Contract gate: every pinned stream-catalog asset the publisher still owns must keep being published.
   Params:
-    -Gate             [SwitchParameter]
-    -Quiet            [SwitchParameter]
-    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-  Exit: 0 every `default` pinned asset is still produced by the publisher.; 1 a pinned asset marked `default` would stop being published - the run is refused.; 2 the gate itself cannot run: registry or publisher missing, markers absent, the
+    -Gate                [SwitchParameter]
+    -Quiet               [SwitchParameter]
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+  Exit: 0 every `default` pinned asset is still produced by the publisher.; 1 a pinned asset marked `default` would stop being published - the run is refused.; 2 the gate itself cannot run: the publisher is missing, the markers are absent, the
 ```
 
 ### assert-string-format.ps1
@@ -3869,8 +4332,9 @@ scripts/quality/assert-tactical-step-form.ps1
   Params:
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
+    -Reason                 [String]
     -Quiet                  [SwitchParameter]
-  Exit: 0 - clean (count <= baseline), or audit mode (no -Gate), or baseline updated.; 1 - substantive failure: more Why-less steps than the baseline allows.; 2 - the gate itself cannot run (PLAN/ or the baseline file is missing/unreadable).; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+  Exit: 0 - clean (count <= baseline), or audit mode (no -Gate), or baseline updated.; 1 - substantive failure: more Why-less steps than the baseline allows; or -UpdateBaseline
 ```
 
 ### assert-temp-root-inventory.ps1
@@ -3955,7 +4419,8 @@ scripts/quality/assert-unreferenced-strings.ps1
     -Quiet                  [SwitchParameter]
     -Module                 [String] = 'app_v2'
     -File                   [String] = 'strings.xml'
-  Exit: 0 - no new unreferenced name (or reporting mode, which never fails).; 1 - under -Gate: at least one unreferenced name is not in the baseline.; 2 - cannot verify: the module, its values directory, or the strings file could not be read.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+    -Reason                 [String] = ''
+  Exit: 0 - no new unreferenced name (or reporting mode, which never fails).; 1 - under -Gate: at least one unreferenced name is not in the baseline.; 2 - cannot verify: the module, its values directory, or the strings file could not be read.
 ```
 
 ### assert-unsafe-collect.ps1
@@ -4352,6 +4817,7 @@ scripts/quality/prune-detekt-baseline.ps1
   Params:
     -Module               [String] = 'app_v2'  {app_v2|wear}
     -Files                [String[]]
+    -Deleted              [String[]]
     -Apply                [SwitchParameter]
     -Reason               [String]
     -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
@@ -4460,6 +4926,106 @@ scripts/quality.tests/android-string-liveness.Tests.ps1
   (no param block)
 ```
 
+### AssertA11ySemantics.Tests.ps1
+S3371: contract suite for scripts/quality/assert-a11y-semantics.ps1.
+
+```
+scripts/quality.tests/AssertA11ySemantics.Tests.ps1
+  S3371: contract suite for scripts/quality/assert-a11y-semantics.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
+```
+
+### AssertCredentialEncryption.Tests.ps1
+S3371: contract suite for scripts/quality/assert-credential-encryption.ps1.
+
+```
+scripts/quality.tests/AssertCredentialEncryption.Tests.ps1
+  S3371: contract suite for scripts/quality/assert-credential-encryption.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
+```
+
+### AssertDiagnosticsRedaction.Tests.ps1
+S3371: contract suite for scripts/quality/assert-diagnostics-redaction.ps1.
+
+```
+scripts/quality.tests/AssertDiagnosticsRedaction.Tests.ps1
+  S3371: contract suite for scripts/quality/assert-diagnostics-redaction.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
+```
+
+### AssertFileopJournalPairing.Tests.ps1
+S3371: contract suite for scripts/quality/assert-fileop-journal-pairing.ps1.
+
+```
+scripts/quality.tests/AssertFileopJournalPairing.Tests.ps1
+  S3371: contract suite for scripts/quality/assert-fileop-journal-pairing.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
+```
+
+### AssertLogRedaction.Tests.ps1
+S3371: contract suite for scripts/quality/assert-log-redaction.ps1.
+
+```
+scripts/quality.tests/AssertLogRedaction.Tests.ps1
+  S3371: contract suite for scripts/quality/assert-log-redaction.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
+```
+
+### AssertManifestRiskDiff.Tests.ps1
+S3371: contract suite for scripts/quality/assert-manifest-risk-diff.ps1.
+
+```
+scripts/quality.tests/AssertManifestRiskDiff.Tests.ps1
+  S3371: contract suite for scripts/quality/assert-manifest-risk-diff.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
+```
+
+### AssertMutationProducerRegistration.Tests.ps1
+S3386: contract suite for scripts/quality/assert-mutation-producer-registration.ps1.
+
+```
+scripts/quality.tests/AssertMutationProducerRegistration.Tests.ps1
+  S3386: contract suite for scripts/quality/assert-mutation-producer-registration.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
+```
+
+### AssertNoSecrets.Tests.ps1
+S3371: contract suite for scripts/quality/assert-no-secrets.ps1.
+
+```
+scripts/quality.tests/AssertNoSecrets.Tests.ps1
+  S3371: contract suite for scripts/quality/assert-no-secrets.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
+```
+
+### AssertNoTestRetry.Tests.ps1
+S3371: contract suite for scripts/quality/assert-no-test-retry.ps1.
+
+```
+scripts/quality.tests/AssertNoTestRetry.Tests.ps1
+  S3371: contract suite for scripts/quality/assert-no-test-retry.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
+```
+
+### AssertPerfBudget.Tests.ps1
+S3371: contract suite for scripts/quality/assert-perf-budget.ps1.
+
+```
+scripts/quality.tests/AssertPerfBudget.Tests.ps1
+  S3371: contract suite for scripts/quality/assert-perf-budget.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
+```
+
 ### changed-files-normalizer.Tests.ps1
 Run-Tests.ps1 (S1184) - regression tests for the shared -ChangedFiles CSV normalizer.
 
@@ -4515,6 +5081,16 @@ scripts/quality.tests/locale-identical-allowlist.Tests.ps1
   requires -Version 7.0
   (no param block)
   Exit: 0 - every assertion passed.; 1 - at least one assertion failed.
+```
+
+### restamp-canon.Tests.ps1
+S3455: contract suite for scripts/utils/restamp-canon.ps1.
+
+```
+scripts/quality.tests/restamp-canon.Tests.ps1
+  S3455: contract suite for scripts/utils/restamp-canon.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.
 ```
 
 ### Run-Tests.ps1
@@ -4593,6 +5169,18 @@ Run-Tests.ps1 (S1077) - regression suite for Get-DetektFindingFiles, the report 
 ```
 scripts/quality/assert-detekt.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1077) - regression suite for Get-DetektFindingFiles, the report reader behind
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-docs-termbase.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2974) - regression suite for assert-docs-termbase.ps1.
+
+```
+scripts/quality/assert-docs-termbase.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2974) - regression suite for assert-docs-termbase.ps1.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -4714,6 +5302,16 @@ scripts/quality/assert-hook-inventory.tests/run-tests.ps1
   Exit: 0 every case passed; 1 at least one case failed
 ```
 
+## scripts\quality\assert-install-trust.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-install-trust.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-invoked-tracked.tests
 
 ### Run-Tests.ps1
@@ -4736,6 +5334,18 @@ scripts/quality/assert-listener-symmetry.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1559) - regression suite for the listener-symmetry gate.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-lock-path-coverage.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/quality/assert-lock-path-coverage.ps1 (S3456).
+
+```
+scripts/quality/assert-lock-path-coverage.tests/Run-Tests.ps1
+  Contract tests for scripts/quality/assert-lock-path-coverage.ps1 (S3456).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\quality\assert-migration-schema-conformance.tests
@@ -5034,6 +5644,15 @@ scripts/quality/lib/android-string-liveness.ps1
   (no param block)
 ```
 
+### baseline-set-writer.ps1
+Shared direction check for a gate's -UpdateBaseline writer (S3460, contract CHECK-BASELINE rule 6).
+
+```
+scripts/quality/lib/baseline-set-writer.ps1
+  Shared direction check for a gate's -UpdateBaseline writer (S3460, contract CHECK-BASELINE rule 6).
+  (no param block)
+```
+
 ### blockneedusertest-probes.ps1
 One definition of what a BlockNeedUserTest debug probe is, shared by the tree gate and the closing gate.
 
@@ -5058,6 +5677,15 @@ S1184: shared -ChangedFiles normalization for diff-scoped quality gates.
 ```
 scripts/quality/lib/changed-files.ps1
   S1184: shared -ChangedFiles normalization for diff-scoped quality gates.
+  (no param block)
+```
+
+### check-subject.ps1
+S3440: the one line a check prints to name the subject it checked - contract BUILD-EVIDENCE rule 1.
+
+```
+scripts/quality/lib/check-subject.ps1
+  S3440: the one line a check prints to name the subject it checked - contract BUILD-EVIDENCE rule 1.
   (no param block)
 ```
 
@@ -5199,6 +5827,15 @@ S3301: the closure ledger - what scripts/post-change.ps1 remembers about what it
 ```
 scripts/quality/lib/post-change-closure-ledger.ps1
   S3301: the closure ledger - what scripts/post-change.ps1 remembers about what it already judged.
+  (no param block)
+```
+
+### post-change-code-lock-release.ps1
+post-change.ps1 library: release exactly the code-lock domains this closure acquired, once.
+
+```
+scripts/quality/lib/post-change-code-lock-release.ps1
+  post-change.ps1 library: release exactly the code-lock domains this closure acquired, once.
   (no param block)
 ```
 
@@ -7703,6 +8340,20 @@ scripts/utils/repoint-doc-locale-references.ps1
     -Scope            [String] = 'Scripts'  {Scripts|Phone}
 ```
 
+### restamp-canon.ps1
+Re-stamp .sza-canon.json from the installed canon plugin (S3455): canon.version, canon.coreDigest and canon.adoptedOn, written together by one command.
+
+```
+scripts/utils/restamp-canon.ps1
+  Re-stamp .sza-canon.json from the installed canon plugin (S3455): canon.version, canon.coreDigest and canon.adoptedOn, written together by one command.
+  Params:
+    -RepoRoot           [String]
+    -PluginRoot         [String]
+    -Date               [String]
+    -DryRun             [SwitchParameter]
+  Exit: 0 stamp written, already current, or reported under -DryRun.; 1 the write failed.; 2 could not verify: no stamp, a stamp missing a field, no plugin root, or a reader output
+```
+
 ### review-locale-identical-allowlist.ps1
 S3305: dumps the locale-identical allow-list with the evidence needed to judge each entry, and rewrites it from a reviewed keep-list.
 
@@ -8044,6 +8695,21 @@ scripts/utils/watch-agent-progress.ps1
     -RepoRoot                 [String] = ''
     -Help                     [SwitchParameter]
   Exit: 2 = the agent chat progress directory cannot be located.
+```
+
+### wear-cold-start-measure.ps1
+Cold-start timing for the wear app on a watch (S3368).
+
+```
+scripts/utils/wear-cold-start-measure.ps1
+  Cold-start timing for the wear app on a watch (S3368).
+  Params:
+    -DeviceId           [String] = ''
+    -Runs               [Int32] = 3
+    -Package            [String] = 'com.sza.fastmediasorter.debug'
+    -OutDir             [String] = 'temp/S3368'
+    -SystemOnly         [SwitchParameter]
+  Exit: 0 - every run carried the full marker set; 1 - at least one run missed a marker (details printed); 2 - the device named by -DeviceId was not online; 3 - usage error (-DeviceId missing)
 ```
 
 ### withdraw-lock-ticket.ps1

@@ -598,7 +598,7 @@
       "label": "@string/wear_companion",
       "from": "main",
       "via": "btnMainDropdownMenu",
-      "expect": "Push network sources to your connected Wear OS watch.",
+      "expect": "Push network resources to your connected Wear OS watch.",
       "expectRes": "wear_sync_description",
       "backAfter": 0,
       "note": "Popup item, so label rather than id. The marker is drawn by the Compose island WearCompanionScreen, not by the activity's XML shell - the shell carries only the popup item's own title."
@@ -651,7 +651,7 @@
       "label": "@string/front_flashlight_title",
       "from": "main",
       "via": "btnMainDropdownMenu",
-      "expect": "Light colour",
+      "expect": "Light color",
       "expectRes": "front_flashlight_color_button",
       "backAfter": 1
     },

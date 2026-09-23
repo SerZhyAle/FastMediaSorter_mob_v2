@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.ocr.OcrBlockFilter
 import com.sza.fastmediasorter.domain.ocr.OcrDiscardRecorder
+import com.sza.fastmediasorter.domain.ocr.OcrLanguageGuard
 import com.sza.fastmediasorter.domain.ocr.OcrLineGap
 import com.sza.fastmediasorter.domain.ocr.OcrLineGeometry
 import com.sza.fastmediasorter.domain.ocr.OcrLineSplitter
@@ -47,18 +48,26 @@ class RecognitionBackend(
     private fun ocrEnginesInstalled(): Boolean =
         capabilityRepository.isInstalledBlocking(DeliverableSet.OCR_ENGINES)
 
-    /** ML Kit 2-letter codes to Tesseract 3-letter codes; fallback is English. */
-    private fun mlKitToTesseractLang(mlKitLang: String): String {
+    /**
+     * True when the last [recognizeAndTranslateBlocks] withheld its overlay under `OCR-OVERLAY` rule 10, so a
+     * caller does not overwrite the refusal message with a generic "no text found".
+     */
+    var lastBlocksRefusedForLanguage: Boolean = false
+        private set
+
+    /** ML Kit 2-letter codes to Tesseract 3-letter codes; null when no Tesseract data exists for the code. */
+    private fun mappedTesseractLang(mlKitLang: String): String? {
         return when (mlKitLang) {
             "ru" -> "rus"
             "uk" -> "ukr"
             "bg" -> "bul"
             "be" -> "bel"
             "en" -> "eng"
-            "auto" -> "eng"
-            else -> "eng"
+            else -> null
         }
     }
+
+    private fun mlKitToTesseractLang(mlKitLang: String): String = mappedTesseractLang(mlKitLang) ?: "eng"
 
     private fun cleanOcrText(text: String): String = TranslationTextUtils.cleanOcrText(text)
 
@@ -175,19 +184,11 @@ class RecognitionBackend(
             ocrEngine
         )
 
+        lastBlocksRefusedForLanguage = false
         if (!ocrBlocks.isNullOrEmpty()) {
-            // S1712: the four thresholds live in OcrBlockFilter now, so the reason a fragment was
-            // dropped survives the decision instead of collapsing into a boolean. The recorder reads that
-            // same verdict - one function, two readers - and stays silent while its channel is off.
-            discardRecorder.beginRun()
-            logLineGaps(ocrBlocks)
-            // S3039: cut before the filter so every piece is judged on its own - a junk glyph cut off a real line
-            // fails the filter instead of stretching that line's plate across the artwork.
-            val filteredBlocks = OcrLineSplitter.split(ocrBlocks).filter { block ->
-                val verdict = OcrBlockFilter.evaluate(block)
-                discardRecorder.record(block, verdict)
-                verdict == OcrBlockFilter.Verdict.ACCEPTED
-            }
+            val languageAssumed = settings.translationSourceLanguage.equals("auto", ignoreCase = true) ||
+                (ocrEngine === offlineOcrEngineProvider.defaultEngine && mappedTesseractLang(sourceLang) == null)
+            val filteredBlocks = acceptedBlocks(ocrBlocks, languageAssumed)
 
             val translatedBlocks = mutableListOf<TranslationManager.TranslatedTextBlock>()
             for (block in filteredBlocks) {
@@ -213,6 +214,35 @@ class RecognitionBackend(
             }
         }
         return null
+    }
+
+    /**
+     * The blocks that reach translation, or none when `OCR-OVERLAY` rule 10 withholds the whole overlay.
+     */
+    private fun acceptedBlocks(ocrBlocks: List<OcrTextBlock>, languageAssumed: Boolean): List<OcrTextBlock> {
+        // S1712: the four thresholds live in OcrBlockFilter now, so the reason a fragment was
+        // dropped survives the decision instead of collapsing into a boolean. The recorder reads that
+        // same verdict - one function, two readers - and stays silent while its channel is off.
+        discardRecorder.beginRun()
+        logLineGaps(ocrBlocks)
+        val kept = mutableListOf<OcrTextBlock>()
+        val refusedTexts = mutableListOf<String>()
+        // S3039: cut before the filter so every piece is judged on its own - a junk glyph cut off a real line
+        // fails the filter instead of stretching that line's plate across the artwork.
+        OcrLineSplitter.split(ocrBlocks).forEach { block ->
+            val verdict = OcrBlockFilter.evaluate(block)
+            discardRecorder.record(block, verdict)
+            if (verdict == OcrBlockFilter.Verdict.ACCEPTED) kept.add(block) else refusedTexts.add(block.text)
+        }
+        Timber.d("S3418: language guard assumed=$languageAssumed kept=${kept.size} refused=${refusedTexts.size}")
+        if (!OcrLanguageGuard.shouldRefuse(languageAssumed, kept.map { it.text }, refusedTexts)) {
+            return kept
+        }
+        // Counts only: the refused text is the user's picture content and never reaches a permanent log.
+        Timber.i("OCR overlay withheld: assumed language, kept=%d refused=%d fragments", kept.size, refusedTexts.size)
+        lastBlocksRefusedForLanguage = true
+        callback.showError(context.getString(R.string.ocr_language_assumed_unreadable))
+        return emptyList()
     }
 
     /**

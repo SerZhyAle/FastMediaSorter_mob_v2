@@ -58,6 +58,19 @@ sealed interface WearFileOperation {
      * for both.
      */
     data class SendToReceiver(val receiverId: String) : WearFileOperation
+
+    /**
+     * Pack this file into a FileDO `.fd-sec` container beside it, keeping the original.
+     *
+     * S3383. Neither this nor [DecryptFileDo] is ever handed to the batch engine: the FD-SEC
+     * contract forbids bulk, recursive and scheduled packing outright, and each operation needs a
+     * credential that only its own screen can ask for. The menu routes both to that screen instead
+     * of running them, which is why they carry no arguments here.
+     */
+    data object EncryptFileDo : WearFileOperation
+
+    /** Open a FileDO `.fd-sec` container and restore the original beside it. See [EncryptFileDo]. */
+    data object DecryptFileDo : WearFileOperation
 }
 
 /**
@@ -72,7 +85,9 @@ enum class WearFileOperationKind {
     DELETE,
     RENAME,
     OPEN_ON_PHONE,
-    SEND_TO_RECEIVER
+    SEND_TO_RECEIVER,
+    ENCRYPT_FILEDO,
+    DECRYPT_FILEDO
 }
 
 /** The kind this request belongs to, so a caller never re-derives the mapping. */
@@ -85,4 +100,6 @@ fun WearFileOperation.kind(): WearFileOperationKind = when (this) {
     is WearFileOperation.Rename -> WearFileOperationKind.RENAME
     is WearFileOperation.OpenOnPhone -> WearFileOperationKind.OPEN_ON_PHONE
     is WearFileOperation.SendToReceiver -> WearFileOperationKind.SEND_TO_RECEIVER
+    WearFileOperation.EncryptFileDo -> WearFileOperationKind.ENCRYPT_FILEDO
+    WearFileOperation.DecryptFileDo -> WearFileOperationKind.DECRYPT_FILEDO
 }

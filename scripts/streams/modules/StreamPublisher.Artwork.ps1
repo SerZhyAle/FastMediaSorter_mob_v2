@@ -811,7 +811,7 @@ $script:LogoCols = 59
 # reaching 1593 channel urls were dropped with their artwork already in the cache, and nothing said so.
 #
 # No receiving side declares a row count: StreamLogoAtlasSlicer resolves a tile as col = index % COLS,
-# row = index / COLS, and the external-consumer registry (docs/STREAM_CATALOG_CONSUMERS.md, S1828)
+# row = index / COLS, and the external-consumer registry (stream-catalog/CONSUMERS.md, S1828)
 # records no pin and no ceiling for this asset at all.
 #
 # What IS a real ceiling is the format. VP8 stores a dimension in 14 bits, so no WebP side may exceed
@@ -937,7 +937,7 @@ function Build-StreamLogoAtlas {
         $msg = 'Stream logos: {0} usable logo(s) need {1} row(s) = {2}px, over the {3}px WebP dimension ' +
         'limit ({4} rows = {5} tiles fit). {6} station(s) would get no logo. Refusing to publish a partial ' +
         'sheet - more tiles need a change to the tile geometry, and that geometry is a contract with ' +
-        'StreamLogoAtlasSlicer and with the consumers registered in docs/STREAM_CATALOG_CONSUMERS.md (S1828).'
+        'StreamLogoAtlasSlicer and with the consumers registered in stream-catalog/CONSUMERS.md (S1828).'
         throw ($msg -f $packable.Count, $rowsNeeded, $sheetH, $script:LogoMaxSheetPx,
             $fitRows, $fitTiles, ($packable.Count - $fitTiles))
     }

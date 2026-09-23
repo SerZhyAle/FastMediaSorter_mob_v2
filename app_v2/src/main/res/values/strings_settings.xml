@@ -126,7 +126,7 @@
     <string name="setting_allow_separate_window">Allow new windows</string>
     <string name="setting_allow_separate_window_desc">Open folders and files in a separate window</string>
     <string name="setting_background_sync_desc">Auto-check network resources for changes in the background</string>
-    <string name="setting_calculator_desc">Show Calculator in the main menu and launcher widget</string>
+    <string name="setting_calculator_desc">Show Calculator in the programs menu, the quick-access panel and on the launcher desktop</string>
     <string name="setting_camera_ocr_only_desc">Skip translation step and show recognized text directly</string>
     <string name="setting_camera_ocr_only_title">Only OCR (no translation)</string>
     <string name="setting_camera_ocr_translation_desc">Enable quick Photo-OCR-Translation flow</string>
@@ -195,7 +195,7 @@
     <string name="pref_dynamic_background_summary">Fill \"black bars\" by extending image edge colors (Ambilight effect)</string>
     <string name="pref_dynamic_background_title">Dynamic Background Extension</string>
     <string name="pref_file_ops_overflow_menu_desc">Collapses copy, move, rename, and delete into a ⋮ button on each file row. Play button always stays separate.</string>
-    <string name="pref_file_ops_overflow_menu_title">File actions in overflow menu</string>
+    <string name="pref_file_ops_overflow_menu_title">File actions in the three-dots menu</string>
     <string name="pref_panel_stereo_single_eye_summary">When ON, side-by-side and over-under stereo videos and full-screen photos are cropped to one eye and stretched to the full screen - comfortable to watch without 3D glasses. Default: ON. Immersive VR rendering overrides this setting and shows the full stereo frame.</string>
     <string name="pref_panel_stereo_single_eye_title">Show 3D content from one eye</string>
     <string name="pref_prefetch_cache_auto">Auto</string>
@@ -261,7 +261,7 @@
     <string name="settings_wear_group_description">Turn this on if you have a Wear OS watch. The companion opens from here and decides what this phone shares with the watch.</string>
     <string name="settings_wear_install_guide_button">How to install on a watch</string>
     <string name="settings_wear_web_portal_button">All about the watch</string>
-    <string name="setting_stopwatch_desc">Show Stopwatch in the main menu and launcher widget</string>
+    <string name="setting_stopwatch_desc">Show Stopwatch in the programs menu, the quick-access panel and on the launcher desktop</string>
     <string name="cross_device_transfer_send_to_device">Send to my device (Drive)</string>
     <string name="cross_device_transfer_pending_title">Pending device transfers</string>
     <string name="cross_device_transfer_receive_and_delete">Receive and delete from cloud</string>

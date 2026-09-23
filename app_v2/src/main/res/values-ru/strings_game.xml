@@ -33,7 +33,7 @@
     <string name="game_score">Счёт: %1$d</string>
     <string name="game_settings_help_message">Включает локальную пошаговую головоломку. Игра остаётся выключенной, пока вы её не включите.</string>
     <string name="game_settings_help_title">Мини-игра</string>
-    <string name="game_settings_toggle_subtitle">Показывать игру в главном меню и виджете запуска</string>
+    <string name="game_settings_toggle_subtitle">Показывать игру в меню программ, на панели быстрого доступа и на рабочем столе лаунчера</string>
     <string name="game_settings_toggle_title">Мини-игра</string>
     <string name="game_status_game_over">Крывавица поймала вас. Начните новую игру и попробуйте ещё раз.</string>
     <string name="game_status_invalid_board">На этом поле нельзя играть. Измените размер или откройте готовое поле.</string>

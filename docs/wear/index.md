@@ -19,7 +19,7 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 
 FastMedia Wear comes in two versions, and they do not offer the same features.
 
-- **Google Play version** - a small first release: Calculator, Stopwatch, Mini-game, Water flashlight, Clipboard, Settings and the Programs tile.
+- **Google Play version** - a small first release: Calculator, Stopwatch, Mini-game, Settings and the Programs tile.
 - **Full version** - direct APK download from [Downloads](../DOWNLOADS.md). It contains everything described on this page.
 
 A section marked **"Full version only"** is not implemented in the version distributed through Google Play. Features will return to the Google Play version gradually, one at a time.
@@ -28,7 +28,7 @@ A section marked **"Full version only"** is not implemented in the version distr
 
 > **Full version only** - not implemented in the version distributed through Google Play.
 
-- **Full Media Playback:** Play local audio files, cloud tracks, and network streams directly from your wrist.
+- **Full Media Playback:** Play tracks from the watch's own storage, your paired phone and SMB, FTP or SFTP shares, plus network streams, directly from your wrist.
 - **Rotary Bezel Volume Control:** Easily adjust system media volume using the rotating watch crown or bezel with real-time visual feedback.
 - **Album Art & Visualizer:** Displays high-resolution album covers or dynamic brand wave-and-particle backgrounds when art is unavailable.
 - **Shuffle & Auto-Advance:** Continuous playback with automatic track advance and persistent shuffle modes.
@@ -45,7 +45,7 @@ A section marked **"Full version only"** is not implemented in the version distr
 - **Network Thumbnail Previews:** Rapid embedded preview thumbnail extraction for network SMB/SFTP files.
 - **Text Documents on the Watch:** Tap a text file - a note, a log, a Markdown or CSV file - and it opens on the watch instead of telling you to reach for your phone. Scroll it with your finger or the rotary bezel, pick one of three text sizes right on the reading screen, and come back later to the same place in the same file. A very large file is shown up to a safe size with a notice where it stops. PDF, EPUB and office documents still open on your phone, and the watch now names the format it cannot show.
 
-### 🌐 Network & Cloud Access (SMB / FTP / SFTP)
+### 🌐 Network Access (SMB / FTP / SFTP)
 
 > **Full version only** - not implemented in the version distributed through Google Play.
 
@@ -54,13 +54,22 @@ A section marked **"Full version only"** is not implemented in the version distr
 - **Connection Testing:** In-app connection probe to test network share availability directly from the watch.
 - **Folder Walk on a Share:** **Browse** is offered for every network resource and opens its folders, not just the base one. Subdirectories are rows of their own, tapping one shows what is inside it, the back gesture takes you a level up and leaves the screen once you are back at the top, and tapping a file opens it in the player. SMB, FTP and SFTP all behave the same way.
 - **Endpoint Resolution & Clear Errors:** A network resource sent from your phone stays accessible when the host computer moves to another address, as the watch automatically tries all known endpoints. When a connection cannot be established, the watch states the exact cause (connection refused, timeout, invalid credentials, unknown host) instead of a generic failure.
+- **No Cloud on the Watch:** Google Drive, Dropbox and OneDrive stay on your phone - the watch has no cloud client of its own, and the phone does not pass its cloud folders on. To see a cloud file on the watch, open it on the phone and send it with "Send to.." (see **Open on the Watch from the Phone** below).
+
+### 🔐 FileDO Encrypted Containers
+
+> **Full version only** - not implemented in the version distributed through Google Play.
+
+- **Open a Container on the Wrist:** Tap a FileDO `.fd-sec` container in the watch file list, type its password into the masked prompt, and the watch opens the photo, video, song or text it holds. **Remember password** saves you typing it next time. The decrypted copy stays in the app's private storage and is deleted when you return to the list.
+- **Encrypt and Decrypt on the Watch:** Turn on **FileDO encryption** in the watch settings (off by default) and a single file's menu gains **Encrypt FileDO** and **Decrypt FileDO**. Encryption asks for the password twice and leaves the original in place. It works where the watch can write the container next to the file - its own files and the Download and Documents folders.
+- **Same Format as the Phone:** A container made on the watch opens on the phone and in the FileDO desktop app, and the other way round. A wrong password, a file that was never a container and a changed container look the same to the watch, so its message names all three.
 
 ### 📲 Paired Phone Integration
 
 > **Full version only** - not implemented in the version distributed through Google Play.
 
 - **Phone Media Browsing:** Recents, Videos, Audio, Images, Documents, All and Browse - the same categories, under the same names and colours, that your watch's own storage and your network shares offer. **All** is a flat list of media files, newest first and without folders; **Browse** walks the folders of your smartphone and shows everything in them. If no resource on your phone is set up to hold a category, opening it says so instead of showing an empty list.
-- **Selective Resource Transfer:** Choose specific NAS/cloud resources on your phone to make available on your watch.
+- **Selective Resource Transfer:** Choose which network resources on your phone - SMB, FTP or SFTP - to make available on your watch.
 - **Remote Log Diagnostics:** Send watch diagnostic logs to the developer via the paired phone app.
 - **Listen to the Watch from Your Phone:** Ask your paired watch to turn on its microphone from the phone, and the watch opens its listening screen and starts the microphone on its own - nothing to confirm on the wrist. The phone hears what is happening nearby over the shared local Wi-Fi network while the watch keeps its microphone indicator visible for the whole session.
 - **See Your Phone's Camera on the Watch:** Ask the paired phone to show what its camera sees, and the picture arrives on your wrist over the shared local Wi-Fi network, with sound. Every lens the phone offers is on the list, and switching between them keeps the picture going instead of starting the session over; stopping from the watch closes the camera on the phone and takes its capture indicator away. So that the phone can stay in a pocket in another room, you arm it in advance with **Let my watch see my camera** in the phone's Wear OS settings - Android does not let an app open its camera while it is out of sight, so the camera starts while the app is on screen and the watch's request then meets a picture that is already running. If nothing is armed, the watch says so and names the remedy instead of spinning.
@@ -73,7 +82,7 @@ A section marked **"Full version only"** is not implemented in the version distr
 
 ### 🧮 Mini-Programs Suite
 
-> **Google Play version:** Calculator, Stopwatch, Mini-game, Water flashlight and Clipboard. The other programs below are in the full version only.
+> **Google Play version:** Calculator, Stopwatch and Mini-game. The other programs below are in the full version only.
 
 - **Watch Calculator:** Grid-based math calculator with on-screen operation history.
 - **Watch Stopwatch:** Times one, two or four things at once, each on its own part of the screen and each with its own two buttons - one starts it and then records laps, the other stops it and then clears it. A menu holds start all, stop all and reset all, the choice of how many you are timing, and the result page listing every lap with its split and its running total. The count you chose is remembered for next time. The reading stays right when the screen goes dark or you walk away to another screen and come back - nothing has to stay in front of you for the time to keep counting.
@@ -88,7 +97,7 @@ A section marked **"Full version only"** is not implemented in the version distr
 
 > **Google Play version:** the Programs tile only. The other tiles are in the full version only.
 
-- **Five Dedicated Tiles:** Add Network Resource, Stream, Favourites, Programs, and Sections tiles to your Wear OS tile carousel.
+- **Five Dedicated Tiles:** Add Network Resource, Stream, Favorites, Programs, and Sections tiles to your Wear OS tile carousel.
 - **Shortcut Grids:** The Programs tile opens the mini-programs of the Apps section in one tap; the Sections tile does the same for the app's own sections. Neither needs assigning - adding it to the carousel is all there is to it. A grid holds seven cells: when there is more to show than that, the last cell opens the app itself, where the rest are listed.
 - **Quick Assignment:** Point an unassigned Resource or Stream tile to your target directly from the watch.
 - **Standalone & Offline:** Launch assigned network shares, streams, or favourites list instantly from your watch face, completely independent of the phone or network state.
@@ -97,8 +106,8 @@ A section marked **"Full version only"** is not implemented in the version distr
 
 ## 📸 Interface & Layout Showcase
 
-- **Colour schemes:** The watch interface is drawn in one of eight schemes - a plain dark or light one, or a green, blue or red accent family in either. The set is the phone's, so a pair can be set the same way and a family reads as the same family on both devices. Dark is the default and reproduces the look the watch had before, so nothing changes until you choose. Pick a scheme on the watch or in the phone companion window - a change on either side reaches the other.
-- **Wallpaper choices:** Navigation screens can use the branded animation, a stationary branded frame, or a photo already sent from the phone. Settings screens stay free of wallpaper. A light colour scheme lightens this layer and the veil over a delivered photo too, so dark content stays readable over any of them.
+- **Color schemes:** The watch interface is drawn in one of eight schemes - a plain dark or light one, or a green, blue or red accent family in either. The set is the phone's, so a pair can be set the same way and a family reads as the same family on both devices. Dark is the default and reproduces the look the watch had before, so nothing changes until you choose. Pick a scheme on the watch or in the phone companion window - a change on either side reaches the other.
+- **Wallpaper choices:** Navigation screens can use the branded animation, a stationary branded frame, or a photo already sent from the phone. Settings screens stay free of wallpaper. A light color scheme lightens this layer and the veil over a delivered photo too, so dark content stays readable over any of them.
 
 FastMedia Wear adapts dynamically to every smartwatch screen shape and density.
 
@@ -109,7 +118,7 @@ FastMedia Wear adapts dynamically to every smartwatch screen shape and density.
      |   .-------------.   |
      |  | 🎵 Music     |   |
      |  | 📁 SMB NAS   |   |
-     |  | ⭐ Favourites|   |
+     |  | ⭐ Favorites |   |
      |   '-------------'   |
       \   [ Settings ]    /
        '-----------------'
@@ -130,12 +139,14 @@ FastMedia Wear operates both as an independent standalone smartwatch app and as 
 
 | Feature | Standalone Watch App | Paired with Phone App |
 |---------|----------------------|-----------------------|
-| Direct Wi-Fi SMB/SFTP Playback | ✅ Yes | ✅ Yes |
+| Direct Wi-Fi SMB/FTP/SFTP Playback | ✅ Yes | ✅ Yes |
 | Local Watch Audio & Media | ✅ Yes | ✅ Yes |
 | Mini-Programs (Calculator, Stopwatch, Game) | ✅ Yes | ✅ Yes |
 | Phone Storage Access | - | ✅ Yes (Read-only via Wi-Fi/BT) |
 | Resource Preset Sync | - | ✅ Yes (One-tap Transfer) |
 | Log Diagnostics | - | ✅ Yes (Relayed via Phone) |
+
+The table describes the full version. The Google Play version offers only the calculator, stopwatch, mini-game, settings and the Programs tile.
 
 ### Learn More About the Phone & Tablet App
 - [Main Application Documentation](../README.md) - Complete overview of FastMediaSorter for Android phones, tablets, and TV.

@@ -164,8 +164,6 @@ class DataTransferDialogFragment : DialogFragment() {
         val running = state is DataTransferUiState.InProgress
         view.progressTransfer.visibility = if (running) View.VISIBLE else View.GONE
         val message = messageOf(state)
-        if (state is DataTransferUiState.Exported) {
-        }
         view.tvTransferStatus.text = message.orEmpty()
         view.layoutTransferStatus.visibility = if (message == null) View.GONE else View.VISIBLE
         // The staged document goes straight to the shipped preview flow, which is where strategic

@@ -57,8 +57,9 @@ class RefreshInstalledAppsUseCase @Inject constructor(
      *
      * The broadcast path only covers changes made while the process was alive, so an install done
      * against a dead process would otherwise never land - nothing rebuilt a non-empty cache. Only the
-     * differences are written: a row whose package and `lastUpdateTime` both match is left alone, so
-     * this costs one enumeration rather than a full sweep of icon files.
+     * differences are written: a row whose package and `lastUpdateTime` both match and whose icon file
+     * is still on disk is left alone, so this costs one enumeration rather than a full sweep of icon
+     * files. A missing icon counts as a difference, since nothing else would ever write it again.
      */
     suspend fun reconcile() = withContext(Dispatchers.IO) {
         val packageManager = context.packageManager
@@ -82,6 +83,7 @@ class RefreshInstalledAppsUseCase @Inject constructor(
         resolved.forEach { (packageName, resolveInfo) ->
             val known = cachedByPackage[packageName]
             val changed = known == null ||
+                known.iconFile == null ||
                 known.lastUpdateTime != packageInfoOrNull(packageManager, packageName)?.lastUpdateTime
             if (changed) {
                 toInstalledApp(packageManager, resolveInfo)?.let { repository.upsert(it) }

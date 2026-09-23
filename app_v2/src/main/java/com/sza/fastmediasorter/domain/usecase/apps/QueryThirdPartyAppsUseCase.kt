@@ -32,8 +32,9 @@ class QueryThirdPartyAppsUseCase @Inject constructor(
     /**
      * At most [MAX_APPS] package names, publisher-declared category first (social and communication,
      * then games, then the rest) and most recently updated first inside a group - S2717: an app Play
-     * keeps updating is one the device actually runs, while a factory preinstall keeps the ROM's date. [excluded] is what the caller
-     * already places by name, so the seed never offers the same package twice.
+     * keeps updating is one the device actually runs, while a factory preinstall keeps the ROM's date.
+     * [excluded] is what the caller already places by name, so the seed never offers the same package
+     * twice.
      */
     suspend operator fun invoke(excluded: Set<String>): List<String> = withContext(Dispatchers.IO) {
         val packageManager = context.packageManager

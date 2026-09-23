@@ -28,7 +28,7 @@ class LeakDetectionInstrumentationTest {
 
         val leakedObject = Any()
         companionObjectLeakedRef = leakedObject
-        AppWatcher.objectWatcher.watch(leakedObject, "Intentionally leaked test object")
+        AppWatcher.objectWatcher.expectWeaklyReachable(leakedObject, "Intentionally leaked test object")
     }
 
     companion object {

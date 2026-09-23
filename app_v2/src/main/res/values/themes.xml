@@ -293,6 +293,18 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="TextAppearance.FastMediaSorter.DimClock.Time" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="android:textSize">@dimen/dim_clock_time_text_size</item>
+    </style>
+
+    <style name="TextAppearance.FastMediaSorter.DimClock.Date" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">@dimen/dim_clock_date_text_size</item>
+    </style>
+
+    <style name="TextAppearance.FastMediaSorter.DimClock.Battery" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">@dimen/dim_clock_battery_text_size</item>
+    </style>
+
     <style name="TextAppearance.FastMediaSorter.SettingsTabConnected" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">13sp</item>
         <item name="android:textStyle">bold</item>

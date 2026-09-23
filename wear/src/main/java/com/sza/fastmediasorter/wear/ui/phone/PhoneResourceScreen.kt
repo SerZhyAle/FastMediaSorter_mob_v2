@@ -587,6 +587,9 @@ private fun PhoneFileActionsMenu(
                 WearFileOperationKind.OPEN_ON_PHONE ->
                     viewModel.runOperation(entry, WearFileOperation.OpenOnPhone(entry.token))
                 WearFileOperationKind.SEND_TO_RECEIVER -> onSendTo()
+                // S3383: this list never offers either one - the credential screen both need lives
+                // in the browse graph - so the branch is unreachable and says so rather than acting.
+                WearFileOperationKind.ENCRYPT_FILEDO, WearFileOperationKind.DECRYPT_FILEDO -> Unit
             }
         },
         onDismiss = onClose

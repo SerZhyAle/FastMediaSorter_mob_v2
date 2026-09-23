@@ -43,6 +43,10 @@ private fun batchActions(callbacks: FileActionsCallbacks): List<Pair<WearFileOpe
         WearFileOperationKind.COPY_TO_WATCH to callbacks.onCopyToWatch,
         WearFileOperationKind.MOVE_TO_WATCH to callbacks.onMoveToWatch,
         WearFileOperationKind.RENAME to callbacks.onRenameRequested,
+        // S3383: both reach a credential screen rather than the batch engine, and only one of the
+        // two is ever in the allowed set - a file is a container or it is not.
+        WearFileOperationKind.ENCRYPT_FILEDO to callbacks.onEncryptFileDo,
+        WearFileOperationKind.DECRYPT_FILEDO to callbacks.onDecryptFileDo,
         WearFileOperationKind.DELETE to callbacks.onDeleteRequested
     )
 
@@ -73,6 +77,8 @@ internal data class FileActionsCallbacks(
     val onCopyToWatch: () -> Unit,
     val onMoveToWatch: () -> Unit,
     val onRenameRequested: () -> Unit,
+    val onEncryptFileDo: () -> Unit,
+    val onDecryptFileDo: () -> Unit,
     val onDeleteRequested: () -> Unit,
     val onDismiss: () -> Unit
 )
@@ -182,6 +188,8 @@ private fun WearFileOperationKind.labelRes(): Int = when (this) {
     WearFileOperationKind.DELETE -> R.string.delete
     WearFileOperationKind.OPEN_ON_PHONE -> R.string.wear_file_op_open_on_phone
     WearFileOperationKind.SEND_TO_RECEIVER -> R.string.wear_file_op_send_to
+    WearFileOperationKind.ENCRYPT_FILEDO -> R.string.wear_filedo_op_encrypt
+    WearFileOperationKind.DECRYPT_FILEDO -> R.string.wear_filedo_op_decrypt
 }
 
 @DrawableRes
@@ -195,4 +203,6 @@ private fun WearFileOperationKind.iconRes(): Int = when (this) {
     WearFileOperationKind.DELETE -> R.drawable.ic_delete
     WearFileOperationKind.OPEN_ON_PHONE -> R.drawable.ic_open_in_new
     WearFileOperationKind.SEND_TO_RECEIVER -> R.drawable.ic_share
+    WearFileOperationKind.ENCRYPT_FILEDO -> R.drawable.ic_lock
+    WearFileOperationKind.DECRYPT_FILEDO -> R.drawable.ic_lock_open
 }

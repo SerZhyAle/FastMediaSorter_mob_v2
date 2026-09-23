@@ -9,6 +9,7 @@ import android.view.WindowManager
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.Lifecycle
@@ -81,6 +82,9 @@ class LauncherStartMenuFragment : BaseAppBottomSheet() {
 
     override fun bindContent(content: View) {
         _binding = FragmentLauncherStartMenuBinding.bind(content)
+        // S3413: the shell's drag handle already pads the top edge; the layout's own top padding
+        // exists for the handle-less top panel and doubled the gap above the first row in a sheet.
+        if (usesShell) content.updatePadding(top = 0)
     }
 
     /**

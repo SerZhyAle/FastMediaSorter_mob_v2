@@ -75,7 +75,10 @@ class LauncherTrayBadgeMapperTest {
 
     @Test
     fun dataTypeBadge_nrAdvanced_overrides_type_to_5G() {
-        assertEquals("5G", LauncherTrayBadgeMapper.dataTypeBadge(LauncherTrayBadgeMapper.NETWORK_TYPE_LTE, nrAdvanced = true))
+        assertEquals(
+            "5G",
+            LauncherTrayBadgeMapper.dataTypeBadge(LauncherTrayBadgeMapper.NETWORK_TYPE_LTE, nrAdvanced = true)
+        )
         assertEquals("5G", LauncherTrayBadgeMapper.dataTypeBadge(null, nrAdvanced = true))
     }
 }

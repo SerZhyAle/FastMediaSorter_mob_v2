@@ -82,7 +82,6 @@
     <string name="renamed_n_files">%1$d arquivos renomeados.</string>
     <string name="rename_failed_generic">Não foi possível renomear esse arquivo.</string>
     <string name="rename_file_name_empty">O nome do arquivo não pode estar vazio.</string>
-    <string name="error_delete">Não foi possível excluir os arquivos</string>
     <string name="error_all_operations_failed">Nada foi concluído.</string>
     <string name="all_copy_operations_failed">Não foi possível copiar os arquivos selecionados.\n\n%1$s</string>
     <string name="all_move_operations_failed">Não foi possível mover os arquivos selecionados.\n\n%1$s</string>
@@ -1408,7 +1407,7 @@
     <string name="files_scanned_count">%1$d arquivos verificados</string>
     <string name="wear_companion">Complemento Wear OS</string>
     <string name="tooltip_wear_companion_title">Companheiro Wear</string>
-    <string name="tooltip_wear_companion_message">Envie os seus recursos de rede (SMB, FTP, nuvem) para um relógio Wear OS emparelhado, para os poder explorar e reproduzir diretamente a partir do pulso. Toque no botão para escolher que tipos de multimédia sincronizar e para ajustar as definições de reprodução do relógio.</string>
+    <string name="tooltip_wear_companion_message">Envie os seus recursos de rede (SMB, FTP, SFTP) para um relógio Wear OS emparelhado, para os poder explorar e reproduzir diretamente a partir do pulso. Toque no botão para escolher que tipos de multimédia sincronizar e para ajustar as definições de reprodução do relógio.</string>
     <string name="wear_sync_description">Envie fontes de rede para o seu relógio Wear OS conectado.</string>
     <string name="wear_push_to_watch">Enviar para o relógio</string>
     <string name="wear_sync_ready">Pronto para sincronizar</string>
@@ -3673,4 +3672,24 @@
     <string name="broadcast_control_feedback_warning">Som reduzido: a coluna de um ouvinte está a realimentar o microfone. Afaste o dispositivo de escuta ou baixe o volume dele.</string>
     <string name="broadcast_control_feedback_warning_cd">Realimentação acústica detetada, o ganho do microfone foi reduzido</string>
     <string name="wear_watch_transfer_unconfirmed">O relógio não confirmou que guardou %1$s, por isso o original foi mantido no telemóvel.</string>
+    <string name="filedo_operations_title">Operações de criptografia FileDO</string>
+    <string name="filedo_operations_summary">Mostrar «Criptografar com FileDO» e «Descriptografar com FileDO» no menu de operações de cada arquivo</string>
+    <string name="filedo_encrypt">Criptografar com FileDO</string>
+    <string name="filedo_decrypt">Descriptografar com FileDO</string>
+    <string name="filedo_password_title_encrypt">Senha para o contêiner</string>
+    <string name="filedo_password_title_decrypt">Senha do contêiner</string>
+    <string name="filedo_password_hint">Senha</string>
+    <string name="filedo_password_repeat_hint">Repita a senha</string>
+    <string name="filedo_password_mismatch">As duas senhas são diferentes</string>
+    <string name="filedo_password_empty_warning">Uma senha vazia não oferece sigilo nenhum. O arquivo só fica escondido de um olhar casual, e qualquer pessoa que conheça o formato pode abri-lo.</string>
+    <string name="filedo_no_recovery_warning">Não há como recuperar uma senha esquecida.</string>
+    <string name="filedo_outcome_wrong_credential">Não foi possível abrir o arquivo: a senha está errada, o arquivo nunca foi um contêiner ou foi adulterado. Esses três casos não podem ser distinguidos.</string>
+    <string name="filedo_outcome_damaged">O contêiner está danificado: está truncado ou o conteúdo não corresponde ao que ele sela.</string>
+    <string name="filedo_outcome_unsupported">Este contêiner usa uma versão de formato que este app não lê.</string>
+    <string name="filedo_outcome_failed">A operação não terminou: %1$s</string>
+    <string name="filedo_encrypted_ok">Contêiner gravado. O original não foi alterado.</string>
+    <string name="filedo_decrypted_ok">Arquivo restaurado.</string>
+    <string name="filedo_open_refused_executable">Este contêiner guarda um programa ou um script. Ele não é aberto.</string>
+    <string name="filedo_password_remember">Lembrar a senha e tentá-la em cada arquivo .fd-sec</string>
+    <string name="filedo_remembered_password_forgotten">A senha salva não abriu este arquivo e foi esquecida. Digite a senha deste arquivo.</string>
 </resources>

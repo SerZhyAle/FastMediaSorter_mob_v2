@@ -14,8 +14,8 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.DialogEnableAllExplainerBinding
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * S2322: prepares the user for the "Enable all" sequence, which otherwise hands them to a chain of

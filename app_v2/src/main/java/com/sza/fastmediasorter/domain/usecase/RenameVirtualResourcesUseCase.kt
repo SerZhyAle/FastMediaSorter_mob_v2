@@ -94,7 +94,11 @@ class RenameVirtualResourcesUseCase @Inject constructor(
             val downloads = allResources.filter { it.isDestination && isDownloadsPath(it.path, downloadsPath) }
             for (resource in downloads) {
                 val renamed = applyLocalizedDefaults(
-                    resource, R.string.resource_name_downloads, null, languages, currentLang
+                    resource,
+                    R.string.resource_name_downloads,
+                    null,
+                    languages,
+                    currentLang
                 )
                 if (renamed) updatedCount++
             }
@@ -109,14 +113,9 @@ class RenameVirtualResourcesUseCase @Inject constructor(
         }
     }
 
-    private fun isDownloadsPath(path: String, downloadsPath: String): Boolean {
-        if (path == downloadsPath) return true
-        if (path.startsWith("content://")) {
-            val resolved = UriPathResolver.getPath(context, Uri.parse(path))
-            if (resolved == downloadsPath) return true
-        }
-        return false
-    }
+    private fun isDownloadsPath(path: String, downloadsPath: String): Boolean =
+        path == downloadsPath ||
+            (path.startsWith("content://") && UriPathResolver.getPath(context, Uri.parse(path)) == downloadsPath)
 
     /**
      * Rewrites name/comment to [currentLang]'s default when the stored value still equals some

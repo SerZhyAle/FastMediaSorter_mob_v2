@@ -73,4 +73,5 @@
          100dp (sw320) and 110dp (sw480). Moving 120dp into a landscape bucket would make the cell
          taller rotated, the opposite of what this block states. -->
     <dimen name="item_row_padding_vertical">6dp</dimen>
+    <dimen name="dim_clock_edge_offset">16dp</dimen>
 </resources>

@@ -84,8 +84,9 @@ This document outlines the current technical constraints, functional limitations
 ---
 
 ## 🧩 AI & OCR Models
-- **Engines:** The app uses a hybrid engine (ML Kit + Tesseract).
-- **Latencies:** Tesseract (for Cyrillic) initialization takes 1-2 seconds longer than ML Kit.
+- **Engines:** Tesseract reads the text for every language; Google ML Kit only translates it and identifies its language.
+- **Source language:** With the source language on "Auto", text is read with the English model, so Cyrillic text needs its language chosen explicitly.
+- **Latencies:** The first use of a language loads its text model, which adds a short delay.
 - **Accuracy:** Recognition quality depends heavily on image clarity and lighting.
 
 ---

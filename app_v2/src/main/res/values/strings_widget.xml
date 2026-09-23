@@ -36,12 +36,12 @@
     <string name="settings_add_home_widget_title">Add widget to the Android home screen..</string>
     <string name="widget_picker_dialog_title">Choose a widget</string>
     <!-- S0353 Scheduled Tasks widget -->
-    <string name="widget_scheduled_tasks_label">Scheduled Tasks</string>
+    <string name="widget_scheduled_tasks_label">Scheduled Operations</string>
     <string name="widget_scheduled_tasks_description">Status and controls for scheduled file operations</string>
     <string name="widget_scheduled_run_all">Run All</string>
     <string name="widget_scheduled_pause_all">Pause All</string>
     <string name="widget_scheduled_resume_all">Resume All</string>
-    <string name="widget_scheduled_empty">No scheduled tasks</string>
+    <string name="widget_scheduled_empty">No scheduled operations</string>
     <string name="widget_scheduled_active_count">%1$d active</string>
     <string name="widget_scheduled_last_ok">Last: OK %1$s</string>
     <string name="widget_scheduled_last_error">Last: error %1$s</string>

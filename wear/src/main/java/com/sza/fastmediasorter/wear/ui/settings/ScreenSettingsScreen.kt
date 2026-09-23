@@ -1,6 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,9 +30,9 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private val TITLE_BOTTOM_PADDING = 8.dp
+private const val CHIPS_PER_ROW = 1
 
 @Composable
 fun ScreenSettingsScreen(
@@ -43,10 +43,8 @@ fun ScreenSettingsScreen(
     val displayModeLabel = stringResource(R.string.screen_settings_view_mode)
     val fileListLabel = stringResource(R.string.screen_settings_file_list_view)
 
-    // S1949: the three mode chips measure 6-12 characters in their worst locale, so they are narrow
-    // and share a row. Each group is packed on its own, so a run never spans two settings: on a
-    // display narrow enough to drop to two columns, the keep-awake toggle would otherwise pair with
-    // a leftover mode chip and read as part of that group.
+    // S1949 packed the three mode chips into one row; S3362 gives every chip its own row (see below).
+    // Each group is still packed on its own, so a run never spans two settings.
     val displayModeItems = viewModeItems(displayModeLabel, uiState.viewMode, viewModel::setViewMode)
     val fileListItems =
         viewModeItems(fileListLabel, uiState.fileListViewMode, viewModel::setFileListViewMode)
@@ -54,7 +52,7 @@ fun ScreenSettingsScreen(
     // at stays a phone choice, because choosing one means opening a gallery.
     val backgroundLabel = stringResource(R.string.wear_setting_background_mode)
     val backgroundItems = backgroundModeItems(uiState, viewModel, backgroundLabel)
-    // S2522 / S3023: color scheme options laid out in 2 columns.
+    // S2522 / S3023: one radio row per color scheme.
     val colorSchemeLabel = stringResource(R.string.wear_setting_color_scheme)
     val colorSchemeItems = WearColorScheme.entries.map { scheme ->
         WearSettingsItem { narrow ->
@@ -76,9 +74,11 @@ fun ScreenSettingsScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val columns = GridColumnFit.columnsFor(WearViewMode.GRID_3, maxWidth.value.toInt())
-            val colorSchemeColumns = GridColumnFit.columnsFor(WearViewMode.GRID_2, maxWidth.value.toInt())
+        // S3362: one chip per row on every watch. Measured on the 192 dp and 227 dp review emulators,
+        // chips sharing a row cut each label to a few letters or to nothing at all, which WO-V1 and
+        // WO-V16 fail as truncated essential text.
+        Box(modifier = Modifier.fillMaxSize()) {
+            val columns = CHIPS_PER_ROW
             WearListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
@@ -105,7 +105,7 @@ fun ScreenSettingsScreen(
                 item { GroupCaption(text = backgroundLabel) }
                 items(packSettingsRows(backgroundItems, columns)) { row -> WearSettingsRow(row) }
                 item { GroupCaption(text = colorSchemeLabel) }
-                items(packSettingsRows(colorSchemeItems, colorSchemeColumns)) { row -> WearSettingsRow(row) }
+                items(packSettingsRows(colorSchemeItems, columns)) { row -> WearSettingsRow(row) }
                 if (geometryItems.isNotEmpty()) {
                     item { GroupCaption(text = geometryLabel) }
                     items(packSettingsRows(geometryItems, columns)) { row -> WearSettingsRow(row) }

@@ -11,7 +11,6 @@ import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.exoplayer.trackselection.ExoTrackSelection
 import androidx.media3.exoplayer.upstream.Allocator
 import androidx.media3.exoplayer.upstream.BandwidthMeter
-import timber.log.Timber
 
 /**
  * S0688: bandwidth-adaptive runtime buffer for the stream player.

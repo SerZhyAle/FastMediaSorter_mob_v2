@@ -129,6 +129,7 @@ data class BackupSettings(
     // S2631: deleting straight through is the shipped default; restoring a backup must not silently
     // turn the trash folder on for a user whose fresh install would not have it.
     val useTrash: Boolean = AppSettings.DEFAULTS.useTrash,
+    val enableFileDoOperations: Boolean = AppSettings.DEFAULTS.enableFileDoOperations,
     val confirmDelete: Boolean = true,
     val confirmMove: Boolean = false,
     val defaultGridMode: Boolean = false,

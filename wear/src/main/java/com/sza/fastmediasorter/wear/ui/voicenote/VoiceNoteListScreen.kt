@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -75,8 +74,6 @@ fun VoiceNoteListScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberWearListState(positionKey = WearRoutes.VOICE_NOTES)
     var deleteFor by remember { mutableStateOf<VoiceNote?>(null) }
-    LaunchedEffect(Unit) {
-    }
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

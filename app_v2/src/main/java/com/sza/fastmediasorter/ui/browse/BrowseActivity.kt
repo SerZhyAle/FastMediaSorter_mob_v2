@@ -135,6 +135,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var browseFileOverflowMenuManager:
         com.sza.fastmediasorter.ui.browse.helpers.BrowseFileOverflowMenuManager
 
+    @Inject lateinit var browseFdSecManager: com.sza.fastmediasorter.ui.browse.managers.BrowseFdSecManager
+
     @Inject lateinit var dropboxClient: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>
 
     @Inject lateinit var oneDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>
@@ -457,6 +459,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 browseTransferCoordinator = browseTransferCoordinator,
                 sendToMenuManager = sendToMenuManager,
                 openInShareTargetHandler = openInShareTargetHandler,
+                browseFdSecManager = browseFdSecManager,
             ),
             uiHooks = BrowseUiHooks(
                 showVideoThumbnailsGetter = { showVideoThumbnails },
@@ -622,6 +625,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         initializer.buttonSetupHelper.updateToolbarButtonLabels(newConfig)
         // S0374: labels change button widths in landscape - re-partition the bar (cached eligibility).
         initializer.commandOverflowManager.recompute()
+        // S3369: the absorbed change never re-inflates the dim screen's clock panel on its own.
+        initializer.blackScreenManager.onHostConfigurationChanged()
         lifecycleScope.launch {
             initializer.stateUiUpdater.currentDisplayMode?.let { mode ->
                 initializer.stateUiUpdater.currentDisplayMode = null
@@ -694,6 +699,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     override fun onResumeWithViews() {
         initializer.cloudAuthManager.onResume()
+        initializer.dropViewedFdSecCopies()
         initializer.lifecycleHelper.checkAndRequestStoragePermission(
             resource = viewModel.state.value.resource,
             onReloadFiles = { viewModel.reloadFiles(clearList = true) }

@@ -13,6 +13,7 @@ class CustomIssueRegistry : IssueRegistry() {
             UnsafeFlowCollectDetector.ISSUE,
             PlayerReleaseDetector.ISSUE,
             MainThreadIoDetector.ISSUE,
+            MainThreadRoomDetector.ISSUE,
             NetworkDataSourceDispatcherDetector.ISSUE
         )
 

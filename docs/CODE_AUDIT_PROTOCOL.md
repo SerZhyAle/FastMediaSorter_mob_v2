@@ -353,14 +353,17 @@ Use script gates for fast pattern enforcement.
 Use custom Lint when the rule is structural and should appear directly in IDE feedback.
 Use benchmark thresholds when the problem is quantitative.
 
-Recommended future custom Lint rules for this project:
+Custom Lint rules enforced in this project. All of them live in `:lint-rules` and reach `app_v2` and `wear` alike through `lintChecks(project(":lint-rules"))`, so every `a.ps1 fl` / `flw` pass and every IDE inspection runs them:
 
-- no Activity business logic
-- no UI context stored in singleton or long-lived manager
-- no lifecycle-unsafe Flow collection in UI
-- no unreleased player/listener ownership pattern
-- no direct main-thread disk I/O outside approved wrappers
-- no main-thread Room access
+- no Activity business logic - `ActivityLogicDetector`, id `ActivityLogicViolation`
+- no UI context stored in a singleton or long-lived manager - `UiContextLeakDetector`, id `UiContextLeak`
+- no lifecycle-unsafe Flow collection in UI - `UnsafeFlowCollectDetector`, id `UnsafeFlowCollect`
+- no unreleased player ownership pattern - `PlayerReleaseDetector`, id `PlayerNotReleased`
+- no direct main-thread disk I/O outside approved wrappers - `MainThreadIoDetector`, id `MainThreadIo`
+- no main-thread Room access - `MainThreadRoomDetector`, id `MainThreadRoom`
+- no blocking socket I/O left on the caller's dispatcher - `NetworkDataSourceDispatcherDetector`, id `NetworkDataSourceDispatcher`
+
+The proof target is the detector suite itself, `a.ps1 flr`: every rule above carries a seeded violation that must be reported and a clean counterpart that must not be, so a rule that stops detecting fails a test instead of going quiet. A rule is never weakened to make the tree green - a real finding is fixed, and an accepted one is written into the module's `lint-baseline.xml` with the ticket that accepted it.
 
 Recommended CI/CD automated dynamic analysis additions:
 
@@ -423,6 +426,7 @@ Already present:
 - startup markers
 - Perfetto workflow playbook (`docs/PERFETTO_PLAYBOOK.md`)
 - quality gates for `GlobalScope` and unsafe Flow collect
+- the seven-detector custom Lint suite in `:lint-rules`, wired into `app_v2` and `wear` through `lintChecks` and covered by `a.ps1 flr`
 - `detekt` + ktlint formatting ratchet gate
 - listener symmetry ratchet gate (`scripts/quality/assert-listener-symmetry.ps1`)
 - responsibility ranking (`measure-hotspots.ps1`) and shared-state writer audit (`audit-shared-state-writers.ps1`)

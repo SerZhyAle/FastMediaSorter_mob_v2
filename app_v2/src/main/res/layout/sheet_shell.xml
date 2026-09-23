@@ -11,13 +11,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <!-- S3413: gone until a sheet sets a title - an empty wrap_content TextView still measures one
+         title line plus its bottom padding, which opened a blank strip under the handle. -->
     <TextView
         android:id="@+id/tvSheetTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="@dimen/dialog_padding_large"
         android:paddingBottom="@dimen/margin_large"
-        android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Title" />
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Title"
+        android:visibility="gone" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"

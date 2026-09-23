@@ -595,6 +595,16 @@ class TranslationOverlayView @JvmOverloads constructor(
             // Create StaticLayout for multiline text wrapping within box width
             var staticLayout = createStaticLayout(block.translatedText, textPaint, availableWidth)
 
+            // OCR-OVERLAY rule 9: a translation taller than the whole view cannot be rescued by
+            // growing the plate, so only then the type steps down, bounded by the ladder's floor.
+            val viewRoom = height - padding * 2
+            val floorSize = textSize * OverlayPlateGeometry.OVERFLOW_FONT_FLOOR
+            while (staticLayout.height > viewRoom && textSize > floorSize) {
+                textSize = (textSize * OverlayPlateGeometry.OVERFLOW_FONT_STEP).coerceAtLeast(floorSize)
+                textPaint.textSize = textSize
+                staticLayout = createStaticLayout(block.translatedText, textPaint, availableWidth)
+            }
+
             // S1713: a translation that does not fit grows the plate downward. The shrink-to-fit pass that
             // used to sit here made the translation smaller than the source line it replaces, which is the
             // opposite of what the plate is for; growth is handled below, where the height is computed.
@@ -631,8 +641,10 @@ class TranslationOverlayView @JvmOverloads constructor(
 
             // Draw multiline text using StaticLayout with adaptive text color
             canvas.save()
-            // Vertically center text within FINAL box height
-            val textStartY = scaledTop + (finalBoxHeight - staticLayout.height) / 2
+            // The plate may have been lifted above the source top (rule 9 overflow), so the text is
+            // centred in the plate itself; a layout taller than a full-view plate starts at its top.
+            val textStartY = plate.top + ((finalBoxHeight - staticLayout.height) / 2).coerceAtLeast(0f)
+            Timber.d("S3419: plate source top=$scaledTop plate=${plate.top}..${plate.bottom} view=$height text=$textSize")
             canvas.translate(scaledLeft + padding, textStartY)
             staticLayout.draw(canvas)
             canvas.restore()

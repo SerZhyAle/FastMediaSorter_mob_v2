@@ -1,0 +1,74 @@
+{
+  "version": 4,
+  "appVersionCode": 812,
+  "appVersionName": "2.0.812",
+  "createdAt": "2026-02-11T08:30:00Z",
+  "deviceModel": "Google Pixel 6a",
+  "androidVersion": 33,
+  "settings": {
+    "isResourceGridMode": true,
+    "resourceGridCellSize": "LARGE",
+    "language": "uk",
+    "defaultUser": "guest",
+    "defaultPassword": "guest-secret",
+    "preventSleep": false,
+    "keepScreenOnPlayer": false,
+    "showSmallControls": true,
+    "networkParallelism": 12,
+    "cacheSizeMb": 4096,
+    "isCacheSizeUserModified": true,
+    "allFiles": true,
+    "showHiddenFiles": true,
+    "supportImages": true,
+    "supportVideos": true,
+    "supportAudio": false,
+    "textSizeMax": 20971520,
+    "textReaderTheme": "DARK",
+    "linkAutoDownloadOpenInPlayer": true
+  },
+  "resources": [
+    {
+      "name": "Family NAS",
+      "path": "smb://192.168.1.50/media",
+      "type": "SMB",
+      "displayMode": "GRID",
+      "sortMode": "DATE_DESC",
+      "displayOrder": 1,
+      "isDestination": false,
+      "scanSubdirectories": true,
+      "supportedMediaTypes": ["IMAGE", "VIDEO"],
+      "profile": "NONE",
+      "slideshowInterval": 7
+    }
+  ],
+  "favorites": [
+    {
+      "uri": "smb://192.168.1.50/media/2024/beach.jpg",
+      "resourceName": "Family NAS",
+      "resourcePath": "smb://192.168.1.50/media",
+      "displayName": "beach.jpg",
+      "mediaType": 1,
+      "size": 2415919,
+      "lastKnownPath": "/2024/beach.jpg",
+      "dateModified": 1707638400000,
+      "addedTimestamp": 1707724800000
+    }
+  ],
+  "scheduledOperations": [
+    {
+      "isEnabled": true,
+      "sourceResourcePath": "smb://192.168.1.50/media",
+      "sourceResourceType": "SMB",
+      "operationType": "COPY",
+      "targetResourcePath": "/storage/emulated/0/Archive",
+      "targetResourceType": "LOCAL",
+      "timeFilter": "ALL",
+      "startTimeHour": 3,
+      "startTimeMinute": 15,
+      "intervalHours": 24,
+      "intervalMinutes": 0,
+      "overwrite": false,
+      "silentMode": true
+    }
+  ]
+}

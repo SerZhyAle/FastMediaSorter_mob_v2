@@ -1,0 +1,83 @@
+# S3371 froze this list; S3376 decided what it is. Destructive operations in the transfer strategy
+# trees that register the mutation journal through their CALLER, not here. One
+# "<relative path>#<operation>" token per line.
+#
+# Why none of them can register where it is declared (S3376 ADR-1): every journal entry is keyed by a
+# resource id, and this layer addresses a path and credentials - a resource is a concept one or more
+# layers up, where the Browse reconciler that consumes the journal also lives. Registration therefore
+# belongs to the caller that owns the resource: the Player, the local FileObserver, the scheduler and
+# the watch bridge all do it, each from a place that has the id in hand.
+#
+# So this is a named STRUCTURAL EXCLUSION, not a queue of work. Do not try to "drain" it by adding a
+# resourceId parameter to 21 files across six protocols; that approach is recorded as refuted in
+# dev/REFUTED_APPROACHES.md, with the measurement, and the reasoning is in
+# PLAN/S3376_transfer-layer-operations-bypass-mutation-journal/research/01__journal-seam-and-undo-capability.md
+#
+# Calling these rows read-only to reach a green run would still be the one genuinely wrong answer: the
+# allowlist beside this file would then assert something false about deleteFile.
+#
+# This list may SHRINK - when an operation leaves the trees - and may never grow. Regenerate with
+# -UpdateBaseline only when a new destructive transport operation is deliberately admitted, which is
+# rare and needs the registering caller named in the same change.
+#
+# The gate over the CALLERS does not exist yet. S3386 carries that question with the measurement that
+# makes it a design pass rather than a wider grep.
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/access/FtpFileAccess.kt#delete
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/access/LocalFileAccess.kt#delete
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/access/SftpFileAccess.kt#delete
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/access/SmbFileAccess.kt#delete
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategy.kt#deletePath
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategy.kt#moveFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategy.kt#renameLocalPath
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategy.kt#renamePath
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/BaseFileOperationHandler.kt#deleteFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/BaseFileOperationHandler.kt#deleteWithSaf
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/BaseFileOperationHandler.kt#moveFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/BaseFileOperationHandler.kt#moveToTrash
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/DirectoryTreeTransferManager.kt#moveTree
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/FileAccess.kt#delete
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/FileOperationStrategy.kt#deleteDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/FileOperationStrategy.kt#deleteFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/FileOperationStrategy.kt#moveDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/FileOperationStrategy.kt#moveFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/FileOperationStrategy.kt#renameDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/LocalTransferProvider.kt#deleteFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/LocalTransferProvider.kt#moveFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/LocalTransferProvider.kt#renameFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/SmbTransferProvider.kt#deleteFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/SmbTransferProvider.kt#moveFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/SmbTransferProvider.kt#renameFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategies/FtpToFtpStrategy.kt#move
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategies/SftpToSftpStrategy.kt#move
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategies/SmbToSmbStrategy.kt#move
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/CloudOperationStrategy.kt#deleteDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/CloudOperationStrategy.kt#deleteFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/CloudOperationStrategy.kt#moveFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/CloudOperationStrategy.kt#renameDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/FtpOperationStrategy.kt#deleteDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/FtpOperationStrategy.kt#deleteFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/FtpOperationStrategy.kt#moveFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/FtpOperationStrategy.kt#renameDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/LocalOperationStrategy.kt#deleteDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/LocalOperationStrategy.kt#deleteFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/LocalOperationStrategy.kt#deleteViaMediaStore
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/LocalOperationStrategy.kt#moveFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/LocalOperationStrategy.kt#renameDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SafOperationStrategy.kt#deleteDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SafOperationStrategy.kt#deleteFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SafOperationStrategy.kt#moveDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SafOperationStrategy.kt#moveFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SafOperationStrategy.kt#removeTransferred
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SafOperationStrategy.kt#renameDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt#deleteDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt#deleteFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt#moveFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt#renameDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SmbOperationStrategy.kt#deleteDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SmbOperationStrategy.kt#deleteFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SmbOperationStrategy.kt#moveFile
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SmbOperationStrategy.kt#renameDirectory
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/TransferStrategy.kt#move
+app_v2/src/main/java/com/sza/fastmediasorter/domain/transfer/FileTransferProvider.kt#deleteFile
+app_v2/src/main/java/com/sza/fastmediasorter/domain/transfer/FileTransferProvider.kt#moveFile
+app_v2/src/main/java/com/sza/fastmediasorter/domain/transfer/FileTransferProvider.kt#renameFile

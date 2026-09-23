@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,8 +81,6 @@ fun VoiceRecorderScreen(
         .first { it.permission == Manifest.permission.RECORD_AUDIO }
         .status
         .isGranted
-    LaunchedEffect(Unit) {
-    }
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

@@ -1,0 +1,38 @@
+name: Security scan
+
+# S3371: the scheduled half of the secret rule. The closure gate judges the changed set, which is
+# what stops a secret being ADDED; this run judges the whole tracked tree, which is what finds one
+# that arrived before the gate existed, or through a path the closure never saw.
+
+on:
+  schedule:
+    # Monday 03:17 UTC. Off the hour on purpose - the top of the hour is the busiest slot on the
+    # shared scheduler and a delayed weekly run is a run nobody reads.
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  secret-scan:
+    name: Secret scan over the tracked tree
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Scan the tracked tree for secret-shaped literals
+        run: |
+          pwsh -NoProfile -File scripts/quality/assert-no-secrets.ps1 -Gate -Full -List | tee secret-scan-findings.txt
+
+      - name: Upload findings
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: secret-scan-findings
+          path: secret-scan-findings.txt
+          if-no-files-found: warn
+          retention-days: 30

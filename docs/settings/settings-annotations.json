@@ -22,7 +22,7 @@
   "btnAddDestination": {
     "en": "Adds a new Quick Sort destination folder to the list.",
     "ru": "Добавляет новую папку назначения для быстрой сортировки.",
-    "uk": "Додає нову теку призначення для швидкого сортування."
+    "uk": "Додає нову папку призначення для швидкого сортування."
   },
   "btnAutoCalculateCache": {
     "en": "Automatically calculates and sets the recommended cache size based on available storage.",
@@ -52,7 +52,7 @@
   "btnCompanionPublishGuide": {
     "en": "Opens the PC-side guide on publishing folders to Android over SFTP (companion import / QR scan).",
     "ru": "Открывает PC-инструкцию по публикации папок для Android через SFTP (companion-импорт / скан QR).",
-    "uk": "Відкриває PC-інструкцію з публікації тек для Android через SFTP (companion-імпорт / скан QR)."
+    "uk": "Відкриває PC-інструкцію з публікації папок для Android через SFTP (companion-імпорт / скан QR)."
   },
   "btnDisableAccessibilityService": {
     "en": "Turns the app's accessibility service off from here, without going through the system settings. Shown only while that service is actually running.",
@@ -77,7 +77,7 @@
   "btnExportResources": {
     "en": "Saves all configured resources (folders, network connections) to an export file.",
     "ru": "Сохраняет все настроенные ресурсы (папки, сетевые подключения) в файл экспорта.",
-    "uk": "Зберігає всі налаштовані ресурси (теки, мережеві підключення) у файл експорту."
+    "uk": "Зберігає всі налаштовані ресурси (папки, мережеві підключення) у файл експорту."
   },
   "btnExportSettings": {
     "en": "Saves all app settings to a file so you can restore or transfer them later.",
@@ -97,7 +97,7 @@
   "btnImportResources": {
     "en": "Imports previously exported resources (folders, network connections) from a file.",
     "ru": "Импортирует ранее экспортированные ресурсы (папки, сетевые подключения) из файла.",
-    "uk": "Імпортує раніше експортовані ресурси (теки, мережеві підключення) з файлу."
+    "uk": "Імпортує раніше експортовані ресурси (папки, мережеві підключення) з файлу."
   },
   "btnImportSettings": {
     "en": "Loads app settings from a previously exported file, replacing the current configuration.",
@@ -227,12 +227,12 @@
   "btnSelectMusicSource": {
     "en": "Selects the folder or resource used as the music source during slideshow playback.",
     "ru": "Выбирает папку или ресурс, откуда берётся музыка при воспроизведении слайдшоу.",
-    "uk": "Вибирає теку або ресурс, звідки береться музика під час відтворення слайдшоу."
+    "uk": "Вибирає папку або ресурс, звідки береться музика під час відтворення слайдшоу."
   },
   "btnSelectPhotosSource": {
     "en": "Chooses the folder or resource used as the photo source during audio playback.",
     "ru": "Выбирает папку или ресурс, откуда берутся фото при воспроизведении аудио.",
-    "uk": "Вибирає теку або ресурс, звідки беруться фото під час відтворення аудіо."
+    "uk": "Вибирає папку або ресурс, звідки беруться фото під час відтворення аудіо."
   },
   "btnSelectScreenRecordingDest": {
     "en": "Selects the destination resource where screen recordings are saved.",
@@ -242,7 +242,7 @@
   "btnSelectScreenshotDestination": {
     "en": "Opens a folder picker for where captured screenshots are saved.",
     "ru": "Открывает выбор папки для сохранения сделанных скриншотов.",
-    "uk": "Відкриває вибір теки для збереження зроблених скриншотів."
+    "uk": "Відкриває вибір папки для збереження зроблених скриншотів."
   },
   "btnSelectSnapshotResource": {
     "en": "Selects the destination resource where video frame snapshots are saved.",
@@ -387,12 +387,12 @@
   "buttonAddHomeWidget": {
     "en": "Launches the widget picker so you can add an app widget to the home screen.",
     "ru": "Открывает выбор виджетов для добавления виджета приложения на домашний экран.",
-    "uk": "Відкриває вибір віджетів для додавання віджету застосунку на головний екран."
+    "uk": "Відкриває вибір віджетів для додавання віджету застосунку на домашній екран."
   },
   "buttonAddLauncherWidget": {
-    "en": "Launches the same widget picker, but puts the chosen widget on the launcher's own desktop instead of the Android home screen. Shown only while launcher mode is on.",
-    "ru": "Открывает тот же список виджетов, но кладёт выбранный на собственный рабочий стол лаунчера, а не на домашний экран Android. Видна только при включённом режиме лаунчера.",
-    "uk": "Відкриває той самий список віджетів, але кладе вибраний на власний робочий стіл лаунчера, а не на домашній екран Android. Показується лише за увімкненого режиму лаунчера."
+    "en": "Opens the gadget picker and puts the chosen gadget on the launcher's own desktop instead of the Android home screen. Shown only while launcher mode is on.",
+    "ru": "Открывает список гаджетов и кладёт выбранный на собственный рабочий стол лаунчера, а не на домашний экран Android. Видна только при включённом режиме лаунчера.",
+    "uk": "Відкриває список ґаджетів і кладе вибраний на власний робочий стіл лаунчера, а не на домашній екран Android. Показується лише за увімкненого режиму лаунчера."
   },
   "cbOcrOnly": {
     "en": "Skips the translation step and shows the recognized text as-is.",
@@ -442,7 +442,7 @@
   "headerCameraPhotos": {
     "en": "Settings for taking photos with the in-app camera and choosing where captured photos are saved.",
     "ru": "Настройки съёмки фото встроенной камерой и выбора папки для сохранения снимков.",
-    "uk": "Налаштування зйомки фото вбудованою камерою та вибору теки для збереження знімків."
+    "uk": "Налаштування зйомки фото вбудованою камерою та вибору папки для збереження знімків."
   },
   "headerCopyMove": {
     "en": "Settings that control what happens when files are copied, moved, or a name conflict occurs.",
@@ -457,12 +457,12 @@
   "headerDestinations": {
     "en": "Folders and resources used as Quick Sort targets when sorting files.",
     "ru": "Папки и ресурсы, используемые как назначения при быстрой сортировке файлов.",
-    "uk": "Теки та ресурси, що використовуються як призначення при швидкому сортуванні файлів."
+    "uk": "Папки та ресурси, що використовуються як призначення при швидкому сортуванні файлів."
   },
   "headerEdgeGestureGeneral": {
     "en": "Section header for the general edge-gesture settings - screenshot destination, clipboard copy, and the app-launch panel editor.",
     "ru": "Заголовок раздела общих настроек жестов по краю экрана - папка для скриншотов, копирование в буфер обмена и редактор панели приложений.",
-    "uk": "Заголовок розділу загальних налаштувань жестів біля краю екрана - тека для скриншотів, копіювання в буфер обміну та редактор панелі застосунків."
+    "uk": "Заголовок розділу загальних налаштувань жестів біля краю екрана - папка для скриншотів, копіювання в буфер обміну та редактор панелі застосунків."
   },
   "headerFileBrowser": {
     "en": "Settings that control the layout and behavior of the file browser.",
@@ -480,9 +480,9 @@
     "uk": "Налаштування, що визначають загальний вигляд і стиль взаємодії з застосунком."
   },
   "headerLauncherAppearance": {
-    "en": "Settings for launcher appearance: desktop wallpaper mode and widget backdrop opacity.",
-    "ru": "Настройки оформления лаунчера: режим обоев рабочего стола и прозрачность подложки виджетов.",
-    "uk": "Налаштування оформлення лаунчера: режим шпалер робочого стола та прозорість підкладки віджетів."
+    "en": "Settings for launcher appearance: desktop wallpaper mode and gadget backdrop opacity.",
+    "ru": "Настройки оформления лаунчера: режим обоев рабочего стола и прозрачность подложки гаджетов.",
+    "uk": "Налаштування оформлення лаунчера: режим шпалер робочого стола та прозорість підкладки ґаджетів."
   },
   "headerLauncherDesktop": {
     "en": "Settings for the launcher desktop itself: icon grid density, the edit lock and the wallpaper.",
@@ -522,7 +522,7 @@
   "headerMicRecording": {
     "en": "Settings for recording voice notes with the microphone and choosing where recordings are saved.",
     "ru": "Настройки записи с микрофона (диктофон) и выбора папки для сохранения записей.",
-    "uk": "Налаштування запису з мікрофона (диктофон) та вибору теки для збереження записів."
+    "uk": "Налаштування запису з мікрофона (диктофон) та вибору папки для збереження записів."
   },
   "headerPlayerUI": {
     "en": "Settings for the player's visual interface, control buttons, and command layout.",
@@ -552,7 +552,7 @@
   "headerScreenRecording": {
     "en": "Settings for recording video of the screen and choosing where recordings are saved.",
     "ru": "Настройки записи видео с экрана и выбора папки для сохранения записей.",
-    "uk": "Налаштування запису відео з екрана та вибору теки для збереження записів."
+    "uk": "Налаштування запису відео з екрана та вибору папки для збереження записів."
   },
   "headerSendCommands": {
     "en": "Settings for the \"Send file to..\" commands shown in the player.",
@@ -582,7 +582,7 @@
   "headerVideoCapture": {
     "en": "Settings for recording video with the in-app camera and choosing where recordings are saved.",
     "ru": "Настройки записи видео встроенной камерой и выбора папки для сохранения записей.",
-    "uk": "Налаштування запису відео вбудованою камерою та вибору теки для збереження записів."
+    "uk": "Налаштування запису відео вбудованою камерою та вибору папки для збереження записів."
   },
   "headerWear": {
     "en": "Groups everything about a Wear OS watch: the master switch for the companion, a short explanation, the install guide and the button that opens the companion window.",
@@ -602,7 +602,7 @@
   "rowAllFiles": {
     "en": "Grants access to all files on the device, including system folders (requires All Files permission).",
     "ru": "Открывает доступ ко всем файлам на устройстве, включая системные папки (требует разрешения «Все файлы»).",
-    "uk": "Відкриває доступ до всіх файлів на пристрої, включно з системними теками (потребує дозволу «Всі файли»)."
+    "uk": "Відкриває доступ до всіх файлів на пристрої, включно з системними папками (потребує дозволу «Всі файли»)."
   },
   "rowAllowDelete": {
     "en": "Allows deleting the current file directly from inside the player.",
@@ -777,7 +777,7 @@
   "rowDebugLogMirror": {
     "en": "Copies the debug log into the folder currently open in the viewer, so a reproduction can be picked up without digging into the app sandbox. Off by default; debug builds only.",
     "ru": "Копирует отладочный лог в папку, открытую сейчас в просмотрщике, чтобы забрать воспроизведение проблемы, не копаясь в песочнице приложения. По умолчанию выключено, только в отладочных сборках.",
-    "uk": "Копіює зневаджувальний лог у теку, відкриту зараз у переглядачі, щоб забрати відтворення проблеми, не копирсаючись у пісочниці додатка. Типово вимкнено, лише в зневаджувальних складаннях."
+    "uk": "Копіює зневаджувальний лог у папку, відкриту зараз у переглядачі, щоб забрати відтворення проблеми, не копирсаючись у пісочниці додатка. Типово вимкнено, лише в зневаджувальних складаннях."
   },
   "rowDefaultAudioLanguage": {
     "en": "Picks the audio language the app prefers when a stream offers several. A channel that you set a language for yourself keeps its own choice.",
@@ -863,6 +863,11 @@
     "en": "Enables the Favorites feature so you can mark and quickly access starred files.",
     "ru": "Включает функцию «Избранное» для пометки и быстрого доступа к отмеченным файлам.",
     "uk": "Вмикає функцію «Обране» для позначення та швидкого доступу до відзначених файлів."
+  },
+  "rowEnableFileDoOperations": {
+    "en": "Shows \"Encrypt with FileDO\" and \"Decrypt with FileDO\" in the operations menu of every file. Opening an .fd-sec file works whether this is on or off.",
+    "ru": "Показывает «Зашифровать FileDO» и «Расшифровать FileDO» в меню операций каждого файла. Открытие файла .fd-sec работает независимо от этой настройки.",
+    "uk": "Показує «Зашифрувати FileDO» та «Розшифрувати FileDO» у меню операцій кожного файлу. Відкриття файлу .fd-sec працює незалежно від цього перемикача."
   },
   "rowEnableMoving": {
     "en": "Allows files to be moved to Quick Sort destinations.",
@@ -1250,9 +1255,9 @@
     "uk": "Блокує вхід у режим редагування робочого стола довгим натисканням; вхід через меню «Пуск» лишається доступним."
   },
   "rowLauncherPrimaryWindow": {
-    "en": "Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or Resource Manager.",
-    "ru": "Выбирает, что открывается при запуске FastMediaSorter или нажатии кнопки «Домой»: домашний экран устройства, рабочий стол внутри приложения без смены системного домашнего экрана или Менеджер ресурсов.",
-    "uk": "Вибирає, що відкривається під час запуску FastMediaSorter або натискання кнопки «Додому»: домашній екран пристрою, робочий стіл усередині застосунку без заміни системного домашнього екрана або Менеджер ресурсів."
+    "en": "Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the main screen.",
+    "ru": "Выбирает, что открывается при запуске FastMediaSorter или нажатии кнопки «Домой»: домашний экран устройства, рабочий стол внутри приложения без смены системного домашнего экрана или главный экран.",
+    "uk": "Вибирає, що відкривається під час запуску FastMediaSorter або натискання кнопки «Додому»: домашній екран пристрою, робочий стіл усередині застосунку без заміни системного домашнього екрана або головний екран."
   },
   "rowLauncherOpenHomeSettings": {
     "en": "Opens Android's default-launcher chooser to switch the system home screen.",
@@ -1542,7 +1547,7 @@
   "rowShowHiddenFiles": {
     "en": "Shows files and folders whose names begin with a dot (hidden by convention).",
     "ru": "Показывает файлы и папки, имена которых начинаются с точки (скрытые по соглашению).",
-    "uk": "Показує файли та теки, імена яких починаються з крапки (приховані за угодою)."
+    "uk": "Показує файли та папки, імена яких починаються з крапки (приховані за угодою)."
   },
   "rowShowNowPlayingPanel": {
     "en": "Shows a persistent now-playing panel at the bottom of the file browser.",
@@ -1577,7 +1582,7 @@
   "rowShowSubfoldersAsItems": {
     "en": "Lists subfolders as individual items in the file browser instead of navigating into them directly.",
     "ru": "Отображает подпапки как отдельные элементы в браузере файлов, не переходя в них автоматически.",
-    "uk": "Відображає підтеки як окремі елементи в браузері файлів, не переходячи в них автоматично."
+    "uk": "Відображає підпапки як окремі елементи в браузері файлів, не переходячи в них автоматично."
   },
   "rowShowTextLineNumbers": {
     "en": "Displays line numbers in the margin when viewing text files.",
@@ -1717,7 +1722,7 @@
   "rowUseTrash": {
     "en": "Moves deleted files to a .trash folder instead of removing them immediately.",
     "ru": "Перемещает удалённые файлы в папку .trash вместо немедленного удаления.",
-    "uk": "Переміщає видалені файли до теки .trash замість негайного видалення."
+    "uk": "Переміщає видалені файли до папки .trash замість негайного видалення."
   },
   "rowVideoCaptureEnabled": {
     "en": "Enables the built-in video recording feature.",
@@ -1817,7 +1822,7 @@
   "spinnerSortMode": {
     "en": "Sets the default order in which files are sorted when a folder opens.",
     "ru": "Задаёт порядок сортировки файлов по умолчанию при открытии папки.",
-    "uk": "Задає типовий порядок сортування файлів під час відкриття теки."
+    "uk": "Задає типовий порядок сортування файлів під час відкриття папки."
   },
   "spinnerTranslationSourceLanguage": {
     "en": "Chooses the source language that recognized text is translated from.",
@@ -1893,6 +1898,11 @@
     "en": "Enables playback and browsing of video files on Wear OS.",
     "ru": "Включает воспроизведение и просмотр видеофайлов на Wear OS.",
     "uk": "Вмикає відтворення та перегляд відеофайлів на Wear OS."
+  },
+  "wearFileDoOperations": {
+    "en": "Adds Encrypt FileDO and Decrypt FileDO to a file's action menu on the watch, for one file at a time, where the watch can write a container beside it - its own files and the Download and Documents folders; both ask for a password. Off by default. A .fd-sec container opens from the file list with its password whether this is on or off.",
+    "ru": "Добавляет в меню действий над файлом на часах «Зашифровать FileDO» и «Расшифровать FileDO», по одному файлу за раз, там, где часы могут записать контейнер рядом, - в своих файлах и в папках Download и Documents; обе операции спрашивают пароль. По умолчанию выключено. Контейнер .fd-sec открывается из списка файлов по паролю независимо от этого переключателя.",
+    "uk": "Додає до меню дій над файлом на годиннику «Зашифрувати FileDO» і «Розшифрувати FileDO», по одному файлу за раз, там, де годинник може записати контейнер поруч, - у своїх файлах і в теках Download і Documents; обидві операції запитують пароль. Типово вимкнено. Контейнер .fd-sec відкривається зі списку файлів за паролем незалежно від цього перемикача."
   },
   "wearFileListViewMode": {
     "en": "Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails.",

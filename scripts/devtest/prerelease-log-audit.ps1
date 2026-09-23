@@ -105,6 +105,8 @@ $benignPatterns = @(
     'ACodec.*DynamicANWBuffer', 'setPortMode on output to DynamicANWBuffer',  # emulator SW HEVC native-buffer fallback; video still renders
     'StagefrightMetadataRetriever', 'Failed to instantiate a MediaExtractor',  # system metadata probe on non-media/invalid files; app falls back
     'MediaScannerJNI',                                          # system MediaStore scanner errors on invalid/stub files, not the app
+    # S3396: MediaCodec$EventHandler posts after Media3 quit the codec callback thread. The sender
+    # is android.media itself, so no app-side fix exists - androidx/media#3146 is wontfix: infeasible.
     'dead thread',                                             # benign Handler-after-teardown race
     'Bluetooth binder is null', 'BatteryExternalStats', 'KernelCpuSpeedReader',  # system services, not app
     'OCR engines not installed', 'UnsatisfiedLinkError loading', # expected optional-native fallback

@@ -16,92 +16,69 @@
     android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
     android:showDividers="middle">
 
-    <!-- S3208: Start and All Apps keep a one-row height on the bottom row however tall the bar is. The
-         cells above them hold the oldest recents when rows > 1; bottom gravity keeps the buttons anchored
-         when that strip is gone (recents off, editing, or one row). -->
+    <!-- S3412: Start and All Apps action buttons container. At 1 row: horizontal side-by-side.
+         At 2-3 rows: vertically stacked occupying the width of one button. -->
     <LinearLayout
-        android:id="@+id/taskbarLeftBlock"
+        android:id="@+id/taskbarActionsContainer"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:gravity="bottom"
-        android:orientation="vertical">
+        android:gravity="center"
+        android:orientation="horizontal">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/taskbarUpperRecents"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:nextFocusDown="@id/btnStart"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStart"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="@dimen/launcher_taskbar_height"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:contentDescription="@string/launcher_taskbar_start"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:gravity="center"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:nextFocusUp="@id/launcherDesktop"
+            android:nextFocusRight="@id/btnAllApps"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            app:icon="@drawable/ic_launcher_mode"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="@dimen/launcher_taskbar_action_icon_size"
+            app:iconTint="?attr/launcherTaskbarStartText" />
+
+        <!-- S1401/S3412: opens the full-screen app list. Icon-only and deliberately OUTSIDE
+             the weighted strip block below. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAllApps"
+            style="@style/Widget.FastMediaSorter.Button.Text"
+            android:layout_width="@dimen/launcher_taskbar_all_apps_width"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/margin_small"
+            android:clickable="true"
+            android:contentDescription="@string/launcher_menu_all_apps"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:nextFocusUp="@id/launcherDesktop"
+            android:nextFocusLeft="@id/btnStart"
             android:nextFocusRight="@id/taskbarRecents"
-            android:visibility="gone"
-            tools:listitem="@layout/item_launcher_taskbar_icon" />
-
-        <LinearLayout
-            android:id="@+id/taskbarActionsContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/launcher_taskbar_height"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnStart"
-                style="@style/Widget.FastMediaSorter.Button.Text"
-                android:layout_width="@dimen/launcher_taskbar_height"
-                android:layout_height="match_parent"
-                android:clickable="true"
-                android:contentDescription="@string/launcher_taskbar_start"
-                android:focusable="true"
-                android:foreground="@drawable/focus_button_background"
-                android:gravity="center"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:insetLeft="0dp"
-                android:insetRight="0dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:nextFocusUp="@id/launcherDesktop"
-                android:nextFocusRight="@id/btnAllApps"
-                android:paddingStart="0dp"
-                android:paddingEnd="0dp"
-                app:icon="@drawable/ic_launcher_mode"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="@dimen/launcher_taskbar_action_icon_size"
-                app:iconTint="?attr/launcherTaskbarStartText" />
-
-            <!-- S1401: opens the full-screen app list. Icon-only (owner, 2026-08-05) and deliberately OUTSIDE
-                 the weighted strip block below, so a long recents strip can never squeeze it away.
-                 S1768: layout_marginStart and minWidth for comfortable touch target and separation from Start. -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAllApps"
-                style="@style/Widget.FastMediaSorter.Button.Text"
-                android:layout_width="@dimen/launcher_taskbar_all_apps_width"
-                android:layout_height="match_parent"
-                android:layout_marginStart="@dimen/margin_small"
-                android:clickable="true"
-                android:contentDescription="@string/launcher_menu_all_apps"
-                android:focusable="true"
-                android:foreground="@drawable/focus_button_background"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:insetLeft="0dp"
-                android:insetRight="0dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:nextFocusUp="@id/launcherDesktop"
-                android:nextFocusLeft="@id/btnStart"
-                android:nextFocusRight="@id/taskbarRecents"
-                android:paddingStart="0dp"
-                android:paddingEnd="0dp"
-                app:icon="@drawable/ic_launcher_all_apps"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="@dimen/launcher_taskbar_action_icon_size"
-                app:iconTint="@null" />
-
-        </LinearLayout>
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            app:icon="@drawable/ic_launcher_all_apps"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="@dimen/launcher_taskbar_action_icon_size"
+            app:iconTint="@null" />
 
     </LinearLayout>
 

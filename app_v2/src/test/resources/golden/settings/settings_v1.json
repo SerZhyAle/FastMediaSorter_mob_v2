@@ -1,0 +1,16 @@
+[
+  { "key": "gesture_overlay_enabled", "type": "B", "value": "true" },
+  { "key": "screenshot_gesture_strip_visible", "type": "B", "value": "true" },
+  { "key": "screenshot_gesture_action_down", "type": "S", "value": "SILENT_SCREENSHOT" },
+  { "key": "screenshot_gesture_action_right", "type": "S", "value": "SHARE" },
+  { "key": "screenshot_gesture_action_up", "type": "S", "value": "OCR_TRANSLATE" },
+  { "key": "vr_auto_detect_format", "type": "B", "value": "true" },
+  { "key": "vr_forced_format", "type": "S", "value": "SBS" },
+  { "key": "vr_remember_file_format", "type": "B", "value": "false" },
+  { "key": "enable_background_audio", "type": "B", "value": "true" },
+  { "key": "prevent_sleep", "type": "B", "value": "false" },
+  { "key": "cache_size_mb", "type": "I", "value": "1024" },
+  { "key": "network_parallelism", "type": "I", "value": "8" },
+  { "key": "text_size_max", "type": "L", "value": "52428800" },
+  { "key": "enabled_share_targets", "type": "SS", "value": "com.example.one\u001Fcom.example.two" }
+]

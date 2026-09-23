@@ -153,7 +153,8 @@ class MergeWearSettingsReportUseCaseTest {
     fun `the first report becomes the mirror and marks the sides as agreed`() = runTest {
         val store = FakeWearSettingsMirrorStore()
 
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(watchSet(), EXCHANGE_AT, EXCHANGE_AT)
+        val merged =
+            MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(watchSet(), EXCHANGE_AT, EXCHANGE_AT)
 
         assertEquals(WATCH_INTERVAL, merged.slideshowIntervalSeconds)
         assertEquals(merged, store.settings)

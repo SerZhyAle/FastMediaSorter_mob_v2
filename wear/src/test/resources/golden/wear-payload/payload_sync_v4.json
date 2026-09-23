@@ -1,0 +1,31 @@
+{
+  "version": 4,
+  "sentAt": 1758000000000,
+  "phoneName": "Pixel 8 Pro",
+  "sources": [
+    {
+      "id": "src-nas-01",
+      "type": "SMB",
+      "name": "Family NAS",
+      "server": "192.168.1.50",
+      "port": 445,
+      "username": "family",
+      "password": "hunter2",
+      "shareName": "media",
+      "basePath": "/photos",
+      "domain": "WORKGROUP",
+      "hostKeyFingerprint": "SHA256:2b9QlWc0ZxPnMhTj6RyUaFdKgEsVoI1LrBtXpNmC4hY",
+      "iconId": "ico-04-117",
+      "supportedMediaTypes": ["IMAGE", "VIDEO"],
+      "allFiles": false,
+      "endpoints": [
+        { "host": "192.168.1.50", "port": 445 }
+      ],
+      "lastEditedAt": 1757900000000
+    }
+  ],
+  "tombstones": [
+    { "id": "src-old-09", "deletedAt": 1742800000000 }
+  ],
+  "deselectedIds": ["src-desk-77"]
+}

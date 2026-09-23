@@ -9,7 +9,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Fixtures are the geometry of lines measured in the 2026-09-13 dump (`docs/OCR_OVERLAY_ACCURACY.md` section 16),
+ * Fixtures are the geometry of lines measured in the 2026-09-13 dump (`ocr-overlay-accuracy.md` section 16),
  * not invented shapes: the two bracket edges decide the constant, so they are pinned exactly.
  */
 @RunWith(RobolectricTestRunner::class)

@@ -442,6 +442,24 @@
     <color name="color_media_docs">#FFE65100</color>      <!-- Orange 900 -->
     <color name="color_media_other">#FF616161</color>     <!-- Grey 700 -->
 
+    <!-- S3433: source hues (ICON-RENDER 0.10 section 10 item D, keys source.*). A resource-type glyph is
+         one white-filled drawing whose root tint names its hue here, so its colour look follows the theme
+         and a caller's tint still replaces it. Day tones measured on #FFFFFF: local 4.12, smb 4.60,
+         sftp 3.79, ftp 7.04, cloud 3.51 - all above the 3:1 floor. -->
+    <color name="color_source_local">#FF388E3C</color>     <!-- Green 700 -->
+    <color name="color_source_smb">#FF1976D2</color>       <!-- Blue 700 -->
+    <color name="color_source_sftp">#FFE65100</color>      <!-- Orange 900 -->
+    <color name="color_source_ftp">#FF8E24AA</color>       <!-- Purple 600 -->
+    <color name="color_source_cloud">#FF0097A7</color>     <!-- Cyan 700 -->
+    <!-- S3433: the product accent as an icon hue - a program with no accent of its own, and the plate of
+         a content meaning in the decorated look (ICON-RENDER 0.10 item D, key accent). -->
+    <color name="color_icon_accent">@color/blue_500</color>
+    <!-- S3433: plate colours of the static app shortcuts (res/xml/shortcuts.xml). A launcher resolves them
+         in the SYSTEM's night mode, and a plate brings its own background (contract item D), so these are
+         the day tones of their hues with no values-night twin on purpose; keep each equal to its source. -->
+    <color name="color_icon_plate_accent">#FF1976D2</color>     <!-- day tone of color_icon_accent -->
+    <color name="color_icon_plate_purple">#FF7B1FA2</color>     <!-- day tone of color_program_accent_purple -->
+    <color name="color_icon_plate_teal">#FF00796B</color>       <!-- day tone of color_program_accent_teal -->
     <!-- S2510: per-mini-program accent palette (light theme). Read through
          core/panel/SubProgramAccentCatalog - a surface asks there instead of picking a tone.
          Key names are frozen: wear/src/main/res/values/colors.xml declares the same eight against

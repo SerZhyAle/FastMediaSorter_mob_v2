@@ -201,8 +201,6 @@ private fun MediaFileChip(
  */
 internal fun captionOverCover(mimeType: String?): Boolean {
     val overCover = mimeType?.startsWith(AUDIO_PREFIX) == true
-    if (overCover) {
-    }
     return overCover
 }
 

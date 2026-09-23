@@ -15,16 +15,20 @@ import com.sza.fastmediasorter.ui.common.dialog.BaseAppBottomSheet
  */
 class BrowseBinaryFileBottomSheet : BaseAppBottomSheet() {
 
+    class Callbacks(
+        val onShare: () -> Unit,
+        val onOpenWith: () -> Unit,
+        val onCopy: () -> Unit,
+        val onMove: () -> Unit,
+        val onRename: () -> Unit,
+        val onDelete: () -> Unit,
+    )
+
     override val contentLayout: Int = R.layout.bottom_sheet_binary_file
     override val requestKey: String = REQUEST_KEY
 
     private var mediaFile: MediaFile? = null
-    private var onShare: (() -> Unit)? = null
-    private var onOpenWith: (() -> Unit)? = null
-    private var onCopy: (() -> Unit)? = null
-    private var onMove: (() -> Unit)? = null
-    private var onRename: (() -> Unit)? = null
-    private var onDelete: (() -> Unit)? = null
+    private var callbacks: Callbacks? = null
     private var menuActions: Set<BrowseBinaryFileMenuAction> = emptySet()
 
     companion object {
@@ -32,21 +36,11 @@ class BrowseBinaryFileBottomSheet : BaseAppBottomSheet() {
 
         fun newInstance(
             mediaFile: MediaFile,
-            onShare: () -> Unit,
-            onOpenWith: () -> Unit,
-            onCopy: () -> Unit,
-            onMove: () -> Unit,
-            onRename: () -> Unit,
-            onDelete: () -> Unit,
+            callbacks: Callbacks,
             menuActions: Set<BrowseBinaryFileMenuAction> = emptySet(),
         ): BrowseBinaryFileBottomSheet = BrowseBinaryFileBottomSheet().also {
             it.mediaFile = mediaFile
-            it.onShare = onShare
-            it.onOpenWith = onOpenWith
-            it.onCopy = onCopy
-            it.onMove = onMove
-            it.onRename = onRename
-            it.onDelete = onDelete
+            it.callbacks = callbacks
             it.menuActions = menuActions
         }
     }
@@ -59,13 +53,20 @@ class BrowseBinaryFileBottomSheet : BaseAppBottomSheet() {
         val binding = BottomSheetBinaryFileBinding.bind(content)
         binding.tvFileName.text = file.name
 
-        binding.btnShare.setOnClickListener { onShare?.invoke(); dismiss() }
-        binding.btnOpenWith.setOnClickListener { onOpenWith?.invoke(); dismiss() }
-        binding.btnCopy.setOnClickListener { onCopy?.invoke(); dismiss() }
-        binding.btnMove.setOnClickListener { onMove?.invoke(); dismiss() }
-        binding.btnRename.setOnClickListener { onRename?.invoke(); dismiss() }
-        binding.btnDelete.setOnClickListener { onDelete?.invoke(); dismiss() }
+        bindRow(binding.btnShare, Callbacks::onShare)
+        bindRow(binding.btnOpenWith, Callbacks::onOpenWith)
+        bindRow(binding.btnCopy, Callbacks::onCopy)
+        bindRow(binding.btnMove, Callbacks::onMove)
+        bindRow(binding.btnRename, Callbacks::onRename)
+        bindRow(binding.btnDelete, Callbacks::onDelete)
 
         menuActions.forEach { action -> action.bind(content, file) { dismiss() } }
+    }
+
+    private fun bindRow(row: View, action: (Callbacks) -> () -> Unit) {
+        row.setOnClickListener {
+            callbacks?.let(action)?.invoke()
+            dismiss()
+        }
     }
 }

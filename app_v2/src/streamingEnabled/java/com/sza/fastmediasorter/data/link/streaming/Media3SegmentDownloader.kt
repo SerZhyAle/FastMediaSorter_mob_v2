@@ -20,7 +20,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import java.util.concurrent.Executor
 import javax.inject.Inject
@@ -99,8 +98,10 @@ class Media3SegmentDownloader @Inject constructor(
                 is StreamingManifest.Dash -> MimeTypes.APPLICATION_MPD
             }
             val request = DownloadRequest.Builder(
-                /* id = */ "s0116-${System.currentTimeMillis()}",
-                /* uri = */ Uri.parse(manifest.manifestUrl),
+                /* id = */
+                "s0116-${System.currentTimeMillis()}",
+                /* uri = */
+                Uri.parse(manifest.manifestUrl),
             )
                 .setMimeType(mimeType)
                 .build()

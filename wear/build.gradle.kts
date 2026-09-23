@@ -10,6 +10,8 @@ plugins {
     id("com.android.application")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
+    // S3371: SBOM producer for the dependency-admission contour. Task only - no runtime effect.
+    alias(libs.plugins.cyclonedx)
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
@@ -212,6 +214,25 @@ android {
         // unrelated to any migration, which is indistinguishable from the defect it exists to catch.
         getByName("androidTest") {
             assets.directories.add("schemas")
+        }
+
+        // S3383: the FD-SEC crypto package is compiled from app_v2's tree rather than copied here.
+        // The FileDO container format is frozen by contract and its correctness is byte compatibility
+        // with a foreign program, so two copies would diverge silently - the divergence surfaces as a
+        // container the other platform refuses, never as a failing build. The package has no Android
+        // import at all, which is what makes one source legal in two modules.
+        getByName("main") {
+            kotlin.srcDir("../app_v2/src/main/java/com/sza/fastmediasorter/data/security/fdsec")
+        }
+
+        // The same source's conformance suite, so the watch reproduces the contract's published
+        // vectors from its OWN compiled classes - the only evidence that the shared source really
+        // compiles the same way here. The resources root is mounted whole because the vectors sit
+        // under `fdsec/` inside it and a source directory cannot be re-rooted; no relative path in
+        // it collides with one of this module's own fixtures.
+        getByName("test") {
+            kotlin.srcDir("../app_v2/src/test/java/com/sza/fastmediasorter/data/security/fdsec")
+            resources.srcDir("../app_v2/src/test/resources")
         }
     }
 
@@ -422,6 +443,12 @@ dependencies {
     // SMB client for network storage
     implementation(libs.smbj)
 
+    // S3383: BouncyCastle, declared rather than inherited from SMBJ above. The FD-SEC crypto package
+    // this module now compiles names nine of its classes directly, so the library is a first-class
+    // dependency here exactly as it is in app_v2 - an edge that exists only transitively can be
+    // dropped or moved by an SMBJ bump, and a frozen wire format may not rest on that.
+    implementation(libs.bouncycastle.bcprov)
+
     // FTP client (S0111 Phase 04)
     implementation(libs.commons.net)
 
@@ -453,6 +480,29 @@ dependencies {
     // Room performs on update - ships in room-testing and nowhere else. Version kept equal to the
     // room-runtime pin above and to app_v2, so both modules test against the same Room runtime.
     androidTestImplementation(libs.androidx.room.testing)
+}
+
+// S3383: the watch's half of the S1496 assertion app_v2 carries. Asserted rather than forced - a
+// force would silently swallow the security updates that ride along with an SMBJ bump, while an
+// unasserted edge lets the crypto library move under a frozen container format unnoticed. The scope
+// is a whitelist of variant runtime classpaths, which is exactly "what ships in the APK": lint's own
+// tool runtime pulls a different BouncyCastle, and S1636 recorded what including it costs.
+val expectedBouncyCastleVersion = "1.75"
+
+configurations.matching {
+    it.name.endsWith("RuntimeClasspath") && !it.name.contains("test", ignoreCase = true)
+}.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.bouncycastle" && requested.version != expectedBouncyCastleVersion) {
+            throw GradleException(
+                "BouncyCastle version drift in :wear: ${requested.group}:${requested.name} resolved " +
+                    "to ${requested.version}, expected $expectedBouncyCastleVersion. Re-check the " +
+                    "org/bouncycastle/** entries in packaging against the new layout, then raise " +
+                    "expectedBouncyCastleVersion in wear/build.gradle.kts and app_v2/build.gradle.kts " +
+                    "together - the two modules compile the same FD-SEC source."
+            )
+        }
+    }
 }
 
 ksp {

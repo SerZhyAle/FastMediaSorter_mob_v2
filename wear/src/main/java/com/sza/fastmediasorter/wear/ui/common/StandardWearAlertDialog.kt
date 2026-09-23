@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -45,8 +44,6 @@ fun StandardWearAlertDialog(
     content: (@Composable ColumnScope.() -> Unit)? = null
 ) {
     if (!show) return
-    LaunchedEffect(title) {
-    }
 
     val titleSlot: @Composable ColumnScope.() -> Unit = {
         Text(

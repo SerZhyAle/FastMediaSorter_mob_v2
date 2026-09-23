@@ -271,6 +271,12 @@ $gates = [ordered]@{
     # believes it won - which is invisible until the owner notices an edit that will not stick.
     # Per-ticket by Rule 33: it judges two files a ticket touches, not a tree-wide property.
     'assert-wear-record-merge-parity.ps1'       = @('-Quiet')
+    # S3371 security profile: the three baseline-ratcheted source rules that pin it. Read Kotlin as
+    # text - no gradle daemon - and measured 0.9 s, 2.2 s and 0.6 s on a full walk. Per-ticket by
+    # Rule 33 and wired at closure too; listed here so an operator typing fg sees the same verdict.
+    'assert-log-redaction.ps1'                  = @()
+    'assert-credential-encryption.ps1'          = @()
+    'assert-diagnostics-redaction.ps1'          = @()
     'assert-listener-symmetry.ps1'              = @()
     'assert-orientation-implied-feature.ps1'    = @()
     # S1549: an activity that absorbs 'orientation' in configChanges never re-inflates on
@@ -396,6 +402,10 @@ $gates = [ordered]@{
     # mechanism in five different files - S1186, S1198, S1247, S1269, S1311 - before anyone noticed
     # the check was never in the batch. Reads the committed ID snapshot; no gradle daemon.
     'assert-detekt-baseline-absorption.ps1'     = @()
+    # S3459: the same absorption shape for the two Android lint baselines, which CI's
+    # regenerate-lint-baseline dispatch and check-lint.ps1 -Regenerate rewrite wholesale. Reads the
+    # committed lint-baseline.ids snapshots; no gradle daemon.
+    'assert-lint-baseline-absorption.ps1'       = @()
     # S1438: SDK pins stated in ORDINARY PROSE, which the managed-block gate above cannot see -
     # an index line, an architecture bullet, an agent definition, agent memory. Eight copies said
     # compileSdk 35 while Gradle compiled against 36, and an agent reading one concludes an API is
@@ -429,7 +439,7 @@ $gates = [ordered]@{
     # S1828: a pinned stream-catalog asset that would stop being published. External consumers
     # hard-code revisioned asset names and never roll forward, and nothing here deletes an asset -
     # so a pinned revision survives only because no action removes it. Reads the pinned names from
-    # docs/STREAM_CATALOG_CONSUMERS.md and the revision defaults from the publisher; two file reads.
+    # stream-catalog/CONSUMERS.md and the revision defaults from the publisher; two file reads.
     'assert-stream-asset-revisions.ps1'         = @('-Quiet')
     # S1470: primary constructors approaching the 255 argument-slot ceiling. AppSettings crossed it
     # at one field per ticket; kotlinc and D8 both accepted the class and only the runtime verifier
@@ -553,7 +563,10 @@ $changedFilesAware = @(
     'assert-gson-persistence-contract.ps1',
     'assert-device-ready-module.ps1',
     'assert-gate-placement.ps1',
-    'assert-quantity-format-seam.ps1'
+    'assert-quantity-format-seam.ps1',
+    'assert-log-redaction.ps1',
+    'assert-credential-encryption.ps1',
+    'assert-diagnostics-redaction.ps1'
 )
 
 # Build the work list first so a MISSING gate is settled without spawning anything, and so

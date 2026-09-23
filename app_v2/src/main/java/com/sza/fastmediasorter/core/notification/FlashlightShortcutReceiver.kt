@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import com.sza.fastmediasorter.core.screencapture.gesture.DeviceActionHandler
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

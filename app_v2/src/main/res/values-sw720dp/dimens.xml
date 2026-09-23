@@ -39,8 +39,8 @@
     <dimen name="item_padding_small">16dp</dimen>
     <dimen name="item_icon_size">88dp</dimen>
     <dimen name="item_icon_size_medium">64dp</dimen>
-    <dimen name="item_icon_size_small">48dp</dimen>
-    <dimen name="item_icon_size_tiny">24dp</dimen>
+    <dimen name="item_icon_size_small">@dimen/icon_tier_48</dimen>
+    <dimen name="item_icon_size_tiny">@dimen/icon_tier_24</dimen>
     <dimen name="item_thumbnail_size">200dp</dimen>
     <dimen name="item_grid_thumbnail_size">260dp</dimen>
     <dimen name="item_title_text_size">22sp</dimen>

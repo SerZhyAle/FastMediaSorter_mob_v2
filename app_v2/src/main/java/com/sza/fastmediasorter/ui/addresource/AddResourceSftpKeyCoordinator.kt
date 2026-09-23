@@ -86,9 +86,15 @@ internal class AddResourceSftpKeyCoordinator(
                 privateKey = privateKey,
                 keyPassphrase = keyPassphrase,
                 expectedFingerprint = canonicalFingerprint
-            ).onSuccess { message ->
-                Timber.d("SFTP SSH key connection test successful: $message")
-                bridge.emit(AddResourceEvent.ShowTestResult(message, true))
+            ).onSuccess { testResult ->
+                Timber.d("SFTP SSH key connection test successful: ${testResult.message}")
+                bridge.emit(
+                    AddResourceEvent.ShowTestResult(
+                        message = testResult.message,
+                        isSuccess = true,
+                        presentedFingerprint = testResult.presentedFingerprint
+                    )
+                )
             }.onFailure { e ->
                 Timber.e(e, "SFTP SSH key connection test failed")
                 emitSftpTestFailure(e)

@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 // Wear Material keeps its own toggle metrics internal, so the standard toggle row restates the
 // control size once here instead of letting every screen size its own glyph (S3260).
 private val TOGGLE_ICON_SIZE = 24.dp
+private const val NARROW_MAX_LINES = 2
 
 /**
  * The standard Wear toggle row: one label and a switch or radio glyph, drawn with the geometry and
@@ -69,7 +70,11 @@ fun StandardWearToggleChip(
             Text(
                 text = label,
                 style = MaterialTheme.typography.caption1,
-                maxLines = if (narrow) 2 else 1,
+                // S3362: a full-width row wraps as far as its label needs. One line and an ellipsis cut
+                // "Keep screen on" and "Disable animations" on the 192 dp review emulator at font scale
+                // 1.0, which WO-V1 fails as truncated essential text. A narrow cell keeps its two-line cap,
+                // because it has no width to grow into.
+                maxLines = if (narrow) NARROW_MAX_LINES else Int.MAX_VALUE,
                 overflow = TextOverflow.Ellipsis
             )
         },

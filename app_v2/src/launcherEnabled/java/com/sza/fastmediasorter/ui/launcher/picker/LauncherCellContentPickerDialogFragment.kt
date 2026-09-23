@@ -27,7 +27,6 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import timber.log.Timber
 
 /**
  * S0404: the first step of "put something on the desktop". Level one lists the kinds of thing a cell can

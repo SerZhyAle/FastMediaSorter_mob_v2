@@ -63,6 +63,8 @@ import com.sza.fastmediasorter.ui.browse.helpers.BrowseSwipeActionResolver
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.widget.DimHeadingProvider
+import com.sza.fastmediasorter.ui.common.widget.dimclock.di.DimClockEntryPoint
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
@@ -77,6 +79,7 @@ import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.Lazy
+import dagger.hilt.EntryPoints
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -125,6 +128,7 @@ class BrowseManagerInitializer(
     private val passthroughProvider: BrowsePassthroughCaptureProvider? = flavorHooks.passthroughProvider
     private val binaryFileMenuActions: Set<BrowseBinaryFileMenuAction> = flavorHooks.binaryFileMenuActions
     private val browseApkTileBadgeBinder: BrowseApkTileBadgeBinder = hostManagers.browseApkTileBadgeBinder
+    private val browseFdSecManager: BrowseFdSecManager = hostManagers.browseFdSecManager
 
     // S2533: pure decision logic, no Android types - constructed here rather than injected.
     private val browseSwipeActionResolver = BrowseSwipeActionResolver()
@@ -186,6 +190,10 @@ class BrowseManagerInitializer(
             mediaCapabilities = mediaCapabilities
         )
 
+        // S3382: the only backstop after a power loss - a decrypted copy left in the private cache
+        // by a killed process is swept before this screen can make another one.
+        browseFdSecManager.sweepWorkspace()
+
         mediaStoreObserver = BrowseMediaStoreObserver(activity, object : BrowseMediaStoreObserver.MediaStoreCallbacks {
             override fun onMediaStoreChanged() { if (!viewModel.isIgnoringFileChanges()) viewModel.reloadFiles(syncMediaStore = false) }
         })
@@ -193,7 +201,7 @@ class BrowseManagerInitializer(
         mediaFileAdapter = MediaFileAdapter(
             onFileClick = { file ->
                 UserActionLogger.logItemClick(file.name, context = "File click")
-                viewModel.saveLastViewedFile(file.path); viewModel.openFile(file)
+                viewModel.saveLastViewedFile(file.path); openFileRespectingContainers(file)
             },
             onFileLongClick = { file -> UserActionLogger.logItemLongClick(file.name, context = "Range selection"); viewModel.selectFileRange(file.path) },
             onContextMenuRequest = { anchor, file ->
@@ -232,7 +240,15 @@ class BrowseManagerInitializer(
                 if (viewModel.state.value.resource?.isAudioOnly() != true) viewModel.inlineStop()
                 viewModel.navigateToFolder(folder)
             },
-            onBinaryFileClick = { file -> UserActionLogger.logItemClick(file.name, context = "Binary file click"); binaryFileHandler.showBinaryFileMenu(file) },
+            onBinaryFileClick = { file ->
+                UserActionLogger.logItemClick(file.name, context = "Binary file click")
+                // S3382: a FileDO container lists as a binary, yet a tap on it opens what it holds.
+                if (browseFdSecManager.isContainer(file)) {
+                    openFileRespectingContainers(file)
+                } else {
+                    binaryFileHandler.showBinaryFileMenu(file)
+                }
+            },
             onOverflowMenuClick = { file, anchor -> showPerFileOverflowMenu(anchor, file) },
             apkTileBadgeBinder = browseApkTileBadgeBinder,
             getShowVideoThumbnails = showVideoThumbnailsGetter,
@@ -536,7 +552,12 @@ class BrowseManagerInitializer(
 
         blackScreenManager = BlackScreenOverlayManager(
             WeakReference(activity),
-            SystemBarsManager(activity)
+            SystemBarsManager(activity),
+            headingProviderLazy = object : Lazy<DimHeadingProvider> {
+                override fun get(): DimHeadingProvider =
+                    EntryPoints.get(activity.applicationContext, DimClockEntryPoint::class.java)
+                        .dimHeadingProvider()
+            },
         )
 
         buttonSetupHelper = BrowseButtonSetupHelper(
@@ -717,9 +738,34 @@ class BrowseManagerInitializer(
             onInfo = { f -> showFileInfoDialog(f) },
             onDrawOverlay = { f -> launchPlayerWithDrawOverlay(f) },
             onSearchYoutubeMusic = { f -> searchYoutubeMusicForFile(f) },
-            onOpenInPlayer = { f -> viewModel.openFile(f) },
+            onOpenInPlayer = { f -> openFileRespectingContainers(f) },
             onOpenInNewWindow = { f -> eventHandler.openPlayerInNewWindow(f) },
+            onEncryptFileDo = { f ->
+                val state = viewModel.state.value
+                val folder = state.currentPath ?: state.resource?.path
+                browseFdSecManager.encrypt(lifecycleScope, f, folder) { viewModel.reloadFiles() }
+            },
+            onDecryptFileDo = { f ->
+                val state = viewModel.state.value
+                val folder = state.currentPath ?: state.resource?.path
+                browseFdSecManager.decrypt(lifecycleScope, f, folder) { viewModel.reloadFiles() }
+            },
         )
+
+    /**
+     * S3382: a `.fd-sec` file opens as the media it holds - password, decrypt into the app's private
+     * cache, then a one-file viewer over the recovered copy. Anything else goes straight through, so
+     * nothing changes for a file that is not a container.
+     */
+    fun openFileRespectingContainers(file: MediaFile) {
+        if (browseFdSecManager.isContainer(file)) {
+            browseFdSecManager.openAsMedia(lifecycleScope, file)
+        } else {
+            viewModel.openFile(file)
+        }
+    }
+
+    fun dropViewedFdSecCopies() = browseFdSecManager.dropViewedCopies()
 
     /**
      * S0293: re-render the file adapter rows so any `allowSeparateWindow`-gated UI picks up the

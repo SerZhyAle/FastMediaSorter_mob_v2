@@ -42,9 +42,11 @@ class SelectedMediaManager @Inject constructor() {
         phoneToken: String? = null
     ) {
         val effectiveStreamUri = streamUri ?: file.uri.toString()
+        // S3383: by id, never by name or uri. A file recovered from a FileDO container is published
+        // here under the true name the format hides, and its uri ends in that name.
         Timber.d(
-            "SelectedMediaManager: Selected file=${file.name}, isNetwork=$isNetworkSource, " +
-                "sourceId=$sourceId, streamUri=$effectiveStreamUri, isDirectStream=$isDirectStream"
+            "SelectedMediaManager: Selected file id=${file.id}, isNetwork=$isNetworkSource, " +
+                "sourceId=$sourceId, isDirectStream=$isDirectStream"
         )
         _selectedFile.value = SelectedMedia(
             file = file,
@@ -63,7 +65,7 @@ class SelectedMediaManager @Inject constructor() {
     fun getSelectedFileById(id: Long): SelectedMedia? {
         val current = _selectedFile.value
         return if (current?.file?.id == id) {
-            Timber.d("SelectedMediaManager: Found file by id=$id: ${current.file.name}")
+            Timber.d("SelectedMediaManager: Found file by id=$id")
             current
         } else {
             Timber.d("SelectedMediaManager: No file found for id=$id (current=${current?.file?.id})")

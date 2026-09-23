@@ -20,6 +20,13 @@ param(
     [ValidateSet('standard', 'noLegal')]
     [string]$Flavor = 'standard',
 
+    # S3368: which build type to assemble. 'debug' stays the default - the sideload distribution
+    # artifact. 'release' exists for verification builds that must see what AGP packages only into
+    # a release artifact (a baseline profile, for one); a release build is never copied to
+    # DOWNLOADS, journalled or published - it prints its location and stops.
+    [ValidateSet('debug', 'release')]
+    [string]$BuildType = 'debug',
+
     # Installs the exact APK just built through the watch-aware ADB wrapper. A caller must select
     # the watch with -DeviceId when more than one online device exists.
     [switch]$Install,
@@ -33,11 +40,12 @@ try {
 
 # AGP capitalises the flavor inside a task name and lower-cases it inside an output path.
 $taskFlavor = $Flavor.Substring(0, 1).ToUpperInvariant() + $Flavor.Substring(1)
+$taskType = $BuildType.Substring(0, 1).ToUpperInvariant() + $BuildType.Substring(1)
 
-Write-Host "Building Wear OS debug APK [$Flavor].." -ForegroundColor Cyan
+Write-Host "Building Wear OS $BuildType APK [$Flavor].." -ForegroundColor Cyan
 
-# Start the Gradle build process (Debug only for speed)
-$gradleArgs = @(":wear:assemble${taskFlavor}Debug", "--configuration-cache")
+# Start the Gradle build process.
+$gradleArgs = @(":wear:assemble${taskFlavor}${taskType}", "--configuration-cache")
 . "$PSScriptRoot\..\utils\build-version-stamp.ps1"
 if ($AutoVersion) {
     # Taken from the shared derivation, never written out here: Play refuses two artifacts
@@ -71,7 +79,7 @@ $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $downloadsDir = "$projectRoot\DOWNLOADS"
 
 # Resolve the built APK path from AGP output metadata.
-$apkDir = Join-Path $projectRoot "wear\build\outputs\apk\$Flavor\debug"
+$apkDir = Join-Path $projectRoot "wear\build\outputs\apk\$Flavor\$BuildType"
 # S1972: one resolver for every builder - it selects by ABI from output-metadata.json
 # and refuses to guess, where this block used to take element 0 and then the newest file.
 . "$PSScriptRoot\..\utils\find-build-artifact.ps1"
@@ -93,6 +101,11 @@ if ($Install) {
         exit $LASTEXITCODE
     }
 }
+
+# The distribution path below is the debug artifact's alone: DOWNLOADS, the journal and the
+# Commander publish exist so a human can sideload the watch build. A release verification build
+# is judged where it lies and never distributed from here (S3368).
+if ($BuildType -eq 'debug') {
 
 if (!(Test-Path -Path $downloadsDir)) {
     New-Item -ItemType Directory -Path $downloadsDir | Out-Null
@@ -123,6 +136,8 @@ Write-Host "Build logged to journal" -ForegroundColor Gray
 # The watch APK reaches the Commander folder too, unlike its five siblings that mirror to Drive
 # alone: it is the one debug artifact routinely sideloaded from there onto a paired watch.
 & "$PSScriptRoot\..\utils\publish-artifact.ps1" -Path "$downloadsDir\$destName" -Name $destName
+
+}
 
 }
 finally {
