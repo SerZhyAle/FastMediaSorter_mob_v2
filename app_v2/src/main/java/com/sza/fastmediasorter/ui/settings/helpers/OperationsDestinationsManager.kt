@@ -90,8 +90,6 @@ class OperationsDestinationsManager(
             adapter.submitList(destinations)
             currentDestinations = destinations
             updateAddDestinationVisibility(destinations.isNotEmpty())
-            // "Add destinations first" hint - only when no destinations exist.
-            binding.tvNoScheduledOps.isVisible = destinations.isEmpty()
         }
     }
 

@@ -83,9 +83,17 @@ fun HomeScreen(
         // name - a narrow round watch cannot give three columns a 48 dp target (strategic ADR-2).
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
+            // S3362: the store build's fresh home is one section and the command bar. Laid out from
+            // the top, that section's full-width row stands where the round glass is narrowest and its
+            // bounds leave the glass on the 227 dp review emulator; centred, both rows sit where it is
+            // widest. A longer list keeps the top anchor it always had.
+            val shortList = nowPlaying == null &&
+                uiState.lastUsedResources.isEmpty() &&
+                uiState.sections.size <= 1
             WearListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState
+                state = listState,
+                centered = shortList
             ) {
                 // S2524: the first thing on the screen while sound is playing, because the problem
                 // this solves is that there was nowhere to arrive at. It is its own item and never
@@ -323,7 +331,7 @@ private fun glyphTint(section: HomeSection, glyph: SectionGlyph): Color = when {
     glyph.ownsItsColour -> Color.Unspecified
     // The Apps list's accent for the same program, so the row and the cell are recognisably one thing.
     section.appId != null -> colorResource(WearAppAccentCatalog.accentFor(section.appId))
-    else -> sectionTint(contentTypeFor(section.id))
+    else -> sectionTint(HomeSectionIconCatalog.contentTypeFor(section.id))
 }
 
 /**
@@ -362,38 +370,6 @@ private fun sectionTint(type: WearContentType?): Color =
     } else {
         Color.Unspecified
     }
-
-/**
- * Which content type a home section stands for, or null when it stands for none.
- *
- * This screen lists origins, not content types, so only streams names one outright. The rest take
- * the catalog's `OTHER` tone, which is the umbrella the catalog already documents for "a source
- * registered in this app" - the same reading that gave the Resources section its glyph.
- *
- * Favourites is null deliberately: `ic_resource_favorites` is a fixed amber badge with no tint hook,
- * so a semantic tone would repaint the star (strategic §11 criterion 7).
- */
-private fun contentTypeFor(id: HomeSectionId): WearContentType? = when (id) {
-    HomeSectionId.FAVOURITES -> null
-    // S2499: a recent channel is a channel, so it takes the same tone the Streams section does.
-    HomeSectionId.STREAMS,
-    HomeSectionId.LAST_USED_STREAM -> WearContentType.STREAM
-    HomeSectionId.LAST_USED_RESOURCE,
-    HomeSectionId.RESOURCES,
-    HomeSectionId.PHONE,
-    HomeSectionId.LOCAL,
-    // S2509: OTHER rather than STREAM. This row is a program of this app, not a channel registered
-    // in it - giving it the stream tone would say the watch has a channel to play.
-    HomeSectionId.BROADCAST,
-    // S2551: OTHER for the same reason as the row above. What this one opens IS a stream, but it is
-    // one that exists only while the session does - giving it the stream tone would place it beside
-    // the registered channels, which is exactly what the ticket's non-goal keeps it out of.
-    HomeSectionId.PHONE_CAMERA,
-    // S3116: never reached while the row carries its program - the accent above answers first - and
-    // OTHER when it does not, for the same reason as the Programs row: it is a program of this app.
-    HomeSectionId.LAST_USED_APP,
-    HomeSectionId.APPS -> WearContentType.OTHER
-}
 
 @DrawableRes
 private fun iconFor(id: HomeSectionId): Int = HomeSectionIconCatalog.iconFor(id)

@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.ui.broadcast.helpers.BroadcastControlManager
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -40,7 +39,6 @@ class BroadcastControlActivity : AppCompatActivity() {
         }
 
         controlManager.setup(this, binding)
-        Timber.d("S3293: broadcast control opened with a11y marks")
     }
 
     override fun onResume() {

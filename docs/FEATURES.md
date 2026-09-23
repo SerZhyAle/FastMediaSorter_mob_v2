@@ -127,6 +127,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Technical and sensor gadgets** `[Standard / noLegal]`: Put clock, sensors, signal strength, and a current-position map straight on the desktop, alongside a Now Playing cell that follows whichever app is playing.
 - **Every installed app on one screen** `[Standard / noLegal]`: A full-screen list of everything installed, reachable from the desktop without a drawer hunt.
 - **Idle dimming and blackout mode** `[Standard / noLegal]`: The launcher dims 4 seconds before screen timeout and pauses animated wallpapers and widgets to save power, resuming on any touch.
+- **The dim screen becomes a live clock face** `[Standard / noLegal]`: The dim screen shows real app icons for notifications, opens the tapped app, opens battery usage on the battery tap, shows network and Bluetooth status, and its clock mirrors the launcher clock widget.
 - **Search the web and switch radios from the desktop** `[Standard / noLegal]`: Type a query and it opens in the browser, and the Wi-Fi and Bluetooth tiles turn the radios on or off in place.
 - **Other apps' notifications on the desktop** `[Standard / noLegal]`: The launcher top bar shows what other apps are reporting, and the Active signals panel lets you dismiss them without leaving the desktop.
 - **See the wallpaper through your gadgets** `[Standard / noLegal]`: Desktop cells draw anywhere from fully transparent to an opaque card, and edit mode always shows the full card so a cell stays easy to grab.

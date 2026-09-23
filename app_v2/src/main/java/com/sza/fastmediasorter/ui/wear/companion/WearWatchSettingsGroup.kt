@@ -46,16 +46,13 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
-import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockStyleProvider
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.WearBackgroundDeliveryState
 import com.sza.fastmediasorter.ui.settings.WearBackgroundPreview
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
-import timber.log.Timber
 import java.io.File
 
 private const val DEFAULT_SLIDESHOW_INTERVAL_SECONDS = 5
@@ -164,7 +161,6 @@ internal fun WearWatchSettingsGroup(
     state: WatchSettingsState,
     onChanged: () -> Unit
 ) {
-
     // S2643: each subgroup owns its own expansion since S2482 split the block into four; the outer
     // expansion parameter that used to seed this one was never written by anyone and is gone.
     var mediaTypesExpanded by remember { mutableStateOf(false) }
@@ -294,32 +290,38 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
     fun payload(
         context: Context? = null,
         unitSystem: UnitSystem? = null,
-        settings: AppSettings? = null,
-        dimClockStyleProvider: DimClockStyleProvider? = null
-    ) = WearSettingsPayload(
-        audioEnabled = audioEnabled,
-        videoEnabled = videoEnabled,
-        imagesEnabled = imagesEnabled,
-        documentsEnabled = documentsEnabled,
-        slideshowEnabled = slideshowEnabled,
-        slideshowIntervalSeconds = slideshowInterval.toInt(),
-        downloadAlbumArt = albumArtEnabled,
-        viewMode = viewMode,
-        keepScreenAwakeOutsidePlayers = keepScreenAwake,
-        fileListViewMode = fileListViewMode,
-        appLanguage = context?.let { LocaleHelper.getLanguage(it) },
-        streamsSectionEnabled = streamsSectionEnabled,
-        disableAnimations = disableAnimations,
-        powerSavingTrigger = powerSavingTrigger,
-        backgroundPlaybackEnabled = backgroundPlaybackEnabled,
-        panelAutoHideSeconds = panelAutoHideSeconds,
-        // S2731: no companion-window row exists for this field (PHONE_ONLY, no companionRowTag) - it
-        // rides the phone's current AppSettings the same way appLanguage rides the current locale.
-        unitSystem = unitSystem?.name,
-        // S3256: Dim screen clock and status overlay toggle and seconds visibility
-        dimClockOverlayEnabled = settings?.dimClockOverlayEnabled,
-        dimClockSecondsVisible = dimClockStyleProvider?.secondsVisible
-    )
+        // S3330: no default - the predecessor `settings`/`dimClockStyleProvider` parameters defaulted
+        // to null and every call site relied on that default, which is exactly why neither field ever
+        // reached the watch. A required parameter fails the build at a call site that forgets it.
+        dimClockOverlayEnabled: Boolean,
+        dimClockSecondsVisible: Boolean
+    ): WearSettingsPayload {
+        return WearSettingsPayload(
+            audioEnabled = audioEnabled,
+            videoEnabled = videoEnabled,
+            imagesEnabled = imagesEnabled,
+            documentsEnabled = documentsEnabled,
+            slideshowEnabled = slideshowEnabled,
+            slideshowIntervalSeconds = slideshowInterval.toInt(),
+            downloadAlbumArt = albumArtEnabled,
+            viewMode = viewMode,
+            keepScreenAwakeOutsidePlayers = keepScreenAwake,
+            fileListViewMode = fileListViewMode,
+            appLanguage = context?.let { LocaleHelper.getLanguage(it) },
+            streamsSectionEnabled = streamsSectionEnabled,
+            disableAnimations = disableAnimations,
+            powerSavingTrigger = powerSavingTrigger,
+            backgroundPlaybackEnabled = backgroundPlaybackEnabled,
+            panelAutoHideSeconds = panelAutoHideSeconds,
+            // S2731: no companion-window row exists for this field (PHONE_ONLY, no companionRowTag) - it
+            // rides the phone's current AppSettings the same way appLanguage rides the current locale.
+            unitSystem = unitSystem?.name,
+            // S3256/S3330: dim screen clock and status overlay toggle and seconds visibility, both read
+            // live by the caller and passed in - see WearCompanionScreen.
+            dimClockOverlayEnabled = dimClockOverlayEnabled,
+            dimClockSecondsVisible = dimClockSecondsVisible
+        )
+    }
 }
 
 /** S2169: the watch menu's "Other" subgroup, in the watch's own row order. */

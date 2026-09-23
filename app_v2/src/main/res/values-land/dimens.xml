@@ -61,4 +61,17 @@
     <dimen name="main_tab_strip_leading_anchor">@dimen/main_top_panel_leading_anchor</dimen>
     <dimen name="broadcast_share_qr_size">220dp</dimen>
     <dimen name="launcher_wallpaper_preview_height">120dp</dimen>
+
+    <!-- S3254: the item row family (Widget.FastMediaSorter.Item.Row, PHONE_UI_COMPONENT_PATTERNS
+         2.2) compacts vertically in landscape - rows keep their horizontal padding because the
+         wider viewport is exactly what landscape buys. No smallestWidth bucket declares this key,
+         so this line is the one in force.
+         S3343: the grid cell's height driver, item_grid_thumbnail_size, was declared here too and
+         resolved nowhere - values-sw320dp matches every device and smallestWidth outranks
+         orientation. It is not restored into values-sw320dp-land either: the 120dp was reasoned
+         against the 150dp base, which no device resolves, while the values actually in force are
+         100dp (sw320) and 110dp (sw480). Moving 120dp into a landscape bucket would make the cell
+         taller rotated, the opposite of what this block states. -->
+    <dimen name="item_row_padding_vertical">6dp</dimen>
+    <dimen name="dim_clock_edge_offset">16dp</dimen>
 </resources>

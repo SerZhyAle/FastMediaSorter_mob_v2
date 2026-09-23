@@ -2,7 +2,8 @@
 <#
 .SYNOPSIS
     S2380 - stage a device for the automated UI sweep: synthetic media in its own root, MediaStore
-    told about it, and the media-read permissions granted before the app is first launched.
+    told about it, the media-read permissions granted before the app is first launched, and the
+    first-run wizard cleared out of the walk's way.
 
 .DESCRIPTION
     Runs once per sweep, before the first matrix combination. The corpus does not depend on
@@ -50,9 +51,9 @@
 
 .NOTES
     Exit codes:
-      0 - corpus generated (unless skipped), pushed, handed to MediaStore, and the three media-read
-          permissions granted.
-      1 - a generation, push, scan or grant step failed: the seed did not happen.
+      0 - corpus generated (unless skipped), pushed, handed to MediaStore, the three media-read
+          permissions granted, and the first-run wizard marked complete.
+      1 - a generation, push, scan, grant or wizard step failed: the seed did not happen.
       2 - could not verify: generator missing, no python, an empty local corpus, no device, the
           package not installed, or a device below API 33.
       3 - no usable ffmpeg. Distinct from 1 on purpose: a missing TOOL is fixed by installing it or
@@ -107,10 +108,10 @@ if (-not (Test-Path $generator)) {
 $python = Join-Path $repoRoot '.venv/Scripts/python.exe'
 if (-not (Test-Path $python)) { $python = 'python' }
 
-# --- [1/6] generate ------------------------------------------------------------------------------
+# --- [1/7] generate ------------------------------------------------------------------------------
 
 if (-not $SkipGenerate) {
-    Write-Host "[1/6] Generating the corpus.."
+    Write-Host "[1/7] Generating the corpus.."
     & $python $generator --clean --out $localRoot
     $generatorExit = $LASTEXITCODE
     if ($generatorExit -eq 2) {
@@ -123,7 +124,7 @@ if (-not $SkipGenerate) {
         exit 1
     }
 } else {
-    Write-Host "[1/6] Skipping generation (-SkipGenerate)."
+    Write-Host "[1/7] Skipping generation (-SkipGenerate)."
 }
 
 $folders = @('Photos', 'Videos', 'Music', 'Books')
@@ -134,9 +135,9 @@ if ($localFiles.Count -eq 0) {
     exit 2
 }
 
-# --- [2/6] check the bench can carry the grants --------------------------------------------------
+# --- [2/7] check the bench can carry the grants --------------------------------------------------
 
-Write-Host "[2/6] Checking the device.."
+Write-Host "[2/7] Checking the device.."
 $sdkRaw = (Invoke-DeviceShell 'getprop ro.build.version.sdk') -join ' '
 if ($script:deviceExit -ne 0) {
     Write-Host "SEED FAIL: could not reach a device (adb.ps1 exit $($script:deviceExit)): $sdkRaw"
@@ -160,18 +161,18 @@ if ($packageList -notmatch [regex]::Escape("package:$Package")) {
 }
 Write-Host "  API $deviceSdk, $Package installed"
 
-# --- [3/6] clear the root ------------------------------------------------------------------------
+# --- [3/7] clear the root ------------------------------------------------------------------------
 
-Write-Host "[3/6] Clearing the device root.."
+Write-Host "[3/7] Clearing the device root.."
 $clearOut = Invoke-DeviceShell "rm -rf '$Root' && mkdir -p '$Root'"
 if ($script:deviceExit -ne 0) {
     Write-Host "SEED FAIL: could not prepare $Root (adb.ps1 exit $($script:deviceExit)): $clearOut"
     exit 1
 }
 
-# --- [4/6] push ----------------------------------------------------------------------------------
+# --- [4/7] push ----------------------------------------------------------------------------------
 
-Write-Host "[4/6] Pushing $($localFiles.Count) file(s).."
+Write-Host "[4/7] Pushing $($localFiles.Count) file(s).."
 foreach ($folder in $folders) {
     $source = Join-Path $localRoot $folder
     if (-not (Test-Path $source)) { continue }
@@ -184,11 +185,11 @@ foreach ($folder in $folders) {
     Write-Host "  pushed $folder"
 }
 
-# --- [5/6] hand the files to MediaStore ----------------------------------------------------------
+# --- [5/7] hand the files to MediaStore ----------------------------------------------------------
 
 # One broadcast per file rather than a volume rescan: the corpus is small, and the per-file form is
 # the one this repository has already proven across its AVD fleet.
-Write-Host "[5/6] Handing the files to MediaStore.."
+Write-Host "[5/7] Handing the files to MediaStore.."
 foreach ($file in $localFiles) {
     $relative = $file.FullName.Substring($localRoot.Length).Replace('\', '/').TrimStart('/')
     $remote = "$Root/$relative"
@@ -200,9 +201,9 @@ foreach ($file in $localFiles) {
     }
 }
 
-# --- [6/6] grant, before the app is first launched ------------------------------------------------
+# --- [6/7] grant, before the app is first launched ------------------------------------------------
 
-Write-Host "[6/6] Granting the media-read permissions.."
+Write-Host "[6/7] Granting the media-read permissions.."
 foreach ($permission in $MEDIA_PERMISSIONS) {
     $grantOut = Invoke-DeviceShell "pm grant $Package $permission"
     if ($script:deviceExit -ne 0) {
@@ -213,5 +214,43 @@ foreach ($permission in $MEDIA_PERMISSIONS) {
     Write-Host "  granted $permission"
 }
 
-Write-Host "SEED OK: $($localFiles.Count) file(s) under $Root, $($MEDIA_PERMISSIONS.Count) permission(s) granted to $Package"
+# --- [7/7] clear the first-run wizard out of the walk's way ---------------------------------------
+
+# A fresh install opens WelcomeActivity, and the walk's every combination begins by asserting the
+# start screen - so on a clean emulator the sweep refused the whole matrix before its first frame,
+# with "the app never reached its start screen" (measured emulator-5554, 2026-09-20). The wizard is
+# not a screen this sweep photographs: it is a one-time gate in front of every screen that is.
+#
+# Written as the preference rather than driven as a wizard on purpose. The wizard is a pager of
+# unknown length whose pages raise system permission dialogs, so a tap chain through it would be the
+# one part of the sweep that navigates blind - exactly what the declared catalog exists to avoid.
+# The app must NOT be running for this write: SharedPreferences flushes its in-memory copy on exit
+# and would overwrite the file underneath us.
+Write-Host "[7/7] Marking the first-run wizard complete.."
+$null = Invoke-DeviceShell "am force-stop $Package"
+$welcomeXml = @"
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="welcome_completed" value="true" />
+    <boolean name="first_run_after_welcome" value="false" />
+</map>
+"@
+# One line, because `run-as ... sh -c` is the only shape that redirects INSIDE the app sandbox; a
+# redirect written outside it lands in the shell user's filesystem and the app never sees it.
+$encodedXml = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($welcomeXml))
+$writeOut = Invoke-DeviceShell "run-as $Package sh -c 'mkdir -p shared_prefs && echo $encodedXml | base64 -d > shared_prefs/welcome_prefs.xml'"
+if ($script:deviceExit -ne 0) {
+    Write-Host ($writeOut -join "`n")
+    Write-Host "SEED FAIL: could not write welcome_prefs.xml - is $Package a debuggable build? Without it the walk refuses every combination at the start screen."
+    exit 1
+}
+$readBack = Invoke-DeviceShell "run-as $Package cat shared_prefs/welcome_prefs.xml"
+if ($script:deviceExit -ne 0 -or ($readBack -join '') -notmatch 'welcome_completed') {
+    Write-Host ($readBack -join "`n")
+    Write-Host "SEED FAIL: welcome_prefs.xml did not read back with welcome_completed - the wizard would still open."
+    exit 1
+}
+Write-Host "  welcome_completed=true"
+
+Write-Host "SEED OK: $($localFiles.Count) file(s) under $Root, $($MEDIA_PERMISSIONS.Count) permission(s) granted to $Package, first-run wizard cleared"
 exit 0

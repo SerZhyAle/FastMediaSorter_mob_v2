@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -19,34 +21,60 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
-import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
-import kotlinx.coroutines.launch
-import timber.log.Timber
-
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.usecase.ObserveHeadingUseCase
 import com.sza.fastmediasorter.wear.ui.common.dimclock.WearDimClock
 import com.sza.fastmediasorter.wear.ui.common.dimclock.WearDimClockEntryPoint
+import com.sza.fastmediasorter.wear.ui.common.dimresponse.TapResponseGeometry
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.launch
+import kotlin.random.Random
 
-/** How long the acknowledgement ring takes to spread out and fade after a single tap - slow on purpose. */
-private const val TAP_MARK_DURATION_MS = 1400
+/** How long the acknowledgement ring takes to spread out and fade - slow on purpose (S3370 doubled it). */
+private const val TAP_MARK_DURATION_MS = 2800
 
 /** The ring is born at the size the old static mark had, so the tap point is still found at once. */
 private val TAP_MARK_START_RADIUS = 6.dp
 
 /** Wide enough to read as a wave, small enough to leave most of the glass dark. */
-private val TAP_MARK_END_RADIUS = 48.dp
+private val TAP_MARK_END_RADIUS = 96.dp
 
 private val TAP_MARK_STROKE = 2.dp
+
+/** S3370: the spark pair is the "fast" half of the response - visibly shorter than the ring. */
+private const val SPARK_DURATION_MS = 700
+
+private val SPARK_LENGTH_DP = 40.dp
+
+private val SPARK_PEAK_WIDTH_DP = 6.dp
+
+private val SPARK_TRAVEL_DP = 40.dp
+
+private const val SPARK_PROFILE_STEPS = 12
+
+private const val SPARK_STRIPE_HALF = 0.5f
+
+private const val FULL_CIRCLE_DEGREES = 360f
+
+private const val SPARK_NORTH_COLOR_ARGB = 0xFFE53935
+
+private const val SPARK_SOUTH_COLOR_ARGB = 0xFF448AFF
+
+private val SPARK_NORTH_COLOR = Color(SPARK_NORTH_COLOR_ARGB)
+
+private val SPARK_SOUTH_COLOR = Color(SPARK_SOUTH_COLOR_ARGB)
 
 /**
  * S1683: an opaque black sheet over the whole screen that a deliberate gesture dismisses. It is
@@ -72,11 +100,16 @@ private val TAP_MARK_STROKE = 2.dp
  * name at a false address for the screen that now calls it most.
  *
  * S3256: displays clock and status overlay when [WearAppearancePreferences.dimClockOverlayEnabled] is on.
+ *
+ * S3370: the tap now also throws a pair of tapered compass sparks out of the touch point - red
+ * toward geographic north, blue toward south, driven by the live heading flow collected while this
+ * sheet is up; without a confident heading both sparks are white on a random azimuth chosen fresh
+ * per tap. Drawing stays inside the same draw pass and only while the animation is active.
  */
 @Composable
 internal fun WearDimOverlay(
     onExit: () -> Unit,
-    clock: @Composable () -> Unit = {
+    clock: @Composable (lastUserActivityMillis: Long) -> Unit = { lastUserActivityMillis ->
         val context = LocalContext.current
         val entryPoint = remember(context) {
             EntryPointAccessors.fromApplication(
@@ -85,13 +118,15 @@ internal fun WearDimOverlay(
             )
         }
         val preferencesRepository = entryPoint.preferencesRepository()
-        val dimClockOverlayEnabled by preferencesRepository.dimClockOverlayEnabled.collectAsStateWithLifecycle(initialValue = false)
+        val dimClockOverlayEnabled by preferencesRepository.dimClockOverlayEnabled.collectAsStateWithLifecycle(
+            initialValue = false
+        )
         if (dimClockOverlayEnabled) {
-            Timber.d("S3256: watch dim overlay composed with dim clock enabled")
             WearDimClock(
                 preferencesRepository = preferencesRepository,
                 powerStateObserver = entryPoint.powerStateObserver(),
-                systemInfoDataSource = entryPoint.systemInfoDataSource()
+                systemInfoDataSource = entryPoint.systemInfoDataSource(),
+                lastUserActivityMillis = lastUserActivityMillis
             )
         }
     }
@@ -102,10 +137,26 @@ internal fun WearDimOverlay(
     // so a tap during a ring restarts it from the new point instead of stacking a second ring.
     val tapProgress = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
+    // Bumped by every single tap; the clock's idle fade restarts from it (S3361).
+    val lastUserActivity = remember { mutableLongStateOf(0L) }
     // The callers pass a method reference, which is a fresh instance on every recomposition, and the
     // player recomposes about once a second while the track runs. Keying the gesture detector on it
     // would restart the detector mid-gesture and swallow the second half of a double tap.
     val currentExit by rememberUpdatedState(onExit)
+    // S3370: the heading flow is collected only while this sheet is composed, so the sensor
+    // listener lives exactly as long as the dim screen - the OLED economy is untouched.
+    val context = LocalContext.current
+    val observeHeading: ObserveHeadingUseCase = remember(context) {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            WearDimClockEntryPoint::class.java
+        ).heading()
+    }
+    val heading by remember(context) { observeHeading() }
+        .collectAsStateWithLifecycle(initialValue = null)
+    // Azimuth captured at tap time, already flipped so it aims at geographic north on screen.
+    var sparkNorthAzimuthDegrees by remember { mutableFloatStateOf(0f) }
+    val stripePath = remember { Path() }
 
     BackHandler { currentExit() }
 
@@ -120,8 +171,16 @@ internal fun WearDimOverlay(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { point ->
-                        Timber.d("S3200: dim overlay tap ring started")
                         tapMark = point
+                        lastUserActivity.longValue = System.currentTimeMillis()
+                        val reading = heading
+                        val trusted = reading?.isTrustworthy == true
+                        val azimuth = if (trusted && reading != null) {
+                            reading.azimuthDegrees
+                        } else {
+                            Random.nextFloat() * FULL_CIRCLE_DEGREES
+                        }
+                        sparkNorthAzimuthDegrees = (FULL_CIRCLE_DEGREES - azimuth) % FULL_CIRCLE_DEGREES
                         scope.launch {
                             tapProgress.snapTo(0f)
                             tapProgress.animateTo(
@@ -145,10 +204,56 @@ internal fun WearDimOverlay(
                         alpha = 1f - progress,
                         style = Stroke(width = TAP_MARK_STROKE.toPx())
                     )
+                    val sparkProgress = progress * TAP_MARK_DURATION_MS / SPARK_DURATION_MS
+                    if (sparkProgress < 1f) {
+                        drawSparkPair(stripePath, center, sparkNorthAzimuthDegrees, sparkProgress)
+                    }
                 }
             }
             .semantics { contentDescription = exitDesc }
     ) {
-        clock()
+        clock(lastUserActivity.longValue)
     }
+}
+
+private fun DrawScope.drawSparkPair(
+    stripePath: Path,
+    center: Offset,
+    northAzimuthDegrees: Float,
+    progress: Float,
+) {
+    val north = TapResponseGeometry.directionUnitVector(northAzimuthDegrees)
+    drawSparkStripe(stripePath, center, north, progress, SPARK_NORTH_COLOR)
+    val south = TapResponseGeometry.oppositeDirection(north)
+    drawSparkStripe(stripePath, center, south, progress, SPARK_SOUTH_COLOR)
+}
+
+private fun DrawScope.drawSparkStripe(
+    stripePath: Path,
+    center: Offset,
+    direction: Pair<Float, Float>,
+    progress: Float,
+    color: Color,
+) {
+    val (dirX, dirY) = direction
+    val along = Offset(dirX, dirY)
+    val normal = Offset(-dirY, dirX)
+    val baseOffset = SPARK_TRAVEL_DP.toPx() * progress
+    val length = SPARK_LENGTH_DP.toPx()
+    val peakHalfWidth = SPARK_PEAK_WIDTH_DP.toPx() * SPARK_STRIPE_HALF
+    stripePath.reset()
+    for (i in 0..SPARK_PROFILE_STEPS) {
+        val t = i / SPARK_PROFILE_STEPS.toFloat()
+        val halfWidth = peakHalfWidth * TapResponseGeometry.widthProfile(t)
+        val point = center + along * (baseOffset + length * t) + normal * halfWidth
+        if (i == 0) stripePath.moveTo(point.x, point.y) else stripePath.lineTo(point.x, point.y)
+    }
+    for (i in SPARK_PROFILE_STEPS downTo 0) {
+        val t = i / SPARK_PROFILE_STEPS.toFloat()
+        val halfWidth = peakHalfWidth * TapResponseGeometry.widthProfile(t)
+        val point = center + along * (baseOffset + length * t) - normal * halfWidth
+        stripePath.lineTo(point.x, point.y)
+    }
+    stripePath.close()
+    drawPath(stripePath, color, alpha = 1f - progress)
 }

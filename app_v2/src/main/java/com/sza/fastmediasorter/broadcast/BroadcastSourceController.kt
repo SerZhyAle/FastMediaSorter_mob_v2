@@ -51,6 +51,12 @@ interface BroadcastSourceController {
     // S3038: live count of connected listeners, published by the server.
     val listenerCount: StateFlow<Int>
 
+    /**
+     * S3349: true while the acoustic-feedback guard is holding the microphone gain down. The screen
+     * shows it so a dip the guard caused does not read as a broken microphone.
+     */
+    val feedbackSuppressed: StateFlow<Boolean>
+
     /** [lensId] is a [BroadcastLensOption.id]; null opens the phone's main back lens. Ignored by AUDIO_ONLY. */
     fun start(mode: BroadcastMode, lensId: String? = null)
     fun stop()

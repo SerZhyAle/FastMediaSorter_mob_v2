@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.domain.usecase.link.YtMusicAudioOnlyContract
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import com.sza.fastmediasorter.util.showBoundToHost
@@ -243,11 +244,15 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
             lines += appContext.getString(R.string.s0117_batch_dialog_more_failures, remaining)
         }
 
-        AlertDialog.Builder(hostActivity)
+        val dialog = MaterialAlertDialogBuilder(hostActivity)
             .setTitle(R.string.s0117_batch_dialog_title)
             .setMessage(lines.joinToString("\n"))
             .setPositiveButton(R.string.ok, null)
-            .showBoundToHost(hostActivity)
+            .create()
+        DialogKeyboardDelegate.applyTo(dialog) {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+        }
+        dialog.showBoundToHost(hostActivity)
     }
 
     private fun renderFailureReason(failure: LinkAutoDownloadCoordinator.Result.Failed): String {

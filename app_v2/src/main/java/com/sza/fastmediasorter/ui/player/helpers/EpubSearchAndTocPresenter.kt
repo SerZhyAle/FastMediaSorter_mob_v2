@@ -2,15 +2,18 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.view.View
 import android.webkit.WebView
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.warnUnlessCancellation
-import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
+import com.sza.fastmediasorter.ui.player.sheets.EpubSearchBottomSheet
+import com.sza.fastmediasorter.ui.player.sheets.EpubTocBottomSheet
 import io.documentnode.epub4j.domain.Book
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import org.jsoup.Jsoup
 import timber.log.Timber
 
@@ -39,7 +42,16 @@ class EpubSearchAndTocPresenter(
     private val onNavigateToChapter: suspend (Int) -> Unit
 ) {
 
-    private val MAX_SEARCH_RESULTS = 500 // Limit cross-chapter results to prevent OOM (M-3 fix)
+    private companion object {
+        // Limit cross-chapter results to prevent OOM (M-3 fix)
+        const val MAX_SEARCH_RESULTS = 500
+
+        /** Characters of surrounding text kept on each side of a match in the result snippet. */
+        const val SNIPPET_CONTEXT_WINDOW = 60
+
+        /** Lets the WebView finish loading the target chapter before the in-page highlight runs. */
+        const val HIGHLIGHT_DELAY_MS = 300L
+    }
 
     // ── In-chapter search ────────────────────────────────────────────────────
 
@@ -105,160 +117,95 @@ class EpubSearchAndTocPresenter(
             Timber.w("EPUB: Cannot search - no book loaded")
             return
         }
-
-        val context = root.context
-        val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(context)
-        val view: android.view.View = android.view.LayoutInflater.from(context)
-            .inflate(R.layout.bottom_sheet_epub_search, null)
-
-        val etQuery = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etSearchAllQuery)
-        val searchProgress = view.findViewById<com.google.android.material.progressindicator.LinearProgressIndicator>(R.id.searchProgress)
-        val tvStatus = view.findViewById<android.widget.TextView>(R.id.tvSearchStatus)
-        val rvResults = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvSearchResults)
-
-        rvResults.layoutManager = LinearLayoutManager(context)
-
-        var searchJob: kotlinx.coroutines.Job? = null
-
-        etQuery.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
-                val query = etQuery.text?.toString()?.trim() ?: ""
-                if (query.length >= 2) {
-                    searchJob?.cancel()
-                    searchJob = performCrossChapterSearch(
-                        book, query, context, bottomSheet,
-                        searchProgress, tvStatus, rvResults
-                    )
-                }
-                true
-            } else false
+        val host = root.context as? FragmentActivity
+        if (host == null) {
+            Timber.w("EPUB: host is not a FragmentActivity, cannot show search sheet")
+            return
         }
 
-        bottomSheet.setContentView(view)
+        EpubSearchBottomSheet.newInstance(
+            maxResults = MAX_SEARCH_RESULTS,
+            searchProvider = { query -> scanChaptersFor(book, query) },
+            onResultSelected = { result, query ->
+                // Navigate to chapter and highlight using onPageFinished (M-2 fix)
+                coroutineScope.launch {
+                    onNavigateToChapter(result.chapterIndex)
+                    // Trigger in-page highlight after WebView finishes loading
+                    delay(HIGHLIGHT_DELAY_MS)
+                    searchInEpub(query) {}
+                }
+            },
+        ).show(host.supportFragmentManager, EpubSearchBottomSheet.TAG)
 
-        // Cancel search coroutine when BottomSheet is dismissed (C-2 fix)
-        bottomSheet.setOnDismissListener { searchJob?.cancel() }
-
-        bottomSheet.show()
-
-        // Focus input and show keyboard
-        etQuery.requestFocus()
-        val imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
-        etQuery.postDelayed(
-            { imm.showSoftInputImplicitly(etQuery) },
-            200
-        )
-
-        Timber.d("EPUB: Cross-chapter search dialog shown")
+        Timber.d("EPUB: Cross-chapter search sheet shown")
     }
 
     /**
-     * Execute cross-chapter search in background coroutine.
+     * Scan every spine chapter for [query] on IO, capped at [MAX_SEARCH_RESULTS] to prevent OOM
+     * (M-3 fix). Cooperatively cancellable - the caller's sheet cancels the job on dismissal.
      */
-    private fun performCrossChapterSearch(
-        book: Book,
+    private suspend fun scanChaptersFor(book: Book, query: String): List<EpubSearchResult> =
+        withContext(Dispatchers.IO) {
+            val allResults = mutableListOf<EpubSearchResult>()
+            val spine = book.spine
+
+            for (i in 0 until spine.spineReferences.size) {
+                yield() // Check cancellation
+
+                val spineRef = spine.spineReferences[i]
+                val resource = spineRef.resource
+                val title = resource.title?.takeIf { it.isNotBlank() } ?: "Chapter ${i + 1}"
+
+                try {
+                    val htmlContent = String(resource.data, Charsets.UTF_8)
+                    val plainText = Jsoup.parse(htmlContent).text()
+                    collectMatches(plainText, query, i, title, allResults)
+                } catch (e: Exception) {
+                    e.warnUnlessCancellation("EPUB: Error searching chapter $i")
+                }
+
+                // Stop scanning more chapters if limit reached (M-3 fix)
+                if (allResults.size >= MAX_SEARCH_RESULTS) break
+            }
+
+            Timber.d("EPUB: Cross-chapter search for '$query': ${allResults.size} results")
+            allResults
+        }
+
+    private fun collectMatches(
+        plainText: String,
         query: String,
-        context: android.content.Context,
-        bottomSheet: com.google.android.material.bottomsheet.BottomSheetDialog,
-        searchProgress: com.google.android.material.progressindicator.LinearProgressIndicator,
-        tvStatus: android.widget.TextView,
-        rvResults: androidx.recyclerview.widget.RecyclerView
-    ): kotlinx.coroutines.Job {
-        return coroutineScope.launch {
-            withContext(Dispatchers.Main) {
-                searchProgress.visibility = android.view.View.VISIBLE
-                tvStatus.visibility = android.view.View.VISIBLE
-                tvStatus.text = context.getString(R.string.epub_searching)
-                rvResults.adapter = null
+        chapterIndex: Int,
+        chapterTitle: String,
+        output: MutableList<EpubSearchResult>
+    ) {
+        val lowerText = plainText.lowercase()
+        val lowerQuery = query.lowercase()
+        var searchFrom = 0
+
+        while (searchFrom < lowerText.length && output.size < MAX_SEARCH_RESULTS) {
+            val pos = lowerText.indexOf(lowerQuery, searchFrom)
+            if (pos < 0) break
+
+            val snippetStart = (pos - SNIPPET_CONTEXT_WINDOW).coerceAtLeast(0)
+            val snippetEnd = (pos + query.length + SNIPPET_CONTEXT_WINDOW).coerceAtMost(plainText.length)
+            val snippet = buildString {
+                if (snippetStart > 0) append("…")
+                append(plainText.substring(snippetStart, snippetEnd))
+                if (snippetEnd < plainText.length) append("…")
             }
 
-            // Scan all chapters on IO
-            val results = withContext(Dispatchers.IO) {
-                val allResults = mutableListOf<EpubSearchResult>()
-                val spine = book.spine
-                val contextWindow = 60 // chars around match
+            output.add(
+                EpubSearchResult(
+                    chapterIndex = chapterIndex,
+                    chapterTitle = chapterTitle,
+                    contextSnippet = snippet,
+                    matchStartInText = pos,
+                    matchedText = plainText.substring(pos, pos + query.length)
+                )
+            )
 
-                for (i in 0 until spine.spineReferences.size) {
-                    kotlinx.coroutines.yield() // Check cancellation
-
-                    val spineRef = spine.spineReferences[i]
-                    val resource = spineRef.resource
-                    val title = resource.title?.takeIf { it.isNotBlank() } ?: "Chapter ${i + 1}"
-
-                    try {
-                        val htmlContent = String(resource.data, Charsets.UTF_8)
-                        val plainText = Jsoup.parse(htmlContent).text()
-
-                        var searchFrom = 0
-                        val lowerText = plainText.lowercase()
-                        val lowerQuery = query.lowercase()
-
-                        while (searchFrom < lowerText.length) {
-                            val pos = lowerText.indexOf(lowerQuery, searchFrom)
-                            if (pos < 0) break
-
-                            // Limit total results to prevent OOM (M-3 fix)
-                            if (allResults.size >= MAX_SEARCH_RESULTS) break
-
-                            val snippetStart = (pos - contextWindow).coerceAtLeast(0)
-                            val snippetEnd = (pos + query.length + contextWindow).coerceAtMost(plainText.length)
-                            val snippet = buildString {
-                                if (snippetStart > 0) append("…")
-                                append(plainText.substring(snippetStart, snippetEnd))
-                                if (snippetEnd < plainText.length) append("…")
-                            }
-
-                            allResults.add(
-                                EpubSearchResult(
-                                    chapterIndex = i,
-                                    chapterTitle = title,
-                                    contextSnippet = snippet,
-                                    matchStartInText = pos,
-                                    matchedText = plainText.substring(pos, pos + query.length)
-                                )
-                            )
-
-                            searchFrom = pos + query.length
-                        }
-                    } catch (e: Exception) {
-                        e.warnUnlessCancellation("EPUB: Error searching chapter $i")
-                    }
-
-                    // Stop scanning more chapters if limit reached (M-3 fix)
-                    if (allResults.size >= MAX_SEARCH_RESULTS) break
-                }
-
-                allResults
-            }
-
-            withContext(Dispatchers.Main) {
-                searchProgress.visibility = android.view.View.GONE
-
-                if (results.isEmpty()) {
-                    tvStatus.text = context.getString(R.string.epub_search_no_results)
-                } else {
-                    val chaptersWithMatches = results.map { it.chapterIndex }.distinct().size
-                    val statusText = if (results.size >= MAX_SEARCH_RESULTS) {
-                        "${context.getString(R.string.epub_search_results, results.size, chaptersWithMatches)} (max)"
-                    } else {
-                        context.getString(R.string.epub_search_results, results.size, chaptersWithMatches)
-                    }
-                    tvStatus.text = statusText
-
-                    rvResults.adapter = EpubSearchResultAdapter(results) { result ->
-                        bottomSheet.dismiss()
-                        // Navigate to chapter and highlight using onPageFinished (M-2 fix)
-                        coroutineScope.launch {
-                            onNavigateToChapter(result.chapterIndex)
-                            // Trigger in-page highlight after WebView finishes loading
-                            kotlinx.coroutines.delay(300)
-                            searchInEpub(query) {}
-                        }
-                    }
-                }
-
-                Timber.d("EPUB: Cross-chapter search for '$query': ${results.size} results")
-            }
+            searchFrom = pos + query.length
         }
     }
 
@@ -367,46 +314,28 @@ class EpubSearchAndTocPresenter(
     }
 
     /**
-     * Show BottomSheetDialog with a RecyclerView chapter list.
+     * Show the recreation-safe TOC sheet with a RecyclerView chapter list.
      */
     private fun showTocBottomSheet(
         book: Book,
         context: android.content.Context,
         chapters: List<Pair<String, Int>>
     ) {
-        val currentChapterIndex = currentChapterIndexProvider()
-        val chapterCount = chapterCountProvider()
+        val host = context as? FragmentActivity
+        if (host == null) {
+            Timber.w("EPUB: host is not a FragmentActivity, cannot show TOC sheet")
+            return
+        }
 
-        val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(context)
-        val view: android.view.View = android.view.LayoutInflater.from(context)
-            .inflate(R.layout.bottom_sheet_epub_toc, null)
-
-        val tvTitle = view.findViewById<android.widget.TextView>(R.id.tvTocTitle)
-        val tvProgress = view.findViewById<android.widget.TextView>(R.id.tvChapterProgress)
-        val rvChapters = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvTocChapters)
-
-        tvTitle.text = book.title ?: context.getString(R.string.epub_table_of_contents)
-        tvProgress.text = context.getString(R.string.epub_chapter_progress, currentChapterIndex + 1, chapterCount)
-
-        val adapter = EpubTocAdapter(
+        EpubTocBottomSheet.newInstance(
+            bookTitle = book.title,
             chapters = chapters,
-            currentChapterSpineIndex = currentChapterIndex,
+            currentChapterIndex = currentChapterIndexProvider(),
+            chapterCount = chapterCountProvider(),
             onChapterSelected = { spineIndex ->
-                bottomSheet.dismiss()
-                coroutineScope.launch {
-                    onNavigateToChapter(spineIndex)
-                }
-            }
-        )
-
-        rvChapters.layoutManager = LinearLayoutManager(context)
-        rvChapters.adapter = adapter
-
-        val currentPos = adapter.findCurrentChapterPosition()
-        if (currentPos > 0) rvChapters.scrollToPosition(currentPos)
-
-        bottomSheet.setContentView(view)
-        bottomSheet.show()
+                coroutineScope.launch { onNavigateToChapter(spineIndex) }
+            },
+        ).show(host.supportFragmentManager, EpubTocBottomSheet.TAG)
 
         Timber.d("EPUB: TOC BottomSheet shown with ${chapters.size} entries")
     }

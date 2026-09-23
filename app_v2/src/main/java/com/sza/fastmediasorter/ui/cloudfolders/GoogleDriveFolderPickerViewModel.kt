@@ -1,20 +1,20 @@
 package com.sza.fastmediasorter.ui.cloudfolders
 
 import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.AuthResult
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
-import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
-import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,12 +28,12 @@ import javax.inject.Inject
 
 data class GoogleDriveFolderPickerState(
     val folders: List<CloudFolderItem> = emptyList(),
-    val selectedFolders: Set<String> = emptySet(),  // IDs of selected folders
+    val selectedFolders: Set<String> = emptySet(), // IDs of selected folders
     val isLoading: Boolean = false,
     val currentPath: List<PathItem> = listOf(PathItem("root", "My Drive")),
     val canGoBack: Boolean = false,
-    val addAsDestination: Boolean = false,  // Flag to mark resources as destinations
-    val scanSubdirectories: Boolean = true  // Flag to scan subdirectories
+    val addAsDestination: Boolean = false, // Flag to mark resources as destinations
+    val scanSubdirectories: Boolean = true // Flag to scan subdirectories
 ) {
     val selectedCount: Int get() = selectedFolders.size
     val hasSelection: Boolean get() = selectedFolders.isNotEmpty()
@@ -82,7 +82,7 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
                     _state.update { it.copy(isLoading = false) }
                     return@launch
                 }
-                
+
                 when (val result = googleDriveClient.listFolders(null)) {
                     is CloudResult.Success -> {
                         val folders = result.data.map { cloudFile ->
@@ -115,7 +115,7 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
     fun toggleScanSubdirectoriesFlag() {
         _state.update { it.copy(scanSubdirectories = !it.scanSubdirectories) }
     }
-    
+
     fun selectFolder(folder: CloudFolderItem) {
         viewModelScope.launch {
             val isDestination = _state.value.addAsDestination
@@ -136,7 +136,7 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
                 // Get globally enabled media types from settings
                 val settings = settingsRepository.getSettings().first()
                 val supportedTypes = settings.getGloballyEnabledMediaTypes()
-                
+
                 val resource = com.sza.fastmediasorter.domain.model.MediaResource(
                     id = 0,
                     type = ResourceType.CLOUD,
@@ -151,9 +151,9 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
                     isWritable = true, // Cloud storage is writable
                     supportedMediaTypes = supportedTypes
                 )
-                
+
                 val result = addResourceUseCase.addMultiple(listOf(resource))
-                
+
                 result.onSuccess {
                     _events.send(GoogleDriveFolderPickerEvent.FolderSelected)
                 }.onFailure { e ->

@@ -9,8 +9,11 @@ import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import android.util.TypedValue
+import android.view.KeyEvent
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.StreamViabilityState
 import com.sza.fastmediasorter.ui.player.helpers.PrefetchProgress
 import timber.log.Timber
@@ -76,11 +79,17 @@ class PrefetchOverlayView @JvmOverloads constructor(
         alpha = 200
     }
     private val barBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#44FFFFFF")
+        color = Color.WHITE
+        alpha = BAR_BACKGROUND_ALPHA
         style = Paint.Style.FILL
     }
     private val barFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
+    }
+
+    init {
+        isFocusable = true
+        isFocusableInTouchMode = true
     }
 
     // ── Dimension helpers ──────────────────────────────────────────────────────
@@ -170,6 +179,17 @@ class PrefetchOverlayView @JvmOverloads constructor(
         return true
     }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        val dismisses = keyCode == KeyEvent.KEYCODE_ESCAPE ||
+            keyCode == KeyEvent.KEYCODE_BACK ||
+            keyCode == KeyEvent.KEYCODE_ENTER ||
+            keyCode == KeyEvent.KEYCODE_DPAD_CENTER
+        Timber.d("S3252: PrefetchOverlayView key $keyCode dismisses=$dismisses")
+        if (!dismisses) return super.onKeyDown(keyCode, event)
+        performClick()
+        return true
+    }
+
     // ── Layout ─────────────────────────────────────────────────────────────────
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -197,16 +217,16 @@ class PrefetchOverlayView @JvmOverloads constructor(
         val barColor: Int
         when {
             isLocalCopyMode -> {
-                pillColor = Color.parseColor("#CC2E7D32")   // green, 80 % opaque
-                barColor = Color.parseColor("#4CAF50")
+                pillColor = overlayColor(R.color.prefetch_pill_success)
+                barColor = overlayColor(R.color.prefetch_bar_success)
             }
             viability == StreamViabilityState.MARGINAL -> {
-                pillColor = Color.parseColor("#CCF57F17")   // amber, 80 % opaque
-                barColor = Color.parseColor("#FFB300")
+                pillColor = overlayColor(R.color.prefetch_pill_warning)
+                barColor = overlayColor(R.color.prefetch_bar_warning)
             }
             else -> {
-                pillColor = Color.parseColor("#CC1C1C1C")   // dark, 80 % opaque
-                barColor = Color.parseColor("#2196F3")
+                pillColor = overlayColor(R.color.prefetch_pill_neutral)
+                barColor = overlayColor(R.color.prefetch_bar_neutral)
             }
         }
         pillPaint.color = pillColor
@@ -277,6 +297,8 @@ class PrefetchOverlayView @JvmOverloads constructor(
 
     // ── Helpers ────────────────────────────────────────────────────────────────
 
+    private fun overlayColor(colorRes: Int): Int = ContextCompat.getColor(context, colorRes)
+
     private fun scheduleDismiss(delayMs: Long) {
         dismissRunnable?.let { handler.removeCallbacks(it) }
         val r = Runnable {
@@ -306,6 +328,7 @@ class PrefetchOverlayView @JvmOverloads constructor(
     }
 
     companion object {
+        private const val BAR_BACKGROUND_ALPHA = 0x44
         private const val AUTO_DISMISS_DELAY_MS = 600L
         private const val LOCAL_COPY_DISMISS_MS = 3000L
     }

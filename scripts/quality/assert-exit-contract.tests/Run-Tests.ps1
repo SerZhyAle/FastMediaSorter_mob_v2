@@ -181,6 +181,20 @@ exit 0
     $swallowedExit = $LASTEXITCODE
     Assert-That 'J2 gate exits 1 when the pipeline tail is Out-Null' ($swallowedExit -eq 1) "expected 1, got $swallowedExit"
 
+    # --- J3 (S3461): Test-BaselineWrite / Test-BaselineFloorWrite print their own refusal, so an
+    # exit guarded by one of them carries its reason. ---
+    $guardedWrite = New-Fixture 'guardedwrite.ps1' @'
+$previous = @()
+$current = @('a')
+if (-not (Test-BaselineWrite -Gate 'x' -Previous $previous -Current $current -Reason '')) { exit 2 }
+$floorOk = Test-BaselineFloorWrite -Gate 'x' -Previous 1 -Current 2 -Reason ''
+if (-not $floorOk) { exit 2 }
+exit 0
+'@
+    & $pwshExe -NoProfile -File $gate -Gate -Path $guardedWrite -ReasonBaseline 0 *> $null
+    $guardedWriteExit = $LASTEXITCODE
+    Assert-That 'J3 gate exits 0 when the exit is guarded by a baseline-write helper' ($guardedWriteExit -eq 0) "expected 0, got $guardedWriteExit"
+
     # --- K (S1547): the terminating mode can arrive through a dot-source. Condition 1 used to read
     # the scanned file's own lines only, so the 21 scripts sourcing scripts/spec_catalog/_lib.ps1 -
     # the whole spec-catalog toolchain, the path every status transition takes - were skipped by

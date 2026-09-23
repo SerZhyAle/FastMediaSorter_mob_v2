@@ -33,17 +33,24 @@ private const val MIN_SCALE = 0.5f
  * survive the fit. The size is still expressed in sp, so it keeps tracking the system font scale - the
  * shrink only removes the part that would not fit.
  *
- * The scale is remembered per [text] and per the caller's size, so a settled key does not re-measure
- * and a font-scale change starts the search again from the top.
+ * The scale is remembered per [text] and per the caller's size, so a settled label does not
+ * re-measure and a font-scale change starts the search again from the top.
+ *
+ * @param sizeKey remembers the settled scale against this number instead of against [text]. For a
+ * label that changes only when something else does, the default is right. A readout that TICKS passes
+ * its LENGTH: re-keying on every frame would restart the search on every frame and the digits would
+ * pulse between full size and shrunk instead of settling. Keying on less than the whole text can only
+ * leave a scale smaller than needed, never larger, because an overflow still shrinks further (S3362).
  */
 @Composable
 fun WearFitText(
     text: String,
     style: TextStyle,
     modifier: Modifier = Modifier,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
+    sizeKey: Int? = null
 ) {
-    var scale by remember(text, style.fontSize) { mutableStateOf(1f) }
+    var scale by remember(sizeKey ?: text, style.fontSize) { mutableStateOf(1f) }
     Text(
         text = text,
         style = style,

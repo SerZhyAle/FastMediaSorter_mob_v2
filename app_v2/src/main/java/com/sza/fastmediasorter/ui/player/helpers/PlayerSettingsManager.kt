@@ -1,21 +1,22 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
-import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.dialog.AppDialog
 import com.sza.fastmediasorter.ui.player.PlayerSettings
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
-import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * Applies the session's playback settings to ExoPlayer, and owns the playback-speed dialog.
@@ -89,21 +90,24 @@ class PlayerSettingsManager(
      * Displays speed options from 0.25x to 2.0x.
      */
     fun showPlaybackSpeedDialog() {
+        Timber.d("S3243: playback speed dialog shown")
         val speeds = arrayOf("0.25x", "0.5x", "0.75x", "1.0x", "1.25x", "1.5x", "1.75x", "2.0x")
         val currentSpeed = videoPlayerManagerProvider().getPlayer()?.playbackParameters?.speed ?: 1.0f
         val currentIndex = speeds.indexOfFirst { 
             it.removeSuffix("x").toFloatOrNull() == currentSpeed 
         }.coerceAtLeast(3) // Default to 1.0x if not found
         
-        AlertDialog.Builder(activity)
-            .setTitle(activity.getString(R.string.playback_speed))
-            .setSingleChoiceItems(speeds, currentIndex) { dialog, which ->
-                val speed = speeds[which].removeSuffix("x").toFloat()
-                videoPlayerManagerProvider().setPlaybackSpeed(speed)
-                dialog.dismiss()
-            }
-            .setNegativeButton(activity.getString(R.string.cancel), null)
-            .showBoundToHost(activity)
+        AppDialog.singleChoice(
+            owner = activity as LifecycleOwner,
+            context = activity,
+            title = activity.getString(R.string.playback_speed),
+            items = speeds.toList(),
+            selectedIndex = currentIndex,
+            searchable = false,
+        ) { which ->
+            val speed = speeds[which].removeSuffix("x").toFloat()
+            videoPlayerManagerProvider().setPlaybackSpeed(speed)
+        }
     }
     
     /**

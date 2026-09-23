@@ -127,7 +127,7 @@
     <string name="setting_allow_separate_window">允许新建窗口</string>
     <string name="setting_allow_separate_window_desc">在单独的窗口中打开文件夹和文件</string>
     <string name="setting_background_sync_desc">在后台自动检查网络资源是否有变化</string>
-    <string name="setting_calculator_desc">在主菜单和启动器小组件中显示计算器</string>
+    <string name="setting_calculator_desc">在程序菜单、快捷访问面板和启动器桌面上显示计算器</string>
     <string name="setting_camera_ocr_only_desc">跳过翻译步骤，直接显示识别到的文字</string>
     <string name="setting_camera_ocr_only_title">仅 OCR（不翻译）</string>
     <string name="setting_camera_ocr_translation_desc">启用“拍照-识别-翻译”快捷流程</string>
@@ -261,7 +261,7 @@
     <string name="settings_wear_group_description">如果你有 Wear OS 手表，请开启此项。配套应用从这里打开，并决定这部手机与手表共享哪些内容。</string>
     <string name="settings_wear_install_guide_button">如何在手表上安装</string>
     <string name="settings_wear_web_portal_button">关于手表</string>
-    <string name="setting_stopwatch_desc">在主菜单和启动器小部件中显示秒表</string>
+    <string name="setting_stopwatch_desc">在程序菜单、快捷访问面板和启动器桌面上显示秒表</string>
     <string name="cross_device_transfer_send_to_device">发送到我的设备（Drive）</string>
     <string name="cross_device_transfer_pending_title">待处理的设备传输</string>
     <string name="cross_device_transfer_receive_and_delete">接收并从云端删除</string>

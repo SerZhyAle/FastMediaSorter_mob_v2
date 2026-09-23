@@ -34,7 +34,7 @@ class SystemInfoWindowManager @Inject constructor(
     suspend fun gather(context: Context): SystemInfoReport = systemInfoDialogManager.gather(context)
 
     fun bind(activity: AppCompatActivity, binding: ActivitySystemInfoBinding) {
-        binding.systemInfoToolbar.setNavigationOnClickListener { activity.finish() }
+        binding.systemInfoToolbar.setUpNavigation(activity)
         binding.systemInfoCopy.setOnClickListener { currentReport?.let(::copyReport) }
         binding.systemInfoShare.setOnClickListener { currentReport?.let { share(activity, it.fullText) } }
         binding.systemInfoSave.setOnClickListener { currentReport?.let(::saveReport) }

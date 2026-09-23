@@ -14,7 +14,9 @@
     A "new occurrence" is one the uncommitted change INTRODUCED (present in the working file,
     absent from its committed HEAD version). Pre-existing (baselined) occurrences in the same
     file do not fail - they are already in HEAD. A brand-new file (absent from HEAD) counts all
-    its occurrences as new (fail-closed: new code must not add the anti-pattern). This preserves
+    its occurrences as new (fail-closed: new code must not add the anti-pattern); a RENAMED file is
+    compared against its pre-rename HEAD copy, so moving a file does not re-charge its existing
+    occurrences to the change that moved it (S3244). This preserves
     the "count must not grow" guarantee for the changed file without a full-project scan, and
     without needing a per-file baseline (the integer baseline is untouched).
 
@@ -33,6 +35,26 @@ function Get-GitHeadText {
         $text = & git -C $RepoRoot show "HEAD:$RelPath" 2>$null | Out-String
         if ($LASTEXITCODE -ne 0) { return '' }
         return $text
+    }
+    catch { return '' }
+}
+
+# S3244: the path a renamed file had in HEAD, or '' when it is not a rename. Without this, a rename
+# reads as a brand-new file and every occurrence the file already carried counts as introduced today -
+# renaming dialog_stream_offload_offer.xml to sheet_stream_offload_offer.xml scored 18 new hardcoded
+# dimens that no edit added. Rename detection is git's (-M), so a rewritten file is still judged new.
+function Get-GitRenameSource {
+    param([Parameter(Mandatory)][string]$RepoRoot, [Parameter(Mandatory)][string]$RelPath)
+    try {
+        # No pathspec: git only reports a rename when BOTH halves are in the diff, so narrowing to the
+        # new path returns a bare 'A' and the rename is invisible.
+        $records = & git -C $RepoRoot diff -M --name-status --diff-filter=R HEAD 2>$null
+        if ($LASTEXITCODE -ne 0) { return '' }
+        foreach ($record in $records) {
+            $fields = $record -split "`t"
+            if ($fields.Count -ge 3 -and $fields[0] -match '^R' -and $fields[2] -eq $RelPath) { return $fields[1] }
+        }
+        return ''
     }
     catch { return '' }
 }
@@ -71,9 +93,16 @@ function Measure-ChangedFileGrowth {
             if ($null -eq $workText) { $workText = '' }
         }
         $headText = Get-GitHeadText -RepoRoot $RepoRoot -RelPath $rel
+        if ([string]::IsNullOrEmpty($headText)) {
+            $renamedFrom = Get-GitRenameSource -RepoRoot $RepoRoot -RelPath $rel
+            if ($renamedFrom) { $headText = Get-GitHeadText -RepoRoot $RepoRoot -RelPath $renamedFrom }
+        }
 
-        $workCount = [int](& $CountInText $workText)
-        $headCount = [int](& $CountInText $headText)
+        # S3255: the path rides along as a second positional argument so a predicate whose count is
+        # a property of a file pair (landscape parity) sees it; existing param($text) predicates
+        # are unaffected.
+        $workCount = [int](& $CountInText $workText $rel)
+        $headCount = [int](& $CountInText $headText $rel)
         $delta = $workCount - $headCount
         if ($delta -lt 0) { $delta = 0 }
         $growth += $delta

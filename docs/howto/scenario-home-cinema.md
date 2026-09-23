@@ -39,7 +39,7 @@ On **Windows:**
 
 ## Step 2 - Add the Video Folder in FastMediaSorter
 
-1. Open the app → tap **Add (⊕)** → **"Network folder SMB"**
+1. Open the app → tap **Add (⊕)** → **"Network folder (SMB)"**
 2. Tap **"Scan Network"** - the app scans your home network for available PCs
 3. When your PC appears in the list, tap it - the address fills in automatically
 4. Enter the share name (the video folder name), username and Windows password

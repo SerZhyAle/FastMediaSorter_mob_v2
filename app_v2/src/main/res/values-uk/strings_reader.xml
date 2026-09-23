@@ -78,7 +78,7 @@
     <string name="text_note_save_dialog_hint">Ім\'я файлу</string>
     <string name="text_note_save_dialog_ok">Зберегти</string>
     <string name="text_note_save_dialog_title">Зберегти нотатку</string>
-    <string name="text_note_save_error_network">Не вийшло достукатися до теки. Нотатка залишилась на пристрої - повторимо, коли з\'явиться зв\'язок.</string>
+    <string name="text_note_save_error_network">Не вийшло достукатися до папки. Нотатка залишилась на пристрої - повторимо, коли з\'явиться зв\'язок.</string>
     <string name="text_note_save_renamed_suffix">Збережено як %1$s (ім\'я було зайняте)</string>
     <string name="text_note_save_success_local">Збережено.</string>
     <string name="text_note_save_success_remote">Збережено в %1$s.</string>

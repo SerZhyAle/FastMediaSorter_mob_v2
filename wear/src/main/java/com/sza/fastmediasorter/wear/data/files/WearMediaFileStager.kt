@@ -2,6 +2,9 @@ package com.sza.fastmediasorter.wear.data.files
 
 import android.content.ContentResolver
 import android.content.Context
+import android.media.MediaScannerConnection
+import android.os.Build
+import android.os.storage.StorageManager
 import com.sza.fastmediasorter.wear.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -42,6 +45,49 @@ class WearMediaFileStager @Inject constructor(
         }
     }
 
+    /**
+     * S3383: the file behind a shared-storage row, reached by its path rather than copied, or null.
+     *
+     * A FileDO container is written beside its original and restored beside itself, which a copy in
+     * the cache cannot do. Scoped storage still serves a row's own path to the app that may read the
+     * row, and the path is the row's volume plus its relative path and name - resolved only from API
+     * 30, where a volume first answers its directory. Blocking: the volume lookup may query MediaStore.
+     */
+    fun sharedStorageFileOf(file: WearMediaFile): File? {
+        val relativePath = file.relativePath
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R ||
+            file.uri.scheme != ContentResolver.SCHEME_CONTENT ||
+            relativePath == null
+        ) {
+            return null
+        }
+        return try {
+            context.getSystemService(StorageManager::class.java)
+                ?.getStorageVolume(file.uri)
+                ?.directory
+                ?.let { volume -> File(File(volume, relativePath), file.name) }
+                ?.takeIf { it.isFile }
+        } catch (e: IllegalStateException) {
+            // The platform's answer for a row on a volume that is no longer mounted.
+            Timber.w(e, "No storage volume for a shared-storage row")
+            null
+        } catch (e: SecurityException) {
+            Timber.w(e, "Storage volume lookup refused for a shared-storage row")
+            null
+        }
+    }
+
+    /**
+     * S3383: asks MediaStore to index [written], a file this app created by path in shared storage.
+     *
+     * A container is written under a temporary name and renamed into place, and on API 37 that left
+     * it with no row at all until a scan - so it was missing from every flat list, which reads
+     * MediaStore and nothing else.
+     */
+    fun announce(written: File) {
+        MediaScannerConnection.scanFile(context, arrayOf(written.absolutePath), null, null)
+    }
+
     suspend fun stage(file: WearMediaFile): File? = withContext(Dispatchers.IO) {
         val own = localFileOf(file)
         when {
@@ -77,7 +123,6 @@ class WearMediaFileStager @Inject constructor(
             return null
         }
         val target = File(holder, file.name)
-        Timber.d("S3183: staging %s as %s", file.name, target.absolutePath)
         return try {
             context.contentResolver.openInputStream(file.uri)?.use { input ->
                 target.outputStream().use { output -> input.copyTo(output) }

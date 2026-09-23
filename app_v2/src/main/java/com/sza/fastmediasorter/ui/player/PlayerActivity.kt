@@ -102,7 +102,6 @@ class PlayerActivity :
 
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         val binding = ActivityPlayerUnifiedBinding.inflate(layoutInflater)
-        Timber.d("S3293: player unified layout bound with a11y marks")
         return binding
     }
 
@@ -662,6 +661,9 @@ class PlayerActivity :
         if (newConfig.orientation != lastAppliedOrientation) {
             lastAppliedOrientation = newConfig.orientation
             rebindLayoutForOrientation()
+        }
+        if (::blackScreenOverlayManager.isInitialized) {
+            blackScreenOverlayManager.onHostConfigurationChanged()
         }
         if (::commandPanelController.isInitialized) commandPanelController.notifyMultiWindowModeChanged()
         commandPanelController.updateOrientation(newConfig)

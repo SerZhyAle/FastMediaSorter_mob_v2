@@ -82,6 +82,8 @@ data class BrowseHostManagers(
     val browseTransferCoordinator: BrowseFileTransferCoordinator,
     val sendToMenuManager: SendToMenuManager,
     val openInShareTargetHandler: OpenInShareTargetHandler,
+    /** S3382: the FileDO container operations and the open-a-container path. */
+    val browseFdSecManager: BrowseFdSecManager,
 )
 
 /**

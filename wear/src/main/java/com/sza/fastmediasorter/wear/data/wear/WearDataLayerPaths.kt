@@ -62,6 +62,26 @@ object WearDataLayerPaths {
     /** Channel, phone → watch. Carries the bytes of one approved paired-phone media item. */
     const val PHONE_RESOURCE_TRANSFER = "/fms/phone/phone_resource/transfer"
 
+    /**
+     * Message, watch → phone. Asks the phone to remove the original this watch has just copied (S3359).
+     *
+     * Sent only after the watch verified the published copy's length, and it carries that length, so
+     * the phone can refuse a token that now addresses a different file (strategic ADR-4).
+     *
+     * Hand-mirrored from the phone's copy of this object - the modules share no code, so this literal
+     * is the entire contract and one differing character produces a message nobody receives.
+     */
+    const val PHONE_RESOURCE_DELETE_REQUEST = "/fms/watch/phone_resource/delete"
+
+    /**
+     * Data Item, phone → watch. Answers one delete request - removed, or kept with the reason (S3359).
+     *
+     * A Data Item and not a message for one reason: the companion-off answer has to reach this watch,
+     * and an outgoing message is swallowed by that very switch. The phone publishes the refusal through
+     * the helper that bypasses it, so the two answers travel one way instead of two.
+     */
+    const val PHONE_RESOURCE_DELETE_ACK = "/fms/phone/phone_resource/delete_ack"
+
     /** Message, watch → phone. Carries one log report for the developer. */
     const val LOG_REPORT_REQUEST = "/fms/watch/log_report"
 

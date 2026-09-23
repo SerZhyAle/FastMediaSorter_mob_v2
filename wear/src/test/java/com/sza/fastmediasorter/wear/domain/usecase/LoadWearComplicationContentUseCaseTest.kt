@@ -6,7 +6,9 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearComplicationContent
 import com.sza.fastmediasorter.wear.domain.model.WearComplicationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
+import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearNowPlaying
+import com.sza.fastmediasorter.wear.domain.model.WearTileTargetRef
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
@@ -47,7 +49,7 @@ class LoadWearComplicationContentUseCaseTest {
 
         useCase = LoadWearComplicationContentUseCase(
             resolveLastUsedResourceUseCase,
-            mockNetworkSourceRepository,
+            dagger.Lazy { mockNetworkSourceRepository },
             mockFavoritesRepository,
             mockNowPlayingRepository
         )
@@ -69,14 +71,14 @@ class LoadWearComplicationContentUseCaseTest {
         )
 
         val result = useCase(WearComplicationKind.FAVOURITES_COUNT)
-        assertTrue(result is WearComplicationContent.Value)
-        val value = result as WearComplicationContent.Value
-        assertEquals("2", value.shortText)
-        assertEquals("2 favourites", value.longText)
+        assertTrue(result is WearComplicationContent.FavoritesCount)
+        val value = result as WearComplicationContent.FavoritesCount
+        assertEquals(2, value.count)
+        assertEquals(WearLaunchTarget.Open(WearTileTargetRef.Favourites), value.launchTarget)
     }
 
     @Test
-    fun nowPlayingRecordWithIsPlayingFalseStillYieldsTitle() = runTest {
+    fun nowPlayingRecordWithIsPlayingFalseStillYieldsContent() = runTest {
         every { mockNowPlayingRepository.nowPlaying } returns flowOf(
             WearNowPlaying(
                 title = "Track A",
@@ -87,11 +89,10 @@ class LoadWearComplicationContentUseCaseTest {
         )
 
         val result = useCase(WearComplicationKind.NOW_PLAYING)
-        assertTrue(result is WearComplicationContent.Value)
-        val value = result as WearComplicationContent.Value
-        assertEquals("Track A", value.shortText)
-        assertEquals("Track A - Artist B", value.longText)
-        assertEquals("Last played: Track A", value.contentDescription)
+        assertEquals(
+            WearComplicationContent.NowPlaying(title = "Track A", subtitle = "Artist B", isPlaying = false),
+            result
+        )
     }
 
     @Test

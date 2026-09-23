@@ -9,10 +9,10 @@
     <string name="welcome_default_player_title">Плеер по умолчанию</string>
     <string name="welcome_description_1">Ваш универсальный медиаорганайзер.\nПросматривайте, сортируйте и управляйте файлами на локальных, сетевых и облачных хранилищах - всё с помощью интуитивных жестов.</string>
     <string name="welcome_description_1_details">FastMediaSorter собирает все виды медиа в одном месте. Открывайте фото, видео, GIF и музыку с устройства, из сетевой папки или из облака - и раскладывайте их быстрыми касаниями вместо долгих меню.\n\nВсё, что вы настроите здесь, потом можно изменить в настройках, так что неправильного выбора на этом экране нет - просто нажмите «Далее».</string>
-    <string name="welcome_description_3" formatted="false">Проигрыватель использует 9 сенсорных зон (сетка 3×3) для быстрых действий. Нажимайте на зоны для навигации, копирования, перемещения, удаления файлов или доступа к командной панели. Схема показана выше.</string>
+    <string name="welcome_description_3" formatted="false">Плеер использует 9 сенсорных зон (сетка 3×3) для быстрых действий. Нажимайте на зоны для навигации, копирования, перемещения, удаления файлов или доступа к командной панели. Схема показана выше.</string>
     <string name="welcome_language_picker_hint">Выберите язык приложения</string>
     <string name="welcome_profile_audio_player_desc">Для прослушивания музыки. Скрывает фото и видео; оптимизирует фоновый звук и экран текущего трека.</string>
-    <string name="welcome_profile_audio_player_title">Аудиопроигрыватель</string>
+    <string name="welcome_profile_audio_player_title">Аудиоплеер</string>
     <string name="welcome_profile_car_head_unit_desc">Для автомобильных магнитол. Увеличивает кнопки управления, блокирует выключение экрана и ставит в приоритет управление плеером.</string>
     <string name="welcome_profile_car_head_unit_title">Автомагнитола</string>
     <string name="welcome_profile_ebook_reader_desc">Для чтения документов. Скрывает видео и музыку; оптимизирует отображение PDF, EPUB и текстовых книг.</string>
@@ -27,11 +27,11 @@
     <string name="welcome_profile_personal_smartphone_title">Личный смартфон</string>
     <string name="welcome_profile_photo_frame_desc">Превращает планшет в фоторамку. Отключает видео, аудио и документы; сразу запускает слайдшоу изображений.</string>
     <string name="welcome_profile_photo_frame_title">Цифровая фоторамка</string>
-    <string name="welcome_profile_selector_title">Профиль использования</string>
+    <string name="welcome_profile_selector_title">Профиль устройства</string>
     <string name="welcome_profile_tv_media_box_desc">Для телевизоров и ТВ-приставок. Оптимизирует навигацию с пульта (DPAD), увеличивает элементы и скрывает мелкие touch-кнопки.</string>
     <string name="welcome_profile_tv_media_box_title">ТВ-приставка / Медиацентр</string>
     <string name="welcome_profile_video_player_desc">Для просмотра видео. Скрывает фотографии, музыку и документы; оптимизирует быстрый запуск видеороликов.</string>
-    <string name="welcome_profile_video_player_title">Видеопроигрыватель</string>
+    <string name="welcome_profile_video_player_title">Видеоплеер</string>
     <string name="welcome_profile_vr_headset_desc">Для VR-очков и шлемов. Предварительно включает 3D/360°-интерфейсы и иммерсивное управление на поддерживаемых устройствах.</string>
     <string name="welcome_profile_vr_headset_title">VR-шлем</string>
     <string name="welcome_recommended_badge">(Рекомендуется)</string>
@@ -60,7 +60,7 @@
     <string name="sysinfo_field_display_count">Дисплеи</string>
     <string name="sysinfo_field_fingerprint">Отпечаток сборки</string>
     <string name="sysinfo_field_first_install">Первая установка</string>
-    <string name="sysinfo_field_flavor">Вариант</string>
+    <string name="sysinfo_field_flavor">Редакция</string>
     <string name="sysinfo_field_font_scale">Масштаб шрифта</string>
     <string name="sysinfo_field_gles">OpenGL ES</string>
     <string name="sysinfo_field_hdr">HDR</string>
@@ -115,7 +115,7 @@
     <string name="welcome_theme_auto">Авто</string>
     <string name="welcome_theme_light">Светлая</string>
     <string name="welcome_theme_dark">Тёмная</string>
-    <string name="welcome_networks_title">Сетевые источники</string>
+    <string name="welcome_networks_title">Сетевые ресурсы</string>
     <string name="welcome_networks_description">Добавляйте медиа из сетевых папок и удалённых хранилищ.</string>
     <!-- S0399 device-profile page -->
     <string name="welcome_profiles_title">Как вы будете использовать устройство?</string>
@@ -154,10 +154,10 @@
     <string name="welcome_networks_example_smb">Например: общая папка на компьютере с Windows, NAS вроде Synology или QNAP, USB-диск, подключённый к роутеру.</string>
     <string name="welcome_networks_example_ftp">Например: хостинг по FTP, собственный домашний сервер по SFTP, камера, которая выгружает снимки в папку FTP.</string>
     <string name="welcome_networks_example_cloud">Например: войдите в Google Drive один раз и открывайте резервную копию фотографий как обычную папку.</string>
-    <string name="welcome_default_player_details">«Приложение по умолчанию» означает, что файл, открытый из другого приложения - галереи, мессенджера, файлового менеджера, - откроется здесь, а не в системном проигрывателе.</string>
+    <string name="welcome_default_player_details">«Приложение по умолчанию» означает, что файл, открытый из другого приложения - галереи, мессенджера, файлового менеджера, - откроется здесь, а не в системном плеере.</string>
     <string name="welcome_default_player_revert_note">Это не навсегда: выбор хранится в настройках самого Android, и его можно вернуть в любой момент.</string>
     <string name="welcome_role_file_manager">Файловый менеджер</string>
-    <string name="welcome_role_player">Проигрыватель медиа</string>
+    <string name="welcome_role_player">Медиаплеер</string>
     <string name="welcome_role_player_images_only">Просмотр фото</string>
     <string name="welcome_role_sources">Любые источники</string>
     <string name="welcome_role_sorting">Сортировка в одно касание</string>
@@ -180,5 +180,5 @@
     <string name="welcome_role_streams">Трансляции</string>
     <string name="welcome_role_streams_detail">Интернет-радио, ТВ и видеоканалы из готового каталога</string>
     <string name="welcome_role_wear">Приложение для часов</string>
-    <string name="welcome_role_wear_detail">Компаньон Wear OS - просмотр и воспроизведение прямо на часах</string>
+    <string name="welcome_role_wear_detail">Приложение для часов - просмотр и воспроизведение прямо на запястье</string>
 </resources>

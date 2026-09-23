@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileOperationResult
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
+import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
 import com.sza.fastmediasorter.wear.ui.browse.MediaStoreConsentManager
 import com.sza.fastmediasorter.wear.ui.browse.WearFileOperationRunState
@@ -48,11 +49,22 @@ class PlayerFileOperationsManager @Inject constructor(
     private val capabilityPolicy: WearFileCapabilityPolicy,
     private val performFileOperation: PerformWearFileOperationUseCase,
     private val sendToReceiversRepository: WearSendToReceiversRepository,
-    private val playbackSetManager: PlaybackSetManager
+    private val playbackSetManager: PlaybackSetManager,
+    /**
+     * S3359: the hand-over that opened this player, read back for the phone token a move needs.
+     *
+     * Read here rather than bound by each player view model because the token belongs to the selection,
+     * not to the screen: every player already receives its file through this manager, and the id match
+     * below is what keeps a stale selection from addressing the phone about another file.
+     */
+    private val selectedMediaManager: SelectedMediaManager
 ) {
     private lateinit var scope: CoroutineScope
     private lateinit var currentFile: StateFlow<WearMediaFile?>
     private var isNetworkSource: () -> Boolean = { false }
+
+    /** S3359: the share the played file is read from, needed by the two operations onto the watch. */
+    private var networkSourceId: () -> String? = { null }
 
     private val _operationRun = MutableStateFlow(WearFileOperationRunState())
     val operationRun: StateFlow<WearFileOperationRunState> = _operationRun.asStateFlow()
@@ -74,18 +86,20 @@ class PlayerFileOperationsManager @Inject constructor(
     fun bind(
         scope: CoroutineScope,
         currentFile: StateFlow<WearMediaFile?>,
-        isNetworkSource: () -> Boolean = { false }
+        isNetworkSource: () -> Boolean = { false },
+        networkSourceId: () -> String? = { null }
     ) {
         this.scope = scope
         this.currentFile = currentFile
         this.isNetworkSource = isNetworkSource
+        this.networkSourceId = networkSourceId
 
         _allowedOperations = combine(currentFile) { files ->
             val file = files[0]
             if (file == null) {
                 emptySet()
             } else {
-                capabilityPolicy.allowedOperations(capabilityPolicy.classify(file, isNetworkSource()))
+                capabilityPolicy.allowedOperations(file, isNetworkSource())
             }
         }.stateIn(scope, SharingStarted.WhileSubscribed(RECEIVER_SUBSCRIPTION_MS), emptySet())
 
@@ -137,7 +151,8 @@ class PlayerFileOperationsManager @Inject constructor(
     }
 
     private suspend fun collectRun(file: WearMediaFile, operation: WearFileOperation) {
-        performFileOperation(listOf(file), operation, isNetworkSource())
+        val phoneToken = selectedMediaManager.getSelectedFileById(file.id)?.phoneToken
+        performFileOperation(listOf(file), operation, isNetworkSource(), networkSourceId(), phoneToken)
             .catch { throwable ->
                 Timber.e(throwable, "Player file operation failed")
                 emit(WearFileOperationResult(file.name, WearFileOperationOutcome.FAILED))
@@ -182,8 +197,13 @@ class PlayerFileOperationsManager @Inject constructor(
 private fun WearFileOperation.mutatesList(): Boolean = when (this) {
     WearFileOperation.SendToPhone -> false
     WearFileOperation.MoveToPhone -> true
+    WearFileOperation.CopyToWatch -> false
+    WearFileOperation.MoveToWatch -> true
     WearFileOperation.Delete -> true
     is WearFileOperation.Rename -> true
     is WearFileOperation.OpenOnPhone -> false
     is WearFileOperation.SendToReceiver -> false
+    // S3383: the player menu never offers either one, and both write a new file beside the old, so
+    // the honest answer if one ever arrived is that the listing behind the player is stale.
+    WearFileOperation.EncryptFileDo, WearFileOperation.DecryptFileDo -> true
 }

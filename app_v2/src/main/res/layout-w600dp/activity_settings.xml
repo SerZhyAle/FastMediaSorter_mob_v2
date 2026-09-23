@@ -12,7 +12,7 @@
         android:layout_height="?attr/actionBarSize"
         android:orientation="horizontal"
         android:background="?attr/colorPrimary"
-        android:elevation="@dimen/toolbar_elevation"
+        android:elevation="@dimen/dimension_zero"
         android:gravity="center_vertical"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -22,7 +22,7 @@
             android:layout_width="?attr/actionBarSize"
             android:layout_height="match_parent"
             android:background="?attr/colorPrimary"
-            android:elevation="@dimen/toolbar_elevation"
+            android:elevation="@dimen/dimension_zero"
             android:src="@drawable/ic_arrow_back"
             android:contentDescription="@string/back"
             app:tint="?attr/colorOnPrimary" />

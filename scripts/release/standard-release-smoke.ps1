@@ -44,6 +44,7 @@
 [CmdletBinding()]
 param(
     [string]$ApkPath,
+    [string]$DeviceId,
     [switch]$Build,
     [switch]$CheckSeams,
     [switch]$Json
@@ -56,7 +57,6 @@ $repoRoot   = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 $buildGradle = Join-Path $repoRoot 'app_v2/build.gradle.kts'
 $pkg = 'com.sza.fastmediasorter'
 . (Join-Path $repoRoot 'scripts/utils/agent-lock.ps1')
-
 function Write-Verdict {
     param([string]$Mode, [bool]$Pass, $Detail, [int]$ExitCode)
     if ($Json) {
@@ -67,6 +67,13 @@ function Write-Verdict {
     }
     exit $ExitCode
 }
+
+# S3335: adb is not on PATH on this workstation, so a bare `adb` call threw a CommandNotFound that
+# the trap turned into exit 2 - the gate then read "no device/infra" and FAILed a release with two
+# devices attached. Find-Adb is the one discovery order every other caller already shares.
+. (Join-Path $repoRoot 'scripts/devtest/lib/find-adb.ps1')
+$adb = Find-Adb
+if (-not $adb) { Write-Verdict 'smoke' $false @('adb.exe not found (checked ANDROID_HOME, ANDROID_SDK_ROOT, PATH, platform-tools)') 2 }
 
 # ============================ static seam mode ============================
 if ($CheckSeams) {
@@ -149,23 +156,39 @@ $deviceReady = Join-Path $repoRoot 'scripts/devtest/device-ready.ps1'
 $deviceOnline = $false
 if (Test-Path $deviceReady) {
     # S2611: -Module app_v2 - the artifact under smoke is the standardRelease APK of the phone.
-    & pwsh -NoProfile -File $deviceReady -Package $pkg -Module app_v2 -Json *> $null
+    $readyArgs = @('-Package', $pkg, '-Module', 'app_v2', '-Json')
+    if ($DeviceId) { $readyArgs += @('-DeviceId', $DeviceId) }
+    & pwsh -NoProfile -File $deviceReady @readyArgs *> $null
     $deviceOnline = ($LASTEXITCODE -eq 0)
 } else {
-    $adbDevices = (& adb devices 2>$null) | Select-Object -Skip 1 | Where-Object { $_ -match '\sdevice$' }
+    $adbDevices = (& $adb devices 2>$null) | Select-Object -Skip 1 | Where-Object { $_ -match '\sdevice$' }
     $deviceOnline = [bool]$adbDevices
 }
 if (-not $deviceOnline) { Write-Verdict 'smoke' $false @('no device online - R8 smoke requires a connected device') 2 }
 
+# S3335: -s on every call. Two devices online and no target makes adb exit 1 before it touches
+# either, which the smoke reported as "adb install failed" - a release fault for an infra ambiguity.
+$adbTarget = @()
+if ($DeviceId) {
+    $adbTarget = @('-s', $DeviceId)
+} else {
+    $online = @((& $adb devices 2>$null) | Select-Object -Skip 1 |
+        Where-Object { $_ -match '\sdevice$' } | ForEach-Object { ($_ -split '\s+')[0] })
+    if ($online.Count -gt 1) {
+        Write-Verdict 'smoke' $false @("multiple devices online ($($online -join ', ')) - pass -DeviceId") 2
+    }
+    if ($online.Count -eq 1) { $adbTarget = @('-s', $online[0]) }
+}
+
 # Install + cold launch + capture launch logcat window.
-& adb install -r $resolvedApk *> $null
+& $adb @adbTarget install -r $resolvedApk *> $null
 if ($LASTEXITCODE -ne 0) { Write-Verdict 'smoke' $false @("adb install failed for $resolvedApk") 2 }
-& adb shell am force-stop $pkg *> $null
-& adb logcat -c *> $null
-& adb shell am start -n "$pkg/.ui.main.MainActivity" *> $null
+& $adb @adbTarget shell am force-stop $pkg *> $null
+& $adb @adbTarget logcat -c *> $null
+& $adb @adbTarget shell am start -n "$pkg/.ui.main.MainActivity" *> $null
 Start-Sleep -Seconds 8
 $logFile = Join-Path $repoRoot 'temp/standard-release-smoke.logcat'
-& adb logcat -d *> $logFile
+& $adb @adbTarget logcat -d *> $logFile
 
 # Scan for R8/shrink fatal markers - reuse search-log.ps1 for the app-error count,
 # plus a raw scan for the hard markers (regardless of log format).

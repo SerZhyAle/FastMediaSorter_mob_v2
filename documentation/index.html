@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How to Play and Organize Music Files - Fast Media Sorter</title>
-    <meta name="description" content="A practical cookbook recipe for playing, queuing, and organizing music tracks across local and network storage.">
+    <title>Fast Media Sorter Documentation - User Guides &amp; Cookbook Recipes</title>
+    <meta name="description" content="Official documentation, cookbook recipes, and user guides for Fast Media Sorter across all 7 Android editions.">
     
     <link rel="icon" type="image/x-icon" href="../favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
@@ -39,16 +39,23 @@
         <div class="doc-header-inner">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <a class="doc-header-brand" href="../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+                <span class="doc-badge doc-badge-standard">Docs Portal</span>
             </div>
 
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Search documentation...</span>
+                <kbd>/</kbd>
+            </button>
+
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="sample-recipe.html" class="doc-header-link active">Sample Recipe</a>
+                <a href="sample-recipe.html" class="doc-header-link">Audio Recipe</a>
+                <a href="sample-settings-recipe.html" class="doc-header-link">Settings Recipe</a>
+                <a href="sample-program-recipe.html" class="doc-header-link">Programs Recipe</a>
                 <a href="design-system/index.html" class="doc-header-link">Design System</a>
-                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
-                <!-- Live Theme Toggle Button -->
-                                <!-- 13-Language Selector -->
+                <!-- 13-Language Selector -->
                 <div class="doc-lang-picker">
                     <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
                     <div class="doc-lang-menu" id="langMenu" role="menu">
@@ -75,180 +82,256 @@
     </header>
 
     <div class="doc-container">
-
         <!-- Breadcrumbs -->
         <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
             <a href="../index.html">Home</a>
             <span class="doc-breadcrumb-separator">/</span>
-            <a href="index.html">Documentation</a>
-            <span class="doc-breadcrumb-separator">/</span>
-            <span>Audio & Music</span>
-            <span class="doc-breadcrumb-separator">/</span>
-            <span class="doc-breadcrumb-current">Playing & Organizing Music</span>
+            <span class="doc-breadcrumb-current">Documentation Portal</span>
         </nav>
 
         <div class="doc-grid">
-
             <!-- Sidebar -->
             <aside class="doc-sidebar" aria-label="Documentation Navigation">
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Getting Started</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="index.html" class="doc-sidebar-link">Docs Home</a></li>
-                        <li><a href="sample-recipe.html" class="doc-sidebar-link active">Playing & Organizing Music</a></li>
-                        <li><a href="design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                        <li><a href="index.html" class="doc-sidebar-link active">Documentation Home</a></li>
+                        <li><a href="sample-recipe.html" class="doc-sidebar-link">Audio Player Recipe</a></li>
+                        <li><a href="sample-settings-recipe.html" class="doc-sidebar-link">Settings Recipe</a></li>
+                        <li><a href="sample-program-recipe.html" class="doc-sidebar-link">Programs Recipe</a></li>
+                        <li><a href="design-system/index.html" class="doc-sidebar-link">Design System</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Media Categories</div>
+                    <div class="doc-sidebar-title">Core Topics</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
-                        <li><a href="#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
-                        <li><a href="#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                        <li><a href="#storage" class="doc-sidebar-link">Storage &amp; Operations</a></li>
+                        <li><a href="#network" class="doc-sidebar-link">Network &amp; Cloud</a></li>
+                        <li><a href="#media" class="doc-sidebar-link">Audio, Video &amp; Photos</a></li>
+                        <li><a href="#launcher" class="doc-sidebar-link">Launcher &amp; Desktop</a></li>
+                        <li><a href="#wear" class="doc-sidebar-link">Wear OS Smartwatch</a></li>
+                        <li><a href="#vr" class="doc-sidebar-link">VR &amp; Spatial Cinema</a></li>
                     </ul>
                 </div>
             </aside>
 
-            <!-- Main Recipe Content -->
+            <!-- Main Portal Content -->
             <main class="doc-content" id="main-content">
+                <header class="doc-page-header" style="margin-bottom: 2.5rem;">
+                    <h1 style="font-size: 2.5rem; margin-bottom: 0.75rem;">Fast Media Sorter Documentation</h1>
+                    <p class="doc-lead" style="font-size: 1.2rem; max-width: 780px;">
+                        Welcome to the official cookbook for Fast Media Sorter. Practical step-by-step guides, tips, and recipes to organize, stream, and play your media collections across Android phones, tablets, TVs, smartwatches, and VR.
+                    </p>
 
-                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
-                    <span class="doc-badge doc-badge-music">Music</span>
-                    <span class="doc-badge doc-badge-standard">Standard &amp; NoLegal</span>
-                    <span class="doc-badge doc-badge-sm">Recipe #01</span>
-                </div>
-
-                <h1>How to Play and Organize Music Files</h1>
-
-                <p class="doc-lead">
-                    Whether you have thousands of lossless FLAC tracks on an SD card or albums shared across a home <span class="doc-link-term" data-term="NAS">NAS</span> server, FastMediaSorter lets you browse, queue, and sort your audio library without altering your physical folder hierarchy.
-                </p>
-
-                <!-- Prerequisite Card -->
-                <div class="doc-card-prereq">
-                    <div class="doc-card-prereq-title">
-                        <span class="doc-card-prereq-icon">✓</span>
-                        <span>Before You Begin: Ingredients &amp; Prerequisites</span>
+                    <div style="margin-top: 1.5rem;">
+                        <button class="doc-search-trigger" data-search-trigger style="padding: 10px 20px; font-size: 1rem;">
+                            <span>🔍</span>
+                            <span>Search all 75 recipes and features...</span>
+                            <kbd style="margin-left: 8px;">Ctrl + K</kbd>
+                        </button>
                     </div>
-                    <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter v2 installed on your Android device (version 2.6 or later).</li>
-                        <li><span class="doc-prereq-bullet">✓</span> <strong>Read Media Audio</strong> permission granted upon first launch.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Local music files (MP3, FLAC, AAC, OGG, or WAV format).</li>
-                        <li><span class="doc-prereq-bullet">✓</span> (Optional) Local Wi-Fi network for streaming directly from <a href="#s2950" class="doc-link-bookmark" data-target="S2950">SMB / SFTP servers</a>.</li>
-                    </ul>
-                </div>
+                </header>
 
-                <!-- Step 1 -->
-                <div class="doc-step" id="step-1">
-                    <div class="doc-step-header">
-                        <span class="doc-step-badge">1</span>
-                        <h2 class="doc-step-title">Locate and Open Your Music Directory</h2>
-                    </div>
-                    <div class="doc-step-body">
-                        <p>Launch FastMediaSorter. From the home drawer or bottom navigation bar, tap <strong>Local Storage</strong> or choose a configured network bookmark. Navigate to your music directory.</p>
-                        
-                        <div class="doc-step-img-container">
-                            <span class="doc-step-img-placeholder">Screenshot: Folder Browser showing Music albums with metadata badges</span>
-                        </div>
-                        <div class="doc-step-img-caption">Figure 1: Navigating music folders with live duration badges and track counts.</div>
-                    </div>
-                </div>
-
-                <!-- Step 2 -->
-                <div class="doc-step" id="step-2">
-                    <div class="doc-step-header">
-                        <span class="doc-step-badge">2</span>
-                        <h2 class="doc-step-title">Start Playback and Control the Queue</h2>
-                    </div>
-                    <div class="doc-step-body">
-                        <p>Tap any audio track to begin immediate playback using the integrated Media3 engine. The persistent bottom mini-player will appear:</p>
-                        <ul>
-                            <li><strong>Tap the mini-player:</strong> Expands the full-screen playback deck with album art, waveform scrubber, and equalizer controls.</li>
-                            <li><strong>Swipe left/right on the mini-player:</strong> Skips to the previous or next track in the queue.</li>
-                            <li><strong>Queue management:</strong> Tap the playlist icon to drag and reorder songs or remove duplicates.</li>
-                        </ul>
-
-                        <!-- Callout Tip -->
-                        <div class="doc-callout doc-callout-tip">
-                            <div class="doc-callout-title">
-                                <span class="doc-callout-icon">💡</span> Background Playback &amp; Headset Controls
-                            </div>
-                            <p>FastMediaSorter continues playback in the background with lock screen controls and supports Bluetooth headset buttons (single tap pause, double tap next track).</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 3 -->
-                <div class="doc-step" id="step-3">
-                    <div class="doc-step-header">
-                        <span class="doc-step-badge">3</span>
-                        <h2 class="doc-step-title">Quick Sorting &amp; File Operations</h2>
-                    </div>
-                    <div class="doc-step-body">
-                        <p>To organize messy tracks into proper artist folders, enter multi-selection mode by long-pressing any item:</p>
-                        <ol>
-                            <li>Select the target tracks or whole albums.</li>
-                            <li>Tap the <strong>Copy/Move Panel</strong> button in the top action bar.</li>
-                            <li>Pick your destination folder from your predefined destination bookmarks.</li>
-                        </ol>
-
-                        <!-- Callout Warning -->
-                        <div class="doc-callout doc-callout-warning">
-                            <div class="doc-callout-title">
-                                <span class="doc-callout-icon">⚠️</span> Keep Your Android Screen On During Large Network Transfers
-                            </div>
-                            <p>When moving files across network shares (<span class="doc-link-term" data-term="SMB">SMB</span> or <span class="doc-link-term" data-term="SFTP">SFTP</span>), keep the transfer window in the foreground or ensure FastMediaSorter is excluded from aggressive vendor battery-killer rules.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- What to Try Next Section -->
-                <div class="doc-next-section">
-                    <div class="doc-next-title">What to Try Next: Related Recipes</div>
+                <!-- Featured Recipes Carousel / Grid -->
+                <section class="doc-section" style="margin-bottom: 3rem;">
+                    <h2>Benchmark Cookbook Recipes</h2>
                     <div class="doc-next-grid">
-                        <a href="design-system/index.html" class="doc-next-card">
-                            <span class="doc-badge doc-badge-sm doc-badge-music">Audio</span>
-                            <h4>Fine-Tuning the 10-Band Equalizer</h4>
-                            <p>Learn how to save custom EQ presets for headphones, car audio, and Bluetooth speakers.</p>
+                        <a href="sample-recipe.html" class="doc-next-card">
+                            <span class="doc-badge doc-badge-music doc-badge-sm">Audio</span>
+                            <h4>Playing &amp; Organizing Music Files</h4>
+                            <p>Queue lossless FLAC tracks, manage playlists, and move albums without altering physical folders.</p>
                         </a>
-                        <a href="#s2950" class="doc-next-card doc-link-bookmark" data-target="S2950">
-                            <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
-                            <h4>Setting Up SMB Streaming on Home NAS</h4>
-                            <p>Stream your high-resolution FLAC library directly without filling your device storage.</p>
+                        <a href="sample-settings-recipe.html" class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Settings</span>
+                            <h4>Customizing Playback &amp; Sorting</h4>
+                            <p>Configure natural number sorting, thumbnail densities, and background audio behaviors.</p>
+                        </a>
+                        <a href="sample-program-recipe.html" class="doc-next-card">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Utilities</span>
+                            <h4>Storage Breakdown &amp; Statistics</h4>
+                            <p>Inspect disk usage, large video files, and space distribution across internal and SD card storage.</p>
                         </a>
                     </div>
-                </div>
+                </section>
 
+                <!-- 22 Thematic Documentation Areas Grid -->
+                <section class="doc-section" id="categories" style="margin-bottom: 3rem;">
+                    <h2>Explore All Documentation Categories</h2>
+                    
+                    <div class="doc-next-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                        
+                        <!-- S2946 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2946</span>
+                            <h4>First Steps &amp; Setup</h4>
+                            <p>First launch wizard, storage permissions, and workspace navigation.</p>
+                        </div>
+
+                        <!-- S2947 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2947</span>
+                            <h4>App Flavors &amp; Capabilities</h4>
+                            <p>Comparison of 7 app editions, on-demand modules, and multilingual setup.</p>
+                        </div>
+
+                        <!-- S2948 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-image doc-badge-sm">S2948</span>
+                            <h4>Media Browsing &amp; Sorting</h4>
+                            <p>Thumbnail grid views, metadata filters, batch multi-select, and fast indexing.</p>
+                        </div>
+
+                        <!-- S2949 -->
+                        <div class="doc-next-card" id="storage">
+                            <span class="doc-badge doc-badge-other doc-badge-sm">S2949</span>
+                            <h4>Sources &amp; File Operations</h4>
+                            <p>Storage destinations, copy/move/delete, file encryption, and batch renaming.</p>
+                        </div>
+
+                        <!-- S2950 -->
+                        <div class="doc-next-card" id="network">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">S2950</span>
+                            <h4>Network Folders &amp; Clouds</h4>
+                            <p>Connecting SMB Windows shares, SFTP/FTP servers, Google Drive, and Dropbox.</p>
+                        </div>
+
+                        <!-- S2951 -->
+                        <div class="doc-next-card" id="media">
+                            <span class="doc-badge doc-badge-video doc-badge-sm">S2951</span>
+                            <h4>Video &amp; Media Player</h4>
+                            <p>Full-screen video player, subtitles, audio track switching, and Chromecast.</p>
+                        </div>
+
+                        <!-- S2952 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-music doc-badge-sm">S2952</span>
+                            <h4>Images, Audio &amp; Slideshows</h4>
+                            <p>Photo viewer with zoom gestures, slideshow transitions, and music playback decks.</p>
+                        </div>
+
+                        <!-- S2953 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">S2953</span>
+                            <h4>Documents &amp; Text Editor</h4>
+                            <p>PDF/EPUB document viewing, office books, and built-in Markdown/text editor.</p>
+                        </div>
+
+                        <!-- S2954 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-video doc-badge-sm">S2954</span>
+                            <h4>Streams: Channel Catalog</h4>
+                            <p>Browsing IPTV stream channels, M3U playlist import, and Electronic Program Guides (EPG).</p>
+                        </div>
+
+                        <!-- S2955 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-video doc-badge-sm">S2955</span>
+                            <h4>Streams: Playback &amp; Recording</h4>
+                            <p>Live HLS/DASH streaming, background internet radio, and stream recording.</p>
+                        </div>
+
+                        <!-- S2956 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-other doc-badge-sm">S2956</span>
+                            <h4>Camera &amp; Screen Recording</h4>
+                            <p>Quick photo capture and high-quality screen recording with device audio.</p>
+                        </div>
+
+                        <!-- S2957 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-other doc-badge-sm">S2957</span>
+                            <h4>OCR, Translation &amp; Sharing</h4>
+                            <p>Offline text recognition from images, inline translation, drawing markup, and fast sharing.</p>
+                        </div>
+
+                        <!-- S2958 -->
+                        <div class="doc-next-card" id="launcher">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2958</span>
+                            <h4>Launcher: Desktop &amp; Wallpapers</h4>
+                            <p>Customizing desktop icon grids, live wallpaper backgrounds, and app folders.</p>
+                        </div>
+
+                        <!-- S2959 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2959</span>
+                            <h4>Launcher: Gadgets &amp; Widgets</h4>
+                            <p>App drawer tags, built-in media gadgets, and Android home screen widgets.</p>
+                        </div>
+
+                        <!-- S2960 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2960</span>
+                            <h4>Launcher: Taskbar &amp; Gestures</h4>
+                            <p>Desktop dock, taskbar shortcuts, navigation gestures, and context menus.</p>
+                        </div>
+
+                        <!-- S2961 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">S2961</span>
+                            <h4>Programs &amp; Diagnostics</h4>
+                            <p>Built-in mini utilities, storage space statistics, and system diagnostic logs.</p>
+                        </div>
+
+                        <!-- S2962 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2962</span>
+                            <h4>Settings &amp; Navigation</h4>
+                            <p>Comprehensive settings reference, display appearance, sorting defaults, and privacy.</p>
+                        </div>
+
+                        <!-- S2963 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2963</span>
+                            <h4>General Features, Backup &amp; TV</h4>
+                            <p>Settings backup/restore, Keyboard &amp; D-Pad navigation, Android TV, and foldable support.</p>
+                        </div>
+
+                        <!-- S2964 -->
+                        <div class="doc-next-card" id="wear">
+                            <span class="doc-badge doc-badge-wear doc-badge-sm">S2964</span>
+                            <h4>Watch: Setup &amp; Sync</h4>
+                            <p>Installing on Wear OS, Bluetooth phone pairing, and watch face tiles.</p>
+                        </div>
+
+                        <!-- S2965 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-wear doc-badge-sm">S2965</span>
+                            <h4>Watch: Media &amp; Streams</h4>
+                            <p>Offline music playback on smartwatch, wrist radio streaming, and watch file manager.</p>
+                        </div>
+
+                        <!-- S2966 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-wear doc-badge-sm">S2966</span>
+                            <h4>Watch: Mini-Apps &amp; Health</h4>
+                            <p>Wearable utilities, timers, sensor metrics, and battery management.</p>
+                        </div>
+
+                        <!-- S2967 -->
+                        <div class="doc-next-card" id="vr">
+                            <span class="doc-badge doc-badge-vr doc-badge-sm">S2967</span>
+                            <h4>VR &amp; OpenXR Experience</h4>
+                            <p>Meta Quest headset setup, 3D/360 spatial cinema, and VR controller passthrough.</p>
+                        </div>
+                    </div>
+                </section>
             </main>
-
-            <!-- Table of Contents -->
-            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
-                <nav class="doc-toc">
-                    <div class="doc-toc-title">On this page</div>
-                    <ul class="doc-toc-list">
-                        <li><a href="#step-1" class="doc-toc-link">1. Locate Music Directory</a></li>
-                        <li><a href="#step-2" class="doc-toc-link">2. Playback and Queue</a></li>
-                        <li><a href="#step-3" class="doc-toc-link">3. Quick Sorting Operations</a></li>
-                    </ul>
-                </nav>
-            </aside>
-
-        </div><!-- /.doc-grid -->
-
-    </div><!-- /.doc-container -->
+        </div>
+    </div>
 
     <footer class="doc-footer">
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
                 <a href="../privacy.html">Privacy Policy</a>
-                <a href="design-system/index.html">Component System</a>
+                <a href="design-system/index.html">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
         </div>
     </footer>
 
-    <!-- Interactive scripts: Theme switcher & 13-Language selector -->
+    <!-- Interactive Client Scripts -->
+    <script src="assets/search.js"></script>
     <script>
         (function () {
             // Theme toggle
@@ -262,7 +345,7 @@
                 });
             }
 
-            // Language picker dropdown
+            // Language picker
             var langBtn = document.getElementById('langBtn');
             var langMenu = document.getElementById('langMenu');
             if (langBtn && langMenu) {
@@ -274,107 +357,7 @@
                     langMenu.classList.remove('show');
                 });
             }
-
-            // Language state resolver: URL ?lang= -> localStorage -> navigator -> default 'en'
-            var urlParams = new URLSearchParams(window.location.search);
-            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
-            
-            // Mark active language in dropdown and update button label
-            var items = document.querySelectorAll('.doc-lang-item');
-            items.forEach(function (item) {
-                var lang = item.getAttribute('data-lang');
-                if (lang === activeLang) {
-                    item.classList.add('active');
-                    if (langBtn) {
-                        var name = item.querySelector('span').textContent;
-                        langBtn.textContent = 'Language: ' + name;
-                    }
-                } else {
-                    item.classList.remove('active');
-                }
-                item.addEventListener('click', function (e) {
-                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
-                });
-            });
-        }());
-    </script>
-
-    <!-- Background Animated Waves & Particles Canvas -->
-    <canvas id="docCanvas"></canvas>
-    <script>
-        (function () {
-            var canvas = document.getElementById('docCanvas');
-            if (!canvas) return;
-            var ctx = canvas.getContext('2d');
-            var width, height, animId;
-
-            function resize() {
-                width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
-            }
-
-            var particles = [];
-            var PARTICLE_COUNT = 45;
-
-            function initParticles() {
-                particles = [];
-                for (var i = 0; i < PARTICLE_COUNT; i++) {
-                    particles.push({
-                        x: Math.random() * width,
-                        y: Math.random() * height,
-                        radius: Math.random() * 1.6 + 0.5,
-                        vx: (Math.random() - 0.5) * 0.25,
-                        vy: (Math.random() - 0.5) * 0.25,
-                        hue: (Math.random() < 0.5 ? 135 + Math.random() * 20 : 40 + Math.random() * 15)
-                    });
-                }
-            }
-
-            var time = 0;
-            function draw() {
-                ctx.clearRect(0, 0, width, height);
-                time += 0.002;
-                ctx.lineWidth = 1.4;
-                for (var j = 0; j < 4; j++) {
-                    ctx.beginPath();
-                    var phaseShift = j * 20;
-                    for (var i = 0; i <= width; i += 24) {
-                        var y = height * 0.35 +
-                            Math.sin(i * 0.0022 + time + phaseShift) * height * 0.25 *
-                            Math.sin(time * 0.25 + j * 0.25);
-                        if (i === 0) ctx.moveTo(i, y);
-                        else ctx.lineTo(i, y);
-                    }
-                    var waveHue = (j % 2 === 0) ? (135 + j * 6) : (44 + j * 4);
-                    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-                    ctx.strokeStyle = 'hsla(' + waveHue + ', 65%, ' + (isDark ? '55%' : '40%') + ', ' + (isDark ? '0.18' : '0.10') + ')';
-                    ctx.stroke();
-                }
-                particles.forEach(function (p) {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    if (p.x < 0 || p.x > width) p.vx *= -1;
-                    if (p.y < 0 || p.y > height) p.vy *= -1;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-                    ctx.fillStyle = 'hsla(' + p.hue + ', 90%, ' + (isDark ? '70%' : '45%') + ', ' + (isDark ? '0.4' : '0.25') + ')';
-                    ctx.fill();
-                });
-                animId = requestAnimationFrame(draw);
-            }
-
-            window.addEventListener('resize', function () { resize(); initParticles(); });
-            document.addEventListener('visibilitychange', function () {
-                if (document.hidden) { cancelAnimationFrame(animId); } else { draw(); }
-            });
-            resize();
-            initParticles();
-            draw();
         }());
     </script>
 </body>
 </html>
-
-
-

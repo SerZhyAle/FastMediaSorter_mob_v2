@@ -4,13 +4,13 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * S2130 raised this to 5 for [WearPhoneResourceResponseStatus.NO_RESOURCE_FOR_TYPE], S2981 to 6 for
- * [WearPhoneResourceResponseStatus.COMPANION_DISABLED].
+ * [WearPhoneResourceResponseStatus.COMPANION_DISABLED], S3359 to 7 for the delete request and its ack.
  *
  * Both sides move together, in one change: an unknown enum name deserialises to null through Gson,
  * so a watch built before the value would read the new status as a malformed page rather than as an
  * unknown one. There is no installed base to negotiate with - the pair ships as one artifact set.
  */
-const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 6
+const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 7
 
 enum class WearPhoneResourceRequestKind {
     @SerializedName("ROOT")
@@ -135,4 +135,66 @@ data class WearPhoneResourcePage(
     // page that carries no `items` key is an empty page, so every reader goes through `.orEmpty()`.
     @SerializedName("items") val items: List<WearPhoneResourceItem>? = null,
     @SerializedName("nextPageToken") val nextPageToken: String? = null
+)
+
+/**
+ * S3359: what this phone did with the original behind a delete request.
+ *
+ * Only [DELETED] lets the watch report a move; every other member, and an answer that never arrives,
+ * mean the copy is on the watch and the original is still here - which strategic §7 requires to be
+ * said plainly rather than rounded up to "moved".
+ */
+enum class WearPhoneResourceDeleteOutcome {
+
+    /** The original is gone from this phone. */
+    @SerializedName("DELETED")
+    DELETED,
+
+    /**
+     * This phone can reach the file and may not remove it without a system dialog.
+     *
+     * The request arrives in a listener service with no Activity behind it, so a MediaStore consent
+     * prompt has nothing to show itself on. Distinct from [NOT_FOUND] because nothing is wrong: the
+     * copy is stored, the original is where it was, and the owner can remove it here if they want to.
+     */
+    @SerializedName("COPIED_ONLY")
+    COPIED_ONLY,
+
+    /** The token resolved to nothing this phone serves - moved, renamed or on a withdrawn resource. */
+    @SerializedName("NOT_FOUND")
+    NOT_FOUND,
+
+    /**
+     * The file behind the token is no longer the size the watch copied.
+     *
+     * The token names a resource and a path and carries no identity of its own, so without this
+     * refusal a file replaced between the copy and the request would be deleted in the original's
+     * place (strategic §7, the token-after-rename risk).
+     */
+    @SerializedName("SIZE_MISMATCH")
+    SIZE_MISMATCH,
+
+    /** The owner switched the Wear Companion off here, so this phone acts on nothing the watch asks. */
+    @SerializedName("COMPANION_DISABLED")
+    COMPANION_DISABLED
+}
+
+/**
+ * S3359: one ask to remove the original of a file the watch has already published.
+ *
+ * [expectedSizeBytes] is the length of the copy the watch verified, not the size the browse page
+ * announced - the whole point of the field is that this phone re-measures what it is about to delete.
+ */
+data class WearPhoneResourceDeleteRequest(
+    @SerializedName("schemaVersion") val schemaVersion: Int = WEAR_PHONE_RESOURCE_SCHEMA_VERSION,
+    @SerializedName("requestId") val requestId: String,
+    @SerializedName("token") val token: String,
+    @SerializedName("expectedSizeBytes") val expectedSizeBytes: Long
+)
+
+/** S3359: this phone's answer to one [WearPhoneResourceDeleteRequest], correlated by `requestId`. */
+data class WearPhoneResourceDeleteAck(
+    @SerializedName("schemaVersion") val schemaVersion: Int = WEAR_PHONE_RESOURCE_SCHEMA_VERSION,
+    @SerializedName("requestId") val requestId: String,
+    @SerializedName("outcome") val outcome: WearPhoneResourceDeleteOutcome
 )

@@ -14,6 +14,24 @@ sealed interface WearFileOperation {
     /** Send, then remove the watch copy - and only once the send came back confirmed. */
     data object MoveToPhone : WearFileOperation
 
+    /**
+     * Store a permanent copy on the watch; the original stays where it is, on the phone or on the share.
+     *
+     * The opposite direction of [SendToPhone], and the only one a file the watch does not own can be
+     * asked for: what it holds of such a file is an evictable copy, so "store it here for good" is a
+     * different errand from "hand it over there".
+     */
+    data object CopyToWatch : WearFileOperation
+
+    /**
+     * Store the copy, then ask the source to drop its original - and only once the copy is whole.
+     *
+     * The source removes it, not the watch: the original lives on the paired phone or on a network
+     * share, so an unreachable or read-only source leaves it in place and the run reports
+     * [WearFileOperationOutcome.COPIED_SOURCE_KEPT] rather than claiming a move.
+     */
+    data object MoveToWatch : WearFileOperation
+
     /** Remove the watch copy for good; the watch keeps no trash and has no restore screen. */
     data object Delete : WearFileOperation
 
@@ -40,6 +58,19 @@ sealed interface WearFileOperation {
      * for both.
      */
     data class SendToReceiver(val receiverId: String) : WearFileOperation
+
+    /**
+     * Pack this file into a FileDO `.fd-sec` container beside it, keeping the original.
+     *
+     * S3383. Neither this nor [DecryptFileDo] is ever handed to the batch engine: the FD-SEC
+     * contract forbids bulk, recursive and scheduled packing outright, and each operation needs a
+     * credential that only its own screen can ask for. The menu routes both to that screen instead
+     * of running them, which is why they carry no arguments here.
+     */
+    data object EncryptFileDo : WearFileOperation
+
+    /** Open a FileDO `.fd-sec` container and restore the original beside it. See [EncryptFileDo]. */
+    data object DecryptFileDo : WearFileOperation
 }
 
 /**
@@ -49,18 +80,26 @@ sealed interface WearFileOperation {
 enum class WearFileOperationKind {
     SEND_TO_PHONE,
     MOVE_TO_PHONE,
+    COPY_TO_WATCH,
+    MOVE_TO_WATCH,
     DELETE,
     RENAME,
     OPEN_ON_PHONE,
-    SEND_TO_RECEIVER
+    SEND_TO_RECEIVER,
+    ENCRYPT_FILEDO,
+    DECRYPT_FILEDO
 }
 
 /** The kind this request belongs to, so a caller never re-derives the mapping. */
 fun WearFileOperation.kind(): WearFileOperationKind = when (this) {
     WearFileOperation.SendToPhone -> WearFileOperationKind.SEND_TO_PHONE
     WearFileOperation.MoveToPhone -> WearFileOperationKind.MOVE_TO_PHONE
+    WearFileOperation.CopyToWatch -> WearFileOperationKind.COPY_TO_WATCH
+    WearFileOperation.MoveToWatch -> WearFileOperationKind.MOVE_TO_WATCH
     WearFileOperation.Delete -> WearFileOperationKind.DELETE
     is WearFileOperation.Rename -> WearFileOperationKind.RENAME
     is WearFileOperation.OpenOnPhone -> WearFileOperationKind.OPEN_ON_PHONE
     is WearFileOperation.SendToReceiver -> WearFileOperationKind.SEND_TO_RECEIVER
+    WearFileOperation.EncryptFileDo -> WearFileOperationKind.ENCRYPT_FILEDO
+    WearFileOperation.DecryptFileDo -> WearFileOperationKind.DECRYPT_FILEDO
 }

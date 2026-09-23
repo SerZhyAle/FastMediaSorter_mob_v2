@@ -98,7 +98,7 @@
     <string name="keybinding_label_sorting_copy">Copy</string>
     <string name="keybinding_label_sorting_create_folder">Create Folder</string>
     <string name="keybinding_label_sorting_delete">Delete</string>
-    <string name="keybinding_label_sorting_favourite">Favourite</string>
+    <string name="keybinding_label_sorting_favourite">Favorite</string>
     <string name="keybinding_label_sorting_file_ops">File Operations</string>
     <string name="keybinding_label_sorting_move">Move</string>
     <string name="keybinding_label_sorting_op_slot_1">Operation slot 1</string>

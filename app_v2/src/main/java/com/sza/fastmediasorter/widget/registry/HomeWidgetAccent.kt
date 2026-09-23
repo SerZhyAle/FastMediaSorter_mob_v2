@@ -7,7 +7,6 @@ import androidx.annotation.IdRes
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.core.panel.SubProgramAccentCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramCatalog
-import timber.log.Timber
 
 /**
  * S2889: the one place a home widget's identity glyph becomes a colour.

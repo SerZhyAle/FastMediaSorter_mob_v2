@@ -422,80 +422,9 @@
         }());
     </script>
 
-    <!-- Background Animated Waves & Particles Canvas -->
-    <canvas id="docCanvas"></canvas>
-    <script>
-        (function () {
-            var canvas = document.getElementById('docCanvas');
-            if (!canvas) return;
-            var ctx = canvas.getContext('2d');
-            var width, height, animId;
-
-            function resize() {
-                width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
-            }
-
-            var particles = [];
-            var PARTICLE_COUNT = 45;
-
-            function initParticles() {
-                particles = [];
-                for (var i = 0; i < PARTICLE_COUNT; i++) {
-                    particles.push({
-                        x: Math.random() * width,
-                        y: Math.random() * height,
-                        radius: Math.random() * 1.6 + 0.5,
-                        vx: (Math.random() - 0.5) * 0.25,
-                        vy: (Math.random() - 0.5) * 0.25,
-                        hue: (Math.random() < 0.5 ? 135 + Math.random() * 20 : 40 + Math.random() * 15)
-                    });
-                }
-            }
-
-            var time = 0;
-            function draw() {
-                ctx.clearRect(0, 0, width, height);
-                time += 0.002;
-                ctx.lineWidth = 1.4;
-                for (var j = 0; j < 4; j++) {
-                    ctx.beginPath();
-                    var phaseShift = j * 20;
-                    for (var i = 0; i <= width; i += 24) {
-                        var y = height * 0.35 +
-                            Math.sin(i * 0.0022 + time + phaseShift) * height * 0.25 *
-                            Math.sin(time * 0.25 + j * 0.25);
-                        if (i === 0) ctx.moveTo(i, y);
-                        else ctx.lineTo(i, y);
-                    }
-                    var waveHue = (j % 2 === 0) ? (135 + j * 6) : (44 + j * 4);
-                    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-                    ctx.strokeStyle = 'hsla(' + waveHue + ', 65%, ' + (isDark ? '55%' : '40%') + ', ' + (isDark ? '0.18' : '0.10') + ')';
-                    ctx.stroke();
-                }
-                particles.forEach(function (p) {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    if (p.x < 0 || p.x > width) p.vx *= -1;
-                    if (p.y < 0 || p.y > height) p.vy *= -1;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-                    ctx.fillStyle = 'hsla(' + p.hue + ', 90%, ' + (isDark ? '70%' : '45%') + ', ' + (isDark ? '0.4' : '0.25') + ')';
-                    ctx.fill();
-                });
-                animId = requestAnimationFrame(draw);
-            }
-
-            window.addEventListener('resize', function () { resize(); initParticles(); });
-            document.addEventListener('visibilitychange', function () {
-                if (document.hidden) { cancelAnimationFrame(animId); } else { draw(); }
-            });
-            resize();
-            initParticles();
-            draw();
-        }());
-    </script>
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
+    <script src="../assets/wave-particles.js"></script>
 </body>
 </html>
 

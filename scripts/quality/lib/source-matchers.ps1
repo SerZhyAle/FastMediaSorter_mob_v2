@@ -485,6 +485,25 @@ function Measure-UntrackedDialogText([string]$Text) {
     return @(Find-UntrackedDialogLines $Text).Count
 }
 
+# S3255: docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 4 - a dialog class reaches safe bounds only
+# transitively: the AppDialog factory calls Dialog.applyDialogInsets(), a sheet inherits the
+# unconditional bottom inset of BaseAppBottomSheet, and a hand-wired surface calls the
+# applySystemBarInsetPadding helper itself. A DialogFragment / BottomSheetDialogFragment subclass
+# in a file naming none of those seams registers no inset listener at all, which is the measured
+# gap this dimension ratchets out. Counted per declaring class line so the delta mode stays
+# meaningful; the file-level seam test keeps a shared base from charging the classes that reach it.
+# `\r?$` in the lookahead is load-bearing - these files are CRLF, and a bare `$` never matches
+# before the newline when a carriage return sits ahead of it.
+$script:DialogClassDeclRx = [regex]'(?m)^\s*(?:(?:abstract|open|final|internal|public|private)\s+)*class\s+\w+[^:{]*:\s*[^:{]*\b(?:BottomSheet)?DialogFragment\b\s*(?=\(|,|\r?$|\{)'
+$script:DialogInsetSeamRx = [regex]'BaseAppBottomSheet|applyDialogInsets|applySystemBarInsetPadding|\bAppDialog\b'
+
+function Measure-UnwiredDialogInsetText([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return 0 }
+    if (-not $script:DialogClassDeclRx.IsMatch($Text)) { return 0 }
+    if ($script:DialogInsetSeamRx.IsMatch($Text)) { return 0 }
+    return $script:DialogClassDeclRx.Matches($Text).Count
+}
+
 # S1567: a double quote inside a string resource survives the build only when a backslash precedes it
 # after XML decoding. Both the bare " and the &quot; entity are dropped by AAPT2's quoting pass - the
 # entity because the XML parser decodes it first - so both spellings silently delete the character.
@@ -777,6 +796,51 @@ function Measure-CaptionValueSplit([string]$Text) {
     return @(Get-CaptionValueSplitHits $Text).Count
 }
 
+# S3249: an id that names a strip of controls rather than a control. The rule below counts a raw
+# ImageButton only inside one of these, because an ImageButton elsewhere - a row's trailing action,
+# a dialog's single glyph - is not the defect: the defect is two icon-button idioms inside one bar,
+# differing in touch target, ripple shape and disabled tint.
+$script:BarContainerIdRx = [regex]'(?i)@\+?id/\w*(bar|panel|controls|operations|toolbar|strip)'
+
+function Get-RawImageButtonInBarHits([string]$Text) {
+    $hits = @()
+    if ([string]::IsNullOrEmpty($Text)) { return $hits }
+    # Cheap text gate before the parse - most layouts declare no ImageButton at all.
+    if ($Text -notmatch '<ImageButton') { return $hits }
+
+    $doc = $null
+    try {
+        $doc = [System.Xml.Linq.XDocument]::Parse($Text, [System.Xml.Linq.LoadOptions]::SetLineInfo)
+    }
+    catch {
+        # A malformed file is the XML parser's finding, not this rule's.
+        return $hits
+    }
+    if ($null -eq $doc -or $null -eq $doc.Root) { return $hits }
+
+    foreach ($el in $doc.Descendants()) {
+        if ((Get-CaptionValueSimpleName $el) -ne 'ImageButton') { continue }
+        $parent = $el.Parent
+        while ($null -ne $parent) {
+            $id = Get-CaptionValueAttr $parent 'id'
+            if ($null -ne $id -and $script:BarContainerIdRx.IsMatch($id)) {
+                $hits += [pscustomobject]@{ Line = ([System.Xml.IXmlLineInfo]$el).LineNumber }
+                break
+            }
+            $parent = $parent.Parent
+        }
+    }
+    return $hits
+}
+
+function Measure-RawImageButtonInBar([string]$Text) {
+    return @(Get-RawImageButtonInBarHits $Text).Count
+}
+
+function Find-RawImageButtonInBarLines([string]$Text) {
+    return @(Get-RawImageButtonInBarHits $Text | ForEach-Object { $_.Line } | Sort-Object -Unique)
+}
+
 function Find-CaptionValueSplitLines([string]$Text) {
     return @(Get-CaptionValueSplitHits $Text | ForEach-Object { $_.Line } | Sort-Object -Unique)
 }
@@ -875,6 +939,18 @@ function Get-SourceRules {
                     'which posts the teardown as a looper message so the session''s dispatch loop finishes first. ' +
                     'A release taken from inside a Player.Listener removes the controller''s record mid-dispatch and ' +
                     'media3 1.11.0 throws a fatal NPE there (androidx/media #3375). This baseline is 0 and is never raised.')),
+        # S3401: deleting a `Timber.d("Sxxxx: ..")` probe that was an effect's only statement left the
+        # effect behind with an empty body - seven such shells in wear on 2026-09-23, each launching a
+        # coroutine that does nothing. detekt has no rule for an empty lambda argument, and
+        # remove-ticket-probes.ps1 covers only the scripted removal, so a hand removal needs this gate.
+        # Both modules share one entry: the baseline is 0, so no cleanup exists for a regression to hide behind.
+        (New-RegexRule -Name 'empty-compose-effect' `
+                -Pattern ([regex]'(?:\bLaunchedEffect\((?:[^()\r\n]|\([^()\r\n]*\))*\)|\bSideEffect)[\t ]*\{\s*\}') `
+                -Roots @('app_v2/src', 'wear/src') `
+                -PathFilter '^(app_v2|wear)/src/' `
+                -FailMessage ('empty Compose effect (S3401) - a LaunchedEffect(..) {} or SideEffect {} with nothing inside, usually left ' +
+                    'when a Timber.d("Sxxxx: ..") probe that was its only statement was deleted. Delete the effect block too, and its ' +
+                    'import when the file no longer calls it; scripts/quality/remove-ticket-probes.ps1 does both. This baseline is 0 and is never raised.')),
         # S1693: growth stop for findViewById, not a placement rule. Whether one call is legitimate
         # (custom View, adapter, runtime-resolved layout, documented host-neutral helper) or legacy
         # is NOT lexically decidable - both shapes look identical - so this rule counts growth only.
@@ -1071,6 +1147,43 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-CaptionValueSplit $t }
             LocateInText = { param($t) Find-CaptionValueSplitLines $t }
             FailMessage  = 'new caption/value split in a layout (S2328). The caption must hug its own text and carry no layout_weight; the value takes the remaining width and stays start-aligned, so the row''s slack falls after the value and never between the pair - see view_settings_selection_row.xml and docs/ARCHITECTURE.md "Caption and Value Proximity". A control at the row''s end (switch, chevron, icon button) is not a value and is not counted. If the new row is genuinely two co-equal data columns rather than a caption and its value, justify it in review instead of raising the baseline.'
+        },
+        # S3248: a toolbar declaration carries its visual decisions in a style, never inline. 27
+        # declarations in 7 attribute fingerprints restated background, elevation and icon tint by
+        # hand, and none of them named a style - so a theme change had to be applied 27 times and a
+        # missed site looked exactly like a deliberate one. Both class names are judged: the app's
+        # own StandardToolbar and the raw MaterialToolbar a new screen would otherwise reach for.
+        # Walks the same layout roots as the caption rule above, so it costs one more regex pass
+        # over text that is already loaded. Baseline 0 - the cure is one attribute.
+        (New-RegexRule -Name 'styleless-toolbar' `
+                -Pattern ([regex]'<(?:com\.google\.android\.material\.appbar\.MaterialToolbar|com\.sza\.fastmediasorter\.ui\.common\.widget\.StandardToolbar)\b(?:(?!style=)[^>])*>') `
+                -Extensions @('.xml') `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
+                -FailMessage ('toolbar declared without a style (CLAUDE.md Rule 19, S3248). Add ' +
+                    'style="@style/Widget.FastMediaSorter.Toolbar.Primary" or ".Flat" and delete the inline ' +
+                    'background, elevation, navigationIconTint and titleTextColor attributes it replaces - ' +
+                    'docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.3 allows those two variants and no third.')),
+        # S3249: the acceptance metric of the ActionBarView ticket. A bar's controls must all be
+        # ActionBarView.Action records or MaterialButtons carrying the icon-button style; a raw
+        # ImageButton inside a bar container is the second idiom that made one screen's touch
+        # targets, ripples and disabled tints disagree with each other. Scoped by the enclosing
+        # container's id (Get-RawImageButtonInBarHits) rather than by file, so a trailing action on
+        # a list row is untouched by it.
+        [pscustomobject]@{
+            Name         = 'raw-imagebutton-in-bar'
+            Extensions   = @('.xml')
+            Roots        = @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                             'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                             'app_v2/src/main/res/layout-w600dp')
+            PathFilter   = 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/'
+            Baseline     = 'raw-imagebutton-in-bar-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-RawImageButtonInBar $t }
+            LocateInText = { param($t) Find-RawImageButtonInBarLines $t }
+            FailMessage  = 'new raw <ImageButton> inside a bar container (S3249). A strip of controls is an ActionBarView - declare the control as an ActionBarView.Action record, or as a MaterialButton with style="@style/Widget.FastMediaSorter.Button.Icon" - so the bar owns the 48dp touch target, the ripple shape and the disabled tint once instead of each control restating them. See docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.3.'
         },
         [pscustomobject]@{
             Name        = 'unsafe-collect'
@@ -1480,7 +1593,153 @@ function Get-SourceRules {
                 -PathFilter '^wear/src/main/' `
                 -Baseline 'wear-inline-font-size-baseline.txt' `
                 -ExcludeNames @('WearTypography.kt') `
-                -FailMessage 'literal font size (`NN.sp`) in wear/src/main. docs/ui/WEAR_UI_COMPONENT_PATTERNS.md section 1.3 requires text size to resolve through MaterialTheme.typography - take the nearest token from the table there, and if the screen genuinely needs a size the scale has no name for, re-size a token in ui/theme/WearTypography.kt instead of writing the number at the call site (S3257).')
+                -FailMessage 'literal font size (`NN.sp`) in wear/src/main. docs/ui/WEAR_UI_COMPONENT_PATTERNS.md section 1.3 requires text size to resolve through MaterialTheme.typography - take the nearest token from the table there, and if the screen genuinely needs a size the scale has no name for, re-size a token in ui/theme/WearTypography.kt instead of writing the number at the call site (S3257).'),
+        # S3247: an adapter painting the surface a row's state-list drawable owns - the row root
+        # itself, or the CardView that covers it. `item_focus_selector` carries the pressed, focused,
+        # hovered and activated layers, and the focus ring is a stroke inside two of them, so a
+        # per-bind colour swap switches the ring off for exactly the rows being selected. Selection is
+        # `isSelected` + `isActivated` and nothing else (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md 2.2).
+        #
+        # The pattern names the receiver rather than the method, because `setBackgroundColor` on a
+        # thumbnail child is legitimate - AdapterThumbnailLoader letterboxes with it - and a rule that
+        # counted the method alone would have to exclude the file that routes callers to it.
+        (New-RegexRule -Name 'adapter-root-background' `
+                -Pattern ([regex]'(?:binding\.root|itemView|rootView|\brootLayout|\bcvCard|binding\.cvCard)\.(?:setBackgroundColor|setBackgroundResource|setCardBackgroundColor)\(') `
+                -PathFilter '^app_v2/src/main/java/.*Adapter\.kt$' `
+                -Baseline 'adapter-root-background-baseline.txt' `
+                -FailMessage 'an adapter painting the row root or its covering card. The row''s own state-list drawable (item_focus_selector, applied by Widget.FastMediaSorter.Item.Row) owns selection, focus, press and hover; a setBackgroundColor over it destroys the focus ring on the selected rows. Set isSelected and isActivated instead, and put a semantic tint (unavailable, error) on a child surface inside the row - docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.2, S3247.'),
+        # S3243: a raw AlertDialog.Builder does not read materialAlertDialogTheme, so its buttons come
+        # out as the stock AppCompat pair instead of the DialogConfirm/DialogCancel taxonomy - and the
+        # construction site has no keyboard contract. Every call site migrated to AppDialog or
+        # MaterialAlertDialogBuilder first; the gate landed last so it never went red. LifecycleDialogExt
+        # is excluded: it is the showBoundTo/showBoundToHost seam the sanctioned builders route through.
+        (New-RegexRule -Name 'alert-dialog-builder' `
+                -Pattern ([regex]'AlertDialog\.Builder\s*\(') `
+                -Baseline 'alert-dialog-builder-baseline.txt' `
+                -ExcludeNames @('LifecycleDialogExt.kt') `
+                -FailMessage 'a raw AlertDialog.Builder call site. Build the dialog through the AppDialog factory or MaterialAlertDialogBuilder so it reads materialAlertDialogTheme and carries the keyboard contract (S3243, docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 6).'),
+        # S3255: docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 1.3 - a layout never carries
+        # `android:textSize`. It carries android:textAppearance="@style/TextAppearance.FastMediaSorter.<Role>",
+        # so one type-scale change reaches every surface. The dimension counts the attribute in every
+        # form, because a @dimen reference still forks the scale the appearance system owns.
+        (New-RegexRule -Name 'layout-text-size' `
+                -Pattern ([regex]'android:textSize\s*=') `
+                -Extensions @('.xml') `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
+                -FailMessage 'new android:textSize in a layout (S3255). Use android:textAppearance="@style/TextAppearance.FastMediaSorter.<Role>" (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 1.3) - the role is chosen by what the text means, not by how large it should look.'),
+        # S3255: section 1.3 - the five Material 2 bridge attributes resolve to different metrics than
+        # the Material 3 scale the module standardised on, so two rows meant to match do not. The
+        # pattern pins the `?attr/` reference spelling a layout uses; a role name from the
+        # TextAppearance.FastMediaSorter scale is the cure.
+        (New-RegexRule -Name 'layout-m2-tokens' `
+                -Pattern ([regex]'\?attr/textAppearance(?:Caption|Body1|Body2|Subtitle1|Subtitle2)\b') `
+                -Extensions @('.xml') `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
+                -FailMessage 'a Material 2 bridge textAppearance token in a layout (S3255). Pick the nearest TextAppearance.FastMediaSorter role (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 1.3) - textAppearanceCaption and BodySmall resolve to different metrics and cannot share one visual family.'),
+        # S3255: section 1.4 - elevation resolves through the @dimen/elevation_<role> token set; a raw
+        # dp literal is a number nobody can change in one place. Structural "0dp" stays exempt the same
+        # way layout-hardcoded-dimens spares it.
+        (New-RegexRule -Name 'layout-elevation-literal' `
+                -Pattern ([regex]'(?:android|app):elevation="-?(?!0dp")\d+(?:\.\d+)?dp"') `
+                -Extensions @('.xml') `
+                -Roots @('app_v2/src/main/res/layout', 'app_v2/src/main/res/layout-land',
+                         'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
+                         'app_v2/src/main/res/layout-w600dp') `
+                -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
+                -FailMessage 'a raw dp literal on an elevation attribute (S3255). Reference the @dimen/elevation_<role> token for that role (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 1.4) - a new value needs a new role, not a new number.'),
+        # S3255: section 2.1 window sizing - one DialogWindowSizer resolves the dialog window width
+        # from @dimen/dialog_min_width and @dimen/dialog_max_width against the configuration; a
+        # hand-rolled setLayout computes its own width and consults neither. The sizer itself is
+        # excluded by name, the same way PackageManagerCompat is: it IS the seam this rule routes
+        # callers towards.
+        (New-RegexRule -Name 'dialog-window-layout' `
+                -Pattern ([regex]'\bwindow\??\.setLayout\s*\(') `
+                -Baseline 'dialog-window-layout-baseline.txt' `
+                -ExcludeNames @('DialogWindowSizer.kt') `
+                -FailMessage 'a hand-rolled window.setLayout sizing a dialog (S3255). Delegate to DialogWindowSizer.applyTo so the width resolves from @dimen/dialog_min_width / dialog_max_width against the current configuration (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.1).'),
+        # S3255: section 2.2 - adapter item thumbnails route through MediaItemThumbnailBinder, which
+        # pins the override size, cache strategy, signature and placeholder per role. A raw Glide.with
+        # in an adapter configures per call site instead of per role - the five-way
+        # diskCacheStrategy split this section retired. The two sanctioned seams are excluded by name
+        # even though neither matches the Adapter filename filter, so a rename cannot silently move a
+        # raw call inside a gate-blind file.
+        (New-RegexRule -Name 'glide-adapter-entry' `
+                -Pattern ([regex]'\bGlide\.with\s*\(') `
+                -PathFilter '^app_v2/src/main/java/.*/ui/.*Adapter\.kt$' `
+                -Baseline 'glide-adapter-entry-baseline.txt' `
+                -ExcludeNames @('MediaItemThumbnailBinder.kt', 'MediaItemView.kt') `
+                -FailMessage 'a raw Glide.with in an adapter (S3255). Inject MediaItemThumbnailBinder and bind by ThumbnailRole, so size, cache strategy, signature and placeholder are decided per role rather than per call site (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.2).'),
+        # S3255: section 4 insets - the transitive check, last of the family because it is only
+        # meaningful once AppDialog and BaseAppBottomSheet exist. Predicate in
+        # Measure-UnwiredDialogInsetText above.
+        [pscustomobject]@{
+            Name         = 'transitive-dialog-insets'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src/main')
+            PathFilter   = 'app_v2/src/main/'
+            Baseline     = 'transitive-dialog-insets-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-UnwiredDialogInsetText $t }
+            FailMessage  = 'a DialogFragment / BottomSheetDialogFragment subclass with no inset seam in its file (S3255). Show it through AppDialog, inherit BaseAppBottomSheet, or call applyDialogInsets / applySystemBarInsetPadding - a cutout can cross a dialog positioned near the top edge (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 4).'
+        },
+        # S3255: docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 5 - prefer having no counterpart to
+        # having a stale one. A landscape layout whose portrait original is gone is a second file
+        # every future edit must remember for nothing; the parity rule refuses to create one. The
+        # count is a property of the FILE PAIR, not of the judged text alone, so this rule reads the
+        # repo-relative path Invoke-SourceScan passes as a second CountInText argument and tests the
+        # counterpart on disk.
+        [pscustomobject]@{
+            Name         = 'landscape-orphan-layout'
+            Extensions   = @('.xml')
+            Roots        = @('app_v2/src/main/res/layout-land')
+            PathFilter   = 'app_v2/src/main/res/layout-land/'
+            Baseline     = 'landscape-orphan-layout-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t, $path)
+                if ([string]::IsNullOrEmpty($t) -or [string]::IsNullOrEmpty($path)) { return 0 }
+                $portrait = ($path -replace '/res/layout-land/', '/res/layout/')
+                if ($portrait -eq $path) { return 0 }
+                $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+                if (Test-Path -LiteralPath (Join-Path $repoRoot $portrait)) { return 0 }
+                return 1
+            }
+            FailMessage  = 'a landscape layout with no portrait counterpart (S3255). Delete the orphan or restore the original - docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 5.1 prefers no counterpart to a stale one, and a counterpart that lost its original is the stale case by definition.'
+        },
+        # S3255: section 3.2 - nextFocus* declared in res/layout/ is declared in res/layout-land/ too;
+        # a D-pad chain that exists in portrait and breaks rotated is the regression the user meets by
+        # turning the phone. Judged from the PORTRAIT file against its existing counterpart, counting
+        # the attribute names the counterpart lacks, so each replication lowers the baseline by one.
+        # A portrait file with no counterpart is the orphan rule's subject above, not this one's.
+        [pscustomobject]@{
+            Name         = 'landscape-focus-parity'
+            Extensions   = @('.xml')
+            Roots        = @('app_v2/src/main/res/layout')
+            PathFilter   = 'app_v2/src/main/res/layout/'
+            Baseline     = 'landscape-focus-parity-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t, $path)
+                if ([string]::IsNullOrEmpty($t) -or [string]::IsNullOrEmpty($path)) { return 0 }
+                $focusRx = [regex]'(?:android:)?(nextFocus\w+)\s*='
+                $portraitAttrs = @($focusRx.Matches($t) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+                if ($portraitAttrs.Count -eq 0) { return 0 }
+                $landPath = ($path -replace '/res/layout/', '/res/layout-land/')
+                if ($landPath -eq $path) { return 0 }
+                $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+                $landFile = Join-Path $repoRoot $landPath
+                if (-not (Test-Path -LiteralPath $landFile)) { return 0 }
+                $landText = ''
+                try { $landText = Get-Content -LiteralPath $landFile -Raw -ErrorAction Stop } catch { return 0 }
+                $landAttrs = @($focusRx.Matches($landText) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+                return @($portraitAttrs | Where-Object { $_ -notin $landAttrs }).Count
+            }
+            FailMessage  = 'a portrait layout declaring nextFocus* its landscape counterpart lacks (S3255). Replicate the focus chain in res/layout-land/ - docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 3.2: a chain that exists in portrait and not rotated stops D-pad navigation dead.'
+        }
     )
 }
 

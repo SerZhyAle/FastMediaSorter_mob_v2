@@ -87,11 +87,13 @@ param(
     [string]$Module = "app_v2",
     [string]$KeyPrefix,
     [switch]$SkipScan,
-    # S0826: per-change closure on an always-dirty tree. When set, detekt is diff-scoped to
-    # -File (fails only on findings in THIS change), and every count-ratchet gate (neuroslop,
-    # listener-symmetry, flavor-flag, deprecated-pm; S0848/S0850) judges a real FATAL delta on
-    # the changed file (growth vs HEAD) instead of a full-project scan - other tickets' WIP no
-    # longer trips them. Only icon-inventory-sync stays advisory (its re-render is repo-wide).
+    # S0826: per-change closure on an always-dirty tree. When set, every count-ratchet gate
+    # (neuroslop, listener-symmetry, flavor-flag, deprecated-pm; S0848/S0850) judges a real
+    # FATAL delta on the changed file (growth vs HEAD) instead of a full-project scan - other
+    # tickets' WIP no longer trips them. Only icon-inventory-sync stays advisory (its re-render
+    # is repo-wide). S3327 (owner ruling 2026-09-20): the gradle detekt step no longer runs
+    # under this switch at all - the scoped run left the per-ticket closure, and the
+    # whole-module judgement stays in the release/CI closure that omits the switch.
     # Release/CI omit the switch for the strict full project gate.
     [switch]$ScopeToFile,
     # S1338 phase 05: acknowledge the document-registry records this change touches. The
@@ -330,6 +332,8 @@ $runsDocScriptReferences =
 # only at release scope. Keyed on the changed set like doc-script-references above: a closure
 # whose set carries a docs/*.md runs it, a Kotlin-only one never does.
 $runsDocHouseStyle = Test-AnyChangedFile '^docs/.*\.md$'
+# S2974: a changed termbase or corpus page is where a forbidden synonym enters the documentation.
+$runsDocsTermbase = Test-AnyChangedFile '^(docs/termbase\.jsonl|documentation/.*\.md)$'
 # Any agent-memory file, not just MEMORY.md: a second-level INDEX_*.md is where an over-budget
 # section is supposed to LAND, so a closure that only touches one of those is precisely the moment
 # to confirm the top-level index actually came down.
@@ -348,7 +352,11 @@ $runsNeuroslopGate = $isCodeChange -or $isResourceChange
 # S0720 detekt + ktlint static-analysis gate. Runs :app_v2:detekt :wear:detekt over a
 # committed per-module baseline (only NEW findings fail). It invokes gradle, so it is scoped to
 # a changed Kotlin/Java source file rather than the caller's label.
-$runsDetektGate = $isCodeChange
+# S3327 (owner ruling 2026-09-20): the scoped run left the per-ticket closure. Two independent
+# windows (S1938, 1450 closures; S3327, 556) found zero gradle-step findings after a clean cheap
+# pass, while the step held 21.4% of the summed gate wall and ~34 s of elapsed time per closure.
+# The whole-module judgement stays where the unscoped release/CI closure already performs it.
+$runsDetektGate = $isCodeChange -and -not $ScopeToFile
 # S1356 detekt-baseline absorption gate. Fires when a committed detekt baseline (or its ID snapshot)
 # is among the changed files. A whole-module `detektBaseline` re-freeze accepts every live finding in
 # that module at once - on 2026-08-02 one absorbed the debt S1198 and S1328 were written about, and
@@ -405,6 +413,8 @@ $runsSettingsDocGate = (
 $runsWearWireVocabularyParityGate = Test-AnyChangedFile '(WearDataLayerPaths|WearStreamTransferPayload|WearFileTransfer|WearFileTransferMetadata|WearPlaybackCommand|WearOpenOnPhonePayload|WearPhoneResourcePayload|WearSyncOutcome|WearSettingsRegistry|WearSettingsDecodeResult|Models|ImportNetworkSourcesUseCase)\.kt$'
 # S2885: any bridge envelope DTO file. Wide on purpose - the gate owns the authoritative path list
 # (S1621), so this trigger only has to be a superset of it.
+# S3433 icon style gate (ICON-RENDER 0.10 section 10), fixed-input form (S2824).
+$runsIconStyleGate = Test-AnyChangedFile '(^|/)(app_v2|wear)/src/[^/]+/res/drawable/ic_[^/]+\.xml$|icon-style-exceptions\.txt$|^scripts/docs/lib/(icon-[a-z-]+\.ps1|measure_glyph_style\.py)$|^scripts/quality/assert-icon-style\.ps1$|^app_v2/src/main/res/(values[^/]*/dimens|layout[^/]*/[^/]+)\.xml$'
 $runsWearWireNullabilityGate = Test-AnyChangedFile '(WearSyncPayload|WearSourcesExportPayload|WearSendToReceiversPayload|WearPhoneResourcePayload|WearStreamPinsPayload|WearFavoritesPayload|WearSettingsPayload|WearPlaybackStatePayload|WearStreamTransferPayload|WearCameraSessionPayload|CameraSessionPayload|WearListenSessionPayload|ListenSessionPayload|WearLogReportPayload|WearEventEnvelope)\.kt$'
 
 # S0558/S0945 settings-path drift gate. Fires when a HOW_TO or narrative guide
@@ -421,6 +431,49 @@ $runsHowToPathGate = Test-AnyChangedFile 'docs/(HOW_TO|README|QUICK_START|FAQ|TR
 # renames a closing gate closed unchecked. The check is pure text over five markdown files.
 # Roles and their obligations: dev/RULE_AND_SKILL_AUTHORING.md "Rule mirroring contract".
 $runsRuleDigestGate = Test-AnyChangedFile '^(CLAUDE\.md|AGENTS\.md|GEMINI\.md|\.github/copilot-instructions\.md|\.claude/rules/spec-catalog\.md)$'
+# S3371 no-secrets gate. Fires on every non-empty changed set: a credential can be pasted into any
+# text file, so narrowing the trigger by file type would only move the hole. The gate does its own
+# extension and vendored-path filtering, and reports what it scanned, so an empty selection is
+# visible rather than silent.
+$runsNoSecretsGate = $changedFiles.Count -gt 0
+# S3371 security-profile source gates: log redaction, credential encryption, diagnostics redaction.
+# All three read Kotlin only, so a docs or resource change never pays for them, and all three take
+# the changed-file delta path under -ScopeToFile. Measured on a full walk at 0.9 s, 2.2 s and 0.6 s.
+$runsSecurityProfileSourceGates = Test-AnyChangedFile '^(app_v2|wear)/src/[^/]+/java/.*\.kt$'
+# S3371 manifest risk gate. Fires on a manifest of either module, and on the registry itself - a
+# registry edit with no manifest change still has to be well formed, because the next manifest
+# change is judged against it.
+$runsManifestRiskGate = (Test-AnyChangedFile '(^|/)AndroidManifest[^/]*\.xml$') -or
+    (Test-AnyChangedFile '^docs/manifest-risk-registry\.jsonl$')
+# S3371 accessibility-semantics gate. A layout of any app_v2 source set, a Kotlin file of a ui tree
+# (where a custom interactive view lives), or the gate's own decorative allowlist - a row edited
+# alone still has to be well formed, because the next layout change is judged against it.
+$runsA11ySemanticsGate = (Test-AnyChangedFile '^app_v2/src/[^/]+/res/layout[^/]*/.*\.xml$') -or
+    (Test-AnyChangedFile '^app_v2/src/[^/]+/java/.*/ui/.*\.kt$') -or (Test-AnyChangedFile '^scripts/quality/a11y-decorative-allowlist\.txt$')
+# S3371 file-operation journal pairing gate. Fires on a Kotlin file of the transfer strategy
+# trees, and on the gate's own two data files - an allowlist row or a baseline token edited
+# alone still has to be well formed, because the next destructive operation is judged against
+# it. The gate judges the whole trees rather than the changed set and stays FATAL under
+# -ScopeToFile anyway: the baseline freezes every pre-journal operation, so the only finding it
+# can produce is one this change introduced.
+$runsFileopJournalPairingGate = (Test-AnyChangedFile '^app_v2/src/main/java/com/sza/fastmediasorter/(data|domain)/transfer/.*\.kt$') -or
+    (Test-AnyChangedFile '^scripts/quality/(fileops-read-only-allowlist|fileop-journal-pairing-baseline)\.txt$')
+# S3386 mutation-producer-registration gate - the caller half of the pairing above. Fires on any
+# app_v2 source outside the surface tree, because a surfaceless producer is a class shape and not a
+# path: a new Worker or Service can land anywhere under the package. It also fires on its own
+# registry, because a row edited alone still has to name a compensation that holds. Judges the whole
+# tree rather than the changed set and stays FATAL under -ScopeToFile: every producer that exists is
+# either journalled or on the registry, so the only finding it can produce is one this change made.
+$runsMutationProducerGate = (Test-AnyChangedFile '^app_v2/src/main/java/com/sza/fastmediasorter/(?!ui/).*\.kt$') -or
+    (Test-AnyChangedFile '^scripts/quality/mutation-producer-registry\.txt$')
+# S3371 no-test-retry gate. Fires on a test source of either module and on the four build scripts,
+# because the Gradle test-retry plugin reaches every test of a module without touching one test
+# file - a trigger that read only test sources would miss the cheapest way to do the forbidden
+# thing. The gate judges the whole test trees rather than the changed set and stays FATAL under
+# -ScopeToFile: the tree is clean (measured 2026-09-22), so the only finding it can produce is one
+# this change introduced.
+$runsNoTestRetryGate = (Test-AnyChangedFile '^(app_v2|wear)/src/(test|androidTest)/.*\.(kt|java)$') -or
+    (Test-AnyChangedFile '^((app_v2|wear)/)?(build|settings)\.gradle\.kts$')
 # S0684 dialog-cancel-style gate. Fires only when a dialog / bottom-sheet layout is touched -
 # a cancel/negative action button in such a pair must use Widget.FastMediaSorter.Button.DialogCancel,
 # never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
@@ -460,7 +513,15 @@ $runsOrientationLayoutPairingGate = (Test-AnyChangedFile '^app_v2/.*AndroidManif
 # than one copy - a config variant, or a flavor override - loses a ViewBinding field the moment one
 # copy drops an id, and either copy can be the one edited. Per-ticket rather than release-scope
 # (Rule 33): the flavor half is a compile break in shared src/main code, so later work builds on it.
+# The trigger assignments stay at the facade's top level on purpose: post-change.tests/Run-Tests.ps1
+# reads them statically there, and the Rule 2 ceiling is paid by the argv lib below instead.
 $runsLayoutVariantIdParityGate = Test-AnyChangedFile '^app_v2/.*res/layout[^/]*/.*\.xml$'
+# S3254 focus-parity gate. Fires on any app_v2 main layout XML: a portrait layout that declares
+# nextFocus* promises a D-pad chain, and a landscape counterpart that drops it strands the focus on
+# rotation. Either side of the pair can be the file edited, so a portrait-only changed set must
+# still trigger the scan. Per-ticket (Rule 33): the author of the declaration is the only one who
+# knows the counterpart must repeat it.
+$runsFocusParityGate = Test-AnyChangedFile '^app_v2/.*res/layout(-land)?/[^/]*\.xml$'
 # S1639 Gson persistence contract gate. Fires on a Kotlin source or an obfuscation rules file, the two
 # halves of the invariant: a model whose JSON outlives the process must have its field names pinned, and
 # either half can break it alone - a new model, or a keep rule that stopped covering an old one. The
@@ -645,67 +706,18 @@ $argvDocScriptRefs = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocScriptRefs += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvDocHouseStyle = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-doc-house-style.ps1"))
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocHouseStyle += @('-ChangedFiles', ($changedFiles -join ',')) }
+$argvDocsTermbase = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-docs-termbase.ps1"))
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocsTermbase += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvMemoryBudget = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-memory-budget.ps1"), '-Gate')
 $argvAlwaysLoadedBudget = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-always-loaded-budget.ps1"), '-Gate', '-Quiet')
 $argvBaselineAbsorption = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-detekt-baseline-absorption.ps1"), '-Gate')
 $argvBaselineSplitSync = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/split-detekt-baseline.ps1"), '-Gate')
 
-# S2419: the code lock covers the EDIT, never the checks that only read the tree afterwards.
-# It used to be released in the trailing finally, so the whole gate batch below - roughly seven
-# hundred lines - ran while holding. Measured over temp/AGENT-CHAT for 2026-09-02 21:30 ..
-# 2026-09-03 01:20: a closure's own gate batch took 19.0-48.8 s inside the lock against a 95 s
-# median Code.Scripts hold, every one of the 51 queue waits in that window was on that one
-# domain, and the queue reached ten deep. The release therefore sits here - after the changed
-# set and every gate argv are resolved, before the first pooled child reads anything. Nothing
-# between the top of the script and this line mutates the tree, and the two mutating steps
-# (catalog-sync, dev log) already ran after the old release point, so they are unaffected:
-# catalog-sync rewrites a gitignored local index and add_to_dev_log.ps1 serialises itself on a
-# system mutex (S1537), which is the finer mechanism Rule 23 defers to.
-$script:codeDomainsReleased = $false
-function Exit-AcquiredCodeDomains {
-    if ($script:codeDomainsReleased) { return }
-    $script:codeDomainsReleased = $true
-    # S2109: release exactly the domains this change set maps to, never the whole code side.
-    # Research artifact 04 found the unconditional release was blind to the module, so under
-    # domains a wear-only closure would have freed the phone domain a sibling was holding and
-    # handed its turn away mid-edit - the facade would have become the thing that breaks the
-    # split it is meant to use.
-    try {
-        . (Join-Path $root "scripts/utils/agent-lock.ps1")
-        # "Exactly the domains ACQUIRED" - which is not the same as "the domains this change set
-        # maps to". A session that took the full set and then closes a scripts-only change would
-        # otherwise release Code.Scripts and keep Code.Phone and Code.Wear held for nobody, which
-        # is a leak that outlives the run: measured here, two domains survived a green closure.
-        # Ownership is recorded in the lock files, so the acquired set can simply be read back, and
-        # Exit-AgentLockDomain owner-checks each one - a domain held by a sibling is never touched.
-        $derivedDomains = @(Resolve-CodeDomainsForPaths -Path ($changedFiles + $deletedFiles))
-        # S2371: same accessor the lock was written with - a pid-fallback session must still
-        # count the domains it holds, or its closure hands them to the staleness window.
-        $mySession = Get-AgentSessionId
-        $heldByThisSession = @(Resolve-AgentLockDomains -Name 'Code' | Where-Object {
-            $s = Get-AgentLockStatus -Name $_
-            $s.Exists -and -not [string]::IsNullOrWhiteSpace($mySession) -and
-                [string]$s.SessionId -eq $mySession
-        })
-        $releaseDomains = @(@($derivedDomains + $heldByThisSession) | Select-Object -Unique)
-        Exit-AgentLock -Name 'Code' -Domains $releaseDomains
-
-        # A closure is the deliberate boundary of one logical change. The following edit needs a
-        # fresh lock, so make that state transition explicit before a later phase can write unlocked.
-        $releasedDomains = @($heldByThisSession | Where-Object {
-            $status = Get-AgentLockStatus -Name $_
-            -not ($status.Exists -and [string]$status.SessionId -eq $mySession)
-        })
-        if ($releasedDomains.Count -gt 0) {
-            Write-Host ("  [code-lock-release] RELEASED: $($releasedDomains -join ', '). " +
-                'Before the next repository source, resource, build, or script edit, acquire its derived code lock.') `
-                -ForegroundColor Yellow
-        }
-    }
-    catch {
-        Write-Host "  [code-lock-release] WARN - could not release the code lock: $($_.Exception.Message)" -ForegroundColor Yellow
-    }
-}
+# S2419: the code lock covers the EDIT, never the checks that only read the tree afterwards, so the
+# release sits here - after the changed set and every gate argv are resolved, before the first pooled
+# child reads anything. Dot-sourced rather than inline only because the facade crossed the Rule 2
+# ceiling (S3386); the measurement that put the release at this line is in the library's header.
+. (Join-Path $root 'scripts/quality/lib/post-change-code-lock-release.ps1')
 Exit-AcquiredCodeDomains
 
 if ($runsStringsAudit) { Start-PooledGate @argvStringsAudit }
@@ -715,6 +727,7 @@ if ($runsDocPinsSync) { Start-PooledGate @argvDocPinsSync }
 if ($runsDocPinDrift) { Start-PooledGate @argvDocPinDrift }
 if ($runsDocScriptReferences) { Start-PooledGate @argvDocScriptRefs }
 if ($runsDocHouseStyle) { Start-PooledGate @argvDocHouseStyle }
+if ($runsDocsTermbase) { Start-PooledGate @argvDocsTermbase }
 if ($runsMemoryBudgetGate) { Start-PooledGate @argvMemoryBudget }
 if ($runsAlwaysLoadedBudget) { Start-PooledGate @argvAlwaysLoadedBudget }
 if ($runsBaselineAbsorptionGate) { Start-PooledGate @argvBaselineAbsorption }
@@ -847,6 +860,14 @@ else {
     Skip-Step "doc-house-style" "not applicable - no changed docs/*.md file"
 }
 
+# S2974: fatal - passing it is the closure condition of every documentation topic ticket.
+if ($runsDocsTermbase) {
+    Invoke-Gate "docs-termbase" { Invoke-GateChild @argvDocsTermbase }
+}
+else {
+    Skip-Step "docs-termbase" "not applicable - no changed termbase or documentation/*.md page"
+}
+
 # S2307 memory-index budget gate. MEMORY.md is injected into every turn of every session, so an
 # overshoot is billed continuously and to everyone - which is exactly why it must be caught by the
 # closure that WRITES the memory, not by whoever next happens to run `.\a.ps1 fg`. Until this
@@ -884,6 +905,18 @@ if ($runsBaselineSplitSyncGate) {
 }
 else {
     Skip-Step "detekt-baseline-split-sync" "not applicable - no detekt baseline, view file, or category table among the changed files"
+}
+
+# S3387: a deleted .kt leaves its baseline entries behind silently; the prune's -Deleted report run
+# answers 3 while any remain. Advisory, because the remedy rewrites a shared baseline and belongs to
+# the author, who the step names the command for.
+foreach ($pruneModule in @('app_v2', 'wear')) {
+    $deletedKt = @($deletedFiles | Where-Object { ($_ -replace '\\', '/') -match "(^|/)$pruneModule/src/.*\.kt$" })
+    if ($deletedKt.Count -eq 0) { continue }
+    $pruneArgv = @('-NoProfile', '-File', (Join-Path $root 'scripts/quality/prune-detekt-baseline.ps1'), '-Module', $pruneModule, '-Deleted', ($deletedKt -join ','))
+    Invoke-AdvisoryStep "detekt-baseline-deleted-files ($pruneModule)" { & pwsh @pruneArgv } -AdvisoryDetails (
+        "entries of the deleted files remain in config/detekt/baseline-$pruneModule.xml - pwsh -NoProfile -File " +
+        "scripts/quality/prune-detekt-baseline.ps1 -Module $pruneModule -Deleted `"$($deletedKt -join ',')`" -Apply -Reason '<ticket>'")
 }
 
 # S2122: the per-ticket half of the regression-suite run site. Only the suites whose subject this
@@ -1077,6 +1110,7 @@ if ($ScopeToFile) { $argvNeuroslop += @('-ChangedFiles', ($changedFiles -join ',
 $argvOrientationFeature = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-orientation-implied-feature.ps1"), '-Gate')
 $argvOrientationPairing = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-orientation-layout-pairing.ps1"), '-Gate')
 $argvLayoutVariantParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-layout-variant-id-parity.ps1"), '-Gate')
+$argvFocusParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-focus-parity.ps1"), '-Gate', '-Quiet')
 # S2326: the FGS gate reads every Kotlin file in both trees twice. Handing it the changed set makes
 # it judge what this change could have broken - a new call site, or a drawable it may have tinted.
 $argvFgs = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-fgs-notifications.ps1"), '-Gate')
@@ -1092,30 +1126,25 @@ $argvActivityLocaleWrapper = @('-NoProfile', '-File', (Join-Path $root "scripts/
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvActivityLocaleWrapper += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvQuantityFormatSeam = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-quantity-format-seam.ps1"), '-Gate')
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvQuantityFormatSeam += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvAllFeatures = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1"), '-Gate', '-Quiet')
-$argvHowToPaths = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-howto-settings-paths.ps1"), '-Gate')
-$argvScriptCheatsheet = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-script-cheatsheet-sync.ps1"), '-Gate', '-Quiet')
-$argvCodeDomainWriters = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-code-domain-writers.ps1"), '-Gate', '-Quiet')
-$argvFlavorMatrixDoc = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-flavor-matrix-docs.ps1"), '-Gate', '-Quiet')
-# S2828: -ChangedFiles joins the vector BEFORE Start-PooledGate, so the pool is keyed by the same
-# vector the gate is later invoked with.
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvFlavorMatrixDoc += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvOssNotices = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-oss-notices.ps1"), '-Gate', '-Quiet')
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvOssNotices += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvRuleDigest = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-rule-digest-sync.ps1"), '-Gate')
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvRuleDigest += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvLauncherReset = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-launcher-reset-coverage.ps1"), '-Gate', '-Quiet')
-# S2824: scoped HERE, not at the call site - Start-PooledGate below keys the warmed job by the exact
-# argument vector, so a call site that consumed a different one would miss the pool and run inline.
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvLauncherReset += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvWearWireVocabularyParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-wear-wire-vocabulary-parity.ps1"), '-Gate', '-Quiet')
-$argvWearWireNullability = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-wear-wire-nullability.ps1"), '-Gate', '-Quiet')
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvWearWireVocabularyParity += @('-ChangedFiles', ($changedFiles -join ',')) }
+# Argument vectors of the doc/config/wear-wire gate family live in this lib - extracted to hold
+# the facade under the Rule 2 ceiling. Dot-sourcing lands every vector in this scope; $root,
+# $ScopeToFile and $changedFiles are set by the time this runs.
+. (Join-Path $root 'scripts/quality/lib/post-change-gate-argvs.ps1')
 
 if ($runsNeuroslopGate) { Start-PooledGate @argvNeuroslop }
+if ($runsNoSecretsGate) { Start-PooledGate @argvNoSecrets }
+if ($runsSecurityProfileSourceGates) { Start-PooledGate @argvLogRedaction }
+if ($runsSecurityProfileSourceGates) { Start-PooledGate @argvCredentialEncryption }
+if ($runsSecurityProfileSourceGates) { Start-PooledGate @argvDiagnosticsRedaction }
+if ($runsFileopJournalPairingGate) { Start-PooledGate @argvFileopJournalPairing }
+if ($runsMutationProducerGate) { Start-PooledGate @argvMutationProducer }
+if ($runsNoTestRetryGate) { Start-PooledGate @argvNoTestRetry }
+if ($runsManifestRiskGate) { Start-PooledGate @argvManifestRisk }
+if ($runsA11ySemanticsGate) { Start-PooledGate @argvA11ySemantics }
 if ($runsOrientationFeatureGate) { Start-PooledGate @argvOrientationFeature }
 if ($runsOrientationLayoutPairingGate) { Start-PooledGate @argvOrientationPairing }
 if ($runsLayoutVariantIdParityGate) { Start-PooledGate @argvLayoutVariantParity }
+if ($runsFocusParityGate) { Start-PooledGate @argvFocusParity }
 if ($runsFgsGate) { Start-PooledGate @argvFgs }
 if ($runsFocusHighlightGate) { Start-PooledGate @argvFocusHighlight }
 if ($runsDialogCancelGate) { Start-PooledGate @argvDialogCancel }
@@ -1131,9 +1160,62 @@ if ($runsFlavorMatrixDocGate) { Start-PooledGate @argvFlavorMatrixDoc }
 if ($runsOssNoticesGate) { Start-PooledGate @argvOssNotices }
 if ($runsRuleDigestGate) { Start-PooledGate @argvRuleDigest }
 if ($runsWearWireVocabularyParityGate) { Start-PooledGate @argvWearWireVocabularyParity }
+if ($runsIconStyleGate) { Start-PooledGate @argvIconStyle }
 Start-PooledGate @argvLauncherReset
 
 try {
+
+if ($runsNoSecretsGate) {
+    Invoke-Gate "no-secrets-gate" { Invoke-GateChild @argvNoSecrets }
+}
+else {
+    Skip-Step "no-secrets-gate" "not applicable - the changed set is empty"
+}
+
+if ($runsSecurityProfileSourceGates) {
+    # S3371: all three stay FATAL under -ScopeToFile. Each judges a real per-file delta against
+    # HEAD, so a Timber line, a column or a payload field this change ADDS fails, while the
+    # baselined residue elsewhere in the tree does not.
+    Invoke-Gate "log-redaction-gate" { Invoke-GateChild @argvLogRedaction }
+    Invoke-Gate "credential-encryption-gate" { Invoke-GateChild @argvCredentialEncryption }
+    Invoke-Gate "diagnostics-redaction-gate" { Invoke-GateChild @argvDiagnosticsRedaction }
+}
+else {
+    Skip-Step "log-redaction-gate" "not applicable - no changed file is a Kotlin source"
+    Skip-Step "credential-encryption-gate" "not applicable - no changed file is a Kotlin source"
+    Skip-Step "diagnostics-redaction-gate" "not applicable - no changed file is a Kotlin source"
+}
+
+if ($runsManifestRiskGate) {
+    Invoke-Gate "manifest-risk-gate" { Invoke-GateChild @argvManifestRisk }
+}
+else {
+    Skip-Step "manifest-risk-gate" "not applicable - no changed file is a manifest or the risk registry"
+}
+
+if ($runsA11ySemanticsGate) { Invoke-Gate "a11y-semantics-gate" { Invoke-GateChild @argvA11ySemantics } }
+else { Skip-Step "a11y-semantics-gate" "not applicable - no changed file is an app_v2 layout, a ui Kotlin source or the decorative allowlist" }
+
+if ($runsFileopJournalPairingGate) {
+    Invoke-Gate "fileop-journal-pairing-gate" { Invoke-GateChild @argvFileopJournalPairing }
+}
+else {
+    Skip-Step "fileop-journal-pairing-gate" "not applicable - no changed file is in the transfer strategy trees or their allowlist"
+}
+
+if ($runsMutationProducerGate) {
+    Invoke-Gate "mutation-producer-registration-gate" { Invoke-GateChild @argvMutationProducer }
+}
+else {
+    Skip-Step "mutation-producer-registration-gate" "not applicable - no changed file is an app_v2 source outside the surface tree or the producer registry"
+}
+
+if ($runsNoTestRetryGate) {
+    Invoke-Gate "no-test-retry-gate" { Invoke-GateChild @argvNoTestRetry }
+}
+else {
+    Skip-Step "no-test-retry-gate" "not applicable - no changed file is a test source or a build script"
+}
 
 if ($runsNeuroslopGate) {
     # S0850: under -ScopeToFile every child judges a real delta on the changed file (growth vs
@@ -1164,6 +1246,13 @@ if ($runsLayoutVariantIdParityGate) {
 }
 else {
     Skip-Step "layout-variant-id-parity-gate" "not applicable - no changed file is an app_v2 layout XML"
+}
+
+if ($runsFocusParityGate) {
+    Invoke-Gate "focus-parity-gate" { Invoke-GateChild @argvFocusParity }
+}
+else {
+    Skip-Step "focus-parity-gate" "not applicable - no changed file is an app_v2 layout XML"
 }
 
 if ($runsFgsGate) {
@@ -1291,6 +1380,13 @@ if ($runsWearWireVocabularyParityGate) {
 }
 else {
     Skip-Step "wear-wire-vocabulary-parity-gate" "not applicable - no changed file declares a side of a phone/watch wire vocabulary"
+}
+
+if ($runsIconStyleGate) {
+    Invoke-FixedInputGate "icon-style-gate" $argvIconStyle 'assert-icon-style.ps1'
+}
+else {
+    Skip-Step "icon-style-gate" "not applicable - no changed file is a product glyph, dimens, layout, the icon-style exceptions or a rule library"
 }
 
 if ($runsWearWireNullabilityGate) {
@@ -1494,90 +1590,10 @@ else {
 # the changed set - it has no trigger, so it runs on every closure in the repo.
 Invoke-FixedInputGate "launcher-reset-coverage-gate" $argvLauncherReset 'assert-launcher-reset-coverage.ps1'
 
-# S2093: a watch setting present on one side of the phone/watch pair and absent on the other. The list
-# lived in four independently maintained places, so a one-sided setting diverged in silence and was
-# found only when the owner could not see it where it was expected. Here and not only in the fg batch:
-# the closure is where a ticket is judged, and a check the closure never runs cannot stop the ticket
-# that skipped a side.
-#
-# S2824 removed the claim that stood here - that a sibling session's WIP could not fail this gate
-# unless the WIP was itself the defect. S2820 refuted it: a changed set lying entirely in
-# wear/../ui/streams/ was refused by a half-written pair another session was mid-way through, and the
-# gate journal shows 40 such refusals in seventeen days, nineteen of them consecutive on one night
-# (temp/metrics/gate-executions.jsonl). What holds instead is that the gate charges
-# its findings only when a file it declares as an input is in the changed set. The trigger stays wide
-# because the path list lives in the gate (S1621) and duplicating it here would drift; it fires on 825
-# files while only 24 can be charged, and the gap between those two numbers is what code 3 covers.
-if (Test-AnyChangedFile '(^|/)wear/|Wear[A-Za-z]*\.kt$|SettingsDocScopeCatalog\.kt$') {
-    $argvWearSettingsParity = @('-NoProfile', '-File',
-        (Join-Path $root "scripts/quality/assert-wear-settings-parity.ps1"), '-Gate', '-Quiet')
-    if ($ScopeToFile -and $changedFiles.Count -gt 0) {
-        $argvWearSettingsParity += @('-ChangedFiles', ($changedFiles -join ','))
-    }
-    Invoke-FixedInputGate "wear-settings-parity-gate" $argvWearSettingsParity 'assert-wear-settings-parity.ps1'
-}
-else {
-    Skip-Step "wear-settings-parity-gate" "not applicable - no changed file touches the watch module or a watch-settings surface"
-}
-
-# S2579: a watch mini-program's canonicalKey that is neither a phone route key nor a declared
-# watch-only program. The enum's own KDoc calls that key the phone's, four of five entries obeyed it
-# and the fifth did not, and nothing looked - the watch's test compares the watch against itself.
-# Fatal on a divergence between the three files it reads, and since S2824 it declines to charge one
-# when none of them is in the changed set, for the reason recorded at the gate above.
-if (Test-AnyChangedFile '(^|/)wear/|InternalRouteCatalog\.kt$') {
-    $argvWearCanonicalKeyParity = @('-NoProfile', '-File',
-        (Join-Path $root "scripts/quality/assert-wear-canonical-key-parity.ps1"), '-Gate', '-Quiet')
-    if ($ScopeToFile -and $changedFiles.Count -gt 0) {
-        $argvWearCanonicalKeyParity += @('-ChangedFiles', ($changedFiles -join ','))
-    }
-    Invoke-FixedInputGate "wear-canonical-key-parity-gate" $argvWearCanonicalKeyParity 'assert-wear-canonical-key-parity.ps1'
-}
-else {
-    Skip-Step "wear-canonical-key-parity-gate" "not applicable - no changed file touches the watch module or the phone route catalog"
-}
-
-# S2621: a wear screen that is in neither the walked nor the excluded list of the pre-release walk is
-# not opened by /spec-prerelease-wear and is not declared skipped either, so it ships unchecked in
-# silence. Until now the only caller was the project-wide fg battery, which is not bound to any
-# ticket's changed set: the three screens that produced this gate's first real failure were added by
-# S2457, S2458 and S2516 on 2026-09-03/04, and the refusal was collected on 2026-09-05 and 2026-09-06
-# by two uninvolved sessions running fg for unrelated work - one of which filed a duplicate ticket
-# because the finding reaches whoever ran the battery rather than whoever added the screen.
-#
-# PER-TICKET by Rule 33: the subject is a screen this change added or renamed, and only its author
-# knows whether it is a destination worth walking or an exclusion with a reason. Scoped rather than
-# unconditional for the same reason the wear-mirrored-strings gate is: the gate reads the whole
-# module, so an unscoped FATAL here would refuse this closure over a neighbour's unclassified WIP -
-# reproducing the very complaint above, narrowed to sessions touching the watch.
-if (Test-AnyChangedFile '(^|/)wear/.*Screen\.kt$|(^|/)scripts/devtest/wear-prerelease-screens\.json$') {
-    Invoke-Gate "wear-walk-contract-gate" {
-        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-wear-walk-contract.ps1"), '-Gate')
-        if ($ScopeToFile -and $changedFiles.Count -gt 0) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
-        & $pwsh @a
-    }
-}
-else {
-    Skip-Step "wear-walk-contract-gate" "not applicable - no changed file is a wear screen or the declared walk list"
-}
-
-# S2880: a route declared in either WearDataLayerPaths.kt with no scenario naming it and no recorded
-# exclusion is the gap class S2861 measured - two of thirty-eight routes were named nowhere, and both
-# were exactly where the campaign's only confirmed defect lives. PER-TICKET by Rule 33: the subject is
-# the route catalog any bridge ticket may extend, so the author of the extension classifies it in the
-# same change. Scoped rather than unconditional for the walk-contract reason: the gate reads both
-# catalogs whole, and an unscoped FATAL here would refuse this closure over a neighbour's
-# unclassified new route (S2621).
-if (Test-AnyChangedFile '(^|/)WearDataLayerPaths\.kt$|(^|/)scripts/devtest/bridge-scenarios\.json$') {
-    Invoke-Gate "bridge-scenario-coverage-gate" {
-        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-bridge-scenario-coverage.ps1"), '-Gate')
-        if ($ScopeToFile -and $changedFiles.Count -gt 0) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
-        & $pwsh @a
-    }
-}
-else {
-    Skip-Step "bridge-scenario-coverage-gate" "not applicable - no changed file is a route catalog or the bridge scenario registry"
-}
+# S2380: the declared-catalog gate family - five gates that judge a hand-maintained declaration
+# against the module it describes. Dot-sourced rather than inline only because the facade crossed
+# the Rule 2 ceiling; scope, order and behaviour are unchanged.
+. (Join-Path $root 'scripts/quality/lib/post-change-declared-catalog-gates.ps1')
 
 # S2125: the sibling of the gate above, judging the TEXT the parity gate never reads. The two modules
 # ship no shared resource artifact, so a label the owner sees on both sides exists twice and editing
@@ -1674,7 +1690,10 @@ else {
 # costs no parallelism: the job still runs alongside every lexical gate above, and it could never
 # have overlapped the gradle gates - one domain, one daemon. It also disarms the orphan lock, since
 # the abort path's Stop-Job in the finally below now has no live child to kill mid-run.
-if ($runsDetektGate -and $detektPreflightFailed) {
+if ($isCodeChange -and $ScopeToFile) {
+    Skip-Step "detekt-gate" "S3327 ruling: the scoped gradle run left the per-ticket closure - the whole-module judgement stays in the release/CI closure"
+}
+elseif ($runsDetektGate -and $detektPreflightFailed) {
     Skip-Step "detekt-gate" "detekt-preflight already failed on the same files - fix those findings first"
 }
 elseif ($runsDetektGate) {
@@ -1687,9 +1706,16 @@ elseif ($runsDetektGate) {
         $finished = Wait-Job -Job $detektJob -Timeout $joinCeilingSeconds
         if (-not $finished) {
             Write-Host ("detekt-gate: CANNOT VERIFY - joining the detekt job exceeded ${joinCeilingSeconds}s; " +
-                "the job was stopped and detekt was not judged.") -ForegroundColor Yellow
-            try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
-            try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
+                "detekt was not judged.") -ForegroundColor Yellow
+            # S3341: the ceiling bounds the join, and the branch needs a bound of its own. It was
+            # journalled blocking 4.5 h past the ceiling (2026-09-19, row elapsed 17 977.8 s = the
+            # wall clock from the join's start): Stop-Job waits for the job's thread, the thread
+            # waits for the child process, and a child that cannot die made that wait unbounded.
+            # Bounded teardown: kill the child tree, settle briefly, abandon the job if needed.
+            Invoke-ClosureJobCleanup -Job $detektJob -ChildProcessMarker 'assert-detekt.ps1'
+            # The journalled number is the ceiling this verdict cost, never the time a stuck
+            # child held the branch below the join.
+            Set-PooledElapsedMs ($joinCeilingSeconds * 1000)
             $script:detektJob = $null
             $global:LASTEXITCODE = 2
             return
@@ -1823,9 +1849,9 @@ finally {
     # A gate whose call site was never reached - the run ended early - still owns a running child.
     Stop-GatePool
     # Guarantee no orphan detekt/gradle launcher survives an early exit from the gate block.
+    # S3341: the teardown is bounded - a child that cannot die must not hang the exit either.
     if ($detektJob) {
-        try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
-        try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
+        Invoke-ClosureJobCleanup -Job $detektJob -ChildProcessMarker 'assert-detekt.ps1'
     }
     # Tier-2 coordination lock (CLAUDE.md Rule 23). S2419 moved the release to just before the
     # gate batch, so on the normal path this call is already a no-op. It stays here as the

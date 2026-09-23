@@ -292,6 +292,7 @@ $scripts = @{
     'ss'        = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @{} }
     'sca-specs' = @{ Path = 'scripts\spec_catalog\sca-specs.ps1'; Args = @{} }
     'bf'        = @{ Path = 'scripts\builders\get-last-build-failure.ps1'; Args = @{} }
+    'sbom'      = @{ Path = 'scripts\builders\build-sbom.ps1'; Args = @{} }  # S3371: CycloneDX SBOM for one module (-Module app_v2|wear)
     'bfd'       = @{ Path = 'scripts\builders\build-failure-digest.ps1'; Args = @{} }
     'nl'        = @{ Path = 'scripts\builders\build-nolegal-release.ps1'; Args = @{} }
     'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @{} }
@@ -640,7 +641,16 @@ if ($queueRunnerStartCommands -contains $Command) {
             $minSamples = if ($concurrency.loadMinSamples) { [int]$concurrency.loadMinSamples } else { 3 }
             $since = (Get-Date).AddMinutes(-$loadWindow).ToString('yyyy-MM-ddTHH:mm:ss')
             try { $summary = & pwsh -NoProfile -File $summaryScript -Since $since -Json | ConvertFrom-Json } catch { $summary = $null }
-            if ($summary) {
+            # Both signals price CONCURRENCY, so a window written by at most one runner instance is no
+            # evidence of it. On 2026-09-23 a lone MONO lane's four real incremental compiles (53-111 s
+            # each, against a no-change datasheet figure) read as 83 s of lag and refused r1..r3 on a
+            # machine that had run nothing else. The active-agent count above still bounds sessions.
+            $windowInstances = @($summary.policies | ForEach-Object { [string]$_.Instance } |
+                Where-Object { $_ -and $_ -ne '-' } | Select-Object -Unique).Count
+            if ($summary -and $windowInstances -lt 2) {
+                Write-Host "  load signals skipped - $windowInstances runner instance(s) in the last $loadWindow min, no concurrency to price" -ForegroundColor DarkGray
+            }
+            elseif ($summary) {
                 if ($null -ne $summary.idleRunShare -and $concurrency.idleRunSharePercentMax -and
                     $summary.runCount -ge $minSamples -and
                     $summary.idleRunShare -gt [double]$concurrency.idleRunSharePercentMax) {

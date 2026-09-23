@@ -29,12 +29,12 @@
     <string name="welcome_profile_personal_smartphone_title">هاتف شخصي</string>
     <string name="welcome_profile_photo_frame_desc">يحوّل الجهاز إلى إطار صور رقمي. يعطّل الفيديو والصوت وعمليات الملفات، ويفتح عرض الشرائح فور التشغيل.</string>
     <string name="welcome_profile_photo_frame_title">إطار صور</string>
-    <string name="welcome_profile_selector_title">طريقة استخدام الجهاز</string>
+    <string name="welcome_profile_selector_title">ملف تعريف الجهاز</string>
     <string name="welcome_profile_tv_media_box_desc">الأنسب للتلفزيونات ومراكز الوسائط. يحسّن التنقل بلوحة الاتجاهات وجهاز التحكم، ويستخدم أزرارًا كبيرة، ويخفي عناصر اللمس الصغيرة.</string>
     <string name="welcome_profile_tv_media_box_title">تلفزيون / صندوق وسائط</string>
     <string name="welcome_profile_video_player_desc">الأنسب لأجهزة الفيديو فقط. يخفي الصور والموسيقى وعارض المستندات، ويقدّم التشغيل السريع والمصغّرات.</string>
     <string name="welcome_profile_video_player_title">مشغّل فيديو</string>
-    <string name="welcome_profile_vr_headset_desc">الأنسب لأجهزة الواقع الافتراضي. يُفعّل مسبقًا تخطيطات 3D/360° وعناصر تحكم غامرة على إصدارات الأجهزة المدعومة.</string>
+    <string name="welcome_profile_vr_headset_desc">الأفضل لأجهزة الواقع الافتراضي. يفعّل مسبقًا تخطيطات 3D/360° وعناصر التحكم الغامرة على السماعات المدعومة.</string>
     <string name="welcome_profile_vr_headset_title">نظارة واقع افتراضي</string>
     <string name="welcome_recommended_badge">(موصى به)</string>
     <string name="welcome_title_1">مرحبًا بك في FastMediaSorter!</string>
@@ -62,7 +62,7 @@
     <string name="sysinfo_field_display_count">الشاشات</string>
     <string name="sysinfo_field_fingerprint">بصمة الإصدار</string>
     <string name="sysinfo_field_first_install">أول تثبيت</string>
-    <string name="sysinfo_field_flavor">النسخة</string>
+    <string name="sysinfo_field_flavor">الإصدار</string>
     <string name="sysinfo_field_font_scale">مقياس الخط</string>
     <string name="sysinfo_field_gles">OpenGL ES</string>
     <string name="sysinfo_field_hdr">HDR</string>
@@ -117,7 +117,7 @@
     <string name="welcome_theme_auto">تلقائي</string>
     <string name="welcome_theme_light">فاتح</string>
     <string name="welcome_theme_dark">داكن</string>
-    <string name="welcome_networks_title">مصادر الشبكة</string>
+    <string name="welcome_networks_title">موارد الشبكة</string>
     <string name="welcome_networks_description">أضف وسائط من المجلدات المشتركة على الشبكة ومن التخزين البعيد.</string>
     <string name="welcome_profiles_title">كيف ستستخدم هذا الجهاز؟</string>
     <string name="welcome_profiles_subtitle">اختر ملفًا تعريفيًا وسنضبط الإعدادات الافتراضية بما يناسبه.</string>
@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">البثّ</string>
     <string name="welcome_role_streams_detail">راديو وقنوات تلفزيون وفيديو عبر الإنترنت من دليل جاهز</string>
     <string name="welcome_role_wear">تطبيق الساعة</string>
-    <string name="welcome_role_wear_detail">تطبيق مرافق لـ Wear OS - تصفّح وشغّل من معصمك مباشرة</string>
+    <string name="welcome_role_wear_detail">تطبيق الساعة - تصفّح وشغّل مباشرة على معصمك</string>
 </resources>

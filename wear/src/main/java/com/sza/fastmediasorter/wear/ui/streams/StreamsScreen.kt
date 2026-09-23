@@ -175,7 +175,6 @@ fun StreamsScreen(
     viewModel: StreamsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    Timber.d("S3259: streams screen shown - refresh footer is StandardWearChip, rows are StreamTileRow")
     // The channel rows are the first items on this screen, so the second row is item 1 (S2466). The
     // counter row S2568 moved into the list is conditional, so a fixed titled anchor would be wrong
     // whenever it is absent - it opens one row higher when it is there, which is where it is read.
@@ -789,7 +788,6 @@ private fun StreamFilterDialog(
     actions: StreamsFilterDialogActions,
     onDismiss: () -> Unit
 ) {
-    Timber.d("S3260: stream filter dialog shown - the kind rows are StandardWearToggleChip")
     Dialog(
         showDialog = true,
         onDismissRequest = onDismiss
@@ -832,7 +830,6 @@ private fun StreamFilterDialog(
                             checked = state.selectedFilter == filter,
                             onCheckedChange = {
                                 if (state.selectedFilter != filter) {
-                                    Timber.d("S3102: selected stream filter type $filter")
                                     actions.onFilterSelected(filter)
                                 }
                             },
@@ -890,7 +887,6 @@ private fun ScalingLazyListScope.streamTopicFilterChoices(
             } ?: stringResource(R.string.wear_streams_filter_topic_all)
         },
         onSelected = { topic ->
-            Timber.d("S3103: selected stream topic ${topic ?: "all"}")
             actions.onTopicSelected(topic)
         }
     )

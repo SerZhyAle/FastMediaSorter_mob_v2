@@ -84,9 +84,12 @@ if (-not (Test-Path $TranscriptRoot)) {
 if (-not $OutputPath) { $OutputPath = Join-Path $repoRoot 'temp/metrics' }
 New-Item -ItemType Directory -Force -Path $OutputPath | Out-Null
 
-$python = (Get-Command python -ErrorAction SilentlyContinue)
-if (-not $python) { $python = (Get-Command python3 -ErrorAction SilentlyContinue) }
-if (-not $python) {
+# S3342: resolved through the shared helper, which skips the zero-length WindowsApps execution
+# aliases. Asking for `python3` here used to reach that alias and open Windows' "Select an app
+# to open 'python3'" picker instead of failing.
+. (Join-Path $repoRoot 'scripts/utils/lib/python-interpreter.ps1')
+$pythonPath = Get-WorkingPythonPath -ExtraCandidates @((Join-Path $repoRoot '.venv/Scripts/python.exe'))
+if (-not $pythonPath) {
     Fail-CannotVerify 'python not found on PATH - cannot run the extractor.'
 }
 
@@ -94,7 +97,7 @@ $pyArgs = @($extractor, '--root', $TranscriptRoot, '--out', $OutputPath)
 if ($Since) { $pyArgs += @('--since', $Since) }
 if ($Until) { $pyArgs += @('--until', $Until) }
 
-& $python.Source @pyArgs | Out-Null
+& $pythonPath @pyArgs | Out-Null
 $code = $LASTEXITCODE
 if ($code -eq 2) {
     Fail-CannotVerify "extractor could not read the corpus at $TranscriptRoot"

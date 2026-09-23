@@ -18,7 +18,7 @@ internal object OcrInputBitmapLoader {
     private const val MAX_OCR_DIMENSION_PX = 2048
 
     fun load(context: Context, mediaFile: MediaFile?, displayBitmap: Bitmap): Bitmap {
-        val sourceUri = mediaFile?.let(::sourceUri) ?: return displayBitmap.also(::logInput)
+        val sourceUri = mediaFile?.let(::sourceUri) ?: return displayBitmap
         return try {
             ImageDecoder.decodeBitmap(
                 ImageDecoder.createSource(context.contentResolver, sourceUri),
@@ -27,13 +27,13 @@ internal object OcrInputBitmapLoader {
                 boundedSize(info.size.width, info.size.height)?.let { (width, height) ->
                     decoder.setTargetSize(width, height)
                 }
-            }.also(::logInput)
+            }
         } catch (error: IOException) {
             Timber.w(error, "OCR source decode failed; using display bitmap")
-            displayBitmap.also(::logInput)
+            displayBitmap
         } catch (error: SecurityException) {
             Timber.w(error, "OCR source decode failed; using display bitmap")
-            displayBitmap.also(::logInput)
+            displayBitmap
         }
     }
 
@@ -52,8 +52,5 @@ internal object OcrInputBitmapLoader {
             mediaFile.path.startsWith("content://") -> Uri.parse(mediaFile.path)
             else -> File(mediaFile.path).takeIf(File::isFile)?.let(Uri::fromFile)
         }
-    }
-
-    private fun logInput(bitmap: Bitmap) {
     }
 }

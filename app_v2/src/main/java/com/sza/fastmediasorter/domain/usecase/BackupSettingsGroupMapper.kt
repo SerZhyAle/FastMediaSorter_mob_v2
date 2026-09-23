@@ -156,6 +156,8 @@ internal object BackupSettingsGroupMapper {
         broadcastCameraEnabled = settings.broadcast.cameraEnabled,
         broadcastMicrophoneEnabled = settings.broadcast.microphoneEnabled,
         broadcastMicGainPercent = settings.broadcast.micGainPercent,
+        broadcastFeedbackGuardEnabled = settings.broadcast.feedbackGuardEnabled,
+        broadcastWatchCameraStandby = settings.broadcast.watchCameraStandby,
         broadcastVideoWidth = settings.broadcast.videoWidth,
         broadcastVideoHeight = settings.broadcast.videoHeight,
         broadcastVideoFps = settings.broadcast.videoFps,
@@ -397,6 +399,9 @@ internal object BackupSettingsGroupMapper {
                 cameraEnabled = backup.broadcastCameraEnabled ?: broadcast.cameraEnabled,
                 microphoneEnabled = backup.broadcastMicrophoneEnabled ?: broadcast.microphoneEnabled,
                 micGainPercent = backup.broadcastMicGainPercent ?: broadcast.micGainPercent,
+                feedbackGuardEnabled = backup.broadcastFeedbackGuardEnabled
+                    ?: broadcast.feedbackGuardEnabled,
+                watchCameraStandby = backup.broadcastWatchCameraStandby ?: broadcast.watchCameraStandby,
                 videoWidth = backup.broadcastVideoWidth ?: broadcast.videoWidth,
                 videoHeight = backup.broadcastVideoHeight ?: broadcast.videoHeight,
                 videoFps = backup.broadcastVideoFps ?: broadcast.videoFps,

@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Paint
 import android.util.AttributeSet
 import android.widget.TextClock
 
@@ -23,30 +22,21 @@ class OutlinedTextClock @JvmOverloads constructor(
     defStyleAttr: Int = android.R.attr.textViewStyle,
 ) : TextClock(context, attrs, defStyleAttr) {
 
-    private val contour = TextContour.read(context, attrs, defStyleAttr)
-    private var drawingOutline = false
+    // Nullable because the TextClock constructor invalidates before this field is assigned.
+    private val contour: TextContour? = TextContour.read(context, attrs, defStyleAttr)
 
     // The stroke pass swaps the text colour, which would re-trigger a draw; swallow it mid-draw.
     override fun invalidate() {
-        if (drawingOutline) return
+        if (contour?.isDrawing == true) return
         super.invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
-        val strokeWidth = contour.strokeWidth(paint.textSize)
-        if (!contour.isEnabled || strokeWidth <= 0f) {
+        val contour = this.contour
+        if (contour == null) {
             super.onDraw(canvas)
             return
         }
-        drawingOutline = true
-        val fillColors = textColors
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = strokeWidth
-        setTextColor(contour.color)
-        super.onDraw(canvas)
-        paint.style = Paint.Style.FILL
-        setTextColor(fillColors)
-        super.onDraw(canvas)
-        drawingOutline = false
+        contour.draw(this) { super.onDraw(canvas) }
     }
 }

@@ -133,7 +133,8 @@ object DropboxClientUtils {
             modifiedDate = metadata.serverModified?.time ?: 0L,
             mimeType = guessMimeType(metadata.name),
             thumbnailUrl = null, // Thumbnails fetched separately
-            webViewUrl = null
+            webViewUrl = null,
+            parentId = parentPathOf(metadata)
         )
         is FolderMetadata -> CloudFile(
             id = metadata.pathDisplay ?: metadata.pathLower ?: "",
@@ -144,7 +145,8 @@ object DropboxClientUtils {
             modifiedDate = 0,
             mimeType = null,
             thumbnailUrl = null,
-            webViewUrl = null
+            webViewUrl = null,
+            parentId = parentPathOf(metadata)
         )
         else -> CloudFile(
             id = metadata.pathDisplay ?: metadata.pathLower ?: "",
@@ -155,9 +157,14 @@ object DropboxClientUtils {
             modifiedDate = 0,
             mimeType = null,
             thumbnailUrl = null,
-            webViewUrl = null
+            webViewUrl = null,
+            parentId = parentPathOf(metadata)
         )
     }
+
+    /** S3409: Dropbox addresses by path, so the parent is the path before the last `/` and the root is "". */
+    private fun parentPathOf(metadata: Metadata): String? =
+        (metadata.pathDisplay ?: metadata.pathLower)?.substringBeforeLast('/', "")
 
     fun guessMimeType(fileName: String): String? {
         val extension = fileName.substringAfterLast('.', "").lowercase()

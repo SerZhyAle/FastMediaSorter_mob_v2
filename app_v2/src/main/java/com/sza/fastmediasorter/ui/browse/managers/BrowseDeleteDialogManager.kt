@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.util.showBoundToHost
-import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 internal class BrowseDeleteDialogManager(
@@ -34,7 +33,6 @@ internal class BrowseDeleteDialogManager(
         if (fileCount == 0) {
             return
         }
-
 
         if (resource?.type?.isNetworkResource == true) {
             val prefs = activity.getSharedPreferences("NetworkDeletePrefs", Context.MODE_PRIVATE)

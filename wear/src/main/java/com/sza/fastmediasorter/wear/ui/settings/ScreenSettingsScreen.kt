@@ -1,6 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,10 +30,9 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
+private const val CHIPS_PER_ROW = 1
 
 @Composable
 fun ScreenSettingsScreen(
@@ -41,31 +40,19 @@ fun ScreenSettingsScreen(
     listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.SCREEN)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    Timber.d("S3260: screen settings shown - mode, scheme, geometry and keep-awake rows are StandardWearToggleChip")
     val displayModeLabel = stringResource(R.string.screen_settings_view_mode)
     val fileListLabel = stringResource(R.string.screen_settings_file_list_view)
 
-    // S1949: the three mode chips measure 6-12 characters in their worst locale, so they are narrow
-    // and share a row. Each group is packed on its own, so a run never spans two settings: on a
-    // display narrow enough to drop to two columns, the keep-awake toggle would otherwise pair with
-    // a leftover mode chip and read as part of that group.
+    // S1949 packed the three mode chips into one row; S3362 gives every chip its own row (see below).
+    // Each group is still packed on its own, so a run never spans two settings.
     val displayModeItems = viewModeItems(displayModeLabel, uiState.viewMode, viewModel::setViewMode)
     val fileListItems =
         viewModeItems(fileListLabel, uiState.fileListViewMode, viewModel::setFileListViewMode)
     // S2093 / ADR-3: the mode is two values and so is editable from both sides; the picture it points
     // at stays a phone choice, because choosing one means opening a gallery.
     val backgroundLabel = stringResource(R.string.wear_setting_background_mode)
-    val backgroundItems = WearBackgroundMode.entries.map { mode ->
-        WearSettingsItem(fullWidth = true) { _ ->
-            BackgroundModeRow(
-                mode = mode,
-                groupLabel = backgroundLabel,
-                selected = uiState.backgroundMode == mode,
-                onSelect = { viewModel.setBackgroundMode(mode) }
-            )
-        }
-    }
-    // S2522 / S3023: color scheme options laid out in 2 columns.
+    val backgroundItems = backgroundModeItems(uiState, viewModel, backgroundLabel)
+    // S2522 / S3023: one radio row per color scheme.
     val colorSchemeLabel = stringResource(R.string.wear_setting_color_scheme)
     val colorSchemeItems = WearColorScheme.entries.map { scheme ->
         WearSettingsItem { narrow ->
@@ -87,9 +74,11 @@ fun ScreenSettingsScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val columns = GridColumnFit.columnsFor(WearViewMode.GRID_3, maxWidth.value.toInt())
-            val colorSchemeColumns = GridColumnFit.columnsFor(WearViewMode.GRID_2, maxWidth.value.toInt())
+        // S3362: one chip per row on every watch. Measured on the 192 dp and 227 dp review emulators,
+        // chips sharing a row cut each label to a few letters or to nothing at all, which WO-V1 and
+        // WO-V16 fail as truncated essential text.
+        Box(modifier = Modifier.fillMaxSize()) {
+            val columns = CHIPS_PER_ROW
             WearListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
@@ -107,12 +96,16 @@ fun ScreenSettingsScreen(
                 items(packSettingsRows(keepAwakeItems, columns)) { row -> WearSettingsRow(row) }
                 item { GroupCaption(text = displayModeLabel) }
                 items(packSettingsRows(displayModeItems, columns)) { row -> WearSettingsRow(row) }
-                item { GroupCaption(text = fileListLabel) }
-                items(packSettingsRows(fileListItems, columns)) { row -> WearSettingsRow(row) }
+                // S3362: the file list this group lays out belongs to the browse graph, which the
+                // store artifact does not carry. The group leaves with its subject, caption and all.
+                if (uiState.offersMediaAccess) {
+                    item { GroupCaption(text = fileListLabel) }
+                    items(packSettingsRows(fileListItems, columns)) { row -> WearSettingsRow(row) }
+                }
                 item { GroupCaption(text = backgroundLabel) }
                 items(packSettingsRows(backgroundItems, columns)) { row -> WearSettingsRow(row) }
                 item { GroupCaption(text = colorSchemeLabel) }
-                items(packSettingsRows(colorSchemeItems, colorSchemeColumns)) { row -> WearSettingsRow(row) }
+                items(packSettingsRows(colorSchemeItems, columns)) { row -> WearSettingsRow(row) }
                 if (geometryItems.isNotEmpty()) {
                     item { GroupCaption(text = geometryLabel) }
                     items(packSettingsRows(geometryItems, columns)) { row -> WearSettingsRow(row) }
@@ -121,6 +114,34 @@ fun ScreenSettingsScreen(
         }
     }
 }
+
+/**
+ * The background modes this build lets the user choose between.
+ *
+ * S3362: IMAGE is "photo from phone" and its frame arrives over the content-transfer path, so where
+ * that path is absent the row could only ever resolve to the branded animation - a mode already on the
+ * list under its own name. The choice is withheld rather than turned into a synonym for its neighbour.
+ *
+ * Its own function for the reason [geometryModeItems] states below: the screen sits at detekt's length
+ * ceiling, and a row set that can be empty deserves to say so somewhere it can be read.
+ */
+@Composable
+private fun backgroundModeItems(
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel,
+    groupLabel: String
+): List<WearSettingsItem> = WearBackgroundMode.entries
+    .filter { mode -> mode != WearBackgroundMode.IMAGE || uiState.offersContentTransfer }
+    .map { mode ->
+        WearSettingsItem(fullWidth = true) { _ ->
+            BackgroundModeRow(
+                mode = mode,
+                groupLabel = groupLabel,
+                selected = uiState.backgroundMode == mode,
+                onSelect = { viewModel.setBackgroundMode(mode) }
+            )
+        }
+    }
 
 /**
  * S2773 / ADR-3: the geometry row, built only where the build variant allows the view to be changed.

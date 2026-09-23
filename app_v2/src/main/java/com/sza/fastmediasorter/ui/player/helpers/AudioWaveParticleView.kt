@@ -22,6 +22,7 @@ import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
@@ -71,25 +72,56 @@ class AudioWaveParticleView @JvmOverloads constructor(
     var palette: AnimationColorPalette = AnimationColorPalette.DYNAMIC
 
     companion object {
-        // Must match the speed of the HTML canvas version: time += 0.002 per animation frame.
-        // ValueAnimator fires ~60fps; 0.002 per tick gives ~0.12/s drift.
-        private const val TIME_INCREMENT = 0.002f
+        // WAVE-PARTICLES section 3: every constant under a "section 3.x" label is the contract's, and a
+        // differing value is a registry exception row, never a local edit. A constant marked CHOSEN HERE
+        // is this renderer's own and the contract does not define it. WaveParticlesContractConstantsTest
+        // pairs each contract constant with the reference implementation and fails on a drift.
 
-        // Randomization ranges - normal devices
+        // WAVE-PARTICLES section 3.1. TIME_INCREMENT is per REFERENCE frame of 1/60 s - a ValueAnimator
+        // ticks once per display frame, so a tick advances by the elapsed reference frames (rule 2), or
+        // a 120 Hz screen runs the animation at twice its speed.
+        private const val TIME_INCREMENT = 0.002f
+        private const val REFERENCE_FRAME_NANOS = 1_000_000_000f / 60f
+        private const val STARTUP_RAMP_FRAMES = 36
+
+        // CHOSEN HERE: a hitch of a second would otherwise move every particle sixty steps at once, far
+        // past the edge its bounce is checked against. The contract does not constrain stalls.
+        private const val MAX_FRAME_CATCHUP = 4f
+
+        // WAVE-PARTICLES section 3.2, full profile.
         private const val WAVE_COUNT_MIN = 5
         private const val WAVE_COUNT_MAX = 12
-        private const val STEP_PX_BASE = 20f // ±20 % → 16..24 px
+        private const val STEP_PX_BASE = 20f
+        private const val STEP_JITTER_MIN = 0.8f
+        private const val STEP_JITTER_SPAN = 0.4f
         private const val STROKE_MIN = 3f
         private const val STROKE_MAX = 6f
         private const val AMPLITUDE_MIN = 0.28f // fraction of view height
         private const val AMPLITUDE_MAX = 0.48f
         private const val PARTICLE_MIN = 15
         private const val PARTICLE_MAX = 55
-        private const val PARTICLE_R_MIN = 1f // px
-        private const val PARTICLE_R_MAX = 6f // px
         private const val SPEED_MULT_MIN = 0.5f
         private const val SPEED_MULT_MAX = 1.5f
-        private const val HUE_SPREAD_DEG = 108f // ±30 % of 360°
+
+        // WAVE-PARTICLES section 3.2, reduced profile - low-RAM and weak devices.
+        private const val WAVE_COUNT_MIN_LOW = 3
+        private const val WAVE_COUNT_MAX_LOW = 6
+        private const val PARTICLE_MIN_LOW = 6
+        private const val PARTICLE_MAX_LOW = 20
+
+        // WAVE-PARTICLES section 3.2, per particle.
+        private const val PARTICLE_R_MIN = 1f // px
+        private const val PARTICLE_R_MAX = 6f // px
+        private const val PARTICLE_BASE_SPEED = 0.12f
+        private const val PARTICLE_DIRECTIONAL_BIAS = 0.42f
+        private const val PARTICLE_RANDOM_SPREAD = 0.28f
+        private const val COUNTER_DRIFT_CHANCE = 0.18f
+        private const val COUNTER_DRIFT_SIGN = -0.35f
+
+        // WAVE-PARTICLES section 3.3.
+        private const val HUE_SPREAD_DEG = 108f
+        private const val WAVE_HUE_STEP_MIN = 8f
+        private const val WAVE_HUE_STEP_SPAN = 12f
         private const val PALETTE_WAVE_STEP_MIN = 2f
         private const val PALETTE_WAVE_STEP_RANGE = 4f
         private const val PALETTE_PARTICLE_SPREAD_DEG = 30f
@@ -106,17 +138,42 @@ class AudioWaveParticleView @JvmOverloads constructor(
         private const val BLUE_HUE_BASE_RANGE = 30f
         private const val BLUE_PARTICLE_HUE_BASE = 215f
 
-        private const val STARTUP_RAMP_FRAMES = 36
-        private const val WAVE_LANE_SPACING_FRACTION = 0.038f
-        private const val PARTICLE_DIRECTIONAL_BIAS = 0.42f
-        private const val PARTICLE_RANDOM_SPREAD = 0.28f
-        private const val COUNTER_DRIFT_CHANCE = 0.18f
+        // WAVE-PARTICLES section 3.4. S1287: the palette is mirrored across the lightness scale, never
+        // across the hue wheel - a literal negative of a random rainbow reads as a different animation,
+        // not an inverted one. The dark values are the originals; the light ones are their reflections.
+        private const val FADE_ALPHA = 38
+        private const val FADE_FRACTION = FADE_ALPHA / 255.0
+        private const val FADE_CHANNEL_DARK = 10
+        private const val FADE_CHANNEL_LIGHT = 245
+        private const val WAVE_SATURATION = 0.80f
+        private const val WAVE_LIGHTNESS_DARK = 0.65f
+        private const val WAVE_LIGHTNESS_LIGHT = 0.35f
+        private const val PARTICLE_SATURATION = 0.90f
+        private const val PARTICLE_LIGHTNESS_DARK = 0.70f
+        private const val PARTICLE_LIGHTNESS_LIGHT = 0.30f
 
-        // Reduced limits for low-RAM / weak devices
-        private const val WAVE_COUNT_MIN_LOW = 3
-        private const val WAVE_COUNT_MAX_LOW = 6
-        private const val PARTICLE_MIN_LOW = 6
-        private const val PARTICLE_MAX_LOW = 18
+        // WAVE-PARTICLES section 3.4: opacity = (base + gain * g) * OPACITY_SCALE, where g rises from
+        // RAMP_GAIN_FLOOR to 1 over STARTUP_RAMP_FRAMES reference frames, ease-out (section 4).
+        private const val WAVE_ALPHA_BASE = 0.28f
+        private const val WAVE_ALPHA_GAIN = 0.16f
+        private const val PARTICLE_ALPHA_BASE = 0.38f
+        private const val PARTICLE_ALPHA_GAIN = 0.32f
+        private const val OPACITY_SCALE = 0.70f
+        private const val RAMP_GAIN_FLOOR = 0.35f
+        private const val RAMP_GAIN_SPAN = 0.65f
+        private const val RAMP_CURVE = 2f
+
+        // WAVE-PARTICLES section 3.4, the lane geometry.
+        private const val CENTER_DRIFT_RATE = 0.45f
+        private const val CENTER_DRIFT_FRACTION = 0.02f
+        private const val WAVE_LANE_SPACING_FRACTION = 0.038f
+        private const val TRAVEL_MARGIN_STEPS = 6f
+        private const val WAVE_FREQUENCY = 0.0105f
+        private const val WAVE_PHASE_STEP = 0.8f
+        private const val WAVE_ENVELOPE_BASE = 0.40f
+        private const val WAVE_ENVELOPE_SWING = 0.60f
+        private const val WAVE_ENVELOPE_RATE = 0.4f
+        private const val WAVE_ENVELOPE_LANE_STEP = 0.2f
 
         // S1277: the look is accumulated, not drawn in one pass - each tick lays a translucent
         // overlay and draws over it, and the first STARTUP_RAMP_FRAMES ticks ramp amplitude and
@@ -124,26 +181,16 @@ class AudioWaveParticleView @JvmOverloads constructor(
         // animations off gets the frame the animator would have reached, not a near-empty buffer.
         private const val STATIC_FRAME_PASSES = STARTUP_RAMP_FRAMES
 
-        // Default when the animator scale cannot be read; matches the platform default.
+        // CHOSEN HERE: default when the animator scale cannot be read; matches the platform default.
         private const val ANIMATOR_SCALE_DEFAULT = 1f
 
-        // S1287: the palette is mirrored across the lightness scale, never across the hue wheel - a
-        // literal negative of a random rainbow reads as a different animation, not an inverted one.
-        // The dark values are the originals; the light ones are their reflections.
-        private const val FADE_ALPHA = 38
-        private const val FADE_CHANNEL_DARK = 10
-        private const val FADE_CHANNEL_LIGHT = 245
-        private const val WAVE_LIGHTNESS_DARK = 0.65f
-        private const val WAVE_LIGHTNESS_LIGHT = 0.35f
-        private const val PARTICLE_LIGHTNESS_DARK = 0.70f
-        private const val PARTICLE_LIGHTNESS_LIGHT = 0.30f
-
-        // Fully opaque blit - the default, and the scale [backdropIntensity] is expressed against.
+        // CHOSEN HERE: fully opaque blit - the default, and the scale [backdropIntensity] is expressed
+        // against.
         private const val BLIT_ALPHA_OPAQUE = 255f
 
-        // S2730: the bounds the two tuning scales are clamped to here, so a caller that reads a stored
-        // value cannot drive the renderer outside what it was measured at. The settings layer names the
-        // same bounds for its sliders; this clamp is the renderer's own last word.
+        // WAVE-PARTICLES section 3.5. S2730: the bounds the two tuning scales are clamped to here, so a
+        // caller that reads a stored value cannot drive the renderer outside what it was measured at. The
+        // settings layer names the same bounds for its sliders; this clamp is the renderer's own last word.
         private const val SPEED_SCALE_MIN = 0.25f
         private const val SPEED_SCALE_MAX = 2f
         private const val DENSITY_SCALE_MIN = 0f
@@ -181,7 +228,12 @@ class AudioWaveParticleView @JvmOverloads constructor(
     }
 
     private var time = 0f
-    private var startupFrameCount = 0
+
+    /** Reference frames drawn since the session started, capped at [STARTUP_RAMP_FRAMES]. */
+    private var startupFrameCount = 0f
+
+    /** Timestamp of the previous animator update; 0 until the first one after a start or a resume. */
+    private var lastTickNanos = 0L
 
     // ── Randomized session parameters - re-rolled on each fresh startAnimation() ──
 
@@ -325,10 +377,23 @@ class AudioWaveParticleView @JvmOverloads constructor(
         repeatCount = ValueAnimator.INFINITE
         interpolator = LinearInterpolator()
         addUpdateListener {
-            advanceTime()
-            tick()
+            val frames = elapsedReferenceFrames()
+            advanceTime(frames)
+            tick(frames)
             invalidate()
         }
+    }
+
+    /**
+     * Reference frames since the previous update. The first update after a start or a resume counts
+     * as one, so a pause of any length is not replayed as motion.
+     */
+    private fun elapsedReferenceFrames(): Float {
+        val now = System.nanoTime()
+        val previous = lastTickNanos
+        lastTickNanos = now
+        if (previous == 0L) return 1f
+        return ((now - previous) / REFERENCE_FRAME_NANOS).coerceIn(0f, MAX_FRAME_CATCHUP)
     }
 
     // ──────────────────── Lifecycle ────────────────────
@@ -366,6 +431,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
             pendingStart = false
             Timber.d("AudioWaveParticleView: onSizeChanged - firing deferred startAnimation")
             wavePaint.strokeWidth = waveStrokeWidth
+            lastTickNanos = 0L
             animator.start()
         }
         // S1277: with system animations off the animator ends without ever firing its update
@@ -411,8 +477,8 @@ class AudioWaveParticleView @JvmOverloads constructor(
      */
     private fun renderResizedFrame() {
         wavePaint.strokeWidth = waveStrokeWidth
-        advanceTime()
-        tick()
+        advanceTime(1f)
+        tick(1f)
         invalidate()
     }
 
@@ -420,8 +486,8 @@ class AudioWaveParticleView @JvmOverloads constructor(
     private fun renderStaticFrame() {
         wavePaint.strokeWidth = waveStrokeWidth
         repeat(STATIC_FRAME_PASSES) {
-            advanceTime()
-            tick()
+            advanceTime(1f)
+            tick(1f)
         }
         invalidate()
     }
@@ -437,12 +503,12 @@ class AudioWaveParticleView @JvmOverloads constructor(
         val pMax = if (isLowRam) PARTICLE_MAX_LOW else PARTICLE_MAX
 
         waveCount = Random.nextInt(waveMin, waveMax + 1)
-        stepPx = STEP_PX_BASE * (0.8f + Random.nextFloat() * 0.4f) // ±20 %
+        stepPx = STEP_PX_BASE * (STEP_JITTER_MIN + Random.nextFloat() * STEP_JITTER_SPAN)
         waveStrokeWidth = STROKE_MIN + Random.nextFloat() * (STROKE_MAX - STROKE_MIN)
         when (palette) {
             AnimationColorPalette.DYNAMIC -> {
                 baseWaveHue = (Random.nextFloat() * 360f - HUE_SPREAD_DEG / 2f + 360f) % 360f
-                waveHueStep = 8f + Random.nextFloat() * 12f // 8..20°
+                waveHueStep = WAVE_HUE_STEP_MIN + Random.nextFloat() * WAVE_HUE_STEP_SPAN
                 particleHueBase = Random.nextFloat() * 360f
             }
             AnimationColorPalette.GREEN -> {
@@ -474,9 +540,9 @@ class AudioWaveParticleView @JvmOverloads constructor(
         waveNormalY = waveDirX
     }
 
-    /** S2730: one tick of the shared clock, scaled by [animationSpeedScale]. */
-    private fun advanceTime() {
-        time += TIME_INCREMENT * animationSpeedScale
+    /** S2730: [frames] reference frames of the shared clock, scaled by [animationSpeedScale]. */
+    private fun advanceTime(frames: Float) {
+        time += TIME_INCREMENT * animationSpeedScale * frames
     }
 
     /** S2730: the rolled particle count after [particleDensityScale], never above the roll. */
@@ -491,8 +557,9 @@ class AudioWaveParticleView @JvmOverloads constructor(
             PALETTE_PARTICLE_SPREAD_DEG
         }
         repeat(particleCountCurrent) {
-            val directionalSpeed = (0.12f + Random.nextFloat() * PARTICLE_DIRECTIONAL_BIAS) * particleSpeedMult
-            val driftSign = if (Random.nextFloat() < COUNTER_DRIFT_CHANCE) -0.35f else 1f
+            val directionalSpeed =
+                (PARTICLE_BASE_SPEED + Random.nextFloat() * PARTICLE_DIRECTIONAL_BIAS) * particleSpeedMult
+            val driftSign = if (Random.nextFloat() < COUNTER_DRIFT_CHANCE) COUNTER_DRIFT_SIGN else 1f
             val directionalVx = waveDirX * directionalSpeed * driftSign
             val directionalVy = waveDirY * directionalSpeed * driftSign
             particles += Particle(
@@ -576,12 +643,13 @@ class AudioWaveParticleView @JvmOverloads constructor(
             animator.isPaused -> {
                 pendingStaticFrame = false
                 pendingStart = false
+                lastTickNanos = 0L
                 animator.resume()
             }
             !animator.isRunning -> {
                 pendingStaticFrame = false
                 randomizeParams()
-                startupFrameCount = 0
+                startupFrameCount = 0f
                 val w = width
                 val h = height
                 if (w <= 0 || h <= 0) {
@@ -593,6 +661,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
                 pendingStart = false
                 initParticles(w, h)
                 wavePaint.strokeWidth = waveStrokeWidth
+                lastTickNanos = 0L
                 animator.start()
                 // S1277: covers the ordering where the host starts the animation after layout -
                 // onSizeChanged already painted its frame with the previous session's palette,
@@ -608,7 +677,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
         pendingStart = false
         animator.cancel()
         time = 0f
-        startupFrameCount = 0
+        startupFrameCount = 0f
         val w = width
         val h = height
         if (w <= 0 || h <= 0) {
@@ -631,45 +700,54 @@ class AudioWaveParticleView @JvmOverloads constructor(
         pendingStaticFrame = false
         animator.cancel()
         time = 0f
-        startupFrameCount = 0
+        startupFrameCount = 0f
         offCanvas?.drawColor(bufferFillColor)
         invalidate()
     }
 
     // ──────────────────── Drawing ────────────────────
 
-    /** Updates the off-screen buffer (called each animation tick). */
-    private fun tick() {
+    /**
+     * Updates the off-screen buffer by [frames] reference frames (WAVE-PARTICLES section 4): the ramp,
+     * the wash and the particle steps are all paced by it, so the trail and the ramp last as long in
+     * seconds at 120 Hz as at 60.
+     */
+    private fun tick(frames: Float) {
         val oc = offCanvas ?: return
         val bm = offBitmap ?: return
         val w = bm.width.toFloat()
         val h = bm.height.toFloat()
-        startupFrameCount = (startupFrameCount + 1).coerceAtMost(STARTUP_RAMP_FRAMES)
+        startupFrameCount = (startupFrameCount + frames).coerceAtMost(STARTUP_RAMP_FRAMES.toFloat())
 
-        // Semi-transparent overlay creates the motion-blur trail
+        // The wash that leaves exactly what `frames` washes at FADE_ALPHA would leave.
+        val washFraction = 1.0 - (1.0 - FADE_FRACTION).pow(frames.toDouble())
+        fadeOverlayPaint.alpha = (washFraction * BLIT_ALPHA_OPAQUE).roundToInt()
         oc.drawRect(0f, 0f, w, h, fadeOverlayPaint)
 
         val startupProgress = startupFrameCount / STARTUP_RAMP_FRAMES.toFloat()
-        val startupGain = 0.35f + 0.65f * startupProgress * (2f - startupProgress)
-        val travelSpan = hypot(w, h) + stepPx * 6f
-        val centerDrift = sin((time * 0.45f).toDouble()).toFloat() * minOf(w, h) * 0.02f
+        val startupGain = RAMP_GAIN_FLOOR + RAMP_GAIN_SPAN * startupProgress * (RAMP_CURVE - startupProgress)
+        val travelSpan = hypot(w, h) + stepPx * TRAVEL_MARGIN_STEPS
+        val centerDrift = sin((time * CENTER_DRIFT_RATE).toDouble()).toFloat() * minOf(w, h) * CENTER_DRIFT_FRACTION
         val centerX = w * 0.5f + waveDirX * centerDrift
         val centerY = h * 0.5f + waveDirY * centerDrift
         val laneSpacing = minOf(w, h) * WAVE_LANE_SPACING_FRACTION
-        val waveAlpha = (0.28f + 0.16f * startupGain) * 0.70f
+        val waveAlpha = (WAVE_ALPHA_BASE + WAVE_ALPHA_GAIN * startupGain) * OPACITY_SCALE
+        val particleAlpha = (PARTICLE_ALPHA_BASE + PARTICLE_ALPHA_GAIN * startupGain) * OPACITY_SCALE
 
         // Sine-wave paths are sampled in a rotated coordinate space so each fresh start
         // can travel in any direction while keeping the draw cost close to the old version.
         for (j in 0 until waveCount) {
-            val phaseShift = j * 0.8f
+            val phaseShift = j * WAVE_PHASE_STEP
             val bandOffset = (j - (waveCount - 1) * 0.5f) * laneSpacing
-            val waveEnvelope = 0.40f + 0.60f * abs(sin((time * 0.4f + j * 0.2f).toDouble())).toFloat()
+            val envelopeAngle = time * WAVE_ENVELOPE_RATE + j * WAVE_ENVELOPE_LANE_STEP
+            val waveEnvelope = WAVE_ENVELOPE_BASE + WAVE_ENVELOPE_SWING * abs(sin(envelopeAngle.toDouble())).toFloat()
             val amplitudePx = h * waveAmplitude * startupGain * waveEnvelope
             wavePath.rewind()
             var distance = -travelSpan * 0.5f
             var first = true
             while (distance <= travelSpan * 0.5f) {
-                val displacement = sin((distance * 0.0105f + time + phaseShift).toDouble()).toFloat() * amplitudePx
+                val displacement =
+                    sin((distance * WAVE_FREQUENCY + time + phaseShift).toDouble()).toFloat() * amplitudePx
                 val drawX = centerX + waveDirX * distance + waveNormalX * (bandOffset + displacement)
                 val drawY = centerY + waveDirY * distance + waveNormalY * (bandOffset + displacement)
                 if (first) {
@@ -681,18 +759,18 @@ class AudioWaveParticleView @JvmOverloads constructor(
                 distance += stepPx
             }
             wavePaint.color =
-                hslToArgb((baseWaveHue + j * waveHueStep) % 360f, 0.80f, waveLightness, waveAlpha)
+                hslToArgb((baseWaveHue + j * waveHueStep) % 360f, WAVE_SATURATION, waveLightness, waveAlpha)
             oc.drawPath(wavePath, wavePaint)
         }
 
         // Drifting particles with edge bounce - radius, speed, hue vary per session
         for (p in particles) {
-            p.x += p.vx
-            p.y += p.vy
+            p.x += p.vx * frames
+            p.y += p.vy * frames
             if (p.x < 0f || p.x > w) p.vx = -p.vx
             if (p.y < 0f || p.y > h) p.vy = -p.vy
             particlePaint.color =
-                hslToArgb(p.hue, 0.90f, particleLightness, (0.38f + 0.32f * startupGain) * 0.70f)
+                hslToArgb(p.hue, PARTICLE_SATURATION, particleLightness, particleAlpha)
             oc.drawCircle(p.x, p.y, p.radius, particlePaint)
         }
     }

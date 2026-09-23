@@ -48,6 +48,9 @@ class SmbDataSource(
 
     private val client = SMBClient(config)
 
+    init {
+    }
+
     /**
      * Connect to SMB server and authenticate.
      */
@@ -286,6 +289,46 @@ class SmbDataSource(
             Timber.e(e, "Failed to open file stream")
             Result.failure(e)
         }
+    }
+
+    /**
+     * Remove a file from the share.
+     *
+     * S3359: the one verb that destroys something on the server, so it never opens a connection of its
+     * own - it reuses the session [getFileStream] reads through, and a share that refuses the removal
+     * comes back as a failure rather than an exception the caller has to read a stack trace for.
+     *
+     * @param path Path to file relative to share root
+     */
+    suspend fun deleteFile(path: String): Result<Unit> = withContext(Dispatchers.IO) {
+        val connectResult = ensureConnected()
+        if (connectResult.isFailure) {
+            return@withContext Result.failure(
+                connectResult.exceptionOrNull() ?: IllegalStateException("Connection failed")
+            )
+        }
+        removeFromShare(path)
+    }
+
+    /**
+     * The broad catch mirrors [getFileStream]: smbj reports every server-side refusal as an unchecked
+     * `SMBApiException`, so the type that reaches here is the library's and not a set this class can name.
+     */
+    private fun removeFromShare(path: String): Result<Unit> = try {
+        val currentShare = share
+        if (currentShare == null) {
+            Result.failure(IllegalStateException("Not connected to share"))
+        } else {
+            val cleanPath = path.trim('/').trim('\\')
+            currentShare.rm(cleanPath)
+            Timber.d("Deleted SMB file: $cleanPath")
+            Result.success(Unit)
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.w(e, "Failed to delete SMB file")
+        Result.failure(e)
     }
 
     /**

@@ -147,7 +147,7 @@ class GeneralSettingsLauncherHelperTest {
     }
 
     @Test
-    fun `selection of Resource Manager applies choice, disables role mode and disables launcher settings`() = runTest(
+    fun `selection of Main screen applies choice, disables role mode and disables launcher settings`() = runTest(
         dispatcherRule.testDispatcher
     ) {
         val listenerSlot = slot<(Int) -> Unit>()
@@ -193,7 +193,7 @@ class GeneralSettingsLauncherHelperTest {
     }
 
     @Test
-    fun `refreshState selects Resource Manager when role is not held and mode was disabled`() = runTest(
+    fun `refreshState selects Main screen when role is not held and mode was disabled`() = runTest(
         dispatcherRule.testDispatcher
     ) {
         every { launcherRoleManager.readState() } returns LauncherRoleManager.LauncherModeState(false, false, false)

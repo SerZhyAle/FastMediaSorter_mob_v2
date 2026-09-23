@@ -29,12 +29,12 @@
     <string name="welcome_profile_personal_smartphone_title">Privates Smartphone</string>
     <string name="welcome_profile_photo_frame_desc">Macht aus dem Gerät einen digitalen Bilderrahmen. Deaktiviert Video, Audio und Dateioperationen und startet die Diashow sofort.</string>
     <string name="welcome_profile_photo_frame_title">Bilderrahmen</string>
-    <string name="welcome_profile_selector_title">Nutzungsprofil des Geräts</string>
+    <string name="welcome_profile_selector_title">Geräteprofil</string>
     <string name="welcome_profile_tv_media_box_desc">Ideal für Fernseher und Media-Center. Optimiert die Navigation per Steuerkreuz und Fernbedienung, nutzt große Schaltflächen und blendet winzige Touch-Elemente aus.</string>
     <string name="welcome_profile_tv_media_box_title">TV / Media-Box</string>
     <string name="welcome_profile_video_player_desc">Ideal für reine Videogeräte. Blendet Fotos, Musik und Dokumentenansicht aus, bevorzugt schnelle Wiedergabe und Vorschaubilder.</string>
     <string name="welcome_profile_video_player_title">Videoplayer</string>
-    <string name="welcome_profile_vr_headset_desc">Am besten für Virtual-Reality-Geräte geeignet. Aktiviert 3D/360°-Layouts und immersive Steuerelemente vorab auf unterstützten Hardware-Varianten.</string>
+    <string name="welcome_profile_vr_headset_desc">Ideal für Virtual-Reality-Geräte. Aktiviert vorab 3D/360°-Layouts und immersive Steuerung auf unterstützten Headsets.</string>
     <string name="welcome_profile_vr_headset_title">VR-Headset</string>
     <string name="welcome_recommended_badge">(Empfohlen)</string>
     <string name="welcome_title_1">Willkommen bei FastMediaSorter!</string>
@@ -117,7 +117,7 @@
     <string name="welcome_theme_auto">Automatisch</string>
     <string name="welcome_theme_light">Hell</string>
     <string name="welcome_theme_dark">Dunkel</string>
-    <string name="welcome_networks_title">Netzwerkquellen</string>
+    <string name="welcome_networks_title">Netzwerkressourcen</string>
     <string name="welcome_networks_description">Medien aus Netzwerkfreigaben und entferntem Speicher hinzufügen.</string>
     <string name="welcome_profiles_title">Wie werden Sie dieses Gerät nutzen?</string>
     <string name="welcome_profiles_subtitle">Wählen Sie ein Profil - wir passen die Voreinstellungen an.</string>
@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">Streams</string>
     <string name="welcome_role_streams_detail">Internetradio, TV- und Videokanäle aus einem fertigen Katalog</string>
     <string name="welcome_role_wear">Uhren-App</string>
-    <string name="welcome_role_wear_detail">Eine Wear OS Begleit-App - direkt am Handgelenk durchsuchen und abspielen</string>
+    <string name="welcome_role_wear_detail">Die Uhr-App - direkt am Handgelenk durchsuchen und abspielen</string>
 </resources>

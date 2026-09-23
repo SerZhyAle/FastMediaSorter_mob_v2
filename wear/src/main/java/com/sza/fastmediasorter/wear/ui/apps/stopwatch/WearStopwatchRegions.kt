@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
@@ -25,6 +24,7 @@ import com.sza.fastmediasorter.wear.domain.stopwatch.WearStopwatchParticipant
 import com.sza.fastmediasorter.wear.domain.stopwatch.WearStopwatchState
 import com.sza.fastmediasorter.wear.domain.stopwatch.WearStopwatchTimeFormatter
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
+import com.sza.fastmediasorter.wear.ui.common.WearFitText
 
 private val REGION_GAP = 2.dp
 private val REGION_PADDING = 2.dp
@@ -142,12 +142,17 @@ private fun WearStopwatchRegion(
                 maxLines = 1
             )
         }
-        Text(
-            text = WearStopwatchTimeFormatter.format(participant.elapsedAt(nowMillis)),
+        // S3362: the reading is the one thing on this screen that has to stay whole, and it is the one
+        // thing that cannot get a bigger box - the regions are sized by the round glass. At a large
+        // system font scale the widest form (H:MM:SS.hh at four participants, or display2 at one) was
+        // cut mid-digit, which is Wear OS review item WO-V1. It shrinks to fit instead, keyed on the
+        // LENGTH of the reading so a tick does not restart the search every frame.
+        val reading = WearStopwatchTimeFormatter.format(participant.elapsedAt(nowMillis))
+        WearFitText(
+            text = reading,
             style = readingStyle,
-            maxLines = 1,
-            overflow = TextOverflow.Clip,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            sizeKey = reading.length
         )
         if (participant.laps.isNotEmpty()) {
             Text(
@@ -199,7 +204,11 @@ private fun RegionButton(
             ButtonDefaults.primaryButtonColors()
         }
     ) {
-        Text(text = label, style = MaterialTheme.typography.button, maxLines = 1)
+        // S3362: same failure as the reading above, one size down - a four-region cell is about a
+        // third of the glass wide and holds two of these, so a font scale of 1.24 turns "Reset" into
+        // a cut word. The label shrinks inside the button rather than the button growing, because the
+        // grid it sits in is sized by the display.
+        WearFitText(text = label, style = MaterialTheme.typography.button)
     }
 }
 

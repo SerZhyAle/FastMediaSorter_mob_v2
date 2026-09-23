@@ -74,9 +74,9 @@ IP-адреса - це «домашня адреса» вашого ПК у Wi-F
 
 ---
 
-## Крок 4 - Оберіть "Мережева папка SMB"
+## Крок 4 - Оберіть "Мережева папка (SMB)"
 
-У списку типів ресурсів натисніть **"Мережева папка SMB"** (або вкладку SMB).
+У списку типів ресурсів натисніть **"Мережева папка (SMB)"** (або вкладку SMB).
 
 ![Select Folder Type dialog - four options: Local Folder, Network Folder (SMB), SFTP/FTP, Cloud Storage](screenshots/screenshot-smb-step4.png)
 

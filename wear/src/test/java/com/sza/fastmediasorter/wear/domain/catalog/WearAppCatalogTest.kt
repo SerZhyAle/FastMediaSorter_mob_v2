@@ -25,6 +25,9 @@ private data class FakeCapabilities(
     override val offersScreenCapture: Boolean = true,
     override val offersContentTransfer: Boolean = true,
     override val offersExternalEntryPoints: Boolean = true,
+    // S3362: the ninth answer, defaulted the same way - the offering build keeps the two programs
+    // whose screens swallow the dismiss gesture.
+    override val offersScreenTakeoverPrograms: Boolean = true,
 ) : WearRestrictedCapabilities
 
 class WearAppCatalogTest {
@@ -99,6 +102,35 @@ class WearAppCatalogTest {
             WearAppId.TOURIST
         )
         assertEquals(offered - expectedWithheld, withheld)
+    }
+
+    /**
+     * S3362: the two screens a swipe cannot leave answer to one capability, and only to that one.
+     *
+     * Asserted here rather than only in `StoreBoundaryTest` because the store flavor answers false
+     * to every capability at once, so it cannot tell which one withholds which row. Pinning them
+     * one answer at a time is what stops a later edit from moving a program to a neighbouring gate
+     * and leaving both tests green.
+     */
+    @Test
+    fun `the screen takeover capability alone decides the flashlight and the distress signal`() {
+        val withheld = WearAppCatalog.apps(FakeCapabilities(offersScreenTakeoverPrograms = false))
+            .map { it.id }
+        val offered = WearAppCatalog.apps(FakeCapabilities()).map { it.id }
+
+        assertEquals(
+            offered - setOf(WearAppId.WATER_FLASHLIGHT, WearAppId.SOS),
+            withheld
+        )
+    }
+
+    @Test
+    fun `the clipboard follows the content transfer capability`() {
+        val withheld = WearAppCatalog.apps(FakeCapabilities(offersContentTransfer = false))
+            .map { it.id }
+        val offered = WearAppCatalog.apps(FakeCapabilities()).map { it.id }
+
+        assertEquals(offered - setOf(WearAppId.CLIPBOARD), withheld)
     }
 
     @Test

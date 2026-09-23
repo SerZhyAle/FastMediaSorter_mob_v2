@@ -7,23 +7,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.game.GameStats
 import com.sza.fastmediasorter.wear.ui.common.WearCaptionScale
+import com.sza.fastmediasorter.wear.ui.common.WearFitText
 import com.sza.fastmediasorter.wear.ui.common.wearBelowSquareBand
-import timber.log.Timber
 
 /** Clearance from the glass for the row as a whole; the counters inside it are laid out as one. */
 private val COUNTER_EDGE_PADDING = 2.dp
@@ -62,9 +59,6 @@ private const val COUNTER_TEXT_ALPHA = 0.7f
 fun GameStatsRing(stats: GameStats, levelNumber: Int, modifier: Modifier = Modifier) {
     val lineHeight = with(LocalDensity.current) { (WearCaptionScale.Floor * COUNTER_LINE_HEIGHT_FACTOR).toDp() }
     val placement = wearBelowSquareBand(lineHeight + COUNTER_EDGE_PADDING * 2)
-    LaunchedEffect(placement) {
-        Timber.d("S3189: game counter band bottomOffset=${placement.bottomOffset} maxWidth=${placement.maxWidth}")
-    }
     Box(modifier = modifier.fillMaxSize()) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(COUNTER_SPACING),
@@ -93,16 +87,20 @@ fun GameStatsRing(stats: GameStats, levelNumber: Int, modifier: Modifier = Modif
 
 @Composable
 private fun Counter(value: Int, description: String, modifier: Modifier = Modifier) {
-    Text(
-        text = value.toString(),
-        style = MaterialTheme.typography.caption2.copy(fontSize = WearCaptionScale.Floor),
+    val text = value.toString()
+    WearFitText(
+        text = text,
         // S2522: the game pins a black container, so the counter dims the scaffold's content colour
         // instead of reading `onSurfaceVariant`, which a light scheme makes near-black on black.
-        color = LocalContentColor.current.copy(alpha = COUNTER_TEXT_ALPHA),
-        maxLines = 1,
+        style = MaterialTheme.typography.caption2.copy(
+            fontSize = WearCaptionScale.Floor,
+            color = LocalContentColor.current.copy(alpha = COUNTER_TEXT_ALPHA)
+        ),
         // The three counters share one chord of the circle, so a scaled-up number has to give way
-        // inside its own share rather than be cut where the row runs out (S2755).
-        overflow = TextOverflow.Ellipsis,
+        // inside its own share rather than be cut where the row runs out (S2755). S3362: it gives way by
+        // shrinking - at font scale 1.3 on the 192 dp glass the ellipsis replaced the turn count whole,
+        // which is no number at all.
+        sizeKey = text.length,
         modifier = modifier.semantics { contentDescription = description }
     )
 }

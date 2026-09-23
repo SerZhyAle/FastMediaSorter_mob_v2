@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="@dimen/bottom_sheet_binary_file_unknown_padding">
+    android:paddingVertical="@dimen/bottom_sheet_binary_file_unknown_padding">
 
     <!-- File Name Header -->
     <TextView

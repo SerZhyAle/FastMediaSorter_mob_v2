@@ -1109,3 +1109,229 @@ header.doc-header {
     transform: scale(1.08) rotate(5deg);
     border-color: var(--doc-accent);
 }
+
+/* ==========================================================================
+   5. In-Browser Client Search Modal (S2970)
+   ========================================================================== */
+
+.doc-search-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--doc-bg-subtle);
+    border: 1px solid var(--doc-border);
+    color: var(--doc-text-muted);
+    padding: 6px 14px;
+    border-radius: var(--doc-radius-sm);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: var(--doc-transition);
+}
+
+.doc-search-trigger:hover {
+    border-color: var(--doc-accent);
+    color: var(--doc-text);
+}
+
+.doc-search-trigger kbd {
+    background: var(--doc-bg-surface);
+    border: 1px solid var(--doc-border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 0.75rem;
+    font-family: var(--doc-font-mono);
+    color: var(--doc-accent);
+}
+
+/* Modal Backdrop */
+.doc-search-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 10vh;
+}
+
+.doc-search-backdrop.active {
+    display: flex;
+}
+
+/* Modal Box */
+.doc-search-modal {
+    background: var(--doc-bg-surface-elevated);
+    border: 1px solid var(--doc-border);
+    border-radius: var(--doc-radius);
+    box-shadow: var(--doc-shadow-lg);
+    width: 90%;
+    max-width: 640px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: docModalFadeIn 0.15s ease-out;
+}
+
+@keyframes docModalFadeIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Search Header */
+.doc-search-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--doc-border);
+    background: var(--doc-bg-surface);
+}
+
+.doc-search-icon {
+    font-size: 1.25rem;
+    opacity: 0.7;
+}
+
+.doc-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--doc-text);
+    font-size: 1.1rem;
+    font-family: var(--doc-font-body);
+}
+
+.doc-search-input::placeholder {
+    color: var(--doc-text-muted);
+}
+
+.doc-search-close {
+    background: var(--doc-bg-subtle);
+    border: 1px solid var(--doc-border);
+    color: var(--doc-text-muted);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: var(--doc-font-mono);
+}
+
+.doc-search-close:hover {
+    color: var(--doc-text);
+    border-color: var(--doc-accent);
+}
+
+/* Search Results List */
+.doc-search-results {
+    padding: 12px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.doc-search-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--doc-text-muted);
+    font-size: 0.95rem;
+}
+
+.doc-search-item {
+    display: block;
+    padding: 12px 16px;
+    border-radius: var(--doc-radius-sm);
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: var(--doc-transition);
+}
+
+.doc-search-item:hover,
+.doc-search-item.selected {
+    background: var(--doc-bg-subtle);
+    border-color: var(--doc-accent);
+}
+
+.doc-search-item-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--doc-font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--doc-text);
+    margin-bottom: 4px;
+}
+
+.doc-search-item-desc {
+    font-size: 0.85rem;
+    color: var(--doc-text-secondary);
+    line-height: 1.4;
+    margin-bottom: 4px;
+}
+
+.doc-search-item-meta {
+    font-size: 0.75rem;
+    color: var(--doc-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.doc-search-highlight,
+mark.doc-search-highlight {
+    background: rgba(63, 185, 80, 0.25);
+    color: var(--doc-accent);
+    font-weight: 700;
+    border-radius: 2px;
+    padding: 0 2px;
+}
+
+/* Search Footer */
+.doc-search-footer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 20px;
+    background: var(--doc-bg-surface);
+    border-top: 1px solid var(--doc-border);
+    font-size: 0.75rem;
+    color: var(--doc-text-muted);
+}
+
+.doc-search-footer kbd {
+    background: var(--doc-bg-subtle);
+    border: 1px solid var(--doc-border);
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-family: var(--doc-font-mono);
+}
+
+/* Mobile viewport adjustments down to 400px */
+@media (max-width: 480px) {
+    .doc-search-backdrop {
+        padding-top: 0;
+    }
+    .doc-search-modal {
+        width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        border: none;
+    }
+    .doc-header-inner {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .doc-header-nav {
+        gap: 8px;
+    }
+}
+

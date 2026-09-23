@@ -35,7 +35,6 @@ import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogF
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherYouTubeChannelDialogFragment
 import com.sza.fastmediasorter.widget.LauncherWidgetToken
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator
-import timber.log.Timber
 
 /**
  * S1541: the whole "put something on the desktop" chain - result-key registration, the category

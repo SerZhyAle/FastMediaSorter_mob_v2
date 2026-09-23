@@ -40,10 +40,14 @@ The Wear part of any Play listing text names these and nothing else:
 - **Calculator** - the keypad calculator with its history and memory value.
 - **Stopwatch**.
 - **Game** - the mini-game and its rules page.
-- **Water flashlight**.
-- **Clipboard** - moving text between the watch and the paired phone.
-- **Programs tile** - a tile with shortcuts to the programs above.
+- **Programs tile** - a tile with shortcuts to the three programs above.
 - **Settings** - screen settings, other settings and About.
+
+S3362 took three programs off this list. The water flashlight and the distress signal consume every
+pointer event so the screen cannot be swiped away, which is what Wear review item WO-V3 asks for on
+almost every screen, and the signal additionally strobes full-screen with the alarm stream raised to
+its maximum; the clipboard's only action is a round trip to a paired phone, which a review device
+does not have. All three stay in `noLegal` unchanged.
 
 ### What is available in noLegal only
 
@@ -547,9 +551,9 @@ storage class, meaning "the phone still holds the original of this".
 The watch home screen carries an **Apps** section holding eleven self-contained programs, each usable
 with the phone out of range: a **calculator**, a **network monitor**, a **mini-game**, a **voice
 recorder**, **system information**, a **water flashlight**, a **motion monitor**, a **heart-rate
-check**, **blood pressure** (S2809; since S3113 estimated from the pulse wave after cuff calibration, with calibration on its own screen), an audio **broadcast** (S2509) and a **stopwatch** (S2825). Ten of
-them appear in `noLegal`; the Google Play variant lists only the calculator, the game, the water
-flashlight, the stopwatch and the clipboard - every other program is `noLegal` only (S3178).
+check**, **blood pressure** (S2809; since S3113 estimated from the pulse wave after cuff calibration, with calibration on its own screen), an audio **broadcast** (S2509) and a **stopwatch** (S2825). All of
+them appear in `noLegal`; the Google Play variant lists only the calculator, the game and the
+stopwatch - every other program is `noLegal` only (S3178, narrowed by S3362).
 
 - The list is data, not navigation: `ui/apps/WearAppCatalog.kt` is what a program is added to. A new
   program registers a catalog record and its own route; the Apps screen itself does not change. **Four**

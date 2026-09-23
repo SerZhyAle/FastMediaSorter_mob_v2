@@ -607,31 +607,11 @@ class ResourceAdapter(
             }
         }
 
-        // C-213: the grid row's selection visual is both root.isSelected and the row background
-        // (selected -> holo_blue_light, otherwise zebra/favorites/unavailable). Shared by the full
+        // S3247: selection is the row's own state, read by item_focus_selector. Shared by the full
         // bind and the PAYLOAD_SELECTION partial rebind so both produce identical state.
         fun applySelectionVisual(resource: MediaResource, selectedId: Long?) {
-            val root = binding.root
-            root.isSelected = resource.id == selectedId
-            if (!resource.isAvailable) {
-                val bgColor = ContextCompat.getColor(root.context, R.color.unavailable_resource_bg)
-                root.setBackgroundColor(bgColor)
-            } else {
-                // Default background / Selection state
-                val bgColor = if (resource.id == selectedId) {
-                    ContextCompat.getColor(root.context, android.R.color.holo_blue_light)
-                } else if (resource.id == -100L) {
-                    ContextCompat.getColor(root.context, R.color.resource_item_bg_odd)
-                } else {
-                    // Zebra striping for grid
-                    if (bindingAdapterPosition % 2 == 0) {
-                        ContextCompat.getColor(root.context, R.color.resource_item_bg_even)
-                    } else {
-                        ContextCompat.getColor(root.context, R.color.resource_item_bg_odd)
-                    }
-                }
-                root.setBackgroundColor(bgColor)
-            }
+            applyRowSelectionState(binding.root, resource.id == selectedId)
+            applyUnavailableSurface(binding.rootLayout, resource.isAvailable)
         }
     }
 
@@ -846,25 +826,6 @@ class ResourceAdapter(
                     }
                 }
 
-                if (!resource.isAvailable) {
-                    val bgColor = ContextCompat.getColor(
-                        rootLayout.context,
-                        R.color.unavailable_resource_bg
-                    )
-                    rootLayout.setBackgroundColor(bgColor)
-                } else {
-                    // Zebra striping for available resources
-                    val bgColor = if (resource.id == -100L) {
-                        ContextCompat.getColor(rootLayout.context, R.color.resource_item_bg_odd)
-                    } else if (bindingAdapterPosition % 2 == 0) {
-                        // Even rows - slightly darker/different
-                        ContextCompat.getColor(rootLayout.context, R.color.resource_item_bg_even)
-                    } else {
-                        ContextCompat.getColor(rootLayout.context, R.color.resource_item_bg_odd)
-                    }
-                    rootLayout.setBackgroundColor(bgColor)
-                }
-
                 // Show last sync time for network resources (SMB, SFTP, FTP)
                 val isNetworkResource = resource.type == ResourceType.SMB ||
                     resource.type == ResourceType.SFTP ||
@@ -975,17 +936,45 @@ class ResourceAdapter(
             }
         }
 
-        // C-213: the list row's selection visual is only root.isSelected (the row background is
-        // selection-independent zebra striping). Shared by the full bind and the PAYLOAD_SELECTION
-        // partial rebind.
+        // S3247: selection is the row's own state, read by item_focus_selector. Shared by the full
+        // bind and the PAYLOAD_SELECTION partial rebind.
         fun applySelectionVisual(resource: MediaResource, selectedId: Long?) {
-            binding.root.isSelected = resource.id == selectedId
+            applyRowSelectionState(binding.root, resource.id == selectedId)
+            applyUnavailableSurface(binding.rootLayout, resource.isAvailable)
         }
     }
 
     private class ResourceDiffCallback : DiffUtil.ItemCallback<MediaResource>() {
         override fun areItemsTheSame(oldItem: MediaResource, newItem: MediaResource) = oldItem.id == newItem.id
         override fun areContentsTheSame(oldItem: MediaResource, newItem: MediaResource) = oldItem == newItem
+    }
+}
+
+/**
+ * S3247: the row's single selection mechanism. `item_focus_selector` keys its selected layer off
+ * `state_activated`, while the rest of the app reads `isSelected`, so both flags are set from one
+ * place - and nothing paints the root, which is what keeps the focus ring alive on a selected row
+ * (`docs/ui/PHONE_UI_COMPONENT_PATTERNS.md` section 2.2).
+ */
+private fun applyRowSelectionState(root: android.view.View, selected: Boolean) {
+    Timber.d("S3247: resource row selection state selected=$selected")
+    root.isSelected = selected
+    root.isActivated = selected
+}
+
+/**
+ * S3247: an unreachable resource is tinted on the tile surface INSIDE the row, never on the row
+ * root, so the state-list drawable above it survives. The wording added by S1861 stays the primary
+ * signal; this is only its colour half.
+ */
+private fun applyUnavailableSurface(surface: android.view.View, isAvailable: Boolean) {
+    Timber.d("S3247: resource tile surface available=$isAvailable")
+    if (isAvailable) {
+        surface.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+    } else {
+        surface.setBackgroundColor(
+            ContextCompat.getColor(surface.context, R.color.unavailable_resource_bg)
+        )
     }
 }
 

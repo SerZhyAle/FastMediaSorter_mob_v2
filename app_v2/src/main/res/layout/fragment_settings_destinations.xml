@@ -164,6 +164,14 @@
 
                     </LinearLayout>
 
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowEnableFileDoOperations"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:str_title="@string/filedo_operations_title"
+                        app:str_subtitle="@string/filedo_operations_summary" />
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -226,7 +234,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Scheduled Operations Card -->
+        <!-- Scheduled Operations Card: a single link row - the program screen owns management (S3365) -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -258,103 +266,20 @@
                     android:paddingBottom="@dimen/margin_small"
                     android:visibility="gone">
 
-                    <!-- Master toggle: enable/disable all scheduled operations -->
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                        android:id="@+id/rowEnableScheduledOps"
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowOpenScheduledOpsScreen"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_small"
-                        android:layout_marginBottom="@dimen/margin_tiny"
-                        app:str_icon="@drawable/ic_schedule"
-                        app:str_title="@string/scheduled_ops_toggle"
-                        app:str_subtitle="@string/scheduled_ops_toggle_hint" />
-
-                    <!-- Notification permission button (Android 13+, shown when permission missing) -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnScheduledNotificationPermission"
-                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="@dimen/margin_tiny"
-                        android:text="@string/perm_title_post_notifications"
-                        android:textSize="@dimen/toggler_title_text_size"
-                        android:visibility="gone" />
-
-                    <!-- Operations list and toolbar (hidden when toggle is off) -->
-                    <LinearLayout
-                        android:id="@+id/containerScheduledContent"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                    <!-- Top toolbar: Add + Log buttons -->
-                    <LinearLayout
-                        android:id="@+id/layoutScheduledActions"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="end"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="@dimen/margin_tiny"
-                        android:visibility="gone">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnAddScheduledOp"
-                            style="@style/Widget.Material3.Button.IconButton.Outlined"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:contentDescription="@string/scheduled_ops_btn_add"
-                            app:icon="@drawable/ic_add"
-                            app:iconTint="?attr/colorOnSurface" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnScheduledLog"
-                            style="@style/Widget.Material3.Button.IconButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:contentDescription="@string/scheduled_ops_btn_log"
-                            app:icon="@drawable/ic_history"
-                            app:iconTint="?attr/colorOnSurface" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnClearAllScheduled"
-                            style="@style/Widget.Material3.Button.IconButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:contentDescription="@string/scheduled_ops_btn_clear_all"
-                            app:icon="@drawable/ic_delete_sweep"
-                            app:iconTint="?attr/colorError" />
-
-                    </LinearLayout>
-
-                    <!-- Empty state message -->
-                    <TextView
-                        android:id="@+id/tvNoScheduledOps"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:padding="@dimen/bottom_sheet_binary_file_unknown_padding"
-                        android:text="@string/scheduled_ops_no_destinations"
-                        android:textColor="?attr/colorError"
-                        android:textSize="@dimen/toggler_title_text_size"
-                        android:visibility="gone" />
-
-                    <!-- Scheduled operations list -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvScheduledOps"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:descendantFocusability="afterDescendants"
-                        android:nestedScrollingEnabled="false" />
-
-                    </LinearLayout><!-- end containerScheduledContent -->
+                        app:ssr_showChevron="true"
+                        app:ssr_title="@string/scheduled_ops_screen_title"
+                        app:ssr_subtitle="@string/scheduled_ops_link_subtitle" />
 
                 </LinearLayout>
 
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
+
 
 
         <!-- GROUP: Behaviour (collapsible) - primary player, shared files, resume on next launch -->
@@ -820,6 +745,15 @@
                         app:str_icon="@drawable/ic_watch"
                         app:str_title="@string/settings_suppress_wear_media_takeover"
                         app:str_subtitle="@string/settings_suppress_wear_media_takeover_summary" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowWatchCameraStandby"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        app:str_icon="@drawable/ic_camera_capture"
+                        app:str_title="@string/settings_watch_camera_standby"
+                        app:str_subtitle="@string/settings_watch_camera_standby_summary" />
 
                     <TextView
                         android:id="@+id/textWearGroupDescription"

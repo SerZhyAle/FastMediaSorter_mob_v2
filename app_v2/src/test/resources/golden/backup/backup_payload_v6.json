@@ -1,0 +1,106 @@
+{
+  "version": 6,
+  "appVersionCode": 8412,
+  "appVersionName": "2.40.8412.712",
+  "createdAt": "2026-06-04T19:05:00Z",
+  "deviceModel": "Samsung SM-S928B",
+  "androidVersion": 35,
+  "settings": {
+    "isResourceGridMode": true,
+    "resourceGridCellSize": "LARGE",
+    "language": "uk",
+    "defaultUser": "guest",
+    "defaultPassword": "guest-secret",
+    "preventSleep": false,
+    "keepScreenOnPlayer": false,
+    "showSmallControls": true,
+    "networkParallelism": 12,
+    "cacheSizeMb": 4096,
+    "isCacheSizeUserModified": true,
+    "allFiles": true,
+    "showHiddenFiles": true,
+    "supportImages": true,
+    "supportVideos": true,
+    "supportAudio": false,
+    "textSizeMax": 20971520,
+    "textReaderTheme": "DARK",
+    "linkAutoDownloadOpenInPlayer": true
+  },
+  "resources": [
+    {
+      "name": "Family NAS",
+      "path": "smb://192.168.1.50/media",
+      "type": "SMB",
+      "credentialsId": "smb-192-168-1-50",
+      "displayMode": "GRID",
+      "sortMode": "DATE_DESC",
+      "displayOrder": 1,
+      "isDestination": false,
+      "scanSubdirectories": true,
+      "supportedMediaTypes": ["IMAGE", "VIDEO"],
+      "profile": "NONE",
+      "slideshowInterval": 7
+    }
+  ],
+  "favorites": [
+    {
+      "uri": "smb://192.168.1.50/media/2024/beach.jpg",
+      "resourceName": "Family NAS",
+      "resourcePath": "smb://192.168.1.50/media",
+      "displayName": "beach.jpg",
+      "mediaType": 1,
+      "size": 2415919,
+      "lastKnownPath": "/2024/beach.jpg",
+      "dateModified": 1707638400000,
+      "addedTimestamp": 1707724800000
+    }
+  ],
+  "scheduledOperations": [],
+  "networkCredentials": [
+    {
+      "credentialId": "smb-192-168-1-50",
+      "type": "SMB",
+      "server": "192.168.1.50",
+      "port": 445,
+      "username": "family",
+      "domain": "WORKGROUP",
+      "shareName": "media",
+      "accountId": "",
+      "password": "hunter2"
+    }
+  ],
+  "webAuthSessions": [
+    {
+      "host": "example.org",
+      "accountId": "reader",
+      "displayName": "Example reader",
+      "userAgent": "Mozilla/5.0",
+      "savedAtEpochMillis": 1749000000000,
+      "lastUsedAtEpochMillis": 1749600000000,
+      "cookies": [
+        {
+          "name": "session",
+          "value": "abc123",
+          "domain": "example.org",
+          "path": "/",
+          "secure": true,
+          "httpOnly": true,
+          "expiresAtEpochMillis": 1781136000000
+        }
+      ]
+    }
+  ],
+  "launcherCells": [
+    {
+      "orientation": "PORTRAIT",
+      "rowIndex": 2,
+      "colIndex": 1,
+      "spanW": 1,
+      "spanH": 1,
+      "kind": "SHORTCUT",
+      "target": "fn:calculator",
+      "addedAt": 1749000000000,
+      "origin": "USER"
+    }
+  ]
+}

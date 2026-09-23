@@ -29,12 +29,12 @@
     <string name="welcome_profile_personal_smartphone_title">ذاتی اسمارٹ فون</string>
     <string name="welcome_profile_photo_frame_desc">آلے کو ڈیجیٹل تصویری فریم بنا دیتا ہے۔ ویڈیو، آڈیو اور فائل کام بند کرتا ہے؛ چلتے ہی سلائیڈ شو کھولتا ہے۔</string>
     <string name="welcome_profile_photo_frame_title">تصویری فریم</string>
-    <string name="welcome_profile_selector_title">آلے کے استعمال کا انداز</string>
+    <string name="welcome_profile_selector_title">ڈیوائس پروفائل</string>
     <string name="welcome_profile_tv_media_box_desc">ٹی وی اور میڈیا سینٹر کے لیے بہترین۔ ڈی-پیڈ/ریموٹ سے گھومنا بہتر بناتا ہے، بڑے بٹن استعمال کرتا ہے اور چھوٹے لمس کنٹرول چھپاتا ہے۔</string>
     <string name="welcome_profile_tv_media_box_title">ٹی وی / میڈیا باکس</string>
     <string name="welcome_profile_video_player_desc">صرف ویڈیو آلات کے لیے بہترین۔ تصاویر، موسیقی اور دستاویزی ناظر چھپاتا ہے؛ تیز ویڈیو چلانے اور تھمب نیل کو ترجیح دیتا ہے۔</string>
     <string name="welcome_profile_video_player_title">ویڈیو پلیئر</string>
-    <string name="welcome_profile_vr_headset_desc">ورچوئل رئیلٹی آلات کے لیے بہترین۔ سپورٹڈ ہارڈویئر فلیورز پر 3D/360° لے آؤٹس اور عمیق کنٹرولز پہلے سے فعال کر دیتا ہے۔</string>
+    <string name="welcome_profile_vr_headset_desc">ورچوئل رئیلٹی ڈیوائسز کے لیے بہترین۔ معاون ہیڈسیٹس پر 3D/360° لے آؤٹس اور عمیق کنٹرولز پہلے سے فعال کرتا ہے۔</string>
     <string name="welcome_profile_vr_headset_title">VR ہیڈسیٹ</string>
     <string name="welcome_recommended_badge">(تجویز کردہ)</string>
     <string name="welcome_title_1">FastMediaSorter میں خوش آمدید!</string>
@@ -62,7 +62,7 @@
     <string name="sysinfo_field_display_count">ڈسپلے</string>
     <string name="sysinfo_field_fingerprint">فنگر پرنٹ</string>
     <string name="sysinfo_field_first_install">پہلی تنصیب</string>
-    <string name="sysinfo_field_flavor">ویریئنٹ</string>
+    <string name="sysinfo_field_flavor">ایڈیشن</string>
     <string name="sysinfo_field_font_scale">فونٹ اسکیل</string>
     <string name="sysinfo_field_gles">OpenGL ES</string>
     <string name="sysinfo_field_hdr">HDR</string>
@@ -117,7 +117,7 @@
     <string name="welcome_theme_auto">خودکار</string>
     <string name="welcome_theme_light">روشن</string>
     <string name="welcome_theme_dark">گہرا</string>
-    <string name="welcome_networks_title">نیٹ ورک ذرائع</string>
+    <string name="welcome_networks_title">نیٹ ورک وسائل</string>
     <string name="welcome_networks_description">نیٹ ورک شیئرز اور دور دراز اسٹوریج سے میڈیا شامل کریں۔</string>
     <string name="welcome_profiles_title">آپ یہ آلہ کیسے استعمال کریں گے؟</string>
     <string name="welcome_profiles_subtitle">ایک انداز منتخب کریں - ہم طے شدہ ترتیبات اسی کے مطابق کر دیں گے۔</string>
@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">اسٹریمز</string>
     <string name="welcome_role_streams_detail">تیار فہرست سے انٹرنیٹ ریڈیو، ٹی وی اور ویڈیو چینلز</string>
     <string name="welcome_role_wear">گھڑی کی ایپ</string>
-    <string name="welcome_role_wear_detail">ایک Wear OS ساتھی ایپ - براہ راست اپنی کلائی پر دیکھیں اور چلائیں</string>
+    <string name="welcome_role_wear_detail">گھڑی ایپ - براہ راست اپنی کلائی پر براؤز کریں اور چلائیں</string>
 </resources>

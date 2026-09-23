@@ -268,7 +268,6 @@ class VideoPlayerViewModel @Inject constructor(
             // on its address is the end of it. The screen it was started from states the reason and
             // offers a fresh start, which a raw error line here could do neither of.
             if (endPhoneCameraSessionOnStreamError(directStreamUri)) {
-                Timber.d("S3212: phone camera stream died, leaving the player")
                 _uiState.update {
                     it.copy(isLoading = false, isPlaying = false, closeScreen = true)
                 }
@@ -309,7 +308,8 @@ class VideoPlayerViewModel @Inject constructor(
         fileOperations.bind(
             scope = viewModelScope,
             currentFile = currentFileFlow,
-            isNetworkSource = { networkSelection != null }
+            isNetworkSource = { networkSelection != null },
+            networkSourceId = { networkSelection?.sourceId }
         )
         viewModelScope.launch {
             _uiState.collect { state ->
@@ -508,7 +508,8 @@ class VideoPlayerViewModel @Inject constructor(
                     Timber.d("Loading network video: ${selectedMedia.file.name}")
                     loadNetworkVideo(selectedMedia)
                 } else {
-                    Timber.d("Loading local video from SelectedMediaManager: ${selectedMedia.file.name}")
+                    // S3383: the id alone - this is the path a recovered FileDO file plays through.
+                    Timber.d("Loading local video from SelectedMediaManager: id=${selectedMedia.file.id}")
                     playLocalFile(selectedMedia.file)
                 }
             } else {
@@ -552,7 +553,6 @@ class VideoPlayerViewModel @Inject constructor(
             val mediaItem = MediaItem.fromUri(Uri.parse(selected.streamUri))
             exoPlayer.setMediaItem(mediaItem)
             exoPlayer.prepare()
-            Timber.d("S3202: direct video stream prepared uri=%s", selected.streamUri)
             _uiState.update { it.copy(isLoading = false) }
             if (!_uiState.value.showBatteryWarning) {
                 exoPlayer.playWhenReady = true
@@ -618,7 +618,6 @@ class VideoPlayerViewModel @Inject constructor(
     /** S3217: a file has no live edge, so only a direct stream is re-prepared. */
     fun jumpToLive() {
         if (!_uiState.value.isStream) return
-        Timber.d("S3217: video player jump to live tapped")
         streamPlaybackSession.jumpToLive(exoPlayer)
     }
 

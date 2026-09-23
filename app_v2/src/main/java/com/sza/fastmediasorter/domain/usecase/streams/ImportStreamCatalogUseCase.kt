@@ -101,8 +101,8 @@ class ImportStreamCatalogUseCase @Inject constructor(
                 id = UUID.randomUUID().toString(),
                 url = entry.url,
                 title = entry.name,
-                // Prefer the catalog-declared kind; fall back to scheme/extension classification.
-                mediaKind = entry.mediaKind.uppercase().ifBlank { classifier.classify(entry.url) },
+                // Prefer the catalog-declared kind; a blank or unrecognised one falls back to the URL.
+                mediaKind = classifier.resolve(entry.mediaKind, entry.url),
                 sourceOrigin = "CATALOG",
                 sortIndex = 0,
                 addedAt = now,

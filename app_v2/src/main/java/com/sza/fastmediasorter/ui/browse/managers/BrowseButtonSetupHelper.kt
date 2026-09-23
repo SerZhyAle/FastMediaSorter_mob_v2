@@ -8,19 +8,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.widget.ImageViewCompat
 import androidx.core.widget.doOnTextChanged
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
+import com.sza.fastmediasorter.ui.common.widget.ActionBarView
 import com.sza.fastmediasorter.utils.UserActionLogger
 import timber.log.Timber
 
@@ -119,40 +117,7 @@ class BrowseButtonSetupHelper(
             callbacks.onDeselectAllClicked()
         }
 
-        binding.btnCopy.setOnClickListener {
-            UserActionLogger.logButtonClick("Copy", "BrowseActivity - Toolbar")
-            callbacks.onCopyClicked()
-        }
-
-        binding.btnMove.setOnClickListener {
-            UserActionLogger.logButtonClick("Move", "BrowseActivity - Toolbar")
-            callbacks.onMoveClicked()
-        }
-
-        binding.btnRename.setOnClickListener {
-            UserActionLogger.logButtonClick("Rename", "BrowseActivity - Toolbar")
-            callbacks.onRenameClicked()
-        }
-
-        binding.btnDelete.setOnClickListener {
-            UserActionLogger.logButtonClick("Delete", "BrowseActivity - Toolbar")
-            callbacks.onDeleteClicked()
-        }
-
-        binding.btnUndo.setOnClickListener {
-            UserActionLogger.logButtonClick("Undo", "BrowseActivity")
-            callbacks.onUndoClicked()
-        }
-
-        binding.btnShare.setOnClickListener {
-            UserActionLogger.logButtonClick("Share", "BrowseActivity")
-            callbacks.onShareClicked()
-        }
-
-        binding.btnArchive?.setOnClickListener {
-            UserActionLogger.logButtonClick("Archive", "BrowseActivity")
-            callbacks.onArchiveClicked()
-        }
+        setupOperationActions(callbacks)
 
         binding.btnPlayRandom?.setOnClickListener {
             UserActionLogger.logButtonClick("PlayRandom", "BrowseActivity - Toolbar")
@@ -253,47 +218,67 @@ class BrowseButtonSetupHelper(
         return true
     }
 
+    /**
+     * S3249: the seven file operations as [ActionBarView.Action] records. The bar owns the touch
+     * target, the ripple and the disabled tint, so only the callback mapping lives here.
+     */
+    private fun setupOperationActions(callbacks: ButtonCallbacks) {
+        Timber.d("S3249: operations bar built from ${OPERATION_ACTIONS.size} Action records")
+        binding.layoutOperations.setActions(OPERATION_ACTIONS) { id ->
+            when (id) {
+                R.id.actionBrowseCopy -> dispatchOperation("Copy", callbacks::onCopyClicked)
+                R.id.actionBrowseMove -> dispatchOperation("Move", callbacks::onMoveClicked)
+                R.id.actionBrowseRename -> dispatchOperation("Rename", callbacks::onRenameClicked)
+                R.id.actionBrowseDelete -> dispatchOperation("Delete", callbacks::onDeleteClicked)
+                R.id.actionBrowseUndo -> dispatchOperation("Undo", callbacks::onUndoClicked)
+                R.id.actionBrowseShare -> dispatchOperation("Share", callbacks::onShareClicked)
+                R.id.actionBrowseArchive -> dispatchOperation("Archive", callbacks::onArchiveClicked)
+                else -> Timber.w("Unmapped operations-bar action id=$id")
+            }
+        }
+    }
+
+    private fun dispatchOperation(name: String, callback: () -> Unit) {
+        UserActionLogger.logButtonClick(name, "BrowseActivity - Toolbar")
+        callback()
+    }
+
     private fun setupScrollButtons() {
-        binding.fabScrollToTop.setOnClickListener {
-            UserActionLogger.logButtonClick("ScrollToTop", "BrowseActivity")
-            val layoutManager = binding.rvMediaFiles.layoutManager
-            when (layoutManager) {
-                is LinearLayoutManager -> layoutManager.scrollToPositionWithOffset(0, 0)
-                is GridLayoutManager -> layoutManager.scrollToPositionWithOffset(0, 0)
-                else -> binding.rvMediaFiles.scrollToPosition(0)
-            }
-            Timber.d("Scrolled to top (position 0)")
-            binding.rvMediaFiles.post { scrollButtonManager.updateScrollButtonsVisibility(adapter.itemCount) }
-        }
+        Timber.d("S3249: scroll strips built as two floating ActionBarView containers")
+        binding.barScrollTop.setActions(SCROLL_TOP_ACTIONS, ::onScrollAction)
+        binding.barScrollBottom.setActions(SCROLL_BOTTOM_ACTIONS, ::onScrollAction)
+    }
 
-        binding.fabScrollToBottom.setOnClickListener {
-            UserActionLogger.logButtonClick("ScrollToBottom", "BrowseActivity")
-            val itemCount = adapter.itemCount
-            if (itemCount > 0) {
-                val layoutManager = binding.rvMediaFiles.layoutManager
-                when (layoutManager) {
-                    is LinearLayoutManager -> layoutManager.scrollToPositionWithOffset(itemCount - 1, 0)
-                    is GridLayoutManager -> layoutManager.scrollToPositionWithOffset(itemCount - 1, 0)
-                    else -> binding.rvMediaFiles.scrollToPosition(itemCount - 1)
-                }
-                Timber.d("Scrolled to bottom (position ${itemCount - 1})")
-                binding.rvMediaFiles.post { scrollButtonManager.updateScrollButtonsVisibility(adapter.itemCount) }
-            }
+    private fun onScrollAction(id: Int) {
+        when (id) {
+            R.id.actionBrowseScrollToTop -> scrollToEdge(first = true)
+            R.id.actionBrowseScrollToBottom -> scrollToEdge(first = false)
+            R.id.actionBrowsePageUp -> scrollByPage(forward = false)
+            R.id.actionBrowsePageDown -> scrollByPage(forward = true)
+            else -> Timber.w("Unmapped scroll-bar action id=$id")
         }
+    }
 
-        binding.fabPageUp.setOnClickListener {
-            UserActionLogger.logButtonClick("PageUp", "BrowseActivity")
-            val viewportHeight = binding.rvMediaFiles.height
-            binding.rvMediaFiles.smoothScrollBy(0, -viewportHeight)
-            Timber.d("Page up: smoothScrollBy(0, -$viewportHeight)")
+    /** GridLayoutManager is a LinearLayoutManager, so one branch covers both list and grid modes. */
+    private fun scrollToEdge(first: Boolean) {
+        UserActionLogger.logButtonClick(if (first) "ScrollToTop" else "ScrollToBottom", "BrowseActivity")
+        val itemCount = adapter.itemCount
+        if (!first && itemCount == 0) return
+        val target = if (first) 0 else itemCount - 1
+        when (val layoutManager = binding.rvMediaFiles.layoutManager) {
+            is LinearLayoutManager -> layoutManager.scrollToPositionWithOffset(target, 0)
+            else -> binding.rvMediaFiles.scrollToPosition(target)
         }
+        Timber.d("Scrolled to position $target")
+        binding.rvMediaFiles.post { scrollButtonManager.updateScrollButtonsVisibility(adapter.itemCount) }
+    }
 
-        binding.fabPageDown.setOnClickListener {
-            UserActionLogger.logButtonClick("PageDown", "BrowseActivity")
-            val viewportHeight = binding.rvMediaFiles.height
-            binding.rvMediaFiles.smoothScrollBy(0, viewportHeight)
-            Timber.d("Page down: smoothScrollBy(0, $viewportHeight)")
-        }
+    private fun scrollByPage(forward: Boolean) {
+        UserActionLogger.logButtonClick(if (forward) "PageDown" else "PageUp", "BrowseActivity")
+        val viewportHeight = binding.rvMediaFiles.height
+        val distance = if (forward) viewportHeight else -viewportHeight
+        binding.rvMediaFiles.smoothScrollBy(0, distance)
+        Timber.d("Paged by $distance")
     }
 
     /**
@@ -375,7 +360,6 @@ class BrowseButtonSetupHelper(
         }
         applyDeselectAllMetrics(isWide, paddingStart, paddingEnd)
         binding.layoutControls.elevation = res.getDimension(R.dimen.browse_controls_elevation)
-        applyScrollButtonTints()
         applyEmptyStateColors()
     }
 
@@ -400,16 +384,6 @@ class BrowseButtonSetupHelper(
         }
     }
 
-    private fun applyScrollButtonTints() {
-        val tint = AppCompatResources.getColorStateList(binding.root.context, R.color.browse_scroll_button_tint)
-        listOf(
-            binding.fabScrollToTop,
-            binding.fabPageUp,
-            binding.fabPageDown,
-            binding.fabScrollToBottom
-        ).forEach { ImageViewCompat.setImageTintList(it, tint) }
-    }
-
     private fun applyEmptyStateColors() {
         val tint = AppCompatResources.getColorStateList(binding.root.context, R.color.browse_empty_state_tint)
             ?: return
@@ -417,5 +391,36 @@ class BrowseButtonSetupHelper(
         (binding.emptyStateView.getChildAt(0) as? ImageView)?.let { ImageViewCompat.setImageTintList(it, tint) }
         binding.tvEmptyStateMessage.setTextColor(tint)
         binding.tvEmptyStateHint.setTextColor(tint)
+    }
+
+    private companion object {
+        /** Order is the bar's child order, which is also the D-pad traversal order (Rule 16). */
+        val OPERATION_ACTIONS = listOf(
+            ActionBarView.Action(R.id.actionBrowseCopy, R.drawable.ic_copy, R.string.copy),
+            ActionBarView.Action(R.id.actionBrowseMove, R.drawable.ic_move, R.string.move),
+            ActionBarView.Action(R.id.actionBrowseRename, R.drawable.ic_edit_20, R.string.rename),
+            ActionBarView.Action(R.id.actionBrowseDelete, R.drawable.ic_delete, R.string.delete),
+            ActionBarView.Action(R.id.actionBrowseUndo, R.drawable.ic_undo, R.string.undo),
+            ActionBarView.Action(R.id.actionBrowseShare, R.drawable.ic_share, R.string.share),
+            ActionBarView.Action(R.id.actionBrowseArchive, R.drawable.ic_cloud_upload, R.string.archive_files),
+        )
+
+        val SCROLL_TOP_ACTIONS = listOf(
+            ActionBarView.Action(R.id.actionBrowseScrollToTop, R.drawable.ic_arrow_upward, R.string.scroll_to_top),
+            ActionBarView.Action(R.id.actionBrowsePageUp, R.drawable.ic_double_arrow_up, R.string.scroll_page_up),
+        )
+
+        val SCROLL_BOTTOM_ACTIONS = listOf(
+            ActionBarView.Action(
+                R.id.actionBrowsePageDown,
+                R.drawable.ic_double_arrow_down,
+                R.string.scroll_page_down,
+            ),
+            ActionBarView.Action(
+                R.id.actionBrowseScrollToBottom,
+                R.drawable.ic_arrow_downward,
+                R.string.scroll_to_bottom,
+            ),
+        )
     }
 }

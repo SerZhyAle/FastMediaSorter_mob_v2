@@ -429,7 +429,8 @@ class LauncherGridGeometryTest {
         assertEquals(0, renderedMap["secC"]?.renderRow)
         assertEquals(4, renderedMap["secC"]?.renderCol)
 
-        // Section D and its shortcut are lifted by 2 rows (from 3 down to 1), leaving zero empty space under packed headers
+        // Section D and its shortcut are lifted by 2 rows (from 3 down to 1), leaving zero empty space
+        // under packed headers
         assertEquals(1, renderedMap["secD"]?.renderRow)
         assertEquals(0, renderedMap["secD"]?.renderCol)
 

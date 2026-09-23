@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -70,7 +69,6 @@ class HeartRateSessionManager @Inject constructor(
         // unregistered before a new one is registered rather than leaking alongside it.
         session?.cancel()
         lastSavedAtMillis = 0L
-        Timber.d("S3112: heart-rate foreground session starting")
         session = scope.launch {
             dataSource.measure().collect { reading -> publish(reading) }
         }
@@ -102,7 +100,6 @@ class HeartRateSessionManager @Inject constructor(
         val due = lastSavedAtMillis == 0L || now - lastSavedAtMillis >= SAVE_INTERVAL_MS
         if (due) {
             lastSavedAtMillis = now
-            Timber.d("S3112: saving heart-rate sample to history")
             historyRepository.save(beatsPerMinute)
         }
     }

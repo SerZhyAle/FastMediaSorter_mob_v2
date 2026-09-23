@@ -132,6 +132,23 @@ interface WearRestrictedCapabilities {
     val offersContentTransfer: Boolean
 
     /**
+     * S3362: whether this build offers the programs that take the screen over - the water flashlight
+     * and the distress signal.
+     *
+     * Both are built so that no touch and no swipe leaves them: every pointer event is consumed on
+     * the initial pass and the exit is a hardware key. Wear OS review item WO-V3 asks for swipe to
+     * close from almost all screens and admits two exemptions, an ongoing fitness activity and a
+     * panning surface, which neither of these is. They also draw a full white screen against WO-V13
+     * and, in the signal's case, strobe at about three flashes a second with the alarm stream raised
+     * to its maximum. The owner ruled on 2026-09-21 that the first publication simply carries neither.
+     *
+     * Unlike [offersCredentialEntry] this decides whether the programs appear at all: there is no
+     * saved content behind them to keep reachable, so the catalog row, the route, the tile cell and
+     * the launch address all close together.
+     */
+    val offersScreenTakeoverPrograms: Boolean
+
+    /**
      * S3178: whether this build exposes an entry point that does not pass through a screen - a tile
      * pointing at an excluded capability, a complication reading one, the Data Layer listener, or a
      * foreground service.

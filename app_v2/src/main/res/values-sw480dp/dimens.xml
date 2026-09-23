@@ -36,12 +36,11 @@
     <dimen name="button_height">48dp</dimen>
     <dimen name="button_height_small">36dp</dimen>
     <dimen name="list_item_height">52dp</dimen>
-    <dimen name="icon_size_large">36dp</dimen>
-    <dimen name="icon_size_normal">28dp</dimen>
-    <dimen name="icon_size_small">22dp</dimen>
-    <dimen name="icon_size_button">18dp</dimen>
-    <dimen name="icon_size_menu">16sp</dimen>
-    <dimen name="icon_size_tiny">14dp</dimen>
+    <dimen name="icon_size_normal">@dimen/icon_tier_32</dimen>  <!-- S3433: was 28dp -->
+    <dimen name="icon_size_small">@dimen/icon_tier_24</dimen>  <!-- S3433: was 22dp -->
+    <dimen name="icon_size_button">@dimen/icon_tier_20</dimen>  <!-- S3433: was 18dp -->
+    <dimen name="icon_size_menu">@dimen/icon_tier_16</dimen>  <!-- S3433: was 16sp -->
+    <dimen name="icon_size_tiny">@dimen/icon_tier_16</dimen>  <!-- S3433: was 14dp -->
     <dimen name="toolbar_height">48dp</dimen>
     <dimen name="card_corner_radius">6dp</dimen>
     <dimen name="card_elevation">1dp</dimen>
@@ -105,7 +104,7 @@
     <!-- Items - compact for 480x480 -->
     <dimen name="item_padding">10dp</dimen>
     <dimen name="item_padding_vertical">8dp</dimen>
-    <dimen name="item_icon_size">40dp</dimen>
+    <dimen name="item_icon_size">@dimen/icon_tier_40</dimen>
     <dimen name="item_thumbnail_size">88dp</dimen>
     <dimen name="item_grid_thumbnail_size">110dp</dimen>
     

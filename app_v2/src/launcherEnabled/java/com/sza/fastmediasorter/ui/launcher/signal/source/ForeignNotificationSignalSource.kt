@@ -115,7 +115,9 @@ class ForeignNotificationSignalSource @Inject constructor(
         dismisser.dismiss(counts.keysFor(signal.id.removePrefix(SIGNAL_ID_PREFIX)))
     }
 
-    private companion object {
+    // S3366: internal rather than private - the dim overlay's action router parses the same id
+    // scheme and must not grow its own copy of the literal to stay in sync with.
+    internal companion object {
         const val SIGNAL_ID_PREFIX = "foreign-notification:"
     }
 }

@@ -48,7 +48,6 @@
     <string name="scheduled_ops_log_empty">السجل فارغ</string>
     <string name="scheduled_ops_log_title">سجل العمليات</string>
     <string name="scheduled_ops_next_run">الجولة القادمة في:</string>
-    <string name="scheduled_ops_no_destinations">أضف الوجهات أولاً في قسم الوجهات</string>
     <string name="scheduled_ops_notif_channel_name">العمليات المجدولة</string>
     <string name="scheduled_ops_notif_running">تشغيل العملية المجدولة..</string>
     <string name="scheduled_ops_op_copy">ينسخ</string>
@@ -75,4 +74,13 @@
     <string name="scheduled_ops_toggle_hint">نسخ، نقل، حذف في الخلفية</string>
     <string name="scheduled_ops_notif_permission_title">تتطلب العملية المجدولة تصريحًا</string>
     <string name="scheduled_ops_notif_permission_text">امنح حق الوصول إلى جميع الملفات حتى تتمكن عملية النقل/الحذف في الخلفية من إزالة الملفات الأصلية.</string>
+    <string name="scheduled_ops_screen_title">عمليات الملفات المجدولة</string>
+    <string name="scheduled_ops_action_run_all">تشغيل الكل الآن</string>
+    <string name="scheduled_ops_action_pause_all">إيقاف الكل مؤقتًا</string>
+    <string name="scheduled_ops_action_resume_all">استئناف الكل</string>
+    <string name="scheduled_ops_screen_empty">لا توجد عمليات مجدولة بعد. اضغط على + لإنشاء الأولى.</string>
+    <string name="scheduled_ops_link_subtitle">إدارة العمليات وسجل التشغيل</string>
+    <string name="scheduled_ops_history_title">سجل التشغيل</string>
+    <string name="scheduled_ops_history_empty">لا توجد عمليات تشغيل مسجلة بعد.</string>
+    <string name="scheduled_ops_history_clear_confirm">مسح سجل التشغيل؟</string>
 </resources>

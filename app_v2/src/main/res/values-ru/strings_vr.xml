@@ -105,7 +105,7 @@
     <string name="vr_save_frame_timeout">Не удалось дождаться стереоснимка VR</string>
     <string name="vr_save_frame_unavailable">Стереоснимок VR сейчас недоступен</string>
     <string name="vr_settings_block_title">3D-VR Воспроизведение и управление</string>
-    <string name="vr_settings_test_immersive_content_description">Открыть пробное 360°-изображение в immerse-режиме.</string>
+    <string name="vr_settings_test_immersive_content_description">Открыть пробное 360°-изображение в immersive-режиме.</string>
     <string name="vr_settings_test_immersive_init_failure_toast">Не удалось запустить VR. Проверь, что гарнитура подключена.</string>
     <string name="vr_settings_test_immersive_label">Проверить иммерс</string>
     <string name="vr_settings_test_immersive_runtime_loss_toast">VR-сессия завершилась неожиданно.</string>

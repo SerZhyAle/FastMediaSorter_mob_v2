@@ -21,7 +21,6 @@ import coil.compose.AsyncImage
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 /**
  * S1981: how long the frame holds itself, in ms.
@@ -47,7 +46,6 @@ private val LOGO_WORDMARK_GAP = 16.dp
 @Composable
 fun BrandFrameScreen(onTimeout: () -> Unit) {
     LaunchedEffect(Unit) {
-        Timber.d("S3228: BrandFrameScreen started with slogan")
         delay(BRAND_FRAME_DURATION_MS)
         onTimeout()
     }

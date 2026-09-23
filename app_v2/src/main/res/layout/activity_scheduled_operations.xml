@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <com.sza.fastmediasorter.ui.common.widget.StandardToolbar
+        android:id="@+id/toolbar"
+        style="@style/Widget.FastMediaSorter.Toolbar.Flat"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:title="@string/scheduled_ops_screen_title" />
+
+    <LinearLayout
+        android:id="@+id/containerScheduledOpsContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/margin_small"
+        android:paddingEnd="@dimen/margin_small"
+        android:paddingBottom="@dimen/margin_small">
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowScheduledOpsEnabled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            app:str_icon="@drawable/ic_schedule"
+            app:str_title="@string/scheduled_ops_toggle"
+            app:str_subtitle="@string/scheduled_ops_toggle_hint" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnScheduledNotificationPermission"
+            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:text="@string/perm_title_post_notifications"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Subtitle"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/layoutScheduledOpsActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="horizontal"
+            android:layout_marginTop="@dimen/margin_tiny">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddScheduledOp"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/scheduled_ops_btn_add"
+                android:focusable="true"
+                android:clickable="true"
+                app:icon="@drawable/ic_add"
+                app:iconTint="?attr/colorOnSurface" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRunAllScheduled"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/scheduled_ops_action_run_all"
+                android:focusable="true"
+                android:clickable="true"
+                app:icon="@drawable/ic_play"
+                app:iconTint="?attr/colorOnSurface" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTogglePauseScheduled"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/scheduled_ops_action_pause_all"
+                android:focusable="true"
+                android:clickable="true"
+                app:icon="@drawable/ic_pause"
+                app:iconTint="?attr/colorOnSurface" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnScheduledLog"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/scheduled_ops_btn_log"
+                android:focusable="true"
+                android:clickable="true"
+                app:icon="@drawable/ic_history"
+                app:iconTint="?attr/colorOnSurface" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClearAllScheduled"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/scheduled_ops_btn_clear_all"
+                android:focusable="true"
+                android:clickable="true"
+                app:icon="@drawable/ic_delete_sweep"
+                app:iconTint="?attr/colorError" />
+        </LinearLayout>
+
+        <!-- Run history (S3365, ADR-4): structured view over the persisted log file -->
+        <LinearLayout
+            android:id="@+id/containerScheduledHistory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/margin_small"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/scheduled_ops_history_title"
+                    android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Subtitle" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnScheduledHistoryClear"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/scheduled_ops_log_clear"
+                    android:focusable="true"
+                    android:clickable="true" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvScheduledHistoryEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="@dimen/margin_medium"
+                android:text="@string/scheduled_ops_history_empty"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/containerScheduledHistoryRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvNoScheduledOps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="@dimen/margin_medium"
+            android:text="@string/scheduled_ops_screen_empty"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:visibility="gone" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvScheduledOps"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:descendantFocusability="afterDescendants" />
+    </LinearLayout>
+</LinearLayout>

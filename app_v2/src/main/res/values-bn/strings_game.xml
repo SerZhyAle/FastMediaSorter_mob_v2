@@ -35,7 +35,7 @@
     <string name="game_score">স্কোর: %1$d</string>
     <string name="game_settings_help_message">এটি একটি স্থানীয় পালা-ভিত্তিক পাজল চালু করে। আপনি চালু না করা পর্যন্ত গেমটি বন্ধ থাকে।</string>
     <string name="game_settings_help_title">মিনি-গেম</string>
-    <string name="game_settings_toggle_subtitle">গেমটি প্রধান মেনু এবং লঞ্চার উইজেটে দেখান</string>
+    <string name="game_settings_toggle_subtitle">গেমটি প্রোগ্রাম মেনু, দ্রুত-অ্যাক্সেস প্যানেল এবং লঞ্চার ডেস্কটপে দেখান</string>
     <string name="game_settings_toggle_title">মিনি-গেম</string>
     <string name="game_status_game_over">ক্রিভাভিৎসা তোমাকে ধরে ফেলেছে। আবার চেষ্টা করার জন্য নতুন করে খেলা শুরু করো।</string>
     <string name="game_status_invalid_board">এই বোর্ডটি দিয়ে খেলা যাবে না। এর আকার পরিবর্তন করুন অথবা আগে থেকে সেট করা কোনো বোর্ড খুলুন।</string>

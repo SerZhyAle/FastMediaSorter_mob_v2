@@ -48,7 +48,6 @@
     <string name="scheduled_ops_log_empty">日志为空</string>
     <string name="scheduled_ops_log_title">操作日志</string>
     <string name="scheduled_ops_next_run">下次运行时间：</string>
-    <string name="scheduled_ops_no_destinations">请先在“目的地”部分添加目的地。</string>
     <string name="scheduled_ops_notif_channel_name">计划运行</string>
     <string name="scheduled_ops_notif_running">正在运行预定操作。</string>
     <string name="scheduled_ops_op_copy">复制</string>
@@ -75,4 +74,13 @@
     <string name="scheduled_ops_toggle_hint">在后台复制、移动、删除</string>
     <string name="scheduled_ops_notif_permission_title">计划操作需要获得许可</string>
     <string name="scheduled_ops_notif_permission_text">授予所有文件访问权限，以便后台移动/删除操作可以删除原始文件。</string>
+    <string name="scheduled_ops_screen_title">计划文件操作</string>
+    <string name="scheduled_ops_action_run_all">立即全部运行</string>
+    <string name="scheduled_ops_action_pause_all">全部暂停</string>
+    <string name="scheduled_ops_action_resume_all">全部恢复</string>
+    <string name="scheduled_ops_screen_empty">暂无计划操作。点按 + 创建第一个。</string>
+    <string name="scheduled_ops_link_subtitle">管理操作和运行历史记录</string>
+    <string name="scheduled_ops_history_title">运行历史记录</string>
+    <string name="scheduled_ops_history_empty">尚无运行记录。</string>
+    <string name="scheduled_ops_history_clear_confirm">清除运行历史记录？</string>
 </resources>

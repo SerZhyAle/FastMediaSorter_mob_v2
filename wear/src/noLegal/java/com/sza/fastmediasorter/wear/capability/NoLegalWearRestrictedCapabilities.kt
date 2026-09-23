@@ -56,4 +56,11 @@ class NoLegalWearRestrictedCapabilities @Inject constructor() : WearRestrictedCa
     override val offersContentTransfer: Boolean = true
 
     override val offersExternalEntryPoints: Boolean = true
+
+    /**
+     * S3362: the sideload build keeps the water flashlight and the distress signal exactly as they
+     * are, touch lock included - surviving a wet wrist is what they were built for, and the store
+     * variant giving them up changes nothing here.
+     */
+    override val offersScreenTakeoverPrograms: Boolean = true
 }

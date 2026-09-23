@@ -35,7 +35,7 @@
     <string name="game_score">Pontuação: %1$d</string>
     <string name="game_settings_help_message">Ativa um jogo de quebra-cabeça local baseado em turnos. O jogo permanece desligado até que você o ligue.</string>
     <string name="game_settings_help_title">Minijogo</string>
-    <string name="game_settings_toggle_subtitle">Exibir o jogo no menu principal e no widget de inicialização.</string>
+    <string name="game_settings_toggle_subtitle">Mostrar o jogo no menu de programas, no painel de acesso rápido e na área de trabalho do launcher</string>
     <string name="game_settings_toggle_title">Minijogo</string>
     <string name="game_status_game_over">Kryvavitsa te pegou. Comece um novo jogo para tentar novamente.</string>
     <string name="game_status_invalid_board">Este tabuleiro não pode ser jogado. Altere o seu tamanho ou abra um tabuleiro predefinido.</string>

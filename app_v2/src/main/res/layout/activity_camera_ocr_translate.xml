@@ -162,7 +162,7 @@
                 app:icon="@drawable/ic_settings"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                app:iconSize="20dp"
+                app:iconSize="@dimen/icon_tier_20"
                 app:iconTint="@color/camera_ocr_text_secondary"
                 app:strokeColor="@color/camera_ocr_stroke" />
 
@@ -181,7 +181,7 @@
                 app:icon="@drawable/ic_text_save"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                app:iconSize="20dp"
+                app:iconSize="@dimen/icon_tier_20"
                 app:iconTint="@color/camera_ocr_accent_save"
                 app:strokeColor="@color/camera_ocr_stroke_save" />
 
@@ -201,7 +201,7 @@
                 app:icon="@drawable/ic_camera_ocr_translate"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                app:iconSize="20dp"
+                app:iconSize="@dimen/icon_tier_20"
                 app:iconTint="@color/camera_ocr_text_emphasis" />
 
             <com.google.android.material.button.MaterialButton
@@ -219,7 +219,7 @@
                 app:icon="@drawable/ic_cancel"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                app:iconSize="20dp"
+                app:iconSize="@dimen/icon_tier_20"
                 app:iconTint="@color/camera_ocr_text_primary"
                 app:strokeColor="@color/camera_ocr_stroke" />
 
@@ -315,10 +315,12 @@
                 android:importantForAccessibility="no"
                 android:scaleType="fitCenter" />
 
-            <com.sza.fastmediasorter.ui.cameraocr.CropOverlayView
+            <com.sza.fastmediasorter.ui.common.widget.CropFrameView
                 android:id="@+id/cropOverlay"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:contentDescription="@string/camera_ocr_crop_frame_desc"
+                app:cfvScrimMode="bands" />
 
         </FrameLayout>
 
@@ -354,7 +356,7 @@
                 app:icon="@drawable/ic_refresh"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                app:iconSize="20dp"
+                app:iconSize="@dimen/icon_tier_20"
                 app:iconTint="@color/camera_ocr_text_primary"
                 app:strokeColor="@color/camera_ocr_stroke" />
 
@@ -444,7 +446,7 @@
                 app:icon="@drawable/ic_check"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                app:iconSize="24dp"
+                app:iconSize="@dimen/icon_tier_24"
                 app:iconTint="@color/camera_ocr_text_emphasis" />
 
         </LinearLayout>

@@ -1,7 +1,10 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
+import android.content.ContentResolver
+import android.content.Context
 import android.content.IntentSender
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
+import com.sza.fastmediasorter.wear.domain.files.WearFdSecUseCase
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.files.WearSendToReceiverFilter
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
@@ -10,7 +13,9 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationResult
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,12 +47,20 @@ private const val RECEIVER_SUBSCRIPTION_MS = 5_000L
 class BrowseFileOperationsManager @Inject constructor(
     private val capabilityPolicy: WearFileCapabilityPolicy,
     private val performFileOperation: PerformWearFileOperationUseCase,
-    private val sendToReceiversRepository: WearSendToReceiversRepository
+    private val sendToReceiversRepository: WearSendToReceiversRepository,
+    private val preferences: WearPreferencesRepository,
+    // S3383: asked only what a container is, so this menu and the credential screen cannot end up
+    // disagreeing about which files are one.
+    private val fdSec: WearFdSecUseCase,
+    @ApplicationContext private val context: Context
 ) {
 
     private lateinit var scope: CoroutineScope
     private lateinit var displayedFiles: StateFlow<List<WearMediaFile>>
     private var isNetworkSource: () -> Boolean = { false }
+
+    /** S3359: which share the listed files are read from, needed by the two operations onto the watch. */
+    private var networkSourceId: () -> String? = { null }
     private var onListInvalidated: () -> Unit = {}
 
     /**
@@ -104,15 +117,21 @@ class BrowseFileOperationsManager @Inject constructor(
         scope: CoroutineScope,
         displayedFiles: StateFlow<List<WearMediaFile>>,
         isNetworkSource: () -> Boolean,
+        networkSourceId: () -> String?,
         onListInvalidated: () -> Unit
     ) {
         this.scope = scope
         this.displayedFiles = displayedFiles
         this.isNetworkSource = isNetworkSource
+        this.networkSourceId = networkSourceId
         this.onListInvalidated = onListInvalidated
 
-        _allowedOperations = combine(displayedFiles, _selectedFileIds) { files, ids ->
-            allowedFor(files, ids)
+        _allowedOperations = combine(
+            displayedFiles,
+            _selectedFileIds,
+            preferences.fileDoOperationsEnabled
+        ) { files, ids, fileDoEnabled ->
+            allowedFor(files, ids, fileDoEnabled)
         }.stateIn(scope, SharingStarted.WhileSubscribed(RECEIVER_SUBSCRIPTION_MS), emptySet())
 
         _sendToReceivers =
@@ -120,6 +139,9 @@ class BrowseFileOperationsManager @Inject constructor(
                 WearSendToReceiverFilter.apply(receivers, selectedIn(files, ids))
             }.stateIn(scope, SharingStarted.WhileSubscribed(RECEIVER_SUBSCRIPTION_MS), emptyList())
     }
+
+    /** S3383: whether [file] is a FileDO container, answered by the one place that decides it. */
+    fun isContainer(file: WearMediaFile): Boolean = fdSec.isContainer(file.name)
 
     /** Long press opens selection mode on the pressed file. */
     fun enterSelection(file: WearMediaFile) {
@@ -155,7 +177,11 @@ class BrowseFileOperationsManager @Inject constructor(
     private fun selectedIn(files: List<WearMediaFile>, ids: Set<Long>): List<WearMediaFile> =
         files.filter { it.id in ids }
 
-    private fun allowedFor(files: List<WearMediaFile>, ids: Set<Long>): Set<WearFileOperationKind> {
+    private fun allowedFor(
+        files: List<WearMediaFile>,
+        ids: Set<Long>,
+        fileDoEnabled: Boolean
+    ): Set<WearFileOperationKind> {
         val selected = selectedIn(files, ids)
         return if (selected.isEmpty()) {
             emptySet()
@@ -163,7 +189,31 @@ class BrowseFileOperationsManager @Inject constructor(
             selected
                 .map { capabilityPolicy.operationsFor(it, isNetworkSource()) }
                 .reduce { acc, allowed -> acc intersect allowed }
+                // S3383: the FileDO pair is decided here, not in the capability policy. The switch is a
+                // preference rather than a property of a file, and only the browse list's navigation
+                // graph reaches the credential screen - the player menu and the favourites list draw
+                // from the same policy and must not gain an entry that leads nowhere. Both write a new
+                // file beside the selected one, so a file that may not be renamed is offered neither.
+                .let { allowed ->
+                    val single = selected.singleOrNull()
+                    val writable = WearFileOperationKind.RENAME in allowed &&
+                        single != null && takesContainerBeside(single)
+                    allowed + fdSec.offerFor(singleName = single?.name, enabled = fileDoEnabled, writable = writable)
+                }
         }
+    }
+
+    /**
+     * Renaming in place is not enough for the FileDO pair: a shared-storage row may be renamed where
+     * scoped storage still refuses a new file with no media type beside it. A file with a path of its
+     * own is app-owned and takes anything.
+     */
+    private fun takesContainerBeside(file: WearMediaFile): Boolean =
+        file.uri.scheme != ContentResolver.SCHEME_CONTENT || fdSec.sharedFolderTakesContainer(file.relativePath)
+
+    /** S3383: deletes what a viewed container left in the private cache, once its viewer is gone. */
+    fun discardOpenedContainers() {
+        scope.launch { fdSec.discardOpened(context.cacheDir) }
     }
 
     /**
@@ -225,7 +275,7 @@ class BrowseFileOperationsManager @Inject constructor(
      * app mid-batch and left the progress dialog owning the screen.
      */
     private suspend fun collectRun(targets: List<WearMediaFile>, operation: WearFileOperation) {
-        performFileOperation(targets, operation, isNetworkSource())
+        performFileOperation(targets, operation, isNetworkSource(), networkSourceId())
             .catch { throwable ->
                 Timber.e(throwable, "Wear file operation failed mid-batch")
                 val answered = _operationRun.value.results.map { it.fileName }.toSet()
@@ -282,16 +332,17 @@ class BrowseFileOperationsManager @Inject constructor(
 }
 
 /**
- * What [file] permits, classified first.
+ * What [file] permits, direction included.
  *
- * The classify-then-allow pair was written out at two call sites, and the screen only ever asked it
- * two questions: "may this file be acted on at all" and "what do all the selected ones share". Both
- * are this one expression, so it lives here once rather than as a member per question.
+ * The screen only ever asks two questions - "may this file be acted on at all" and "what do all the
+ * selected ones share" - and both are this one call, so it is named here once rather than as a member
+ * per question. S3359 moved the classification inside the policy, which is what keeps a network entry
+ * and a phone copy from being asked about as though they were the watch's own files.
  */
 private fun WearFileCapabilityPolicy.operationsFor(
     file: WearMediaFile,
     isNetworkSource: Boolean
-): Set<WearFileOperationKind> = allowedOperations(classify(file, isNetworkSource))
+): Set<WearFileOperationKind> = allowedOperations(file, isNetworkSource)
 
 /**
  * Whether a finished run leaves the list on screen describing files that are no longer there.
@@ -302,10 +353,19 @@ private fun WearFileCapabilityPolicy.operationsFor(
 private fun WearFileOperation.mutatesList(): Boolean = when (this) {
     WearFileOperation.SendToPhone -> false
     WearFileOperation.MoveToPhone -> true
+    // A copy to the watch adds a file elsewhere and leaves this listing's own entry untouched; a
+    // move takes the entry away, because the source the list is showing is the one being emptied.
+    WearFileOperation.CopyToWatch -> false
+    WearFileOperation.MoveToWatch -> true
     WearFileOperation.Delete -> true
     is WearFileOperation.Rename -> true
     // Everything it changes happens on the phone; the watch copy it names is still where it was.
     is WearFileOperation.OpenOnPhone -> false
     // Handing a copy to a receiver leaves the original where it is, on either branch.
     is WearFileOperation.SendToReceiver -> false
+    // S3383: both write a new file into the listed folder, so the list on screen is stale either
+    // way. Neither ever reaches this function through the batch engine - the menu routes them to
+    // the credential screen - and the branch exists so that a future caller cannot quietly get the
+    // wrong answer instead of a compile error.
+    WearFileOperation.EncryptFileDo, WearFileOperation.DecryptFileDo -> true
 }

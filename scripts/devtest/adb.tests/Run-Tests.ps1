@@ -278,6 +278,13 @@ if (Assert-Envelope $r 'text' $true 0) {
 $r = Invoke-Verb @('key', '-Key', 'BACK')
 if (Assert-Envelope $r 'key' $true 0) { Assert-Equal 'BACK' $r.json.data.key 'key -Json: data.key' }
 
+# S3394: a burst is one call, so the presses land inside the water flashlight's counting window.
+$r = Invoke-Verb @('key', '-Key', 'BACK', '-Repeat', '3')
+if (Assert-Envelope $r 'key' $true 0) { Assert-Equal 3 $r.json.data.repeat 'key -Repeat: data.repeat' }
+
+$r = Invoke-Verb @('key', '-Key', 'BACK', '-Repeat', '0')
+Assert-Equal 1 $r.exit 'key -Repeat 0: process exit 1'
+
 $r = Invoke-Verb @('shell', '-Cmd', 'echo hi')
 if (Assert-Envelope $r 'shell' $true 0) {
     Assert-DataFields $r 'shell' @('id', 'cmd', 'exit', 'out')

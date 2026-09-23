@@ -139,4 +139,17 @@ class WearBrowsePreferencesImpl @Inject constructor(
             prefs[WearPreferenceKeys.LAST_USED_APP] = id.name
         }
     }
+
+    // S3383: an absent key reads as off, so installing the update adds no menu entry on its own.
+    // A plain edit rather than stampedEdit: the registry declares the switch WATCH_ONLY, because the
+    // phone keeps its own over its own file menu, and a stamp would offer it to the exchange anyway.
+    override val fileDoOperationsEnabled: Flow<Boolean> = store.data.map { prefs ->
+        prefs[WearPreferenceKeys.FILEDO_OPERATIONS_ENABLED] ?: false
+    }
+
+    override suspend fun setFileDoOperationsEnabled(enabled: Boolean) {
+        store.edit { prefs ->
+            prefs[WearPreferenceKeys.FILEDO_OPERATIONS_ENABLED] = enabled
+        }
+    }
 }

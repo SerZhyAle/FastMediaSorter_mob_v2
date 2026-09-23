@@ -40,6 +40,17 @@ class OperationsWearGroupManager(
     val isAvailableInBuild: Boolean get() = mediaCapabilities.supportsWearCompanion
 
     /**
+     * S2551: the "let my watch see my camera" row of this card, kept in a class of its own so neither
+     * this constructor nor the host fragment grows past the ceiling each already sits at.
+     */
+    private val standbyManager = OperationsWatchCameraStandbyManager(
+        binding,
+        fragment,
+        viewModel,
+        isUpdatingFromSettings,
+    )
+
+    /**
      * S1885: last companion state this manager rendered. Null until the first render, so the first
      * pass with the companion already on still asks the bridge once.
      */
@@ -62,6 +73,7 @@ class OperationsWearGroupManager(
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(suppressWearMediaTakeover = isChecked))
         }
+        standbyManager.setup()
         binding.btnWearCompanion.setOnClickListener {
             fragment.startActivity(WearCompanionActivity.createIntent(fragment.requireContext()))
         }
@@ -87,6 +99,7 @@ class OperationsWearGroupManager(
         if (binding.rowSuppressWearMediaTakeover.isChecked != settings.suppressWearMediaTakeover) {
             binding.rowSuppressWearMediaTakeover.setCheckedSilently(settings.suppressWearMediaTakeover)
         }
+        standbyManager.render(settings)
         // The explanation and the link stay visible in both states - they are what tells the reader
         // what the checkbox above them switches on.
         binding.containerWearCompanion.isVisible = settings.enableWearCompanion
@@ -118,17 +131,17 @@ class OperationsWearGroupManager(
         }
     }
 
+    private fun toast(message: String) {
+        Toast.makeText(fragment.requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
     private fun openInstallGuide() {
         val url = SupportIntentFactory.wearInstallGuideUrl(fragment.requireContext())
         try {
             fragment.startActivity(SupportIntentFactory.openUrl(url))
         } catch (e: ActivityNotFoundException) {
             Timber.w(e, "No browser to open the Wear install guide")
-            Toast.makeText(
-                fragment.requireContext(),
-                fragment.getString(R.string.settings_no_browser_for_docs),
-                Toast.LENGTH_SHORT,
-            ).show()
+            toast(fragment.getString(R.string.settings_no_browser_for_docs))
         }
     }
 }

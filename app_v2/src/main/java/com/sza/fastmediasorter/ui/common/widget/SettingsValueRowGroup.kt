@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.view.children
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * A row that can share one label column with its siblings.

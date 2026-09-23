@@ -42,7 +42,6 @@ dev/gemini_audit.md :: agent_validate.ps1
 dev/gpt_audit.md :: agent_bootstrap.ps1
 dev/gpt_audit.md :: agent_validate.ps1
 dev/gpt_audit.md :: resume-context.ps1
-dev/handoff/streams-source-spec/08_build_publish_pipeline.md :: .Tests.ps1
 dev/TASK_S0588_replenish_streams_catalog_definition.md :: check-liveness.ps1
 dev/TASK_S0588_replenish_streams_catalog_design.md :: check-liveness.ps1
 docs/AGENT_COST_PLAYBOOK.md :: guard-uncapped-read.ps1

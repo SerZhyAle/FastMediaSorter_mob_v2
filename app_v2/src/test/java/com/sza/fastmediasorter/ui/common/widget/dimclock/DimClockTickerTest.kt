@@ -32,6 +32,28 @@ class DimClockTickerTest {
     }
 
     @Test
+    fun burnInUpdateAdvancesOnlyAfterPeriod() {
+        var simulatedTime = 5000L
+        val ticker = DimClockTicker(clock = { simulatedTime })
+
+        // Inside the shift period: the offset holds and the cycle does not advance.
+        assertEquals(Pair(0.0f, 0.0f), ticker.updateBurnInOffset())
+
+        simulatedTime += DimClockTicker.BURN_IN_PERIOD_MS
+        assertEquals(
+            Pair(DimClockTicker.BURN_IN_AMPLITUDE_DP, 0.0f),
+            ticker.updateBurnInOffset(),
+        )
+
+        // Just before the next period elapses: still the same position.
+        simulatedTime += DimClockTicker.BURN_IN_PERIOD_MS - 1
+        assertEquals(
+            Pair(DimClockTicker.BURN_IN_AMPLITUDE_DP, 0.0f),
+            ticker.updateBurnInOffset(),
+        )
+    }
+
+    @Test
     fun autoFadeTransitionRespectsIdleThreshold() {
         var simulatedTime = 1000L
         val ticker = DimClockTicker(clock = { simulatedTime })

@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.data.local.preferences.CollapsibleSectionStore
 import com.sza.fastmediasorter.data.local.preferences.SharedPreferencesCollapsibleSectionStore
+import timber.log.Timber
 
 /**
  * Single orchestrator for collapsible groups across the app.
@@ -35,6 +36,10 @@ class CollapsibleSectionsManager(
      *
      * @param key caller-supplied `<screen>__<section>` identifier - the persistence key.
      * @param defaultExpanded state used when [key] has no saved value.
+     * @param persistState S3355: `false` makes the section's state live only as long as the view.
+     *   A screen keeps the default and remembers how the user left it; a one-off dialog passes
+     *   `false`, because a collapsed state saved there reopens the dialog with nothing in it and
+     *   [defaultExpanded] alone cannot undo that - the saved value always wins over it.
      * @param onExpandedChanged optional hook invoked with the current expanded state on initial
      *   restore and on every user toggle, before the body is shown - e.g. to lazily attach a child
      *   fragment when a section first becomes expanded.
@@ -44,12 +49,16 @@ class CollapsibleSectionsManager(
         container: View,
         key: String,
         defaultExpanded: Boolean = false,
+        persistState: Boolean = true,
         onExpandedChanged: ((Boolean) -> Unit)? = null,
     ) {
         if (container.id != View.NO_ID) {
             headersByContainerId[container.id] = header
         }
-        val expanded = store.isExpanded(key, defaultExpanded)
+        if (!persistState) {
+            Timber.d("S3355: section $key opens at defaultExpanded=$defaultExpanded, store bypassed")
+        }
+        val expanded = if (persistState) store.isExpanded(key, defaultExpanded) else defaultExpanded
         onExpandedChanged?.invoke(expanded)
         // Restore must not animate (avoids flicker on screen entry); only user toggles animate.
         header.setExpanded(expanded, notify = false)
@@ -62,7 +71,9 @@ class CollapsibleSectionsManager(
                 }
             }
             container.isVisible = isExpanded
-            store.setExpanded(key, isExpanded)
+            if (persistState) {
+                store.setExpanded(key, isExpanded)
+            }
         }
     }
 

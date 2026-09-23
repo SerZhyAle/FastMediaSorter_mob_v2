@@ -11,7 +11,11 @@ import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.widget.DimHeadingProvider
 import com.sza.fastmediasorter.ui.common.widget.DimOverlayView
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimChipActionRouter
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimChipIconLoader
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockInteractionHandler
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockOverlayView
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockStyleProvider
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimStatusContentProvider
@@ -21,7 +25,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -40,6 +43,10 @@ class BroadcastBlankScreenManager @Inject constructor(
     private val settingsRepository: Lazy<SettingsRepository>,
     private val dimClockStyleProvider: Lazy<DimClockStyleProvider>,
     private val dimStatusContentProvider: Lazy<DimStatusContentProvider>,
+    private val dimChipIconLoader: Lazy<DimChipIconLoader>,
+    private val dimChipActionRouter: Lazy<DimChipActionRouter>,
+    private val dimClockInteractionHandler: Lazy<DimClockInteractionHandler>,
+    private val dimHeadingProvider: Lazy<DimHeadingProvider>,
 ) {
     private var blanked = false
 
@@ -99,7 +106,9 @@ class BroadcastBlankScreenManager @Inject constructor(
         val view = DimOverlayView(activity).apply {
             contentDescription = activity.getString(R.string.broadcast_control_blank_screen_cd)
             onExit = { hide(activity) }
+            headingLookup = { dimHeadingProvider.get().current() }
         }
+        dimHeadingProvider.get().setActive(true)
         content.addView(
             view,
             ViewGroup.LayoutParams(
@@ -125,13 +134,11 @@ class BroadcastBlankScreenManager @Inject constructor(
      * the settings Activity and come back to a session this manager outlived.
      */
     private fun resolveDimMode(activity: AppCompatActivity) {
-        Timber.d("S3321: broadcast blank screen shown, settings read dispatched off-main")
         activity.lifecycleScope.launch {
             val clockEnabled = settingsRepository.get().getSettings()
                 .flowOn(Dispatchers.IO)
                 .first()
                 .dimClockOverlayEnabled
-            Timber.d("S3321: broadcast dim mode resolved, clockEnabled=$clockEnabled")
             applyDimMode(activity, clockEnabled)
         }
     }
@@ -157,15 +164,28 @@ class BroadcastBlankScreenManager @Inject constructor(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            bind(dimClockStyleProvider.get(), dimStatusContentProvider.get(), null)
+            bind(
+                dimClockStyleProvider.get(),
+                dimStatusContentProvider.get(),
+                null,
+                dimChipIconLoader.get(),
+                dimChipActionRouter.get(),
+                dimClockInteractionHandler.get(),
+            )
         }
         content.addView(clockView)
+        // The overlay owns every touch while dimmed; taps reach the clock only through this forward.
+        (overlay?.get() as? DimOverlayView)?.onUserActivity = { clockView.onHostInteraction() }
+        // S3366: a chip or battery tap dismisses the dim overlay through the same path an exit
+        // gesture takes, before the router starts the intent.
+        clockView.onDimExitRequested = { hide(activity) }
         dimClockView = WeakReference(clockView)
     }
 
     private fun hide(activity: AppCompatActivity) {
         blanked = false
         backCallback?.get()?.isEnabled = false
+        dimHeadingProvider.get().setActive(false)
 
         dimClockView?.get()?.let { clock ->
             (clock.parent as? ViewGroup)?.removeView(clock)

@@ -3,7 +3,7 @@
     <string name="smb_add_manual_resource">Додати цей ресурс</string>
     <string name="smb_add_manually">Додати вручну</string>
     <string name="smb_auto_reset_notification">SMB з\'єднання скинуто автоматично</string>
-    <string name="smb_credentials">Мережева Папка (SMB)</string>
+    <string name="smb_credentials">Мережева папка (SMB)</string>
     <string name="smb_domain">Домен (необов\'язково)</string>
     <string name="smb_domain_hint">Залиште порожнім, якщо не потрібно</string>
     <string name="smb_enter_share_manually">+ Ввести ім\'я папки вручну..</string>
@@ -33,7 +33,7 @@
     <string name="sftp_credentials">Облікові дані SFTP</string>
     <string name="sftp_folder_icon">Іконка S/FTP папки</string>
     <string name="sftp_ftp_folder">SFTP / FTP</string>
-    <string name="sftp_ftp_folder_description">Додати віддалені теки SFTP або FTP</string>
+    <string name="sftp_ftp_folder_description">Додати віддалені папки SFTP або FTP</string>
     <string name="sftp_ftp_port_hint">SFTP: 22, FTP: 21</string>
     <string name="sftp_host">Хост</string>
     <string name="sftp_host_hint">Ім\'я сервера або IP-адреса</string>
@@ -54,13 +54,13 @@
     <string name="cloud_auth_dialog_message">Для доступу до \"%1$s\" потрібно увійти за допомогою акаунту %2$s.</string>
     <string name="cloud_auth_required">%1$s потребує повторної авторизації. Будь ласка, увійдіть знову.</string>
     <string name="cloud_check_failed">Не вдалося перевірити файл у хмарі. Спробуйте ще раз.</string>
-    <string name="cloud_create_folder_failed">Не вдалося створити теку в хмарі. Спробуйте ще раз.</string>
-    <string name="cloud_folder">Хмарна тека</string>
+    <string name="cloud_create_folder_failed">Не вдалося створити папку в хмарі. Спробуйте ще раз.</string>
+    <string name="cloud_folder">Хмарна папка</string>
     <string name="cloud_folder_description">Додати Google Drive, Dropbox, OneDrive</string>
     <string name="cloud_list_files_failed">Не вдалося завантажити файли з хмари. Спробуйте ще раз.</string>
-    <string name="cloud_list_folders_failed">Не вдалося завантажити теки з хмари. Спробуйте ще раз.</string>
+    <string name="cloud_list_folders_failed">Не вдалося завантажити папки з хмари. Спробуйте ще раз.</string>
     <string name="cloud_metadata_failed">Не вдалося завантажити відомості про файл із хмари. Спробуйте ще раз.</string>
-    <string name="cloud_restore_instructions">Потрібно відновити з\'\u0454днання з Google Drive.\n\nБудь ласка:\n1. Перейдіть в Головне меню\n2. Відкрийте \'Ресурси\'\n3. Натисніть на \"%1$s\"\n4. Увійдіть за допомогою Google-акаунту</string>
+    <string name="cloud_restore_instructions">Потрібно відновити з\'єднання з Google Drive.\n\nБудь ласка:\n1. Відкрийте головний екран\n2. Натисніть на \"%1$s\"\n3. Увійдіть за допомогою Google-акаунту</string>
     <string name="cloud_search_failed">Не вдалося виконати пошук у хмарному сховищі. Спробуйте ще раз.</string>
     <string name="cloud_sign_out_failed">Не вдалося вийти з хмарного облікового запису. Спробуйте ще раз.</string>
     <string name="cloud_storage">Хмарне сховище</string>
@@ -73,7 +73,7 @@
     <string name="dropbox_authentication_failed">Помилка входу в Dropbox</string>
     <string name="dropbox_beta_email_body">Доброго дня,\n\nБудь ласка, додайте мій акаунт Dropbox до списку бета-тестерів FastMediaSorter.\n\nМій email Dropbox: </string>
     <string name="dropbox_beta_email_subject">FastMediaSorter - Запит доступу до Dropbox бета</string>
-    <string name="dropbox_beta_message">Інтеграція з Dropbox наразі доступна в обмеженому бета-режимі.\n\n⚠️ Навіщо писати вам?\nDropbox вимагає від розробників вручну реєструвати тестерів на період перевірки. Це разова технічна формальність з боку Dropbox \u2014 ваш email потрібен лише для додавання вашого акаунту до дозволеного списку.\n\n🔒 Ваша приватність повністю захищена:\n\u2022 Ми НЕ збираємо, не зберігаємо і не передаємо ваш email\n\u2022 Ми НЕ отримуємо доступ до ваших файлів\n\u2022 Email використовується виключно для надання доступу до Dropbox у цьому додатку\n\nДля отримання доступу напишіть нам:\nserzhyale@gmail.com</string>
+    <string name="dropbox_beta_message">Інтеграція з Dropbox наразі доступна в обмеженому бета-режимі.\n\n⚠️ Навіщо писати вам?\nDropbox вимагає від розробників вручну реєструвати тестерів на період перевірки. Це разова технічна формальність з боку Dropbox \u2014 ваш email потрібен лише для додавання вашого акаунту до дозволеного списку.\n\n🔒 Ваша приватність повністю захищена:\n\u2022 Ми НЕ збираємо, не зберігаємо і не передаємо ваш email\n\u2022 Ми НЕ отримуємо доступ до ваших файлів\n\u2022 Email використовується виключно для надання доступу до Dropbox у цьому додатку\n\nДля отримання доступу напишіть нам:\nsza@ukr.net</string>
     <string name="dropbox_beta_send_email">Написати листа</string>
     <string name="dropbox_beta_title">Dropbox: Бета-доступ</string>
     <string name="dropbox_connection_test_failed">Помилка підключення: %1$s</string>

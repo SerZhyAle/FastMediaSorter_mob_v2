@@ -86,7 +86,7 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
                 id = UUID.randomUUID().toString(),
                 name = entry.name,
                 url = entry.url,
-                mediaKind = entry.mediaKind.uppercase().ifBlank { classifier.classify(entry.url) },
+                mediaKind = classifier.resolve(entry.mediaKind, entry.url),
                 faviconIndex = entry.faviconIndex,
                 category = entry.category.ifBlank { null },
                 topic = entry.topic.ifBlank { null },

@@ -34,7 +34,6 @@ import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 
@@ -44,7 +43,6 @@ fun MediaTypesSettingsScreen(
     listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.MEDIA_TYPES)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    Timber.d("S3260: media types settings shown - every type row is StandardWearToggleChip")
 
     // S1949: every label on this screen measures 17-21 characters in its worst locale - under the
     // 32-character threshold - so the toggles share rows instead of each taking the full width.

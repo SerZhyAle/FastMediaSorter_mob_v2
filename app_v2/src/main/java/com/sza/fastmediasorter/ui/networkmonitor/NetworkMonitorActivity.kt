@@ -55,7 +55,7 @@ class NetworkMonitorActivity : BaseActivity<ActivityNetworkMonitorBinding>(), Ne
         navigator = NetworkMonitorSectionNavigator(supportFragmentManager, R.id.networkMonitorContainer)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbar.setNavigationOnClickListener { navigateUpOrFinish() }
+        binding.toolbar.setUpNavigation(this)
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {

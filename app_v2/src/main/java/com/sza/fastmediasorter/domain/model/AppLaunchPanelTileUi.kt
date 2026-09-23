@@ -33,4 +33,11 @@ data class AppLaunchPanelTileUi(
      * null, so colouring a program cannot bleed into a tile that is not one.
      */
     @ColorRes val accentRes: Int? = null,
+    /**
+     * S3433: the hue of the decorated look, non-null only when [icon] is a product glyph - a feature route, an
+     * internal program, an OS-shortcut route or a resource type. The panel then draws the glyph on a circle of
+     * this hue (ICON-RENDER 0.10 section 10: an in-app launch grid takes the decorated look). Null for an
+     * installed app's own icon, a user picture and the empty slot, which keep their own look.
+     */
+    @ColorRes val plateHueRes: Int? = null,
 )

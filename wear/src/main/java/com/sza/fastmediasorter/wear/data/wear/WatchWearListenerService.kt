@@ -412,7 +412,6 @@ class WatchWearListenerService : WearableListenerService() {
         val ack = cameraPayloadCodec.decodeAck(data)
         val awaited = phoneCameraSessionHolder.awaitingRequestId
         val live = phoneCameraSessionHolder.liveRequestId
-        Timber.d("S3223: camera ack received, awaiting=$awaited live=$live")
         when {
             ack == null -> Timber.w("Dropped an undecodable camera ack")
 

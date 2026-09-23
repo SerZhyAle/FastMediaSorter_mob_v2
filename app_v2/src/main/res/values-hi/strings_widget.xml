@@ -37,12 +37,12 @@
     <string name="widget_unlock_screen_prompt">विजेट जोड़ने के लिए स्क्रीन को अनलॉक करें</string>
     <string name="settings_add_home_widget_title">एंड्रॉइड होम स्क्रीन पर विजेट जोड़ें।</string>
     <string name="widget_picker_dialog_title">एक विजेट चुनें</string>
-    <string name="widget_scheduled_tasks_label">नियत कार्य</string>
+    <string name="widget_scheduled_tasks_label">शेड्यूल किए गए ऑपरेशन</string>
     <string name="widget_scheduled_tasks_description">निर्धारित फ़ाइल संचालन के लिए स्थिति और नियंत्रण</string>
     <string name="widget_scheduled_run_all">सभी चलाएँ</string>
     <string name="widget_scheduled_pause_all">सभी रोकें</string>
     <string name="widget_scheduled_resume_all">सभी रिज्यूमे करें</string>
-    <string name="widget_scheduled_empty">कोई निर्धारित कार्य नहीं</string>
+    <string name="widget_scheduled_empty">कोई शेड्यूल किया गया ऑपरेशन नहीं</string>
     <string name="widget_scheduled_active_count">%1$d सक्रिय</string>
     <string name="widget_scheduled_last_ok">अंतिम: ठीक है %1$s</string>
     <string name="widget_scheduled_last_error">अंतिम: त्रुटि %1$s</string>

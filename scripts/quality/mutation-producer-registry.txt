@@ -1,0 +1,22 @@
+# S3386: surfaceless mutation producers that do NOT reach the mutation journal, and why the screen is
+# still correct without them. Read scripts/quality/assert-mutation-producer-registration.ps1 first.
+#
+# Row: "<path under app_v2/src/main/java/com/sza/fastmediasorter>  <disposition>  # <reason>"
+#
+#   refresh:<Class>.<member>  the change reaches the screen by a compensating redraw instead of the
+#                             journal. The gate resolves <Class> in the tree and requires <member> to
+#                             appear in it, so an unwired refresh cannot be claimed.
+#   own-state                 the producer removes only what the app itself created - a temp file, a
+#                             cache entry, its own expired trash snapshot. Nothing to undo.
+#
+# A producer that calls MutationRecorder needs no row here; the gate proves that from source. This file
+# is the exception list, and a row without a reason is refused - an opt-out nobody can re-judge in a
+# year is a suppression list. Adding a row is a decision about user-visible correctness, not bookkeeping.
+
+widget/QuickAudioRecorderService.kt        own-state                                          # Deletes only its own MediaRecorder output: the empty clip when stop() throws before a frame, and the temp file after MicRecordingSaver has copied it out. The saved file is created, never removed.
+worker/BrowseFileTransferWorker.kt         refresh:BrowseFileOperationsManager.handleTerminalEvent  # The Browse transfer worker is started by the surface that shows its result: handleTerminalEvent consumes the terminal event and reaches viewModel.reloadFiles() through onOperationCompleted, re-listing from disk. A journal entry would be redundant, not missing.
+worker/LinkDownloadWorker.kt               own-state                                          # Through LinkAutoDownloadCoordinator, which deletes the partial file of a download that failed - content this worker had just created and no surface had listed.
+worker/OrphanCleanupWorker.kt              own-state                                          # Through AudioMetadataCacheRepository, whose deletes and renameTo all address the app's private audio-metadata cache directory, never a user resource.
+worker/ThumbnailPreloadWorker.kt           own-state                                          # Through ThumbnailExtractorHelper, which removes the thumbnail output file it just wrote when extraction fails. Derived data, regenerated on the next request.
+worker/TrashCleanupWorker.kt               own-state                                          # Through CleanupTrashFoldersUseCase, which deletes trash snapshots past their retention window and the emptied containers. The user-visible removal was journalled when the file went into the trash; this is the app disposing of its own expired copy.
+worker/WearReceivedFileUploadWorker.kt     own-state                                          # Its FileOperation.Move takes the staging copy ReceiveWatchFileUseCase wrote in local storage and puts it at the destination. The side that disappears is app-owned staging no list shows; the side that appears is an addition, which the journal's reconciler does not model - Mutation carries Delete, Move, Rename and BatchDelete, all about a row that must go.

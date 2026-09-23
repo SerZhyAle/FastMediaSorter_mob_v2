@@ -237,6 +237,10 @@ data class AppSettings(
     val allowRename: Boolean = true,
     val allowDelete: Boolean = true,
     val useTrash: Boolean = false, // Move deleted files to trash instead of permanent delete
+    // S3382: reveals the two FileDO container operations in every file's operation menu. Default
+    // OFF - encrypting a file behind a credential the owner then forgets is unrecoverable, and the
+    // format carries no recovery. Opening a .fd-sec file does not depend on this flag.
+    val enableFileDoOperations: Boolean = false,
     val confirmDelete: Boolean = true, // Confirm before deleting files (used by Safe Mode)
     val confirmMove: Boolean = false, // Confirm before moving files (used by Safe Mode)
     val defaultGridMode: Boolean = false,

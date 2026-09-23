@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.core.apps
 import android.content.Intent
 import com.sza.fastmediasorter.domain.usecase.apps.RefreshInstalledAppsUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.SyncInstalledAppShortcutUseCase
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 

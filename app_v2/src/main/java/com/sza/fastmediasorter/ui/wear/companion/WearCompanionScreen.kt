@@ -95,10 +95,16 @@ fun WearCompanionScreen(
     val watchSettingsState = remember(watchSettings) { WatchSettingsState(watchSettings) }
     // S2731: no companion-window row edits this - it rides the phone's current setting, same as appLanguage.
     val unitSystem by viewModel.unitSystem.collectAsState()
+    // S3330: same shape as unitSystem above - dimClockOverlayEnabled is BOTH and merges,
+    // dimClockSecondsVisible stays PHONE_ONLY like unitSystem.
+    val dimClockOverlayEnabled by viewModel.dimClockOverlayEnabled.collectAsState()
+    val dimClockSecondsVisible = viewModel.dimClockSecondsVisible
 
     // Read at the moment of the request rather than captured by the effect, so an edit does not
     // restart the collector and drop a press that lands during the restart.
-    val currentPayload by rememberUpdatedState { watchSettingsState.payload(context, unitSystem) }
+    val currentPayload by rememberUpdatedState {
+        watchSettingsState.payload(context, unitSystem, dimClockOverlayEnabled, dimClockSecondsVisible)
+    }
     LaunchedEffect(viewModel) {
         viewModel.settingsPushRequests.collect {
             viewModel.pushSettings(currentPayload())
@@ -132,7 +138,9 @@ fun WearCompanionScreen(
             viewModel = viewModel,
             state = watchSettingsState,
             onChanged = {
-                viewModel.updateWatchSettingsLocally(watchSettingsState.payload(context, unitSystem))
+                viewModel.updateWatchSettingsLocally(
+                    watchSettingsState.payload(context, unitSystem, dimClockOverlayEnabled, dimClockSecondsVisible)
+                )
             }
         )
 

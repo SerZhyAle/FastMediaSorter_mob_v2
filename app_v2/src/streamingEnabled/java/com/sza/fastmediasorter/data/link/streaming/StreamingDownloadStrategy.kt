@@ -49,35 +49,20 @@ class StreamingDownloadStrategy @Inject constructor(
                 "target=$fileName session=$sessionId",
         )
 
-        try {
-            // 1. DRM check.
-            if (drmDetector.isDrmProtected(manifest.manifestUrl)) {
-                return PipelineOutcome.DrmBlocked
-            }
+        return try {
+            when {
+                // 1. DRM check.
+                drmDetector.isDrmProtected(manifest.manifestUrl) -> PipelineOutcome.DrmBlocked
 
-            // 2. Pre-flight cache space (best-effort; we do not know exact size yet).
-            //    Use a coarse 64 MiB lower bound - short clips fit; longer ones will hit
-            //    a real out-of-space error during download which is also surfaced cleanly.
-            val ok = cacheCleaner.preflightCheck(context.cacheDir, requiredBytes = PRE_FLIGHT_RESERVE)
-            if (!ok) {
-                return PipelineOutcome.NetworkError(
-                    cause = StreamingDownloadException("insufficient cache space (<64 MiB)"),
-                )
-            }
+                // 2. Pre-flight cache space (best-effort; we do not know exact size yet).
+                //    Use a coarse 64 MiB lower bound - short clips fit; longer ones will hit
+                //    a real out-of-space error during download which is also surfaced cleanly.
+                !cacheCleaner.preflightCheck(context.cacheDir, requiredBytes = PRE_FLIGHT_RESERVE) ->
+                    PipelineOutcome.NetworkError(
+                        cause = StreamingDownloadException("insufficient cache space (<64 MiB)"),
+                    )
 
-            // 3. Segment download.
-            val bundle = segmentDownloader.downloadVariant(manifest, quality, sessionDir, accountId, onProgress)
-
-            // 4. Remux.
-            LinkDownloadTrace.tag(
-                "streaming-downloader remux start, codec=${bundle.videoMime}/${bundle.audioMime}, " +
-                    "segments=${bundle.segmentFiles.size}",
-            )
-            val outputFile = java.io.File(sessionDir, fileName)
-            val muxed = remuxer.remux(bundle, outputFile)
-            return when (muxed) {
-                is RemuxResult.Success -> PipelineOutcome.Success(file = muxed.file, mime = "video/mp4")
-                is RemuxResult.MuxFailed -> PipelineOutcome.MuxFailed(codec = muxed.codec)
+                else -> downloadAndRemux(manifest, fileName, quality, accountId, sessionDir, onProgress)
             }
         } catch (ce: CancellationException) {
             // Cleanup before propagating cancellation.
@@ -85,9 +70,34 @@ class StreamingDownloadStrategy @Inject constructor(
             throw ce
         } catch (t: Throwable) {
             if (t is CancellationException) throw t
-            LinkDownloadTrace.verbose("fallback=streaming-network-error session=$sessionId reason=${t::class.simpleName}")
+            LinkDownloadTrace.verbose(
+                "fallback=streaming-network-error session=$sessionId reason=${t::class.simpleName}"
+            )
             runCatching { cacheCleaner.cleanupSession(context.cacheDir, sessionId) }
-            return PipelineOutcome.NetworkError(cause = t)
+            PipelineOutcome.NetworkError(cause = t)
+        }
+    }
+
+    private suspend fun downloadAndRemux(
+        manifest: StreamingManifest,
+        fileName: String,
+        quality: MediaQualityPreference,
+        accountId: String?,
+        sessionDir: java.io.File,
+        onProgress: (downloadedBytes: Long, totalBytes: Long?) -> Unit,
+    ): PipelineOutcome {
+        // 3. Segment download.
+        val bundle = segmentDownloader.downloadVariant(manifest, quality, sessionDir, accountId, onProgress)
+
+        // 4. Remux.
+        LinkDownloadTrace.tag(
+            "streaming-downloader remux start, codec=${bundle.videoMime}/${bundle.audioMime}, " +
+                "segments=${bundle.segmentFiles.size}",
+        )
+        val outputFile = java.io.File(sessionDir, fileName)
+        return when (val muxed = remuxer.remux(bundle, outputFile)) {
+            is RemuxResult.Success -> PipelineOutcome.Success(file = muxed.file, mime = "video/mp4")
+            is RemuxResult.MuxFailed -> PipelineOutcome.MuxFailed(codec = muxed.codec)
         }
     }
 

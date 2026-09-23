@@ -8,7 +8,7 @@ import kotlin.math.max
  *
  * This is a measurement and deliberately carries no threshold: the rule that cuts a stitched line at a wide
  * gap may not enter code before a dated report brackets its constant on our own material
- * (`docs/OCR_OVERLAY_ACCURACY.md` section 15.4). The distribution this produces on a device is that report's input.
+ * (`ocr-overlay-accuracy.md` section 15.4). The distribution this produces on a device is that report's input.
  */
 object OcrLineGap {
 

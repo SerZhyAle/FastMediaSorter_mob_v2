@@ -6,14 +6,14 @@ import timber.log.Timber
 /**
  * Base class for document viewers (PDF, EPUB) with shared touch zone gesture logic.
  * Provides unified navigation zones for page/chapter turning in both fullscreen and normal modes.
- * 
+ *
  * Touch Zones (Fullscreen Mode):
  * - Top zone (0-20%): Exit fullscreen
  * - Center-left (20-80% height, 0-20% width): Previous page/chapter
  * - Center-right (20-80% height, 80-100% width): Next page/chapter
  * - Center-middle (20-80% height, 20-80% width): Zoom/pan area (no action)
  * - Bottom zone (80-100%): Reserved (no action)
- * 
+ *
  * Touch Zones (Normal Mode):
  * - Active zone: 20-80% height only
  * - Left (0-20% width): Previous page/chapter
@@ -37,7 +37,6 @@ abstract class BaseDocumentViewerManager(
         root = newRoot
     }
 
-
     /**
      * Handle touch zones for document navigation.
      * @param x Touch X coordinate
@@ -47,27 +46,27 @@ abstract class BaseDocumentViewerManager(
     fun handleTouchZones(x: Float, y: Float, isFullscreen: Boolean) {
         val screenWidth = root.width
         val screenHeight = root.height
-        
+
         if (screenWidth <= 0 || screenHeight <= 0) {
             Timber.w("BaseDocumentViewerManager: Invalid screen dimensions - ignoring touch")
             return
         }
-        
+
         if (isFullscreen) {
             handleFullscreenTouchZones(x, y, screenWidth, screenHeight)
         } else {
             handleNormalTouchZones(x, y, screenWidth, screenHeight)
         }
     }
-    
+
     /**
      * Handle touch zones in fullscreen mode (4 zones: top, center-left/middle/right, bottom)
      */
     private fun handleFullscreenTouchZones(x: Float, y: Float, screenWidth: Int, screenHeight: Int) {
-        val topZoneHeight = screenHeight * 0.20f  // Top zone: 0-20%
-        val centerZoneTop = screenHeight * 0.20f   // Center start: 20%
+        val topZoneHeight = screenHeight * 0.20f // Top zone: 0-20%
+        val centerZoneTop = screenHeight * 0.20f // Center start: 20%
         val centerZoneBottom = screenHeight * 0.80f // Center end: 80%
-        
+
         when {
             y < topZoneHeight -> {
                 // Top zone (0-20%): Exit fullscreen
@@ -78,7 +77,7 @@ abstract class BaseDocumentViewerManager(
                 // Center zone (20-80%): 3 sub-zones by width
                 val leftBoundary = screenWidth * 0.20f
                 val rightBoundary = screenWidth * 0.80f
-                
+
                 when {
                     x < leftBoundary -> {
                         // Left sub-zone: Previous page
@@ -102,24 +101,24 @@ abstract class BaseDocumentViewerManager(
             }
         }
     }
-    
+
     /**
      * Handle touch zones in normal mode (3 zones within 20-80% height)
      */
     private fun handleNormalTouchZones(x: Float, y: Float, screenWidth: Int, screenHeight: Int) {
         val topMargin = screenHeight * 0.20f
         val bottomMargin = screenHeight * 0.80f
-        
+
         // Check if touch is in active zone
         if (y < topMargin || y > bottomMargin) {
             Timber.d("DocumentTouchZones (normal): Outside active zone (y=$y)")
-            return  // Outside active zone
+            return // Outside active zone
         }
-        
+
         // Divide by width: 20% | 60% | 20%
         val leftBoundary = screenWidth * 0.20f
         val rightBoundary = screenWidth * 0.80f
-        
+
         when {
             x < leftBoundary -> {
                 // Left zone: Previous page
@@ -137,7 +136,7 @@ abstract class BaseDocumentViewerManager(
             }
         }
     }
-    
+
     /**
      * Abstract methods to be implemented by subclasses
      */

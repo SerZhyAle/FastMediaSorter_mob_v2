@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
 import android.content.Context
+import com.sza.fastmediasorter.data.local.db.LauncherLaunchStatsDao
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.repository.LauncherPinsRepository
@@ -20,9 +21,8 @@ data class RecentLauncherCommand(
 )
 
 /**
- * S0404/S1097/S2242: the taskbar's "recent" strip. Built from the app's own journal (ADR-7) and, unlike the
- * first iteration, spans every command kind the user launched - internal features, resources, streams
- * and OS shortcuts as well as third-party apps.
+ * S0404/S1097/S2242/S3412: the taskbar's "recent" strip. Built from the app's own journal (ADR-7) and
+ * sorted by launch frequency (S3412) with recency tie-break. Spans every command kind the user launched.
  *
  * S2242: deduplicates commands already pinned to the taskbar via [LauncherPinsRepository] so a pinned
  * shortcut does not appear twice in the recent strip / Start panel.
@@ -30,16 +30,26 @@ data class RecentLauncherCommand(
 class QueryRecentLauncherCommandsUseCase @Inject constructor(
     private val journal: LauncherJournalRepository,
     private val pins: LauncherPinsRepository,
+    private val statsDao: LauncherLaunchStatsDao,
     private val resolveVisual: ResolveLauncherCommandLabelUseCase,
     private val resolveRouteAvailability: ResolvePanelRouteAvailabilityUseCase,
     @ApplicationContext private val context: Context,
 ) {
 
     operator fun invoke(limit: Int): Flow<List<RecentLauncherCommand>> =
-        combine(journal.recentCommands(limit * 2), pins.observePins()) { recentCommands, pinnedList ->
+        combine(
+            journal.recentCommands(MAX_RECENT_CANDIDATES),
+            statsDao.observeAll(),
+            pins.observePins(),
+        ) { recentCommands, statsList, pinnedList ->
             val pinnedCommands = pinnedList.map { it.second }.toSet()
+            val statsMap = statsList.associateBy { it.target }
             recentCommands
                 .filter { command -> command !in pinnedCommands }
+                .sortedWith(
+                    compareByDescending<LauncherCellCommand> { statsMap[it.encode()]?.launchCount ?: 0 }
+                        .thenByDescending { statsMap[it.encode()]?.lastLaunchedAt ?: 0L }
+                )
                 .mapNotNull { resolve(it) }
                 .take(limit)
         }.flowOn(Dispatchers.IO)
@@ -72,5 +82,9 @@ class QueryRecentLauncherCommandsUseCase @Inject constructor(
         }
         val visual = resolveVisual(command) ?: return null
         return RecentLauncherCommand(command, visual)
+    }
+
+    private companion object {
+        const val MAX_RECENT_CANDIDATES = 50
     }
 }

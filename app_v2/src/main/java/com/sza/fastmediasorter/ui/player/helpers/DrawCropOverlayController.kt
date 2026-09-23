@@ -6,12 +6,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.ui.player.views.CropOverlayView
+import com.sza.fastmediasorter.ui.common.widget.CropFrameView
 
 /**
  * Mounts and unmounts the draggable crop-selection overlay over the draw-editor image (S0679).
  *
- * Reuses `player_crop_overlay_content.xml` (the player file-crop overlay): a [CropOverlayView] plus
+ * Reuses `player_crop_overlay_content.xml` (the player file-crop overlay): a [CropFrameView] plus
  * confirm / cancel buttons. No business logic - it manages the overlay lifecycle and reports the
  * selection back through the [show] callbacks. While shown, the inflated root consumes touches so
  * the draw canvas underneath is suppressed.
@@ -38,7 +38,7 @@ class DrawCropOverlayController(
         imageContainer.addView(root)
         overlayRoot = root
 
-        val cropView = root.findViewById<CropOverlayView>(R.id.crop_overlay_view)
+        val cropView = root.findViewById<CropFrameView>(R.id.crop_overlay_view)
         root.findViewById<View>(R.id.btn_crop_confirm).setOnClickListener {
             val rect = cropView.getCropRectNormalized()
             val w = cropView.width

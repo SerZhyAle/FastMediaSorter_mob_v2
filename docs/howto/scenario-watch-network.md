@@ -40,7 +40,7 @@ FastMediaSorter on Wear OS connects directly to your home network storage (NAS, 
 
 ## Step 2 - Add a Network Source
 
-1. On the Resources screen, tap **Add Source**.
+1. On the Resources screen, tap **Add resource**.
 2. Select your network protocol:
    - **SMB**: standard Windows shares, Synology, QNAP, or TrueNAS
    - **FTP**: standard FTP file servers

@@ -44,6 +44,20 @@ class MediaTypeUtilsTest {
         assertNull(MediaTypeUtils.getMediaType("file.xyz123"))
     }
 
+    @Test
+    fun `getMediaType lists a FileDO container as a binary in any case`() {
+        assertEquals(MediaType.BINARY_OTHER, MediaTypeUtils.getMediaType("holiday.fd-sec"))
+        assertEquals(MediaType.BINARY_OTHER, MediaTypeUtils.getMediaType("HOLIDAY.FD-SEC"))
+    }
+
+    @Test
+    fun `a SAF container with the generic octet-stream MIME still lists by its extension`() {
+        assertEquals(
+            MediaType.BINARY_OTHER,
+            MediaTypeUtils.getMediaTypeFromMimeOrExtension("application/octet-stream", "holiday.fd-sec"),
+        )
+    }
+
     // ──────────────────────────────────────────────────────────────────────
     // getMediaTypeFromMime
     // ──────────────────────────────────────────────────────────────────────

@@ -260,7 +260,6 @@ class OpenPhoneResourceChannelUseCaseTest {
         assertEquals("huge.jpg", approved.name)
     }
 
-
     private fun writeFile(name: String, body: String = "x") = File(root, name).apply { writeText(body) }
 
     private fun writeFileIn(folder: String, name: String, body: String = "x") =

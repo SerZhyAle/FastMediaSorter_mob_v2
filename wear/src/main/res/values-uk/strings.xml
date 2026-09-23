@@ -45,11 +45,9 @@
     <string name="password">Пароль</string>
     <string name="test_connection">Перевірити</string>
     <string name="save">Зберегти</string>
-    <string name="smb_sources">SMB-ресурси</string>
     <string name="done">Готово</string>
 
     <!-- Sync from Phone strings -->
-    <string name="wear_no_sources">Немає мережевих джерел.\nСинхронізуйте з телефоном або додайте вручну.</string>
     <string name="wear_sync_from_phone">Синхр. з телефоном</string>
     <string name="wear_sync_receiving">Отримання даних..</string>
     <string name="wear_sync_receiving_from">Отримання від %s..</string>
@@ -59,17 +57,16 @@
 
     <!-- Export to Phone strings (S0111 Phase 03) -->
     <string name="wear_export_to_phone">Надіслати на телефон</string>
-    <string name="wear_export_success">Джерела надіслані</string>
+    <string name="wear_export_success">Ресурси надіслано</string>
 
     <!-- Phase 2: Source CRUD -->
-    <string name="delete_source">Видалити джерело</string>
     <string name="delete_source_confirm">Видалити \u00ab%s\u00bb?</string>
     <string name="protocol">Протокол</string>
     <string name="port">Порт</string>
     <string name="domain">Домен</string>
     <string name="use_ssh_key">Використовувати SSH-ключ</string>
     <string name="ssh_private_key">Приватний ключ</string>
-    <string name="add_network_source">Додати джерело</string>
+    <string name="add_network_source">Додати ресурс</string>
     <string name="ftp_connection">FTP</string>
     <string name="sftp_connection">SFTP</string>
     <string name="connection_test_not_supported">Перевірка недоступна для цього протоколу</string>
@@ -108,8 +105,8 @@
     <string name="ssh_key_required">Потрібен приватний SSH-ключ</string>
 
     <!-- Favorites sync (S0111 Phase 06) -->
-    <string name="wear_toggle_favorite">Вибране</string>
-    <string name="wear_favorite_sent">Вибране синхронізовано</string>
+    <string name="wear_toggle_favorite">Обране</string>
+    <string name="wear_favorite_sent">Обране синхронізовано</string>
     <string name="wear_previous_file">Попередній файл</string>
     <string name="wear_next_file">Наступний файл</string>
     <string name="wear_screen_off">Згасити екран</string>
@@ -119,9 +116,9 @@
     <string name="phone_resource_title">Телефон</string>
     <string name="phone_resource_loading">Завантаження з телефона..</string>
     <string name="phone_resource_retry">Повторити</string>
-    <string name="phone_resource_empty">Тут нема чого показати. Відкрийте іншу теку або повторіть.</string>
+    <string name="phone_resource_empty">Тут нема чого показати. Відкрийте іншу папку або повторіть.</string>
     <string name="phone_resource_unavailable">FastMediaSorter не відповідає на телефоні. Відкрийте його там і тримайте телефон поруч.</string>
-    <string name="phone_resource_access_denied">Телефон не відкриває цю теку для годинника.</string>
+    <string name="phone_resource_access_denied">Телефон не відкриває цю папку для годинника.</string>
     <string name="phone_resource_unsupported">Годинник не вміє відкривати такі файли.</string>
     <string name="phone_resource_transfer_rejected">Файл завеликий для передавання на годинник.</string>
     <string name="wear_shuffle_on">Випадковий порядок увімкнено</string>
@@ -216,8 +213,8 @@
     <string name="system_info_total">Усього</string>
     <string name="system_info_phone_link">Звʼязок</string>
     <string name="system_info_loading">Читаємо пристрій..</string>
-    <string name="phone_resource_empty_filtered">Тут нічого такого немає. Відкрийте іншу теку або повторіть.</string>
-    <string name="phone_resource_open_unsupported">На годиннику немає програвача для такого файлу.</string>
+    <string name="phone_resource_empty_filtered">Тут нічого такого немає. Відкрийте іншу папку або повторіть.</string>
+    <string name="phone_resource_open_unsupported">На годиннику немає плеєра для такого файлу.</string>
     <string name="phone_resource_opening">Забираю файл з телефона..</string>
     <string name="wear_favourites_empty">Поки нічого не позначено. Натисніть сердечко під час відтворення.</string>
     <string name="wear_favourites_unmark">Прибрати з обраного</string>
@@ -598,7 +595,6 @@
     <string name="wear_color_scheme_light_blue">Світло-синя</string>
     <string name="wear_color_scheme_light_red">Світло-червона</string>
     <string name="wear_water_flashlight_app">Водний ліхтар</string>
-    <string name="wear_water_flashlight_locked_hint">Заблоковано. Використовуйте кнопки</string>
     <string name="system_info_section_environment">Оточення</string>
     <string name="system_info_environment_light">Освітленість</string>
     <string name="system_info_environment_pressure">Тиск</string>
@@ -615,7 +611,7 @@
     <string name="wear_motion_monitor_step_detector">Детектор кроку</string>
     <string name="wear_motion_monitor_no_hardware">У цьому годиннику такого датчика немає</string>
     <string name="wear_motion_monitor_permission_denied">Доступ до активності не надано</string>
-    <string name="wear_motion_monitor_not_in_edition">Недоступно в цій збірці</string>
+    <string name="wear_motion_monitor_not_in_edition">Недоступно в цій редакції</string>
     <string name="wear_motion_monitor_grant">Дозволити доступ</string>
     <string name="wear_motion_monitor_waiting">Подій поки немає</string>
     <string name="wear_motion_monitor_delivery">%1$d под., %2$s Гц, %3$s с тому</string>
@@ -647,7 +643,7 @@
     <string name="body_sensor_measure">Виміряти</string>
     <string name="body_sensor_measuring">Вимірюємо..</string>
     <string name="body_sensor_bpm">%1$d уд/хв</string>
-    <string name="body_sensor_reason_not_offered_in_this_build">Недоступно в цій збірці</string>
+    <string name="body_sensor_reason_not_offered_in_this_build">Недоступно в цій редакції</string>
     <string name="body_sensor_reason_platform_too_old">Потрібна Wear OS 3 або новіша</string>
     <string name="body_sensor_reason_no_hardware">На цьому годиннику немає датчика пульсу</string>
     <string name="body_sensor_reason_permission_denied">Дозвольте доступ до пульсу</string>
@@ -719,7 +715,7 @@
     <string name="wear_phone_camera_failed_expired">На телефоні ніхто не відповів</string>
     <string name="wear_phone_camera_failed_capture">Телефон не зміг відкрити камеру</string>
     <string name="wear_phone_camera_failed_busy">Телефон уже веде мовлення</string>
-    <string name="wear_phone_camera_failed_not_supported">Ця збірка телефона не вміє передавати відео</string>
+    <string name="wear_phone_camera_failed_not_supported">Редакція застосунку на телефоні не вміє передавати відео</string>
     <string name="wear_phone_camera_failed_unknown">Телефон відмовив без пояснення</string>
     <string name="wear_tile_shortcut_more">Ще</string>
     <string name="wear_streams_filter_collections_header">Добірки</string>
@@ -931,10 +927,42 @@
     <string name="wear_onboarding_slogan">Ваш медіа-компаньйон на руці</string>
     <string name="wear_onboarding_skip_all">Пропустити все</string>
     <string name="wear_onboarding_page_indicator">Крок %1$d з %2$d</string>
-    <string name="wear_battery_optimization_title">Економія батареї може перервати трансляцію</string>
-    <string name="wear_battery_optimization_desc">Дозвольте застосунку працювати у фоні, щоб звук не переривався.</string>
-    <string name="wear_battery_optimization_grant">Дозволити роботу у фоні</string>
     <string name="dim_clock_overlay_toggle">Показувати годинник і стан під час затемнення</string>
     <string name="dim_clock_status_cd">Годинник і стан на затемненому екрані</string>
     <string name="ok">OK</string>
+    <string name="wear_file_op_copy_to_watch">Копіювати на годинник</string>
+    <string name="wear_file_op_move_to_watch">Перемістити на годинник</string>
+    <string name="wear_file_op_outcome_no_space">На годиннику бракує місця - звільніть місце й повторіть</string>
+    <string name="wear_file_op_outcome_copied_source_kept">Скопійовано на годинник - оригінал залишився на місці</string>
+    <string name="wear_filedo_op_encrypt">Зашифрувати FileDO</string>
+    <string name="wear_filedo_op_decrypt">Розшифрувати FileDO</string>
+    <string name="wear_settings_filedo_operations">Шифрування FileDO</string>
+    <string name="wear_filedo_title_encrypt">Зашифрувати</string>
+    <string name="wear_filedo_title_decrypt">Розшифрувати</string>
+    <string name="wear_filedo_title_open">Відкрити контейнер</string>
+    <string name="wear_filedo_password_hint">Пароль</string>
+    <string name="wear_filedo_password_repeat_hint">Повторіть пароль</string>
+    <string name="wear_filedo_password_mismatch">Записи не збігаються</string>
+    <string name="wear_filedo_empty_warning">Порожній пароль нічого не захищає. Файл відкриє будь-хто, хто його отримає.</string>
+    <string name="wear_filedo_working">Виконується..</string>
+    <string name="wear_filedo_result_packed">Зашифровано. Оригінал залишився на місці.</string>
+    <string name="wear_filedo_result_restored">Розшифровано.</string>
+    <string name="wear_filedo_result_wrong">Невірний пароль, не контейнер або файл підмінено.</string>
+    <string name="wear_filedo_result_damaged">Файл пошкоджено.</string>
+    <string name="wear_filedo_result_unsupported">Цей застосунок не читає такий контейнер.</string>
+    <string name="wear_filedo_result_memory">На цьому годиннику не вистачило памʼяті для цього контейнера.</string>
+    <string name="wear_filedo_result_failed">Не вдалося виконати.</string>
+    <string name="wear_filedo_result_not_viewable">Годинник не відкриває файли такого типу.</string>
+    <string name="wear_filedo_remember">Запам\'ятати пароль</string>
+    <string name="wear_filedo_remembered_forgotten">Збережений пароль не підійшов і забутий. Введіть пароль.</string>
+    <string name="wear_water_flashlight_exit_hint">Заблоковано. Для виходу 3 рази швидко змахніть назад</string>
+    <string name="wear_complication_last_resource_a11y">Останній ресурс: %1$s</string>
+    <string name="wear_complication_now_playing_a11y">Грає: %1$s</string>
+    <string name="wear_complication_last_played_a11y">Грало: %1$s</string>
+    <plurals name="wear_complication_favorites_count">
+        <item quantity="one">%d в обраному</item>
+        <item quantity="few">%d в обраному</item>
+        <item quantity="many">%d в обраному</item>
+        <item quantity="other">%d в обраному</item>
+    </plurals>
 </resources>

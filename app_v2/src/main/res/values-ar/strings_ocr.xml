@@ -31,4 +31,5 @@
     <string name="translation_source_language_and_ocr">اللغة الأصلية والتعرف الضوئي على الأحرف</string>
     <string name="translation_started">بدأت الترجمة..</string>
     <string name="translation_target_language">ترجمة إلى</string>
+    <string name="ocr_language_assumed_unreadable">النص مكتوب بنظام كتابة لم تُعَدّ له أداة التعرّف، لذلك لا تُعرض أي ترجمة فوق الصورة. اختر اللغة الأصلية في إعدادات الترجمة.</string>
 </resources>

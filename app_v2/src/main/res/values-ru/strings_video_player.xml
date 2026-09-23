@@ -44,7 +44,7 @@
     <string name="playback_settings_3d_tab">3D</string>
     <string name="playback_settings_3d_vr180">VR180</string>
     <string name="playback_speed">Скорость воспроизведения</string>
-    <string name="player_3d_detected_toast">Обнаружено 3D-видео. Используйте «Информация о файле», чтобы открыть его во внешнем VR-проигрывателе.</string>
+    <string name="player_3d_detected_toast">Обнаружено 3D-видео. Используйте «Информация о файле», чтобы открыть его во внешнем VR-плеере.</string>
     <string name="player_command_panel_mode_playerViewPanel_resize_mode">fit</string>
     <string name="player_credentials_missing">Сохранённые учётные данные не найдены. Обновите их и попробуйте ещё раз.</string>
     <string name="player_file_moved">Файл перемещён.</string>

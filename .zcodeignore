@@ -1,0 +1,339 @@
+# ============================================================================
+# FastMediaSorter v2 - Community Repository .gitignore
+# ============================================================================
+# This file excludes build artifacts, IDE configs, credentials, and large
+# test files while keeping all source code and documentation.
+# ============================================================================
+
+# ============================================================================
+# BUILD ARTIFACTS & OUTPUTS
+# ============================================================================
+*.class
+*.apk
+*.aab
+*.aar
+*.jar
+!gradle-wrapper.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+# Gradle build outputs
+.gradle/
+build/
+*/build/
+**/build/
+bin/
+gen/
+out/
+# S2918: dependency trees are restored from the tracked lock file with `npm install`, never versioned.
+node_modules/
+# Note: a broad `release/` rule was removed (collateral damage -
+# it excluded `app_v2/src/release/` source set and `scripts/release/`
+# tooling from the repo, which silently broke release builds on main).
+# Gradle build outputs under `release/` are already covered by `**/build/`
+# above; transient release artifacts live under `temp/` (covered separately).
+build_output.txt
+aab_contents/
+
+# Release source set: secret/machine-specific files only (the rest of
+# `app_v2/src/release/` is tracked).
+# MSAL config carries the production signing-hash; kept out of repo and
+# synced into the release worktree via scripts/release-worktree-sync.txt.
+app_v2/src/release/res/raw/msal_config.json
+# OAuth client secrets (production credentials).
+app_v2/src/release/res/values/google_oauth.xml
+
+# Gradle wrapper (KEEP - required for project build)
+!gradle/
+!gradle/wrapper/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# ============================================================================
+# IDE & EDITOR CONFIGURATIONS
+# ============================================================================
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+.navigation/
+captures/
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+
+# VS Code
+.vscode/
+
+# AI Agent configurations
+.agent/
+.claude/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Kotlin
+.kotlin/
+
+# ============================================================================
+# LOCAL CONFIGURATION & SECRETS (NEVER COMMIT)
+# ============================================================================
+# Local SDK/NDK paths and machine-specific settings
+local.properties
+.secrets/
+
+# Keystore files - CRITICAL: DO NOT COMMIT
+*.jks
+*.keystore
+*.pem
+keystore.properties
+fastmediasorter.keystore
+upload_certificate.pem
+play-console-key.json
+
+
+# OAuth credentials - NEVER COMMIT
+# Release OAuth config contains production credentials
+app_v2/src/release/res/values/google_oauth.xml
+
+# Google Services (Firebase, etc.) - Configure per deployment
+google-services.json
+
+# ============================================================================
+# NATIVE BUILD OUTPUTS
+# ============================================================================
+.externalNativeBuild
+.cxx/
+obj/
+libs/
+
+# ============================================================================
+# ANDROID PROFILING & DEBUGGING
+# ============================================================================
+*.hprof
+*.trace
+
+# ============================================================================
+# TESTING FRAMEWORKS
+# ============================================================================
+# Maestro E2E test artifacts
+maestro/**/*.mp4
+maestro/**/*.webm
+maestro/test-results/
+maestro/maestro-results/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+fastlane/readme.md
+
+# Lint reports (keep config, exclude outputs)
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+
+# ============================================================================
+# TEMPORARY & SCRATCH FILES
+# ============================================================================
+temp/
+# PLAN/ is a local specification workspace. It stays entirely outside Git,
+# including closed-ticket archives.
+PLAN/
+logs/
+*.tmp
+*.log
+*.swp
+*.swo
+*~
+
+# ============================================================================
+# LARGE TEST MEDIA FILES
+# ============================================================================
+# Test media files for manual testing (too large for repo)
+test_media/
+
+# ============================================================================
+# BUILD OUTPUTS & DOWNLOADS
+# ============================================================================
+# Distribution folder with compiled APKs/AABs
+DOWNLOADS/
+downloads/
+
+# ============================================================================
+# DEPRECATED & ARCHIVED CODE
+# ============================================================================
+# Legacy V1 app (reference only, not for active development)
+V1/
+v2_6/
+spec_v2/
+temp/
+
+# ============================================================================
+# EXTERNAL DEPENDENCIES
+# ============================================================================
+# External servers/tools not part of main project
+servers/
+bundletool.jar
+
+# Helper scripts with personal API keys (template versions are tracked)
+scripts/ask-smart-router.ps1
+
+# Python virtual environments (for scripts)
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# ============================================================================
+# OS-SPECIFIC FILES
+# ============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ============================================================================
+# CI/CD TEMPORARY FILES
+# ============================================================================
+# GitHub Actions artifacts (keep workflow configs)
+.github/*
+!.github/workflows/
+!.github/copilot-instructions.md
+!.github/agents/
+!.github/agents/*.agent.md
+
+# ============================================================================
+# MISCELLANEOUS
+# ============================================================================
+# Freeline (deprecated build tool)
+freeline.py
+freeline/
+freeline_project_description.json
+
+# Proguard (keep rules, exclude generated)
+proguard/
+
+# Version control
+vcs.xml
+
+# Agents documentation (internal AI instructions)
+AGENTS.md
+GEMINI.md
+!AGENTS.md
+
+# Google site verification
+google*.html
+
+# ============================================================================
+# WHAT SHOULD BE COMMITTED (FOR REFERENCE)
+# ============================================================================
+# ✅ Source code: app_v2/src/, wear/src/
+# ✅ Build configs: *.gradle.kts, gradle.properties, gradle-wrapper.*
+# ✅ Documentation: docs/, README*.md, *.md files
+# ✅ Scripts: scripts/, dev/ (excluding logs)
+# ✅ Tests: maestro/ configs, test source code
+# ✅ Store assets: store_assets/
+# ✅ Policies: PRIVACY_POLICY.*, TERMS_OF_SERVICE.*
+# ✅ ProGuard rules: proguard-rules.pro
+# ============================================================================
+servers/
+
+archive/
+ChoiceModelRules.md
+app_v2\src\main\res\xml\sza_resources.xml
+
+# RAM disk backup folders
+app_v2/build.backup/
+
+# Large binary artifacts (>50MB, removed from history 2026-02-18)
+bundletool.jar
+maestro/lib/
+
+# Integration test credentials (NEVER COMMIT)
+test_credentials.json
+**/test_media/test_credentials.json
+sza_resources.xml .gradle_temp/
+.gradle_temp/
+.playwright-mcp/
+
+# Generated catalog files (regenerated by scan.ps1 / render.ps1 - not versioned)
+dev/CATALOG/app_v2.jsonl
+dev/CATALOG/app_v2.md
+dev/CATALOG/wear.jsonl
+dev/CATALOG/wear.md
+
+# noLegal private feature inventory (sideload-only, not for public repo - S0156 §6.9)
+docs/FEATURES_noLegal.md
+docs/FEATURES_noLegal-ru.md
+docs/FEATURES_noLegal-uk.md
+docs/ALL_FEATURES_noLegal.jsonl
+docs/SETTINGS_REFERENCE_noLegal.md
+
+# Agent continuity layer artifacts (S0268)
+dev/agent-continuity/
+
+# Device fleet roster carries real serials, model numbers and which watch pairs with which
+# personal phone - not for the public repo. The path stays real and referenced from every rule
+# and skill (CLAUDE.md Rule 35); only its tracking in git is withheld.
+docs/DEVICE_FLEET.md
+
+# Secrets and signing material - pre-empt the leak, never catch it afterwards.
+*.pfx
+*.snk
+.env
+*token*
+*secret*
+
+# ..but a source file named after the concept is not a credential. The two blanket patterns above
+# matched LauncherWidgetToken.kt and its test in app_v2/src/main, so `git add .` silently skipped
+# them, they never reached main, and the release build failed on an unresolved reference that had
+# compiled fine in every local debug build. Credentials never live in .kt/.java - they live in
+# local.properties, gradle properties, and the explicitly-named files listed elsewhere here, which
+# these two negations deliberately do not touch (they re-include code under a src/ tree only).
+!**/src/**/*.kt
+!**/src/**/*.java
+
+# ===== ↑ 以上同步自 .gitignore（「从 .gitignore 同步」只重写以上部分）=====
+.git/
+.hg/
+.svn/
+bower_components/
+jspm_packages/
+site-packages/
+coverage/
+htmlcov/
+lcov-report/
+cmakefiles/
+cmake-build-*/
+bazel-*/
+pods/
+deriveddata/
+storybook-static/
+playwright-report/
+test-results/
+allure-results/
+allure-report/
+cdk.out/
+*.egg-info/
+*.dist-info/
+eggs/
+pip-wheel-metadata/
+wheels/
+# ----- ↑ 以上为 ZCode 默认排除规则（自定义规则请写在本行下方，不会被同步/恢复改动）-----
+# 自定义规则写在下方（本行提示可删除）

@@ -45,7 +45,8 @@
       0 - clean, or audit mode (no -Gate).
       1 - -Gate and at least one uncovered id is not in the baseline.
       2 - the gate cannot run: the inventory, the registry, or the guide set is missing.
-          Distinct from 1 on purpose - "did not look" is not "found nothing".
+          Distinct from 1 on purpose - "did not look" is not "found nothing". Also:
+          -UpdateBaseline would add an id without -Reason (nothing is written).
       4 - Code.Scripts is held by another session, so no baseline was written. The queue place
           is held - wait for the turn in the background and rerun (S2635).
 
@@ -53,7 +54,11 @@
     Fail-closed: exit 1 when an uncovered id is not in the baseline.
 
 .PARAMETER UpdateBaseline
-    Rewrite the baseline with the ids currently uncovered, then exit 0.
+    Rewrite the baseline with the ids currently uncovered, then exit 0. Dropping ids needs
+    nothing; adding one needs -Reason, and every added or dropped id is printed (S3460).
+
+.PARAMETER Reason
+    Why -UpdateBaseline may accept newly uncovered ids. Recorded as a header line.
 
 .PARAMETER Json
     Emit the full verdict as JSON instead of the text report.
@@ -71,7 +76,8 @@ param(
     [switch]$Gate,
     [switch]$UpdateBaseline,
     [switch]$Json,
-    [switch]$Quiet
+    [switch]$Quiet,
+    [string]$Reason
 )
 
 Set-StrictMode -Version Latest
@@ -79,6 +85,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+. (Join-Path $PSScriptRoot 'lib/baseline-set-writer.ps1')
 
 $inventoryPath = Join-Path $repoRoot 'docs/ALL_FEATURES.jsonl'
 $registryPath = Join-Path $repoRoot 'docs/DOCUMENT_REGISTRY.jsonl'
@@ -198,9 +205,15 @@ if ($UpdateBaseline) {
     $header = @(
         '# Capability ids no user guide mentions yet (S1653).',
         '# Regenerate: pwsh -NoProfile -File scripts/quality/assert-guide-coverage.ps1 -UpdateBaseline',
-        '# Shrink this file as guides get written. Growing it means a capability shipped undocumented.'
-    )
-    $body = $uncovered | ForEach-Object { $_.id } | Sort-Object
+        '# Shrink this file as guides get written. Growing it means a capability shipped undocumented',
+        '# and needs -Reason.'
+    ) + @(Get-BaselineReasonLine -Reason $Reason)
+    $body = @($uncovered | ForEach-Object { $_.id } | Sort-Object)
+    $previous = @()
+    if (Test-Path $baselinePath) {
+        $previous = @(Get-Content $baselinePath | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') })
+    }
+    if (-not (Test-BaselineWrite -Gate 'assert-guide-coverage' -Previous $previous -Current $body -Reason $Reason)) { exit 2 }
     $scope = $null
     try {
         $scope = Enter-CodeLockOrExit -Path $baselinePath -Reason 'assert-guide-coverage.ps1 -UpdateBaseline'

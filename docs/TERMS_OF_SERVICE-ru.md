@@ -202,7 +202,7 @@ FastMediaSorter - это приложение для управления мед
 
 По вопросам, касающимся настоящих Условий использования:
 
-- **Email:** <serzhyale@gmail.com>
+- **Email:** <sza@ukr.net>
 - **GitHub:** <https://github.com/SerZhyAle/FastMediaSorter_mob_v2>
 
 ## 17. Подтверждение

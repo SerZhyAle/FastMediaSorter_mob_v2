@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S3433: the decorated look of Favorites for its static app shortcut on API 25, which has no adaptive
+     icons: the platform's 7.1 shape - a 44 dp circle and a 24 dp glyph in a 48 dp asset. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="48dp"
+        android:height="48dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+    <item
+        android:width="44dp"
+        android:height="44dp"
+        android:gravity="center">
+        <shape android:shape="oval">
+            <solid android:color="@color/color_icon_plate_purple" />
+        </shape>
+    </item>
+    <item
+        android:width="24dp"
+        android:height="24dp"
+        android:drawable="@drawable/ic_resource_favorites"
+        android:gravity="center" />
+</layer-list>

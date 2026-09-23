@@ -55,7 +55,6 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
 import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 private const val SECONDS_CADENCE_MS = 1000L
@@ -99,6 +98,7 @@ private data class DimClockBatteryState(val percent: Int, val isCharging: Boolea
  * Honors [WearPreferencesRepository.dimClockSecondsVisible] cadence (1s vs 30s),
  * applies burn-in shift every minute to protect OLED screens, auto-fades after 1 minute of idle,
  * and reads battery and phone connectivity via [WearPowerStateObserver] and [WearSystemInfoDataSource].
+ * [lastUserActivityMillis] restarts the idle window - the dim sheet forwards its taps (S3361).
  *
  * [powerStateObserver] is currently unused: the caller (`WearDimOverlay`) already wires the singleton
  * in, but this screen still reads charge/charging state from its own broadcast receiver below -
@@ -112,6 +112,7 @@ fun WearDimClock(
     preferencesRepository: WearPreferencesRepository,
     powerStateObserver: WearPowerStateObserver? = null,
     systemInfoDataSource: WearSystemInfoDataSource? = null,
+    lastUserActivityMillis: Long = 0L,
     modifier: Modifier = Modifier
 ) {
     val secondsVisible by preferencesRepository.dimClockSecondsVisible.collectAsStateWithLifecycle(initialValue = false)
@@ -122,7 +123,7 @@ fun WearDimClock(
     val nowMillis = rememberDimClockNowMillis(secondsVisible)
     val displayStartTime = remember { System.currentTimeMillis() }
     val burnInOffset = rememberDimClockBurnInOffset(context)
-    val alphaAnim = rememberDimClockAlpha(nowMillis, displayStartTime)
+    val alphaAnim = rememberDimClockAlpha(nowMillis, displayStartTime, lastUserActivityMillis)
     val batteryState = rememberDimClockBatteryState(context)
     val isPhoneConnected = rememberDimClockPhoneConnected(systemInfoDataSource)
 
@@ -132,7 +133,6 @@ fun WearDimClock(
     val dateText = remember(nowMillis, unitSystem) {
         val baseDate = dateTimeFormatter.formatDate(nowMillis, unitSystem)
         val weekday = dateTimeFormatter.formatWeekday(nowMillis)
-        Timber.d("S3326: dim clock weekday=$weekday routed through WearUnitDateTimeFormatter seam")
         "$baseDate, $weekday"
     }
 
@@ -192,10 +192,15 @@ private fun rememberDimClockBurnInOffset(context: Context): IntOffset {
     return burnInOffset
 }
 
-/** Auto-fade after [AUTO_FADE_TIMEOUT_MS] of idle. */
+/** Auto-fade after [AUTO_FADE_TIMEOUT_MS] of idle; a tap restarts the idle window. */
 @Composable
-private fun rememberDimClockAlpha(nowMillis: Long, displayStartTime: Long): Float {
-    val isFaded = (nowMillis - displayStartTime) >= AUTO_FADE_TIMEOUT_MS
+private fun rememberDimClockAlpha(
+    nowMillis: Long,
+    displayStartTime: Long,
+    lastUserActivityMillis: Long
+): Float {
+    val activityBase = maxOf(displayStartTime, lastUserActivityMillis)
+    val isFaded = (nowMillis - activityBase) >= AUTO_FADE_TIMEOUT_MS
     val targetAlpha = if (isFaded) DIMMED_ALPHA else NORMAL_ALPHA
     val alphaAnim by animateFloatAsState(
         targetValue = targetAlpha,

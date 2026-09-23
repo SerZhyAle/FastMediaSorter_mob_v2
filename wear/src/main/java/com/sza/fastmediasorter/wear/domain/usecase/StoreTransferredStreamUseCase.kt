@@ -45,7 +45,7 @@ class StoreTransferredStreamUseCase @Inject constructor(
             // S1944: classify whenever the value is not one this watch acts on - blank or unrecognised
             // alike. Before, only a blank was reclassified, so a non-blank typo was stored raw and then
             // routed to the audio player without the URL ever being consulted.
-            mediaKind = payload.mediaKind.takeIf { it.isRecognisedKind() } ?: classifier.classify(payload.url),
+            mediaKind = classifier.resolve(payload.mediaKind, payload.url),
             origin = WearStreamChannel.ORIGIN_PHONE
         )
         return try {
@@ -71,9 +71,3 @@ class StoreTransferredStreamUseCase @Inject constructor(
         }
     }
 }
-
-/** The three kinds the watch's players actually branch on; anything else is a value to re-derive. */
-private fun String.isRecognisedKind(): Boolean =
-    equals(ClassifyWearStreamMediaKindUseCase.VIDEO, ignoreCase = true) ||
-        equals(ClassifyWearStreamMediaKindUseCase.AUDIO, ignoreCase = true) ||
-        equals(ClassifyWearStreamMediaKindUseCase.RTSP, ignoreCase = true)

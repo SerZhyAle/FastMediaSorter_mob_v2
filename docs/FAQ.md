@@ -60,8 +60,8 @@ Deleted files move to a `.trash/` folder in the same location (soft-delete). The
 - **Copy:** Creates a duplicate, original stays in place
 - **Move:** Relocates the file, removes from original location
 
-### What is File Manager Mode?
-**File Manager Mode** allows you to use the app as a full-featured file browser across all directories. In this mode, the app bypasses standard media filters and displays all files (including ZIP, RAR, APK, EXE, PDF, etc.). You can perform standard file operations like copying, moving, renaming, sharing, and deleting. For unsupported binary files, a bottom sheet is automatically opened, allowing you to manage the file or open it using external applications.
+### What is All Files mode?
+**All Files mode** allows you to use the app as a full-featured file browser across all directories. In this mode, the app bypasses standard media filters and displays all files (including ZIP, RAR, APK, EXE, PDF, etc.). You can perform standard file operations like copying, moving, renaming, sharing, and deleting. For unsupported binary files, a bottom sheet is automatically opened, allowing you to manage the file or open it using external applications.
 
 ### How do I find and remove duplicate files?
 Open a folder, tap the overflow menu, and choose **Find Duplicates** to review matches yourself, or **Find and Delete Duplicates** to remove them right away. There's also **Delete by Size..** for a quick cleanup sweep based on file size alone. The automatic option skips confirmation, so use **Find Duplicates** first if you want to double-check before anything is deleted. Matching is content-based - size, then a quick hash, then a full SHA-256 check - so renamed copies are still found.
@@ -263,18 +263,18 @@ Yes - it's opt-in and off by default: turn on **Statistics collection** in **Set
 ## Auto-Translation
 
 ### How does translation work?
-We use a **Hybrid OCR System**:
-- **Google ML Kit:** For fast, accurate recognition of Latin-based languages (English, German, etc.).
-- **Tesseract:** For high-quality recognition of Cyrillic languages (Russian, Ukrainian).
+Two steps, both on your device:
+- **Tesseract** reads the text from the picture, in every supported language (English, Russian, Ukrainian, Bulgarian, Belarusian).
+- **Google ML Kit** then translates what was read.
 
-### Why is "Auto" mode recommended?
-"Auto" mode automatically detects the source language and selects the best engine. It prevents errors like confusing English 'C' with Russian 'С'.
+### What does the "Auto" source language do?
+"Auto" reads the text with the English model and then works out the language of what was read for the translation. For Cyrillic text, pick the source language explicitly (for example **Russian** or **Ukrainian**) - otherwise letters are read as their Latin look-alikes.
 
 ### Does it work offline?
-**Yes.** You only need internet once to download the language models (approx. 30MB for ML Kit, 15MB for Tesseract).
+**Yes.** You only need internet once to download the text model for your source language and the translation model for your language pair.
 
 ### Why is translation sometimes slower?
-If the app detects Cyrillic text, it initializes the Tesseract engine, which is more powerful but takes 1-2 seconds longer to start than ML Kit.
+The first use of a language loads its text model, and large or detailed pictures take longer to read. Later runs on the same language start faster.
 
 ### What is lens-style translation mode?
 **Lens-style mode** displays translations as an overlay on top of the original image, similar to Google Lens. This allows you to see the translated text in its original context and position. You can enable it in **Settings → Media → Other** (the "Lens-style overlay" toggle).
@@ -349,7 +349,7 @@ Yes, for video streams - tap **Cast** in the player and pick a Chromecast on the
 
 Settings you change on the phone sync to the watch and back, so you only set things up once.
 
-**Note:** The watch itself still connects to local media only - it reaches your phone's folders and favourites through the paired connection, and browses its own storage directly, but it does not open SMB, FTP or cloud resources on its own.
+**Note:** The watch never opens cloud resources on its own - it has no cloud client, and the phone does not pass its cloud folders on; a cloud file reaches the watch only when you open it on the phone and pick your watch in "Send to..". In the full version of the watch app (direct APK) the watch does connect on its own to SMB, FTP and SFTP shares over Wi-Fi - the network resources you send it from the phone. The Google Play version of the watch app is a small first release (calculator, stopwatch, mini-game and settings) and does not browse media yet.
 
 ---
 

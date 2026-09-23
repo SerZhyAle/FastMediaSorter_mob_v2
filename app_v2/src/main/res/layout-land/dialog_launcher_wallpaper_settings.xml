@@ -82,6 +82,16 @@
                     app:str_subtitle="@string/launcher_screens_show_number_hint"
                     app:str_title="@string/launcher_screens_show_number_title" />
 
+                <!-- S3361: dim screen clock and status overlay toggle, relocated from playback settings -->
+                <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                    android:id="@+id/rowDimClockOverlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_normal"
+                    app:str_icon="@drawable/ic_world_clock"
+                    app:str_subtitle="@string/dim_clock_status_cd"
+                    app:str_title="@string/dim_clock_overlay_toggle" />
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

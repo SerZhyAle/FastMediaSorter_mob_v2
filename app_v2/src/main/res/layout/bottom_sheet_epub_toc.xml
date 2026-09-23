@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:paddingVertical="8dp">
 
     <TextView
         android:id="@+id/tvTocTitle"
@@ -29,7 +29,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvTocChapters"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:nestedScrollingEnabled="false"
         android:clipToPadding="false" />
 </LinearLayout>

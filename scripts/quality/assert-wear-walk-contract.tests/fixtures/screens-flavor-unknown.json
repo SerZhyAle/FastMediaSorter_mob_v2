@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "Fixture: S3358 - a flavor name no build answers to. The walk compares it against the installed",
+    "flavor, so a typo silences the entry in every build rather than in one."
+  ],
+  "screens": [
+    {
+      "id": "alpha",
+      "name": "Alpha",
+      "expect": "Hello",
+      "screen": "AlphaScreen",
+      "expectRes": "good_marker",
+      "flavors": ["sideload"]
+    }
+  ],
+  "excluded": [
+    {
+      "screen": "BetaScreen",
+      "reason": "not-a-destination",
+      "note": "Fixture: nested helper."
+    }
+  ]
+}

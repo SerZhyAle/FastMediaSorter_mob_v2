@@ -1,0 +1,24 @@
+# S3371 phase 05 - the critical-flow list of the nightly leak-watch contour.
+#
+# One flow per line: <flow-id>  <entry activity>  # <entry intent>
+#
+# The runner that walks these flows is
+# app_v2/src/androidTest/java/com/sza/fastmediasorter/leakwatch/CriticalFlowLeakWatchTest.kt,
+# which declares one @Test per row below. This file is the human-readable half and the one a
+# reviewer reads when deciding whether a screen belongs in the contour; the test methods are
+# the executable half. They move together - adding a row here without its test method adds
+# nothing, and a test method with no row here is a screen nobody agreed to watch.
+#
+# WHY THESE FIVE. A flow qualifies when it (a) is reachable with no intent extras, so a cold
+# instrumented launch reaches RESUMED without a seeded resource, and (b) owns long-lived state
+# a leak can hang from: a bound service, a registered listener, a Flow collector or a player.
+# Screens that need an extra - BrowseActivity needs a resource id, PlayerActivity a playlist -
+# are deliberately out of the first contour rather than faked with a synthetic extra, because a
+# faked entry point exercises a code path no user takes. Phase 07 joins its state-restore
+# scenarios through the package filter, not by editing this list.
+
+main-list          com.sza.fastmediasorter.ui.main.MainActivity                    # launcher entry, no extras - the resource list, its adapter and the scan observers
+settings           com.sza.fastmediasorter.ui.settings.SettingsActivity            # opened from the main menu, no extras - preference fragments and their listeners
+statistics         com.sza.fastmediasorter.ui.statistics.StatisticsActivity        # opened from the main menu, no extras - Room queries collected into charts
+system-info        com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity        # opened from the tools menu, no extras - system callbacks and periodic sampling
+network-monitor    com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity # opened from the tools menu, no extras - ConnectivityManager callbacks

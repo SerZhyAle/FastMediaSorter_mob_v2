@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
 import com.sza.fastmediasorter.data.link.auth.AccountNameHintExtractor
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -99,11 +100,18 @@ class WebViewAuthDialogFragment : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
+        Timber.d("S3243: webview auth dialog shown, harvest=$harvestMode")
         dialog?.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT,
         )
         applySecureFlagIfEnabled()
+        // Escape is the dismissal route; Enter harvests only in login mode, where the save button
+        // exists - in harvest mode the page auto-closes and the button is hidden by design. The
+        // focused WebView consumes keys first, so typing in the login form is never intercepted.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog) {
+            if (!harvestMode) harvestAndDismiss()
+        }
     }
 
     /**
@@ -258,7 +266,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
             setText(hint ?: defaultAccountName)
             setHint(R.string.s0155_name_account_hint)
         }
-        accountNameDialog = MaterialAlertDialogBuilder(requireContext())
+        val nameDialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.s0155_name_account_title)
             .setView(nameInput)
             .setPositiveButton(R.string.s0155_name_account_positive) { _, _ ->
@@ -302,7 +310,14 @@ class WebViewAuthDialogFragment : DialogFragment() {
             .setOnCancelListener {
                 emitResultAndDismiss(saved = false)
             }
-            .showBoundTo(this@WebViewAuthDialogFragment)
+            .create()
+        accountNameDialog = nameDialog
+        // Enter in the name field saves the session; Escape closes only this prompt, BACK keeps
+        // the cancel semantics through the OnCancelListener above.
+        DialogKeyboardDelegate.applyTo(nameDialog) {
+            nameDialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+        }
+        nameDialog.showBoundTo(this@WebViewAuthDialogFragment)
     }
 
     private fun scrubWebViewState() {

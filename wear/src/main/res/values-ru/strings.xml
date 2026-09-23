@@ -45,11 +45,9 @@
     <string name="password">Пароль</string>
     <string name="test_connection">Проверить</string>
     <string name="save">Сохранить</string>
-    <string name="smb_sources">SMB-ресурсы</string>
     <string name="done">Готово</string>
 
     <!-- Sync from Phone strings -->
-    <string name="wear_no_sources">Нет сетевых источников.\nСинхронизируйте с телефоном или добавьте вручную.</string>
     <string name="wear_sync_from_phone">Синхр. с телефоном</string>
     <string name="wear_sync_receiving">Получение данных..</string>
     <string name="wear_sync_receiving_from">Получение от %s..</string>
@@ -59,17 +57,16 @@
 
     <!-- Export to Phone strings (S0111 Phase 03) -->
     <string name="wear_export_to_phone">Отправить на телефон</string>
-    <string name="wear_export_success">Источники отправлены</string>
+    <string name="wear_export_success">Ресурсы отправлены</string>
 
     <!-- Phase 2: Source CRUD -->
-    <string name="delete_source">Удалить источник</string>
     <string name="delete_source_confirm">Удалить \u00ab%s\u00bb?</string>
     <string name="protocol">Протокол</string>
     <string name="port">Порт</string>
     <string name="domain">Домен</string>
     <string name="use_ssh_key">Использовать SSH-ключ</string>
     <string name="ssh_private_key">Приватный ключ</string>
-    <string name="add_network_source">Добавить источник</string>
+    <string name="add_network_source">Добавить ресурс</string>
     <string name="ftp_connection">FTP</string>
     <string name="sftp_connection">SFTP</string>
     <string name="connection_test_not_supported">Проверка недоступна для этого протокола</string>
@@ -138,7 +135,7 @@
     <string name="wear_section_phone">Телефон</string>
     <string name="wear_section_local">На часах</string>
     <string name="wear_section_streams">Трансляции</string>
-    <string name="wear_section_apps">Приложения</string>
+    <string name="wear_section_apps">Программы</string>
     <string name="wear_coming_soon">Скоро появится</string>
     <string name="wear_phone_video">Видео</string>
     <string name="wear_phone_audio">Аудио</string>
@@ -598,7 +595,6 @@
     <string name="wear_color_scheme_light_blue">Светло-синяя</string>
     <string name="wear_color_scheme_light_red">Светло-красная</string>
     <string name="wear_water_flashlight_app">Водный фонарь</string>
-    <string name="wear_water_flashlight_locked_hint">Заблокировано. Используйте кнопки</string>
     <string name="system_info_section_environment">Окружение</string>
     <string name="system_info_environment_light">Освещённость</string>
     <string name="system_info_environment_pressure">Давление</string>
@@ -615,7 +611,7 @@
     <string name="wear_motion_monitor_step_detector">Детектор шага</string>
     <string name="wear_motion_monitor_no_hardware">В этих часах такого датчика нет</string>
     <string name="wear_motion_monitor_permission_denied">Доступ к активности не разрешён</string>
-    <string name="wear_motion_monitor_not_in_edition">Недоступно в этой сборке</string>
+    <string name="wear_motion_monitor_not_in_edition">Недоступно в этой редакции</string>
     <string name="wear_motion_monitor_grant">Разрешить доступ</string>
     <string name="wear_motion_monitor_waiting">Событий пока нет</string>
     <string name="wear_motion_monitor_delivery">%1$d соб., %2$s Гц, %3$s с назад</string>
@@ -647,7 +643,7 @@
     <string name="body_sensor_measure">Измерить</string>
     <string name="body_sensor_measuring">Измеряем..</string>
     <string name="body_sensor_bpm">%1$d уд/мин</string>
-    <string name="body_sensor_reason_not_offered_in_this_build">Недоступно в этой сборке</string>
+    <string name="body_sensor_reason_not_offered_in_this_build">Недоступно в этой редакции</string>
     <string name="body_sensor_reason_platform_too_old">Нужна Wear OS 3 или новее</string>
     <string name="body_sensor_reason_no_hardware">На этих часах нет датчика пульса</string>
     <string name="body_sensor_reason_permission_denied">Разрешите доступ к пульсу</string>
@@ -719,7 +715,7 @@
     <string name="wear_phone_camera_failed_expired">На телефоне никто не ответил</string>
     <string name="wear_phone_camera_failed_capture">Телефон не смог открыть камеру</string>
     <string name="wear_phone_camera_failed_busy">Телефон уже ведёт вещание</string>
-    <string name="wear_phone_camera_failed_not_supported">Эта сборка телефона не умеет передавать видео</string>
+    <string name="wear_phone_camera_failed_not_supported">Редакция приложения на телефоне не умеет передавать видео</string>
     <string name="wear_phone_camera_failed_unknown">Телефон отказал без объяснения</string>
     <string name="wear_tile_shortcut_more">Ещё</string>
     <string name="wear_streams_filter_collections_header">Подборки</string>
@@ -931,10 +927,42 @@
     <string name="wear_onboarding_slogan">Ваш медиа-компаньон на руке</string>
     <string name="wear_onboarding_skip_all">Пропустить все</string>
     <string name="wear_onboarding_page_indicator">Шаг %1$d из %2$d</string>
-    <string name="wear_battery_optimization_title">Экономия батареи может прервать вещание</string>
-    <string name="wear_battery_optimization_desc">Разрешите приложению работать в фоне, чтобы звук не прерывался.</string>
-    <string name="wear_battery_optimization_grant">Разрешить работу в фоне</string>
     <string name="dim_clock_overlay_toggle">выводить часы и состояние во время затемнения</string>
     <string name="dim_clock_status_cd">Часы и состояние на затемнённом экране</string>
     <string name="ok">ОК</string>
+    <string name="wear_file_op_copy_to_watch">Копировать на часы</string>
+    <string name="wear_file_op_move_to_watch">Переместить на часы</string>
+    <string name="wear_file_op_outcome_no_space">На часах не хватает места - освободите место и повторите</string>
+    <string name="wear_file_op_outcome_copied_source_kept">Скопировано на часы - оригинал остался на месте</string>
+    <string name="wear_filedo_op_encrypt">Зашифровать FileDO</string>
+    <string name="wear_filedo_op_decrypt">Расшифровать FileDO</string>
+    <string name="wear_settings_filedo_operations">Шифрование FileDO</string>
+    <string name="wear_filedo_title_encrypt">Зашифровать</string>
+    <string name="wear_filedo_title_decrypt">Расшифровать</string>
+    <string name="wear_filedo_title_open">Открыть контейнер</string>
+    <string name="wear_filedo_password_hint">Пароль</string>
+    <string name="wear_filedo_password_repeat_hint">Повторите пароль</string>
+    <string name="wear_filedo_password_mismatch">Записи не совпадают</string>
+    <string name="wear_filedo_empty_warning">Пустой пароль ничего не защищает. Файл откроет любой, кто его получит.</string>
+    <string name="wear_filedo_working">Выполняется..</string>
+    <string name="wear_filedo_result_packed">Зашифровано. Оригинал остался на месте.</string>
+    <string name="wear_filedo_result_restored">Расшифровано.</string>
+    <string name="wear_filedo_result_wrong">Неверный пароль, не контейнер или файл подменён.</string>
+    <string name="wear_filedo_result_damaged">Файл повреждён.</string>
+    <string name="wear_filedo_result_unsupported">Это приложение не читает такой контейнер.</string>
+    <string name="wear_filedo_result_memory">На этих часах не хватило памяти для этого контейнера.</string>
+    <string name="wear_filedo_result_failed">Не удалось выполнить.</string>
+    <string name="wear_filedo_result_not_viewable">Часы не открывают файлы такого типа.</string>
+    <string name="wear_filedo_remember">Запомнить пароль</string>
+    <string name="wear_filedo_remembered_forgotten">Сохранённый пароль не подошёл и забыт. Введите пароль.</string>
+    <string name="wear_water_flashlight_exit_hint">Заблокировано. Для выхода 3 раза быстро смахните назад</string>
+    <string name="wear_complication_last_resource_a11y">Последний ресурс: %1$s</string>
+    <string name="wear_complication_now_playing_a11y">Играет: %1$s</string>
+    <string name="wear_complication_last_played_a11y">Играло: %1$s</string>
+    <plurals name="wear_complication_favorites_count">
+        <item quantity="one">%d в избранном</item>
+        <item quantity="few">%d в избранном</item>
+        <item quantity="many">%d в избранном</item>
+        <item quantity="other">%d в избранном</item>
+    </plurals>
 </resources>

@@ -51,7 +51,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Быстрая съёмка |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Запись с диктофона |
 | <img src="icons/svg/ic_widget_random_music.svg" alt="ic_widget_random_music" width="24" height="24"> | Случайная музыка |
-| <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Задачи по расписанию |
+| <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Операции по расписанию |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Видеозапись экрана |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Настройки |
 | <img src="icons/svg/ic_sos.svg" alt="ic_sos" width="24" height="24"> | Аварийный сигнал SOS |
@@ -100,7 +100,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляции |
 | <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Фоновая синхронизация, сеть и кэш |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Взаимодействие с операционной системой |
-| <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Видео, настройки проигрывателя |
+| <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Видео, настройки плеера |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Видеосъёмка |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear-компаньон |
 
@@ -112,7 +112,6 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Разрешить переименование |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Быстрый перевод с камеры |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Включить съёмку фото |
-| <img src="icons/svg/ic_world_clock.svg" alt="ic_world_clock" width="24" height="24"> | выводить часы и состояние во время затемнения |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Мини-игра |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Калькулятор |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Включить избранное |
@@ -120,7 +119,6 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Разрешить распознавание текста |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фоновое воспроизведение |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Включить картинку в картинке |
-| <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Использовать операции по расписанию |
 | <img src="icons/svg/ic_sos.svg" alt="ic_sos" width="24" height="24"> | Аварийный сигнал SOS |
 | <img src="icons/svg/ic_stopwatch.svg" alt="ic_stopwatch" width="24" height="24"> | Секундомер |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Включить трансляции |
@@ -145,6 +143,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Поддержка видео |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Подавлять медиа-управление на часах |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Включить запись видео |
+| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Разрешить часам видеть мою камеру |
 | <img src="icons/svg/ic_water_flashlight.svg" alt="ic_water_flashlight" width="24" height="24"> | Водный фонарь |
 
 ## Команды плеера

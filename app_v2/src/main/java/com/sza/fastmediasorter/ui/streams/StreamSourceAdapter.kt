@@ -328,18 +328,27 @@ class StreamSourceAdapter(
         }
 
         /**
-         * S1117: region-restriction badge. Shown only when the catalog flagged the row `access = "geo"`
-         * (HTTP 403/451 from the maintainer's network - may still play in the user's own region). Icon +
-         * text, not colour alone; the full hint lives in contentDescription for TalkBack.
+         * S1117: region-restriction badge. S3435: STREAM-BANK Rule 10 amendment E - generic restricted badge.
+         * Shown when the catalog flagged the row `access` as non-blank. If `access = "geo"` (HTTP 403/451
+         * from the maintainer's network - may still play in the user's own region), specific geo badge is shown;
+         * any other non-blank value shows generic restricted badge. Icon + text, not colour alone; the full hint
+         * lives in contentDescription for TalkBack.
          */
         private fun bindGeoChip(view: TextView, access: String?) {
-            if (!access.equals(ACCESS_GEO, ignoreCase = true)) {
+            val trimmed = access?.trim()
+            if (trimmed.isNullOrEmpty()) {
                 view.visibility = View.GONE
                 return
             }
+            Timber.d("S3435: binding stream access badge access=%s", trimmed)
             val context = view.context
-            view.text = context.getString(R.string.stream_access_geo)
-            view.contentDescription = context.getString(R.string.stream_access_geo_desc)
+            if (trimmed.equals(ACCESS_GEO, ignoreCase = true)) {
+                view.text = context.getString(R.string.stream_access_geo)
+                view.contentDescription = context.getString(R.string.stream_access_geo_desc)
+            } else {
+                view.text = context.getString(R.string.stream_access_restricted)
+                view.contentDescription = context.getString(R.string.stream_access_restricted_desc)
+            }
             view.visibility = View.VISIBLE
         }
 

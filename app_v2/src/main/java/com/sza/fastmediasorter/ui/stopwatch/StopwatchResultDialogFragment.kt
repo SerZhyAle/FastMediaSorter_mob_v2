@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.databinding.DialogStopwatchResultBinding
 import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.stopwatch.StopwatchScreenState
 import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.stopwatch.helpers.StopwatchResultFileWriter
 import com.sza.fastmediasorter.ui.stopwatch.helpers.StopwatchResultLabels
 import com.sza.fastmediasorter.ui.stopwatch.helpers.StopwatchResultRenderer
@@ -71,6 +72,15 @@ class StopwatchResultDialogFragment : DialogFragment() {
         binding.btnStopwatchResultSend.setOnClickListener { sendToShareSheet(dialog) }
         renderPreview()
         return dialog
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Save is the confirm action; the description and note fields are single-line, so Enter on a
+        // focused field falls through to the delegate and confirms rather than inserting a newline.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog) {
+            binding.btnStopwatchResultSave.performClick()
+        }
     }
 
     override fun onDestroyView() {

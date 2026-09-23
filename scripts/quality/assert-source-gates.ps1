@@ -216,8 +216,10 @@ if ($Explain) {
             # Fast path: if reference text matches working tree text, count cannot change.
             if ($refText -eq $workText) { continue }
 
-            $refCount = [int](& $rule.CountInText $refText)
-            $workCount = [int](& $rule.CountInText $workText)
+            # S3255: the repo-relative path rides along as a second positional argument for the
+            # file-pair predicates (landscape parity); existing param($text) predicates are unaffected.
+            $refCount = [int](& $rule.CountInText $refText $p)
+            $workCount = [int](& $rule.CountInText $workText $p)
             $refTotal += $refCount
             $workTotal += $workCount
             if ($refCount -ne $workCount) {

@@ -172,11 +172,12 @@ class BrowseLoadingAuxManager(
             msg.contains("unreachable", ignoreCase = true) ||
             msg.contains("Connection", ignoreCase = true)
         val companion = resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP
-        if (!isConnectivity || (!companion && resource.accessNote.isNullOrBlank())) {
-            return null
+        val accessNote = resource.accessNote?.takeIf { it.isNotBlank() }
+        return when {
+            !isConnectivity -> null
+            !companion && accessNote == null -> null
+            else -> accessNote ?: context.getString(R.string.error_companion_connect_guidance)
         }
-        return resource.accessNote?.takeIf { it.isNotBlank() }
-            ?: context.getString(R.string.error_companion_connect_guidance)
     }
 
     /**

@@ -14,7 +14,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.appbar.MaterialToolbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.permissions.PermissionGrantIntentFactory
 import com.sza.fastmediasorter.domain.model.PermissionEntry
@@ -27,6 +26,7 @@ import com.sza.fastmediasorter.domain.usecase.PermissionAction
 import com.sza.fastmediasorter.domain.usecase.ResolvePermissionActionUseCase
 import com.sza.fastmediasorter.ui.common.OverlayFocusTrap
 import com.sza.fastmediasorter.ui.common.permissions.PermissionDenialHandler
+import com.sza.fastmediasorter.ui.common.widget.StandardToolbar
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -157,9 +157,7 @@ class PermissionsManagementFragment : Fragment() {
             openAppSettings()
         }
 
-        view.findViewById<MaterialToolbar>(R.id.toolbar).setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
-        }
+        view.findViewById<StandardToolbar>(R.id.toolbar).setUpNavigation(requireActivity())
 
         refreshAdapter()
         updateGrantAllVisibility()
@@ -197,7 +195,7 @@ class PermissionsManagementFragment : Fragment() {
         val root = view ?: return
         val grantAllBtn = root.findViewById<Button>(R.id.btn_grant_all)
         val openSettingsBtn = root.findViewById<Button>(R.id.btn_open_system_settings)
-        val toolbar = root.findViewById<MaterialToolbar>(R.id.toolbar)
+        val toolbar = root.findViewById<StandardToolbar>(R.id.toolbar)
         val target = when {
             grantAllBtn?.isVisible == true -> grantAllBtn
             openSettingsBtn?.isVisible == true -> openSettingsBtn

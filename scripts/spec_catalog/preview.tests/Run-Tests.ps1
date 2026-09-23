@@ -19,7 +19,7 @@
 # Cases E and F pin the replacement: prose relations yield nothing, an explicit `Блокер:`/`Blocker:`
 # token yields exactly the ticket it names.
 #
-# Reads live catalog data, writes none of it (S1534). The value of cases A/B/C/E/F is that they run
+# Reads live catalog data, writes none of it (S1534). The value of cases A/B/E/F is that they run
 # against real specs, so the suite does not fabricate a catalog - it SNAPSHOTS the two journals into
 # a sandbox directory and points the CLI at the copy via $env:FMS_SPEC_CATALOG_DIR. Reads stay real,
 # writes land in the copy, and the copy is deleted at the end.
@@ -132,6 +132,7 @@ $script:probeIdBySlug = @{
     'preview-tests-probe-full'          = 'S9989'
     'preview-tests-probe-blocker-nocnt' = 'S9984'
     'preview-tests-probe-nocnt'         = 'S9985'
+    'preview-tests-probe-free-draft'    = 'S9983'
 }
 
 # Tactical folders written by case I, cleaned in the same finally as the spec files. Tracked
@@ -248,19 +249,29 @@ The blocker is recorded only in the catalog statusNote, which also mentions a se
         Write-Host '  SKIP  B - fewer than two Approved specs to use as note fixtures' -ForegroundColor DarkGray
     }
 
-    # --- C: no over-skipping - a spec that is not BlockByOtherTask keeps auto_skip null. ---
+    # --- C: no over-skipping - a Draft spec that records no blocker keeps auto_skip free of a blocker
+    # verdict. Hermetic on purpose: the case once took the first live Draft, but a live Draft may carry
+    # a real **Depends on:** line (umbrella S2944 names five child tickets), and case G pins that such a
+    # Draft IS skipped - so the live pick turned the correct verdict into a red suite. $drafts stays for
+    # E/F/G/H, which only need live ids to name, not blocker-free specs. ---
     Write-Host 'C: a non-blocked spec is not skipped' -ForegroundColor Yellow
     $drafts = @(@(& $pwshExe -NoProfile -File $searchPs1 -Status Draft -Format json | ConvertFrom-Json) |
         Where-Object { -not $_.PSObject.Properties['tier'] -or $_.tier -ne 5 })
-    $draft = $drafts | Select-Object -First 1
-    if ($draft) {
-        $pvD = Get-Preview $draft.id
+    $probeC = New-Probe -Slug 'preview-tests-probe-free-draft' -Status 'Draft' -Body @"
+# <ID> - preview.tests probe (Draft, no blocker)
+
+**Status:** Draft
+
+Temporary fixture written by scripts/spec_catalog/preview.tests/Run-Tests.ps1. Deleted by the same run.
+It records no dependency anywhere, so no blocker verdict may be derived for it.
+"@
+    Assert-That 'C0 blocker-free Draft probe inserted' ([bool]$probeC) "insert.ps1 exit $LASTEXITCODE"
+    if ($probeC) {
+        $pvD = Get-Preview $probeC
         $skipD = if ($pvD -and $pvD.auto_skip) { $pvD.auto_skip } else { 'null' }
         # tier-5 / owner-gate are legitimate skips for other reasons; only the blocker ones are wrong here.
         $isBlockerSkip = $skipD -in @('blocker-not-verified', 'blocker-unresolvable')
-        Assert-That "C1 $($draft.id) (Draft) gets no blocker skip (got '$skipD')" (-not $isBlockerSkip) 'blocker skip on a non-blocked spec'
-    } else {
-        Write-Host '  SKIP  C1 - no Draft spec in the catalog' -ForegroundColor DarkGray
+        Assert-That "C1 $probeC (Draft) gets no blocker skip (got '$skipD')" (-not $isBlockerSkip) 'blocker skip on a non-blocked spec'
     }
 
     # --- D: the fail-closed net. A BlockByOtherTask spec with NO blocker source anywhere must be

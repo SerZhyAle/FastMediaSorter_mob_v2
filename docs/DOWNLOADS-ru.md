@@ -12,6 +12,8 @@ permalink: /docs/DOWNLOADS_RU.html
 
 🔗 **[Последний релиз](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest)**
 
+> При установке APK, который Android видит впервые, появится предупреждение. [Почему Android предупреждает об этом APK - и что нажимать](INSTALL_TRUST-ru.md).
+
 Каждый релиз содержит по одному ассету на публичную сборку, имя файла - `FastMediaSorter-<редакция>-<версия>.apk`:
 
 - **standard** - полнофункциональное приложение (телефон / TV / авто)

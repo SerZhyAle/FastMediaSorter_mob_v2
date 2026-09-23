@@ -14,6 +14,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.pedro.common.ConnectChecker
+import com.pedro.encoder.input.audio.CustomAudioEffect
 import com.pedro.encoder.input.video.CameraOpenException
 import com.pedro.rtspserver.RtspServerCamera2
 import com.pedro.rtspserver.server.ClientListener
@@ -21,6 +22,7 @@ import com.pedro.rtspserver.server.IpType
 import com.pedro.rtspserver.server.ServerClient
 import com.pedro.rtspserver.util.RtspServerStreamClient
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.network.LanAddressResolver
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
@@ -173,6 +175,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     private suspend fun openSession() {
         val config = readSessionConfig()
         val port = config.rtspPort
+        val lanHost = resolveLanHostOrFail() ?: return
 
         try {
             // Always headless: the control screen attaches its preview later through BroadcastPreviewProvider,
@@ -193,6 +196,8 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                 true
             }
 
+            attachAudioEffect(camera, config)
+
             if (!videoPrepared || !audioPrepared) {
                 Timber.w(
                     "VideoBroadcastService: RtspServerCamera2 prepare failed (video: %b, audio: %b)",
@@ -211,7 +216,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             val streamClient = configureStreamClient(camera)
             val lensId = startStreamOnLens(camera)
 
-            val endpoint = streamClient.getEndPointConnection()
+            val endpoint = publishableEndpoint(streamClient.getEndPointConnection(), lanHost)
             val endpointDto = BroadcastEndpointDto(
                 url = endpoint,
                 transport = "RTSP",
@@ -253,6 +258,26 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             leaveForegroundAndStop()
         }
     }
+
+    /**
+     * LIVE-BROADCAST producer rule 1: with no LAN address the session never starts, so neither the camera
+     * nor the microphone opens for a descriptor nobody could reach.
+     */
+    private fun resolveLanHostOrFail(): String? {
+        val lanHost = LanAddressResolver(this).resolve()
+        if (lanHost == null) {
+            Timber.w("VideoBroadcastService: no LAN address, session not started")
+            _state.value = BroadcastState.Failed(BroadcastFailure.NETWORK_UNAVAILABLE, "No LAN address")
+            isStreaming.set(false)
+            leaveForegroundAndStop()
+        }
+        return lanHost
+    }
+
+    private fun publishableEndpoint(libraryEndpoint: String, lanHost: String): String =
+        checkNotNull(RtspEndpointAddress.onLanHost(libraryEndpoint, lanHost)) {
+            "RTSP endpoint $libraryEndpoint cannot be published on $lanHost"
+        }
 
     private fun configureStreamClient(camera: RtspServerCamera2): RtspServerStreamClient {
         val streamClient = camera.streamClient
@@ -455,6 +480,34 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
         }
         return type
+    }
+
+    private fun attachAudioEffect(camera: RtspServerCamera2, config: BroadcastSessionConfig) {
+        val gainPercent = config.micGainPercent
+        val gainMultiplier = gainPercent / 100.0f
+        val applyGain = gainPercent != 100
+
+        if (currentMode != BroadcastMode.VIDEO_ONLY && applyGain) {
+            camera.setCustomAudioEffect(object : CustomAudioEffect() {
+                override fun process(pcmBuffer: ByteArray): ByteArray {
+                    applyPcmGain(pcmBuffer, pcmBuffer.size, gainMultiplier)
+                    return pcmBuffer
+                }
+            })
+        }
+        Timber.d("S3351: video broadcast audio custom effect attached (gain: %d%%)", config.micGainPercent)
+    }
+
+    private fun applyPcmGain(buffer: ByteArray, length: Int, gainMultiplier: Float) {
+        var i = 0
+        while (i + 1 < length) {
+            val sample = (buffer[i].toInt() and 0xFF) or (buffer[i + 1].toInt() shl 8)
+            val shortSample = sample.toShort()
+            val scaled = (shortSample * gainMultiplier).toInt().coerceIn(-32768, 32767)
+            buffer[i] = (scaled and 0xFF).toByte()
+            buffer[i + 1] = ((scaled shr 8) and 0xFF).toByte()
+            i += 2
+        }
     }
 
     companion object {

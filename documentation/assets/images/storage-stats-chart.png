@@ -1,0 +1,21 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#0d1117" rx="8"/>
+  <text x="40" y="55" fill="#f0f6fc" font-family="sans-serif" font-size="22" font-weight="bold">Storage Breakdown &amp; Statistics</text>
+  <text x="40" y="80" fill="#8b949e" font-family="sans-serif" font-size="14">Total Used: 48.2 GB / 128 GB Free</text>
+
+  <g transform="translate(40, 110)">
+    <rect x="0" y="0" width="360" height="30" fill="#58a6ff" rx="4"/>
+    <rect x="365" y="0" width="200" height="30" fill="#3fb950" rx="4"/>
+    <rect x="570" y="0" width="100" height="30" fill="#d29922" rx="4"/>
+    <rect x="675" y="0" width="45" height="30" fill="#bc8cff" rx="4"/>
+  </g>
+
+  <g transform="translate(40, 180)">
+    <circle cx="10" cy="10" r="8" fill="#58a6ff"/>
+    <text x="30" y="15" fill="#f0f6fc" font-family="sans-serif" font-size="15">Videos: 24.5 GB (51%)</text>
+    <circle cx="240" cy="10" r="8" fill="#3fb950"/>
+    <text x="260" y="15" fill="#f0f6fc" font-family="sans-serif" font-size="15">Images: 13.8 GB (29%)</text>
+    <circle cx="470" cy="10" r="8" fill="#d29922"/>
+    <text x="490" y="15" fill="#f0f6fc" font-family="sans-serif" font-size="15">Audio: 7.1 GB (15%)</text>
+  </g>
+</svg>

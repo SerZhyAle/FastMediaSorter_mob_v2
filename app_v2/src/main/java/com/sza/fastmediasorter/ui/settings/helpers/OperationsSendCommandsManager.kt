@@ -21,7 +21,6 @@ import com.sza.fastmediasorter.util.getApplicationInfoCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /**
  * S0452/S0463/S0999/S2390: Manages the «Send file to..» (Отправить в) group in the Operations tab.

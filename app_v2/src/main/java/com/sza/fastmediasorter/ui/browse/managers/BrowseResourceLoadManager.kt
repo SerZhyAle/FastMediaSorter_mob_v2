@@ -244,39 +244,42 @@ class BrowseResourceLoadManager(
                 lastBrowseDate = resource.lastBrowseDate
             )) {
                 is BrowseCacheManager.CacheCheckResult.UseCache -> {
-                    if (cacheResult.files.isEmpty()) {
-                    } else {
-                    var filteredFiles = if (resource.scanSubdirectories) {
-                        cacheResult.files
-                    } else {
-                        val rootPath = resource.path.trimEnd('/')
-                        cacheResult.files.filter { file ->
-                            if (file.isDirectory) return@filter false
-                            file.path.trimEnd('/').substringBeforeLast('/', "").trimEnd('/') == rootPath
+                    if (cacheResult.files.isNotEmpty()) {
+                        var filteredFiles = if (resource.scanSubdirectories) {
+                            cacheResult.files
+                        } else {
+                            val rootPath = resource.path.trimEnd('/')
+                            cacheResult.files.filter { file ->
+                                if (file.isDirectory) return@filter false
+                                file.path.trimEnd('/').substringBeforeLast('/', "").trimEnd('/') == rootPath
+                            }
                         }
-                    }
-                    if (!resource.allFiles && resource.supportedMediaTypes.isNotEmpty()) {
-                        filteredFiles = filteredFiles.filter { it.isDirectory || resource.supportedMediaTypes.contains(it.type) }
-                    }
-                    val reconciledFiles = try {
-                        val paths = filteredFiles.filter { !it.isDirectory }.map { it.path }
-                        if (paths.isEmpty()) filteredFiles
-                        else {
-                            val favMap = favoritesUseCase.getFavoritesForPaths(paths)
-                            filteredFiles.map { if (it.isDirectory) it else it.copy(isFavorite = favMap[it.path] == true) }
+                        if (!resource.allFiles && resource.supportedMediaTypes.isNotEmpty()) {
+                            filteredFiles = filteredFiles.filter {
+                                it.isDirectory || resource.supportedMediaTypes.contains(it.type)
+                            }
                         }
-                    } catch (e: Exception) {
-                        Timber.e(e, "BrowseResourceLoadManager.loadResource: favorites reconcile failed")
-                        filteredFiles
-                    }
-                    audioMetadataLoader.warmMemoryCacheForResource(resource.id)
-                    updateState { it.copy(mediaFiles = reconciledFiles, totalFileCount = reconciledFiles.size) }
-                    schedulePlayerWarmup(reconciledFiles)
-                    setLoading(false)
-                    updateResourceMetadata(resource, reconciledFiles.size, -1)
-                    onFilesLoadedSaveAndEnrich(resource, reconciledFiles)
-                    Timber.d("BrowseResourceLoadManager.loadResource: cache hit - ${reconciledFiles.size} files")
-                    return@launch
+                        val reconciledFiles = try {
+                            val paths = filteredFiles.filter { !it.isDirectory }.map { it.path }
+                            if (paths.isEmpty()) filteredFiles
+                            else {
+                                val favMap = favoritesUseCase.getFavoritesForPaths(paths)
+                                filteredFiles.map {
+                                    if (it.isDirectory) it else it.copy(isFavorite = favMap[it.path] == true)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Timber.e(e, "BrowseResourceLoadManager.loadResource: favorites reconcile failed")
+                            filteredFiles
+                        }
+                        audioMetadataLoader.warmMemoryCacheForResource(resource.id)
+                        updateState { it.copy(mediaFiles = reconciledFiles, totalFileCount = reconciledFiles.size) }
+                        schedulePlayerWarmup(reconciledFiles)
+                        setLoading(false)
+                        updateResourceMetadata(resource, reconciledFiles.size, -1)
+                        onFilesLoadedSaveAndEnrich(resource, reconciledFiles)
+                        Timber.d("BrowseResourceLoadManager.loadResource: cache hit - ${reconciledFiles.size} files")
+                        return@launch
                     }
                 }
                 is BrowseCacheManager.CacheCheckResult.Rescan ->

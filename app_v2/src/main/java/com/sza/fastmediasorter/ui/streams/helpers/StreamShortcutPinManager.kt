@@ -6,6 +6,9 @@ import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.icon.DecoratedShortcutIcons
+import com.sza.fastmediasorter.core.panel.IconHueCatalog
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.widget.StreamPlayLaunchActivity
 
@@ -32,7 +35,11 @@ class StreamShortcutPinManager(private val context: Context) {
     fun requestPin(source: StreamSourceEntity, iconBitmap: Bitmap? = null): Boolean {
         if (!ShortcutManagerCompat.isRequestPinShortcutSupported(context)) return false
         val icon = iconBitmap?.let { IconCompat.createWithBitmap(it) }
-            ?: IconCompat.createWithResource(context, iconFor(source.mediaKind))
+            ?: DecoratedShortcutIcons.forGlyph(
+                context,
+                iconFor(source.mediaKind),
+                IconHueCatalog.forRoute(InternalRouteCatalog.KEY_STREAMS),
+            )
         val info = ShortcutInfoCompat.Builder(context, "$SHORTCUT_ID_PREFIX${source.id}")
             .setShortLabel(source.title)
             .setLongLabel(source.title)

@@ -48,6 +48,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearOpenOnPhoneRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearOpenUrlOnPhoneRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoDataSource
+import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -227,9 +228,11 @@ object WearAppModule {
     @Singleton
     fun provideNetworkSourceRepository(
         @EncryptedPrefs encryptedPrefs: SharedPreferences,
-        smbDataSource: SmbDataSource,
-        ftpConnectionTest: FtpConnectionTest,
-        sftpConnectionTest: SftpConnectionTest
+        // S3368: handed on as Lazy - the impl's only readers of the three protocol stacks sit behind
+        // a connection test, so constructing this singleton must not build them into every start.
+        smbDataSource: Lazy<SmbDataSource>,
+        ftpConnectionTest: Lazy<FtpConnectionTest>,
+        sftpConnectionTest: Lazy<SftpConnectionTest>
     ): NetworkSourceRepository {
         return NetworkSourceRepositoryImpl(encryptedPrefs, smbDataSource, ftpConnectionTest, sftpConnectionTest)
     }

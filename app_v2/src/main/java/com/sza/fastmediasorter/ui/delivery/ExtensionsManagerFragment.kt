@@ -35,7 +35,6 @@ import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Fragment displaying the Extensions Manager settings screen (S0386 Phase 08, grouped in Phase 11).
@@ -171,7 +170,10 @@ class ExtensionsManagerFragment : Fragment() {
     // Explicit confirmation before deleting an installed extension (Phase 08 step 08.3). The delete
     // affordance is only shown while a set is Installed, so a download in flight cannot reach here.
     private fun confirmUninstall(item: ExtensionItem) {
-        MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
+        MaterialAlertDialogBuilder(
+            requireContext(),
+            R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive
+        )
             .setTitle(R.string.ext_delete_confirm_title)
             .setMessage(getString(R.string.ext_delete_confirm_message, getString(item.displayNameRes)))
             .setNegativeButton(R.string.cancel, null)
@@ -181,7 +183,10 @@ class ExtensionsManagerFragment : Fragment() {
 
     // Bulk delete is destructive across every installed extension, so it gets its own confirmation.
     private fun confirmUninstallAll() {
-        MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
+        MaterialAlertDialogBuilder(
+            requireContext(),
+            R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive
+        )
             .setTitle(R.string.ext_uninstall_all_confirm_title)
             .setMessage(R.string.ext_uninstall_all_confirm_message)
             .setNegativeButton(R.string.cancel, null)

@@ -211,6 +211,7 @@ function Get-TempRootInventory {
         # reading this file exists to prevent.
         '*.log.err'
         'spec-next-session.*.json'            # one per session by design; the writer globs its own siblings to see cross-session state.
+        'plan-tick-last-*.json'               # one per agent session; the Rule 29 hook guard-plan-tick-batching.ps1 writes it on a Done tick and reads it on the next one, which is the only way a PreToolUse hook can see two consecutive calls.
         'streams.csv.*.bak'                   # streams/modules/StreamPublisher.Delivery.ps1, -OutDir default temp.
         'stream-catalog-liveness.*.csv'       # timestamped variants of the canonical report above.
         'replacement-char-dropped.*.csv'      # same writer - per-run row-drop reports.

@@ -1,0 +1,34 @@
+# Operations in the transfer strategy trees that the mutation journal has nothing to record
+# (S3371). Seeded 2026-09-22 by surveying data/transfer/ and domain/transfer/ with the gate's own
+# verb set, not from memory.
+#
+# The name says "read-only" in the sense that matters here: read-only with respect to USER DATA.
+# Each of these reads, reports, or disposes of state the app itself created - an in-memory progress
+# map, a temp file the transfer wrote into the cache directory, a half-written destination the sink
+# abandons - so there is no user-visible file to reconcile and nothing to undo. An operation that
+# removes a file the user can see does NOT belong here; it belongs in a Mutation.
+#
+# Row format:  <repo-relative path>#<operation>   # why nothing needs undoing
+#
+# The reason is mandatory. scripts/quality/assert-fileop-journal-pairing.ps1 refuses a row without
+# one, because an exemption nobody can re-judge in a year is how an allowlist becomes a
+# suppression list.
+
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/AtomicFileOperationStrategy.kt#cleanupTempFile # deletes the *.temp_copy this strategy itself wrote; the user-visible destination only ever appears through the publishing step.
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/local/LocalSink.kt#abort # discards a destination the sink opened and never published - by the sink contract nothing outside the process has seen it.
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/local/MediaStoreLocalDestinationWriter.kt#abort # deletes the pending MediaStore row and the partial entry behind it; IS_PENDING kept it invisible to every observer.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/transfer/CrossDeviceTransferRepository.kt#purgeExpiredPackets # drops expired cross-device packets the app wrote into its own cloud staging area; no file on either device is touched.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/transfer/ProgressTracker.kt#clearOperation # removes one entry from the in-memory throttle map; no filesystem effect at all.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/transfer/ProgressTracker.kt#clearAll # empties the in-memory throttle map; no filesystem effect at all.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/transfer/TempFileManager.kt#cleanupTempFile # deletes one tracked temp file under context.cacheDir, which the app created for a transfer in flight.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/transfer/TempFileManager.kt#cleanupAllTempFiles # deletes every tracked temp file under context.cacheDir; the shutdown half of createTempFile.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/transfer/TempFileManager.kt#cleanupOldTempFiles # sweeps cache-directory files carrying the app's own temp prefixes after a crash left them behind.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/transfer/TransferProgressReporter.kt#clear # removes one operation's in-memory rate state; no filesystem effect at all.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/transfer/SiblingFolder.kt#rename # S3408: renames only the child PlaceVerifiedFileBesideUseCase itself wrote under a neutral temporary name; the new file first becomes visible through this rename and no existing user file is ever renamed.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/transfer/SiblingFolder.kt#delete # S3408: deletes only the temporary child the placement wrote and never published (failed read-back, failed rename, cancellation).
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/SafSiblingFolder.kt#rename # S3408: SiblingFolder implementation - renames only the placement's own temporary document into its final name.
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/SafSiblingFolder.kt#delete # S3408: SiblingFolder implementation - deletes only the placement's own unpublished temporary document.
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/StrategySiblingFolder.kt#rename # S3408: SiblingFolder implementation - renames only the placement's own temporary network file into its final name.
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/StrategySiblingFolder.kt#delete # S3408: SiblingFolder implementation - deletes only the placement's own unpublished temporary network file.
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/CloudSiblingFolder.kt#rename # S3409: SiblingFolder implementation - renames only the placement's own temporary cloud file, addressed by the id its upload returned, into its final name.
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/CloudSiblingFolder.kt#delete # S3409: SiblingFolder implementation - deletes only the placement's own unpublished temporary cloud file, by the id its upload returned.

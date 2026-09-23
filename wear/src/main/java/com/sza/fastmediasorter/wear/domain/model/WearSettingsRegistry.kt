@@ -102,7 +102,10 @@ object WearSettingsRegistry {
             "autoRotationEnabled",
             "backgroundPlaybackEnabled",
             "voiceNoteSendPolicy",
-            "panelAutoHideSeconds"
+            "panelAutoHideSeconds",
+            // S3383: last on the page, because it governs two menu entries rather than anything the
+            // settings list itself shows.
+            "fileDoOperationsEnabled"
         )
     )
 
@@ -300,6 +303,19 @@ object WearSettingsRegistry {
             companionRowTag = "wearPanelAutoHide"
         ),
         WearSettingScope(
+            field = "fileDoOperationsEnabled",
+            watchPreferenceKey = "wear_filedo_operations_enabled",
+            docScopeId = "wearFileDoOperations",
+            valueType = TYPE_BOOLEAN,
+            ownership = WearSettingOwnership.WATCH_ONLY,
+            watchRowAnchor = "toggleFileDoOperations",
+            companionRowTag = null,
+            exceptionReason = "S3383: the phone has its own FileDO operations switch under S3382, " +
+                "over its own file menu and its own storage. Merging the two into one value would " +
+                "make turning the operations off on the watch remove them from the phone as well, " +
+                "which is a different decision about a different surface."
+        ),
+        WearSettingScope(
             field = "appLanguage",
             watchPreferenceKey = "wear_app_language",
             docScopeId = null,
@@ -331,11 +347,7 @@ object WearSettingsRegistry {
             watchPreferenceKey = "wear_dim_clock_overlay_enabled",
             docScopeId = "wearDimClockOverlay",
             valueType = TYPE_BOOLEAN,
-            ownership = WearSettingOwnership.PHONE_ONLY,
-            exceptionReason = "S3256 settings shape: one shared toggle authored on the phone and synced " +
-                "to the watch, so the exchange carries it phone to watch only. The watch's Screen row " +
-                "writes the same key locally, and the watch never reports it back - neither " +
-                "GatherWearSettingsUseCase nor MergeWearSettingsReportUseCase names it."
+            ownership = WearSettingOwnership.BOTH
         ),
         WearSettingScope(
             field = "dimClockSecondsVisible",

@@ -121,6 +121,16 @@
       "titleUk": "Увімкнути мовлення"
     },
     {
+      "key": "rowFeedbackGuard",
+      "sectionId": "broadcast",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_broadcast",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Feedback guard",
+      "titleRu": "Защита от петли",
+      "titleUk": "Захист від петлі"
+    },
+    {
       "key": "rowMicGain",
       "sectionId": "broadcast",
       "destination": "MEDIA",
@@ -446,9 +456,9 @@
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
       "kind": "BUTTON",
-      "titleEn": "Add a widget to the launcher desktop",
-      "titleRu": "Добавить виджет на рабочий стол лаунчера",
-      "titleUk": "Додати віджет на робочий стіл лаунчера"
+      "titleEn": "Add a gadget to the launcher desktop",
+      "titleRu": "Добавить гаджет на рабочий стол лаунчера",
+      "titleUk": "Додати ґаджет на робочий стіл лаунчера"
     },
     {
       "key": "etMaxRecipients",
@@ -456,9 +466,9 @@
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
       "kind": "SPINNER",
-      "titleEn": "Max recipients (1-30)",
-      "titleRu": "Макс. получателей (1-30)",
-      "titleUk": "Макс. отримувачів (1-30)"
+      "titleEn": "Max destinations (1-30)",
+      "titleRu": "Макс. назначений (1-30)",
+      "titleUk": "Макс. призначень (1-30)"
     },
     {
       "key": "headerAdditionalPrograms",
@@ -751,6 +761,16 @@
       "titleUk": "Дозволити копіювання"
     },
     {
+      "key": "rowEnableFileDoOperations",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "FileDO encryption operations",
+      "titleRu": "Операции шифрования FileDO",
+      "titleUk": "Операції шифрування FileDO"
+    },
+    {
       "key": "rowEnableMoving",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -779,16 +799,6 @@
       "titleEn": "Enable Safe Mode",
       "titleRu": "Включить безопасный режим",
       "titleUk": "Увімкнути безпечний режим"
-    },
-    {
-      "key": "rowEnableScheduledOps",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Use scheduled operations",
-      "titleRu": "Использовать операции по расписанию",
-      "titleUk": "Використовувати операції за розкладом"
     },
     {
       "key": "rowEnableSos",
@@ -951,6 +961,16 @@
       "titleUk": "Дзеркало"
     },
     {
+      "key": "rowOpenScheduledOpsScreen",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Scheduled file operations",
+      "titleRu": "Операции над файлами по расписанию",
+      "titleUk": "Операції над файлами за розкладом"
+    },
+    {
       "key": "rowOpenStopwatchSettings",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -1049,6 +1069,16 @@
       "titleEn": "Open recorded video in player",
       "titleRu": "Открывать записанное видео в плеере",
       "titleUk": "Відкривати записане відео у плеєрі"
+    },
+    {
+      "key": "rowWatchCameraStandby",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Let my watch see my camera",
+      "titleRu": "Разрешить часам видеть мою камеру",
+      "titleUk": "Дозволити годиннику бачити мою камеру"
     },
     {
       "key": "rowWaterFlashlight",
@@ -1218,7 +1248,7 @@
       "kind": "BUTTON",
       "titleEn": "How to publish PC folders to Android",
       "titleRu": "Как опубликовать папки ПК для Android",
-      "titleUk": "Як опублікувати теки ПК для Android"
+      "titleUk": "Як опублікувати папки ПК для Android"
     },
     {
       "key": "btnDownloadableExtensions",
@@ -1576,9 +1606,9 @@
       "destination": "GENERAL",
       "layout": "fragment_settings_general",
       "kind": "SECTION_HEADER",
-      "titleEn": "Main window interface",
-      "titleRu": "Интерфейс главного окна",
-      "titleUk": "Інтерфейс головного вікна"
+      "titleEn": "Main screen interface",
+      "titleRu": "Интерфейс главного экрана",
+      "titleUk": "Інтерфейс головного екрана"
     },
     {
       "key": "headerRemoteSources",
@@ -1756,7 +1786,7 @@
       "destination": "GENERAL",
       "layout": "fragment_settings_general",
       "kind": "TOGGLE_ROW",
-      "titleEn": "File operations in overflow menu",
+      "titleEn": "File operations in the three-dots menu",
       "titleRu": "Операции с файлами в меню ⋮",
       "titleUk": "Операції з файлами в меню ⋮"
     },
@@ -1778,7 +1808,7 @@
       "kind": "SELECTION_ROW",
       "titleEn": "Favorites",
       "titleRu": "Избранное",
-      "titleUk": "Вибране"
+      "titleUk": "Обране"
     },
     {
       "key": "rowKindResources",
@@ -1916,9 +1946,9 @@
       "destination": "GENERAL",
       "layout": "fragment_settings_general",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Show streams panel in main window",
-      "titleRu": "Показывать панель трансляций в основном окне",
-      "titleUk": "Показувати панель трансляцій у головному вікні"
+      "titleEn": "Show streams panel on the main screen",
+      "titleRu": "Показывать панель трансляций на главном экране",
+      "titleUk": "Показувати панель трансляцій на головному екрані"
     },
     {
       "key": "rowShowSubfoldersAsItems",
@@ -1928,7 +1958,7 @@
       "kind": "TOGGLE_ROW",
       "titleEn": "Show subfolders separately",
       "titleRu": "Показывать подпапки отдельно",
-      "titleUk": "Показувати підтеки окремо"
+      "titleUk": "Показувати підпапки окремо"
     },
     {
       "key": "rowSourceCloud",
@@ -2006,9 +2036,9 @@
       "destination": "OPERATIONS",
       "layout": "dialog_edge_gesture_config",
       "kind": "BUTTON",
-      "titleEn": "Edit app panel",
-      "titleRu": "Редакция панели программ",
-      "titleUk": "Редакція панелі програм"
+      "titleEn": "Edit quick-access panel",
+      "titleRu": "Изменить панель быстрого доступа",
+      "titleUk": "Змінити панель швидкого доступу"
     },
     {
       "key": "btnSelectScreenshotDestination",
@@ -2551,6 +2581,16 @@
       "titleUk": "Системний трей"
     },
     {
+      "key": "rowDimClockOverlay",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_wallpaper_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show clock and status while dimmed",
+      "titleRu": "выводить часы и состояние во время затемнения",
+      "titleUk": "Показувати годинник і стан під час затемнення"
+    },
+    {
       "key": "rowLauncherAllAppsSwipeDown",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -2836,9 +2876,9 @@
       "destination": "GENERAL",
       "layout": "dialog_launcher_settings",
       "kind": "DROPDOWN_ROW",
-      "titleEn": "Start panel rows",
-      "titleRu": "Строк панели «Пуск»",
-      "titleUk": "Рядків панелі «Пуск»"
+      "titleEn": "Taskbar rows",
+      "titleRu": "Строк панели задач",
+      "titleUk": "Рядків панелі задач"
     },
     {
       "key": "rowLauncherTopStatusStrip",
@@ -3138,7 +3178,7 @@
       "kind": "SECTION_HEADER",
       "titleEn": "Deletion and renaming in player",
       "titleRu": "Удаление и переименование в плеере",
-      "titleUk": "Видалення й перейменування у програвачі"
+      "titleUk": "Видалення й перейменування у плеєрі"
     },
     {
       "key": "headerPlayerUI",
@@ -3148,7 +3188,7 @@
       "kind": "SECTION_HEADER",
       "titleEn": "Player interface and commands",
       "titleRu": "Интерфейс и команды плеера",
-      "titleUk": "Інтерфейс і команди програвача"
+      "titleUk": "Інтерфейс і команди плеєра"
     },
     {
       "key": "headerSortingSlideshow",
@@ -3167,8 +3207,8 @@
       "layout": "fragment_settings_playback",
       "kind": "SECTION_HEADER",
       "titleEn": "Touch zones and on-screen hints",
-      "titleRu": "Зоны касания и экранные подсказки",
-      "titleUk": "Зони дотику й екранні підказки"
+      "titleRu": "Сенсорные зоны и экранные подсказки",
+      "titleUk": "Сенсорні зони й екранні підказки"
     },
     {
       "key": "rowAllowDelete",
@@ -3219,16 +3259,6 @@
       "titleEn": "Confirm delete",
       "titleRu": "Подтверждать удаление",
       "titleUk": "Підтверджувати видалення"
-    },
-    {
-      "key": "rowDimClockOverlay",
-      "sectionId": "playback",
-      "destination": "PLAYBACK",
-      "layout": "fragment_settings_playback",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Show clock and status while dimmed",
-      "titleRu": "выводить часы и состояние во время затемнения",
-      "titleUk": "Показувати годинник і стан під час затемнення"
     },
     {
       "key": "rowDisableNineZone",
@@ -3369,6 +3399,26 @@
       "titleEn": "Default sort mode",
       "titleRu": "Режим сортировки по умолчанию",
       "titleUk": "Режим сортування за замовчуванням"
+    },
+    {
+      "key": "btnScheduledHistoryClear",
+      "sectionId": "scheduled_operations",
+      "destination": "OPERATIONS",
+      "layout": "activity_scheduled_operations",
+      "kind": "BUTTON",
+      "titleEn": "Clear log",
+      "titleRu": "Очистить журнал",
+      "titleUk": "Очистити журнал"
+    },
+    {
+      "key": "rowScheduledOpsEnabled",
+      "sectionId": "scheduled_operations",
+      "destination": "OPERATIONS",
+      "layout": "activity_scheduled_operations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Use scheduled operations",
+      "titleRu": "Использовать операции по расписанию",
+      "titleUk": "Використовувати операції за розкладом"
     },
     {
       "key": "btnStopwatchSettingsApply",
@@ -3577,8 +3627,8 @@
       "layout": "fragment_settings_video",
       "kind": "BUTTON",
       "titleEn": "Select Destination Resource",
-      "titleRu": "Выбрать ресурс-получатель",
-      "titleUk": "Вибрати ресурс-отримувач"
+      "titleRu": "Выбрать ресурс-назначение",
+      "titleUk": "Вибрати ресурс-призначення"
     },
     {
       "key": "btnSetDefaultVideoPlayer",
@@ -3676,7 +3726,7 @@
       "destination": "MEDIA",
       "layout": "wear_screen_settings",
       "kind": "RADIO_GROUP",
-      "titleEn": "Colour scheme",
+      "titleEn": "Color scheme",
       "titleRu": "Цветовая схема",
       "titleUk": "Колірна схема"
     },
@@ -3759,6 +3809,16 @@
       "titleEn": "Video",
       "titleRu": "Видео",
       "titleUk": "Відео"
+    },
+    {
+      "key": "wearFileDoOperations",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_other_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "FileDO encryption",
+      "titleRu": "Шифрование FileDO",
+      "titleUk": "Шифрування FileDO"
     },
     {
       "key": "wearFileListViewMode",

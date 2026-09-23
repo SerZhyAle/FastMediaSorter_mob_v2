@@ -70,10 +70,23 @@ private fun rememberPlayerFileActionCallbacks(
             visibilities.onActionsVisibilityChange(false)
             operations.runOperation(WearFileOperation.MoveToPhone)
         },
+        onCopyToWatch = {
+            visibilities.onActionsVisibilityChange(false)
+            operations.runOperation(WearFileOperation.CopyToWatch)
+        },
+        onMoveToWatch = {
+            visibilities.onActionsVisibilityChange(false)
+            operations.runOperation(WearFileOperation.MoveToWatch)
+        },
         onRenameRequested = {
             visibilities.onActionsVisibilityChange(false)
             requestRename(currentFileName)
         },
+        // S3383: the player never offers either one - its allowed set comes from the capability
+        // policy, which does not add them, and the credential screen both need is reached from the
+        // browse graph. The two callbacks exist because the menu's contract is shared with browse.
+        onEncryptFileDo = { visibilities.onActionsVisibilityChange(false) },
+        onDecryptFileDo = { visibilities.onActionsVisibilityChange(false) },
         onDeleteRequested = {
             visibilities.onActionsVisibilityChange(false)
             visibilities.onDeleteVisibilityChange(true)

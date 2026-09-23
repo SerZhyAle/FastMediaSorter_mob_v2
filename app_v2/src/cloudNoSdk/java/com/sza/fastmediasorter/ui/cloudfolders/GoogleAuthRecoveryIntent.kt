@@ -10,5 +10,8 @@ import android.content.Intent
  */
 internal object GoogleAuthRecoveryIntent {
 
+    // The signature is the cloudSdk twin's, shared by FQCN with src/main callers, so the unread
+    // parameter and the constant body are the contract of an inert twin, not dead code.
+    @Suppress("FunctionOnlyReturningConstant", "UnusedParameter")
     fun from(error: Throwable): Intent? = null
 }

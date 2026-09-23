@@ -45,7 +45,6 @@ fun AboutSettingsScreen(
     val logReportState by viewModel.logReportState.collectAsStateWithLifecycle()
     val watchPortalState by viewModel.watchPortalState.collectAsStateWithLifecycle()
     val phonePortalState by viewModel.phonePortalState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -84,42 +83,65 @@ fun AboutSettingsScreen(
                     style = MaterialTheme.typography.caption1
                 )
             }
-            item {
-                WearLinkRow(
-                    label = stringResource(R.string.about_web_portal),
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(WearPortalLinks.WEB_PORTAL_URL))
-                        val launched = try {
-                            context.startActivity(intent)
-                            true
-                        } catch (e: ActivityNotFoundException) {
-                            // Not swallowed: the verdict goes to the view model, which turns it into
-                            // the on-screen hint pointing at the row below.
-                            Timber.w(e, "No browser to open Wear web portal")
-                            false
-                        }
-                        viewModel.onWatchPortalOpened(launched)
-                    },
-                    modifier = Modifier.testTag(WearTestTags.WEAR_ABOUT_WEB_PORTAL),
-                    message = portalMessage(watchPortalState)
-                )
-            }
-            item {
-                WearLinkRow(
-                    label = stringResource(R.string.about_web_portal_on_phone),
-                    onClick = viewModel::openPortalOnPhone,
-                    modifier = Modifier.testTag(WearTestTags.WEAR_ABOUT_WEB_PORTAL_ON_PHONE),
-                    message = portalMessage(phonePortalState)
-                )
-            }
-            item {
-                SendLogsRow(
-                    state = logReportState,
-                    onSend = viewModel::sendLogReport
-                )
+            // S3362: the two rows after Web Portal end on the paired phone - one hands it an address,
+            // the other a log file - and both travel the content-transfer path. Web Portal goes with
+            // them: a watch rarely has a browser, and its only fallback hint names "Open on phone".
+            if (uiState.offersContentTransfer) {
+                item {
+                    WebPortalRow(
+                        onOpened = viewModel::onWatchPortalOpened,
+                        message = portalMessage(watchPortalState)
+                    )
+                }
+                item {
+                    WearLinkRow(
+                        label = stringResource(R.string.about_web_portal_on_phone),
+                        onClick = viewModel::openPortalOnPhone,
+                        modifier = Modifier.testTag(WearTestTags.WEAR_ABOUT_WEB_PORTAL_ON_PHONE),
+                        message = portalMessage(phonePortalState)
+                    )
+                }
+                item {
+                    SendLogsRow(
+                        state = logReportState,
+                        onSend = viewModel::sendLogReport
+                    )
+                }
             }
         }
     }
+}
+
+/**
+ * S3362: the Web Portal row, apart from the screen so the list stays under detekt's length ceiling.
+ *
+ * The press opens the portal in the watch browser; whether one answered is handed back to the view
+ * model, which turns a missing browser into the hint shown under the row.
+ */
+@Composable
+private fun WebPortalRow(
+    onOpened: (Boolean) -> Unit,
+    message: String?
+) {
+    val context = LocalContext.current
+    WearLinkRow(
+        label = stringResource(R.string.about_web_portal),
+        onClick = {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(WearPortalLinks.WEB_PORTAL_URL))
+            val launched = try {
+                context.startActivity(intent)
+                true
+            } catch (e: ActivityNotFoundException) {
+                // Not swallowed: the verdict goes to the view model, which turns it into
+                // the on-screen hint pointing at the row below.
+                Timber.w(e, "No browser to open Wear web portal")
+                false
+            }
+            onOpened(launched)
+        },
+        modifier = Modifier.testTag(WearTestTags.WEAR_ABOUT_WEB_PORTAL),
+        message = message
+    )
 }
 
 /**

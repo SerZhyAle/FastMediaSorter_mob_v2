@@ -42,4 +42,7 @@ class BrowseFileMenuActions(
     val onSearchYoutubeMusic: ((MediaFile) -> Unit)? = null,
     val onOpenInPlayer: ((MediaFile) -> Unit)? = null,
     val onOpenInNewWindow: ((MediaFile) -> Unit)? = null,
+    /** S3382: the two FileDO container operations, both behind `enableFileDoOperations`. */
+    val onEncryptFileDo: ((MediaFile) -> Unit)? = null,
+    val onDecryptFileDo: ((MediaFile) -> Unit)? = null,
 )

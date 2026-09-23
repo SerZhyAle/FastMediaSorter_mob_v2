@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -59,16 +60,25 @@ private val TITLE_PADDING_VERTICAL = 12.dp
  *   S2694 widened this from the bare uri and mime type: a network row's name, size and timestamp
  *   were read off the protocol by the level that produced it, and the host has no cheaper way back
  *   to them than a second listing of the same directory.
+ * @param onOpenContainer S3383: receives the id a FileDO container was published under, instead of
+ *   [onOpenFile] - a container opened in a player plays its encrypted bytes.
  * @param onExit called when Back is pressed at the level the walk started on.
  */
 @Composable
 fun WearFolderWalkScreen(
     onOpenFile: (WearFolderEntry) -> Unit,
+    onOpenContainer: (Long) -> Unit,
     onExit: () -> Unit,
     viewModel: WearFolderWalkViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val fileListViewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
+    val openFile: (WearFolderEntry) -> Unit = { entry ->
+        viewModel.containerIdFor(entry)?.let(onOpenContainer) ?: onOpenFile(entry)
+    }
+
+    // Re-runs each time the walk re-enters composition, which is the return from a recovered copy's viewer.
+    LaunchedEffect(Unit) { viewModel.discardOpenedContainers() }
 
     BackHandler(enabled = true) {
         if (!viewModel.navigateUp()) {
@@ -106,7 +116,7 @@ fun WearFolderWalkScreen(
                 listState = listState,
                 viewMode = fileListViewMode,
                 onOpenFolder = viewModel::openFolder,
-                onOpenFile = onOpenFile,
+                onOpenFile = openFile,
                 onLoadMore = viewModel::loadMore
             )
         }

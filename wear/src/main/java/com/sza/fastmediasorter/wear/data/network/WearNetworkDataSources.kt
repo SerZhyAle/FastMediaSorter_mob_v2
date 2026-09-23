@@ -6,7 +6,7 @@ import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import javax.inject.Inject
 
 /**
- * The watch's three read-only network sources, injected as one collaborator.
+ * The watch's three network sources, injected as one collaborator.
  *
  * A caller reaches exactly one of them after branching on the source type, so they are never useful
  * apart; taken separately they spend three constructor slots at every call site that browses.

@@ -10,7 +10,6 @@ import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.service.WearListenState
 import com.sza.fastmediasorter.ui.wear.WatchListenLaunchActivity
-import timber.log.Timber
 
 /**
  * S2881 - the listen widget: one widget, two tap zones (plain listen, listen with recording) and a

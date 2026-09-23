@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.wear.domain.files.WEAR_PHONE_FILE_CACHE_DIR
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
+import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourcePage
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
@@ -411,7 +412,7 @@ class PhoneResourceViewModelTest {
     fun `a fetched entry keeps the copy operations beside opening it on the phone`() = runTest {
         coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
         every { capabilityPolicy.classify(any(), any()) } returns WearFileStorageClass.PHONE_COPY
-        every { capabilityPolicy.allowedOperations(WearFileStorageClass.PHONE_COPY) } returns
+        every { capabilityPolicy.allowedOperations(any<WearMediaFile>(), any()) } returns
             setOf(WearFileOperationKind.DELETE)
 
         val viewModel = buildViewModel()

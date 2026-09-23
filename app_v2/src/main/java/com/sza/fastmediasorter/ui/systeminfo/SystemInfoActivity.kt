@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.databinding.ActivitySystemInfoBinding
 import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoWindowManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

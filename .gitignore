@@ -91,6 +91,8 @@ local.properties
 *.jks
 *.keystore
 *.pem
+*.key
+*.crt
 keystore.properties
 fastmediasorter.keystore
 upload_certificate.pem
@@ -308,3 +310,17 @@ docs/DEVICE_FLEET.md
 # these two negations deliberately do not touch (they re-include code under a src/ tree only).
 !**/src/**/*.kt
 !**/src/**/*.java
+
+# ..and neither is the gate named after the concept (S3371). The same two blanket patterns hid
+# the secret-scan gate, its allowlist and its contract suite, so the one control that refuses a
+# leak was the one file that could not be committed - the LauncherWidgetToken defect above, one
+# level in. Re-included by exact path rather than by a wildcard: widening the negation is how a
+# blanket stops blanketing.
+!scripts/quality/assert-no-secrets.ps1
+!scripts/quality/no-secrets-allowlist.txt
+!scripts/quality.tests/AssertNoSecrets.Tests.ps1
+
+# ..and neither is a ratchet baseline named after a code token (S3438). `*token*` kept these two
+# off every commit, so a clean checkout ran their rules with no baseline at all.
+!scripts/quality/anonymous-typetoken-baseline.txt
+!scripts/quality/layout-m2-tokens-baseline.txt

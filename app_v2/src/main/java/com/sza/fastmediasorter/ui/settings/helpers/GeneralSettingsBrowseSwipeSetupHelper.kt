@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import com.sza.fastmediasorter.domain.model.BrowseSwipeDirection
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseSwipeActionCatalog
-import timber.log.Timber
 
 /**
  * S2533: wires both Browse row swipe-action dropdown rows.

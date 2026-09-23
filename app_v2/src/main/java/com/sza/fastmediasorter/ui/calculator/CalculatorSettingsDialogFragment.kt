@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.databinding.DialogCalculatorSettingsBinding
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorKeypadMode
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorSettings
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorSettingsStore
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 
 /**
  * The calculator's own settings window (strategic S2024 §2 goal 7).
@@ -51,6 +52,13 @@ class CalculatorSettingsDialogFragment : DialogFragment() {
             dialog.dismiss()
         }
         return dialog
+    }
+
+    override fun onStart() {
+        super.onStart()
+        DialogKeyboardDelegate.applyToDialogFragment(dialog) {
+            binding.btnCalculatorSettingsApply.performClick()
+        }
     }
 
     private fun bindControls() {

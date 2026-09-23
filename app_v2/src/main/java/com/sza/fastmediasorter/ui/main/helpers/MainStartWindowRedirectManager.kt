@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
-import timber.log.Timber
 
 /** Routes only an ordinary cold app-icon launch to the optional desktop start window. */
 class MainStartWindowRedirectManager(

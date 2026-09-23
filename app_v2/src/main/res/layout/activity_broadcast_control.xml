@@ -32,6 +32,17 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             tools:text="0 listeners" />
 
+        <TextView
+            android:id="@+id/tvFeedbackWarning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_normal"
+            android:text="@string/broadcast_control_feedback_warning"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorError"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
         <FrameLayout
             android:id="@+id/previewContainer"
             android:layout_width="match_parent"

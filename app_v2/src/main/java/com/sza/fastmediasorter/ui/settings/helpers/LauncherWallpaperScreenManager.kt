@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.core.util.PowerPolicyLevel
 import com.sza.fastmediasorter.databinding.DialogLauncherWallpaperSettingsBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherWallpaperModeBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
-import timber.log.Timber
 import java.io.File
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -31,16 +30,26 @@ import kotlin.math.roundToInt
  * size it can land on exactly, and a float step derived from a fraction accumulates error across the
  * range. The conversion is one pair of helpers here rather than at each of the three call sites.
  */
+/**
+ * S3361: the settings write-backs the screen's controls apply, as one object rather than five
+ * constructor lambdas - the row set grew past the detekt constructor-parameter ceiling when the
+ * dim-clock toggle joined it. The fragment owns the settings store, so it implements the five.
+ */
+interface LauncherWallpaperScreenCallbacks {
+    fun applyMode(mode: String)
+    fun applyTuning(intensity: Float?, speed: Float?, density: Float?)
+    fun applyPalette(palette: String)
+    fun applyScreens(count: Int?, showNumber: Boolean?)
+    fun applyDimClock(enabled: Boolean)
+}
+
 class LauncherWallpaperScreenManager(
     private val host: DialogFragment,
     private val binding: DialogLauncherWallpaperSettingsBinding,
     private val sourceManager: LauncherWallpaperSettingsManager,
     private val currentSettings: () -> AppSettings,
     private val isUpdating: () -> Boolean,
-    private val applyMode: (String) -> Unit,
-    private val applyTuning: (intensity: Float?, speed: Float?, density: Float?) -> Unit,
-    private val applyPalette: (String) -> Unit,
-    private val applyScreens: (count: Int?, showNumber: Boolean?) -> Unit,
+    private val callbacks: LauncherWallpaperScreenCallbacks,
 ) {
     private val modeRows = mutableMapOf<String, ItemLauncherWallpaperModeBinding>()
 
@@ -67,17 +76,23 @@ class LauncherWallpaperScreenManager(
 
     /**
      * S2730: the desktop's screen count and the screen-number badge, the two settings that describe the
-     * surfaces themselves rather than what is painted on them.
+     * surfaces themselves rather than what is painted on them. S3361 added the dim-screen clock toggle:
+     * it lives in this section because the owner looks for screen settings here, but it is a plain
+     * AppSettings flag, not a launcher-scoped one, so it writes through its own callback.
      */
     private fun setupScreensSection() {
         binding.rowScreenCount.setEntries(SCREEN_COUNT_ENTRIES)
         binding.rowScreenCount.setOnItemSelectedListener { index ->
             if (isUpdating()) return@setOnItemSelectedListener
-            applyScreens(index + FIRST_SCREEN_COUNT, null)
+            callbacks.applyScreens(index + FIRST_SCREEN_COUNT, null)
         }
         binding.rowShowScreenNumber.setOnCheckedChangeListener { isChecked ->
             if (isUpdating()) return@setOnCheckedChangeListener
-            applyScreens(null, isChecked)
+            callbacks.applyScreens(null, isChecked)
+        }
+        binding.rowDimClockOverlay.setOnCheckedChangeListener { isChecked ->
+            if (isUpdating()) return@setOnCheckedChangeListener
+            callbacks.applyDimClock(isChecked)
         }
     }
 
@@ -86,6 +101,7 @@ class LauncherWallpaperScreenManager(
             .coerceIn(0, SCREEN_COUNT_ENTRIES.lastIndex)
         binding.rowScreenCount.setSelection(index)
         binding.rowShowScreenNumber.setCheckedSilently(settings.launcherShowScreenNumber)
+        binding.rowDimClockOverlay.setCheckedSilently(settings.dimClockOverlayEnabled)
     }
 
     private fun buildModeRows() {
@@ -127,14 +143,14 @@ class LauncherWallpaperScreenManager(
         if (sourceManager.needsSource(mode)) {
             sourceManager.beginSourceSelection(mode)
         } else {
-            applyMode(mode)
+            callbacks.applyMode(mode)
         }
     }
 
     private fun setupSliders() {
-        bindSlider(binding.sliderWallpaperIntensity) { value -> applyTuning(value, null, null) }
-        bindSlider(binding.sliderWallpaperSpeed) { value -> applyTuning(null, value, null) }
-        bindSlider(binding.sliderWallpaperDensity) { value -> applyTuning(null, null, value) }
+        bindSlider(binding.sliderWallpaperIntensity) { value -> callbacks.applyTuning(value, null, null) }
+        bindSlider(binding.sliderWallpaperSpeed) { value -> callbacks.applyTuning(null, value, null) }
+        bindSlider(binding.sliderWallpaperDensity) { value -> callbacks.applyTuning(null, null, value) }
     }
 
     /**
@@ -161,7 +177,7 @@ class LauncherWallpaperScreenManager(
         )
         binding.rowWallpaperPalette.setOnItemSelectedListener { index ->
             if (isUpdating()) return@setOnItemSelectedListener
-            applyPalette(
+            callbacks.applyPalette(
                 AppSettings.ANIMATION_PALETTE_OPTIONS
                     .getOrElse(index) { AppSettings.ANIMATION_PALETTE_DYNAMIC }
             )

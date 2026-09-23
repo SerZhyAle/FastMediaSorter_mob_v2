@@ -519,7 +519,6 @@ class PlayerControlsSetupManager(
         val shouldBeVisible = isFullscreen && isFullscreenExitEligible && (!isVideo || isVideoControllerVisible)
         safeViews.btnDocumentFullscreenExit.visibility =
             if (shouldBeVisible) android.view.View.VISIBLE else android.view.View.GONE
-
     }
 
     /**

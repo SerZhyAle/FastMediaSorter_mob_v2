@@ -2,11 +2,13 @@ package com.sza.fastmediasorter.core
 
 import android.content.Context
 import android.content.Intent
+import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
-import androidx.core.graphics.drawable.IconCompat
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.icon.DecoratedShortcutIcons
+import com.sza.fastmediasorter.core.panel.IconHueCatalog
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.data.local.db.ResourceDao
@@ -91,6 +93,7 @@ class AppShortcutsManager @Inject constructor(
             id = FEATURE_ID_PREFIX + routeKey,
             label = context.getString(route.labelRes),
             iconRes = route.iconRes,
+            hueRes = IconHueCatalog.forRoute(routeKey),
             intent = intent,
         )
     }
@@ -100,6 +103,7 @@ class AppShortcutsManager @Inject constructor(
         id = RESOURCE_ID_PREFIX + entity.id,
         label = entity.name,
         iconRes = ResourceTypeIconMap.iconFor(entity.type),
+        hueRes = IconHueCatalog.forResourceType(entity.type),
         intent = Intent(context, MainActivity::class.java).apply {
             action = MainActivity.ACTION_BROWSE_RESOURCE
             putExtra(MainActivity.EXTRA_SHORTCUT_RESOURCE_ID, entity.id)
@@ -111,7 +115,7 @@ class AppShortcutsManager @Inject constructor(
         ShortcutInfoCompat.Builder(context, id)
             .setShortLabel(label)
             .setLongLabel(label)
-            .setIcon(IconCompat.createWithResource(context, iconRes))
+            .setIcon(DecoratedShortcutIcons.forGlyph(context, iconRes, hueRes))
             .setIntent(intent)
             .setRank(rank)
             .build()
@@ -120,6 +124,7 @@ class AppShortcutsManager @Inject constructor(
         val id: String,
         val label: String,
         @param:DrawableRes val iconRes: Int,
+        @param:ColorRes val hueRes: Int,
         val intent: Intent,
     )
 

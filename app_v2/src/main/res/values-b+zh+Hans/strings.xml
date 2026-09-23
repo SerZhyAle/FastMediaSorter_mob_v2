@@ -81,7 +81,6 @@
     <string name="renamed_n_files">已重命名 %1$d 个文件。</string>
     <string name="rename_failed_generic">无法重命名该文件。</string>
     <string name="rename_file_name_empty">文件名不能为空。</string>
-    <string name="error_delete">无法删除文件</string>
     <string name="error_all_operations_failed">未完成任何操作。</string>
     <string name="all_copy_operations_failed">无法复制所选文件。\n\n%1$s</string>
     <string name="all_move_operations_failed">无法移动所选文件。\n\n%1$s</string>
@@ -127,11 +126,11 @@
     <string name="virtual_comment_camera_photos">设备相机拍摄的照片和视频</string>
     <string name="virtual_comment_all_images">本地图片文件（jpg、png、gif、webp..）</string>
     <string name="virtual_comment_all_docs">本地文档（PDF、EPUB、文本、Office）</string>
-    <string name="special_virtual_folders">特殊文件夹</string>
+    <string name="special_virtual_folders">虚拟资源</string>
     <string name="virtual_resource_already_added">已添加</string>
     <string name="virtual_resource_added">已添加资源“%1$s”</string>
     <string name="rescan_all_virtual_warning_title">重新扫描所有资源</string>
-    <string name="rescan_all_virtual_warning_message">列表中包含虚拟聚合文件夹（所有音乐、所有视频、所有图片、所有文档）。完全重新扫描可能需要较长时间。是否继续？</string>
+    <string name="rescan_all_virtual_warning_message">列表包含虚拟资源（所有音乐、所有视频、所有图片、所有文档）。完整重新扫描可能需要较长时间。是否继续？</string>
     <string name="connection_failed">连接失败</string>
     <string name="retry">重试</string>
     <string name="select_resource_type">选择资源类型</string>
@@ -143,7 +142,7 @@
     <string name="error_vob_route_message">此 DVD 节目流（.vob）无法通过网络播放。\n\n将文件复制到本地，或使用支持通过 SMB/SFTP/FTP 播放 DVD 节目流的专用播放器。</string>
     <string name="error_bdts_format_title">不支持该格式</string>
     <string name="error_bdts_format_message">无法播放蓝光传输流（.m2ts）。\n\n如果所有音轨都使用 TrueHD 或 DTS-HD MA，选择其他音轨，或将文件转码为 MP4/MKV（HandBrake、ffmpeg）。</string>
-    <string name="warning_m2ts_audio_unsupported">此版本无法解码音轨：%1$s。\n将静音播放。支持的格式：AC-3、E-AC-3、DTS（核心）、AAC。</string>
+    <string name="warning_m2ts_audio_unsupported">此版本无法解码的音轨：%1$s。\n将无声播放。支持：AC-3、E-AC-3、DTS（核心）、AAC。</string>
     <string name="error_cloud_auth_expired">无法访问“%1$s” - 身份验证已过期或会话已超时</string>
     <string name="error_cloud_auth_suggestion">请在\"设置 → 编辑资源\"中重新验证你的云存储账户</string>
     <string name="error_cloud_connection_failed">无法访问“%1$s” - 云连接失败</string>
@@ -252,7 +251,7 @@
     <string name="permissions_required_title">需要权限</string>
     <string name="support_images_description">支持静态图片</string>
     <string name="supported_image_formats">支持：JPG、PNG、BMP、WEBP</string>
-    <string name="max_recipients">最大接收方数量（1-30）</string>
+    <string name="max_recipients">最多目标数 (1-30)</string>
     <string name="max_recipients_error">数值必须介于 1 到 30 之间</string>
     <string name="load_full_size_images">以全分辨率加载图片</string>
     <string name="load_full_size_images_hint">在命令面板模式下启用双指缩放和旋转手势，但会占用更多流量和内存。默认关闭（加载 1920px 分辨率）。</string>
@@ -274,7 +273,7 @@
     <string name="error_resource_unavailable">资源“%1$s”不可用。检查连接或资源设置。</string>
     <string name="error_folder_load_failed">无法打开该文件夹。</string>
     <string name="error_favorite_status_update_failed">无法更新收藏状态。</string>
-    <string name="error_add_destination_failed">无法将此文件夹添加到快速分类。</string>
+    <string name="error_add_destination_failed">无法将此资源添加到快速分类。</string>
     <string name="error_cloud_provider_not_configured">尚未为此文件夹设置云服务。</string>
     <string name="error_folder_loading_blocked_by_video_player">视频播放时无法加载此文件夹。\n\n视频播放器目前正在使用网络连接。\n\n关闭播放器后再试一次。</string>
     <string name="error_folder_loading_blocked_by_video_player_details">视频播放会保持优先级，以避免网络拥堵和卡顿。</string>
@@ -334,12 +333,12 @@
     <string name="overwrite_on_move">移动时覆盖已存在的文件</string>
     <string name="add_destination">+ 添加</string>
     <string name="destinations_list_header">快速分类目标</string>
-    <string name="add_resources_first_message">请先在主屏幕添加文件夹，然后再将其标记为快速分类。</string>
+    <string name="add_resources_first_message">请先在主界面上添加资源，然后将其标记为快速分类目标。</string>
     <string name="register_as_destination">标记为快速分类</string>
     <string name="add_resource_title">添加资源</string>
     <string name="copy_resource_title">复制资源设置</string>
     <string name="resource_type_local">本地</string>
-    <string name="resource_type_smb">SMB 网络文件夹</string>
+    <string name="resource_type_smb">网络文件夹 (SMB)</string>
     <string name="resource_type_sftp">SFTP</string>
     <string name="resource_type_ftp">FTP</string>
     <string name="resource_type_cloud">云端</string>
@@ -372,7 +371,7 @@
     <string name="cb_local_scan_subdirectories_desc">在所有嵌套子目录中搜索媒体文件</string>
     <string name="cb_local_add_to_destinations_desc">将此文件夹标记为快速分类目标</string>
     <string name="cb_local_read_only_mode_desc">禁止文件操作（复制、移动、删除）</string>
-    <string name="cb_smb_add_to_destinations_desc">将此共享标记为快速分类目标</string>
+    <string name="cb_smb_add_to_destinations_desc">将此网络文件夹标记为快速分类目标</string>
     <string name="cb_smb_read_only_mode_desc">禁止文件操作（复制、移动、删除）</string>
     <string name="cb_smb_scan_subdirectories_desc">在所有嵌套子目录中搜索媒体文件</string>
     <string name="cb_smb_all_files_desc">显示所有文件类型，不仅是媒体文件</string>
@@ -519,7 +518,7 @@
     <string name="tooltip_grid_size_title">网格图标大小</string>
     <string name="tooltip_grid_size_message">网格视图中缩略图的像素大小。默认：96dp。范围：32-256dp（以 8dp 为步长）。</string>
     <string name="tooltip_destinations_title">目标位置</string>
-    <string name="tooltip_destinations_message">用于快速整理文件的快捷目标位置。最多 30 个目标位置。每个都有编号和颜色，便于识别。</string>
+    <string name="tooltip_destinations_message">用于快速整理文件的快速分类目标。最多 30 个目标。每个目标都有编号和颜色，便于识别。</string>
     <string name="tooltip_touch_zones_title">触摸区域</string>
     <string name="hint_touch_zone_3zone" formatted="false">命令面板模式\n\n左侧 20% - 上一个文件\n中间 60% - 选择/操作\n右侧 20% - 下一个文件\n\n点击任意位置关闭</string>
     <string name="hint_touch_zone_media">媒体播放模式\n\n触控区域仅在上方区域生效。\n下方区域保留给播放器控件使用。\n\n点击任意位置关闭</string>
@@ -1163,7 +1162,7 @@
     <string name="label_is_destination">用作目标文件夹</string>
     <string name="label_is_read_only">只读模式</string>
     <string name="label_scan_subdirectories">扫描子目录</string>
-    <string name="label_all_files">文件管理器模式（浏览和管理所有文件）</string>
+    <string name="label_all_files">所有文件模式（浏览和管理所有文件）</string>
     <string name="label_disable_thumbnails">禁用缩略图</string>
     <string name="label_show_hidden_files">显示隐藏文件</string>
     <string name="label_show_subfolders_as_items">将子文件夹显示为项目</string>
@@ -1344,8 +1343,8 @@
     <string name="error_folder_rename_failed">无法重命名该文件夹。</string>
     <string name="error_some_operations_failed">%2$d 项操作中有 %1$d 项失败</string>
     <string name="menu_automate_source">自动化..</string>
-    <string name="menu_add_receiver">添加到排序列表</string>
-    <string name="msg_added_as_receiver">资源已添加到分类列表</string>
+    <string name="menu_add_receiver">添加到快速分类</string>
+    <string name="msg_added_as_receiver">资源已添加到快速分类</string>
     <string name="btn_edit_receiver">配置</string>
     <string name="archive_files">归档</string>
     <string name="archive_dialog_title">归档选定文件</string>
@@ -1404,8 +1403,8 @@
     <string name="files_scanned_count">扫描了 %1$d 个文件</string>
     <string name="wear_companion">Wear 伴侣应用</string>
     <string name="tooltip_wear_companion_title">Wear 伴侣应用</string>
-    <string name="tooltip_wear_companion_message">把你的网络资源（SMB、FTP、云端）发送到已配对的 Wear OS 手表，这样你就能直接在手腕上浏览和播放它们。点按按钮可以选择同步哪些媒体类型，并调整手表的播放设置。</string>
-    <string name="wear_sync_description">把网络资源推送到已连接的 Wear OS 手表。</string>
+    <string name="tooltip_wear_companion_message">把你的网络资源（SMB、FTP、SFTP）发送到已配对的 Wear OS 手表，这样你就能直接在手腕上浏览和播放它们。点按按钮可以选择同步哪些媒体类型，并调整手表的播放设置。</string>
+    <string name="wear_sync_description">将网络资源推送到已连接的 Wear OS 手表。</string>
     <string name="wear_push_to_watch">推送到手表</string>
     <string name="wear_sync_ready">可以同步</string>
     <string name="wear_sync_sending">正在发送到手表..</string>
@@ -1419,7 +1418,7 @@
     <string name="wear_settings_slideshow_interval">幻灯片间隔（秒）</string>
     <string name="wear_push_settings_failed">无法发送手表设置，再试一次。</string>
     <string name="wear_import_pending_title">已收到手表资源</string>
-    <string name="wear_import_pending_desc">来自 %2$s 的 %1$d 个资源</string>
+    <string name="wear_import_pending_desc">%1$d 个资源，来自 %2$s</string>
     <string name="wear_import_accept">导入</string>
     <string name="wear_import_dismiss">忽略</string>
     <string name="wear_now_playing_title">手表上正在播放</string>
@@ -1459,7 +1458,7 @@
     <string name="s0116_toast_saved_to_downloads">已保存至下载：%1$s</string>
     <string name="s0116_toast_drm_blocked">受保护内容 - 无法下载</string>
     <string name="s0116_toast_mux_failed">无法组装 MP4（编解码器：%1$s）</string>
-    <string name="s0116_toast_streaming_disabled">此版本中不支持流媒体</string>
+    <string name="s0116_toast_streaming_disabled">此版本不提供直播流</string>
     <string name="s0116_toast_auth_required">需要登录才能使用 %1$s - 打开设置</string>
     <string name="s0151_toast_content_unavailable">无法访问此链接的内容</string>
     <string name="s0151_dialog_auth_title">登录到 %1$s？</string>
@@ -1902,7 +1901,7 @@
     <string name="app_picker_title">选择应用</string>
     <string name="app_launch_panel_title">快速启动</string>
     <string name="app_launch_panel_edit_action">编辑</string>
-    <string name="screenshot_gesture_action_open_panel">打开应用面板</string>
+    <string name="screenshot_gesture_action_open_panel">打开快捷访问面板</string>
     <string name="statistics_metric_files_renamed">已重命名</string>
     <string name="statistics_metric_favorites_added">已加入收藏</string>
     <string name="statistics_metric_favorites_removed">已取消收藏</string>
@@ -1944,7 +1943,7 @@
     <string name="app_launch_panel_reset">重置面板</string>
     <string name="app_launch_panel_reset_confirm_title">重置面板？</string>
     <string name="app_launch_panel_reset_confirm_message">面板将恢复为安装时创建的默认应用和快捷方式组合。</string>
-    <string name="app_launch_panel_settings_edit_button">编辑应用面板</string>
+    <string name="app_launch_panel_settings_edit_button">编辑快捷访问面板</string>
     <string name="streams_edit">编辑</string>
     <string name="streams_send_link">发送链接</string>
     <string name="streams_share_chooser_title">分享流链接</string>
@@ -1990,7 +1989,7 @@
     <string name="camera_geotag_permission_denied">地理标记需要位置权限</string>
     <string name="setting_show_programs_panel_title">程序面板</string>
     <string name="setting_show_programs_panel_summary">把程序菜单以横向条的形式显示在资源列表上方，并隐藏三点按钮。</string>
-    <string name="setting_show_streams_panel_title">在主窗口显示流媒体面板</string>
+    <string name="setting_show_streams_panel_title">在主界面上显示直播流面板</string>
     <string name="setting_show_streams_panel_summary">把已置顶的频道以横向条的形式显示在资源列表上方，并附带进入流媒体的快捷入口。</string>
     <string name="panel_remove_title">从面板上移除？</string>
     <string name="panel_remove_program_message">%1$s 将被隐藏。您可以在设置中重新启用它。</string>
@@ -2055,7 +2054,7 @@
     <string name="camera_scenario_ocr_translate">文字识别</string>
     <string name="recording_pause">暂停录制</string>
     <string name="recording_resume">恢复录制</string>
-    <string name="settings_category_main_window_interface">主窗口界面</string>
+    <string name="settings_category_main_window_interface">主界面外观</string>
     <string name="streams_move_up">上移</string>
     <string name="streams_move_down">下移</string>
     <string name="streams_move_to_top">移到顶部</string>
@@ -2127,7 +2126,7 @@
     <string name="gesture_action_explain_share">截取屏幕并打开系统分享面板。</string>
     <string name="gesture_action_explain_crop_and_share">截取屏幕，让你裁剪后再分享结果。</string>
     <string name="gesture_action_explain_open_app">打开你为此手势选择的应用。未选择应用时，打开 FastMediaSorter。</string>
-    <string name="gesture_action_explain_open_panel">打开快速应用启动面板。</string>
+    <string name="gesture_action_explain_open_panel">打开快捷访问面板。</string>
     <string name="gesture_action_explain_launch_camera">打开应用内相机。</string>
     <string name="gesture_action_explain_take_photo">用应用内相机拍照并保存。</string>
     <string name="gesture_action_explain_take_photo_send_to">拍照并发送给你选择的收件人。</string>
@@ -2241,7 +2240,7 @@
     <string name="launcher_edit_kind_os">Android 设置</string>
     <string name="launcher_edit_kind_gadget">小组件</string>
     <string name="launcher_edit_pick_stream_title">选择一个直播源</string>
-    <string name="launcher_edit_pick_gadget_title">选择小组件</string>
+    <string name="launcher_edit_pick_gadget_title">选择小部件</string>
     <string name="launcher_edit_remove_cell_named">从桌面移除 %1$s</string>
     <string name="launcher_edit_mode_browse">浏览</string>
     <string name="launcher_edit_mode_slideshow">幻灯片</string>
@@ -2361,8 +2360,8 @@
     <string name="pdf_text_selection_word_not_found">找不到该词 - 请手动选择</string>
     <string name="launcher_settings_replace_status_area_title">隐藏系统状态栏</string>
     <string name="launcher_gadget_favorites_empty">收藏夹中还没有内容，点击打开。</string>
-    <string name="launcher_gadget_scheduled_empty">暂无定时任务，点击设置。</string>
-    <string name="settings_add_launcher_widget">在启动器桌面添加小组件</string>
+    <string name="launcher_gadget_scheduled_empty">暂无计划操作。点按即可设置。</string>
+    <string name="settings_add_launcher_widget">向启动器桌面添加小部件</string>
     <string name="launcher_widget_placed">已添加到启动器桌面</string>
     <string name="launcher_widget_no_room">启动器桌面空间不足，请腾出空位后重试。</string>
     <string name="launcher_contact_no_app">此设备上没有应用可以执行该联系人操作。</string>
@@ -2396,7 +2395,7 @@
     <string name="removable_volume_button_label">%1$s - %2$s 免费</string>
     <string name="removable_volume_button_description">可移除的中等尺寸 %1$s，%2$s 免费。打开此卷。</string>
     <string name="removable_volume_access_request">要读取 %1$s，请在接下来打开的系统对话框中选择此卷 - 该应用程序只能访问您选择的文件夹。</string>
-    <string name="launcher_edit_resize_hint_drag">拖动此角可调整小组件大小。</string>
+    <string name="launcher_edit_resize_hint_drag">拖动此角可调整小部件大小。</string>
     <string name="launcher_edit_kind_action">启动器操作</string>
     <string name="launcher_settings_reset_title">重置启动器设置</string>
     <string name="launcher_settings_reset_message">系统启动器设置将恢复为默认值。桌面布局、固定图标和壁纸都会恢复到刚安装完成时的状态。启动器以外的内容不受影响。</string>
@@ -2637,8 +2636,8 @@
     <string name="streams_unavailable_offline_title">无网络连接</string>
     <string name="streams_unavailable_offline_message">“%1$s”已停止 - 您的设备处于离线状态。请检查网络连接后重试。</string>
     <string name="launcher_settings_top_status_strip_title">顶部状态栏</string>
-    <string name="launcher_settings_top_status_strip_summary">带秒数的时钟会移到顶部栏左侧，设备指示器移到右侧，从而为“开始”面板腾出更多空间显示最近使用的应用。</string>
-    <string name="launcher_settings_tray_moved_hint">开启该模式时，指示器会显示在顶部栏。关闭后，它们会回到“开始”面板。</string>
+    <string name="launcher_settings_top_status_strip_summary">带秒的时钟移到顶部栏左侧，设备指示器移到右侧，为任务栏腾出空间显示更多最近使用的应用。</string>
+    <string name="launcher_settings_tray_moved_hint">此模式开启时，指示器位于顶部栏。关闭此模式可将指示器移回任务栏。</string>
     <string name="gesture_slot_app_label">要启动的应用</string>
     <string name="gesture_slot_app_none">未选择 - 点按以选择应用</string>
     <string name="gesture_slot_app_reset">清除选择</string>
@@ -2841,7 +2840,7 @@
     <string name="launcher_settings_tray_network_subtitle">显示 Wi-Fi 或移动网络状态图标</string>
     <string name="launcher_settings_tray_battery_subtitle">显示电池电量和充电指示器</string>
     <string name="launcher_settings_replace_status_area_subtitle">在桌面上隐藏 Android 顶部状态栏以释放屏幕空间</string>
-    <string name="launcher_settings_lock_desktop_subtitle">阻止在桌面上移动、添加或删除图标和小组件</string>
+    <string name="launcher_settings_lock_desktop_subtitle">防止在桌面上移动、添加或删除图标和小部件</string>
     <string name="launcher_section_main">主页</string>
     <string name="launcher_now_playing_artwork">专辑封面</string>
     <string name="launcher_gadget_translator">翻译器</string>
@@ -2873,7 +2872,7 @@
     <string name="launcher_gadget_media_document_open">点击在阅读器中打开</string>
     <string name="launcher_edit_streams_loading">正在加载直播源..</string>
     <string name="launcher_tray_indicator_action">%1$s。点击打开对应的 Android 设置</string>
-    <string name="launcher_home_cell_too_wide">此小组件比桌面网格更宽。请旋转屏幕或选择更窄的小组件。</string>
+    <string name="launcher_home_cell_too_wide">此小部件比桌面网格更宽。请旋转屏幕或选择更窄的小部件。</string>
     <string name="launcher_section_create">创建分区..</string>
     <string name="launcher_section_name_title">分区名称</string>
     <string name="launcher_section_name_hint">例如：工作</string>
@@ -2897,7 +2896,7 @@
     <string name="wear_resource_selection_title">手表的资源</string>
     <string name="wear_resource_selection_hint">只有网络资源（SMB、FTP、SFTP）可以发送到手表，因此这里只列出这些资源。勾选要发送的资源。</string>
     <string name="wear_resource_selection_select_all">全选</string>
-    <string name="wear_resource_selection_empty">还没有网络资源。只有 SMB、FTP 和 SFTP 资源可以发送到手表 - 请先在资源界面添加一个，然后回到这里选择要发送给手表的内容。</string>
+    <string name="wear_resource_selection_empty">还没有网络资源。只有 SMB、FTP 和 SFTP 资源可以发送到手表 - 请在主界面上添加一个，然后回来选择手表要接收的内容。</string>
     <string name="wear_sync_nothing_selected">尚未为手表标记任何资源。请打开\"手表的资源\"并勾选要发送的项目。</string>
     <string name="wear_settings_view_mode">主页与资源视图</string>
     <string name="wear_settings_view_mode_list">列表</string>
@@ -3269,7 +3268,7 @@
     <string name="mirror_video_button">录像</string>
     <string name="mirror_zoom_button">缩放 %1$sx</string>
     <string name="mirror_no_front_camera">此设备没有前置摄像头，因此无法打开镜子</string>
-    <string name="launcher_settings_screen_timeout_subtitle_no_lock">桌面空闲时把屏幕变黑。此版本无法锁定设备。</string>
+    <string name="launcher_settings_screen_timeout_subtitle_no_lock">桌面空闲时将屏幕变黑。此版本无法锁定设备。</string>
     <string name="launcher_settings_tray_tethering_title">Wi-Fi 热点</string>
     <string name="launcher_settings_tray_tethering_subtitle">在通知栏显示热点状态</string>
     <string name="launcher_tray_tethering_on">Wi-Fi 热点已开启</string>
@@ -3495,7 +3494,7 @@
     <string name="watch_listen_state_waiting">等待手表</string>
     <string name="watch_listen_state_listening">收听中</string>
     <string name="watch_listen_state_recording">录制中</string>
-    <string name="wear_sync_removed">已从手表移除 %d 个来源</string>
+    <string name="wear_sync_removed">已从手表移除 %d 个资源</string>
     <string name="wear_sync_settings_no_ack">手表未确认设置，可能已关机或超出范围。</string>
     <string name="tourist_info_title">旅行者</string>
     <string name="tourist_info_panel_desc">实时导航与遥测仪表盘</string>
@@ -3574,8 +3573,8 @@
     <string name="broadcast_control_blank_screen">黑屏</string>
     <string name="broadcast_control_blank_screen_cd">在广播继续运行时用黑屏遮盖应用</string>
     <string name="broadcast_share_save_failed">无法保存文件</string>
-    <string name="launcher_settings_taskbar_rows_title">开始面板行数</string>
-    <string name="launcher_settings_taskbar_rows_subtitle">更高的面板会显示更多最近使用的应用，并将托盘指示器堆叠显示</string>
+    <string name="launcher_settings_taskbar_rows_title">任务栏行数</string>
+    <string name="launcher_settings_taskbar_rows_subtitle">更高的任务栏可显示更多最近使用的应用，并堆叠托盘指示器</string>
     <string name="tourist_unit_mph">mph</string>
     <string name="wear_system_info_channel_name">手表系统信息</string>
     <string name="wear_system_info_notification_title">已收到手表报告</string>
@@ -3603,10 +3602,10 @@
     <string name="launcher_primary_window_home_desc">应用将成为你的设备主屏幕</string>
     <string name="launcher_primary_window_desktop_title">桌面作为主窗口</string>
     <string name="launcher_primary_window_desktop_desc">在应用内打开桌面，不改变设备主屏幕</string>
-    <string name="launcher_primary_window_resource_manager_title">资源管理器</string>
+    <string name="launcher_primary_window_resource_manager_title">主界面</string>
     <string name="launcher_primary_window_resource_manager_desc">直接打开文件和媒体资源管理</string>
     <string name="setting_launcher_primary_window_title">主启动窗口</string>
-    <string name="setting_launcher_primary_window_desc">选择应用以设备主屏幕、应用内桌面还是资源管理器的方式打开</string>
+    <string name="setting_launcher_primary_window_desc">选择应用以设备主屏幕、应用内桌面还是主界面的形式打开</string>
     <string-array name="launcher_primary_window_options">
         <item>@string/launcher_primary_window_home_title</item>
         <item>@string/launcher_primary_window_desktop_title</item>
@@ -3655,5 +3654,39 @@
     <string name="launcher_settings_screen_timeout_on_charge_title">充电时屏幕超时</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">充电器连接时，在一段时间无操作后关闭屏幕</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">充电时屏幕超时</string>
-    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">充电器连接时，在一段时间无操作后将屏幕变黑。此版本无法锁定设备。</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">连接充电器时，闲置一段时间后将屏幕变黑。此版本无法锁定设备。</string>
+    <string name="settings_watch_camera_standby">允许手表使用我的相机</string>
+    <string name="settings_watch_camera_standby_summary">立即启动相机，这样手机放在口袋里时，配对的手表稍后也能打开照片</string>
+    <string name="settings_watch_camera_standby_failed">无法为手表启动相机</string>
+    <string name="settings_broadcast_feedback_guard">啸叫抑制</string>
+    <string name="settings_broadcast_feedback_guard_summary">当附近的听众外放广播时降低麦克风增益，避免声音不断放大</string>
+    <string name="broadcast_control_feedback_warning">已降低音量：听众设备的扬声器正回授到麦克风。请将收听设备移远，或调低其音量。</string>
+    <string name="broadcast_control_feedback_warning_cd">检测到声音回授，麦克风增益已降低</string>
+    <string name="wear_watch_transfer_unconfirmed">手表未确认保存 %1$s，因此原件保留在手机上。</string>
+    <string name="filedo_operations_title">FileDO 加密操作</string>
+    <string name="filedo_operations_summary">在每个文件的操作菜单中显示“使用 FileDO 加密”和“使用 FileDO 解密”</string>
+    <string name="filedo_encrypt">使用 FileDO 加密</string>
+    <string name="filedo_decrypt">使用 FileDO 解密</string>
+    <string name="filedo_password_title_encrypt">容器的新密码</string>
+    <string name="filedo_password_title_decrypt">容器的密码</string>
+    <string name="filedo_password_hint">密码</string>
+    <string name="filedo_password_repeat_hint">再次输入密码</string>
+    <string name="filedo_password_mismatch">两次输入的密码不一致</string>
+    <string name="filedo_password_empty_warning">空密码不提供任何保密性。文件只是不被随意看到，任何了解该格式的人都能打开它。</string>
+    <string name="filedo_no_recovery_warning">忘记的密码无法找回。</string>
+    <string name="filedo_outcome_wrong_credential">无法打开文件：密码错误、文件从来不是容器，或者文件已被篡改。这三种情况无法区分。</string>
+    <string name="filedo_outcome_damaged">容器已损坏：它被截断，或其内容与其封存的内容不符。</string>
+    <string name="filedo_outcome_unsupported">此容器使用了本应用无法读取的格式版本。</string>
+    <string name="filedo_outcome_failed">操作未完成：%1$s</string>
+    <string name="filedo_encrypted_ok">容器已写入。原文件保持不变。</string>
+    <string name="filedo_decrypted_ok">文件已恢复。</string>
+    <string name="filedo_open_refused_executable">此容器包含程序或脚本，不会被打开。</string>
+    <string name="filedo_password_remember">记住密码，并在每个 .fd-sec 文件上尝试</string>
+    <string name="filedo_remembered_password_forgotten">保存的密码未能打开此文件，已被遗忘。请输入此文件的密码。</string>
+    <string name="stream_access_restricted">🔒 受限</string>
+    <string name="stream_access_restricted_desc">可能存在访问限制 - 在您所在的环境或地区可能无法播放</string>
+    <string name="stream_info_access_restricted">受限</string>
+    <string name="sftp_host_key_presented_format">服务器主机密钥指纹：\n%1$s</string>
+    <string name="sftp_pin_host_key">固定主机密钥</string>
+    <string name="sftp_host_key_pinned_toast">已固定服务器主机密钥指纹</string>
 </resources>

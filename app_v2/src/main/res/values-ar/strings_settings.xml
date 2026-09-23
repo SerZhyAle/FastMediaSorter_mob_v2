@@ -132,7 +132,7 @@
     <string name="setting_allow_separate_window">السماح بنوافذ جديدة</string>
     <string name="setting_allow_separate_window_desc">فتح المجلدات والملفات في نافذة منفصلة</string>
     <string name="setting_background_sync_desc">التحقق تلقائيًا في الخلفية من تغيّر مصادر الشبكة</string>
-    <string name="setting_calculator_desc">إظهار الآلة الحاسبة في القائمة الرئيسية وأداة المشغّل</string>
+    <string name="setting_calculator_desc">إظهار الآلة الحاسبة في قائمة البرامج ولوحة الوصول السريع وعلى سطح مكتب المشغّل</string>
     <string name="setting_camera_ocr_only_desc">تخطّي خطوة الترجمة وعرض النص المتعرَّف عليه مباشرة</string>
     <string name="setting_camera_ocr_only_title">التعرّف على النص فقط (بدون ترجمة)</string>
     <string name="setting_camera_ocr_translation_desc">تفعيل المسار السريع صورة-تعرّف-ترجمة</string>
@@ -266,7 +266,7 @@
     <string name="settings_wear_group_description">فعّل هذا إذا كانت لديك ساعة Wear OS. يفتح التطبيق المرافق من هنا ويحدد ما يشاركه هذا الهاتف مع الساعة.</string>
     <string name="settings_wear_install_guide_button">كيفية التثبيت على الساعة</string>
     <string name="settings_wear_web_portal_button">كل شيء عن الساعة</string>
-    <string name="setting_stopwatch_desc">إظهار ساعة الإيقاف في القائمة الرئيسية وأداة الشاشة الرئيسية</string>
+    <string name="setting_stopwatch_desc">إظهار ساعة الإيقاف في قائمة البرامج ولوحة الوصول السريع وعلى سطح مكتب المشغّل</string>
     <string name="cross_device_transfer_send_to_device">إرسال إلى جهازي (Drive)</string>
     <string name="cross_device_transfer_pending_title">عمليات نقل الأجهزة المعلقة</string>
     <string name="cross_device_transfer_receive_and_delete">الاستلام والحذف من السحابة</string>

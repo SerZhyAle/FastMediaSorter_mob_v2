@@ -11,8 +11,8 @@ import com.sza.fastmediasorter.domain.usecase.ApplyProfilePresetUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.ProfileImpliesAllFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.ResetSettingsToProfileDefaultsUseCase
-import kotlinx.coroutines.CancellationException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -44,7 +44,11 @@ class SettingsProfileViewModel @Inject constructor(
      * Runs on [viewModelScope] rather than suspending into the caller's scope: the reset is two
      * writes, and a rotation between them would leave the factory defaults applied without the
      * profile's overrides on top.
+     *
+     * The catch-all is the screen's boundary: the reset writes DataStore and Room, whose failures
+     * are undeclared runtime types, and a failed reset must be logged rather than crash settings.
      */
+    @Suppress("TooGenericExceptionCaught")
     fun resetSettingsToProfileDefaults() {
         viewModelScope.launch {
             try {

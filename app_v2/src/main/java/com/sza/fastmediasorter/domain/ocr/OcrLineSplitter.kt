@@ -14,7 +14,7 @@ import android.graphics.Rect
 object OcrLineSplitter {
 
     /**
-     * Bracketed on our own material, `docs/OCR_OVERLAY_ACCURACY.md` section 16: at full resolution the widest
+     * Bracketed on our own material, `ocr-overlay-accuracy.md` section 16: at full resolution the widest
      * gap inside an honest line was 3.33 and the narrowest stitch across two regions 3.67. Side-by-side speech
      * bubbles stitch as low as 2.33 and stay unseparable by geometry at any value.
      */

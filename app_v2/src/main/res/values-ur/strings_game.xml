@@ -35,7 +35,7 @@
     <string name="game_score">اسکور: %1$d</string>
     <string name="game_settings_help_message">مقامی موڑ پر مبنی پہیلی کو فعال کرتا ہے۔ گیم اس وقت تک بند رہتا ہے جب تک آپ اسے آن نہیں کرتے۔</string>
     <string name="game_settings_help_title">منی گیم</string>
-    <string name="game_settings_toggle_subtitle">گیم کو مین مینو اور لانچر ویجیٹ میں دکھائیں۔</string>
+    <string name="game_settings_toggle_subtitle">گیم کو پروگرامز مینو، فوری رسائی پینل اور لانچر ڈیسک ٹاپ پر دکھائیں</string>
     <string name="game_settings_toggle_title">منی گیم</string>
     <string name="game_status_game_over">Kryvavitsa آپ کو پکڑ لیا. دوبارہ کوشش کرنے کے لیے ایک نیا گیم شروع کریں۔</string>
     <string name="game_status_invalid_board">یہ بورڈ نہیں چلایا جا سکتا۔ اس کا سائز تبدیل کریں یا پیش سیٹ بورڈ کھولیں۔</string>

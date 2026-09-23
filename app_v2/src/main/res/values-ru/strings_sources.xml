@@ -3,7 +3,7 @@
     <string name="smb_add_manual_resource">Добавить этот ресурс</string>
     <string name="smb_add_manually">Добавить вручную</string>
     <string name="smb_auto_reset_notification">SMB соединения сброшены автоматически</string>
-    <string name="smb_credentials">Сетевая Папка (SMB)</string>
+    <string name="smb_credentials">Сетевая папка (SMB)</string>
     <string name="smb_domain">Домен (необязательно)</string>
     <string name="smb_domain_hint">Оставьте пустым, если не требуется</string>
     <string name="smb_enter_share_manually">+ Ввести имя папки вручную..</string>
@@ -60,7 +60,7 @@
     <string name="cloud_list_files_failed">Не получилось загрузить файлы из облака. Попробуйте ещё раз.</string>
     <string name="cloud_list_folders_failed">Не получилось загрузить папки из облака. Попробуйте ещё раз.</string>
     <string name="cloud_metadata_failed">Не получилось загрузить сведения о файле из облака. Попробуйте ещё раз.</string>
-    <string name="cloud_restore_instructions">Необходимо восстановить подключение к Google Drive.\n\nПожалуйста:\n1. Перейдите в Главное меню\n2. Откройте \'Ресурсы\'\n3. Нажмите на \"%1$s\"\n4. Войдите с помощью аккаунта Google</string>
+    <string name="cloud_restore_instructions">Необходимо восстановить подключение к Google Drive.\n\nПожалуйста:\n1. Откройте главный экран\n2. Нажмите на \"%1$s\"\n3. Войдите с помощью аккаунта Google</string>
     <string name="cloud_search_failed">Не получилось выполнить поиск в облачном хранилище. Попробуйте ещё раз.</string>
     <string name="cloud_sign_out_failed">Не получилось выйти из облачного аккаунта. Попробуйте ещё раз.</string>
     <string name="cloud_storage">Облачное хранилище</string>
@@ -73,7 +73,7 @@
     <string name="dropbox_authentication_failed">Ошибка входа в Dropbox</string>
     <string name="dropbox_beta_email_body">Здравствуйте,\n\nПожалуйста, добавьте мой аккаунт Dropbox в список бета-тестеров FastMediaSorter.\n\nМой email Dropbox: </string>
     <string name="dropbox_beta_email_subject">FastMediaSorter - Запрос доступа к Dropbox бета</string>
-    <string name="dropbox_beta_message">Интеграция с Dropbox пока доступна в ограниченном бета-режиме.\n\n⚠️ Зачем писать вам?\nDropbox требует от разработчиков вручную регистрировать тестеров на период проверки. Это разовая техническая формальность со стороны Dropbox \u2014 ваш email нужен только для добавления вашего аккаунта в список разрешённых.\n\n🔒 Ваша приватность полностью защищена:\n\u2022 Мы НЕ собираем, не храним и не передаём ваш email\n\u2022 Мы НЕ получаем доступ к вашим файлам\n\u2022 Email используется исключительно для предоставления доступа к Dropbox в этом приложении\n\nДля получения доступа напишите нам:\nserzhyale@gmail.com</string>
+    <string name="dropbox_beta_message">Интеграция с Dropbox пока доступна в ограниченном бета-режиме.\n\n⚠️ Зачем писать вам?\nDropbox требует от разработчиков вручную регистрировать тестеров на период проверки. Это разовая техническая формальность со стороны Dropbox \u2014 ваш email нужен только для добавления вашего аккаунта в список разрешённых.\n\n🔒 Ваша приватность полностью защищена:\n\u2022 Мы НЕ собираем, не храним и не передаём ваш email\n\u2022 Мы НЕ получаем доступ к вашим файлам\n\u2022 Email используется исключительно для предоставления доступа к Dropbox в этом приложении\n\nДля получения доступа напишите нам:\nsza@ukr.net</string>
     <string name="dropbox_beta_send_email">Написать письмо</string>
     <string name="dropbox_beta_title">Dropbox: Бета-доступ</string>
     <string name="dropbox_connection_test_failed">Ошибка подключения: %1$s</string>

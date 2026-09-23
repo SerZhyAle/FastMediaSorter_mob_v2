@@ -76,7 +76,6 @@
         "wear-os.screen-off-in-one-tap-on-the-watch",
         "wear-os.spreading-ring-on-tap-in-watch-screen-off",
         "wear-os.crown-image-zoom",
-        "wear.singlecolumntilecell-in-favourites",
         "wear.watch-storage-file-actions",
         "wear.companion-off-refusal-on-phone-browsing",
         "wear.phone-section-previews",
@@ -178,6 +177,13 @@
         "wear-os.sync-survives-an-older-phone",
         "wear-os.watch-reports-phone-deleted-sources-in-the-sync",
         "wear-os.text-clipboard-bridge"
+      ]
+    },
+    {
+      "category": "screen takeover programs",
+      "ids": [
+        "wear.water_flashlight",
+        "programs-tools.sos-distress-signal-on-phone-and-watch"
       ]
     },
     {

@@ -48,7 +48,8 @@ class AppDatabaseMigration54To55Test {
         // is what a per-cell config is for, and a CASCADE that names a column the entity spells
         // differently would pass a "table exists" check and fail on the device.
         db.execSQL(
-            "INSERT INTO launcher_cell_config (cellId, key, value) VALUES ($CELL_PLACED, '$CONFIG_KEY', '$CONFIG_VALUE')"
+            "INSERT INTO launcher_cell_config (cellId, key, value) " +
+                "VALUES ($CELL_PLACED, '$CONFIG_KEY', '$CONFIG_VALUE')"
         )
         db.query(
             "SELECT value FROM launcher_cell_config WHERE cellId = ? AND key = ?",

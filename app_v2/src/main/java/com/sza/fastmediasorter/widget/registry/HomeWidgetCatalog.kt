@@ -30,7 +30,6 @@ import com.sza.fastmediasorter.widget.WaterFlashlightWidgetProvider
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorWidgetProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 

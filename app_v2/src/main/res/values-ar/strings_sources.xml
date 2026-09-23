@@ -61,7 +61,7 @@
     <string name="cloud_list_files_failed">تعذر تحميل الملفات من السحابة. حاول مرة أخرى.</string>
     <string name="cloud_list_folders_failed">تعذر تحميل المجلدات من السحابة. حاول مرة أخرى.</string>
     <string name="cloud_metadata_failed">تعذر تحميل تفاصيل الملف من السحابة. حاول مرة أخرى.</string>
-    <string name="cloud_restore_instructions">يجب استعادة اتصال Google Drive.\n\nالرجاء:\n1. انتقل إلى القائمة الرئيسية\n2. افتح \"الموارد\"\n3. انقر على \"%1$s\"\n4. سجّل الدخول باستخدام حساب Google الخاص بك</string>
+    <string name="cloud_restore_instructions">يجب استعادة الاتصال بـ Google Drive.\n\nيرجى:\n1. فتح الشاشة الرئيسية\n2. النقر على \"%1$s\"\n3. تسجيل الدخول بحساب Google</string>
     <string name="cloud_search_failed">تعذر البحث في التخزين السحابي. حاول مرة أخرى.</string>
     <string name="cloud_sign_out_failed">تعذر تسجيل الخروج من حساب السحابة. حاول مرة أخرى.</string>
     <string name="cloud_storage">التخزين السحابي</string>
@@ -74,7 +74,7 @@
     <string name="dropbox_authentication_failed">فشلت عملية المصادقة على Dropbox</string>
     <string name="dropbox_beta_email_body">مرحباً،\n\nيرجى إضافة حسابي على دروب بوكس ​​إلى قائمة مختبري النسخة التجريبية من FastMediaSorter.\n\nبريدي الإلكتروني على دروب بوكس:</string>
     <string name="dropbox_beta_email_subject">طلب الوصول إلى النسخة التجريبية من دروب بوكس ​​- فاست ميديا ​​سورتر</string>
-    <string name="dropbox_beta_message">تكامل Dropbox متاح حاليًا في نسخة تجريبية محدودة.\n\n⚠️ لماذا أحتاج إلى التواصل معكم؟\nيطلب Dropbox من مطوري التطبيقات تسجيل المختبِرين يدويًا خلال فترة المراجعة. هذا إجراء شكلي تقني لمرة واحدة من جانب Dropbox\u2019s \u2014 يُستخدم بريدك الإلكتروني فقط لإضافة حساب Dropbox الخاص بك إلى القائمة المسموح بها.\n\n🔒 خصوصيتك محترمة بالكامل:\n\u2022 نحن لا نجمع بريدك الإلكتروني أو نخزّنه أو نشاركه\n\u2022 نحن لا نصل إلى أي من ملفاتك أو بياناتك\n\u2022 يُستخدم بريدك الإلكتروني فقط لمنحك الوصول إلى Dropbox في هذا التطبيق\n\nللحصول على الوصول، راسلنا عبر البريد الإلكتروني:\nserzhyale@gmail.com</string>
+    <string name="dropbox_beta_message">تكامل Dropbox متاح حاليًا في نسخة تجريبية محدودة.\n\n⚠️ لماذا أحتاج إلى التواصل معكم؟\nيطلب Dropbox من مطوري التطبيقات تسجيل المختبِرين يدويًا خلال فترة المراجعة. هذا إجراء شكلي تقني لمرة واحدة من جانب Dropbox - يُستخدم بريدك الإلكتروني فقط لإضافة حساب Dropbox الخاص بك إلى القائمة المسموح بها.\n\n🔒 خصوصيتك محترمة بالكامل:\n\u2022 نحن لا نجمع بريدك الإلكتروني أو نخزّنه أو نشاركه\n\u2022 نحن لا نصل إلى أي من ملفاتك أو بياناتك\n\u2022 يُستخدم بريدك الإلكتروني فقط لمنحك الوصول إلى Dropbox في هذا التطبيق\n\nللحصول على الوصول، راسلنا عبر البريد الإلكتروني:\nsza@ukr.net</string>
     <string name="dropbox_beta_send_email">إرسال بريد إلكتروني</string>
     <string name="dropbox_beta_title">الوصول إلى النسخة التجريبية من Dropbox</string>
     <string name="dropbox_connection_test_failed">فشل الاتصال: %1$s</string>

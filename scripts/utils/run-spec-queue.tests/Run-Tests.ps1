@@ -79,13 +79,19 @@ function New-Sandbox {
     if (Test-Path -LiteralPath $sandbox) { Remove-Item -LiteralPath $sandbox -Recurse -Force }
     New-Item -ItemType Directory -Path (Join-Path $sandbox 'temp/spec-queue') -Force | Out-Null
 
-    $profile = Get-Content -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Raw | ConvertFrom-Json
-    $profile.runner.idleRunThreshold = $Threshold
-    $profile | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $sandbox '.sza-profile.json') -Encoding UTF8
+    $sandboxProfile = Get-Content -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Raw | ConvertFrom-Json
+    $sandboxProfile.runner.idleRunThreshold = $Threshold
+    # Pinned, never inherited: the live list is a tunable policy (S2871 narrowed it, S3340 widened it
+    # back to the canon library default), and a copied value turned a profile retune into a red
+    # prerelease suite with no code change (S3468). The cases below assert against THIS list.
+    $sandboxProfile.runner | Add-Member -NotePropertyName idleOutcomes -Force -NotePropertyValue @(
+        'ok', 'timeout', 'claim-lost', 'claim-lost-before-launch', 'no-progress-or-claim-lost', 'launch-failed'
+    )
+    $sandboxProfile | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $sandbox '.sza-profile.json') -Encoding UTF8
 
     # runs-a: S9001 spans instances with runs-b; S9002's series is broken by a moving run;
     # S9003 ends on an outcome the profile does not call idle; S9004 has one idle run only;
-    # S9006 is a genuine idle run followed by a runner-side failure (S2871).
+    # S9006 is a genuine idle run followed by a runner-side failure (S2871, S3340).
     $runsA = @(
         '{"id":"S9001","moved":false,"outcome":"timeout","finishedAt":"2026-09-01T10:00:00"}'
         '{"id":"S9002","moved":false,"outcome":"ok","finishedAt":"2026-09-01T10:00:00"}'
@@ -147,14 +153,12 @@ if (-not $harnessLib -or -not (Test-Path -LiteralPath $harnessLib)) {
             -Ok ($r.S9001.count -eq 2 -and $r.S9001.last -eq 'ok') `
             -Detail "expected: 2 / ok | actual: $($r.S9001.count) / $($r.S9001.last)"
 
-        # S2871: the outcomes naming a runner-side failure were dropped from runner.idleOutcomes,
-        # so such a run now ENDS the series rather than extending it - the ticket returns to
-        # automatic ranking instead of being held on evidence about the runner, not about itself.
-        # Measured 2026-09-08: nine tickets were held by one six-minute window of children that
-        # exited 1 in zero minutes.
-        Assert-Case -Name 'a runner-side failure releases the ticket rather than holding it' `
-            -Ok ($r.S9006.count -eq 0 -and -not $r.S9006.held) `
-            -Detail "expected: 0 / not held - the 11:00 no-progress-or-claim-lost row ends the walk | actual: $($r.S9006.count) / held=$($r.S9006.held)"
+        # S3340 reversed S2871: 52 of 54 status-less runs journalled no-progress-or-claim-lost, so
+        # with it outside the list the series never grew and one ticket was handed out five times
+        # running. A listed runner-side outcome therefore EXTENDS the series and can hold the ticket.
+        Assert-Case -Name 'a listed runner-side outcome extends the series and holds the ticket' `
+            -Ok ($r.S9006.count -eq 2 -and $r.S9006.last -eq 'no-progress-or-claim-lost' -and $r.S9006.held) `
+            -Detail "expected: 2 / no-progress-or-claim-lost / held | actual: $($r.S9006.count) / $($r.S9006.last) / held=$($r.S9006.held)"
 
         Assert-Case -Name 'a moving run breaks the series - only the runs after it count' `
             -Ok ($r.S9002.count -eq 2 -and $r.S9002.last -eq 'timeout') `
@@ -229,10 +233,10 @@ function New-InstanceSandbox {
     if (Test-Path -LiteralPath $sandbox) { Remove-Item -LiteralPath $sandbox -Recurse -Force }
     New-Item -ItemType Directory -Path (Join-Path $sandbox 'temp') -Force | Out-Null
 
-    $profile = Get-Content -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Raw | ConvertFrom-Json
+    $sandboxProfile = Get-Content -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Raw | ConvertFrom-Json
     # Instance a overrides all three fields, b overrides nothing, and zz is absent from the map -
     # the three answers the resolution chain has to give.
-    $profile.runner.instances = [ordered]@{
+    $sandboxProfile.runner.instances = [ordered]@{
         a = [ordered]@{
             command       = 'pwsh'
             argsTemplate  = @('run', '--task', '{prompt}', '--perm', '{permissionMode}', '--agent', '{model}')
@@ -240,7 +244,7 @@ function New-InstanceSandbox {
         }
         b = [ordered]@{}
     }
-    $profile | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $sandbox '.sza-profile.json') -Encoding UTF8
+    $sandboxProfile | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $sandbox '.sza-profile.json') -Encoding UTF8
     return $sandbox
 }
 

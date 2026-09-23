@@ -23,6 +23,9 @@ $scriptPath = $PSScriptRoot
 $projectRoot = Resolve-Path "$scriptPath\..\.."
 $gradlew = "$projectRoot\gradlew.bat"
 $downloadsDir = "$projectRoot\DOWNLOADS"
+# Rule 1: no root writes, so the build log goes to the scratch root rather than the checkout root.
+$buildLog = "$projectRoot\temp\scratch\build_all_log.txt"
+New-Item -ItemType Directory -Path (Split-Path -Parent $buildLog) -Force | Out-Null
 
 # 1. Clean and Build All
 Write-Host "=== Starting Full Build: Standard / Lite / Photos / Legacy / VR / NoLegal + Wear OS - Debug + Release ===" -ForegroundColor Cyan
@@ -56,7 +59,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
             Remove-Item -Path "$projectRoot\wear\build" -Recurse -Force -ErrorAction SilentlyContinue
         }
         
-        Write-Host "Running Gradle build... Logs saved to build_all_log.txt" -ForegroundColor Yellow
+        Write-Host "Running Gradle build... Logs saved to $buildLog" -ForegroundColor Yellow
         # Two-pass build: non-noLegal flavors first (Chaquopy disabled), then noLegal (Chaquopy enabled).
         # Chaquopy 17.x must not see non-noLegal variants (minSdk/ABI incompatibilities).
         # -Pchaquopy.enabled=false overrides local.properties so standard/lite/etc. variants are enabled.
@@ -73,7 +76,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
             "-Pfms.versionName=$($stamp.VersionName)" `
             --max-workers=4 `
             --configuration-cache `
-            | Tee-Object -FilePath "$projectRoot\build_all_log.txt"
+            | Tee-Object -FilePath $buildLog
 
         $pass1Exit = $LASTEXITCODE
         if ($pass1Exit -ne 0) {
@@ -92,7 +95,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
             "-Pfms.versionName=$($stamp.VersionName)" `
             --max-workers=4 `
             --configuration-cache `
-            | Tee-Object -Append -FilePath "$projectRoot\build_all_log.txt"
+            | Tee-Object -Append -FilePath $buildLog
 
         if ($LASTEXITCODE -ne 0) {
             throw "Pass 1b (Wear OS) failed with exit code $LASTEXITCODE"
@@ -106,7 +109,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
             "-Pfms.versionName=$($stamp.VersionName)" `
             --max-workers=4 `
             --no-configuration-cache `
-            | Tee-Object -Append -FilePath "$projectRoot\build_all_log.txt"
+            | Tee-Object -Append -FilePath $buildLog
 
         if ($LASTEXITCODE -eq 0) {
             $buildSuccess = $true
@@ -122,7 +125,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
     catch {
         $retryCount++
         if ($retryCount -ge $maxRetries) {
-            Write-Host "`nBuild Failed after $maxRetries attempts! Check build_all_log.txt for details." -ForegroundColor Red
+            Write-Host "`nBuild Failed after $maxRetries attempts! Check $buildLog for details." -ForegroundColor Red
             exit 1
         }
     }

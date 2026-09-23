@@ -4,16 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    style="@style/Widget.FastMediaSorter.Item.Row"
     android:layout_margin="@dimen/margin_tiny"
-    android:background="@drawable/item_focus_selector"
-    android:focusable="true"
-    android:focusableInTouchMode="false"
-    android:foreground="?attr/selectableItemBackground">
-    
-    <!-- Destination border (colored stroke) -->
+    android:paddingHorizontal="0dp"
+    android:paddingVertical="0dp">
 
-
+<!-- S3247: the tile's own surface, kept separate from the row root so an unavailable resource can be
+     tinted without overwriting the root's state-list drawable. -->
 <androidx.constraintlayout.widget.ConstraintLayout
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -137,7 +136,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/destination_border"
-        android:elevation="@dimen/toolbar_elevation"
+        android:elevation="@dimen/dimension_zero"
         android:visibility="gone" />
 
 </FrameLayout>

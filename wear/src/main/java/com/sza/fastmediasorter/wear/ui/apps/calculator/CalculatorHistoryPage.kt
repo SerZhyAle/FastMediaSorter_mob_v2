@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.apps.calculator
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +27,7 @@ import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorHistoryEntry
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
+import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 
 private val TITLE_VERTICAL_PADDING = 12.dp
 private val EMPTY_TEXT_PADDING = 16.dp
@@ -54,10 +56,13 @@ fun CalculatorHistoryPage(
     val scale = remember(context) { WearCalculatorHistoryScale(context) }
     var historySizeSp by remember { mutableStateOf(scale.currentSizeSp) }
 
+    // S3362: the page is raised over the keypad, so it paints the canvas the menu sheet paints - without
+    // it the history lines and the keys beneath them read as one surface on the review emulators.
     Box(
         modifier = Modifier
             .rotaryActionSteps { step -> historySizeSp = scale.step(step) }
             .fillMaxSize()
+            .background(WearAppTheme.colors.canvasBlack)
     ) {
         WearListColumn(
             modifier = Modifier.fillMaxSize(),

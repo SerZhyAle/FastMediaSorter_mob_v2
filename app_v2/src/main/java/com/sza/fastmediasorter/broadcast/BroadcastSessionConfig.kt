@@ -26,6 +26,8 @@ data class BroadcastSessionConfig(
     val rtspPort: Int = 8554,
     // S3049: digital PCM microphone gain percentage (50% - 400%, default 100%).
     val micGainPercent: Int = 100,
+    // S3349: whether the capture loop regulates [micGainPercent] against an acoustic feedback loop.
+    val feedbackGuardEnabled: Boolean = true,
 ) {
     companion object {
         val DEFAULT = BroadcastSessionConfig(

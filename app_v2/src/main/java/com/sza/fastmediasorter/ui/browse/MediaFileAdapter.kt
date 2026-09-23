@@ -852,7 +852,7 @@ class MediaFileAdapter(
         }
 
         /**
-         * Apply only the selection-reflecting visuals (checkbox + row background). Shared by bind()
+         * Apply only the selection-reflecting visuals (checkbox + row state). Shared by bind()
          * and the PAYLOAD_SELECTION partial rebind so the two paths cannot diverge.
          */
         fun applySelectionVisual(file: MediaFile, selectedPaths: Set<String>) {
@@ -868,13 +868,7 @@ class MediaFileAdapter(
                 )
                 binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
             }
-            val context = binding.root.context
-            val backgroundColor = when {
-                isSelected -> context.getColor(com.sza.fastmediasorter.R.color.item_selected)
-                bindingAdapterPosition % 2 != 0 -> context.getColor(com.sza.fastmediasorter.R.color.item_alternate)
-                else -> context.getColor(com.sza.fastmediasorter.R.color.item_normal)
-            }
-            binding.root.setBackgroundColor(backgroundColor)
+            applyRowSelectionState(binding.root, isSelected)
         }
 
         /**
@@ -1018,7 +1012,7 @@ class MediaFileAdapter(
             binding.apply {
                 val isFolder = file.isDirectory
 
-                // Checkbox visibility/state + selection card color (shared with PAYLOAD_SELECTION partial rebind)
+                // Checkbox visibility/state + selection row state (shared with PAYLOAD_SELECTION partial rebind)
                 applySelectionVisual(file, selectedPaths)
 
                 // Set dynamic thumbnail size (height only - width is match_parent)
@@ -1146,7 +1140,7 @@ class MediaFileAdapter(
         }
 
         /**
-         * Apply only the selection-reflecting visuals (checkbox + card color). Shared by bind()
+         * Apply only the selection-reflecting visuals (checkbox + row state). Shared by bind()
          * and the PAYLOAD_SELECTION partial rebind so the two paths cannot diverge.
          */
         fun applySelectionVisual(file: MediaFile, selectedPaths: Set<String>) {
@@ -1162,13 +1156,7 @@ class MediaFileAdapter(
                 )
                 binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
             }
-            binding.cvCard.setCardBackgroundColor(
-                if (isSelected) {
-                    binding.root.context.getColor(R.color.item_selected)
-                } else {
-                    binding.root.context.getColor(R.color.item_normal)
-                }
-            )
+            applyRowSelectionState(binding.root, isSelected)
         }
 
         private fun loadThumbnail(file: MediaFile) {
@@ -1283,7 +1271,7 @@ class MediaFileAdapter(
             binding.apply {
                 val isFolder = file.isDirectory
 
-                // Checkbox visibility/state + selection card color (shared with PAYLOAD_SELECTION partial rebind)
+                // Checkbox visibility/state + selection row state (shared with PAYLOAD_SELECTION partial rebind)
                 applySelectionVisual(file, selectedPaths)
 
                 // Keep the extension tile square (sized to the cell height); it never stretches
@@ -1333,7 +1321,7 @@ class MediaFileAdapter(
         }
 
         /**
-         * Apply only the selection-reflecting visuals (checkbox + card color). Shared by bind()
+         * Apply only the selection-reflecting visuals (checkbox + row state). Shared by bind()
          * and the PAYLOAD_SELECTION partial rebind so the two paths cannot diverge.
          */
         fun applySelectionVisual(file: MediaFile, selectedPaths: Set<String>) {
@@ -1349,13 +1337,7 @@ class MediaFileAdapter(
                 )
                 binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
             }
-            binding.cvCard.setCardBackgroundColor(
-                if (isSelected) {
-                    binding.root.context.getColor(R.color.item_selected)
-                } else {
-                    binding.root.context.getColor(R.color.item_normal)
-                }
-            )
+            applyRowSelectionState(binding.root, isSelected)
         }
 
         private fun loadThumbnail(file: MediaFile) {
@@ -1364,4 +1346,16 @@ class MediaFileAdapter(
         }
     }
 
+}
+
+/**
+ * S3247: the row's single selection mechanism. `item_focus_selector` keys its selected layer off
+ * `state_activated`, while the rest of the app reads `isSelected`, so both flags are set from one
+ * place - and nothing paints the row root or the card, which is what keeps the focus ring alive on a
+ * selected row (`docs/ui/PHONE_UI_COMPONENT_PATTERNS.md` section 2.2).
+ */
+private fun applyRowSelectionState(root: View, selected: Boolean) {
+    Timber.d("S3247: browse row selection state selected=$selected")
+    root.isSelected = selected
+    root.isActivated = selected
 }

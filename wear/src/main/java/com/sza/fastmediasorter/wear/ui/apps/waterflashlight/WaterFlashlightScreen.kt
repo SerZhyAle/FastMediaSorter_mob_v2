@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.wear.ui.apps.waterflashlight
 
+import android.os.Build
 import android.view.WindowManager
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,12 +14,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -50,6 +56,10 @@ import kotlinx.coroutines.delay
  * S2812 closed the two remaining ways a wet screen still reached the system: the circular edge gesture no
  * longer leaves, and in the edition that does not go through the store the system shade is held shut for
  * as long as the light is on.
+ *
+ * S3394: no single event leaves either, because a single event is what water produces. The way out is
+ * three backs in quick succession, or a held key on a watch whose button reaches the app at all - the
+ * decision is [WaterFlashlightExitGate]'s.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -58,8 +68,17 @@ fun WaterFlashlightScreen(
     viewModel: WaterFlashlightViewModel = hiltViewModel(),
 ) {
     KeepDisplayLit()
+    val exitGate = remember { WaterFlashlightExitGate() }
+    val currentLeave by rememberUpdatedState(onLeave)
     SystemShadeLockEffect(enabled = viewModel.locksSystemShade)
-    LaunchedEffect(viewModel.locksSystemShade) {
+
+    // The back dispatcher claims BACK on its own and pops this route whatever the key handler below
+    // returns (measured on the Galaxy Watch 7, 2026-09-23), so the gate has to decide here as well.
+    BackHandler {
+        val leaving = exitGate.onBack(System.currentTimeMillis())
+        if (leaving) {
+            currentLeave()
+        }
     }
 
     val clockText = rememberMinuteClock()
@@ -78,13 +97,10 @@ fun WaterFlashlightScreen(
                     }
                 }
             }
-            // Every delivered key leaves, rather than one named code: which button a watch reports is
-            // a per-model fact this repository has never measured, and being unable to leave is a far
-            // worse failure than leaving by an unexpected button (strategic §6.1).
+            // Every key is consumed, so none reaches the navigation below; whether one ends the light
+            // is the gate's decision alone.
             .onPreviewKeyEvent { event ->
-                if (event.type == KeyEventType.KeyUp) {
-                    onLeave()
-                }
+                exitGate.onScreenKey(event, currentLeave)
                 true
             }
             // Rotation is swallowed rather than acted on: on a watch whose bezel is capacitive the
@@ -106,7 +122,7 @@ fun WaterFlashlightScreen(
                 style = MaterialTheme.typography.title2,
             )
             Text(
-                text = stringResource(R.string.wear_water_flashlight_locked_hint),
+                text = stringResource(R.string.wear_water_flashlight_exit_hint),
                 color = Color.Black,
                 style = MaterialTheme.typography.caption2,
                 textAlign = TextAlign.Center,
@@ -114,6 +130,37 @@ fun WaterFlashlightScreen(
         }
     }
 }
+
+/**
+ * Feeds one key event to the gate and leaves when the gate says so.
+ *
+ * BACK is a single event here, never a timed press. From Android 16 on - which this app targets - the
+ * dispatcher hands every back to the [BackHandler] as well, so the key half is ignored there rather
+ * than counted twice; below Android 16 the consumed key never reaches the dispatcher and is counted
+ * here, or no back could ever leave.
+ */
+private fun WaterFlashlightExitGate.onScreenKey(event: KeyEvent, onLeave: () -> Unit) {
+    val nowMs = System.currentTimeMillis()
+    val leaving = when {
+        event.key == Key.Back ->
+            event.type == KeyEventType.KeyUp && !backReachesDispatcher && onBack(nowMs)
+        event.type == KeyEventType.KeyDown -> {
+            onKeyDown(
+                keyCode = event.key.keyCode,
+                nowMs = nowMs,
+                longPress = event.nativeKeyEvent.isLongPress || event.nativeKeyEvent.repeatCount > 0,
+            )
+            false
+        }
+        event.type == KeyEventType.KeyUp -> onKeyUp(event.key.keyCode, nowMs)
+        else -> false
+    }
+    if (leaving) {
+        onLeave()
+    }
+}
+
+private val backReachesDispatcher = Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA
 
 /**
  * Holds the display on at full brightness for as long as the screen is shown, and gives both back on

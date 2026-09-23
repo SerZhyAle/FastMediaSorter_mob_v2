@@ -13,7 +13,6 @@ import androidx.wear.watchface.complications.datasource.ComplicationRequest
 import androidx.wear.watchface.complications.datasource.SuspendingComplicationDataSourceService
 import com.sza.fastmediasorter.wear.MainActivity
 import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.domain.model.WearComplicationContent
 import com.sza.fastmediasorter.wear.domain.model.WearComplicationKind
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.writeTo
@@ -33,22 +32,21 @@ abstract class BaseWearComplicationService : SuspendingComplicationDataSourceSer
     protected abstract val kind: WearComplicationKind
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData? {
-        val content = loadContent(kind)
-        return mapContentToData(request.complicationType, content)
+        val text = WearComplicationTextFormatter(resources).format(loadContent(kind)) ?: return null
+        return mapTextToData(request.complicationType, text)
     }
 
     override fun getPreviewData(type: ComplicationType): ComplicationData? {
-        val sample = WearComplicationContent.Value(
+        val sample = WearComplicationText(
             shortText = "FMS",
             longText = "FastMediaSorter",
             contentDescription = "FastMediaSorter",
             launchTarget = null
         )
-        return mapContentToData(type, sample)
+        return mapTextToData(type, sample)
     }
 
-    private fun mapContentToData(type: ComplicationType, content: WearComplicationContent): ComplicationData? {
-        val value = content as? WearComplicationContent.Value ?: return null
+    private fun mapTextToData(type: ComplicationType, value: WearComplicationText): ComplicationData? {
         val tapIntent = createTapPendingIntent(value.launchTarget)
 
         val data: ComplicationData? = when (type) {
@@ -60,7 +58,7 @@ abstract class BaseWearComplicationService : SuspendingComplicationDataSourceSer
     }
 
     private fun buildShortText(
-        value: WearComplicationContent.Value,
+        value: WearComplicationText,
         tapIntent: PendingIntent?
     ): ShortTextComplicationData {
         val builder = ShortTextComplicationData.Builder(
@@ -75,12 +73,11 @@ abstract class BaseWearComplicationService : SuspendingComplicationDataSourceSer
     }
 
     private fun buildLongText(
-        value: WearComplicationContent.Value,
+        value: WearComplicationText,
         tapIntent: PendingIntent?
     ): LongTextComplicationData {
-        val text = value.longText ?: value.shortText
         val builder = LongTextComplicationData.Builder(
-            text = PlainComplicationText.Builder(text).build(),
+            text = PlainComplicationText.Builder(value.longText).build(),
             contentDescription = PlainComplicationText.Builder(value.contentDescription).build()
         ).setMonochromaticImage(createMonochromaticImage())
 

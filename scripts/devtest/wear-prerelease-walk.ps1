@@ -12,7 +12,7 @@
     the dump and the tap sends a coordinate into the neighbouring row, which is exactly how two taps
     in one earlier watch sweep hit the wrong control (CLAUDE.md section 9).
 
-    Five outcomes per screen, and the difference between them matters more than the count:
+    Six outcomes per screen, and the difference between them matters more than the count:
       observed    - the expected token was in the UI dump.
       failed      - the screen opened and the expected token was not on it. A product defect.
       unreachable - the control that opens the screen was never found, so the screen was never
@@ -29,6 +29,11 @@
       skipped  - an entry declared `optional` whose control is not on screen in this run. The first
                  launch of a fresh install shows a permission gate that a second run does not, and
                  an entry that is absent by design is neither a failure nor a question for a human.
+      outOfFlavor - an entry whose `flavors` does not name the installed build (S3358). The Home
+                 section or Apps program it reaches for is withheld from that artifact by
+                 `WearRestrictedCapabilities`, so there is no control on the glass and never was.
+                 Told apart from `skipped` because that one is about this run's starting state and
+                 may resolve on the next run; this one is about the artifact and never will.
 
     A destination is never recognised by its own title alone. Most watch screens repeat the label of
     the chip that opened them - the Home chip "Apps" opens a screen titled "Apps" - so a title match
@@ -418,7 +423,11 @@ function Invoke-ReachControl {
 
     $reach = {
         if ($ResourceId) { Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', $ResourceId) }
-        else { Invoke-AdbVerb -Arguments @('tap-label', '-Label', $Label) }
+        # -Exact, because the default substring match taps the wrong control whenever a label is a
+        # prefix of another visible one: measured on the small-round emulator 2026-09-22, the
+        # settings-screen label 'Screen' matched the screen-off rim control's 'Screen off' and
+        # dimmed the display mid-walk, spending a failed verdict on a screen that was never opened.
+        else { Invoke-AdbVerb -Arguments @('tap-label', '-Label', $Label, '-Exact') }
     }
 
     # Reach for the control where the walk is standing BEFORE moving the list (S2767). Most entries
@@ -451,6 +460,23 @@ function Invoke-ReachControl {
         if ($null -ne $current) { $lastSeen = $current }
     }
     return $tap
+}
+
+function Resolve-WalkBackAfter {
+    # The BACK presses one entry owes after its screen opened. A number binds every flavor; a map
+    # keyed by flavor says them apart, because the depth depends on what the SAME run walks next:
+    # apps-stopwatch ends the Apps block in standard (its second key climbs from the Apps list to
+    # Home, where the settings entry starts) but is mid-block in noLegal (one key; the list is the
+    # next entry's parent). Measured on the small-round emulator 2026-09-22 - see the entry's note3.
+    param([Parameter(Mandatory)]$Screen, [string]$Flavor)
+    $value = $Screen.backAfter
+    if ($null -eq $value) { return 1 }
+    if ($value -is [int] -or $value -is [long] -or $value -is [double]) { return [int]$value }
+    $property = $value.PSObject.Properties[$Flavor]
+    if ($null -eq $property) {
+        Stop-Run 2 "entry '$($Screen.id)' declares backAfter as a flavor map with no '$Flavor' key - the installed build's exit depth is undeclared"
+    }
+    return [int]$property.Value
 }
 
 function Restore-WalkPosition {
@@ -524,6 +550,29 @@ foreach ($screen in $screens) {
         # The names rather than the level objects: walk.json is read by an operator diagnosing a run,
         # and `Apps > Calculator` is the whole answer to "where was this reached from".
         position = @($position | ForEach-Object { $_.name })
+    }
+
+    # S3358 - the entry's own flavor scope, answered before anything is spent on it. An entry whose
+    # `flavors` does not name the installed build declares a Home section or an Apps program that
+    # build does not draw at all, so there is no control to reach for, nothing to judge, and no level
+    # to climb back out of: the walk records the row and moves on without touching the device.
+    #
+    # First in the iteration on purpose, ahead of the settle and the rehome guard. Hunting for a
+    # control that was never going to be there spends the whole scroll budget and leaves the list
+    # somewhere else, which then fails the NEXT entry - the same reason the `optional` branch below
+    # declines to hunt. Measured 2026-09-20 on emulator-5556 against wear-standard-release 2.60.9202.109:
+    # twelve withheld rows produced eighteen `unreachable` verdicts and seven re-homes, and the walk
+    # never found its way back into the settings block at all.
+    #
+    # `outOfFlavor` rather than `skipped`: an optional entry is absent because of THIS RUN's starting
+    # state and may be there on the next one, while this row is absent from the artifact. Both are
+    # scored by nothing, and telling them apart is what lets a reader see a narrow sweep for what it is.
+    if (-not (Test-WalkEntryInFlavor -Screen $screen -Flavor $result.flavor)) {
+        $row.outcome = 'outOfFlavor'
+        $row.detail = "declared for $(@($screen.flavors) -join ', '); the installed build is $($result.flavor), which does not draw this row"
+        $rows += [pscustomobject]$row
+        if (-not $Json) { Write-Host "walk: $($screen.id) -> outOfFlavor ($($result.flavor))" -ForegroundColor DarkGray }
+        continue
     }
 
     # Settle before reaching for the control too: the previous entry's BACK is still animating when
@@ -677,7 +726,7 @@ foreach ($screen in $screens) {
     # Still not found: hunt for it the same way the tap above hunts for a control, instead of judging
     # the screen by the slice of it that happens to be in view. A marker is chosen because it belongs
     # to the destination, not because it fits on 480 px - `Clear` is the calculator's C key at the
-    # bottom of a scrolling keypad, and `Favourites` is the last Home section, below the fold on a
+    # bottom of a scrolling keypad, and `Favorites` is the last Home section, below the fold on a
     # small round face; both were reported missing from screens that were plainly showing (S1984).
     # Downwards first, because that is where most of a list is; then back to the top for a marker the
     # list had already scrolled past.
@@ -766,8 +815,15 @@ foreach ($screen in $screens) {
     # How many levels this entry sits above the next one. A nested block - the settings pages, the
     # mini-programs - declares 0 on the section it opens and 1 on each page inside it, so the walk
     # comes back out by the same number of steps it went in by.
-    $backAfter = if ($null -ne $screen.backAfter) { [int]$screen.backAfter } else { 1 }
-    for ($b = 0; $b -lt $backAfter; $b++) { Invoke-AdbVerb -Arguments @('key', '-Key', 'BACK') | Out-Null }
+    $backAfter = Resolve-WalkBackAfter -Screen $screen -Flavor $result.flavor
+    # `backBurst` is for a screen that refuses a single back on purpose (S3394, the water flashlight):
+    # one back is exactly the input that screen exists to survive, so its FIRST level is left by that
+    # many backs sent in one call, inside the screen's counting window. The remaining levels are plain.
+    for ($b = 0; $b -lt $backAfter; $b++) {
+        $backArgs = @('key', '-Key', 'BACK')
+        if ($b -eq 0 -and $screen.backBurst) { $backArgs += @('-Repeat', "$($screen.backBurst)") }
+        Invoke-AdbVerb -Arguments $backArgs | Out-Null
+    }
     $position = Pop-WearWalkPosition -Position $position -BackAfter $backAfter
 }
 
@@ -795,6 +851,11 @@ $result.counts = [ordered]@{
     failed         = @($rows | Where-Object { $_.outcome -eq 'failed' }).Count
     unreachable    = @($rows | Where-Object { $_.outcome -eq 'unreachable' }).Count
     manual         = @($rows | Where-Object { $_.outcome -eq 'manual' }).Count
+    # S3358: reported, never scored. The row is absent from the installed artifact by the capability
+    # gating's own decision, so it is neither a defect nor an open question - but a sweep that opened
+    # seven screens out of twenty-eight has to say where the other twenty-one went, or a narrow run
+    # and a broken one print the same line.
+    outOfFlavor    = @($rows | Where-Object { $_.outcome -eq 'outOfFlavor' }).Count
     shapeFailures  = $shapeFailuresCount
     shapeUnchecked = $shapeUncheckedCount
     shapeAccepted  = $shapeAcceptedCount
@@ -834,7 +895,6 @@ Restore-AmbientSetting
 Close-DeviceStateJournal
 
 $walkPath = Join-Path $outPath 'walk.json'
-[pscustomobject]$result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $walkPath -Encoding UTF8
 
 # S2767: an unreachable screen counts against the run exactly as a failed one does. It satisfied no
 # Play requirement, and letting it pass would be the green verdict about the unseen that this walk
@@ -850,9 +910,14 @@ $verdict = if ($result.counts.failed -gt 0 -or $result.counts.unreachable -gt 0 
 $result.exitCode = $verdict
 $result.ok = ($verdict -eq 0)
 
+# The artifact is stamped AFTER the verdict: written before it, the file carried the initializer's
+# exitCode 2 on the 2026-09-22 02:10 run while the process exited 1, and the session reading the
+# file afterwards saw a could-not-verify where the run had judged and failed.
+[pscustomobject]$result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $walkPath -Encoding UTF8
+
 if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 8 -Compress }
 else {
     $batteryNote = if ($null -ne $result.batteryPct) { "battery $($result.batteryPct)%; " } else { '' }
-    Write-Host ("wear-prerelease-walk: ${batteryNote}observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), shapeFailures $shapeFailuresCount, shapeUnchecked $shapeUncheckedCount, shapeAccepted $shapeAcceptedCount ($($result.flavor)), rehomes $rehomeCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
+    Write-Host ("wear-prerelease-walk: ${batteryNote}observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), outOfFlavor $($result.counts.outOfFlavor), shapeFailures $shapeFailuresCount, shapeUnchecked $shapeUncheckedCount, shapeAccepted $shapeAcceptedCount ($($result.flavor)), rehomes $rehomeCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
 }
 exit $verdict

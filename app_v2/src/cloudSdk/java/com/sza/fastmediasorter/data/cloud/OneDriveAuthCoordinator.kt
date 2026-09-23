@@ -204,8 +204,7 @@ class OneDriveAuthCoordinator(
         callback: (AuthResult) -> Unit
     ) {
         Timber.d("OneDrive signInInternal: starting interactive login, scopes=${SCOPES.toList()}")
-        @Suppress("DEPRECATION")
-        app.signIn(activity, null, SCOPES, object : AuthenticationCallback {
+        val signInCallback = object : AuthenticationCallback {
             override fun onSuccess(authenticationResult: IAuthenticationResult) {
                 applicationScope.launch(Dispatchers.Main) {
                     callback(handleAuthenticationResult(authenticationResult))
@@ -257,7 +256,9 @@ class OneDriveAuthCoordinator(
                 Timber.d("Interactive sign-in cancelled")
                 callback(AuthResult.Cancelled)
             }
-        })
+        }
+        @Suppress("DEPRECATION")
+        app.signIn(activity, null, SCOPES, signInCallback)
     }
 
     /** Silent token acquisition with MsalDeclinedScopeException retry on a reduced scope set. */

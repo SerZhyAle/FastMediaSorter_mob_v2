@@ -61,7 +61,7 @@
     <string name="cloud_list_files_failed">क्लाउड से फाइलें लोड नहीं हो सकीं। कृपया पुनः प्रयास करें।</string>
     <string name="cloud_list_folders_failed">क्लाउड से फ़ोल्डर लोड नहीं हो सके। कृपया पुनः प्रयास करें।</string>
     <string name="cloud_metadata_failed">क्लाउड से फ़ाइल विवरण लोड नहीं हो सका। कृपया पुनः प्रयास करें।</string>
-    <string name="cloud_restore_instructions">Google ड्राइव कनेक्शन को पुनर्स्थापित करने की आवश्यकता है।\n\nकृपया:\n1. मुख्य मेनू पर जाएं\n2. \'संसाधन\' खोलें\n3. \"%1$s\" पर टैप करें\n4. अपने Google खाते से साइन इन करें</string>
+    <string name="cloud_restore_instructions">Google Drive कनेक्शन को पुनर्स्थापित करना होगा।\n\nकृपया:\n1. मुख्य स्क्रीन खोलें\n2. \"%1$s\" पर टैप करें\n3. अपने Google खाते से साइन इन करें</string>
     <string name="cloud_search_failed">क्लाउड स्टोरेज में खोज नहीं हो सकी। कृपया पुनः प्रयास करें।</string>
     <string name="cloud_sign_out_failed">क्लाउड अकाउंट से लॉग आउट नहीं कर पा रहे हैं। कृपया पुनः प्रयास करें।</string>
     <string name="cloud_storage">घन संग्रहण</string>
@@ -74,7 +74,7 @@
     <string name="dropbox_authentication_failed">ड्रॉपबॉक्स प्रमाणीकरण विफल रहा</string>
     <string name="dropbox_beta_email_body">नमस्कार,\n\nकृपया मेरे ड्रॉपबॉक्स खाते को FastMediaSorter बीटा टेस्टर सूची में जोड़ दें।\n\nमेरा ड्रॉपबॉक्स ईमेल:</string>
     <string name="dropbox_beta_email_subject">FastMediaSorter - ड्रॉपबॉक्स बीटा एक्सेस अनुरोध</string>
-    <string name="dropbox_beta_message">Dropbox एकीकरण अभी सीमित बीटा में है.\n\n⚠️ मुझे आपसे संपर्क करने की ज़रूरत क्यों है?\nDropbox को समीक्षा अवधि के दौरान ऐप डेवलपर्स को टेस्टर मैन्युअल रूप से पंजीकृत करने होते हैं. यह Dropbox की ओर से एक बार की तकनीकी औपचारिकता है - आपका ईमेल केवल आपके Dropbox खाते को स्वीकृत सूची में जोड़ने के लिए उपयोग होता है.\n\n🔒 आपकी गोपनीयता का पूरा सम्मान किया जाता है:\n• हम आपका ईमेल एकत्र, संग्रहीत या साझा नहीं करते\n• हम आपकी किसी फ़ाइल या डेटा तक पहुंच नहीं बनाते\n• आपका ईमेल इस ऐप में केवल Dropbox एक्सेस देने के लिए उपयोग होता है\n\nएक्सेस पाने के लिए हमें ईमेल करें:\nserzhyale@gmail.com</string>
+    <string name="dropbox_beta_message">Dropbox एकीकरण अभी सीमित बीटा में है.\n\n⚠️ मुझे आपसे संपर्क करने की ज़रूरत क्यों है?\nDropbox को समीक्षा अवधि के दौरान ऐप डेवलपर्स को टेस्टर मैन्युअल रूप से पंजीकृत करने होते हैं. यह Dropbox की ओर से एक बार की तकनीकी औपचारिकता है - आपका ईमेल केवल आपके Dropbox खाते को स्वीकृत सूची में जोड़ने के लिए उपयोग होता है.\n\n🔒 आपकी गोपनीयता का पूरा सम्मान किया जाता है:\n• हम आपका ईमेल एकत्र, संग्रहीत या साझा नहीं करते\n• हम आपकी किसी फ़ाइल या डेटा तक पहुंच नहीं बनाते\n• आपका ईमेल इस ऐप में केवल Dropbox एक्सेस देने के लिए उपयोग होता है\n\nएक्सेस पाने के लिए हमें ईमेल करें:\nsza@ukr.net</string>
     <string name="dropbox_beta_send_email">ईमेल भेजें</string>
     <string name="dropbox_beta_title">ड्रॉपबॉक्स बीटा एक्सेस</string>
     <string name="dropbox_connection_test_failed">कनेक्शन विफल: %1$s</string>

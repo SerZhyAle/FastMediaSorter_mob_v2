@@ -33,7 +33,11 @@ object ResourceTypeIconMap {
     /**
      * S1124: whether [iconFor] returns a monochrome glyph that needs a theme tint to stay legible on a
      * light tile, vs a colored source badge that must keep its own color. Only the shared cast glyph
-     * (streams) is monochrome white; every `ic_resource_*` badge is a distinct full color.
+     * (streams) is monochrome white; every `ic_resource_*` badge shows its source hue.
+     *
+     * S3433: that hue is no longer painted into the drawing - each `ic_resource_*` file is one white paint
+     * whose root tint names `color_source_<type>`, so untinted it shows its colour look in the theme's tone,
+     * and a caller that tints it replaces the hue (ICON-RENDER 0.10 section 10, items B and D).
      *
      * S1861: `ic_watch` joins the monochrome set - it is a single-tone glyph, not a colored source
      * badge, and without the theme tint it is lost on a light tile.

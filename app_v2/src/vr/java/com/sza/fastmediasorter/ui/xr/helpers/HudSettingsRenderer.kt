@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.xr.helpers
 
 import android.graphics.Canvas
-import android.graphics.Paint
 import android.graphics.RectF
 
 /**
@@ -51,6 +50,7 @@ class HudSettingsRenderer {
         private const val SLIDER_KNOB_R = 22f
         private const val SLIDER_GAP = 96f
         private const val SLIDER_CAPTION_GAP = 46f
+        private const val SLIDER_CENTRE = 0.5f
 
         private const val FOOTER_BASELINE = 1044f
         private const val FOOTER_TEXT_SIZE = 40f
@@ -109,8 +109,8 @@ class HudSettingsRenderer {
     var resumeValue = "-"
 
     /** 0..1 positions of the two sliders. */
-    var distanceValue = 0.5f
-    var sizeValue = 0.5f
+    var distanceValue = SLIDER_CENTRE
+    var sizeValue = SLIDER_CENTRE
 
     // Hover cursor, mirrored from the dispatcher like the strip's.
     var hoverX = -1f

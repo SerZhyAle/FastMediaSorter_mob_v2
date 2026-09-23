@@ -266,8 +266,15 @@ private fun FavouriteActionsMenu(
                     viewModel.runOperation(record, WearFileOperation.SendToPhone)
                 WearFileOperationKind.MOVE_TO_PHONE ->
                     viewModel.runOperation(record, WearFileOperation.MoveToPhone)
+                WearFileOperationKind.COPY_TO_WATCH ->
+                    viewModel.runOperation(record, WearFileOperation.CopyToWatch)
+                WearFileOperationKind.MOVE_TO_WATCH ->
+                    viewModel.runOperation(record, WearFileOperation.MoveToWatch)
                 WearFileOperationKind.OPEN_ON_PHONE -> viewModel.reportOpenOnPhoneUnavailable()
                 WearFileOperationKind.SEND_TO_RECEIVER -> onSendTo()
+                // S3383: this list never offers either one - the credential screen both need lives
+                // in the browse graph - so the branch is unreachable and says so rather than acting.
+                WearFileOperationKind.ENCRYPT_FILEDO, WearFileOperationKind.DECRYPT_FILEDO -> Unit
             }
         },
         onDismiss = onClose,

@@ -62,17 +62,45 @@ class OverlayPlateGeometryTest {
     }
 
     @Test
-    fun `plate stops at the view bottom instead of growing past it`() {
+    fun `plate pinned at the view bottom grows upward to hold the whole translation`() {
         val tightBottom = SOURCE.top + 100f
 
         val bounds = OverlayPlateGeometry.plateBounds(
             source = SOURCE,
-            translation = OverlayTranslationExtent(width = 200f, height = 400f, padding = PADDING),
+            translation = OverlayTranslationExtent(width = 200f, height = 150f, padding = PADDING),
             viewBottom = tightBottom,
         )
 
         assertEquals(tightBottom, bounds.bottom, DELTA)
-        assertTrue("a clamped plate still covers its own line", bounds.height >= SOURCE.height)
+        assertEquals(150f + PADDING * 2, bounds.height, DELTA)
+        assertTrue("a lifted plate still covers its own line", bounds.top <= SOURCE.top)
+        assertTrue("a lifted plate still covers its own line", bounds.bottom >= SOURCE.top + SOURCE.height)
+    }
+
+    @Test
+    fun `plate taller than the view spans exactly the view`() {
+        val bounds = OverlayPlateGeometry.plateBounds(
+            source = SOURCE,
+            translation = OverlayTranslationExtent(width = 200f, height = 5000f, padding = PADDING),
+            viewBottom = VIEW_BOTTOM,
+        )
+
+        assertEquals(0f, bounds.top, DELTA)
+        assertEquals(VIEW_BOTTOM, bounds.bottom, DELTA)
+    }
+
+    @Test
+    fun `source box above the view top keeps its anchor`() {
+        val above = SOURCE.copy(top = -20f)
+
+        val bounds = OverlayPlateGeometry.plateBounds(
+            source = above,
+            translation = OverlayTranslationExtent(width = 200f, height = 30f, padding = PADDING),
+            viewBottom = VIEW_BOTTOM,
+        )
+
+        assertEquals(above.top, bounds.top, DELTA)
+        assertEquals(above.top + above.height, bounds.bottom, DELTA)
     }
 
     @Test

@@ -4,6 +4,7 @@ import androidx.datastore.preferences.core.edit
 import com.sza.fastmediasorter.wear.data.preferences.WearPreferenceKeys
 import com.sza.fastmediasorter.wear.data.preferences.WearPreferenceSection
 import com.sza.fastmediasorter.wear.data.preferences.WearSettingsDataStore
+import com.sza.fastmediasorter.wear.domain.capability.WearAppearanceDefaults
 import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.UnitSystem
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
@@ -17,13 +18,22 @@ import javax.inject.Singleton
 
 @Singleton
 class WearAppearancePreferencesImpl @Inject constructor(
-    settings: WearSettingsDataStore
+    settings: WearSettingsDataStore,
+    private val appearanceDefaults: WearAppearanceDefaults
 ) : WearPreferenceSection(settings), WearAppearancePreferences {
 
-    // S2000: an absent value reads as the branded animation - the one background that needs no
-    // delivered file, so a watch that never received a frame still draws something.
+    // S2000: an absent value reads as a background that needs no delivered file, so a watch that
+    // never received a frame still draws something.
+    // S3362: WHICH one that is, is the build variant's answer rather than a constant - the store
+    // artifact starts black for WO-V13 while the sideload build keeps the branded animation. An
+    // unreadable name is treated the same as an absent one: it is what a downgrade past a mode leaves
+    // behind, and resolving it here rather than through fromNameOrDefault keeps that recovery on the
+    // variant's own starting value. fromNameOrDefault stays the answer for a name the PHONE sent,
+    // where the fallback means "this watch build has no such mode" and must not depend on the flavor.
     override val backgroundMode: Flow<WearBackgroundMode> = store.data.map { prefs ->
-        WearBackgroundMode.fromNameOrDefault(prefs[WearPreferenceKeys.BACKGROUND_MODE])
+        val stored = prefs[WearPreferenceKeys.BACKGROUND_MODE]
+        WearBackgroundMode.entries.firstOrNull { it.name == stored }
+            ?: appearanceDefaults.startingBackgroundMode
     }
 
     override suspend fun setBackgroundMode(mode: WearBackgroundMode) {

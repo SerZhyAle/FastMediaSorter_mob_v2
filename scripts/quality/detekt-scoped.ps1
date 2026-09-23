@@ -373,8 +373,9 @@ $byRule = ((@($before) | Group-Object RuleId | ForEach-Object { "$($_.Name) $($_
 # which is the step that owns the FAIL. Returning 1 here would abort a closure over a finding
 # this run may have just fixed.
 if ($reverted.Count -gt 0) {
-    Write-Host ("detekt-scoped: FIXED [{0}] - {1} of {2} file(s) offered to the corrector; {3} restored because the correction " +
-        "added findings it cannot fix ({4}) - {5}; {6} finding(s) judged before correction - {7} ({8:N1}s)." -f `
+    # -f binds tighter than +, so the two literals are joined first or the first keeps raw {0}..{3}.
+    Write-Host (("detekt-scoped: FIXED [{0}] - {1} of {2} file(s) offered to the corrector; {3} restored because the correction " +
+        "added findings it cannot fix ({4}) - {5}; {6} finding(s) judged before correction - {7} ({8:N1}s).") -f `
             $scope, $targetCount, $fileCount, $reverted.Count, ($revertRules -join ', '), ($reverted -join ', '), `
             @($before).Count, $byRule, $sw.Elapsed.TotalSeconds) -ForegroundColor Yellow
 }

@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.ui.launcher.dimclock
 
 import com.sza.fastmediasorter.domain.model.devicestatus.MetricValue
+import com.sza.fastmediasorter.domain.model.network.HotspotState
 import com.sza.fastmediasorter.domain.usecase.devicestatus.GetBatteryStatusUseCase
+import com.sza.fastmediasorter.domain.usecase.devicestatus.GetNetworkStatusUseCase
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimStatusChip
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimStatusContentProvider
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimStatusSnapshot
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,8 +29,10 @@ import javax.inject.Singleton
 @Singleton
 class LauncherDimStatusContentProvider @Inject constructor(
     private val getBatteryStatusUseCase: GetBatteryStatusUseCase,
+    private val getNetworkStatusUseCase: GetNetworkStatusUseCase,
     private val launcherSignalRegistry: LauncherSignalRegistry,
-    private val foreignNotificationCounts: ForeignNotificationCounts
+    private val foreignNotificationCounts: ForeignNotificationCounts,
+    private val connectivitySource: ConnectivityDimStatusSource,
 ) : DimStatusContentProvider {
 
     private fun batteryFlow(): Flow<Pair<Int, Boolean>> = flow {
@@ -45,9 +50,16 @@ class LauncherDimStatusContentProvider @Inject constructor(
     override fun observeStatus(): Flow<DimStatusSnapshot> = combine(
         batteryFlow(),
         launcherSignalRegistry.observe(),
-        foreignNotificationCounts.counts
-    ) { (percent, isCharging), signals, notifCounts ->
-        val chips = mapSignalsToChips(signals, notifCounts)
+        foreignNotificationCounts.counts,
+        connectivitySource.bluetoothState(),
+        connectivitySource.hotspotState(),
+    ) { (percent, isCharging), signals, notifCounts, bluetoothOn, hotspotState ->
+        // S3366: the transport read rides the same poll tick as the battery, so the dim screen
+        // never wakes to ask the network a question it did not already pay to ask the battery.
+        val transport = getNetworkStatusUseCase.read().transport
+        val chips = mapSignalsToChips(signals, notifCounts) +
+            connectivitySource.chips(bluetoothOn, hotspotState == HotspotState.ENABLED, transport)
+        Timber.d("S3366: dim status snapshot chips=" + chips.size)
         DimStatusSnapshot(
             batteryPercent = percent,
             isCharging = isCharging,
@@ -78,7 +90,8 @@ class LauncherDimStatusContentProvider @Inject constructor(
             packageName = pkgName,
             count = count,
             isNotification = isNotif,
-            contentDescription = null
+            // S3366: the application name is the chip's accessibility label and its tap meaning.
+            contentDescription = signal.label
         )
     }
 

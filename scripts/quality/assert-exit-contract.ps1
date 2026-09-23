@@ -345,6 +345,10 @@ foreach ($f in $files) {
             # Write-FailLine / Write-Info, plus direct writes to the console streams.
             if ($cand -match '(Write-[A-Za-z]+\s+\S|\[Console\]::(Error|Out)\.Write)') { $hasReason = $true; break }
             if ($cand -match '^\s*throw\b') { $hasReason = $true; break }
+            # S3461: the two baseline-write guards print their refusal with Write-Error before
+            # returning false, so `if (-not (Test-BaselineWrite ..)) { exit 2 }` already says why.
+            # Seven -UpdateBaseline paths were flagged, and a second Write-Error there would repeat it.
+            if ($cand -match '\bTest-Baseline(Floor)?Write\b') { $hasReason = $true; break }
             # S1368: a pipeline that renders to the success stream is a printed reason too. The
             # machine-readable verbs matter most - `-Verb CheckContext` signals its outcome as a
             # JSON object plus exit 3, and the only "fix" this heuristic used to accept would have

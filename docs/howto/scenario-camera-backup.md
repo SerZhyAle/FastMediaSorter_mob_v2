@@ -45,7 +45,7 @@ Now tell FastMediaSorter where to send the photos.
 
 > **What is SMB?** It's simply how Windows shares folders over home Wi-Fi. You don't need to understand the details - just follow the steps.
 
-1. Open the app → tap **Add (⊕)** in the top toolbar → select **"Network folder SMB"**
+1. Open the app → tap **Add (⊕)** in the top toolbar → select **"Network folder (SMB)"**
 2. In the **Server / Path** field enter: `\\192.168.1.100\PhoneBackup`
    - Replace `192.168.1.100` with your actual PC IP from Step 1
    - Replace `PhoneBackup` with your actual folder name

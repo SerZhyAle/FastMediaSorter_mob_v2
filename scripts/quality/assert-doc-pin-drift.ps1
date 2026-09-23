@@ -14,6 +14,12 @@
     generate-toolchain-pins.ps1 (managed generated block) and verified by the separate
     doc-pins-sync gate - they are intentionally not required by the drift checker.
 
+    S3445 added a second rule, run in this process after the pin checker: a user document may not
+    credit a capability to a dependency no build declares (scripts/doc-drift/
+    absent-dependency-claims.psd1, judged by scripts/doc-drift/AbsentDependencyClaims.ps1). Each
+    such line prints as `CLAIM | doc:line | ..` and fails the gate like a pin drift; the documents
+    it judges join the declared input set.
+
     S2827 gave it -ChangedFiles: this is a fixed-input gate in the S2824 sense - nine named
     files, one rule judged between them - and it had no way to decline a drift its caller
     could not have caused. Its trigger is a ChangeType category, not a path, so every Doc /
@@ -22,8 +28,8 @@
 
     Exit codes (S1070):
       0 - no drift (doc pins match Gradle).
-      1 - drift found (FAIL / INCONSISTENT / MISSING), or the underlying checker could
-          not run.
+      1 - drift found (FAIL / INCONSISTENT / MISSING), a CLAIM finding, or the underlying
+          checker could not run.
       3 - NOT CHARGED (S2824/S2827) - drift was found, but no file this gate declares as an
           input is in -ChangedFiles, so it is not attributable to this run. The drift is
           printed. Distinct from 1 because the caller cannot fix it and from 0 because
@@ -61,6 +67,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/fixed-input-scope.ps1')
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $repoRoot 'scripts/doc-drift/AbsentDependencyClaims.ps1')
 $checker = Join-Path $repoRoot 'scripts/check-doc-vs-gradle.ps1'
 
 if (-not (Test-Path -LiteralPath $checker)) {
@@ -94,6 +101,10 @@ function Get-DocPinInputPaths {
         foreach ($sourcePath in (Get-GradleSourcePaths -RepoRoot $RepoRoot).Values) { $paths.Add($sourcePath) }
     }
 
+    foreach ($claimDoc in (Get-AbsentDependencyClaimDocPaths -RepoRoot $RepoRoot)) { $paths.Add($claimDoc) }
+    $paths.Add((Join-Path $RepoRoot 'scripts/doc-drift/absent-dependency-claims.psd1'))
+    $paths.Add((Join-Path $RepoRoot 'gradle/libs.versions.toml'))
+
     return @($paths | Sort-Object -Unique)
 }
 
@@ -116,19 +127,27 @@ else {
     $output | ForEach-Object { Write-Host $_ }
 }
 
-if ($checkerExit -ne 0) {
+$claimFindings = @(Get-AbsentDependencyClaimFindings -RepoRoot $repoRoot)
+$claimFindings | ForEach-Object { Write-Host $_ }
+
+if ($checkerExit -ne 0 -or $claimFindings.Count -gt 0) {
     # S2827: the declared input set, read from the same two places the checker reads it from, so
     # adding a pin or a doc to pins.psd1 widens this gate's chargeable set in the same edit.
     $declaredInputs = @(Get-DocPinInputPaths -RepoRoot $repoRoot)
     if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles -InputPaths $declaredInputs)) {
-        $findings = @($output | Where-Object { $_ -match '^(FAIL|INCONSISTENT|MISSING)\s*\|' })
+        $findings = @(@($output | Where-Object { $_ -match '^(FAIL|INCONSISTENT|MISSING)\s*\|' }) + $claimFindings)
         if ($findings.Count -eq 0) { $findings = @('drift reported by check-doc-vs-gradle.ps1') }
         Write-NotChargedVerdict -GateName 'assert-doc-pin-drift' -Findings $findings
         exit 3
     }
-    Write-Host 'assert-doc-pin-drift: FAIL - dev/TECH_REQUIREMENTS.md is out of sync with Gradle pins (run: pwsh -NoProfile -File scripts/check-doc-vs-gradle.ps1).' -ForegroundColor Red
+    if ($checkerExit -ne 0) {
+        Write-Host 'assert-doc-pin-drift: FAIL - dev/TECH_REQUIREMENTS.md is out of sync with Gradle pins (run: pwsh -NoProfile -File scripts/check-doc-vs-gradle.ps1).' -ForegroundColor Red
+    }
+    if ($claimFindings.Count -gt 0) {
+        Write-Host "assert-doc-pin-drift: FAIL - $($claimFindings.Count) document line(s) credit a capability to a dependency no build declares (CLAIM rows above; rule: scripts/doc-drift/absent-dependency-claims.psd1)." -ForegroundColor Red
+    }
     exit 1
 }
 
-Write-Host 'assert-doc-pin-drift: PASS (doc pins match Gradle).' -ForegroundColor Green
+Write-Host 'assert-doc-pin-drift: PASS (doc pins match Gradle, no absent-dependency claim).' -ForegroundColor Green
 exit 0

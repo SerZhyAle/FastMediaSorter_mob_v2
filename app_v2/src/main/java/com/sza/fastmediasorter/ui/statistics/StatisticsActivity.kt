@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import timber.log.Timber
 
 /**
  * Statistics dashboard host (S0473 Phase 04).
@@ -54,7 +53,7 @@ class StatisticsActivity : BaseActivity<ActivityStatisticsBinding>() {
     override fun setupViews() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.toolbar.setUpNavigation(this)
 
         val span = resources.getInteger(R.integer.statistics_card_span)
         binding.rvStatistics.layoutManager = GridLayoutManager(this, span).apply {

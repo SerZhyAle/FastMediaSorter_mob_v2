@@ -11,17 +11,16 @@
     android:background="?android:attr/colorBackground"
     android:fitsSystemWindows="true">
 
-    <com.google.android.material.appbar.MaterialToolbar
+    <com.sza.fastmediasorter.ui.common.widget.StandardToolbar
         android:id="@+id/toolbar"
+        style="@style/Widget.FastMediaSorter.Toolbar.Flat"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationContentDescription="@string/back"
-        app:navigationIcon="@drawable/ic_arrow_back"
-        app:navigationIconTint="?attr/colorOnPrimary" />
+        app:navigationIcon="@drawable/ic_arrow_back" />
 
     <!-- S2178: declared before the buttons so it draws behind them. Makes the pinned zone a visibly
          different plane from the list; a 1dp divider alone was invisible on the dark theme and the

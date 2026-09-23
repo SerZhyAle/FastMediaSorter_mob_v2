@@ -102,20 +102,32 @@ fun WearFileActionsDialog(
 private fun labelOf(kind: WearFileOperationKind): Int = when (kind) {
     WearFileOperationKind.SEND_TO_PHONE -> R.string.wear_file_op_send_to_phone
     WearFileOperationKind.MOVE_TO_PHONE -> R.string.wear_file_op_move_to_phone
+    WearFileOperationKind.COPY_TO_WATCH -> R.string.wear_file_op_copy_to_watch
+    WearFileOperationKind.MOVE_TO_WATCH -> R.string.wear_file_op_move_to_watch
     WearFileOperationKind.DELETE -> R.string.delete
     WearFileOperationKind.RENAME -> R.string.wear_file_op_rename
     WearFileOperationKind.OPEN_ON_PHONE -> R.string.wear_file_op_open_on_phone
     WearFileOperationKind.SEND_TO_RECEIVER -> R.string.wear_file_op_send_to
+    // S3383: named here so the map stays total over the kinds. No caller of this dialog offers
+    // either one - both need the browse graph's credential screen - so these labels are what a
+    // future surface would inherit rather than invent.
+    WearFileOperationKind.ENCRYPT_FILEDO -> R.string.wear_filedo_op_encrypt
+    WearFileOperationKind.DECRYPT_FILEDO -> R.string.wear_filedo_op_decrypt
 }
 
 @DrawableRes
 private fun iconOf(kind: WearFileOperationKind): Int = when (kind) {
     WearFileOperationKind.SEND_TO_PHONE -> R.drawable.ic_copy
     WearFileOperationKind.MOVE_TO_PHONE -> R.drawable.ic_move
+    // The same two icons in the other direction: the verb is what differs, not the kind of errand.
+    WearFileOperationKind.COPY_TO_WATCH -> R.drawable.ic_copy
+    WearFileOperationKind.MOVE_TO_WATCH -> R.drawable.ic_move
     WearFileOperationKind.DELETE -> R.drawable.ic_delete
     WearFileOperationKind.RENAME -> R.drawable.ic_edit
     WearFileOperationKind.OPEN_ON_PHONE -> R.drawable.ic_open_in_new
     WearFileOperationKind.SEND_TO_RECEIVER -> R.drawable.ic_share
+    WearFileOperationKind.ENCRYPT_FILEDO -> R.drawable.ic_lock
+    WearFileOperationKind.DECRYPT_FILEDO -> R.drawable.ic_lock_open
 }
 
 /**
@@ -131,6 +143,10 @@ private val ACTION_ORDER = listOf(
     WearFileOperationKind.SEND_TO_RECEIVER,
     WearFileOperationKind.SEND_TO_PHONE,
     WearFileOperationKind.MOVE_TO_PHONE,
+    // S3359: the same place for the opposite direction - a file is offered one direction or the
+    // other, never both, so the two pairs share one position in the menu (strategic 3.3).
+    WearFileOperationKind.COPY_TO_WATCH,
+    WearFileOperationKind.MOVE_TO_WATCH,
     WearFileOperationKind.OPEN_ON_PHONE,
     WearFileOperationKind.RENAME,
     WearFileOperationKind.DELETE

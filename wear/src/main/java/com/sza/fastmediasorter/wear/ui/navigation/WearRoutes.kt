@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.navigation
 
 import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat
+import com.sza.fastmediasorter.wear.domain.model.WearFdSecMode
 import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
 
 /**
@@ -65,7 +66,12 @@ object WearRoutes {
     const val VOICE_RECORDER = "quick_voice"
     const val VOICE_NOTES = "voice_notes"
 
-    /** S2516: the display used as a light, locked against touch. Carries its `canonicalKey` too. */
+    /**
+     * S2516: the display used as a light, locked against touch. Carries its `canonicalKey` too.
+     *
+     * S3362: registered only where `offersScreenTakeoverPrograms` is true. The touch lock is what the
+     * program is for and what WO-V3 refuses, so the store build carries neither the route nor the row.
+     */
     const val WATER_FLASHLIGHT = "water_flashlight"
 
     /** S2458: live motion and activity readings. Carries its `canonicalKey` like the programs above. */
@@ -134,14 +140,22 @@ object WearRoutes {
     const val TOURIST = "tourist_info"
 
     /**
-     * S3109: the watch's text clipboard and its send action. Ships in both watch flavors with no
-     * `WearRestrictedCapabilities` gate - it needs no permission and no hardware.
+     * S3109: the watch's text clipboard and its send action.
+     *
+     * S3216 recorded that it needs no permission and so shipped in both flavors. S3362 corrected the
+     * conclusion rather than the fact: the send action is a Data Layer round trip, so the program is
+     * registered behind `offersContentTransfer` and the store build, which declares no listener to
+     * answer it, offers neither the route nor the row.
      */
     const val CLIPBOARD = "clipboard"
 
     /**
      * S3216: the distress signal. Carries its `canonicalKey` like the programs above, and that key is
      * the phone's route key too - one program on two devices.
+     *
+     * S3362: registered behind `offersScreenTakeoverPrograms`, beside the water flashlight. Declaring
+     * no permission was never the whole review question - the signalling half swallows the dismiss
+     * gesture WO-V3 asks for and strobes full-screen with the alarm stream at its maximum.
      */
     const val SOS = "sos"
 
@@ -152,6 +166,9 @@ object WearRoutes {
     const val ARG_UPDATED = "updated"
     const val ARG_FILE_ID = "fileId"
     const val ARG_TILE_KIND = "tileKind"
+
+    /** S3383: which of the three FileDO errands the credential screen was opened for. */
+    const val ARG_FDSEC_MODE = "fdSecMode"
 
     /** S2532: which document format was refused, named by [WearDocumentFormat.name]. */
     const val ARG_DOCUMENT_FORMAT = "documentFormat"
@@ -186,6 +203,14 @@ object WearRoutes {
     const val AUDIO_PLAYER_PATTERN = "audio_player/{$ARG_FILE_ID}"
     const val VIDEO_PLAYER_PATTERN = "video_player/{$ARG_FILE_ID}"
     const val IMAGE_VIEWER_PATTERN = "image_viewer/{$ARG_FILE_ID}"
+
+    /**
+     * S3383: where a FileDO container's credential is typed, for all three errands.
+     *
+     * Not a content route: it renders nothing of the file and must keep the browse list underneath
+     * it on the back stack, because two of the three modes return to that list.
+     */
+    const val FDSEC_CREDENTIAL_PATTERN = "fdsec_credential/{$ARG_FILE_ID}/{$ARG_FDSEC_MODE}"
 
     /** S2532: the watch's own reader for a document it renders, the fourth of the content screens. */
     const val DOCUMENT_VIEWER_PATTERN = "document_viewer/{$ARG_FILE_ID}"
@@ -243,6 +268,9 @@ object WearRoutes {
     fun imageViewer(fileId: Long): String = "image_viewer/$fileId"
 
     fun documentViewer(fileId: Long): String = "document_viewer/$fileId"
+
+    /** S3383: enum names need no encoding, like [unsupportedFile] below. */
+    fun fdSecCredential(fileId: Long, mode: WearFdSecMode): String = "fdsec_credential/$fileId/${mode.name}"
 
     /** The refusal, told which format it is refusing. Enum names need no encoding. */
     fun unsupportedFile(format: WearDocumentFormat): String = "unsupported_file/${format.name}"

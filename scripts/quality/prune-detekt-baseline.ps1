@@ -47,6 +47,14 @@
     [string[]] parameter to its first element only, which is why every consumer in this repo
     comma-splits (S1184).
 
+.PARAMETER Deleted
+    S3387: repo-relative or absolute paths of .kt files a change deleted, one comma-joined argument.
+    Mutually exclusive with -Files. No analyser runs - there is nothing left to analyse - so every
+    baseline entry keyed on a deleted file's name is DEAD, and no entry can be added by construction.
+    That holds only while the bare name is gone from the whole module: an ID carries no directory,
+    so a surviving same-named file could own the entries. Such a survivor is a refusal naming it, and
+    the honest prune for that name is -Files on the survivor, which analyses every copy.
+
 .PARAMETER Apply
     Rewrite the operational baseline, deleting the DEAD entries. Requires -Reason. Without it the
     script reports and writes nothing.
@@ -66,7 +74,10 @@
       2 - CANNOT VERIFY. java missing, classpath incomplete, config or baseline absent, a named file
           absent or outside the module, a wrapped <ID> line in a baseline, or the analyser produced
           no baseline. Never reported as 0: "could not check" and "checked and found nothing" are
-          different facts, and collapsing them certifies unchecked work.
+          different facts, and collapsing them certifies unchecked work. Under -Deleted also: a
+          named path still on disk, or its file name still present elsewhere in the module.
+      3 - -Deleted report run only: the baseline still holds entries of the deleted files. Nothing
+          was written; re-run with -Apply -Reason. post-change.ps1 reads it as an advisory.
       4 - the target's code domain is held by another session, so nothing was written. The queue
           place is held - wait for the turn in the background and rerun (S2635).
 
@@ -75,6 +86,9 @@
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/prune-detekt-baseline.ps1 -Module app_v2 -Files "a.kt,b.kt" -Apply -Reason 'S2112 measurement package'
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/quality/prune-detekt-baseline.ps1 -Module app_v2 -Deleted "app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/RestoreDeletedUseCase.kt" -Apply -Reason 'S3384 deleted the use case'
 #>
 [CmdletBinding()]
 param(
@@ -82,6 +96,8 @@ param(
     [string]$Module = 'app_v2',
 
     [string[]]$Files,
+
+    [string[]]$Deleted,
 
     [switch]$Apply,
 
@@ -122,11 +138,20 @@ foreach ($p in @($BaselinePath, $SourceRoot, $ConfigPath)) {
 }
 
 # --- named set ---------------------------------------------------------------
-$named = @()
-foreach ($entry in ($Files | Where-Object { $_ })) {
-    $named += ($entry -split ',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+function Split-PathList([string[]]$List) {
+    $out = @()
+    foreach ($entry in ($List | Where-Object { $_ })) {
+        $out += ($entry -split ',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+    }
+    return , $out
 }
-if ($named.Count -eq 0) { Exit-CannotVerify 'no file named - refusing to prune a baseline against an empty set.' }
+$named = Split-PathList $Files
+$deletedNamed = Split-PathList $Deleted
+$deletedMode = $deletedNamed.Count -gt 0
+if ($deletedMode -and $named.Count -gt 0) {
+    Exit-CannotVerify '-Files and -Deleted are separate runs: one analyses files on disk, the other prunes names that left it.'
+}
+if ($named.Count -eq 0 -and -not $deletedMode) { Exit-CannotVerify 'no file named - refusing to prune a baseline against an empty set.' }
 
 $sourceRootAbs = (Resolve-Path -LiteralPath $SourceRoot).Path
 $namedNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
@@ -148,7 +173,7 @@ foreach ($f in $named) {
 $analysed = @(Get-ChildItem -LiteralPath $sourceRootAbs -Recurse -Filter *.kt -File -ErrorAction SilentlyContinue |
         Where-Object { $namedNames.Contains($_.Name) } |
         ForEach-Object { $_.FullName } | Sort-Object -Unique)
-if ($analysed.Count -eq 0) { Exit-CannotVerify 'the expanded input set is empty - nothing to analyse.' }
+if ($analysed.Count -eq 0 -and -not $deletedMode) { Exit-CannotVerify 'the expanded input set is empty - nothing to analyse.' }
 
 # --- baseline reader ---------------------------------------------------------
 # Fail closed on a wrapped entry, same reasoning as split-detekt-baseline.ps1's Read-BaselineIds: a
@@ -182,6 +207,101 @@ function Get-IdFileName([string]$Id) {
     $rest = ($Id -split ':', 2)
     if ($rest.Count -lt 2) { return '' }
     return ($rest[1] -split '\$', 2)[0]
+}
+
+function Get-RuleSummary([object[]]$Dead) {
+    return ($Dead | Group-Object { ($_.Id -split ':', 2)[0] } | Sort-Object Count -Descending |
+            ForEach-Object { "$($_.Name) $($_.Count)" }) -join ', '
+}
+
+# --- write: deletion only ----------------------------------------------------
+# Line-indexed deletion, so every surviving line is copied verbatim - element order, indentation and
+# escaping all stay exactly as detekt wrote them.
+function Write-PrunedBaseline([object[]]$Dead, [string]$Scope) {
+    $deadIndex = [System.Collections.Generic.HashSet[int]]::new([int[]]@($Dead | ForEach-Object { $_.Index }))
+
+    # The re-read is inside the lock with the write, not before it: the deletion is indexed by LINE
+    # NUMBER, so a sibling that rewrote the baseline between the read and the write would have every
+    # surviving index point at a different entry.
+    $codeScope = $null
+    try {
+        $codeScope = Enter-CodeLockOrExit -Path $BaselinePath `
+            -Reason "prune-detekt-baseline.ps1 -Apply ($Module baseline)"
+        $original = [System.IO.File]::ReadAllLines($BaselinePath)
+        $kept = [System.Collections.Generic.List[string]]::new()
+        for ($i = 0; $i -lt $original.Length; $i++) {
+            if ($deadIndex.Contains($i)) { continue }
+            $kept.Add($original[$i])
+        }
+
+        # The file detekt writes is LF-terminated with no BOM and ends in a newline; reproduce that
+        # rather than letting the platform default turn a prune into a whole-file diff.
+        $text = ($kept -join "`n") + "`n"
+        [System.IO.File]::WriteAllText($BaselinePath, $text, [System.Text.UTF8Encoding]::new($false))
+    }
+    finally { Exit-CodeLockScope -Scope $codeScope }
+
+    Write-Host ("prune-detekt-baseline: PRUNED [{0}] - removed {1} dead entr(ies) - {2}." -f $Scope, $Dead.Count, (Get-RuleSummary $Dead)) -ForegroundColor Green
+    Write-Host ("prune-detekt-baseline: reason - {0}" -f $Reason)
+    Write-Host 'prune-detekt-baseline: regenerate the derived artifacts in the same wave - split-detekt-baseline.ps1 -Update and assert-detekt-baseline-absorption.ps1 -Update.'
+    exit 0
+}
+
+function Write-JsonReport([object]$Report) {
+    if (-not $Json) { return }
+    $jsonPath = if ([System.IO.Path]::IsPathRooted($Json)) { $Json } else { Join-Path $RepoRoot $Json }
+    $jsonDir = Split-Path -Parent $jsonPath
+    if ($jsonDir -and -not (Test-Path -LiteralPath $jsonDir)) { New-Item -ItemType Directory -Path $jsonDir -Force | Out-Null }
+    $Report | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $jsonPath -Encoding UTF8
+}
+
+# --- deleted mode (S3387) ----------------------------------------------------
+if ($deletedMode) {
+    $deletedNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $rootPrefix = $sourceRootAbs.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+    foreach ($f in $deletedNamed) {
+        $p = if ([System.IO.Path]::IsPathRooted($f)) { $f } else { Join-Path $RepoRoot $f }
+        $abs = [System.IO.Path]::GetFullPath($p)
+        if (Test-Path -LiteralPath $abs) {
+            Exit-CannotVerify "named as deleted but still on disk: $f - prune it through -Files, which analyses it."
+        }
+        if ([System.IO.Path]::GetExtension($abs) -ne '.kt') { Exit-CannotVerify "not a Kotlin source: $f" }
+        if (-not $abs.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            Exit-CannotVerify "file is outside module '$Module' ($sourceRootAbs): $f"
+        }
+        [void]$deletedNames.Add([System.IO.Path]::GetFileName($abs))
+    }
+
+    $survivors = @(Get-ChildItem -LiteralPath $sourceRootAbs -Recurse -Filter *.kt -File -ErrorAction SilentlyContinue |
+            Where-Object { $deletedNames.Contains($_.Name) } |
+            ForEach-Object { [System.IO.Path]::GetRelativePath($RepoRoot, $_.FullName) -replace '\\', '/' } | Sort-Object -Unique)
+    if ($survivors.Count -gt 0) {
+        Exit-CannotVerify ("a deleted file's name still exists in module '$Module': $($survivors -join ', '). " +
+            'A baseline ID carries no directory, so its entries may be the survivor''s - prune through -Files on the survivor, which analyses every same-named copy.')
+    }
+
+    $dead = @($baselineEntries | Where-Object { $deletedNames.Contains((Get-IdFileName $_.Id)) })
+    $scope = "$Module, $($deletedNames.Count) deleted name(s)"
+    Write-Host ("prune-detekt-baseline: [{0}] baseline holds {1} entr(ies) for names no longer in the module; no analyser run." -f $scope, $dead.Count)
+    Write-JsonReport ([pscustomobject]@{
+            module  = $Module
+            deleted = @($deletedNames)
+            dead    = @($dead | ForEach-Object { $_.Id })
+            new     = @()
+            applied = [bool]$Apply -and $dead.Count -gt 0
+            reason  = $Reason
+        })
+
+    if ($dead.Count -eq 0) {
+        Write-Host ("prune-detekt-baseline: PASS [{0}] - nothing left behind; baseline unchanged." -f $scope) -ForegroundColor Green
+        exit 0
+    }
+    if (-not $Apply) {
+        foreach ($d in $dead) { Write-Host ("prune-detekt-baseline:   DEAD {0}" -f $d.Id) }
+        Write-Host ("prune-detekt-baseline: {0} entr(ies) of deleted files would be removed - {1}. Re-run with -Apply -Reason to write." -f $dead.Count, (Get-RuleSummary $dead)) -ForegroundColor Yellow
+        exit 3
+    }
+    Write-PrunedBaseline -Dead $dead -Scope $scope
 }
 
 $scoped = @($baselineEntries | Where-Object { $namedNames.Contains((Get-IdFileName $_.Id)) })
@@ -265,11 +385,7 @@ $scope = "$Module, $($namedNames.Count) name(s), $($analysed.Count) file(s) anal
 Write-Host ("prune-detekt-baseline: [{0}] baseline holds {1} entr(ies) for these names; the fresh run found {2} ({3:N1}s)." -f `
         $scope, $scoped.Count, $freshIds.Count, $sw.Elapsed.TotalSeconds)
 
-if ($Json) {
-    $jsonPath = if ([System.IO.Path]::IsPathRooted($Json)) { $Json } else { Join-Path $RepoRoot $Json }
-    $jsonDir = Split-Path -Parent $jsonPath
-    if ($jsonDir -and -not (Test-Path -LiteralPath $jsonDir)) { New-Item -ItemType Directory -Path $jsonDir -Force | Out-Null }
-    [pscustomobject]@{
+Write-JsonReport ([pscustomobject]@{
         module        = $Module
         names         = @($namedNames)
         analysedFiles = @($analysed)
@@ -279,8 +395,7 @@ if ($Json) {
         new           = @($new)
         applied       = [bool]$Apply -and $new.Count -eq 0
         reason        = $Reason
-    } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $jsonPath -Encoding UTF8
-}
+    })
 
 if ($new.Count -gt 0) {
     foreach ($id in $new) { Write-Host ("prune-detekt-baseline:   NEW {0}" -f $id) -ForegroundColor Yellow }
@@ -294,41 +409,9 @@ if ($dead.Count -eq 0) {
     exit 0
 }
 
-$byRule = ($dead | Group-Object { ($_.Id -split ':', 2)[0] } | Sort-Object Count -Descending |
-        ForEach-Object { "$($_.Name) $($_.Count)" }) -join ', '
-
 if (-not $Apply) {
-    Write-Host ("prune-detekt-baseline: {0} dead entr(ies) would be removed - {1}. Re-run with -Apply -Reason to write." -f $dead.Count, $byRule) -ForegroundColor Yellow
+    Write-Host ("prune-detekt-baseline: {0} dead entr(ies) would be removed - {1}. Re-run with -Apply -Reason to write." -f $dead.Count, (Get-RuleSummary $dead)) -ForegroundColor Yellow
     exit 0
 }
 
-# --- write: deletion only ----------------------------------------------------
-# Line-indexed deletion, so every surviving line is copied verbatim - element order, indentation and
-# escaping all stay exactly as detekt wrote them.
-$deadIndex = [System.Collections.Generic.HashSet[int]]::new([int[]]@($dead | ForEach-Object { $_.Index }))
-
-# The re-read is inside the lock with the write, not before it: the deletion is indexed by LINE
-# NUMBER, so a sibling that rewrote the baseline between the read and the write would have every
-# surviving index point at a different entry.
-$codeScope = $null
-try {
-    $codeScope = Enter-CodeLockOrExit -Path $BaselinePath `
-        -Reason "prune-detekt-baseline.ps1 -Apply ($Module baseline)"
-    $original = [System.IO.File]::ReadAllLines($BaselinePath)
-    $kept = [System.Collections.Generic.List[string]]::new()
-    for ($i = 0; $i -lt $original.Length; $i++) {
-        if ($deadIndex.Contains($i)) { continue }
-        $kept.Add($original[$i])
-    }
-
-    # The file detekt writes is LF-terminated with no BOM and ends in a newline; reproduce that
-    # rather than letting the platform default turn a prune into a whole-file diff.
-    $text = ($kept -join "`n") + "`n"
-    [System.IO.File]::WriteAllText($BaselinePath, $text, [System.Text.UTF8Encoding]::new($false))
-}
-finally { Exit-CodeLockScope -Scope $codeScope }
-
-Write-Host ("prune-detekt-baseline: PRUNED [{0}] - removed {1} dead entr(ies) - {2}." -f $scope, $dead.Count, $byRule) -ForegroundColor Green
-Write-Host ("prune-detekt-baseline: reason - {0}" -f $Reason)
-Write-Host 'prune-detekt-baseline: regenerate the derived artifacts in the same wave - split-detekt-baseline.ps1 -Update and assert-detekt-baseline-absorption.ps1 -Update.'
-exit 0
+Write-PrunedBaseline -Dead $dead -Scope $scope

@@ -8,6 +8,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
@@ -106,7 +107,12 @@ class ResourcePasswordManager(
             .setPositiveButton(R.string.ok, null) // Set to null to override click
             .setNegativeButton(R.string.cancel, null)
             .create()
-        
+        // Enter reuses the OK button's click, so the PIN validation runs from the keyboard too;
+        // the focused PIN field consumes Space before the delegate's toggle can fire.
+        DialogKeyboardDelegate.applyTo(dialog) {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+        }
+
         dialog.setOnShowListener {
             val okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
             okButton.setOnClickListener {

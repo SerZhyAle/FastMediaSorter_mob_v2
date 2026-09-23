@@ -4,9 +4,18 @@
     android:viewportWidth="24"
     android:viewportHeight="24"
     android:tint="?attr/colorControlNormal">
-    <path
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="@color/white"
-        android:strokeWidth="1.6"
-        android:pathData="M16,9V4l1,0c0.55,0 1,-0.45 1,-1s-0.45,-1 -1,-1H7C6.45,2 6,2.45 6,3s0.45,1 1,1l1,0v5c0,1.66 -1.34,3 -3,3v2h5.97v7l1,1l1,-1v-7H19v-2C17.34,12 16,10.66 16,9z"/>
+    <!-- S3433 fit: moves the ink into the 20-unit live area of the 24 grid (ICON-RENDER 0.10
+         item A); the path data is the original drawing, untouched. -->
+    <group
+        android:pivotX="12"
+        android:pivotY="12.15"
+        android:scaleX="0.978"
+        android:scaleY="0.978"
+        android:translateY="-0.199">
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="@color/white"
+            android:strokeWidth="2"
+            android:pathData="M16,9V4l1,0c0.55,0 1,-0.45 1,-1s-0.45,-1 -1,-1H7C6.45,2 6,2.45 6,3s0.45,1 1,1l1,0v5c0,1.66 -1.34,3 -3,3v2h5.97v7l1,1l1,-1v-7H19v-2C17.34,12 16,10.66 16,9z"/>
+    </group>
 </vector>

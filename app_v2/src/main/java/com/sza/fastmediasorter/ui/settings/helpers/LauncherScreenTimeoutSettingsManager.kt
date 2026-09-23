@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
 import com.sza.fastmediasorter.util.showBoundTo
-import timber.log.Timber
 
 /**
  * Owns the two screen-timeout rows and restores their stored values after an abandoned custom entry.
@@ -138,7 +137,6 @@ class LauncherScreenTimeoutSettingsManager(
     }
 
     private fun updateTimeout(seconds: Int, onCharge: Boolean) {
-        Timber.d("S3284: timeout row wrote %ds, onCharge=%b", seconds, onCharge)
         val current = currentSettings()
         val updated = if (onCharge) {
             current.withLauncher { copy(screenBlackoutTimeoutOnChargeSeconds = seconds) }

@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.wear.data.network.WearNetworkDataSources
 import com.sza.fastmediasorter.wear.data.network.WearNetworkFailureClassifier
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
+import com.sza.fastmediasorter.wear.domain.files.WearFdSecUseCase
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
@@ -81,6 +82,7 @@ class BrowseViewModelRefineTest {
         // remembered" so these cases keep asserting the refine behaviour itself rather than a restore.
         every { preferences.browseContentTypes } returns flowOf(emptySet())
         every { preferences.browseSortOrder } returns flowOf(BrowseSortOrder.DEFAULT)
+        every { preferences.fileDoOperationsEnabled } returns flowOf(false)
         coEvery { preferences.setBrowseContentTypes(any()) } returns Unit
         coEvery { preferences.setBrowseSortOrder(any()) } returns Unit
         mockkStatic(Uri::class)
@@ -124,7 +126,10 @@ class BrowseViewModelRefineTest {
             fileOperations = BrowseFileOperationsManager(
                 capabilityPolicy = capabilityPolicy,
                 performFileOperation = performFileOperation,
-                sendToReceiversRepository = sendToReceivers
+                sendToReceiversRepository = sendToReceivers,
+                preferences = preferences,
+                fdSec = WearFdSecUseCase(),
+                context = mockk(relaxed = true)
             ),
             // S2488: the real classifier - it is a pure mapping and these cases never reach it.
             networkFailureClassifier = WearNetworkFailureClassifier()

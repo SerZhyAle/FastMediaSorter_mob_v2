@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.WearCameraRefusal
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -55,22 +56,29 @@ class StartWatchCameraBroadcastUseCase @Inject constructor(
         // A build with the broadcast layer disabled answers honestly instead of starting a wait that
         // nothing would ever end.
         !controller.isAvailable -> WatchCameraBroadcast.Refused(WearCameraRefusal.NOT_SUPPORTED)
+        // S2551: a live AUDIO_ONLY session is not an answer to a request for a picture - taking it for
+        // one served the watch the audio stream's address and left it on a player with nothing to show.
         else -> (controller.state.value as? BroadcastState.Live)
+            ?.takeIf { it.isCameraLive() }
             ?.let { serving(it, startedNow = false) }
             ?: startAndAwait()
     }
 
     private suspend fun startAndAwait(): WatchCameraBroadcast {
+        Timber.d("S2551: no camera session live, starting one for the watch")
         // A failure left behind by an earlier session is a terminal state the wait below would read as
         // this session's own outcome.
         controller.acknowledgeFailure()
         controller.start(modeForGrantedPermissions())
+        // The wait ends on a camera session or on a failure, never on "not idle": an audio broadcast
+        // already running makes the state non-idle from the first emission, and a session started here
+        // would be reported before its camera ever opened.
         val settled = withTimeoutOrNull(START_TIMEOUT_MILLIS) {
-            controller.state.first { it !is BroadcastState.Idle }
+            controller.state.first { it.isCameraLive() || it is BroadcastState.Failed }
         }
-        return when (settled) {
-            is BroadcastState.Live -> serving(settled, startedNow = true)
-            is BroadcastState.Failed -> WatchCameraBroadcast.Refused(settled.failure.asRefusal())
+        return when {
+            settled is BroadcastState.Live -> serving(settled, startedNow = true)
+            settled is BroadcastState.Failed -> WatchCameraBroadcast.Refused(settled.failure.asRefusal())
             // Nothing settled inside the budget: the watch is told the capture failed rather than
             // being left on a spinner until its own timeout.
             else -> WatchCameraBroadcast.Refused(WearCameraRefusal.CAPTURE_FAILED)

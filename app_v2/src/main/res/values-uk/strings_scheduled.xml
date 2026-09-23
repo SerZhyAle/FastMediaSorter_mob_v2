@@ -35,7 +35,7 @@
     <string name="scheduled_ops_confirm_delete">Видалити це завдання?</string>
     <string name="scheduled_ops_enabled">Операцію увімкнено</string>
     <string name="scheduled_ops_error_source_required">Оберіть джерело</string>
-    <string name="scheduled_ops_error_target_required">Оберіть отримувача</string>
+    <string name="scheduled_ops_error_target_required">Оберіть призначення</string>
     <string name="scheduled_ops_every_hours">Кожних годин</string>
     <string name="scheduled_ops_every_minutes">Кожних хвилин</string>
     <string name="scheduled_ops_filter_all_files">Усі файли (включаючи немедіафайли)</string>
@@ -50,7 +50,6 @@
     <string name="scheduled_ops_log_empty">Журнал порожній</string>
     <string name="scheduled_ops_log_title">Журнал операцій</string>
     <string name="scheduled_ops_next_run">Наступний запуск о:</string>
-    <string name="scheduled_ops_no_destinations">Спочатку додайте отримувачів у розділі «Отримувачі»</string>
     <string name="scheduled_ops_notif_channel_name">Операції за розкладом</string>
     <string name="scheduled_ops_notif_running">Виконується операція за розкладом..</string>
     <string name="scheduled_ops_op_copy">Копіювання</string>
@@ -77,4 +76,13 @@
     <string name="scheduled_ops_toggle_hint">Копіювання, переміщення, видалення у фоні</string>
     <string name="scheduled_ops_notif_permission_title">Запланованій операції потрібен дозвіл</string>
     <string name="scheduled_ops_notif_permission_text">Надайте доступ до всіх файлів, щоб фонове переміщення/видалення могло видаляти оригінали.</string>
+    <string name="scheduled_ops_screen_title">Операції над файлами за розкладом</string>
+    <string name="scheduled_ops_action_run_all">Запустити всі зараз</string>
+    <string name="scheduled_ops_action_pause_all">Пауза всіх</string>
+    <string name="scheduled_ops_action_resume_all">Відновити всі</string>
+    <string name="scheduled_ops_screen_empty">Запланованих операцій ще немає. Натисніть +, щоб створити першу.</string>
+    <string name="scheduled_ops_link_subtitle">Керування операціями та історія запусків</string>
+    <string name="scheduled_ops_history_title">Історія запусків</string>
+    <string name="scheduled_ops_history_empty">Запусків ще не було.</string>
+    <string name="scheduled_ops_history_clear_confirm">Очистити історію запусків?</string>
 </resources>

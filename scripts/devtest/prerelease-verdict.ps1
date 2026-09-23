@@ -312,6 +312,10 @@ if ($WalkResults) {
         # that did not exist. It is neither, and now it says so.
         unreachable = @($walkScreens | Where-Object { $_.outcome -eq 'unreachable' }).Count
         manual      = $manualOpen
+        # S3358: a row the installed flavor withholds. Counted so the line accounts for every declared
+        # entry, and weighed by nothing below - the capability gating decided this row is absent, which
+        # is the artifact behaving as designed rather than a screen anyone failed to judge.
+        outOfFlavor = @($walkScreens | Where-Object { $_.outcome -eq 'outOfFlavor' }).Count
         # A WO-V16 violation: the screen opened and showed what it should, and part of it cannot fit
         # on the glass at any scroll position. That is a defect, so it joins `failed` below.
         offGlass    = @($shapeClasses | Where-Object { $_ -eq 'finding' }).Count
@@ -360,6 +364,13 @@ else {
         if ($walkBreakdown.coverage) {
             Write-Host ("  coverage {0} screen(s) walked, {1} excluded with a recorded reason" -f `
                 $walkBreakdown.coverage.walked, $walkBreakdown.coverage.excluded) -ForegroundColor Cyan
+        }
+        # S3358: on the same line as the coverage, because it is the same statement of scope - the
+        # declared entries this artifact does not carry. Without it a store-flavor sweep prints seven
+        # observed out of twenty-eight and offers no account of the rest.
+        if ($walkBreakdown.outOfFlavor -gt 0) {
+            Write-Host ("  coverage {0} declared entry(ies) withheld from the installed flavor, not walked" -f `
+                $walkBreakdown.outOfFlavor) -ForegroundColor Cyan
         }
     }
     $word = if (-not $pass) { 'FAIL' }

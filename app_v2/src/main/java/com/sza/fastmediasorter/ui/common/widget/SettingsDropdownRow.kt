@@ -21,8 +21,6 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ViewSettingsDropdownRowBinding
-import com.sza.fastmediasorter.ui.dialog.TooltipDialog
-import timber.log.Timber
 import kotlin.math.ceil
 
 /**
@@ -36,14 +34,14 @@ import kotlin.math.ceil
  * popup is deliberately non-focusable - so it never received D-pad keys and never appeared in the
  * accessibility or uiautomator window walk. A modal popup takes window focus, which fixes both.
  *
- * The row owns the help icon -> [TooltipDialog] wiring. Public XML attributes use the
+ * The help-icon chrome is the shared [HelpRowDelegate]. Public XML attributes use the
  * `sdr_` prefix (see `attrs.xml`).
  */
 class SettingsDropdownRow @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : LinearLayout(context, attrs, defStyleAttr), LabelColumnRow {
+) : LinearLayout(context, attrs, defStyleAttr), LabelColumnRow, HelpableRow {
 
     private val binding = ViewSettingsDropdownRowBinding.inflate(LayoutInflater.from(context), this)
 
@@ -51,13 +49,18 @@ class SettingsDropdownRow @JvmOverloads constructor(
     private val titleView: TextView = binding.sdrTitle
     private val subtitleView: TextView = binding.sdrSubtitle
     private val helpIcon: ImageButton = binding.sdrIconHelp
+    private val help = HelpRowDelegate(helpIcon, "SettingsDropdownRow")
     private val inputLayout: TextInputLayout = binding.sdrInputLayout
     private val valueView: TextInputEditText = binding.sdrValue
     private val valueTextView: TextView = binding.sdrValueText
     private val valueTextIcon: ImageView = binding.sdrValueTextIcon
 
-    private var helpTitleText: CharSequence? = null
-    private var helpMessageText: CharSequence? = null
+    /**
+     * `true` when the optional help icon is visible.
+     */
+    override val isHelpVisible: Boolean
+        get() = help.isHelpVisible
+
     private var itemSelectedListener: ((Int) -> Unit)? = null
     private var entries: List<CharSequence> = emptyList()
     private var selectedIndex: Int = -1
@@ -74,10 +77,9 @@ class SettingsDropdownRow @JvmOverloads constructor(
     init {
         orientation = VERTICAL
 
-        bindHelpClick()
         bindItemSelection()
         applyAttributes(attrs, defStyleAttr)
-        syncHelpVisibility()
+        help.syncVisibility()
     }
 
     /**
@@ -158,25 +160,22 @@ class SettingsDropdownRow @JvmOverloads constructor(
     /**
      * Stores the help payload and makes the help icon available.
      */
-    fun setHelp(@StringRes titleRes: Int, @StringRes messageRes: Int) {
-        helpTitleText = context.getText(titleRes)
-        helpMessageText = context.getText(messageRes)
-        setHelpVisible(true)
+    override fun setHelp(@StringRes titleRes: Int, @StringRes messageRes: Int) {
+        help.setHelp(titleRes, messageRes)
     }
 
     /**
      * Shows or hides the help icon without dropping the stored help payload.
      */
-    fun setHelpVisible(visible: Boolean) {
-        helpIcon.visibility = if (visible && hasHelpPayload()) View.VISIBLE else View.GONE
-        helpIcon.contentDescription = helpTitleText?.toString().orEmpty()
+    override fun setHelpVisible(visible: Boolean) {
+        help.setHelpVisible(visible)
     }
 
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
         titleView.isEnabled = enabled
         subtitleView.isEnabled = enabled
-        helpIcon.isEnabled = enabled
+        help.setEnabled(enabled)
         inputLayout.isEnabled = enabled
         valueView.isEnabled = enabled
         valueTextView.isEnabled = enabled
@@ -271,27 +270,17 @@ class SettingsDropdownRow @JvmOverloads constructor(
         itemSelectedListener?.invoke(position)
     }
 
-    private fun bindHelpClick() {
-        helpIcon.setOnClickListener {
-            val title = helpTitleText
-            val message = helpMessageText
-            if (title.isNullOrEmpty() || message.isNullOrEmpty()) {
-                Timber.w("SettingsDropdownRow: help requested without payload")
-                return@setOnClickListener
-            }
-            TooltipDialog.show(context, title.toString(), message.toString())
-        }
-    }
-
     private fun applyAttributes(attrs: AttributeSet?, defStyleAttr: Int) {
         if (attrs == null) return
         context.obtainStyledAttributes(attrs, R.styleable.SettingsDropdownRow, defStyleAttr, 0).use { typedArray ->
             setTitle(typedArray.getText(R.styleable.SettingsDropdownRow_sdr_title) ?: "")
             setSubtitle(typedArray.getText(R.styleable.SettingsDropdownRow_sdr_subtitle))
-            helpTitleText = typedArray.getText(R.styleable.SettingsDropdownRow_sdr_helpTitle)
-            helpMessageText = typedArray.getText(R.styleable.SettingsDropdownRow_sdr_helpMessage)
+            help.setPayload(
+                typedArray.getText(R.styleable.SettingsDropdownRow_sdr_helpTitle),
+                typedArray.getText(R.styleable.SettingsDropdownRow_sdr_helpMessage),
+            )
             val showHelp = typedArray.getBoolean(R.styleable.SettingsDropdownRow_sdr_showHelp, false)
-            helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
+            help.applyInitialVisibility(showHelp)
             val entriesRes = typedArray.getResourceId(R.styleable.SettingsDropdownRow_sdr_entries, 0)
             if (entriesRes != 0) {
                 setEntries(resources.getTextArray(entriesRes).toList())
@@ -442,16 +431,5 @@ class SettingsDropdownRow @JvmOverloads constructor(
             weight = 0f
             marginEnd = if (column) resources.getDimensionPixelSize(R.dimen.margin_medium) else 0
         }
-    }
-
-    private fun syncHelpVisibility() {
-        if (!hasHelpPayload()) {
-            helpIcon.visibility = View.GONE
-        }
-        helpIcon.contentDescription = helpTitleText?.toString().orEmpty()
-    }
-
-    private fun hasHelpPayload(): Boolean {
-        return !helpTitleText.isNullOrEmpty() && !helpMessageText.isNullOrEmpty()
     }
 }

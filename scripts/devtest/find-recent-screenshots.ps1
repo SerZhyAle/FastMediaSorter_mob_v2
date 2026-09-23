@@ -153,54 +153,9 @@ $candidates = Get-ChildItem -LiteralPath $tempRootFull -Recurse -File -ErrorActi
     Where-Object { $normalizedExtensions -contains $_.Extension.TrimStart('.').ToLowerInvariant() } |
     Where-Object { $_.LastWriteTime -ge $cutoff }
 
-Add-Type -AssemblyName System.Drawing
-
-# A fixed sample grid rather than every pixel: the question is only whether the frame carries any
-# content at all, and a full read of 300+ full-resolution captures costs far more than it settles.
-$SAMPLE_GRID = 16
-
-<#
-.SYNOPSIS
-  Classifies one image as carrying signal or not.
-.DESCRIPTION
-  Returns $null when the frame is worth analysing, or the skip reason when it is not. A black or
-  zero-byte capture is FLAG_SECURE working as designed, not a rendering defect - it has been misread
-  as a real bug at least four times in this repo, so it must never reach the findings list. The
-  verdict is taken from the file's own bytes: the in-app secure-window detector has a documented
-  false negative and cannot be trusted about the same frame.
-#>
-function Get-SkipReason {
-    param([string]$Path, [long]$SizeBytes)
-
-    if ($SizeBytes -eq 0) { return 'zero-byte' }
-
-    $bitmap = $null
-    try {
-        $bitmap = [System.Drawing.Bitmap]::FromFile($Path)
-        if ($bitmap.Width -eq 0 -or $bitmap.Height -eq 0) { return 'unreadable' }
-
-        $luminances = [System.Collections.Generic.List[double]]::new()
-        for ($ix = 0; $ix -lt $SAMPLE_GRID; $ix++) {
-            for ($iy = 0; $iy -lt $SAMPLE_GRID; $iy++) {
-                $x = [int](($ix + 0.5) * $bitmap.Width / $SAMPLE_GRID)
-                $y = [int](($iy + 0.5) * $bitmap.Height / $SAMPLE_GRID)
-                $pixel = $bitmap.GetPixel([Math]::Min($x, $bitmap.Width - 1), [Math]::Min($y, $bitmap.Height - 1))
-                $luminances.Add(0.299 * $pixel.R + 0.587 * $pixel.G + 0.114 * $pixel.B)
-            }
-        }
-
-        $mean = ($luminances | Measure-Object -Average).Average
-        $variance = ($luminances | ForEach-Object { [Math]::Pow($_ - $mean, 2) } | Measure-Object -Average).Average
-
-        if ($variance -le $NearBlackVarianceMax -and $mean -le $NearBlackLuminanceMax) { return 'near-black' }
-        return $null
-    } catch {
-        # A frame the imaging stack cannot open is a broken capture, not a usability finding.
-        return 'unreadable'
-    } finally {
-        if ($bitmap) { $bitmap.Dispose() }
-    }
-}
+# The three skip reasons live in one place so this scan and the UI-sweep corpus compression cannot
+# disagree about the same frame (S2380).
+. (Join-Path $PSScriptRoot 'lib/frame-signal.ps1')
 
 $kept = [System.Collections.Generic.List[object]]::new()
 $skipped = [System.Collections.Generic.List[object]]::new()
@@ -213,7 +168,7 @@ foreach ($file in $candidates) {
     if ($VendorCheckoutPatterns | Where-Object { $relative -match $_ }) { continue }
 
     $candidateCount++
-    $reason = Get-SkipReason -Path $file.FullName -SizeBytes $file.Length
+    $reason = Get-FrameSkipReason -Path $file.FullName -SizeBytes $file.Length -NearBlackVarianceMax $NearBlackVarianceMax -NearBlackLuminanceMax $NearBlackLuminanceMax
     if ($reason) {
         $skipped.Add([pscustomobject]@{ path = "temp/$relative"; reason = $reason })
         continue

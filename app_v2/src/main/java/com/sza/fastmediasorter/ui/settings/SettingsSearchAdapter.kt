@@ -7,7 +7,6 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemSettingsSearchResultBinding
-import timber.log.Timber
 
 class SettingsSearchAdapter(
     private val onItemClicked: (SettingsSearchIndex) -> Unit

@@ -62,7 +62,7 @@ class LoadWearTileContentUseCaseTest {
         return LoadWearTileContentUseCase(
             contextAnsweringResourceIds(),
             tileAssignmentRepository,
-            networkSourceRepository,
+            dagger.Lazy { networkSourceRepository },
             wearStreamChannelRepository,
             wearFavoritesRepository,
             preferences,
@@ -82,7 +82,7 @@ class LoadWearTileContentUseCaseTest {
         useCase = LoadWearTileContentUseCase(
             contextAnsweringResourceIds(),
             tileAssignmentRepository,
-            networkSourceRepository,
+            dagger.Lazy { networkSourceRepository },
             wearStreamChannelRepository,
             wearFavoritesRepository,
             preferencesRepository,
@@ -277,6 +277,9 @@ private class TileContentFakeCapabilities : WearRestrictedCapabilities {
     override val offersScreenCapture: Boolean = true
     override val offersContentTransfer: Boolean = true
     override val offersExternalEntryPoints: Boolean = true
+
+    // S3362: the same offering build again, so the programs grid keeps mirroring the full catalog.
+    override val offersScreenTakeoverPrograms: Boolean = true
 }
 
 private class TileContentFakeTileAssignmentRepository : WearTileAssignmentRepository {

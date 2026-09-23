@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S3242: reusable bottom sheet shell - drag handle, title slot, scrolling content frame and an
+     optional action container for sheets that need a confirm/cancel pair (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md §5.4). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:id="@+id/sheetDragHandle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- S3413: gone until a sheet sets a title - an empty wrap_content TextView still measures one
+         title line plus its bottom padding, which opened a blank strip under the handle. -->
+    <TextView
+        android:id="@+id/tvSheetTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/dialog_padding_large"
+        android:paddingBottom="@dimen/margin_large"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Title"
+        android:visibility="gone" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <FrameLayout
+            android:id="@+id/sheetContentFrame"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/dialog_padding_large" />
+
+    </androidx.core.widget.NestedScrollView>
+
+    <FrameLayout
+        android:id="@+id/sheetActionContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/dialog_padding_large"
+        android:visibility="gone" />
+
+</LinearLayout>

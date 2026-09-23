@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
 
     <!-- Toolbar -->
-    <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" app:navigationIcon="@drawable/ic_arrow_back" app:navigationIconTint="?attr/colorOnPrimary" app:titleTextColor="?attr/colorOnPrimary" />
+    <com.sza.fastmediasorter.ui.common.widget.StandardToolbar android:id="@+id/toolbar" style="@style/Widget.FastMediaSorter.Toolbar.Primary" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" app:navigationIcon="@drawable/ic_arrow_back" />
 
     <!-- Fixed action buttons bar (always visible, no scroll) -->
     <LinearLayout android:id="@+id/layoutActionButtons" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingHorizontal="@dimen/padding_small" android:paddingVertical="@dimen/margin_tiny" android:background="?attr/colorSurfaceVariant">

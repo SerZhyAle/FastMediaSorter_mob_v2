@@ -52,7 +52,9 @@ class WearResourceSelectionViewModelTest {
     }
 
     @Test
-    fun `loads only WATCH_TRANSFERABLE resources and excludes LOCAL and VIRTUAL`() = runTest(mainDispatcherRule.testDispatcher) {
+    fun `loads only WATCH_TRANSFERABLE resources and excludes LOCAL and VIRTUAL`() = runTest(
+        mainDispatcherRule.testDispatcher
+    ) {
         resourceRepository.flow.value = listOf(
             MediaResource(id = 1, name = "SMB Share", path = "\\\\server\\share", type = ResourceType.SMB),
             MediaResource(id = 2, name = "FTP Server", path = "ftp://server", type = ResourceType.FTP),
@@ -73,7 +75,9 @@ class WearResourceSelectionViewModelTest {
     }
 
     @Test
-    fun `sanitizes saved selection by stripping non-transferable resource IDs`() = runTest(mainDispatcherRule.testDispatcher) {
+    fun `sanitizes saved selection by stripping non-transferable resource IDs`() = runTest(
+        mainDispatcherRule.testDispatcher
+    ) {
         resourceRepository.flow.value = listOf(
             MediaResource(id = 10, name = "SMB Share", path = "\\\\server\\share", type = ResourceType.SMB),
             MediaResource(id = 20, name = "Local Folders", path = "/sdcard/Pictures", type = ResourceType.LOCAL)

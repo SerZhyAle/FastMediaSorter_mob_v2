@@ -33,7 +33,7 @@ Choose where your photos live:
 1. Tap **Add (⊕)** → **Local Folder** → navigate to your photos folder → **Select**
 
 **Option B - Home NAS / Windows PC (SMB):**
-1. Tap **Add (⊕)** → **Network folder SMB**
+1. Tap **Add (⊕)** → **Network folder (SMB)**
 2. Tap **"Scan Network"** → select your PC/NAS from the list
 3. Fill in share name + username + password
 4. Tap **Test Connection** → **Save**

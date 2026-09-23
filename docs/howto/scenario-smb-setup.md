@@ -74,9 +74,9 @@ On **Windows:**
 
 ---
 
-## Step 4 - Select "Network folder SMB"
+## Step 4 - Select "Network folder (SMB)"
 
-In the resource type list, tap **"Network folder SMB"** (or the SMB tab).
+In the resource type list, tap **"Network folder (SMB)"** (or the SMB tab).
 
 ![Select Folder Type dialog - four options: Local Folder, Network Folder (SMB), SFTP/FTP, Cloud Storage](screenshots/screenshot-smb-step4.png)
 

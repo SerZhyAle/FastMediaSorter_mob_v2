@@ -83,8 +83,6 @@ fun WearOnboardingScreen(
         advance()
     }
     val step = if (page >= introPages) steps.getOrNull(page - introPages) else null
-    Timber.d("S3225: onboarding page %d of %d, step=%s", page, pageCount, step?.step)
-    Timber.d("S3259: onboarding page actions are StandardWearChip")
 
     // A group granted earlier - a reinstall that kept runtime grants - is not asked again.
     LaunchedEffect(page) {
@@ -295,4 +293,14 @@ data class WearOnboardingEntry(
     val steps: () -> List<WearOnboardingPlannedStep>,
     val onFinished: () -> Unit,
     val hasMediaAccess: () -> Boolean,
+    /**
+     * S3362: whether this build reaches the user's media at all.
+     *
+     * The welcome page has exactly one thing to say, and `R.string.wear_onboarding_welcome_body`
+     * promises browsing, playing and sorting media on the wrist. A build that offers none
+     * of that and asks for no permission either would open on a promise it cannot keep - the class
+     * of defect Play refused an earlier watch build for. Carried as a capability answer rather than
+     * a flavor name so nothing on this path learns which build it is (CLAUDE.md Rule 14).
+     */
+    val offersMediaAccess: Boolean,
 )

@@ -15,7 +15,11 @@ import kotlin.math.tan
 /**
  * S2922: pure offline astronomical calculator for solar events (sunrise, sunset, daylight)
  * based on the standard NOAA Solar Position Algorithm.
+ *
+ * The literals are the algorithm's published coefficients; they stay inline so each line can be
+ * checked against the reference formula, which named constants would hide.
  */
+@Suppress("MagicNumber")
 object SolarCalculator {
 
     private const val OFFICIAL_ZENITH = 90.83333333333333

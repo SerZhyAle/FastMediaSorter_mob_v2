@@ -3,11 +3,13 @@ package com.sza.fastmediasorter.ui.player.callbacks
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
@@ -188,11 +190,15 @@ class PlayerPlaybackCallbackImpl(
 
     override fun onBdTsFormatError() {
         if (activity.isDestroyed || activity.isFinishing) return
-        AlertDialog.Builder(activity)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.error_bdts_format_title))
             .setMessage(activity.getString(R.string.error_bdts_format_message))
             .setPositiveButton(R.string.ok, null)
-            .showBoundTo(activity)
+            .create()
+        DialogKeyboardDelegate.applyTo(dialog) {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+        }
+        dialog.showBoundTo(activity)
     }
 
     override fun onNetworkContainerRouteError(
@@ -201,11 +207,15 @@ class PlayerPlaybackCallbackImpl(
     ) {
         if (activity.isDestroyed || activity.isFinishing) return
         Timber.w("PlayerPlaybackCallbackImpl: VOB route error, stopping on current file: $path")
-        AlertDialog.Builder(activity)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.error_vob_route_title))
             .setMessage(activity.getString(R.string.error_vob_route_message))
             .setPositiveButton(R.string.ok, null)
-            .showBoundTo(activity)
+            .create()
+        DialogKeyboardDelegate.applyTo(dialog) {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+        }
+        dialog.showBoundTo(activity)
     }
 
     override fun onBeforeVideoLoad(path: String) {

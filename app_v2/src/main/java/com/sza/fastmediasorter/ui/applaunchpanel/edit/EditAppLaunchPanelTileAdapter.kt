@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.databinding.ItemAppLaunchPanelEditTileBinding
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileType
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
 import com.sza.fastmediasorter.domain.model.panel.AppLaunchPanelRouteTarget
+import com.sza.fastmediasorter.ui.icon.GlyphPlateDrawable
 
 /**
  * Renders the fixed 15-slot Edit-panel grid. A filled tile shows the resolved icon + label; an empty
@@ -60,10 +61,20 @@ class EditAppLaunchPanelTileAdapter(
                 binding.tvTileLabel.text = emptyLabel
                 binding.cardTile.contentDescription = emptyLabel
             } else {
-                binding.ivTileIcon.setImageDrawable(tile.icon)
-                // Tint only monochrome glyphs (tile.tintable, decided per icon source); colored app icons
-                // and colored resource badges keep their original colors (S1124).
-                applyIconTint(monochrome = tile.tintable, accentRes = tile.accentRes)
+                val plateHue = tile.plateHueRes
+                val glyph = tile.icon
+                if (plateHue != null && glyph != null) {
+                    // S3433: a product glyph takes the decorated look of an in-app launch grid. The plate
+                    // ignores a view tint, and clearing it keeps a recycled tint from reaching the next tile.
+                    val plate = ContextCompat.getColor(context, plateHue)
+                    binding.ivTileIcon.setImageDrawable(GlyphPlateDrawable(glyph, plate))
+                    ImageViewCompat.setImageTintList(binding.ivTileIcon, null)
+                } else {
+                    binding.ivTileIcon.setImageDrawable(tile.icon)
+                    // Tint only monochrome glyphs (tile.tintable, decided per icon source); colored app icons
+                    // and colored resource badges keep their original colors (S1124).
+                    applyIconTint(monochrome = tile.tintable, accentRes = tile.accentRes)
+                }
                 binding.tvTileLabel.text = tile.label
                 // Name the tile kind for TalkBack so the three paths are distinguishable without colour
                 // (strategic S0663 §3.2): "<label>, <kind>".

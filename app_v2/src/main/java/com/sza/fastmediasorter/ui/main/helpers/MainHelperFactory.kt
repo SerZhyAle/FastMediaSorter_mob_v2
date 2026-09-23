@@ -2,8 +2,8 @@ package com.sza.fastmediasorter.ui.main.helpers
 
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentActivity
 import androidx.appcompat.widget.PopupMenu
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.tabs.TabLayout
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController

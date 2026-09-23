@@ -3,14 +3,10 @@ package com.sza.fastmediasorter.ui.browse.managers
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.FileOperationType
-import com.sza.fastmediasorter.domain.model.UndoOperation
-import com.sza.fastmediasorter.domain.usecase.DeleteByFileSizeUseCase
-import com.sza.fastmediasorter.domain.usecase.DeleteDirectoriesUseCase
-import com.sza.fastmediasorter.domain.usecase.FileOperation
-import com.sza.fastmediasorter.domain.usecase.FileOperationResult
-import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.DeleteByFileSizeUseCase
 import com.sza.fastmediasorter.domain.usecase.DeletePathPolicy
+import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
@@ -19,7 +15,6 @@ import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -30,18 +25,16 @@ import timber.log.Timber
  * Manages file and directory deletion operations in the Browse screen.
  *
  * Responsibilities:
- * - Delete selected files (soft-delete when possible, hard-delete otherwise).
- * - Delete selected directories via [DeleteDirectoriesUseCase].
+ * - Delete selected files and directories by enqueueing a [BrowseFileTransferRequest].
  * - Handle Android 11+ batch-delete permission grant callback.
  * - Scan/delete files by size ([scanBySize], [executeBySizeDeleteConfirmed]).
  *
  * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
+@Suppress("LongParameterList") // Mirrors the host-supplied surface one-to-one, as the sibling browse managers do.
 class BrowseDeleteManager(
     private val context: Context,
     private val settingsRepository: SettingsRepository,
-    private val fileOperationUseCase: FileOperationUseCase,
-    private val deleteDirectoriesUseCase: DeleteDirectoriesUseCase,
     private val deleteByFileSizeUseCase: DeleteByFileSizeUseCase,
     private val browseTransferCoordinator: BrowseFileTransferCoordinator,
     private val scope: CoroutineScope,
@@ -49,10 +42,8 @@ class BrowseDeleteManager(
     private val stateFlow: StateFlow<BrowseState>,
     private val sendEvent: (BrowseEvent) -> Unit,
     private val setLoading: (Boolean) -> Unit,
-    private val setIgnoringFileChanges: (Boolean) -> Unit,
     private val clearSelection: () -> Unit,
     private val removeFiles: (List<String>) -> Unit,
-    private val saveUndoOperation: (UndoOperation) -> Unit,
     private val reloadFiles: () -> Unit,
     private val loadResource: () -> Unit
 ) {
@@ -114,166 +105,12 @@ class BrowseDeleteManager(
                 }
                 is BrowseFileTransferCoordinator.EnqueueResult.Enqueued -> {
                     if (selectedSet.size > 10) {
-                        sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.deleting_n_files, selectedSet.size)))
-                    }
-                }
-            }
-        }
-    }
-
-    private fun deleteSelectedFilesLegacy(overridePaths: Set<String>? = null) {
-        Timber.d("BrowseDeleteManager.deleteSelectedFiles: ===== START ===== override=${overridePaths?.size ?: -1}")
-        scope.launch(ioDispatcher) {
-            val selectedPaths = (overridePaths ?: stateFlow.value.selectedFiles).toList()
-            if (selectedPaths.isEmpty()) {
-                sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.no_files_selected)))
-                return@launch
-            }
-
-            setLoading(true)
-
-            val allFiles = stateFlow.value.mediaFiles
-            val selectedSet = selectedPaths.toSet()
-            val (dirItems, fileItems) = allFiles
-                .filter { it.path in selectedSet }
-                .partition { it.isDirectory }
-
-            val resolvedPaths = (dirItems + fileItems).map { it.path }.toSet()
-            val unresolvedFilePaths = selectedPaths.filter { it !in resolvedPaths }
-
-            val filesToDelete = (fileItems.map { it.path } + unresolvedFilePaths).map { path ->
-                if (path.startsWith("smb://") || path.startsWith("sftp://") ||
-                    path.startsWith("ftp://") || path.startsWith("cloud://")
-                ) {
-                    object : java.io.File(path) {
-                        override fun getAbsolutePath(): String = path
-                        override fun getPath(): String = path
-                    }
-                } else {
-                    java.io.File(path)
-                }
-            }
-
-            val canUseSoftDelete = DeletePathPolicy.canUseSoftDelete(selectedPaths)
-            val useTrash = settingsRepository.getSettings().first().useTrash
-            val effectiveSoftDelete = useTrash && canUseSoftDelete
-
-            if (selectedPaths.size > 10) {
-                sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.deleting_n_files, selectedPaths.size)))
-            }
-
-            setIgnoringFileChanges(true)
-
-            var totalFileCount = 0
-            var dirDeleteError: String? = null
-            var softDeleteFallbackCount = 0
-
-            // --- Delete regular files ---
-            if (filesToDelete.isNotEmpty()) {
-                val deleteOperation = FileOperation.Delete(
-                    files = filesToDelete,
-                    softDelete = effectiveSoftDelete
-                )
-                Timber.d("BrowseDeleteManager: deleting ${filesToDelete.size} files")
-                when (val result = fileOperationUseCase.execute(deleteOperation)) {
-                    is FileOperationResult.Success -> {
-                        totalFileCount += result.processedCount
-                        softDeleteFallbackCount += result.softDeleteFallbackPaths.size
-                        Timber.i("BrowseDeleteManager: deleted ${result.processedCount} files")
-                        if (effectiveSoftDelete && result.softDeleteFallbackPaths.isEmpty()) {
-                            val undoOp = UndoOperation(
-                                type = FileOperationType.DELETE,
-                                sourceFiles = fileItems.map { it.path } + unresolvedFilePaths,
-                                destinationFolder = null,
-                                copiedFiles = result.copiedFilePaths,
-                                oldNames = null
-                            )
-                            saveUndoOperation(undoOp)
-                        }
-                    }
-                    is FileOperationResult.PartialSuccess -> {
-                        totalFileCount += result.processedCount
-                        softDeleteFallbackCount += result.softDeleteFallbackPaths.size
-                        Timber.w("BrowseDeleteManager: partial delete ${result.processedCount}/${filesToDelete.size}")
-                    }
-                    is FileOperationResult.Failure -> {
-                        Timber.e("BrowseDeleteManager: failure - ${result.error}")
-                        setIgnoringFileChanges(false)
-                        setLoading(false)
-                        // Keep the headline human and move filesystem detail to the secondary details surface.
                         sendEvent(
-                            BrowseEvent.ShowError(
-                                message = context.getString(R.string.all_delete_operations_failed),
-                                details = formatFailureDetails(result)
-                            )
+                            BrowseEvent.ShowMessage(context.getString(R.string.deleting_n_files, selectedSet.size))
                         )
-                        return@launch
-                    }
-                    is FileOperationResult.AuthenticationRequired -> {
-                        setIgnoringFileChanges(false)
-                        setLoading(false)
-                        sendEvent(BrowseEvent.CloudAuthRequired(result.provider, result.message))
-                        return@launch
-                    }
-                    is FileOperationResult.PermissionRequired -> {
-                        Timber.i("BrowseDeleteManager: permission required (Android 11+ scoped storage)")
-                        sendEvent(BrowseEvent.PermissionRequired(result.pendingIntent))
-                        setIgnoringFileChanges(false)
-                        setLoading(false)
-                        return@launch
                     }
                 }
             }
-
-            // --- Delete directories ---
-            if (dirItems.isNotEmpty()) {
-                Timber.d("BrowseDeleteManager: deleting ${dirItems.size} directories")
-                val dirResult = deleteDirectoriesUseCase(dirItems)
-                dirResult
-                    .onSuccess { count ->
-                        totalFileCount += count
-                        Timber.i("BrowseDeleteManager: deleted $count entries from ${dirItems.size} directories")
-                    }
-                    .onFailure { e ->
-                        dirDeleteError = context.getString(R.string.error_reason_unknown)
-                        Timber.e(e, "BrowseDeleteManager: failed to delete directories")
-                    }
-            }
-
-            // --- Update UI ---
-            // Preserve global multiselect when overridePaths is used (per-file overflow menu).
-            if (overridePaths == null) clearSelection()
-            removeFiles(selectedPaths)
-
-            scope.launch {
-                delay(200)
-                setIgnoringFileChanges(false)
-            }
-
-            if (dirDeleteError != null) {
-                val headlineRes = if (totalFileCount > 0) {
-                    R.string.error_partial_success
-                } else {
-                    R.string.error_delete
-                }
-                sendEvent(
-                    BrowseEvent.ShowError(
-                        message = context.getString(headlineRes),
-                        details = dirDeleteError
-                    )
-                )
-            } else {
-                val msg = if (softDeleteFallbackCount > 0) {
-                    context.getString(R.string.delete_trash_unavailable_fallback_to_hard_delete)
-                } else {
-                    context.getString(R.string.deleted_n_files, totalFileCount.coerceAtLeast(
-                        if (dirItems.isNotEmpty() && filesToDelete.isEmpty()) dirItems.size else totalFileCount
-                    ))
-                }
-                sendEvent(BrowseEvent.ShowMessage(msg))
-            }
-
-            setLoading(false)
         }
     }
 
@@ -288,13 +125,20 @@ class BrowseDeleteManager(
         val filesToRemove = selectedPaths.filter { it in currentFiles }
         val alreadyRemoved = selectedPaths.size - filesToRemove.size
 
-        Timber.i("BrowseDeleteManager: ${selectedPaths.size} selected, $alreadyRemoved already removed, removing ${filesToRemove.size}")
+        Timber.i(
+            "BrowseDeleteManager: %d selected, %d already removed, removing %d",
+            selectedPaths.size,
+            alreadyRemoved,
+            filesToRemove.size
+        )
 
         if (alreadyRemoved > 0) {
-            Timber.w("BrowseDeleteManager: state inconsistency - $alreadyRemoved files were removed before permission granted")
-            sendEvent(BrowseEvent.ShowMessage(
-                context.getString(R.string.warning_files_may_remain_in_source, alreadyRemoved)
-            ))
+            Timber.w("BrowseDeleteManager: %d files removed before permission granted", alreadyRemoved)
+            sendEvent(
+                BrowseEvent.ShowMessage(
+                    context.getString(R.string.warning_files_may_remain_in_source, alreadyRemoved)
+                )
+            )
         }
 
         if (filesToRemove.isNotEmpty()) removeFiles(filesToRemove)
@@ -350,28 +194,38 @@ class BrowseDeleteManager(
             when (val result = deleteByFileSizeUseCase.execute(files)) {
                 is FileOperationResult.Success -> {
                     withContext(Dispatchers.Main) {
-                        sendEvent(BrowseEvent.ShowMessage(
-                            context.getString(R.string.deleted_n_files, result.processedCount)
-                        ))
+                        sendEvent(
+                            BrowseEvent.ShowMessage(
+                                context.getString(R.string.deleted_n_files, result.processedCount)
+                            )
+                        )
                         loadResource()
                     }
                 }
                 is FileOperationResult.PartialSuccess -> {
                     withContext(Dispatchers.Main) {
-                        sendEvent(BrowseEvent.ShowError(
-                            context.getString(R.string.error_partial_success),
-                            context.getString(R.string.deleted_n_of_m_files, result.processedCount, result.processedCount + result.failedCount)
-                        ))
+                        sendEvent(
+                            BrowseEvent.ShowError(
+                                context.getString(R.string.error_partial_success),
+                                context.getString(
+                                    R.string.deleted_n_of_m_files,
+                                    result.processedCount,
+                                    result.processedCount + result.failedCount
+                                )
+                            )
+                        )
                         loadResource()
                     }
                 }
                 is FileOperationResult.Failure -> {
                     Timber.e("BrowseDeleteManager.executeBySizeDeleteConfirmed: failure - ${result.error}")
                     withContext(Dispatchers.Main) {
-                        sendEvent(BrowseEvent.ShowError(
-                            context.getString(R.string.error_deletion_failed),
-                            formatFailureDetails(result)
-                        ))
+                        sendEvent(
+                            BrowseEvent.ShowError(
+                                context.getString(R.string.error_deletion_failed),
+                                formatFailureDetails(result)
+                            )
+                        )
                     }
                 }
                 is FileOperationResult.PermissionRequired -> {

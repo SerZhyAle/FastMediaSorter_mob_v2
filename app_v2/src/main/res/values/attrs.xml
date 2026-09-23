@@ -152,12 +152,58 @@
         <attr name="otv_outlineScale" format="float" />
     </declare-styleable>
 
+    <!-- S3251: consumed by CropFrameView.kt. The scrim mode is a preset, not a single visual knob -
+         it selects the whole surface behavior (scrim technique, border, handle chrome, frame domain)
+         so the camera-OCR and player crop surfaces keep their own looks behind one class. -->
+    <declare-styleable name="CropFrameView">
+        <attr name="cfvScrimMode" format="enum">
+            <enum name="bands" value="0" />
+            <enum name="cutout" value="1" />
+        </attr>
+    </declare-styleable>
+
     <!-- Consumed by OutlinedImageView.kt. All public attrs use the oiv_ prefix. Defaults are shared
          with OutlinedTextView (@color/outline_text_stroke, @dimen/outline_text_stroke_width) - one
          contour role, one pair of resources. -->
     <declare-styleable name="OutlinedImageView">
         <attr name="oiv_outlineColor" format="color|reference" />
         <attr name="oiv_outlineWidth" format="dimension" />
+    </declare-styleable>
+
+    <!-- S3245: configuration of the MediaItemView row primitive
+         (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.2). The layout mode is an attribute rather
+         than three separate layouts because section 5.3 decision 2 puts the orientation and shape
+         decision inside the compound view, so the 81 item layouts need no landscape counterparts. -->
+    <declare-styleable name="MediaItemView">
+        <attr name="mivLayoutMode">
+            <enum name="list" value="0" />
+            <enum name="grid" value="1" />
+            <enum name="plank" value="2" />
+        </attr>
+        <attr name="mivShowSelection" format="boolean" />
+        <attr name="mivShowBadge" format="boolean" />
+        <!-- Layout inflated into the trailing slot - the per-screen action strip a row needs. -->
+        <attr name="mivTrailingSlot" format="reference" />
+    </declare-styleable>
+
+    <!-- S3249: configuration of the ActionBarView action strip
+         (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 2.3). Placement is an attribute rather than
+         three widget subclasses because the only difference between a top, bottom and floating strip
+         is the surface and elevation the container paints, which is exactly what the three
+         Widget.FastMediaSorter.Bar.Action styles already carry. -->
+    <declare-styleable name="ActionBarView">
+        <attr name="abvPlacement">
+            <enum name="top" value="0" />
+            <enum name="bottom" value="1" />
+            <enum name="floating" value="2" />
+        </attr>
+        <!-- Background tint of each generated action button. A floating strip needs a scrim of its
+             own because it draws over content; a docked one inherits the bar's surface. -->
+        <attr name="abvItemBackgroundTint" format="color|reference" />
+        <!-- Icon tint of each generated action button, as a colour or a selector. -->
+        <attr name="abvItemTint" format="color|reference" />
+        <!-- Edge of a generated action button. Defaults to the 48dp accessibility floor. -->
+        <attr name="abvItemSize" format="dimension|reference" />
     </declare-styleable>
 
     <!-- Child parameters of SettingsValueRowGroup, read off each row rather than off the group. -->

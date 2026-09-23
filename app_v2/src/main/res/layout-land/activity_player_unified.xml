@@ -270,7 +270,7 @@
     <!-- Fullscreen controls overlay (Portrait style, hidden but required for binding types) -->
     <LinearLayout android:id="@+id/controlsOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@android:color/transparent" android:visibility="gone">
 
-        <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:elevation="@dimen/toolbar_elevation" android:background="?attr/colorPrimary" app:navigationIcon="@drawable/ic_back" app:navigationIconTint="?attr/colorOnPrimary" app:titleTextColor="?attr/colorOnPrimary" />
+        <com.sza.fastmediasorter.ui.common.widget.StandardToolbar android:id="@+id/toolbar" style="@style/Widget.FastMediaSorter.Toolbar.Primary" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" app:navigationIcon="@drawable/ic_back" />
 
         <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
 

@@ -1,9 +1,6 @@
 package com.sza.fastmediasorter.ui.player
 
-import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.SeekBar
@@ -11,14 +8,13 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.ui.common.dialog.BaseAppBottomSheet
 import com.sza.fastmediasorter.ui.player.helpers.QueueTrackAdapter
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -31,7 +27,7 @@ import timber.log.Timber
  * Launched by NowPlayingManager when the user taps the mini Now Playing bar.
  */
 @AndroidEntryPoint
-class NowPlayingBottomSheetFragment : BottomSheetDialogFragment() {
+class NowPlayingBottomSheetFragment : BaseAppBottomSheet() {
 
     private val viewModel: NowPlayingViewModel by viewModels()
 
@@ -58,15 +54,11 @@ class NowPlayingBottomSheetFragment : BottomSheetDialogFragment() {
 
     private var isSeeking = false
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.bottom_sheet_now_playing, container, false)
+    override val contentLayout: Int = R.layout.bottom_sheet_now_playing
+    override val requestKey: String = REQUEST_KEY
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        bindViews(view)
+    override fun bindContent(content: View) {
+        bindViews(content)
         setupQueueRecycler()
         setupClickListeners()
         setupSeekBar()
@@ -76,9 +68,7 @@ class NowPlayingBottomSheetFragment : BottomSheetDialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        // Transport sheet has no positive action - no-op confirm keeps Esc-dismiss and focus
-        // traversal without a false Enter-confirm. Play/Pause is the natural default focus.
-        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
+        // Play/Pause is the natural default focus; the base already installs the keyboard delegate.
         btnPlayPause.requestFocus()
         // S0895: gates the 500ms position poll to when this sheet is actually visible.
         viewModel.onHostStart()
@@ -240,6 +230,8 @@ class NowPlayingBottomSheetFragment : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "NowPlayingBottomSheet"
+
+        private const val REQUEST_KEY = "now_playing_sheet"
 
         fun newInstance(): NowPlayingBottomSheetFragment = NowPlayingBottomSheetFragment()
     }

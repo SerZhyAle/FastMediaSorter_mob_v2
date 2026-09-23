@@ -193,4 +193,7 @@ private class PickerFakeCapabilities : WearRestrictedCapabilities {
     override val offersScreenCapture: Boolean = true
     override val offersContentTransfer: Boolean = true
     override val offersExternalEntryPoints: Boolean = true
+
+    // S3362: the picker never reads this one; it is answered because the contract has it.
+    override val offersScreenTakeoverPrograms: Boolean = true
 }

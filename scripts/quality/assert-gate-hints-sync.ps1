@@ -22,6 +22,10 @@
     S2841 was eight hints reported as orphaned because the argument form was
     added to the facade and never taught to this collector.
 
+    Collection spans the facade and every lib it dot-sources out of
+    scripts/quality/lib/, because a gate that moved into such a lib still runs
+    per ticket and its hint is still reachable.
+
     Exit codes (S1070):
       0 - registry and facade agree (or audit mode).
       1 - substantive failure: at least one label or key is unpaired (-Gate only).
@@ -74,14 +78,30 @@ catch {
 $stepRx = [regex]'(?:Invoke-Gate|Invoke-Step|Invoke-AdvisoryStep|&\s+\$\w+)\s+"([^"]+)"\s*\{'
 $argRx = [regex]'Invoke-FixedInputGate\s+"([^"]+)"'
 $facadeText = Get-Content -LiteralPath $facade -Raw
+
+# S2841's lesson one level out: the facade dispatches part of its battery from libs it dot-sources, so
+# a label can stand outside post-change.ps1 while the gate it belongs to still runs per ticket. Reading
+# the facade alone reported four such gates as hints for gates that are gone. Every lib the facade
+# sources out of scripts/quality/lib/ is collected, so a further split needs no edit here.
+$sourcedRx = [regex]'(?m)^\s*\.\s+\(Join-Path\s+\$root\s+[''"]([^''"]+)[''"]\)'
+$dispatchTexts = [System.Collections.Generic.List[string]]::new()
+$dispatchTexts.Add($facadeText)
+foreach ($match in $sourcedRx.Matches($facadeText)) {
+    $relative = $match.Groups[1].Value
+    if ($relative -notlike 'scripts/quality/lib/*') { continue }
+    $sourced = Join-Path $repoRoot $relative
+    if (Test-Path -LiteralPath $sourced) { $dispatchTexts.Add((Get-Content -LiteralPath $sourced -Raw)) }
+}
+$dispatchText = $dispatchTexts -join "`n"
+
 $labels = @(
-    @($stepRx.Matches($facadeText)) + @($argRx.Matches($facadeText)) |
+    @($stepRx.Matches($dispatchText)) + @($argRx.Matches($dispatchText)) |
         ForEach-Object { $_.Groups[1].Value } |
         Sort-Object -Unique
 )
 
 if ($labels.Count -eq 0) {
-    Write-Error "assert-gate-hints-sync: no gate labels found in $facade - the extraction pattern no longer matches the facade." -ErrorAction Continue
+    Write-Error "assert-gate-hints-sync: no gate labels found in $facade or the libs it dot-sources - the extraction pattern no longer matches the facade." -ErrorAction Continue
     exit 2
 }
 

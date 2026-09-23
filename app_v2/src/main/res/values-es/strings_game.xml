@@ -35,7 +35,7 @@
     <string name="game_score">Puntuación: %1$d</string>
     <string name="game_settings_help_message">Permite jugar a un puzle local por turnos. El juego permanece apagado hasta que lo actives.</string>
     <string name="game_settings_help_title">Minijuego</string>
-    <string name="game_settings_toggle_subtitle">Mostrar el juego en el menú principal y en el widget del lanzador.</string>
+    <string name="game_settings_toggle_subtitle">Mostrar el juego en el menú de programas, el panel de acceso rápido y el escritorio del lanzador</string>
     <string name="game_settings_toggle_title">Minijuego</string>
     <string name="game_status_game_over">Kryvavitsa te ha pillado. Empieza una nueva partida para intentarlo de nuevo.</string>
     <string name="game_status_invalid_board">Este tablero no está disponible para jugar. Cambia su tamaño o abre un tablero preestablecido.</string>

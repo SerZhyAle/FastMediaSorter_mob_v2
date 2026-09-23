@@ -385,6 +385,8 @@ plugins {
     id("com.android.application")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
+    // S3371: SBOM producer for the dependency-admission contour. Task only - no runtime effect.
+    alias(libs.plugins.cyclonedx)
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
@@ -1338,6 +1340,16 @@ android {
                 // with this line removed that single test fails and the other 13 in the pair of classes pass.
                 // Remove the line only together with that compatibility guard.
                 it.jvmArgs("--add-opens=java.base/java.time=ALL-UNNAMED")
+                // S3441: WaveParticlesContractConstantsTest reads the watch renderer and the site's copy of
+                // the WAVE-PARTICLES reference as text. Neither is on this module's classpath, so without
+                // declaring them an edit to either left the test UP-TO-DATE and a drifted constant passed.
+                it.inputs.files(
+                    rootProject.file(
+                        "wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/WaveParticleBackground.kt"
+                    ),
+                    rootProject.file("documentation/assets/wave-particles.js")
+                ).withPropertyName("waveParticlesContractSources")
+                    .withPathSensitivity(org.gradle.api.tasks.PathSensitivity.RELATIVE)
                 it.systemProperty(
                     "settings.manifest.generate",
                     System.getProperty("settings.manifest.generate") ?: "false"
@@ -2377,6 +2389,13 @@ dependencies {
     // Network - SMB. Pulls org.bouncycastle:bcprov-jdk18on transitively; the version that arrives
     // is asserted at configuration time below (S1496), not forced.
     implementation(libs.smbj)
+
+    // Crypto - BouncyCastle, declared rather than inherited from SMBJ (S3382). The FD-SEC container
+    // reader needs Argon2id with a settable parallelism, natively keyed BLAKE2b and raw RFC 8439
+    // ChaCha20, and it ships on every flavor - including `lite`, where SUPPORT_LOCAL_NETWORK is off
+    // and SMBJ is therefore absent. Same coordinate and same version as the transitive edge, so the
+    // drift assertion below still sees one version across every runtime classpath.
+    implementation(libs.bouncycastle.bcprov)
     
     // Network - SFTP (JSch for Android - better KEX support than SSHJ)
     implementation(libs.jsch)
@@ -2571,9 +2590,11 @@ dependencies {
     kspAndroidTest(libs.dagger.hilt.android.compiler)
 }
 
-// S1496: BouncyCastle is never declared here - it arrives transitively through SMBJ. Assert the
-// version instead of forcing it: a force would silently block the security updates that ride along
-// with an SMBJ bump, while an unasserted transitive edge lets the crypto library move unnoticed.
+// S1496: assert the BouncyCastle version instead of forcing it - a force would silently block the
+// security updates that ride along with an SMBJ bump, while an unasserted edge lets the crypto
+// library move unnoticed. S3382 declared bcprov-jdk18on directly (the FD-SEC reader needs it on
+// every flavor, SMBJ-less `lite` included); the assertion is what keeps the declared edge and the
+// transitive one from resolving to two different versions.
 // Test configurations are excluded on purpose: Robolectric 4.16.1 requests bcprov-jdk18on:1.81 on
 // the unit-test classpath, and nothing on a test classpath reaches the APK, so asserting there
 // would break the suite over a version that never ships.

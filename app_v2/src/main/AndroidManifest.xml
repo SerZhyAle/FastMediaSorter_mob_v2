@@ -328,6 +328,10 @@
              marks, which is what ADR-8 buys. -->
         <activity android:name=".ui.stopwatch.StopwatchActivity" android:exported="false" android:label="@string/stopwatch_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
+        <!-- S3365: standalone scheduled-operations program screen; like the siblings, no
+             orientation|screenSize - the landscape twin layout handles rotation. -->
+        <activity android:name=".ui.scheduledops.ScheduledOperationsActivity" android:exported="false" android:label="@string/scheduled_ops_screen_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
         <!-- S1796: no orientation|screenSize in configChanges - the glow layout is orientation-agnostic,
              but absorbing the change would keep stale insets on the corner controls after a rotation. -->
         <!-- S1733: a transparent host for the system-information report, so a launcher cell or a panel

@@ -31,6 +31,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.Locale
 
 /**
@@ -77,6 +78,7 @@ class StreamInfoDialog(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Timber.d("S3254: stream-info dialog opened for the rotation and D-pad pass")
         binding = DialogStreamInfoBinding.inflate(layoutInflater)
         setContentView(binding.root)
         renderStoredGroups()

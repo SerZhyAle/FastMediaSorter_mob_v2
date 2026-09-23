@@ -61,7 +61,7 @@
     <string name="cloud_list_files_failed">No se pudieron cargar los archivos desde la nube. Inténtalo de nuevo.</string>
     <string name="cloud_list_folders_failed">No se pudieron cargar las carpetas desde la nube. Inténtalo de nuevo.</string>
     <string name="cloud_metadata_failed">No se pudieron cargar los detalles del archivo desde la nube. Inténtalo de nuevo.</string>
-    <string name="cloud_restore_instructions">Es necesario restablecer la conexión con Google Drive.\n\nPor favor:\n1. Ve al menú principal\n2. Abre \'Recursos\'\n3. Pulsa en \"%1$s\"\n4. Inicia sesión con tu cuenta de Google</string>
+    <string name="cloud_restore_instructions">Hay que restablecer la conexión con Google Drive.\n\nPor favor:\n1. Abre la pantalla principal\n2. Toca \"%1$s\"\n3. Inicia sesión con tu cuenta de Google</string>
     <string name="cloud_search_failed">No se pudo buscar en el almacenamiento en la nube. Inténtalo de nuevo.</string>
     <string name="cloud_sign_out_failed">No se pudo cerrar sesión en la cuenta en la nube. Inténtalo de nuevo.</string>
     <string name="cloud_storage">Almacenamiento en la nube</string>
@@ -74,7 +74,7 @@
     <string name="dropbox_authentication_failed">Falló la autenticación de Dropbox.</string>
     <string name="dropbox_beta_email_body">Hola,\n\nPor favor, agreguen mi cuenta de Dropbox a la lista de probadores beta de FastMediaSorter.\n\nMi correo electrónico de Dropbox:</string>
     <string name="dropbox_beta_email_subject">Solicitud de acceso a la versión beta de Dropbox para FastMediaSorter</string>
-    <string name="dropbox_beta_message">La integración con Dropbox está actualmente en beta limitada.\n\n⚠️ ¿Por qué necesito contactarte?\nDropbox requiere que los desarrolladores de apps registren manualmente a los evaluadores durante el período de revisión. Esto es una formalidad técnica puntual por parte de Dropbox\u2019s side \u2014 tu correo solo se usa para añadir tu cuenta de Dropbox a la lista permitida.\n\n🔒 Tu privacidad se respeta por completo:\n\u2022 NO recopilamos, almacenamos ni compartimos tu correo\n\u2022 NO accedemos a ninguno de tus archivos o datos\n\u2022 Tu correo se usa únicamente para darte acceso a Dropbox en esta app\n\nPara obtener acceso, escríbenos a:\nserzhyale@gmail.com</string>
+    <string name="dropbox_beta_message">La integración con Dropbox está actualmente en beta limitada.\n\n⚠️ ¿Por qué necesito contactarte?\nDropbox requiere que los desarrolladores de apps registren manualmente a los evaluadores durante el período de revisión. Esto es una formalidad técnica puntual por parte de Dropbox - tu correo solo se usa para añadir tu cuenta de Dropbox a la lista permitida.\n\n🔒 Tu privacidad se respeta por completo:\n\u2022 NO recopilamos, almacenamos ni compartimos tu correo\n\u2022 NO accedemos a ninguno de tus archivos o datos\n\u2022 Tu correo se usa únicamente para darte acceso a Dropbox en esta app\n\nPara obtener acceso, escríbenos a:\nsza@ukr.net</string>
     <string name="dropbox_beta_send_email">Enviar correo electrónico</string>
     <string name="dropbox_beta_title">Acceso beta a Dropbox</string>
     <string name="dropbox_connection_test_failed">Falló la conexión: %1$s</string>

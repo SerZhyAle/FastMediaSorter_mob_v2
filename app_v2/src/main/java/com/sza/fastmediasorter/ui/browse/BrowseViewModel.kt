@@ -289,8 +289,6 @@ class BrowseViewModel @Inject constructor(
     private val deleteManager = com.sza.fastmediasorter.ui.browse.managers.BrowseDeleteManager(
         context = context,
         settingsRepository = fileMutation.settingsRepository,
-        fileOperationUseCase = contentAuthoringUseCases.fileOperationUseCase,
-        deleteDirectoriesUseCase = cleanupUseCases.deleteDirectoriesUseCase,
         deleteByFileSizeUseCase = cleanupUseCases.deleteByFileSizeUseCase,
         browseTransferCoordinator = cleanupUseCases.browseTransferCoordinator,
         scope = viewModelScope,
@@ -298,10 +296,8 @@ class BrowseViewModel @Inject constructor(
         stateFlow = state,
         sendEvent = { event -> sendEvent(event) },
         setLoading = { isLoading -> setLoading(isLoading) },
-        setIgnoringFileChanges = { ignoring -> fileObserverManager.setIgnoringFileChanges(ignoring) },
         clearSelection = { clearSelection() },
         removeFiles = { paths -> removeFiles(paths) },
-        saveUndoOperation = { op -> saveUndoOperation(op) },
         reloadFiles = { reloadFiles() },
         loadResource = { loadResource() }
     )

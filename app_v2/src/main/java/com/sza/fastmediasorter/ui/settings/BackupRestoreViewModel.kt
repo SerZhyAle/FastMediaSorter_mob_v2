@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.GoogleDriveAuthPlugin
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
-import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.IdentityFailureReason
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
@@ -18,9 +17,7 @@ import com.sza.fastmediasorter.domain.model.FavoritesImportPreview
 import com.sza.fastmediasorter.domain.model.FavoritesImportResult
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.usecase.BackupToGoogleDriveUseCase
-import com.sza.fastmediasorter.domain.usecase.ExportFavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
-import com.sza.fastmediasorter.domain.usecase.ImportFavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.RestoreFromGoogleDriveUseCase
 import com.sza.fastmediasorter.ui.settings.helpers.SzaResourcesImporter
 import com.sza.fastmediasorter.util.VirtualPathUtils
@@ -95,9 +92,7 @@ class BackupRestoreViewModel @Inject constructor(
     private val backupUseCase: BackupToGoogleDriveUseCase,
     private val restoreUseCase: RestoreFromGoogleDriveUseCase,
     private val googleDriveClient: GoogleDriveRestClient,
-    private val credentialsManager: GoogleDriveCredentialsManager,
-    private val exportFavoritesUseCase: ExportFavoritesUseCase,
-    private val importFavoritesUseCase: ImportFavoritesUseCase,
+    private val favoritesTransfer: FavoritesTransferUseCases,
     // S0422 - resource share export/import.
     private val exportResourcesToFileUseCase: ExportResourcesToFileUseCase,
     private val szaResourcesImporter: SzaResourcesImporter,
@@ -318,7 +313,7 @@ class BackupRestoreViewModel @Inject constructor(
     fun exportFavorites() {
         viewModelScope.launch {
             _exportFavState.value = FavoritesExportUiState.Loading
-            val result = exportFavoritesUseCase()
+            val result = favoritesTransfer.exportFavorites()
             _exportFavState.value = if (result.isSuccess) {
                 FavoritesExportUiState.Success(result)
             } else {
@@ -338,7 +333,7 @@ class BackupRestoreViewModel @Inject constructor(
     fun previewFavoritesImport(uri: Uri) {
         viewModelScope.launch {
             _importFavState.value = FavoritesImportUiState.LoadingPreview
-            importFavoritesUseCase.preview(uri)
+            favoritesTransfer.importFavorites.preview(uri)
                 .onSuccess { preview ->
                     _importFavState.value = FavoritesImportUiState.Preview(preview, uri)
                 }
@@ -354,7 +349,7 @@ class BackupRestoreViewModel @Inject constructor(
     fun confirmFavoritesImport(uri: Uri, strategy: FavoritesConflictStrategy) {
         viewModelScope.launch {
             _importFavState.value = FavoritesImportUiState.Importing
-            val result = importFavoritesUseCase(uri, strategy)
+            val result = favoritesTransfer.importFavorites(uri, strategy)
             _importFavState.value = if (result.isSuccess) {
                 FavoritesImportUiState.Success(result)
             } else {

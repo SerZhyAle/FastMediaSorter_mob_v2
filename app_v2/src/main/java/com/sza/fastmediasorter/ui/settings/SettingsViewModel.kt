@@ -642,6 +642,7 @@ class SettingsViewModel @Inject constructor(
                 confirmDelete = defaults.confirmDelete,
                 confirmMove = defaults.confirmMove,
                 useTrash = defaults.useTrash,
+                enableFileDoOperations = defaults.enableFileDoOperations,
                 // Copy/Move group
                 enableCopying = defaults.enableCopying,
                 goToNextAfterCopy = defaults.goToNextAfterCopy,

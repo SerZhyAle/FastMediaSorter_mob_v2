@@ -53,6 +53,24 @@ enum class WearFileOperationOutcome {
     /** Over the transfer channel's ceiling; refused before any byte was read. */
     REFUSED_TOO_LARGE,
 
+    /**
+     * The watch has less free space than the file needs, so nothing was written and the original is intact.
+     *
+     * Refused against the known size before the first byte rather than reported when the write runs
+     * out: a half-written copy is a file the owner can find and cannot play, and for a move it would
+     * also be the one thing that must never precede removing the original.
+     */
+    REFUSED_NO_SPACE,
+
+    /**
+     * The copy is stored on the watch for good, but the original could not be removed and is still there.
+     *
+     * Its own outcome rather than [SUCCEEDED], because the move did not happen: a read-only share, an
+     * unreachable phone or a removal the phone cannot perform without a system dialog all end here,
+     * and reporting a move would send the owner looking for a file that never left its source.
+     */
+    COPIED_SOURCE_KEPT,
+
     /** The paired phone did not answer, so a move left its source in place. */
     PHONE_UNREACHABLE,
 

@@ -50,7 +50,6 @@
     <string name="scheduled_ops_log_empty">Log is empty</string>
     <string name="scheduled_ops_log_title">Operations log</string>
     <string name="scheduled_ops_next_run">Next run at:</string>
-    <string name="scheduled_ops_no_destinations">Add destinations first in the Destinations section</string>
     <string name="scheduled_ops_notif_channel_name">Scheduled operations</string>
     <string name="scheduled_ops_notif_running">Running scheduled operation..</string>
     <string name="scheduled_ops_op_copy">Copy</string>
@@ -77,4 +76,13 @@
     <string name="scheduled_ops_toggle_hint">Copy, move, delete in the background</string>
     <string name="scheduled_ops_notif_permission_title">Scheduled operation needs permission</string>
     <string name="scheduled_ops_notif_permission_text">Grant All-files access so background Move/Delete can remove the original files.</string>
+    <string name="scheduled_ops_screen_title">Scheduled file operations</string>
+    <string name="scheduled_ops_action_run_all">Run all now</string>
+    <string name="scheduled_ops_action_pause_all">Pause all</string>
+    <string name="scheduled_ops_action_resume_all">Resume all</string>
+    <string name="scheduled_ops_screen_empty">No scheduled operations yet. Tap + to create the first one.</string>
+    <string name="scheduled_ops_link_subtitle">Manage operations and the run history</string>
+    <string name="scheduled_ops_history_title">Run history</string>
+    <string name="scheduled_ops_history_empty">No runs recorded yet.</string>
+    <string name="scheduled_ops_history_clear_confirm">Clear the run history?</string>
 </resources>

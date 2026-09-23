@@ -1,12 +1,14 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.graphics.drawable.GradientDrawable
 import android.view.View
 import android.widget.GridLayout
+import androidx.lifecycle.LifecycleOwner
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.util.showBoundToHost
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.util.showBoundTo
 
 /**
  * 16-color custom palette picker (S0192 Phase 05, strategic §2.3.1).
@@ -27,7 +29,7 @@ class DrawColorGridDialog(
             setPadding(dp(12), dp(12), dp(12), dp(12))
         }
 
-        val dialog = AlertDialog.Builder(activity)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.draw_color_custom_cd)
             .setView(grid)
             .create()
@@ -53,7 +55,8 @@ class DrawColorGridDialog(
             grid.addView(swatch)
         }
 
-        dialog.showBoundToHost(activity)
+        DialogKeyboardDelegate.applyTo(dialog) {}
+        dialog.showBoundTo(activity as LifecycleOwner)
     }
 
     private fun dp(value: Int): Int =

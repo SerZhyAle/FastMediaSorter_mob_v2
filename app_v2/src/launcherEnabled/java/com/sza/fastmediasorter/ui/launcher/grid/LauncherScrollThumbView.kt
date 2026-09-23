@@ -6,10 +6,12 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import timber.log.Timber
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -45,6 +47,12 @@ class LauncherScrollThumbView @JvmOverloads constructor(
     private var contentHeight = 0
     private var viewportHeight = 0
     private var dragging = false
+
+    init {
+        // Reachable by D-pad and keyboard, but never stealing focus from a touch on the desktop below.
+        isFocusable = true
+        isFocusableInTouchMode = false
+    }
 
     /** Feed the container's current geometry. Called on every scroll and on every desktop layout change. */
     fun onScrollPositionChanged(scrollY: Int, contentHeight: Int, viewportHeight: Int) {
@@ -117,6 +125,26 @@ class LauncherScrollThumbView @JvmOverloads constructor(
         }
     }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        val delta = when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_UP -> -keyStepPx()
+            KeyEvent.KEYCODE_DPAD_DOWN -> keyStepPx()
+            KeyEvent.KEYCODE_PAGE_UP -> -viewportHeight
+            KeyEvent.KEYCODE_PAGE_DOWN -> viewportHeight
+            else -> 0
+        }
+        Timber.d("S3252: LauncherScrollThumbView key $keyCode delta=$delta scrollable=${isScrollable()}")
+        if (delta == 0 || !isScrollable()) {
+            return super.onKeyDown(keyCode, event)
+        }
+        val maxScroll = contentHeight - viewportHeight
+        onScrollRequested?.invoke((scrollY + delta).coerceIn(0, maxScroll))
+        return true
+    }
+
+    /** One arrow press moves a fraction of the viewport, the same feel as a system scroll container. */
+    private fun keyStepPx(): Int = max(1, viewportHeight / KEY_STEPS_PER_VIEWPORT)
+
     override fun performClick(): Boolean = super.performClick()
 
     private fun beginDrag(event: MotionEvent): Boolean {
@@ -148,5 +176,9 @@ class LauncherScrollThumbView @JvmOverloads constructor(
         parent?.requestDisallowInterceptTouchEvent(false)
         performClick()
         return true
+    }
+
+    private companion object {
+        const val KEY_STEPS_PER_VIEWPORT = 4
     }
 }

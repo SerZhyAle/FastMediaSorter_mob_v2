@@ -1,8 +1,8 @@
 package com.sza.fastmediasorter.ui.addresource
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.util.AppErrorNotifier
 import com.sza.fastmediasorter.util.showBoundToHost
@@ -183,19 +184,26 @@ internal class AddResourceConnectionManager(
     fun startGoogleDriveAuth() {
         val boundEmail = (identityRepository.state.value as? PrimaryGoogleAccountState.Bound)?.account?.email
             ?: browserAuthManager.peekStoredAccountEmail()
-        if (boundEmail != null) showGoogleDriveSignedInOptions(boundEmail)
-        else unifiedAuthManager.startInteractiveSignIn(activity, CloudProvider.GOOGLE_DRIVE)
+        if (boundEmail != null) {
+            showGoogleDriveSignedInOptions(boundEmail)
+        } else {
+            unifiedAuthManager.startInteractiveSignIn(activity, CloudProvider.GOOGLE_DRIVE)
+        }
     }
 
     private fun showGoogleDriveSignedInOptions(accountEmail: String) {
-        AlertDialog.Builder(activity)
+        val driveDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.google_drive)
             .setMessage(R.string.msg_already_authenticated)
             .setPositiveButton(R.string.google_drive_select_folder) { _, _ ->
                 navigateToGoogleDriveFolderPicker(accountEmail)
             }
             .setNeutralButton(R.string.cancel, null)
-            .showBoundToHost(activity)
+            .create()
+        DialogKeyboardDelegate.applyTo(driveDialog) {
+            driveDialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
+        }
+        driveDialog.showBoundToHost(activity)
     }
 
     @Suppress("unused")
@@ -206,7 +214,11 @@ internal class AddResourceConnectionManager(
                 identityRepository.signOutPrimary()
                 googleDriveAccountEmail = null
                 updateCloudStorageStatus()
-                Toast.makeText(activity, activity.getString(R.string.google_drive_signed_out), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.google_drive_signed_out),
+                    Toast.LENGTH_SHORT
+                ).show()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign out from Google Drive (identity domain)")
             }
@@ -214,7 +226,10 @@ internal class AddResourceConnectionManager(
     }
 
     private fun navigateToGoogleDriveFolderPicker(accountEmail: String? = null) {
-        val intent = Intent(activity, com.sza.fastmediasorter.ui.cloudfolders.GoogleDriveFolderPickerActivity::class.java)
+        val intent = Intent(
+            activity,
+            com.sza.fastmediasorter.ui.cloudfolders.GoogleDriveFolderPickerActivity::class.java
+        )
             .apply { accountEmail?.let { putExtra("extra_account_email", it) } }
         activity.startActivity(intent)
     }
@@ -331,7 +346,7 @@ internal class AddResourceConnectionManager(
             CloudProvider.DROPBOX.name -> R.string.dropbox
             else -> R.string.cloud_storage
         }
-        AlertDialog.Builder(activity)
+        val accountDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(titleRes))
             .setItems(options.toTypedArray()) { _, which ->
                 if (which == options.size - 1) {
@@ -346,7 +361,9 @@ internal class AddResourceConnectionManager(
                 }
             }
             .setNegativeButton(R.string.cancel, null)
-            .showBoundToHost(activity)
+            .create()
+        DialogKeyboardDelegate.applyTo(accountDialog) {}
+        accountDialog.showBoundToHost(activity)
     }
 
     // ========== SMB / SFTP Connection Testing ==========
@@ -359,7 +376,11 @@ internal class AddResourceConnectionManager(
             return
         }
         if (server.isEmpty()) {
-            AppErrorNotifier.show(activity, activity.getString(R.string.server_address_required), ErrorSeverity.CRITICAL)
+            AppErrorNotifier.show(
+                activity,
+                activity.getString(R.string.server_address_required),
+                ErrorSeverity.CRITICAL
+            )
             return
         }
         viewModel.testSmbConnection(
@@ -434,7 +455,7 @@ internal class AddResourceConnectionManager(
         val displayItems = mutableListOf<String>()
         if (uniqueManual.isNotEmpty()) {
             // Section header (non-selectable appearance via a prefix marker)
-            displayItems.addAll(uniqueManual.map { "\u2713 $it" })  // ✓ prefix for previously-used entries
+            displayItems.addAll(uniqueManual.map { "\u2713 $it" }) // ✓ prefix for previously-used entries
         }
         displayItems.addAll(shares)
         displayItems.add(activity.getString(R.string.smb_enter_share_manually))
@@ -443,10 +464,10 @@ internal class AddResourceConnectionManager(
         val resolvedNames: List<String?> = buildList {
             uniqueManual.forEach { add(it) }
             shares.forEach { add(it) }
-            add(null)  // "enter manually" sentinel
+            add(null) // "enter manually" sentinel
         }
 
-        AlertDialog.Builder(activity)
+        val sharePickerDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.msg_select_share, server))
             .setItems(displayItems.toTypedArray()) { _, which ->
                 val resolved = resolvedNames[which]
@@ -458,15 +479,19 @@ internal class AddResourceConnectionManager(
                 }
             }
             .setNegativeButton(R.string.cancel, null)
-            .showBoundToHost(activity)
+            .create()
+        DialogKeyboardDelegate.applyTo(sharePickerDialog) {}
+        sharePickerDialog.showBoundToHost(activity)
     }
 
     fun showNoSharesFoundDialog() {
-        AlertDialog.Builder(activity)
+        val noSharesDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.smb_no_shares_found_title)
             .setMessage(R.string.msg_no_shares_found)
             .setNegativeButton(R.string.cancel, null)
-            .showBoundToHost(activity)
+            .create()
+        DialogKeyboardDelegate.applyTo(noSharesDialog) {}
+        noSharesDialog.showBoundToHost(activity)
     }
 
     /**
@@ -530,10 +555,41 @@ internal class AddResourceConnectionManager(
         }
     }
 
-    fun showTestResultDialog(message: String, isSuccess: Boolean) {
-        val title = if (isSuccess) activity.getString(R.string.connection_test_success_title)
-                    else activity.getString(R.string.connection_test_failed_title)
-        ScrollableTextDialog.show(context = activity, title = title, message = message, showSave = false)
+    fun showTestResultDialog(message: String, isSuccess: Boolean, presentedFingerprint: String? = null) {
+        val title = if (isSuccess) {
+            activity.getString(R.string.connection_test_success_title)
+        } else {
+            activity.getString(R.string.connection_test_failed_title)
+        }
+        val currentFingerprint = sftpForm.etSftpHostKeyFingerprint.text?.toString()?.trim().orEmpty()
+        val canOfferPin = isSuccess && !presentedFingerprint.isNullOrBlank() && currentFingerprint.isEmpty()
+
+        val fullMessage = if (canOfferPin) {
+            "$message\n\n${activity.getString(R.string.sftp_host_key_presented_format, presentedFingerprint)}"
+        } else {
+            message
+        }
+
+        if (canOfferPin) {
+            ScrollableTextDialog.show(
+                context = activity,
+                title = title,
+                message = fullMessage,
+                showSave = false,
+                actionButtonText = activity.getString(R.string.sftp_pin_host_key),
+                onActionClick = {
+                    sftpForm.headerSftpServerVerification.setExpanded(true, notify = false)
+                    sftpForm.etSftpHostKeyFingerprint.setText(presentedFingerprint)
+                    Toast.makeText(
+                        activity,
+                        activity.getString(R.string.sftp_host_key_pinned_toast),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            )
+        } else {
+            ScrollableTextDialog.show(context = activity, title = title, message = fullMessage, showSave = false)
+        }
     }
 
     fun showLocalNetworkPermissionRationale() {

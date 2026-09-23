@@ -24,7 +24,8 @@
 
     Exit codes (S1070):
       0 - clean (count <= baseline), or audit mode (no -Gate), or baseline updated.
-      1 - substantive failure: more Why-less steps than the baseline allows.
+      1 - substantive failure: more Why-less steps than the baseline allows; or -UpdateBaseline
+          would raise the baseline and no -Reason was given.
       2 - the gate itself cannot run (PLAN/ or the baseline file is missing/unreadable).
           Distinct from 1 on purpose.
       4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
@@ -34,8 +35,12 @@
     Fail-closed: exit 1 when the count exceeds the baseline.
 
 .PARAMETER UpdateBaseline
-    Rewrite the baseline to the current count. Use after deliberately reducing the
-    debt, never to silence a regression.
+    Lower the baseline to the current count. A rise is refused unless -Reason is given
+    (S3438, contract CHECK-BASELINE rules 2 and 6): the steps it would accept are printed
+    either way, so a re-freeze can never absorb new debt as a side effect of a re-run.
+
+.PARAMETER Reason
+    With -UpdateBaseline: why new Why-less steps are being accepted. Required for a rise only.
 
 .PARAMETER Quiet
     Print only the expected/actual summary, not the per-step list.
@@ -48,6 +53,7 @@
 param(
     [switch]$Gate,
     [switch]$UpdateBaseline,
+    [string]$Reason,
     [switch]$Quiet
 )
 
@@ -122,6 +128,16 @@ $actual = $offenders.Count
 
 if ($UpdateBaseline) {
     $previous = if (Test-Path -LiteralPath $baselineFile) { (Get-Content -LiteralPath $baselineFile -Raw).Trim() } else { 'absent' }
+    $previousCount = 0
+    if ([int]::TryParse($previous, [ref]$previousCount) -and $actual -gt $previousCount) {
+        Write-Host "assert-tactical-step-form: -UpdateBaseline would RAISE the baseline $previousCount -> $actual. Why-less steps now:"
+        foreach ($o in $offenders) { Write-Host "  $o" }
+        if (-not "$Reason".Trim()) {
+            Write-Host 'assert-tactical-step-form: FAIL - refusing to raise without -Reason "<why this debt is accepted>".' -ForegroundColor Red
+            exit 1
+        }
+        Write-Host "assert-tactical-step-form: accepting the rise, reason: $Reason"
+    }
     $scope = $null
     try {
         $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-tactical-step-form.ps1 -UpdateBaseline'

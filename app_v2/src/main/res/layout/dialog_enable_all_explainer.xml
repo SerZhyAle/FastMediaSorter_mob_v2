@@ -4,8 +4,9 @@
   overview before the sequence starts, and the just-in-time reminder before the default-app stage -
   by hiding the step rows the current mode does not use. Title and button labels come from the
   fragment, so no text here is mode-specific.
-  Root is a ScrollView: the three illustrated rows are taller than a landscape dialog window, and
-  there is no layout-land counterpart to keep in step (CLAUDE.md Rule 11 applies where one exists).
+  Root is a ScrollView: the three illustrated rows are taller than a landscape dialog window. The
+  landscape variant res/layout-land/dialog_enable_all_explainer.xml (S3254) carries the same focus
+  chain.
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"

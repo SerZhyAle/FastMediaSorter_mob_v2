@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
+import android.content.Context
 import android.view.View
 import androidx.annotation.StringRes
+import androidx.core.content.edit
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
@@ -27,6 +29,8 @@ import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
 import com.sza.fastmediasorter.utils.setBadgeText
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -60,6 +64,13 @@ class BrowseStateUiUpdater(
     /** Cached no-thumbnail flag - grid span count differs for the no-thumbnail "plank" layout (S0419). */
     private var currentDisableThumbnails: Boolean? = null
 
+    /**
+     * Whether this screen shows the limited-reach sentence; null until the first limited folder asks.
+     * Decided once per screen, so the sentence that appeared on the first visit stays for that visit
+     * while every later visit, to any folder, sees the watermark already set.
+     */
+    private var reachNoticeOnThisScreen: Boolean? = null
+
     // S2795: built by hand rather than by Hilt, so it reaches the format seam the way the project's
     // other out-of-graph surfaces do. The system itself is read per call, so a switched setting shows
     // the next time the strip is redrawn.
@@ -85,7 +96,7 @@ class BrowseStateUiUpdater(
         onRecomputeOverflow()
     }
 
-    private fun updateFilterBadge(state: BrowseState) {
+    private suspend fun updateFilterBadge(state: BrowseState) {
         val filter = state.filter
         val resource = state.resource
 
@@ -106,7 +117,7 @@ class BrowseStateUiUpdater(
         // the narrowed provider has to say so even while a filter is on - the two statements are both
         // true, and dropping either one leaves the screen claiming something it cannot deliver.
         val lines = mutableListOf<String>()
-        if (resource != null && LimitedStorageReach.isReachLimited(activity, resource)) {
+        if (resource != null && LimitedStorageReach.isReachLimited(activity, resource) && claimReachNotice()) {
             // A virtual aggregate is not a folder the user connected, so it gets its own sentence -
             // telling someone to "add this folder again" would name something they never added.
             // For a real folder the advice has to name the cheapest route that exists on THIS build:
@@ -136,6 +147,27 @@ class BrowseStateUiUpdater(
         }
         binding.tvFilterWarning.text = lines.joinToString(separator = "\n")
         binding.tvFilterWarning.isVisible = lines.isNotEmpty()
+    }
+
+    /**
+     * The owner wants the limited-reach sentence once per installation, not on every folder it applies
+     * to. The watermark is consumed only when a limited folder is actually opened, and read on IO
+     * because this runs from the state collector on the main thread (StrictMode DiskRead, S1153).
+     */
+    private suspend fun claimReachNotice(): Boolean {
+        reachNoticeOnThisScreen?.let { return it }
+        val show = withContext(Dispatchers.IO) {
+            val prefs = activity.getSharedPreferences(
+                "${activity.packageName}_preferences",
+                Context.MODE_PRIVATE
+            )
+            val firstTime = !prefs.getBoolean(PREF_REACH_NOTICE_SHOWN, false)
+            if (firstTime) prefs.edit { putBoolean(PREF_REACH_NOTICE_SHOWN, true) }
+            firstTime
+        }
+        reachNoticeOnThisScreen = show
+        Timber.d("S3393: reach notice claimed show=$show")
+        return show
     }
 
     /**
@@ -191,14 +223,17 @@ class BrowseStateUiUpdater(
         // carries the inset, and whether the list must reserve it itself.
         BrowseEdgeToEdgeHelper.applyBottomInsets(binding)
 
-        binding.btnCopy.isVisible = hasSelection
-        binding.btnMove.isVisible = hasSelection && canWrite
-        binding.btnRename.isVisible = hasSelection && canWrite
-        binding.btnDelete.isVisible = hasSelection && canWrite
-        binding.btnUndo.isVisible = state.lastOperation != null
-        binding.btnShare.isVisible = hasSelection
+        // S3249: the operations bar is an ActionBarView, so a control is addressed by its action id.
+        val operations = binding.layoutOperations
+        Timber.d("S3249: operations visibility hasSelection=$hasSelection canWrite=$canWrite")
+        operations.setActionVisible(R.id.actionBrowseCopy, hasSelection)
+        operations.setActionVisible(R.id.actionBrowseMove, hasSelection && canWrite)
+        operations.setActionVisible(R.id.actionBrowseRename, hasSelection && canWrite)
+        operations.setActionVisible(R.id.actionBrowseDelete, hasSelection && canWrite)
+        operations.setActionVisible(R.id.actionBrowseUndo, state.lastOperation != null)
+        operations.setActionVisible(R.id.actionBrowseShare, hasSelection)
         val isLocalResource = resource?.type == ResourceType.LOCAL
-        binding.btnArchive?.isVisible = hasSelection && isLocalResource
+        operations.setActionVisible(R.id.actionBrowseArchive, hasSelection && isLocalResource)
     }
 
     /**
@@ -298,6 +333,8 @@ class BrowseStateUiUpdater(
     }
 
     companion object {
+        private const val PREF_REACH_NOTICE_SHOWN = "reach_limited_notice_shown"
+
         internal fun isCameraCaptureVisible(state: BrowseState, settings: AppSettings): Boolean {
             if (settings.disableCameraCapture) return false
             val resource = state.resource ?: return false

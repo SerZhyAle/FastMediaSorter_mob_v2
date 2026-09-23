@@ -65,6 +65,27 @@ object WearDataLayerPaths {
     /** Channel, phone → watch. Carries the bytes of one approved paired-phone media item. */
     const val PHONE_RESOURCE_TRANSFER = "/fms/phone/phone_resource/transfer"
 
+    /**
+     * Message, watch → phone. Asks this phone to remove the original the watch has just copied (S3359).
+     *
+     * Under the `/fms/watch` prefix `src/wearGms/AndroidManifest.xml` already declares for
+     * PhoneWearListenerService, so it needs no filter of its own; a path outside a declared prefix is
+     * dropped by GMS in silence (S1697).
+     *
+     * The request carries the expected size because the token is stateless: it names a resource and a
+     * path, and a rename between the copy and this ask would otherwise point it at another file.
+     */
+    const val PHONE_RESOURCE_DELETE_REQUEST = "/fms/watch/phone_resource/delete"
+
+    /**
+     * Data Item, phone → watch. Answers one delete request - removed, or kept with the reason (S3359).
+     *
+     * A Data Item and not a message because the companion-off answer must still arrive: an outgoing
+     * message is swallowed by that switch, while `putCompanionRefusal` publishes past it. One transport
+     * for both answers beats a second one the watch would have to listen on as well.
+     */
+    const val PHONE_RESOURCE_DELETE_ACK = "/fms/phone/phone_resource/delete_ack"
+
     /** Message, watch → phone. Carries one log report for the developer. */
     const val LOG_REPORT_REQUEST = "/fms/watch/log_report"
 

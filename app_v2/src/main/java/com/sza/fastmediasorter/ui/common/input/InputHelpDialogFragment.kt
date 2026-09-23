@@ -13,10 +13,10 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.setPadding
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
@@ -86,7 +86,7 @@ class InputHelpDialogFragment : DialogFragment() {
         }
         root.addView(link)
 
-        return AlertDialog.Builder(ctx)
+        return MaterialAlertDialogBuilder(ctx)
             .setTitle(R.string.kbm_help_title)
             .setView(scroll)
             .setPositiveButton(R.string.ok) { d, _ -> d.dismiss() }

@@ -229,12 +229,14 @@ enum class WearCastOutcome { CASTING, PICKER_NEEDED }
 package com.sza.fastmediasorter.domain.model
 enum class WearPhoneResourceRequestKind { @SerializedName("AUDIO") AUDIO }
 enum class WearPhoneResourceResponseStatus { @SerializedName("OK") OK }
+enum class WearPhoneResourceDeleteOutcome { @SerializedName("DELETED") DELETED }
 '@ | Set-Content (Join-Path $phoneModel 'WearPhoneResourcePayload.kt') -Encoding utf8NoBOM
 
     @'
 package com.sza.fastmediasorter.wear.domain.model
 enum class WearPhoneResourceRequestKind { AUDIO }
 enum class WearPhoneResourceResponseStatus { OK }
+enum class WearPhoneResourceDeleteOutcome { DELETED }
 '@ | Set-Content (Join-Path $watchModel 'WearPhoneResourcePayload.kt') -Encoding utf8NoBOM
 
     @'
@@ -409,6 +411,7 @@ try {
 package com.sza.fastmediasorter.domain.model
 enum class WearPhoneResourceRequestKind { @SerializedName("CHANGED") AUDIO }
 enum class WearPhoneResourceResponseStatus { @SerializedName("OK") OK }
+enum class WearPhoneResourceDeleteOutcome { @SerializedName("DELETED") DELETED }
 '@ | Set-Content (Join-Path $sb.Phone 'domain/model/WearPhoneResourcePayload.kt') -Encoding utf8NoBOM
     $code = Invoke-GateOnSandbox $sb
     Assert-That "5. SerializedName changes, member names untouched" ($code -eq 1) "expected 1, got $code"

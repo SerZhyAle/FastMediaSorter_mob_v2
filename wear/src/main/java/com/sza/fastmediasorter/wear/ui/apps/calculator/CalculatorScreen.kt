@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,7 +55,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 // S2007, owner ruling 2026-08-26: half the interactive minimum, deliberately. S1965 had raised this
 // to 48.dp because the KDoc and docs/WEAR_OS_STATUS.md both said 48 and the constant alone stood out
@@ -169,10 +167,6 @@ fun CalculatorScreen(
     viewModel: CalculatorViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(Unit) {
-        Timber.d("S3192: calculator screen displayed")
-        Timber.d("S3258: calculator canvas painted from WearAppTheme.colors.canvasBlack")
-    }
     val keypadScrollState = rememberScrollState()
     val clipboard = LocalClipboardManager.current
     var menuOpen by remember { mutableStateOf(false) }
@@ -182,14 +176,22 @@ fun CalculatorScreen(
     val menuListState = rememberWearListState()
     val historyListState = rememberWearListState()
     var copyConfirmationShown by remember { mutableStateOf(false) }
-    // S2007: no `scrollState` is handed to the scaffold. That parameter exists only to scroll
-    // `TimeText` away, and the value row is fixed below the clock while the keypad scrolls beneath
-    // the value row - so nothing that moves here ever reaches the clock to obscure it.
+    // S2007: no `scrollState` is handed to the scaffold for the keypad. That parameter exists only to
+    // scroll `TimeText` away, and the value row is fixed below the clock while the keypad scrolls
+    // beneath the value row - so nothing that moves there ever reaches the clock to obscure it.
+    // S3362: the two overlays are lists that DO reach the clock - walked at font scale 1.3 on the
+    // 192 dp emulator, the menu title was drawn over the time - so while one is up its state is handed
+    // over and the clock scrolls away with it.
     // The one screen that opts out of the app wallpaper (owner ruling 2026-09-04): the calculator is
     // worked on, not looked at, and a moving or photographic backdrop pulls the eye off the digits.
     // An opaque black container also keeps the keypad's contrast independent of the chosen picture.
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
+        scrollState = when {
+            historyOpen -> historyListState
+            menuOpen -> menuListState
+            else -> null
+        },
         positionIndicator = {
             when {
                 historyOpen -> PositionIndicator(historyListState)

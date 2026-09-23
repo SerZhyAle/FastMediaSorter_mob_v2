@@ -160,6 +160,43 @@ class LauncherSectionPackingTest {
         assertEquals(before, cells)
     }
 
+    @Test
+    fun `S3411 - a collapsed section after an earlier packed chain accounts for accumulated lift`() {
+        // Sections "a" and "b" at stored rows 2 and 3 pack onto row 2 (saving 1 row).
+        // Section "c" at row 4 is expanded with content on row 4.
+        // Section "d" (e.g. Settings) at row 5 is collapsed: it must start at row 4 (lifted by 1 row),
+        // not at row 5 which would leave an empty row between "c" and "d".
+        val cells = listOf(
+            section(row = 2, col = 0, target = "a"),
+            section(row = 3, col = 0, target = "b"),
+            section(row = 4, col = 0, target = "c"),
+            shortcut(row = 4, col = 2),
+            section(row = 5, col = 0, target = "d"),
+            section(row = 6, col = 0, target = "e"),
+        )
+
+        val packed = pack(cells, collapsed = setOf("a", "b", "d", "e"))
+
+        assertEquals(LauncherSectionMembership.PackedPosition(row = 2, col = 0), packed["a"])
+        assertEquals(LauncherSectionMembership.PackedPosition(row = 2, col = 2), packed["b"])
+        assertNull(packed["c"])
+        assertEquals(LauncherSectionMembership.PackedPosition(row = 4, col = 0), packed["d"])
+        assertEquals(LauncherSectionMembership.PackedPosition(row = 4, col = 2), packed["e"])
+
+        val lifts = LauncherSectionMembership.packingLifts(
+            cells = cells,
+            collapsedTargets = setOf("a", "b", "d", "e"),
+            columns = fourColumns,
+            renderRowOf = { cell -> cell.rowIndex },
+        )
+
+        assertEquals(0, lifts["a"])
+        assertEquals(1, lifts["b"])
+        assertEquals(1, lifts["c"])
+        assertEquals(1, lifts["d"])
+        assertEquals(2, lifts["e"])
+    }
+
     private fun pack(
         cells: List<LauncherCell>,
         collapsed: Set<String>,

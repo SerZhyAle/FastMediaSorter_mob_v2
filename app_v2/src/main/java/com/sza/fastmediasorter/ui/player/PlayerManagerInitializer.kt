@@ -12,6 +12,8 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.mutation.Mutation
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
+import com.sza.fastmediasorter.ui.common.widget.DimHeadingProvider
+import com.sza.fastmediasorter.ui.common.widget.dimclock.di.DimClockEntryPoint
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
@@ -51,6 +53,8 @@ import com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager
 import com.sza.fastmediasorter.ui.player.helpers.seekBackward
 import com.sza.fastmediasorter.ui.player.helpers.seekForward
 import com.sza.fastmediasorter.util.showBoundTo
+import dagger.Lazy
+import dagger.hilt.EntryPoints
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -242,6 +246,14 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         }
     }
 
+    /** S3370: the heading singleton via the entry point - every dim surface must share one cache. */
+    private fun headingProvider(activity: PlayerActivity): Lazy<DimHeadingProvider> =
+        object : Lazy<DimHeadingProvider> {
+            override fun get(): DimHeadingProvider =
+                EntryPoints.get(activity.applicationContext, DimClockEntryPoint::class.java)
+                    .dimHeadingProvider()
+        }
+
     private fun initScreenLevelCoreCoordination() {
         activity.cloudAuthManager = BrowseCloudAuthManager(
             context = activity,
@@ -279,7 +291,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.systemBarsManager = SystemBarsManager(activity = activity)
         activity.blackScreenOverlayManager = BlackScreenOverlayManager(
             activityRef = java.lang.ref.WeakReference(activity),
-            systemBarsManager = activity.systemBarsManager
+            systemBarsManager = activity.systemBarsManager,
+            headingProviderLazy = headingProvider(activity),
         )
         activity.imageTranslationManager = PlayerImageTranslationManager(activity = activity)
         activity.shareManager = PlayerShareManager(activity = activity)

@@ -89,4 +89,26 @@ class SshFingerprintNormalizerTest {
         val malformed = "no-prefix-here"
         assertEquals(malformed, SshFingerprintNormalizer.shortForList(malformed))
     }
+
+    @Test
+    fun `fromRawKeyBytes computes canonical SHA256 fingerprint for arbitrary byte array`() {
+        val emptyBytes = ByteArray(0)
+        val expectedSha256OfEmpty = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
+        val result = SshFingerprintNormalizer.fromRawKeyBytes(emptyBytes)
+        assertEquals(expectedSha256OfEmpty, result)
+        assertEquals(result, SshFingerprintNormalizer.canonical(result))
+    }
+
+    @Test
+    fun `fromBase64Key decodes base64 public key and computes canonical SHA256 fingerprint`() {
+        assertNull(SshFingerprintNormalizer.fromBase64Key(null))
+        assertNull(SshFingerprintNormalizer.fromBase64Key(""))
+        // Base64 of empty bytes is "" which is blank -> null.
+        // Base64 of 4 bytes: "AQIDBA==" -> bytes [1, 2, 3, 4]
+        val base64Key = "AQIDBA=="
+        val rawBytes = byteArrayOf(1, 2, 3, 4)
+        val expected = SshFingerprintNormalizer.fromRawKeyBytes(rawBytes)
+        val result = SshFingerprintNormalizer.fromBase64Key(base64Key)
+        assertEquals(expected, result)
+    }
 }

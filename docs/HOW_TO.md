@@ -97,6 +97,8 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 39. [Choose Where Captures and Downloads Are Saved](#how-to-choose-where-captures-and-downloads-are-saved)
 40. [Receive Files Shared from Another App](#how-to-receive-files-shared-from-another-app)
 41. [Use the Built-In Programs](#how-to-use-the-built-in-programs)
+42. [Ask Your Assistant to Find and Open Media](#how-to-ask-your-assistant-to-find-and-open-media)
+43. [Encrypt a File with FileDO](#how-to-encrypt-a-file-with-filedo)
 
 ---
 
@@ -292,8 +294,8 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Scenario Walkthrough**
 
-- For Latin-script text, the app usually starts with ML Kit for speed.
-- For Cyrillic-heavy material, the app can switch to Tesseract for better recognition quality.
+- The app reads the text with Tesseract on the device and translates it with Google ML Kit.
+- For Cyrillic material, choose the source language explicitly (for example Russian or Ukrainian) - "Auto" reads with the English model.
 - Screenshots, receipts, menus, and scanned pages work especially well when the source text is reasonably sharp.
 
 **When It Helps**
@@ -477,7 +479,7 @@ These sections are intentionally more varied than the core reference blocks belo
 **Steps:**
 
 1. **Tap "+" button** on main screen
-2. Select **"Network folder SMB"**
+2. Select **"Network folder (SMB)"**
 3. Fill in details:
    - **Auto-Discovery (New):**
      1. Tap **"Scan Network"** button
@@ -860,6 +862,31 @@ Then use **command panel buttons** instead.
 
 ---
 
+## How to Encrypt a File with FileDO
+
+A FileDO container is one file with the `.fd-sec` extension that holds another file locked by a password. The format is the one the FileDO desktop app uses, so a container made here opens in FileDO and the other way round.
+
+**Turn the commands on:** **Settings** → **Operations** tab → **FileDO encryption operations**. Opening a container works whether this switch is on or off.
+
+**Encrypt a file:**
+
+1. In Browse, open the **⋮** menu of the file.
+2. Tap **Encrypt with FileDO**.
+3. Enter the password twice and confirm.
+4. The container appears next to the file as `<name>.fd-sec`. The original file is left untouched - delete it yourself if you no longer need it.
+
+**Decrypt a file:** open the **⋮** menu of the `.fd-sec` file, tap **Decrypt with FileDO** and enter the password. The restored file appears next to the container.
+
+**Open a container without restoring it:** tap the `.fd-sec` file in any folder that shows all file types. The app asks only for the password and opens the file inside in the viewer. The decrypted copy stays in the app's private storage and is deleted when you go back to the list. Tick **Remember the password and try it on every .fd-sec file** to skip the prompt next time.
+
+**Where it works:** device folders, folders picked through the system folder chooser, and SMB, SFTP and FTP shares. On a chooser folder or a network share the file is processed as a private copy, the result is written back under a temporary name, read back and checked, and only then renamed into place - an existing file is never overwritten.
+
+**If it does not open:** the message names three possible causes - a wrong password, a file that was never a container, or a container that was changed. They cannot be told apart. A container that holds a program or a script is not opened.
+
+**Forgot the password?** There is no way to recover it. An empty password hides the file only from a casual look.
+
+---
+
 ## How to Work with Folders (select, copy, move)
 
 When subfolders are shown as separate items in the list, a folder row behaves like a file row.
@@ -1079,11 +1106,11 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 
 ## Auto-Translation
 
-Automatically translate text from images, PDF, and text files using a **Hybrid OCR System** (Google ML Kit + Tesseract).
+Automatically translate text from images, PDF, and text files: **Tesseract** reads the text, Google ML Kit translates it.
 
 **Key Features:**
 
-- **Hybrid Engine:** Uses Google ML Kit for fast Latin script recognition and **Tesseract** for high-quality Cyrillic (Russian, Ukrainian) recognition.
+- **One reading engine:** **Tesseract** reads Latin and Cyrillic text (English, Russian, Ukrainian, Bulgarian, Belarusian); Google ML Kit translates the result and identifies its language.
 - **Offline:** Works entirely on-device (after initial model download).
 - **Smart Overlay:** Translated text overlays the original text in readable paragraphs.
 
@@ -1092,8 +1119,8 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 1. **Settings** → **Media** tab → **Other**
 2. Enable **"Enable Translation"**
 3. Select **Source Language**:
-   - **"Auto" (Recommended):** Automatically selects the best engine (Tesseract for Cyrillic, ML Kit for others).
-   - **Specific Language:** Forces a specific model (e.g., "Russian" forces Tesseract).
+   - **"Auto":** Reads the text with the English model, then detects the language of what was read for the translation.
+   - **Specific Language:** Reads with that language's model - choose it for Cyrillic text (e.g., "Russian").
 4. Select **Target Language** (e.g., English).
 
 **How to use:**
@@ -1102,11 +1129,11 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 2. Tap the screen to show the **Command Panel**.
 3. Tap the **"Translate"** button (A→文 icon).
 4. **First run:**
-   - If using ML Kit: Confirm downloading the language model (~30MB).
-   - If using Tesseract (Cyrillic): Confirm downloading OCR data (~15MB).
+   - Confirm downloading the text model for the source language.
+   - Confirm downloading the translation model for the language pair.
 5. The translated text will appear in an overlay.
 
-**Note:** Tesseract initialization (for Cyrillic) might take 1-2 seconds longer than ML Kit.
+**Note:** The first use of a language loads its text model, which adds a short delay.
 
 ## Home-Screen Smart Widgets
 
@@ -1122,7 +1149,7 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 **Scenario Walkthrough**
 
 - Use 1×1 widgets as dedicated launcher icons to start background actions instantly (e.g., tap once to start recording voice, tap again to save it to your NAS).
-- Set up a **Scheduled Tasks widget** to monitor background file transfers or trigger a "Run All" operation.
+- Set up a **Scheduled Operations widget** to monitor background file transfers or trigger a "Run All" operation.
 - Place a **Random Photo Frame widget** to display a rotating slideshow of family photos fetched directly from an SMB share.
 
 **When It Helps**
@@ -1462,6 +1489,36 @@ The panel and the launcher additionally carry direct camera shortcuts - take a p
 
 - Do not expect the water flashlight to survive a swipe home - a system navigation gesture still leaves it, and the light goes out with it.
 - Do not expect every program in every build - the list above is the full set, and a build without the underlying capability simply does not show that entry.
+
+---
+
+## How to Ask Your Assistant to Find and Open Media
+
+**Available in:** every build, on Android 16 and newer. Older Android versions simply do not offer the feature, and nothing in the app has to be switched on for it.
+
+On Android 16+ the app registers a set of assistant actions - AppFunctions, in Android's own wording - with the system. Your device's assistant can then call them by name, so you can ask out loud for a photo, a video or a computer folder instead of opening the app and browsing for it yourself.
+
+**What you can ask for**
+
+- **Search your media** - the assistant hands your words to the app's search and shows what matched.
+- **Open a media file** - a photo, a video or a track opens straight in the app's viewer or player.
+- **Open a computer folder** - one of your network or cloud folders opens in the browser screen.
+
+**Quick Path**
+
+1. Make sure the device runs Android 16 or newer and has a system assistant set up.
+2. Ask the assistant for the media you want, naming FastMediaSorter if the device hosts several media apps.
+3. The app opens on the result - the search list, the file, or the folder you asked for.
+
+**When It Helps**
+
+- Your hands are busy - cooking, driving, holding a child - and tapping through folders is not an option.
+- You remember what a file is called but not where you filed it.
+
+**Avoid This**
+
+- Do not expect it below Android 16: the assistant actions are part of the newer system, so on an older phone the assistant will not see them.
+- Do not expect the assistant to reach a PIN-protected folder - the lock still applies, and the folder asks for its PIN as usual.
 
 ---
 

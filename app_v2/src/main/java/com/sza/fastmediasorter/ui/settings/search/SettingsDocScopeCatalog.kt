@@ -100,6 +100,15 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.OPERATIONS,
             "rowOpenStopwatchSettings"
         ),
+        // S3365: the scheduled-operations program screen hosts the group's master toggle after the
+        // settings card was extracted; the settings link row opens it, so it documents under the
+        // same destination instead of the live search index.
+        DocScopeSurface(
+            R.layout.activity_scheduled_operations,
+            "scheduled_operations",
+            SettingsSearchDestination.OPERATIONS,
+            "rowOpenScheduledOpsScreen"
+        ),
         // Opened only from the camera-OCR capture flow (CameraOcrTranslateActivity), same reason.
         DocScopeSurface(
             R.layout.dialog_camera_ocr_settings,
@@ -273,7 +282,7 @@ object SettingsDocScopeCatalog {
             key = "wearColorScheme",
             layout = "wear_screen_settings",
             kind = "RADIO_GROUP",
-            titleEn = "Colour scheme",
+            titleEn = "Color scheme",
             titleRu = "Цветовая схема",
             titleUk = "Колірна схема"
         ),
@@ -340,6 +349,16 @@ object SettingsDocScopeCatalog {
             titleEn = "Show clock and status while dimmed",
             titleRu = "Выводить часы и состояние во время затемнения",
             titleUk = "Показувати годинник і стан під час затемнення"
+        ),
+        // S3383: the watch's own FileDO switch. It governs the two menu entries that WRITE a
+        // container; opening one arrives by file extension and is never behind it.
+        WearDocEntry(
+            key = "wearFileDoOperations",
+            layout = "wear_other_settings",
+            kind = "TOGGLE_ROW",
+            titleEn = "FileDO encryption",
+            titleRu = "Шифрование FileDO",
+            titleUk = "Шифрування FileDO"
         )
     )
 }

@@ -40,6 +40,8 @@ object GoogleDriveRestClientUtils {
 
         val thumbnailUrl: String? = item.optString("thumbnailLink").takeIf { it.isNotEmpty() }
         val webViewUrl: String? = item.optString("webViewLink").takeIf { it.isNotEmpty() }
+        // Present only when the request asked for `parents`; a file shared with the account has none.
+        val parentId: String? = item.optJSONArray("parents")?.optString(0)?.takeIf { it.isNotEmpty() }
 
         return CloudFile(
             id = id,
@@ -50,7 +52,8 @@ object GoogleDriveRestClientUtils {
             modifiedDate = modifiedDate,
             mimeType = mimeType,
             thumbnailUrl = thumbnailUrl,
-            webViewUrl = webViewUrl
+            webViewUrl = webViewUrl,
+            parentId = parentId
         )
     }
 }

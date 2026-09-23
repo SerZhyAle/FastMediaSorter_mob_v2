@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.repository.INSTALLED_APP_ICON_DIR
+import com.sza.fastmediasorter.data.repository.installedAppIconDirectory
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,12 +18,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * S1401: one image file per cached app icon, in a subdirectory of the app cache directory.
+ * S1401: one image file per cached app icon, in [installedAppIconDirectory].
  *
  * Icons live on disk rather than in the database because a hundred of them would put megabytes of
  * binary into a file that every unrelated query, backup and migration then carries (strategic
- * research 02). The cache directory is also reclaimable, so the system can take the space back under
- * pressure and the next refresh simply writes the icons again.
+ * research 02). They are not in the cache directory: the system trims it without telling the app, and
+ * a refresh only rewrites the icon of a package that changed, so a trimmed icon never came back.
  *
  * Everything is rasterised to one bounded square rather than the drawable's native size: an adaptive
  * icon reports whatever its author drew, and the largest surface that ever paints one of these is a
@@ -34,7 +35,7 @@ class InstalledAppIconStore @Inject constructor(
 ) {
 
     private val directory: File
-        get() = File(context.cacheDir, INSTALLED_APP_ICON_DIR)
+        get() = installedAppIconDirectory(context)
 
     /**
      * Writes [icon] for [packageName] and returns the stored file name, or null when the write did
@@ -83,6 +84,9 @@ class InstalledAppIconStore @Inject constructor(
         directory.listFiles()
             ?.filter { it.isFile && it.name !in keep }
             ?.forEach { it.delete() }
+        // The pre-format-2 location. The full rebuild that calls this is the one that follows the
+        // format bump, so nothing reads the old files any more.
+        File(context.cacheDir, INSTALLED_APP_ICON_DIR).deleteRecursively()
         Unit
     }
 

@@ -31,25 +31,30 @@ class SelectedMediaManager @Inject constructor() {
      * @param isNetworkSource True if the file is from a network source
      * @param streamUri The full URI for streaming (for network files)
      * @param sourceId Id of the network source the file was browsed from
+     * @param phoneToken Browse token of the phone's original, for a copy fetched from the paired phone
      */
     fun selectFile(
         file: WearMediaFile,
         isNetworkSource: Boolean,
         streamUri: String? = null,
         sourceId: String? = null,
-        isDirectStream: Boolean = false
+        isDirectStream: Boolean = false,
+        phoneToken: String? = null
     ) {
         val effectiveStreamUri = streamUri ?: file.uri.toString()
+        // S3383: by id, never by name or uri. A file recovered from a FileDO container is published
+        // here under the true name the format hides, and its uri ends in that name.
         Timber.d(
-            "SelectedMediaManager: Selected file=${file.name}, isNetwork=$isNetworkSource, " +
-                "sourceId=$sourceId, streamUri=$effectiveStreamUri, isDirectStream=$isDirectStream"
+            "SelectedMediaManager: Selected file id=${file.id}, isNetwork=$isNetworkSource, " +
+                "sourceId=$sourceId, isDirectStream=$isDirectStream"
         )
         _selectedFile.value = SelectedMedia(
             file = file,
             isNetworkSource = isNetworkSource,
             streamUri = effectiveStreamUri,
             sourceId = sourceId,
-            isDirectStream = isDirectStream
+            isDirectStream = isDirectStream,
+            phoneToken = phoneToken
         )
     }
     
@@ -60,7 +65,7 @@ class SelectedMediaManager @Inject constructor() {
     fun getSelectedFileById(id: Long): SelectedMedia? {
         val current = _selectedFile.value
         return if (current?.file?.id == id) {
-            Timber.d("SelectedMediaManager: Found file by id=$id: ${current.file.name}")
+            Timber.d("SelectedMediaManager: Found file by id=$id")
             current
         } else {
             Timber.d("SelectedMediaManager: No file found for id=$id (current=${current?.file?.id})")
@@ -87,11 +92,16 @@ class SelectedMediaManager @Inject constructor() {
  *
  * S1708: [isDirectStream] indicates a live network stream (e.g. radio/video) played directly by URL
  * without downloading to a temporary file.
+ *
+ * S3359: [phoneToken] is the browse token of the phone's own original, carried for a copy fetched from
+ * the paired phone. The cached copy is named after that token's hash, so nothing on this watch can
+ * recover it from the file, and a move that asks the phone to delete the original has no other address.
  */
 data class SelectedMedia(
     val file: WearMediaFile,
     val isNetworkSource: Boolean,
     val streamUri: String,
     val sourceId: String? = null,
-    val isDirectStream: Boolean = false
+    val isDirectStream: Boolean = false,
+    val phoneToken: String? = null
 )

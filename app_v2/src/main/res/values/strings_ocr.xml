@@ -29,4 +29,5 @@
     <string name="translation_source_language_and_ocr">Original Language and OCR</string>
     <string name="translation_started">Translation started..</string>
     <string name="translation_target_language">Translate To</string>
+    <string name="ocr_language_assumed_unreadable">The text is in a script the recognizer was not set up for, so no translation is drawn over the picture. Choose the Original Language in the translation settings.</string>
 </resources>

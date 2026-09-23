@@ -52,7 +52,7 @@ appId: com.sza.fastmediasorter.debug
           visible:
             id: "com.sza.fastmediasorter.debug:id/titleText"
           timeout: 10000
-      # The overflow-ops toggle lives inside the collapsed "Main window interface" category;
+      # The overflow-ops toggle lives inside the collapsed "Main screen interface" category;
       # expand it first, then the row is reachable.
       - scrollUntilVisible:
           element:

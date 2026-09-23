@@ -21,7 +21,6 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
-import timber.log.Timber
 
 /**
  * S3115: touch lock for the tourist dashboard, built on the water-flashlight pattern (S2516 / S2812).
@@ -48,8 +47,6 @@ fun TouristLockOverlay(
     val currentUnlock by rememberUpdatedState(onUnlock)
 
     BackHandler { currentUnlock() }
-
-    Timber.d("S3115: tourist lock overlay active")
 
     Box(
         modifier = modifier

@@ -113,55 +113,66 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         context: Context,
         action: ScreenshotGestureAction,
         payload: String,
-    ): Boolean = when (action) {
-        ScreenshotGestureAction.DO_NOT_USE -> true
-        ScreenshotGestureAction.OPEN_APP -> {
-            launchSelectedApp(context, payload)
-            true
+    ): Boolean {
+        handleGroupedPreCaptureAction(context, action, payload)?.let { return it }
+        return when (action) {
+            ScreenshotGestureAction.DO_NOT_USE -> true
+            ScreenshotGestureAction.OPEN_APP -> {
+                launchSelectedApp(context, payload)
+                true
+            }
+            ScreenshotGestureAction.OPEN_PANEL -> {
+                launchPanel(context)
+                true
+            }
+            // S2256: the launcher route is handled here whether or not the seam could run it - a build
+            // without the launcher must fall silent, never fall through into the capture path.
+            ScreenshotGestureAction.OPEN_ALL_APPS -> launchAllApps(context)
+            ScreenshotGestureAction.LAUNCH_CAMERA -> {
+                launchCamera(context)
+                true
+            }
+            ScreenshotGestureAction.TAKE_PHOTO -> {
+                launchPhotoCapture(context, autoAction = null)
+                true
+            }
+            ScreenshotGestureAction.TAKE_PHOTO_SEND_TO -> {
+                launchPhotoCapture(context, PhotoVideoStandaloneActivity.AUTO_ACTION_SEND_TO)
+                true
+            }
+            ScreenshotGestureAction.TAKE_PHOTO_EDIT -> {
+                launchPhotoCapture(context, PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW)
+                true
+            }
+            ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE -> launchOcrPhotoCapture(context)
+            ScreenshotGestureAction.START_VIDEO_RECORDING -> {
+                launchVideoCamera(context)
+                true
+            }
+            ScreenshotGestureAction.START_AUDIO_RECORDING -> {
+                launchAudioRecorder(context)
+                true
+            }
+            ScreenshotGestureAction.START_SCREEN_RECORDING -> {
+                launchScreenRecording(context)
+                true
+            }
+            ScreenshotGestureAction.START_BROADCAST,
+            ScreenshotGestureAction.OPEN_TOURIST_INFO -> {
+                handleSubProgramGesture(context, action)
+                true
+            }
+            else -> false
         }
-        ScreenshotGestureAction.OPEN_PANEL -> {
-            launchPanel(context)
-            true
-        }
-        // S2256: the launcher route is handled here whether or not the seam could run it - a build
-        // without the launcher must fall silent, never fall through into the capture path.
-        ScreenshotGestureAction.OPEN_ALL_APPS -> launchAllApps(context)
-        ScreenshotGestureAction.LAUNCH_CAMERA -> {
-            launchCamera(context)
-            true
-        }
-        ScreenshotGestureAction.TAKE_PHOTO -> {
-            launchPhotoCapture(context, autoAction = null)
-            true
-        }
-        ScreenshotGestureAction.TAKE_PHOTO_SEND_TO -> {
-            launchPhotoCapture(context, PhotoVideoStandaloneActivity.AUTO_ACTION_SEND_TO)
-            true
-        }
-        ScreenshotGestureAction.TAKE_PHOTO_EDIT -> {
-            launchPhotoCapture(context, PhotoVideoStandaloneActivity.AUTO_ACTION_DRAW)
-            true
-        }
-        ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE -> launchOcrPhotoCapture(context)
-        ScreenshotGestureAction.START_VIDEO_RECORDING -> {
-            launchVideoCamera(context)
-            true
-        }
-        ScreenshotGestureAction.START_AUDIO_RECORDING -> {
-            launchAudioRecorder(context)
-            true
-        }
-        ScreenshotGestureAction.START_SCREEN_RECORDING -> {
-            launchScreenRecording(context)
-            true
-        }
-        ScreenshotGestureAction.START_BROADCAST,
-        ScreenshotGestureAction.OPEN_TOURIST_INFO -> {
-            handleSubProgramGesture(context, action)
-            true
-        }
-        // S1038: device-control + media actions run before (and instead of) any capture. Each handler
-        // owns its action set and returns true, so the gesture skips consent/capture entirely.
+    }
+
+    // S1038: these action families are fully handled before capture. Keeping their dispatch separate
+    // leaves the capture-backed action list readable and keeps each branch set below detekt's limit.
+    private fun handleGroupedPreCaptureAction(
+        context: Context,
+        action: ScreenshotGestureAction,
+        payload: String,
+    ): Boolean? = when (action) {
         ScreenshotGestureAction.TOGGLE_FLASHLIGHT,
         ScreenshotGestureAction.BRIGHTNESS_MAX,
         ScreenshotGestureAction.BRIGHTNESS_NORMAL -> deviceActionHandler.handle(context, action)
@@ -171,22 +182,19 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         ScreenshotGestureAction.MEDIA_PLAY_PAUSE,
         ScreenshotGestureAction.MEDIA_NEXT,
         ScreenshotGestureAction.MEDIA_PREV -> mediaActionHandler.handle(context, action)
-        // S1038: launch/intent actions. OPEN_URL alone needs the per-slot payload; the rest ignore it.
-        ScreenshotGestureAction.OPEN_URL ->
-            launchActionHandler.handle(context, action, payload)
+        ScreenshotGestureAction.OPEN_URL -> launchActionHandler.handle(context, action, payload)
         ScreenshotGestureAction.OPEN_ASSISTANT,
         ScreenshotGestureAction.OPEN_GEMINI,
         ScreenshotGestureAction.CREATE_KEEP_NOTE,
         ScreenshotGestureAction.SET_ALARM,
         ScreenshotGestureAction.SET_TIMER,
         ScreenshotGestureAction.NEW_CALENDAR_EVENT -> launchActionHandler.handle(context, action, payload = "")
-        // S1038 / S2386: SYSTEM actions (status bar panels + accessibility global actions).
         ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE,
         ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
         ScreenshotGestureAction.LOCK_SCREEN,
         ScreenshotGestureAction.TOGGLE_SPLIT_SCREEN,
         ScreenshotGestureAction.PREVIOUS_APP -> handleSystemAction(context, action)
-        else -> false
+        else -> null
     }
 
     /**
@@ -348,7 +356,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
     private suspend fun handleBroadcastGesture(context: Context) {
         if (settingsRepository.get().getSettings().first().enableBroadcasting) {
             launchBroadcast(context)
-        } else {
         }
     }
 
@@ -363,7 +370,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
     private suspend fun handleTouristGesture(context: Context) {
         if (settingsRepository.get().getSettings().first().enableTourist) {
             launchTouristInfo(context)
-        } else {
         }
     }
 

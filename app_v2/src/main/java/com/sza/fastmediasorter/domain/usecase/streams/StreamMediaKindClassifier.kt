@@ -27,6 +27,16 @@ class StreamMediaKindClassifier @Inject constructor() {
         return if (extensionOf(trimmed) in VIDEO_EXTENSIONS) VIDEO else AUDIO
     }
 
+    /**
+     * S3374 (STREAM-BANK 2.1 item M): a declared kind this app does not act on is worth exactly as much
+     * as a blank one, so both degrade to the URL classifier. Storing an unrecognised value verbatim left
+     * every downstream comparison to answer it by whichever side of its own test it fell on.
+     */
+    fun resolve(declared: String, url: String): String {
+        val normalized = declared.trim().uppercase()
+        return if (normalized in RECOGNISED_KINDS) normalized else classify(url)
+    }
+
     private fun extensionOf(url: String): String {
         val path = url.substringBefore('?').substringBefore('#')
         val lastSegment = path.substringAfterLast('/')
@@ -39,6 +49,7 @@ class StreamMediaKindClassifier @Inject constructor() {
         const val VIDEO = "VIDEO"
         const val AUDIO = "AUDIO"
 
+        val RECOGNISED_KINDS = setOf(RTSP, VIDEO, AUDIO)
         val VIDEO_EXTENSIONS = setOf("m3u8", "mpd", "mp4", "mkv", "webm", "ts", "mov")
     }
 }

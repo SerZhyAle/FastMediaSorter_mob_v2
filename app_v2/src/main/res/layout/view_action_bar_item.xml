@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S3249: one generated child of ActionBarView. The button is inflated rather than constructed in
+     code because a widget style can only be applied to a MaterialButton at inflation - the three-arg
+     constructor takes a defStyleAttr, not a style resource, so a code-built button would silently
+     lose the 48dp floor and the M3 ripple this file's style carries. -->
+<com.google.android.material.button.MaterialButton xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.FastMediaSorter.Button.Icon"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:insetBottom="@dimen/dimension_zero"
+    android:insetLeft="@dimen/dimension_zero"
+    android:insetRight="@dimen/dimension_zero"
+    android:insetTop="@dimen/dimension_zero"
+    app:iconGravity="textStart"
+    app:iconPadding="@dimen/spacing_none" />

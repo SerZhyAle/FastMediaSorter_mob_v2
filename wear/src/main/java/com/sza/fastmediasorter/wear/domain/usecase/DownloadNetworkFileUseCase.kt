@@ -24,9 +24,13 @@ private const val AUDIO_CACHE_CAP_MB = 100L
 private const val VIDEO_CACHE_CAP_MB = 300L
 private const val IMAGE_CACHE_CAP_MB = 50L
 
-// S2532: the smallest of the four. A document is fetched to be read as text under a far tighter
+// S2532: the smallest of the four media kinds. A document is fetched to be read as text under a far tighter
 // in-memory cap, so anything the reader could ever show fits many times over inside this dir.
 private const val DOCUMENT_CACHE_CAP_MB = 20L
+
+// S3407: a fetched FileDO container is deleted the moment its credential attempt ends, so this cap
+// only bounds what a killed process left behind. The copy being opened is never the one evicted.
+private const val CONTAINER_CACHE_CAP_MB = 20L
 
 private val LEGACY_CACHE_DIR_NAMES = listOf("smb_audio", "smb_video", "smb_images")
 
@@ -51,7 +55,10 @@ class DownloadNetworkFileUseCase @Inject constructor(
         AUDIO("net_audio", AUDIO_CACHE_CAP_MB * BYTES_PER_MB),
         VIDEO("net_video", VIDEO_CACHE_CAP_MB * BYTES_PER_MB),
         IMAGE("net_images", IMAGE_CACHE_CAP_MB * BYTES_PER_MB),
-        DOCUMENT("net_documents", DOCUMENT_CACHE_CAP_MB * BYTES_PER_MB)
+        DOCUMENT("net_documents", DOCUMENT_CACHE_CAP_MB * BYTES_PER_MB),
+
+        /** Kept apart so fetching a container never evicts a file a player cached for reuse. */
+        CONTAINER("net_containers", CONTAINER_CACHE_CAP_MB * BYTES_PER_MB)
     }
 
     suspend operator fun invoke(selected: SelectedMedia, kind: Kind): Result<File> =

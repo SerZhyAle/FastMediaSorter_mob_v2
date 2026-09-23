@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +33,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearReportDivider
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import timber.log.Timber
 
 private val ROW_SPACING = 4.dp
 private val HEADER_LINE_SPACING = 2.dp
@@ -65,10 +63,6 @@ fun NetworkMonitorSummaryScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snapshot = state.snapshot
     val nonSummarySections = state.sections.filter { it != WearNetworkSection.Summary }
-
-    LaunchedEffect(nonSummarySections.size) {
-        Timber.d("S3105: netmon summary opened as a section cloud, panels=${nonSummarySections.size}, no title row")
-    }
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

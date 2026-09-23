@@ -3,11 +3,19 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Checkmark (save) with smaller X in lower-right corner (close) -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M7,13.41L4.83,11.24l-1.42,1.41L7,16.24l7.5,-7.5L13.09,7.33z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M18.5,14.5l-1.41,-1.41 -1.59,1.59 -1.59,-1.59 -1.41,1.41 1.59,1.59 -1.59,1.59 1.41,1.41 1.59,-1.59 1.59,1.59 1.41,-1.41 -1.59,-1.59z" />
+    <!-- S3433 fit: moves the ink into the 20-unit live area of the 24 grid (ICON-RENDER 0.10
+         item A); the path data is the original drawing, untouched. -->
+    <group
+        android:pivotX="10.95"
+        android:pivotY="13.2"
+        android:translateX="1"
+        android:translateY="-1">
+        <!-- Checkmark (save) with smaller X in lower-right corner (close) -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M7,13.41L4.83,11.24l-1.42,1.41L7,16.24l7.5,-7.5L13.09,7.33z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M18.5,14.5l-1.41,-1.41 -1.59,1.59 -1.59,-1.59 -1.41,1.41 1.59,1.59 -1.59,1.59 1.41,1.41 1.59,-1.59 1.59,1.59 1.41,-1.41 -1.59,-1.59z" />
+    </group>
 </vector>

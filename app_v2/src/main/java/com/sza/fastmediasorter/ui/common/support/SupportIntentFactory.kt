@@ -25,8 +25,14 @@ object SupportIntentFactory {
     private const val DOCS_BASE_EN = "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/"
     private const val DOCS_BASE_RU = "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-ru.html"
     private const val DOCS_BASE_UK = "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-uk.html"
-    private const val SUPPORT_MAILTO = "mailto:sza@ukr.net"
-    private const val CRASH_REPORT_EMAIL = "serzhyale@gmail.com"
+
+    /**
+     * S3392: the product's one declared support address. Bug reports, crash reports, the statistics
+     * report and the settings version line all read it; a second literal address anywhere in the
+     * app breaks the portfolio feedback contract (one declared channel per product).
+     */
+    const val SUPPORT_EMAIL = "sza@ukr.net"
+    private const val SUPPORT_MAILTO = "mailto:$SUPPORT_EMAIL"
     private const val PLAY_MARKET_URI_PREFIX = "market://details?id="
     private const val PLAY_WEB_URI_PREFIX = "https://play.google.com/store/apps/details?id="
     private const val COMPANION_PUBLISH_GUIDE_URL =
@@ -153,6 +159,12 @@ object SupportIntentFactory {
     fun defaultBugSubject(): String =
         "FastMediaSorter ${BuildConfig.VERSION_NAME} bug report"
 
+    /** Append the app version so every support email names the build it came from. */
+    fun versionedSubject(subject: String): String {
+        val version = BuildConfig.VERSION_NAME
+        return if (subject.contains(version)) subject else "$subject $version"
+    }
+
     /**
      * Build a crash-report email to the author with an optional log attachment.
      *
@@ -174,8 +186,8 @@ object SupportIntentFactory {
         body: String,
         attachmentUri: Uri?,
     ): Intent = Intent(Intent.ACTION_SEND).apply {
-        putExtra(Intent.EXTRA_EMAIL, arrayOf(CRASH_REPORT_EMAIL))
-        putExtra(Intent.EXTRA_SUBJECT, subject)
+        putExtra(Intent.EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
+        putExtra(Intent.EXTRA_SUBJECT, versionedSubject(subject))
         putExtra(Intent.EXTRA_TEXT, body)
         if (attachmentUri != null) {
             type = "application/zip"

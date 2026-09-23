@@ -1,0 +1,12 @@
+{
+  "preset_name": "Deep Bass & Clear Vocal",
+  "bands": [
+    { "frequency_hz": 60, "gain_db": 4.5 },
+    { "frequency_hz": 230, "gain_db": 2.0 },
+    { "frequency_hz": 910, "gain_db": -1.0 },
+    { "frequency_hz": 3600, "gain_db": 1.5 },
+    { "frequency_hz": 14000, "gain_db": 3.0 }
+  ],
+  "virtualizer_strength": 15,
+  "bass_boost_strength": 25
+}

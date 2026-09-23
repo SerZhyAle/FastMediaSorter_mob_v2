@@ -37,12 +37,12 @@
     <string name="widget_unlock_screen_prompt">Desbloqueie a tela para adicionar o widget.</string>
     <string name="settings_add_home_widget_title">Adicionar widget à tela inicial do Android.</string>
     <string name="widget_picker_dialog_title">Escolha um widget</string>
-    <string name="widget_scheduled_tasks_label">Tarefas Agendadas</string>
+    <string name="widget_scheduled_tasks_label">Operações agendadas</string>
     <string name="widget_scheduled_tasks_description">Status e controles para operações de arquivo agendadas</string>
     <string name="widget_scheduled_run_all">Executar tudo</string>
     <string name="widget_scheduled_pause_all">Pausar tudo</string>
     <string name="widget_scheduled_resume_all">Resumo de todos</string>
-    <string name="widget_scheduled_empty">Nenhuma tarefa agendada</string>
+    <string name="widget_scheduled_empty">Nenhuma operação agendada</string>
     <string name="widget_scheduled_active_count">%1$d ativo</string>
     <string name="widget_scheduled_last_ok">Último: OK %1$s</string>
     <string name="widget_scheduled_last_error">Último: erro %1$s</string>

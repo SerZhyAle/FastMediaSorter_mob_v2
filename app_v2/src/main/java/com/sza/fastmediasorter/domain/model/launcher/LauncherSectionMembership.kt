@@ -127,6 +127,7 @@ object LauncherSectionMembership {
         val positions = mutableMapOf<String, PackedPosition>()
         var packRow = -1
         var nextCol = width
+        var accumulatedLift = 0
         for (header in sections) {
             val chainable = header.target in collapsedTargets || header.target !in ownersWithContent
             if (!chainable) {
@@ -137,10 +138,12 @@ object LauncherSectionMembership {
             // has already lifted everything below a collapsed section, and packing on top of stored rows
             // would fight that lift instead of continuing it. A header the fold hides has no drawn row
             // and takes no position, while leaving the chain it belongs to intact.
+            // S3411: account for accumulatedLift from earlier packed chains when starting a new packed row,
+            // so later collapsed/empty sections are placed immediately below preceding content without empty rows.
             val startRow = if (chainable) renderRowOf(header) else null
             if (startRow != null) {
                 if (packRow < 0) {
-                    packRow = startRow.coerceAtLeast(0)
+                    packRow = (startRow - accumulatedLift).coerceAtLeast(0)
                     nextCol = 0
                 }
                 if (nextCol + HEADER_SPAN_W > width) {
@@ -148,6 +151,7 @@ object LauncherSectionMembership {
                     nextCol = 0
                 }
                 positions[header.target] = PackedPosition(row = packRow, col = nextCol)
+                accumulatedLift = (startRow - packRow).coerceAtLeast(0)
                 nextCol += HEADER_SPAN_W
             }
         }

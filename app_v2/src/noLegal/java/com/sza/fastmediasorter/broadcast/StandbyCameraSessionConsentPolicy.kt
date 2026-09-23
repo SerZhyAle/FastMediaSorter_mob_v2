@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.broadcast
 
 import com.sza.fastmediasorter.domain.model.WearCameraRefusal
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -21,8 +22,15 @@ class StandbyCameraSessionConsentPolicy @Inject constructor(
     private val broadcastSourceController: BroadcastSourceController
 ) : CameraSessionConsentPolicy {
 
-    override suspend fun requestConsent(requestId: String): CameraConsentOutcome =
-        if (broadcastSourceController.state.value is BroadcastState.Live) {
+    override suspend fun requestConsent(requestId: String): CameraConsentOutcome {
+        Timber.d("S2551: standby consent asked, camera live = %s", broadcastSourceController.state.value.isCameraLive())
+        return answer()
+    }
+
+    private fun answer(): CameraConsentOutcome =
+        // A camera session, not merely a live one: an audio broadcast the owner started for the room
+        // says nothing about whether his watch may see through his camera (S2551 step 06.3).
+        if (broadcastSourceController.state.value.isCameraLive()) {
             CameraConsentOutcome.Granted
         } else {
             // NOT_ARMED rather than DECLINED or NOT_ASKED: nobody said no, and nothing failed to be

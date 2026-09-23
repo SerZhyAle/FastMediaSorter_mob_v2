@@ -14,11 +14,13 @@ permalink: /docs/README.html
 
 **📦 Download:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
 
+Installing the APK directly? Android warns about a package it has not seen before - [why the warning appears, and what to tap](INSTALL_TRUST.md).
+
 ## About the Project
 
 **FastMediaSorter v2** is a powerful Android application for quick and convenient sorting of media files (images, videos, GIFs, audio, documents). It is designed as a single center for managing files from local folders, network drives (SMB, SFTP, FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
 
-This manual now follows the same public vocabulary as the canonical feature inventory in [FEATURES.md](FEATURES.md) and the doc map in [DOCS_MAP.md](DOCS_MAP.md). Use those two pages as the current source of truth for the app story, available flavors, and current feature surface.
+This manual now follows the same public vocabulary as the canonical feature inventory in [FEATURES.md](FEATURES.md) and the doc map in [DOCS_MAP.md](DOCS_MAP.md). Use those two pages as the current source of truth for the app story, available editions, and current feature surface.
 
 ## Windows Version 🖥️
 
@@ -42,7 +44,7 @@ Features include:
 ## Table of Contents
 
 - [Download](#download-)
-- [Product Flavors](#product-flavors-)
+- [Editions](#editions-)
 - [Key Features](#key-features)
 - [Supported Media Formats](#supported-media-formats-)
 - [Screenshots](#screenshots-)
@@ -54,35 +56,35 @@ Features include:
 - [First Steps](#first-steps-quick-usage-guide-)
 - [Tech Stack](#technology-stack)
 
-## Product Flavors 🎯
+## Editions 🎯
 
-FastMediaSorter v2 ships **seven flavors** - five for everyday phones and tablets (Standard, Lite, Photos, Legacy, FOSS) plus two headset and sideload builds, VR and noLegal. The canonical capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md):
+FastMediaSorter v2 ships **seven editions** - five for everyday phones and tablets (Standard, Lite, Photos, Legacy, FOSS) plus two headset and sideload builds, VR and noLegal. The canonical capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md):
 
-| Flavor | Description | Notes |
+| Edition | Description | Notes |
 |--------|-------------|-------|
 | **Standard** | Full-featured release | Broadest feature set for media, documents, OCR, translation, and cloud access |
 | **Lite** | Lightweight release | Local files only - video, audio and images; no network sources, cloud, documents or Streams |
 | **Photos** | Photo-first release | Images only, with SMB/FTP/SFTP and cloud; no video and no audio |
 | **Legacy** | Compatibility-focused release | Same feature set as Standard, including SMB/FTP/SFTP and cloud (Google Drive, Dropbox, OneDrive); built for Android 6/7 (API 23+) |
-| **FOSS** | F-Droid catalogue release | No proprietary SDKs: local media, documents, EPUB and SMB/FTP/SFTP; no cloud, no Streams, no OCR, no translation, no Cast and no Wear OS companion |
+| **FOSS** | F-Droid catalog release | No proprietary SDKs: local media, documents, EPUB and SMB/FTP/SFTP; no cloud, no Streams, no OCR, no translation, no Cast and no Wear OS companion |
 | **VR** | Store-clean headset build | Full media set for headsets; no Google Cast and no Wear OS companion |
 | **noLegal** | Sideload build | Everything in Standard plus the OpenXR immersive player and sideload-only extras |
 
-### Which Flavor Should I Download?
+### Which Edition Should I Download?
 
 - **Standard** ⭐ **(Recommended)**: Best default choice for most users
 - **Lite**: Prefer this if you want a lighter package and simpler setup
 - **Photos**: Prefer this for photo-first workflows
 - **Legacy**: Choose this for Android 6/7 devices (API 23+) - includes network and cloud
-- **FOSS**: Choose this from the F-Droid catalogue when you want a build free of proprietary SDKs
+- **FOSS**: Choose this from the F-Droid catalog when you want a build free of proprietary SDKs
 - **VR**: Choose this for an XR headset - the store build without Cast and Wear support
 - **noLegal**: Sideload only - pick it when you need the OpenXR immersive player
 
-For exact feature-by-flavor availability, use the canonical documentation:
+For exact feature-by-edition availability, use the canonical documentation:
 
 - [Feature Inventory (canonical)](FEATURES.md)
 - [How-To (feature availability table)](HOW_TO.md)
-- [Quick Start (flavor chooser)](QUICK_START.md)
+- [Quick Start (edition chooser)](QUICK_START.md)
 - [Program Limitations](LIMITATIONS.md)
 
 > 🧭 **First launch:** right under the language picker, the app lets you pick a **device profile** (phone, tablet, TV, car, photo frame, VR, and more) that tailors the starting defaults for you - changeable anytime in Settings. See [First Launch: Choose Your Device Profile](QUICK_START.md#first-launch-choose-your-device-profile-30-seconds-).
@@ -95,7 +97,7 @@ For exact feature-by-flavor availability, use the canonical documentation:
 
 🔗 **[Download All Builds from Google Drive](https://drive.google.com/drive/folders/1_U47It406WWQKaXkGGzNVPcKE4OPV0Jp?usp=sharing)**
 
-| Flavor | File Name | Description |
+| Edition | File Name | Description |
 |--------|-----------|-------------|
 | **Standard** | `FastMediaSorter_standard_release.zip` | Full features (Cloud, OCR, EPUB, Translation) |
 | **Lite** | `FastMediaSorter_lite_release.zip` | Local media only (Videos, Audio, Images; no network, cloud, documents or Streams) |
@@ -140,7 +142,7 @@ Full-size images:
 - 🎵 **Lyrics Support:** View song lyrics for the currently playing track. Automatically searches by metadata (Artist/Title) using `api.lyrics.ovh`, with fallback to filename parsing.
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
-- 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "File Manager Mode".
+- 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "All Files mode".
 - ⌨️ **Keyboard, Mouse & Gamepad:** Full keyboard, mouse, and gamepad input across all screens - Browse, Player, Settings, dialogs. Fully remappable via Settings → Operations → Controls & Keybindings; press F1 on any screen for a per-surface help overlay. D-pad list navigation; right-click context menu and hover effects for mouse.
 - 🔍 **Sorting and Filtering:** Order files by name, date, size, and duration. Apply filters for quick search. Support for hidden files (starting with `.`) with dedicated toggle.
 - ↩️ **Undo & Trash:** Ability to undo the last action (copy, move, delete) with soft-delete to `.trash/` folder. Includes "Empty Trash" functionality for resources.
@@ -149,7 +151,7 @@ Full-size images:
 - 📄 **Document Viewer:** Built-in viewer for Text files (.txt, .md, .log, .json, .xml) and PDF documents with zoom, pan, and gesture navigation.
 - 📚 **EPUB E-Book Reader:** Native EPUB reader with chapter navigation, table of contents, font size control, in-book search, and dark/light theme support. Works with local and network files.
 - 📥 **Download & Open:** Download network files (SMB/SFTP/FTP) to local storage and open them in external apps with progress tracking.
-- 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files using a **Hybrid OCR System** (Google ML Kit + Tesseract) for superior accuracy in both Latin and Cyrillic scripts. Supports both standard and **lens-style overlay mode** for in-place translations.
+- 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files fully on-device: **Tesseract** reads the text in Latin and Cyrillic scripts, and Google ML Kit translates it. Supports both standard and **lens-style overlay mode** for in-place translations.
 - 📱 **Widget Support:** Over a dozen home-screen widgets covering a wide range - resource shortcuts, media players, camera capture, calculators, scheduled tasks, favorites, mini-games, and more. Browse the full selection in your launcher's widget picker.
 - 🏠 **Home-Screen Mode:** Let the app be your device's home screen (Standard and noLegal builds): its own desktop with resource shortcuts that open straight into browse, slideshow or play, resizable gadgets like a clock and weather, contact cells that need no contacts permission, an app grid, and a taskbar. Turn it off at any time and Android restores your previous home screen.
 - ⏰ **Scheduled File Operations:** Automate file operations (Copy/Move/Delete) using time-based rules with flexible filters and background execution.
@@ -175,7 +177,7 @@ FastMediaSorter v2 supports a wide range of formats:
 - **Video:** MP4, MKV, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG
 - **Audio:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS, DTS, DTS-HD
 - **Documents:** TXT, MD, LOG, JSON, XML, PDF, **EPUB**
-- **Binary Files** (File Manager Mode): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO, and 60+ other formats
+- **Binary Files** (All Files mode): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO, and 60+ other formats
 
 ## Usage Scenarios 💡
 
@@ -299,9 +301,13 @@ Detailed guides are available in multiple languages:
 
 FastMediaSorter includes a full-featured Wear OS standalone app and phone companion designed for smartwatch form factors.
 
-- Browse and play local, cloud, and network (SMB/SFTP) media directly on Wear OS devices
+- Browse and play folders and favourites from the paired phone, the watch's own storage, and SMB/FTP/SFTP shares the watch reaches directly over Wi-Fi
+- Cloud resources stay on the phone - the watch has no cloud client of its own; a cloud file reaches it only when you send it from the phone with "Send to.."
+- Move files between the phone and the watch, broadcast live from the watch, and use small built-in tools (calculator, network monitor, mini-game) without opening the phone app
 - UI and runtime behavior optimized for round and compact displays
 - Dedicated web portal, setup guides, and troubleshooting for watch workflows
+
+Media, network shares and file transfer are in the full version of the watch app (direct APK). The Google Play version is a small first release - calculator, stopwatch, mini-game and settings; the [Wear OS portal](wear/index.md) marks what each version has.
 
 Wear OS documentation:
 
@@ -438,8 +444,8 @@ Tests run automatically on every push via GitHub Actions. See [`.github/workflow
   - FTP: Apache Commons Net 3.10.0
 - **Cloud**: Google Drive API, OneDrive (MSAL), Dropbox API with OAuth 2.0
 - **OCR & Translation**:
-  - Google ML Kit (Text Recognition v2, Translation) for Latin scripts
-  - Tesseract4Android (Tesseract 5.3.x) for high-accuracy Cyrillic OCR
+  - Tesseract4Android (Tesseract 5.3.x) - text extraction for every script
+  - Google ML Kit (Translation, Language Identification) - translation of the extracted text
 - **Search & Lyrics**: api.lyrics.ovh (JSON API)
 
 ## Build Version

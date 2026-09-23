@@ -87,7 +87,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
@@ -290,9 +289,13 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             onVisibilityChanged = { isVisible ->
                 if (::wallpaperManager.isInitialized) {
                     if (isVisible) {
+                        // S3335: the overlay raises and drops without an activity edge of its own, so the
+                        // freeze flag is driven from here or it would stand for the rest of the session.
+                        wallpaperManager.onPause()
                         wallpaperManager.onStop()
                     } else if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
                         wallpaperManager.onStart()
+                        wallpaperManager.onResume()
                     }
                 }
             },
@@ -531,7 +534,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // hold is re-read at each timeout, so dropping it (power saving, or the user turning it off)
         // hands the idle path back to the real lock without restarting the launcher.
         idleScreenOffManager = LauncherIdleScreenOffManager {
-            Timber.d("S3285: launcher idle elapsed, hold=$isKeepingScreenAwake")
             screenLockManager.turnScreenOff(allowSystemLock = !isKeepingScreenAwake)
         }
         idleScreenOffManager.onStart()
@@ -737,7 +739,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 viewModel.screenBlackoutTimeoutOnChargeSeconds,
             ) { onBattery, onCharge -> onBattery to onCharge },
         ) { (onBattery, onCharge) ->
-            Timber.d("S3284: launcher timeouts battery=%ds, onCharge=%ds", onBattery, onCharge)
             idleScreenOffManager.updateTimeouts(onBattery, onCharge)
         }
         collectOnLifecycle(viewModel.chargingConnected) { charging ->
@@ -788,6 +789,21 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     override fun onResumeWithViews() {
         viewModel.onHomeResumed()
         captureInstantPhotoFrame(viewModel.wallpaper.value)
+        // S3335: the camera backdrop comes back one edge later than the rest of the wallpaper - only once
+        // the desktop is the surface the user is on, so the screen being left keeps the lens it holds.
+        if (::wallpaperManager.isInitialized && !blackScreenOverlayManager.isVisible) {
+            wallpaperManager.onResume()
+        }
+    }
+
+    /**
+     * S3335: the launcher's own onStop runs after the opened screen's onResume, so the camera backdrop
+     * is released here instead - the capture screen, the mirror and the torch all ask for the lens in
+     * that window.
+     */
+    override fun onPause() {
+        super.onPause()
+        if (::wallpaperManager.isInitialized) wallpaperManager.onPause()
     }
 
     /**
@@ -1162,6 +1178,8 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         if (geometryManager.consumeOrientationChange()) {
             editModeManager.onOrientationChanged()
         }
+        // S3369: the absorbed change never re-inflates the dim screen's clock panel on its own.
+        blackScreenOverlayManager.onHostConfigurationChanged()
     }
 
     companion object {

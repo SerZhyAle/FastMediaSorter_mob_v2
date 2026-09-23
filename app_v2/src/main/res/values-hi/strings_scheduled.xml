@@ -48,7 +48,6 @@
     <string name="scheduled_ops_log_empty">लॉग खाली है</string>
     <string name="scheduled_ops_log_title">संचालन लॉग</string>
     <string name="scheduled_ops_next_run">अगली दौड़ यहाँ होगी:</string>
-    <string name="scheduled_ops_no_destinations">गंतव्य अनुभाग में पहले गंतव्य जोड़ें</string>
     <string name="scheduled_ops_notif_channel_name">निर्धारित संचालन</string>
     <string name="scheduled_ops_notif_running">निर्धारित कार्यक्रम चल रहा है..</string>
     <string name="scheduled_ops_op_copy">प्रतिलिपि</string>
@@ -75,4 +74,13 @@
     <string name="scheduled_ops_toggle_hint">बैकग्राउंड में कॉपी करें, मूव करें, डिलीट करें</string>
     <string name="scheduled_ops_notif_permission_title">निर्धारित संचालन के लिए अनुमति आवश्यक है</string>
     <string name="scheduled_ops_notif_permission_text">सभी फाइलों को एक्सेस प्रदान करें ताकि बैकग्राउंड में मूव/डिलीट करने से मूल फाइलें हटाई जा सकें।</string>
+    <string name="scheduled_ops_screen_title">निर्धारित फ़ाइल कार्रवाइयाँ</string>
+    <string name="scheduled_ops_action_run_all">सभी अभी चलाएँ</string>
+    <string name="scheduled_ops_action_pause_all">सभी रोकें</string>
+    <string name="scheduled_ops_action_resume_all">सभी फिर से शुरू करें</string>
+    <string name="scheduled_ops_screen_empty">अभी कोई निर्धारित कार्रवाई नहीं है। पहली बनाने के लिए + पर टैप करें।</string>
+    <string name="scheduled_ops_link_subtitle">कार्रवाइयों और चलाने के इतिहास को प्रबंधित करें</string>
+    <string name="scheduled_ops_history_title">चलाने का इतिहास</string>
+    <string name="scheduled_ops_history_empty">अभी तक कोई चलाना दर्ज नहीं है।</string>
+    <string name="scheduled_ops_history_clear_confirm">चलाने का इतिहास साफ़ करें?</string>
 </resources>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  S2460: the companion's window carries the app's standard header - a MaterialToolbar with a back
+  S2460: the companion's window carries the app's standard header - a StandardToolbar with a back
   arrow - and gets its top inset from `fitsSystemWindows` here, which is why the title no longer
   slides under the status bar.
 
@@ -28,17 +28,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.google.android.material.appbar.MaterialToolbar
+        <com.sza.fastmediasorter.ui.common.widget.StandardToolbar
             android:id="@+id/toolbar"
+            style="@style/Widget.FastMediaSorter.Toolbar.Primary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/toolbar_elevation"
             app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="?attr/colorOnPrimary"
-            app:title="@string/wear_companion"
-            app:titleTextColor="?attr/colorOnPrimary">
+            app:title="@string/wear_companion">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -73,7 +70,7 @@
                     android:textColor="?attr/colorOnPrimary"
                     tools:text="@string/wear_settings_sync_never" />
             </LinearLayout>
-        </com.google.android.material.appbar.MaterialToolbar>
+        </com.sza.fastmediasorter.ui.common.widget.StandardToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.fragment.app.FragmentContainerView

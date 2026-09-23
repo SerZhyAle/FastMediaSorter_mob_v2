@@ -6,7 +6,9 @@ import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.util.AttributeSet
+import androidx.core.content.ContextCompat
 import com.google.android.material.textfield.TextInputEditText
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.common.IpAddressInputFilter
 import timber.log.Timber
 
@@ -147,7 +149,7 @@ class IpAddressEditText @JvmOverloads constructor(
      * Apply red background tint for invalid input
      */
     private fun applyErrorHighlight() {
-        setBackgroundColor(Color.parseColor("#33FF0000")) // 20% opacity red
+        setBackgroundColor(ContextCompat.getColor(context, R.color.ip_error_background))
     }
     
     /**

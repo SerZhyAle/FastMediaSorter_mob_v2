@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -9,7 +10,10 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.widget.DimHeadingProvider
 import com.sza.fastmediasorter.ui.common.widget.DimOverlayView
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockOverlayView
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockStyleProvider
@@ -31,6 +35,7 @@ class BlackScreenOverlayManager(
     private val settingsRepositoryLazy: Lazy<SettingsRepository>? = null,
     private val dimClockStyleProviderLazy: Lazy<DimClockStyleProvider>? = null,
     private val dimStatusContentProviderLazy: Lazy<DimStatusContentProvider>? = null,
+    private val headingProviderLazy: Lazy<DimHeadingProvider>? = null,
 ) {
 
     var isVisible: Boolean = false
@@ -48,13 +53,14 @@ class BlackScreenOverlayManager(
     private var overlayView: View? = null
     private var dimClockView: DimClockOverlayView? = null
     private var wasFullscreenBeforeOverlay = false
+    private var orientationBeforeDim: Int? = null
 
     private fun resolveEntryPoint(context: Context): DimClockEntryPoint =
         EntryPoints.get(context.applicationContext, DimClockEntryPoint::class.java)
 
-    private suspend fun readDimClockEnabled(activity: Activity): Boolean {
+    private suspend fun readSettings(activity: Activity): AppSettings {
         val repo = settingsRepositoryLazy?.get() ?: resolveEntryPoint(activity).settingsRepository()
-        return repo.getSettings().flowOn(Dispatchers.IO).first().dimClockOverlayEnabled
+        return repo.getSettings().flowOn(Dispatchers.IO).first()
     }
 
     fun show() {
@@ -71,6 +77,7 @@ class BlackScreenOverlayManager(
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
             onExit = { hide() }
+            headingLookup = { headingProviderLazy?.get()?.current() }
             setOnKeyListener { _, _, event ->
                 if (event.action == KeyEvent.ACTION_DOWN &&
                     (event.keyCode == KeyEvent.KEYCODE_BACK || event.keyCode == KeyEvent.KEYCODE_ESCAPE)
@@ -85,6 +92,7 @@ class BlackScreenOverlayManager(
         }
         decorView.addView(view)
         overlayView = view
+        headingProviderLazy?.get()?.setActive(true)
 
         isVisible = true
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
@@ -105,13 +113,36 @@ class BlackScreenOverlayManager(
             applyDimMode(activity, clockEnabled = false)
             return
         }
-        Timber.d("S3321: phone dim overlay shown, settings read dispatched off-main")
         scope.launch {
-            val clockEnabled = readDimClockEnabled(activity)
-            Timber.d("S3321: phone dim mode resolved, clockEnabled=$clockEnabled visible=$isVisible")
+            val settings = readSettings(activity)
             // hide() may have won the race while the read was in flight.
-            if (isVisible) applyDimMode(activity, clockEnabled)
+            if (!isVisible) return@launch
+            applyPlayerRotationPolicy(activity, settings)
+            applyDimMode(activity, settings.dimClockOverlayEnabled)
         }
+    }
+
+    /**
+     * S3369: the dim screen turns the way the video player would. A host outside the player family
+     * follows the program-wide policy, which honours the system rotation lock, while the player by
+     * default follows the sensor past it - so the launcher's dim screen stayed portrait where a video
+     * would have turned. The host's own request is put back on [hide].
+     */
+    private fun applyPlayerRotationPolicy(activity: Activity, settings: AppSettings) {
+        if (activity is SelfManagedScreenOrientation) return
+        if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)) return
+        val orientation = ScreenRotationManager.orientationFor(
+            settings.playerFollowSystemRotation,
+            settings.playerRotationSensorEnabled,
+        )
+        if (orientationBeforeDim == null) orientationBeforeDim = activity.requestedOrientation
+        activity.requestedOrientation = orientation
+        Timber.d("S3369: dim screen took the player rotation policy orientation=$orientation")
+    }
+
+    private fun restoreHostOrientation(activity: Activity) {
+        orientationBeforeDim?.let { activity.requestedOrientation = it }
+        orientationBeforeDim = null
     }
 
     private fun applyDimMode(activity: Activity, clockEnabled: Boolean) {
@@ -120,7 +151,6 @@ class BlackScreenOverlayManager(
         } else {
             setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
         }
-        Timber.d("S3256: phone black screen overlay shown, clockEnabled=$clockEnabled")
     }
 
     private fun addClockView(activity: Activity) {
@@ -138,20 +168,54 @@ class BlackScreenOverlayManager(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            bind(styleProvider, statusProvider, unitProvider)
+            bind(
+                styleProvider,
+                statusProvider,
+                unitProvider,
+                entryPoint.dimChipIconLoader(),
+                entryPoint.dimChipActionRouter(),
+                entryPoint.dimClockInteractionHandler(),
+            )
         }
         decorView.addView(clockView)
+        // The overlay owns every touch while dimmed; taps reach the clock only through this forward.
+        (overlayView as? DimOverlayView)?.onUserActivity = { clockView.onHostInteraction() }
+        // S3366: a chip or battery tap dismisses the dim overlay through the same path an exit
+        // gesture takes, before the router starts the intent.
+        clockView.onDimExitRequested = { hide() }
+        clockView.onUnhandledMotionEvent = { event ->
+            Timber.d("S3369: dim clock free-area motion forwarded to dim surface")
+            (overlayView as? DimOverlayView)?.dispatchTouchEvent(event)
+        }
         dimClockView = clockView
     }
 
-    fun onTouchEvent(event: MotionEvent): Boolean {
-        val view = overlayView as? DimOverlayView
-        return if (isVisible && view != null) {
-            view.dispatchTouchEvent(event)
-            true
-        } else {
-            false
+    fun onHostConfigurationChanged() {
+        Timber.d("S3369: dim overlay host configuration changed, visible=$isVisible")
+        if (!isVisible) return
+        activityRef.get()?.let { activity ->
+            (activity.window.decorView as? ViewGroup)?.let { decorView ->
+                dimClockView?.let { clockView ->
+                    decorView.removeView(clockView)
+                    dimClockView = null
+                    addClockView(activity)
+                }
+            }
         }
+    }
+
+    /**
+     * For a host that routes touches here instead of through its decor view (the launcher). The clock
+     * panel sits above the dim surface, so it is asked first: its clock, chips and battery keep their
+     * gestures, and it forwards what it leaves unhandled to the dim surface (S3366, S3369 ADR-1).
+     */
+    fun onTouchEvent(event: MotionEvent): Boolean {
+        val target: View? = if (isVisible) dimClockView ?: overlayView else null
+        if (target != null && event.actionMasked == MotionEvent.ACTION_DOWN) {
+            Timber.d("S3366: dim touch routed, clock panel first=" + (dimClockView != null))
+        }
+        target?.dispatchTouchEvent(event)
+        return target != null
     }
 
     fun hide() {
@@ -165,9 +229,11 @@ class BlackScreenOverlayManager(
         overlayView?.let { decorView.removeView(it) }
         overlayView = null
         isVisible = false
+        headingProviderLazy?.get()?.setActive(false)
 
         setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
+        restoreHostOrientation(activity)
 
         if (!wasFullscreenBeforeOverlay) {
             systemBarsManager.exitFullscreenMode()

@@ -66,7 +66,7 @@ class LauncherEditModeManagerSectionDragTest {
         assertTrue(handled)
 
         verify(exactly = 1) { viewModel.moveSectionBlock(10L, 3) }
-        verify(exactly = 0) { viewModel.moveCell(any(), any(), any(), any()) }
+        verify(exactly = 0) { viewModel.moveCell(any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -97,7 +97,7 @@ class LauncherEditModeManagerSectionDragTest {
         val handled = dragListenerSlot.captured.onDrag(desktop, dropEvent)
         assertTrue(handled)
 
-        verify(exactly = 1) { viewModel.moveCell(20L, 2, 1, 4) }
+        verify(exactly = 1) { viewModel.moveCell(20L, 2, 1, 4, 0) }
         verify(exactly = 0) { viewModel.moveSectionBlock(any(), any()) }
     }
 
@@ -126,7 +126,7 @@ class LauncherEditModeManagerSectionDragTest {
         dragListenerSlot.captured.onDrag(desktop, invalidDropEvent)
 
         verify(exactly = 0) { viewModel.moveSectionBlock(any(), any()) }
-        verify(exactly = 0) { viewModel.moveCell(any(), any(), any(), any()) }
+        verify(exactly = 0) { viewModel.moveCell(any(), any(), any(), any(), any()) }
     }
 
     private fun createManager(

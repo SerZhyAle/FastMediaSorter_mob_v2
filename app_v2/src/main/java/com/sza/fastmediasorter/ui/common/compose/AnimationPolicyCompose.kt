@@ -5,7 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import com.sza.fastmediasorter.core.util.AnimationIntent
 import com.sza.fastmediasorter.core.util.AnimationPolicy
-import timber.log.Timber
 
 /**
  * S2567: the Compose-side reader of [AnimationPolicy].

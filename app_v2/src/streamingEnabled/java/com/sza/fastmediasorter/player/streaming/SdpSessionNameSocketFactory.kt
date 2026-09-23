@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.player.streaming
 
-import timber.log.Timber
 import java.io.FilterInputStream
 import java.io.InputStream
 import java.net.InetAddress

@@ -33,7 +33,7 @@ FastMediaSorter lets you browse and play your music collection directly from you
    - **Local**: files in the watch's own storage, including voice notes you recorded there
    - **Streams**: TV and radio channels ([separate guide](scenario-watch-tv.md))
    - **Apps**: calculator, network monitor, game and the other mini-programs
-   - **Favourites**: everything you marked
+   - **Favorites**: everything you marked
 
 ![FastMedia Wear main screen on smartwatch](screenshots/screenshot-wear-music-step1.png)
 
@@ -68,7 +68,7 @@ When a track starts, the full-screen **Audio Player** opens:
 - **Shuffle**: tap the **Shuffle** button to mix track order.
 - **Seek in track**: drag the progress bar horizontally to jump to any position in the song.
 - **Volume**: turn your watch's rotating crown or bezel to adjust volume smoothly. A volume level indicator appears on screen.
-- **Favorite**: tap the heart icon to add the track to your Favourites.
+- **Favorite**: tap the heart icon to add the track to your favorites.
 
 ![Audio player with playback controls and volume](screenshots/screenshot-wear-music-step4.png)
 

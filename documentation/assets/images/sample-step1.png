@@ -1,0 +1,35 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#0d1117" rx="8"/>
+  <rect x="20" y="20" width="760" height="50" fill="#161b22" rx="6" stroke="#30363d"/>
+  <text x="45" y="52" fill="#3fb950" font-family="sans-serif" font-size="20" font-weight="bold">📁 Local Storage / Music</text>
+  
+  <g transform="translate(30, 90)">
+    <rect x="0" y="0" width="225" height="140" fill="#161b22" rx="8" stroke="#30363d"/>
+    <rect x="15" y="15" width="40" height="40" fill="#238636" rx="6"/>
+    <text x="35" y="42" fill="#ffffff" font-family="sans-serif" font-size="22" text-anchor="middle">♫</text>
+    <text x="65" y="35" fill="#f0f6fc" font-family="sans-serif" font-size="15" font-weight="bold">Electronic Beats</text>
+    <text x="65" y="52" fill="#8b949e" font-family="sans-serif" font-size="12">14 Tracks • FLAC</text>
+    <rect x="15" y="100" width="60" height="22" fill="#21262d" rx="4"/>
+    <text x="45" y="115" fill="#58a6ff" font-family="sans-serif" font-size="11" text-anchor="middle">520 MB</text>
+  </g>
+
+  <g transform="translate(285, 90)">
+    <rect x="0" y="0" width="225" height="140" fill="#161b22" rx="8" stroke="#30363d"/>
+    <rect x="15" y="15" width="40" height="40" fill="#d29922" rx="6"/>
+    <text x="35" y="42" fill="#ffffff" font-family="sans-serif" font-size="22" text-anchor="middle">♫</text>
+    <text x="65" y="35" fill="#f0f6fc" font-family="sans-serif" font-size="15" font-weight="bold">Acoustic Sessions</text>
+    <text x="65" y="52" fill="#8b949e" font-family="sans-serif" font-size="12">8 Tracks • MP3</text>
+    <rect x="15" y="100" width="60" height="22" fill="#21262d" rx="4"/>
+    <text x="45" y="115" fill="#58a6ff" font-family="sans-serif" font-size="11" text-anchor="middle">94 MB</text>
+  </g>
+
+  <g transform="translate(540, 90)">
+    <rect x="0" y="0" width="225" height="140" fill="#161b22" rx="8" stroke="#30363d"/>
+    <rect x="15" y="15" width="40" height="40" fill="#a371f7" rx="6"/>
+    <text x="35" y="42" fill="#ffffff" font-family="sans-serif" font-size="22" text-anchor="middle">♫</text>
+    <text x="65" y="35" fill="#f0f6fc" font-family="sans-serif" font-size="15" font-weight="bold">Soundtracks</text>
+    <text x="65" y="52" fill="#8b949e" font-family="sans-serif" font-size="12">22 Tracks • OGG</text>
+    <rect x="15" y="100" width="60" height="22" fill="#21262d" rx="4"/>
+    <text x="45" y="115" fill="#58a6ff" font-family="sans-serif" font-size="11" text-anchor="middle">310 MB</text>
+  </g>
+</svg>

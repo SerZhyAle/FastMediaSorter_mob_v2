@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import com.sza.fastmediasorter.ui.networkmonitor.putNetworkMonitorLauncherOrigin
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
+import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.sos.SosActivity
 import com.sza.fastmediasorter.ui.stopwatch.StopwatchActivity
@@ -243,9 +244,10 @@ object AppLaunchPanelRouteIntents {
             .setAction(MainActivity.ACTION_RANDOM_MUSIC)
             .withWidgetEntryFlags()
 
+    // S3365: the route's key is persisted on user devices inside launcher cells and quick-access
+    // tiles - repointing this factory is what heals those saved targets onto the program screen.
     fun scheduledTasks(context: Context): Intent =
-        Intent(context, SettingsActivity::class.java)
-            .putExtra(SettingsActivity.EXTRA_OPEN_SCHEDULED, true)
+        Intent(context, ScheduledOperationsActivity::class.java)
             .withWidgetEntryFlags()
 
     private fun Intent.withPanelFlags(): Intent = addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

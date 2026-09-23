@@ -319,7 +319,6 @@ private fun ImageViewerContent(
                 isFavorite = isFavorite,
                 actions = actions,
                 onOpenMenu = {
-                    Timber.d("S3121: image player menu opened as one list with the file operations")
                     showMenu = true
                 },
                 modifier = Modifier.align(Alignment.BottomCenter)
@@ -372,7 +371,6 @@ private fun ZoomableImage(
         modifier = Modifier
             .fillMaxSize()
             .rotaryActionSteps { step ->
-                Timber.d("S3263: image viewer crown zoom step")
                 val next = (zoom * IMAGE_ZOOM_STEP_FACTOR.pow(step)).coerceIn(IMAGE_ZOOM_MIN, IMAGE_ZOOM_MAX)
                 zoom = next
                 if (next <= IMAGE_ZOOM_MIN) offset = Offset.Zero

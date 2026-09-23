@@ -140,6 +140,12 @@ foreach ($m in [regex]::Matches($renderBlob, '(?:@string/|R\.string\.)([A-Za-z0-
 
 # --- value + render, over every entry that declares a marker ---
 function Test-Marker($entry, [string]$where) {
+    # An entry may prove itself by resource-id instead of by text (S2380). An id is not translated
+    # and does not disappear when a button collapses to its icon, so it is the stronger marker - but
+    # it is matched against the live UI tree, which this gate never reads, so there is nothing here
+    # to resolve it against. The entry is then exempt from the text checks rather than silently
+    # failing them; an entry carrying NEITHER form is caught by the coverage check above.
+    if ($entry.expectId) { return }
     if (-not $entry.expectRes) { return }
     $name = $entry.expectRes
     if (-not $strings.ContainsKey($name)) {

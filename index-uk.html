@@ -125,7 +125,7 @@
     </a>
 
     <header class="hero" id="top">
-        <canvas id="headerCanvas"></canvas>
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
         <div class="hero-inner">
             <p class="kicker">Android - файли та медіа</p>
             <h1>Переглядайте й упорядковуйте файли на телефоні, у мережі та хмарі.</h1>
@@ -810,6 +810,9 @@
         <h2 class="section-title" id="download">Завантажити збірки APK</h2>
         <p class="section-lead">Прямі завантаження з останнього релізу на GitHub. Виберіть редакцію під свій
             пристрій - версія оновлюється автоматично.</p>
+        <p class="section-lead">Android попереджає про APK, який бачить уперше.
+            <a href="docs/INSTALL_TRUST_UK.html" target="_blank" rel="noopener">Чому з'являється попередження - і що
+                натискати</a>.</p>
         <div id="apkDownloads" class="apk-downloads" data-flavors="standard,vr,lite,photos,legacy,wear">
             <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest"
                 target="_blank" rel="noopener">Відкрити останній реліз на GitHub →</a>
@@ -1131,81 +1134,8 @@
         </div>
     </footer>
 
-    <!-- Анімовані синусоїди заголовка -->
-    <script>
-        (function () {
-            var canvas = document.getElementById('headerCanvas');
-            if (!canvas) return;
-            var ctx = canvas.getContext('2d');
-            var header = canvas.parentElement;
-            var width, height, animId;
-
-            function resize() {
-                width = canvas.width = header.offsetWidth;
-                height = canvas.height = header.offsetHeight;
-            }
-
-            var particles = [];
-            var PARTICLE_COUNT = 40;
-
-            function initParticles() {
-                particles = [];
-                for (var i = 0; i < PARTICLE_COUNT; i++) {
-                    particles.push({
-                        x: Math.random() * width,
-                        y: Math.random() * height,
-                        radius: Math.random() * 1.5 + 0.5,
-                        vx: (Math.random() - 0.5) * 0.2,
-                        vy: (Math.random() - 0.5) * 0.2,
-                        // Pine + Gold: ~half green (~140), ~half gold (~45)
-                        hue: (Math.random() < 0.5 ? 135 + Math.random() * 20 : 40 + Math.random() * 15)
-                    });
-                }
-            }
-
-            var time = 0;
-            function draw() {
-                ctx.fillStyle = 'rgba(10, 15, 10, 0.15)';
-                ctx.fillRect(0, 0, width, height);
-                time += 0.002;
-                ctx.lineWidth = 1.5;
-                for (var j = 0; j < 4; j++) {
-                    ctx.beginPath();
-                    var phaseShift = j * 20;
-                    for (var i = 0; i <= width; i += 20) {
-                        var y = height / 2 +
-                            Math.sin(i * 0.0025 + time + phaseShift) * height * 0.3 *
-                            Math.sin(time * 0.3 + j * 0.25);
-                        if (i === 0) ctx.moveTo(i, y);
-                        else ctx.lineTo(i, y);
-                    }
-                    // Alternate green and gold waves
-                    var waveHue = (j % 2 === 0) ? (135 + j * 6) : (44 + j * 4);
-                    ctx.strokeStyle = 'hsla(' + waveHue + ', 65%, 55%, 0.25)';
-                    ctx.stroke();
-                }
-                particles.forEach(function (p) {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    if (p.x < 0 || p.x > width) p.vx *= -1;
-                    if (p.y < 0 || p.y > height) p.vy *= -1;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = 'hsla(' + p.hue + ', 90%, 70%, 0.5)';
-                    ctx.fill();
-                });
-                animId = requestAnimationFrame(draw);
-            }
-
-            window.addEventListener('resize', function () { resize(); initParticles(); });
-            document.addEventListener('visibilitychange', function () {
-                if (document.hidden) { cancelAnimationFrame(animId); } else { draw(); }
-            });
-            resize();
-            initParticles();
-            draw();
-        }());
-    </script>
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <script src="documentation/assets/wave-particles.js"></script>
 
     <!-- Інтерактивний Feature Explorer движок (S0387) -->
     <script>

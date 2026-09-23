@@ -69,6 +69,7 @@ import com.sza.fastmediasorter.wear.domain.model.UnitSystem
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
+import com.sza.fastmediasorter.wear.domain.model.WearFdSecMode
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
 import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
@@ -130,6 +131,7 @@ import com.sza.fastmediasorter.wear.ui.common.testlaunch.WearTestLaunchOverrideR
 import com.sza.fastmediasorter.wear.ui.common.testlaunch.rememberWearTestScreenMetrics
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
 import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
+import com.sza.fastmediasorter.wear.ui.fdsec.FdSecCredentialScreen
 import com.sza.fastmediasorter.wear.ui.folder.WearFolderWalkScreen
 import com.sza.fastmediasorter.wear.ui.home.HomeScreen
 import com.sza.fastmediasorter.wear.ui.home.LocalHomeScreen
@@ -379,7 +381,8 @@ class MainActivity : ComponentActivity() {
                         },
                         // S3178: the store artifact declares no media permission, so the request could never
                         // be granted and the watch would stop on this prompt forever instead of reaching Home.
-                        hasMediaAccess = { !capabilities.offersMediaAccess || hasMediaPermissions() }
+                        hasMediaAccess = { !capabilities.offersMediaAccess || hasMediaPermissions() },
+                        offersMediaAccess = capabilities.offersMediaAccess
                     ),
                     keepScreenAwakeOutsidePlayers = preferencesRepository.keepScreenAwakeOutsidePlayers,
                     isAutoRotationEnabled = preferencesRepository.isAutoRotationEnabled,
@@ -527,13 +530,20 @@ fun WearApp(
         // Local latch: the stored flag is written asynchronously, and the walk must not reappear for
         // the frames between the last tap and the store's next emission.
         var onboardingFinished by remember { mutableStateOf(false) }
+        // S3362: what the walk would actually contain. An edition that asks for no permission shows
+        // the welcome page alone, and that page's copy promises media this edition does not reach -
+        // so there is nothing left to walk and the walk is recorded done without being drawn.
+        val steps = remember { onboarding.steps() }
+        val walkHasContent = steps.isNotEmpty() || onboarding.offersMediaAccess
+        if (onboardingNeeded == true && !walkHasContent) {
+            LaunchedEffect(Unit) { onboarding.onFinished() }
+        }
 
         if (showBrandFrame) {
             BrandFrameScreen(onTimeout = { showBrandFrame = false })
         } else if (onboardingNeeded == null) {
             Unit
-        } else if (onboardingNeeded == true && !onboardingFinished) {
-            val steps = remember { onboarding.steps() }
+        } else if (onboardingNeeded == true && walkHasContent && !onboardingFinished) {
             WearOnboardingScreen(
                 steps = steps,
                 onFinished = {
@@ -959,6 +969,28 @@ private fun NavGraphBuilder.playerRoutes(navController: NavHostController) {
         })
     }
 
+    // S3383: the credential screen for a FileDO container. Not registered among PLAYER_ROUTES - it
+    // renders no content and must keep the list that led here underneath it, because two of its
+    // three modes come straight back to that list.
+    composable(
+        route = WearRoutes.FDSEC_CREDENTIAL_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType },
+            navArgument(WearRoutes.ARG_FDSEC_MODE) { type = NavType.StringType }
+        )
+    ) {
+        FdSecCredentialScreen(
+            onFinished = { navController.popBackStack() },
+            onOpen = { route ->
+                // The credential screen leaves the stack with the viewer: a back press from the
+                // recovered file belongs to the list it was opened from, never to a second prompt.
+                navController.navigate(route) {
+                    popUpTo(WearRoutes.FDSEC_CREDENTIAL_PATTERN) { inclusive = true }
+                }
+            }
+        )
+    }
+
     composable(
         route = WearRoutes.DOCUMENT_VIEWER_PATTERN,
         arguments = listOf(
@@ -1104,7 +1136,6 @@ private fun RecordLastUsedAppEffect(
 ) {
     LaunchedEffect(currentRoute) {
         val program = currentRoute?.let(WearLaunchRoutes::appIdForRoute) ?: return@LaunchedEffect
-        Timber.d("S3116: recording opened program %s", program)
         recordLastUsedApp(program)
     }
 }
@@ -1171,7 +1202,6 @@ private fun navigateGuarded(navController: NavHostController, route: String) {
 private fun navigateReplacingContent(navController: NavHostController, route: String) {
     val replaced = navController.currentBackStackEntry?.destination
         ?.takeIf { WearRoutes.isContentRoute(it.route) }
-    Timber.d("S3213: opening content route %s, replacing %s", route, replaced?.route)
     navController.navigate(route) {
         replaced?.let { popUpTo(it.id) { inclusive = true } }
         launchSingleTop = true
@@ -1226,8 +1256,19 @@ private fun NavGraphBuilder.miniAppRoutes(
 
     // S2516: leaving is the host's word here too, the way the calculator already has it - the screen
     // knows only that some hardware input arrived, never what to navigate to.
-    composable(WearRoutes.WATER_FLASHLIGHT) {
-        WaterFlashlightScreen(onLeave = { navController.popBackStack() })
+    // S3362: registered only where the screen takeover is offered. Both programs consume every
+    // pointer event on the initial pass, so the route is the last place the store artifact can
+    // refuse a screen WO-V3 says a swipe must be able to leave.
+    if (capabilities.offersScreenTakeoverPrograms) {
+        composable(WearRoutes.WATER_FLASHLIGHT) {
+            WaterFlashlightScreen(onLeave = { navController.popBackStack() })
+        }
+
+        // S3216: leaving is the host's word here too, the way the water flashlight already has it -
+        // the screen knows only that some hardware input arrived, never what to navigate to.
+        composable(WearRoutes.SOS) {
+            SosScreen(onLeave = { navController.popBackStack() })
+        }
     }
 
     composable(WearRoutes.GAME_RULES) {
@@ -1263,21 +1304,19 @@ private fun NavGraphBuilder.miniAppRoutes(
         // S3007: Tourist telemetry and navigation dashboard
         // S3216: the dashboard names the destination it wants and the host performs the jump, the way
         // every other screen here does - the screen holds no navigation controller of its own.
+        // S3362: guarded rather than raw, because the distress signal now answers to a capability of
+        // its own - the two travel together in both shipped flavors, but nothing here enforces that.
         composable(WearRoutes.TOURIST) {
-            TouristScreen(onLaunchSos = { navController.navigate(WearRoutes.SOS) })
+            TouristScreen(onLaunchSos = { navigateGuarded(navController, WearRoutes.SOS) })
         }
     }
 
     // S3109: the watch's text clipboard, and the action that hands it to the paired phone.
-    composable(WearRoutes.CLIPBOARD) {
-        ClipboardScreen()
-    }
-
-    // S3216: leaving is the host's word here too, the way the water flashlight already has it - the
-    // screen knows only that some hardware input arrived, never what to navigate to. Registered in
-    // both flavors: the siren declares no permission a store review could withhold.
-    composable(WearRoutes.SOS) {
-        SosScreen(onLeave = { navController.popBackStack() })
+    // S3362: that hand-off is the whole program, so it is registered where the transfer path is.
+    if (capabilities.offersContentTransfer) {
+        composable(WearRoutes.CLIPBOARD) {
+            ClipboardScreen()
+        }
     }
 
     healthAndHardwareAppRoutes(navController, capabilities)
@@ -1528,6 +1567,9 @@ private fun NavGraphBuilder.localFolderRoutes(
                     ).fileId
                 }
                 navController.navigate(playerRouteFor(fileId, row.mimeType, fileName = row.name))
+            },
+            onOpenContainer = { fileId ->
+                navController.navigate(WearRoutes.fdSecCredential(fileId, WearFdSecMode.OPEN))
             },
             onExit = { navController.popBackStack() }
         )

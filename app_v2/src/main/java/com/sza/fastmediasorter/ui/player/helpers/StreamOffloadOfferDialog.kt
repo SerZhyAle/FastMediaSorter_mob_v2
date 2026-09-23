@@ -1,17 +1,14 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
-import android.os.Bundle
 import android.text.format.DateUtils
 import android.text.format.Formatter
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.DialogStreamOffloadOfferBinding
+import com.sza.fastmediasorter.databinding.SheetStreamOffloadOfferBinding
 import com.sza.fastmediasorter.domain.model.OffloadOffer
+import com.sza.fastmediasorter.ui.common.dialog.BaseAppBottomSheet
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import timber.log.Timber
@@ -24,9 +21,9 @@ import timber.log.Timber
  * Caller must set [offer] before showing (via [newInstance]), or dismiss immediately.
  * Uses predictive-back safely: [onCancel] delegates to VM.declineOffload.
  */
-class StreamOffloadOfferDialog : BottomSheetDialogFragment() {
+class StreamOffloadOfferDialog : BaseAppBottomSheet() {
 
-    private var _binding: DialogStreamOffloadOfferBinding? = null
+    private var _binding: SheetStreamOffloadOfferBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: PlayerViewModel by activityViewModels()
@@ -34,17 +31,11 @@ class StreamOffloadOfferDialog : BottomSheetDialogFragment() {
     // Populated by newInstance() via setArguments / parcelable alternative
     private var offer: OffloadOffer? = null
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = DialogStreamOffloadOfferBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override val contentLayout: Int = R.layout.sheet_stream_offload_offer
+    override val requestKey: String = REQUEST_KEY
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun bindContent(content: View) {
+        _binding = SheetStreamOffloadOfferBinding.bind(content)
         val o = offer
         if (o == null) {
             Timber.e("StreamOffloadOfferDialog: no offer set - dismissing")
@@ -125,6 +116,8 @@ class StreamOffloadOfferDialog : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "StreamOffloadOfferDialog"
+
+        private const val REQUEST_KEY = "stream_offload_offer_sheet"
 
         fun newInstance(offer: OffloadOffer): StreamOffloadOfferDialog =
             StreamOffloadOfferDialog().also { it.offer = offer }

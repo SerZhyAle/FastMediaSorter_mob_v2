@@ -7,10 +7,10 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Base64
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -73,19 +73,34 @@ class GoogleDriveBrowserAuthManagerImpl @Inject constructor(
 
         pendingInteractiveResult = null
 
-        val completionIntent = Intent(activity, com.sza.fastmediasorter.ui.cloudauth.GoogleDriveAuthCompletionActivity::class.java)
+        val completionIntent = Intent(
+            activity,
+            com.sza.fastmediasorter.ui.cloudauth.GoogleDriveAuthCompletionActivity::class.java
+        )
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        val cancelIntent = Intent(activity, com.sza.fastmediasorter.ui.cloudauth.GoogleDriveAuthCompletionActivity::class.java)
+        val cancelIntent = Intent(
+            activity,
+            com.sza.fastmediasorter.ui.cloudauth.GoogleDriveAuthCompletionActivity::class.java
+        )
             .setAction(ACTION_AUTH_CANCELLED)
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
 
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        val completionPendingIntent = PendingIntent.getActivity(activity, REQUEST_CODE_COMPLETE, completionIntent, flags)
+        val completionPendingIntent = PendingIntent.getActivity(
+            activity,
+            REQUEST_CODE_COMPLETE,
+            completionIntent,
+            flags
+        )
         val cancelPendingIntent = PendingIntent.getActivity(activity, REQUEST_CODE_CANCEL, cancelIntent, flags)
 
         val service = AuthorizationService(activity)
         try {
-            service.performAuthorizationRequest(buildAuthorizationRequest(activity), completionPendingIntent, cancelPendingIntent)
+            service.performAuthorizationRequest(
+                buildAuthorizationRequest(activity),
+                completionPendingIntent,
+                cancelPendingIntent
+            )
         } finally {
             service.dispose()
         }
@@ -163,7 +178,13 @@ class GoogleDriveBrowserAuthManagerImpl @Inject constructor(
             }
             return AuthResult.Error(appContext.getString(R.string.s0294_google_drive_browser_auth_failed_message))
         }
+        return completeTokenExchange(response, authException)
+    }
 
+    private suspend fun completeTokenExchange(
+        response: AuthorizationResponse,
+        authException: AuthorizationException?,
+    ): AuthResult {
         val authState = AuthState(response, authException)
         val tokenResult = exchangeToken(response)
         authState.update(tokenResult.response, tokenResult.exception)
@@ -176,19 +197,18 @@ class GoogleDriveBrowserAuthManagerImpl @Inject constructor(
         val accountEmail = tokenResult.response.idToken?.let(::parseEmailFromIdToken)
             ?: tokenResult.response.accessToken?.let { fetchUserEmail(it) }
 
-        if (accountEmail.isNullOrBlank()) {
+        return if (accountEmail.isNullOrBlank()) {
             Timber.e("Google Drive browser auth completed without an account email")
-            return AuthResult.Error(appContext.getString(R.string.s0294_google_drive_browser_auth_failed_message))
+            AuthResult.Error(appContext.getString(R.string.s0294_google_drive_browser_auth_failed_message))
+        } else {
+            activeCredential = ActiveCredential(authState = authState, accountEmail = accountEmail)
+            persistActiveState(accountEmail)
+            registerAccountInDatabase(accountEmail)
+            AuthResult.Success(
+                accountName = accountEmail,
+                credentialsJson = StoredCredential(authState.jsonSerializeString(), accountEmail).toJson()
+            )
         }
-
-        activeCredential = ActiveCredential(authState = authState, accountEmail = accountEmail)
-        persistActiveState(accountEmail)
-        registerAccountInDatabase(accountEmail)
-
-        return AuthResult.Success(
-            accountName = accountEmail,
-            credentialsJson = StoredCredential(authState.jsonSerializeString(), accountEmail).toJson()
-        )
     }
 
     private suspend fun exchangeToken(response: AuthorizationResponse): TokenExchangeResult =
@@ -319,6 +339,7 @@ class GoogleDriveBrowserAuthManagerImpl @Inject constructor(
         private val AUTHORIZATION_URI: Uri = Uri.parse("https://accounts.google.com/o/oauth2/v2/auth")
         private val TOKEN_URI: Uri = Uri.parse("https://oauth2.googleapis.com/token")
         private val AUTH_SERVICE_CONFIG = AuthorizationServiceConfiguration(AUTHORIZATION_URI, TOKEN_URI)
+
         // Single source of truth (S0639): the browser/AppAuth sign-in must request the same
         // scope set as the GMS path so the two paths cannot diverge.
         private val SCOPES = GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES.map { it.value }

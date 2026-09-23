@@ -451,7 +451,6 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     }
 
     private fun applyKeepScreenAwake() {
-        Timber.d("S3285: keep-screen-awake ${this::class.simpleName} hold=$keepScreenAwakeDecision")
         if (keepScreenAwakeDecision) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
@@ -467,6 +466,16 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
+    }
+
+    /**
+     * S3356: re-run the secure-flag decision now. A screen whose [isSensitiveScreen] answer depends
+     * on the visible mode - a credential form vs. a plain branch - calls this after every mode
+     * switch; the initial and resume applies stay in onCreate/onResume. No-op before the first
+     * settings emission, which the collector delivers right after onCreate anyway.
+     */
+    protected fun refreshSecureFlag() {
+        lastSecureFlagSettings?.let { applySecureFlagIfEnabled(it) }
     }
 
     // ── S0230: TV / keyboard navigation ──────────────────────────────────────

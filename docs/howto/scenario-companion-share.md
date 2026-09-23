@@ -98,7 +98,7 @@ The shared folders behave like any other resource in the app. For example:
 
 - The Windows helper runs a lightweight **SFTP server** bound to the folders you picked, on your local network only.
 - The QR code (or `.fmscfg` file) encodes the connection: host, port, credential, the shared folder paths, and the server's host-key fingerprint. Dense shares are sent compressed, so even many folders fit in one code.
-- The phone reads that payload, verifies it, and creates one **read-only SFTP resource per folder**. The server key is pinned on first use (TOFU), so the phone can warn you if the PC is ever impersonated.
+- The phone reads that payload, verifies it, and creates one **read-only SFTP resource per folder**. The code also carries the fingerprint of the PC's server key, and the phone checks it on every connection - browsing, copying, thumbnails and playback. If another computer ever answers in your PC's place, the phone loads nothing and tells you the server looks different.
 - Because it is your local Wi-Fi and read-only, the phone browses and streams the files without changing anything on the PC.
 - **On the same Wi-Fi, the phone finds the PC by itself.** The companion announces the share on the local network, and the phone matches it by the pinned key - so even if the PC's address on the network changes, the share keeps working without re-scanning.
 - **One import can work at home and away.** The code can carry more than one address - the local one, an IPv6 one, and an internet port-forward. The phone tries them and uses whichever is reachable right now: the local address at home, the internet one on mobile data. The same resource keeps working as you move between networks, as long as the PC is actually reachable from where you are.

@@ -143,7 +143,10 @@ class CustomLintRulesTest {
         }
 
         class CoroutineScope {
-            fun launch(dispatcher: CoroutineDispatcher, block: () -> Unit) {}
+            // S3371: the block is suspend so a case can call a suspend DAO method from inside a
+            // launch(Dispatchers.Main) - the shape that proves a suspend DAO is main-safe while
+            // the enclosing function is not itself a confinement.
+            fun launch(dispatcher: CoroutineDispatcher, block: suspend () -> Unit) {}
         }
 
         fun <T> withContext(dispatcher: CoroutineDispatcher, block: () -> T): T = block()
@@ -155,6 +158,36 @@ class CustomLintRulesTest {
         package androidx.annotation
 
         annotation class WorkerThread
+        """.trimIndent()
+    )
+
+    // S3371: MainThreadRoomDetector decides membership by the Room annotations and by RoomDatabase
+    // inheritance, not by method name, so the stub must carry those exact FQNs.
+    private val roomStub = kotlin(
+        """
+        package androidx.room
+
+        annotation class Dao
+        annotation class Query(val value: String)
+        annotation class Insert
+        annotation class Update
+        annotation class Delete
+        annotation class Transaction
+
+        open class RoomDatabase {
+            fun runInTransaction(body: () -> Unit) {}
+            fun clearAllTables() {}
+        }
+        """.trimIndent()
+    )
+
+    // S3371: the detector treats a Flow-returning DAO method as main-safe by its RETURN TYPE, so
+    // the stub has to be the real kotlinx.coroutines.flow.Flow and not a local look-alike.
+    private val flowStub = kotlin(
+        """
+        package kotlinx.coroutines.flow
+
+        interface Flow<T>
         """.trimIndent()
     )
 
@@ -251,6 +284,43 @@ class CustomLintRulesTest {
                 1 errors, 0 warnings
                 """.trimIndent()
             )
+    }
+
+    /**
+     * S3371: the negative half of the pair. Two exclusions in one stub: an Activity whose injected
+     * dependency is a presentation type rather than a business one, and a business dependency
+     * injected into a class that is not an Activity at all.
+     */
+    @Test
+    fun testActivityLogicDetectorAcceptsDelegatedActivity() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.ui
+
+                    annotation class Inject
+                    open class Activity
+
+                    class BrowseActivity : Activity() {
+                        @Inject
+                        lateinit var viewModel: BrowseViewModel
+                    }
+
+                    class BrowseManager {
+                        @Inject
+                        lateinit var repository: MyRepository
+                    }
+
+                    class BrowseViewModel
+                    class MyRepository
+                    """.trimIndent()
+                )
+            )
+            .issues(ActivityLogicDetector.ISSUE)
+            .run()
+            .expectClean()
     }
 
     /** S1195: the core true positive - an unqualified Context in a @Singleton and in a ViewModel. */
@@ -557,6 +627,51 @@ class CustomLintRulesTest {
                 1 errors, 0 warnings
                 """.trimIndent()
             )
+    }
+
+    /**
+     * S3371: the negative half of the pair - the same collection wrapped in repeatOnLifecycle,
+     * which is the cure the rule's own message prescribes.
+     */
+    @Test
+    fun testUnsafeFlowCollectDetectorAcceptsRepeatOnLifecycle() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.ui
+
+                    class Flow<T> {
+                        fun collect(action: (T) -> Unit) {}
+                    }
+
+                    class LifecycleScope {
+                        fun launch(block: suspend () -> Unit) {}
+                    }
+
+                    suspend fun repeatOnLifecycle(state: String, block: suspend () -> Unit) {}
+
+                    class TestClass {
+                        val lifecycleScope = LifecycleScope()
+                        val flow = Flow<String>()
+
+                        fun test() {
+                            lifecycleScope.launch {
+                                repeatOnLifecycle("STARTED") {
+                                    flow.collect { value ->
+                                        println(value)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(UnsafeFlowCollectDetector.ISSUE)
+            .run()
+            .expectClean()
     }
 
     /** S1195: an owner - builds an ExoPlayer, never releases it. The case the rule exists for. */
@@ -1218,6 +1333,216 @@ class CustomLintRulesTest {
             .issues(MainThreadIoDetector.ISSUE)
             .run()
             .expectErrorCount(1)
+    }
+
+    /** S3371: the core true positive - a blocking @Query DAO method called straight from a ViewModel. */
+    @Test
+    fun testMainThreadRoomDetectorFlagsBlockingDaoCall() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                roomStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.ui
+
+                    import androidx.room.Dao
+                    import androidx.room.Query
+
+                    @Dao
+                    interface NoteDao {
+                        @Query("SELECT COUNT(*) FROM notes")
+                        fun count(): Int
+                    }
+
+                    class NotesViewModel(private val dao: NoteDao) {
+                        fun refresh(): Int {
+                            return dao.count()
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(MainThreadRoomDetector.ISSUE)
+            .run()
+            .expectErrorCount(1)
+    }
+
+    /** S3371: the RoomDatabase branch - a database member that reaches SQLite without a DAO. */
+    @Test
+    fun testMainThreadRoomDetectorFlagsDatabaseMemberInActivity() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                roomStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.ui
+
+                    import androidx.room.RoomDatabase
+
+                    class AppDatabase : RoomDatabase()
+
+                    class MaintenanceActivity(private val db: AppDatabase) {
+                        fun purge() {
+                            db.clearAllTables()
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(MainThreadRoomDetector.ISSUE)
+            .run()
+            .expectErrorCount(1)
+    }
+
+    /**
+     * S3371: a suspend DAO method is main-safe - Room schedules it off the caller's thread itself.
+     * The enclosing function is deliberately NOT suspend and the dispatcher is Main, so nothing but
+     * the DAO method's own shape can keep this clean.
+     */
+    @Test
+    fun testMainThreadRoomDetectorAcceptsSuspendDaoMethod() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                roomStub,
+                coroutinesStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.ui
+
+                    import androidx.room.Dao
+                    import androidx.room.Query
+                    import kotlinx.coroutines.CoroutineScope
+                    import kotlinx.coroutines.Dispatchers
+
+                    @Dao
+                    interface NoteDao {
+                        @Query("SELECT COUNT(*) FROM notes")
+                        suspend fun count(): Int
+                    }
+
+                    class NotesViewModel(private val dao: NoteDao) {
+                        val viewModelScope = CoroutineScope()
+
+                        fun refresh() {
+                            viewModelScope.launch(Dispatchers.Main) {
+                                dao.count()
+                            }
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(MainThreadRoomDetector.ISSUE)
+            .run()
+            .expectClean()
+    }
+
+    /** S3371: a Flow-returning DAO method runs its query where the flow is collected. */
+    @Test
+    fun testMainThreadRoomDetectorAcceptsFlowReturningDaoMethod() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                roomStub,
+                flowStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.ui
+
+                    import androidx.room.Dao
+                    import androidx.room.Query
+                    import kotlinx.coroutines.flow.Flow
+
+                    @Dao
+                    interface NoteDao {
+                        @Query("SELECT title FROM notes")
+                        fun observeTitles(): Flow<String>
+                    }
+
+                    class NotesViewModel(private val dao: NoteDao) {
+                        fun titles(): Flow<String> = dao.observeTitles()
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(MainThreadRoomDetector.ISSUE)
+            .run()
+            .expectClean()
+    }
+
+    /** S3371: the ordinary cure - the blocking call is confined to Dispatchers.IO. */
+    @Test
+    fun testMainThreadRoomDetectorAcceptsIoConfinedDaoCall() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                roomStub,
+                coroutinesStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.ui
+
+                    import androidx.room.Dao
+                    import androidx.room.Query
+                    import kotlinx.coroutines.Dispatchers
+                    import kotlinx.coroutines.withContext
+
+                    @Dao
+                    interface NoteDao {
+                        @Query("SELECT COUNT(*) FROM notes")
+                        fun count(): Int
+                    }
+
+                    class NotesViewModel(private val dao: NoteDao) {
+                        fun refresh(): Int {
+                            return withContext(Dispatchers.IO) {
+                                dao.count()
+                            }
+                        }
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(MainThreadRoomDetector.ISSUE)
+            .run()
+            .expectClean()
+    }
+
+    /**
+     * S3371: the rule is about main-thread REACHABILITY, so a data-layer class is out of scope by
+     * construction - the same boundary MainThreadIoDetector draws.
+     */
+    @Test
+    fun testMainThreadRoomDetectorIgnoresDataLayerCaller() {
+        lint()
+            .allowMissingSdk()
+            .files(
+                roomStub,
+                kotlin(
+                    """
+                    package com.sza.fastmediasorter.data.local
+
+                    import androidx.room.Dao
+                    import androidx.room.Query
+
+                    @Dao
+                    interface NoteDao {
+                        @Query("SELECT COUNT(*) FROM notes")
+                        fun count(): Int
+                    }
+
+                    class NoteRepository(private val dao: NoteDao) {
+                        fun count(): Int = dao.count()
+                    }
+                    """.trimIndent()
+                )
+            )
+            .issues(MainThreadRoomDetector.ISSUE)
+            .run()
+            .expectClean()
     }
 
     @Test

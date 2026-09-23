@@ -12,6 +12,8 @@ Compiled APKs are published as **GitHub Release assets** - they are not committe
 
 🔗 **[Latest release](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest)**
 
+> Android will warn you when installing an APK it has not seen before. [Why Android warns about this APK - and what to tap](INSTALL_TRUST.md).
+
 Each release carries one asset per public build, named `FastMediaSorter-<edition>-<version>.apk`:
 
 - **standard** - full-featured application (mobile / TV / car)

@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.domain.stats.StatsMediaType
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -23,7 +22,7 @@ class CreateDirectoryUseCase @Inject constructor(
 ) {
     /**
      * Create a new directory.
-     * 
+     *
      * @param resource The resource where the directory should be created
      * @param parentPath The protocol-specific path of the parent directory
      * @param folderName The name of the new folder to create

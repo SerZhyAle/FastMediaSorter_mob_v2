@@ -11,7 +11,9 @@
     Widget.FastMediaSorter.Button.DialogDestructive (red). New dialogs keep hand-rolling a one-off cancel
     button (plain style or none), which is exactly the drift S0684 fixes.
 
-    This detector scans res/layout + res/layout-land for dialog_*.xml / bottom_sheet_*.xml and flags every
+    This detector scans res/layout + res/layout-land for dialog_*.xml / bottom_sheet_*.xml / sheet_*.xml /
+    *_sheet.xml (S3244 widened the filter past the two original prefixes: a sheet named either of the two
+    later ways was an ungated file) and flags every
     <MaterialButton> that looks like a cancel/negative action (id or text says cancel/skip/dismiss) but does
     NOT carry style="@style/Widget.FastMediaSorter.Button.DialogCancel". Confirm/destructive buttons are
     excluded (a cancel signal is required, and the confirm/destructive styles short-circuit). Builder dialogs
@@ -89,7 +91,7 @@ $hits = [System.Collections.Generic.List[string]]::new()
 foreach ($root in $scanRoots) {
     if (-not (Test-Path $root)) { continue }
     $files = Get-ChildItem -LiteralPath $root -File -Filter '*.xml' -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -match '^(dialog_|bottom_sheet_).*\.xml$' -and $_.Name -notin $exemptFiles }
+        Where-Object { $_.Name -match '^(dialog_|bottom_sheet_|sheet_).*\.xml$|_sheet\.xml$' -and $_.Name -notin $exemptFiles }
     foreach ($file in $files) {
         $text = Get-Content -LiteralPath $file.FullName -Raw
         if ([string]::IsNullOrEmpty($text)) { continue }

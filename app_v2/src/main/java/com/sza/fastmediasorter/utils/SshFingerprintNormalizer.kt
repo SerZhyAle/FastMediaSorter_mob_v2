@@ -67,6 +67,21 @@ object SshFingerprintNormalizer {
         return SHA256_PREFIX + payload.substring(0, 12) + ".."
     }
 
+    /**
+     * Compute canonical SHA256 fingerprint (`SHA256:<base64-no-padding>`) from raw public key bytes.
+     */
+    fun fromRawKeyBytes(keyBytes: ByteArray): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256").digest(keyBytes)
+        return SHA256_PREFIX + encodeBase64NoPad(digest)
+    }
+
+    /**
+     * Compute canonical SHA256 fingerprint from base64-encoded public key string
+     * (as returned by JSch [HostKey.getKey]).
+     */
+    fun fromBase64Key(base64Key: String?): String? =
+        base64Key?.takeIf { it.isNotBlank() }?.let { decodeBase64OrNull(it) }?.let { fromRawKeyBytes(it) }
+
     private fun decodeBase64OrNull(s: String): ByteArray? {
         // Accept both padded and unpadded base64; strategy: strip any trailing `=`, then re-pad
         // to a multiple of 4 so java.util.Base64.getDecoder() (which requires correct padding) succeeds.

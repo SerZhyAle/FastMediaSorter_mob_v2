@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearTileTargetRef
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
+import dagger.Lazy
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -19,7 +20,10 @@ import javax.inject.Inject
  */
 class LoadWearComplicationContentUseCase @Inject constructor(
     private val resolveLastUsedResourceUseCase: ResolveLastUsedResourceUseCase,
-    private val networkSourceRepository: NetworkSourceRepository,
+    // S3368: Lazy - a complication service start must not construct the network-source repository's
+    // protocol stacks; only a RESOURCE-kind last-used entry reads the sources, and only when that
+    // complication is actually rendered.
+    private val networkSourceRepository: Lazy<NetworkSourceRepository>,
     private val wearFavoritesRepository: WearFavoritesRepository,
     private val wearNowPlayingRepository: WearNowPlayingRepository
 ) {
@@ -43,10 +47,8 @@ class LoadWearComplicationContentUseCase @Inject constructor(
         return if (target == null) {
             WearComplicationContent.Empty
         } else {
-            WearComplicationContent.Value(
-                shortText = target.caption,
-                longText = target.caption,
-                contentDescription = "Last resource: ${target.caption}",
+            WearComplicationContent.LastResource(
+                caption = target.caption,
                 launchTarget = WearLaunchTarget.Open(target.ref)
             )
         }
@@ -61,7 +63,7 @@ class LoadWearComplicationContentUseCase @Inject constructor(
 
             // A source's caption is read from the store rather than from the entry, which is what
             // keeps a renamed source current on the complication.
-            LastUsedKind.RESOURCE -> networkSourceRepository.getAllSources()
+            LastUsedKind.RESOURCE -> networkSourceRepository.get().getAllSources()
                 .find { it.id == newest.id }
                 ?.let { source ->
                     LastResourceTarget(
@@ -84,11 +86,8 @@ class LoadWearComplicationContentUseCase @Inject constructor(
         val favorites = wearFavoritesRepository.getFavorites()
         if (favorites.isEmpty()) return WearComplicationContent.Empty
 
-        val count = favorites.size
-        return WearComplicationContent.Value(
-            shortText = count.toString(),
-            longText = "$count favourites",
-            contentDescription = "$count favourites",
+        return WearComplicationContent.FavoritesCount(
+            count = favorites.size,
             launchTarget = WearLaunchTarget.Open(WearTileTargetRef.Favourites)
         )
     }
@@ -97,23 +96,10 @@ class LoadWearComplicationContentUseCase @Inject constructor(
         val nowPlaying = wearNowPlayingRepository.nowPlaying.first()
         if (!nowPlaying.hasContent) return WearComplicationContent.Empty
 
-        val shortText = nowPlaying.title
-        val longText = if (nowPlaying.subtitle.isNullOrBlank()) {
-            nowPlaying.title
-        } else {
-            "${nowPlaying.title} - ${nowPlaying.subtitle}"
-        }
-        val description = if (nowPlaying.isPlaying) {
-            "Playing: $shortText"
-        } else {
-            "Last played: $shortText"
-        }
-
-        return WearComplicationContent.Value(
-            shortText = shortText,
-            longText = longText,
-            contentDescription = description,
-            launchTarget = null
+        return WearComplicationContent.NowPlaying(
+            title = nowPlaying.title,
+            subtitle = nowPlaying.subtitle,
+            isPlaying = nowPlaying.isPlaying
         )
     }
 }

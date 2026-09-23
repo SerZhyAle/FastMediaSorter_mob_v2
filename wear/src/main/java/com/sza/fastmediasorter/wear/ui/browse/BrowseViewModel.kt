@@ -150,13 +150,14 @@ class BrowseViewModel @Inject constructor(
 
     init {
         Timber.d("BrowseViewModel initialized")
-        // S2444: the helper's four missing pieces, none of which exists before the constructor has
-        // run. `isNetworkSource` is passed as a lambda rather than a value because the route sets it
-        // later, in setNavigationArgs.
+        // S2444: the helper's missing pieces, none of which exists before the constructor has run.
+        // The two source questions are passed as lambdas rather than values because the route sets
+        // them later, in setNavigationArgs.
         fileOperations.bind(
             scope = viewModelScope,
             displayedFiles = displayedFiles,
             isNetworkSource = { isNetworkSource },
+            networkSourceId = { _sourceId },
             onListInvalidated = ::loadMediaFiles
         )
         // loadMediaFiles() will be called after setNavigationArgs() from UI

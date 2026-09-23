@@ -1,0 +1,55 @@
+# Declared departures from the measured icon style (ICON-RENDER 0.10 section 10 item A), read by
+# scripts/quality/assert-icon-style.ps1 and by the contract exporter's style report.
+# One line per glyph and rule: name | rule | reason. name = a drawable name (both modules) or
+# wear:name (watch only); rule = grid, paint, stroke, margin, centre, weight or * (every rule).
+# A line whose glyph now passes, or no longer exists, fails the gate: remove it with the fix.
+
+# Illustrations at glyph size (section 10 item G) - pictures, not glyphs of the vocabulary.
+ic_game_door | * | illustration: a figure of the in-app game, drawn in its own colours on a 48 grid
+ic_game_fig_kryvavitsa | * | illustration: a figure of the in-app game, drawn in its own colours on a 48 grid
+ic_game_fig_monster | * | illustration: a figure of the in-app game, drawn in its own colours on a 48 grid
+ic_game_fig_shadow | * | illustration: a figure of the in-app game, drawn in its own colours on a 48 grid
+ic_guide_press_back | * | illustration: an onboarding guide picture showing a gesture, not a control
+ic_guide_tap_allow | * | illustration: an onboarding guide picture showing a gesture, not a control
+ic_guide_tap_always | * | illustration: an onboarding guide picture showing a gesture, not a control
+ic_shutter_photo | * | illustration: the camera's 44 dp shutter control face, not a glyph size
+ic_shutter_video_idle | * | illustration: the camera's 44 dp shutter control face, not a glyph size
+ic_shutter_video_recording | * | illustration: the camera's 44 dp shutter control face, not a glyph size
+ic_splash_app_brand | * | illustration: the splash brand mark - the product's identity artwork (contract section 7)
+ic_vinyl_record | * | illustration: the vinyl disc artwork of the audio player
+
+# The offset is the shape.
+ic_signal_cellular_bar_1 | centre | one level of the signal meter; every level shares the full meter's frame
+ic_signal_cellular_bar_2 | centre | one level of the signal meter; every level shares the full meter's frame
+ic_signal_cellular_bar_3 | centre | one level of the signal meter; every level shares the full meter's frame
+ic_signal_cellular_bar_4 | centre | one level of the signal meter; every level shares the full meter's frame
+
+# Colours that carry meaning, until the vocabulary owner decides a one-paint drawing.
+ic_compass | paint | the needle's red and blue halves are north and south; a one-paint redraw is a vocabulary decision
+ic_prank_system_alert | paint | imitates a system alert on purpose; its red and white are the imitation
+ic_vr_formats | stroke | the 0.8 strokes are the lettering inside the VR-format badge; at 2 they fill it
+
+# Owned by another ticket, which replaces the drawing.
+ic_edit_20 | grid | S3430: a 20-unit size copy of the Edit pencil, retired there (ICON-RENDER rule 5)
+ic_music_note | * | S3430: the three-dimensional gold note, replaced there by the audio meaning's looks
+ic_youtube | paint | S3430: a hand-drawn YouTube mark, replaced there by the owner's asset (ICON-EXTERNAL rule 1)
+ic_send_bolt_chat | margin | S3430: a hand-made messenger look-alike, replaced there by the installed app's icon
+ic_send_music_note | margin | S3430: a hand-made messenger look-alike, replaced there by the installed app's icon
+ic_send_phone_chat | margin | S3430: a hand-made messenger look-alike, replaced there by the installed app's icon
+ic_next_circle_red | paint | S3427: "Next file" drawn as a red dot, replaced there by the media.next glyph
+ic_next_circle_red_pressed | paint | S3427: "Next file" drawn as a red dot, replaced there by the media.next glyph
+ic_launcher_all_apps | paint | S3429: one of the two all-apps glyphs; S3429 decides content.apps' one drawing
+
+# Sizes off the tiers 16/20/24/32/40/48 (section 10 item E). Keys: dimen:<name>, dimen:<name>@<values-qualifier>,
+# layout:<file>:<N>dp.
+dimen:empty_state_icon_size | size | an empty-state hero picture, larger than a control on purpose - item E allows a declared one above 48
+dimen:welcome_icon_size | size | the welcome screen's hero picture, scaled with the screen - item E hero
+dimen:welcome_feature_row_icon_size | size | a glyph on the welcome row's plate, sized by the plate (item E: 0.6 of it), not by the tiers
+dimen:icon_picker_item_size | size | a picker cell that holds a user's picture, not a size a glyph is drawn at
+dimen:installed_app_icon_cache_size | size | the raster cache of installed apps' own icons, not a glyph size
+dimen:item_icon_size@values-sw600dp | size | the list-item slot also shows file thumbnails; on a tablet it follows the row height
+dimen:item_icon_size@values-sw720dp | size | the list-item slot also shows file thumbnails; on a tablet it follows the row height
+dimen:item_icon_size_medium@values-sw600dp | size | the grid-item slot also shows file thumbnails; on a tablet it follows the cell
+dimen:item_icon_size_medium@values-sw720dp | size | the grid-item slot also shows file thumbnails; on a tablet it follows the cell
+dimen:item_network_icon_size@values-sw600dp | size | the network host row's tablet scale, kept with the row height it was tuned for
+layout:activity_camera_capture.xml:44dp | size | the capture button's shutter face (see ic_shutter_*), sized as the control, not a glyph

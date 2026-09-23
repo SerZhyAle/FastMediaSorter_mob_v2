@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -42,13 +42,21 @@
                 <a href="index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
 
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Search...</span>
+                <kbd>/</kbd>
+            </button>
+
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="sample-recipe.html" class="doc-header-link active">Sample Recipe</a>
+                <a href="sample-recipe.html" class="doc-header-link active">Audio Recipe</a>
+                <a href="sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
+                <a href="sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
                 <a href="design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
-                <!-- Live Theme Toggle Button -->
-                                <!-- 13-Language Selector -->
+                <!-- 13-Language Selector -->
                 <div class="doc-lang-picker">
                     <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
                     <div class="doc-lang-menu" id="langMenu" role="menu">
@@ -84,7 +92,7 @@
             <span class="doc-breadcrumb-separator">/</span>
             <span>Audio & Music</span>
             <span class="doc-breadcrumb-separator">/</span>
-            <span class="doc-breadcrumb-current">Playing & Organizing Music</span>
+            <span class="doc-breadcrumb-current">How to Play and Organize Music Files</span>
         </nav>
 
         <div class="doc-grid">
@@ -95,16 +103,18 @@
                     <div class="doc-sidebar-title">Getting Started</div>
                     <ul class="doc-sidebar-list">
                         <li><a href="index.html" class="doc-sidebar-link">Docs Home</a></li>
-                        <li><a href="sample-recipe.html" class="doc-sidebar-link active">Playing & Organizing Music</a></li>
+                        <li><a href="sample-recipe.html" class="doc-sidebar-link active">Audio Recipe</a></li>
+                        <li><a href="sample-settings-recipe.html" class="doc-sidebar-link ">Settings Recipe</a></li>
+                        <li><a href="sample-program-recipe.html" class="doc-sidebar-link ">Programs Recipe</a></li>
                         <li><a href="design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Media Categories</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
-                        <li><a href="#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
-                        <li><a href="#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                        <li><a href="sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
                     </ul>
                 </div>
             </aside>
@@ -113,8 +123,8 @@
             <main class="doc-content" id="main-content">
 
                 <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
-                    <span class="doc-badge doc-badge-music">Music</span>
-                    <span class="doc-badge doc-badge-standard">Standard &amp; NoLegal</span>
+                    <span class="doc-badge doc-badge-music">Audio & Music</span>
+                    <span class="doc-badge doc-badge-standard">Standard & NoLegal</span>
                     <span class="doc-badge doc-badge-sm">Recipe #01</span>
                 </div>
 
@@ -146,11 +156,10 @@
                     </div>
                     <div class="doc-step-body">
                         <p>Launch FastMediaSorter. From the home drawer or bottom navigation bar, tap <strong>Local Storage</strong> or choose a configured network bookmark. Navigate to your music directory.</p>
-                        
-                        <div class="doc-step-img-container">
-                            <span class="doc-step-img-placeholder">Screenshot: Folder Browser showing Music albums with metadata badges</span>
-                        </div>
-                        <div class="doc-step-img-caption">Figure 1: Navigating music folders with live duration badges and track counts.</div>
+                        <figure class="doc-figure">
+                            <img src="assets/images/sample-step1.png" alt="Folder Browser showing Music albums with metadata badges and track counts" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Figure 1: Navigating music folders with live duration badges and track counts.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -162,16 +171,16 @@
                     </div>
                     <div class="doc-step-body">
                         <p>Tap any audio track to begin immediate playback using the integrated Media3 engine. The persistent bottom mini-player will appear:</p>
-                        <ul>
-                            <li><strong>Tap the mini-player:</strong> Expands the full-screen playback deck with album art, waveform scrubber, and equalizer controls.</li>
-                            <li><strong>Swipe left/right on the mini-player:</strong> Skips to the previous or next track in the queue.</li>
-                            <li><strong>Queue management:</strong> Tap the playlist icon to drag and reorder songs or remove duplicates.</li>
-                        </ul>
-
-                        <!-- Callout Tip -->
+<p>* <strong>Tap the mini-player:</strong> Expands the full-screen playback deck with album art, waveform scrubber, and equalizer controls.
+* <strong>Swipe left/right on the mini-player:</strong> Skips to the previous or next track in the queue.
+* <strong>Queue management:</strong> Tap the playlist icon to drag and reorder songs or remove duplicates.</p>
+                        <figure class="doc-figure">
+                            <img src="assets/images/audio-playback-deck.png" alt="Audio player deck showing active track playback, album art, and queue playlist controls" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Figure 2: Audio playback deck with waveform scrubber and track queue.</figcaption>
+                        </figure>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">💡</span> Background Playback &amp; Headset Controls
+                                <span class="doc-callout-icon">💡</span> Background Playback & Headset Controls
                             </div>
                             <p>FastMediaSorter continues playback in the background with lock screen controls and supports Bluetooth headset buttons (single tap pause, double tap next track).</p>
                         </div>
@@ -182,17 +191,29 @@
                 <div class="doc-step" id="step-3">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">3</span>
-                        <h2 class="doc-step-title">Quick Sorting &amp; File Operations</h2>
+                        <h2 class="doc-step-title">Quick Sorting & File Operations</h2>
                     </div>
                     <div class="doc-step-body">
                         <p>To organize messy tracks into proper artist folders, enter multi-selection mode by long-pressing any item:</p>
-                        <ol>
-                            <li>Select the target tracks or whole albums.</li>
-                            <li>Tap the <strong>Copy/Move Panel</strong> button in the top action bar.</li>
-                            <li>Pick your destination folder from your predefined destination bookmarks.</li>
-                        </ol>
-
-                        <!-- Callout Warning -->
+<p>1. Select the target tracks or whole albums.
+2. Tap the <strong>Copy/Move Panel</strong> button in the top action bar.
+3. Pick your destination folder from your predefined destination bookmarks.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="audio.queue-reorder"
+                             data-device-profile="phone"
+                             data-screen-state="audio-queue-active"
+                             data-alt="Batch file copy and move panel showing predefined destination folder bookmarks"
+                             data-caption="Figure 3: Quick file move and copy destination targets.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Quick Move & Copy Panel</strong>
+                                <p class="doc-img-bookmark-desc">Shows destination folder bookmarks and batch selection action bar.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>audio.queue-reorder</code></span>
+                                </div>
+                            </div>
+                        </div>
                         <div class="doc-callout doc-callout-warning">
                             <div class="doc-callout-title">
                                 <span class="doc-callout-icon">⚠️</span> Keep Your Android Screen On During Large Network Transfers
@@ -202,16 +223,37 @@
                     </div>
                 </div>
 
+                <!-- External Configuration & Listing Snippets -->
+                <div class="doc-snippet-section" style="margin-top: 2.5rem;">
+                    <h3>External Configuration &amp; Code Snippets</h3>
+                    <div class="doc-snippet-card" style="margin-bottom: 1.5rem;">
+                        <div class="doc-snippet-header" style="font-weight: 600; margin-bottom: 0.5rem;">📄 Sample Equalizer Configuration Preset (<code>docs/content/snippets/audio-equalizer-config.json</code>):</div>
+                        <pre style="background: var(--doc-bg-card, #161b22); padding: 1rem; border-radius: 8px; border: 1px solid var(--doc-border, #30363d); overflow-x: auto;"><code class="language-json">{
+  &quot;preset_name&quot;: &quot;Deep Bass &amp; Clear Vocal&quot;,
+  &quot;bands&quot;: [
+    { &quot;frequency_hz&quot;: 60, &quot;gain_db&quot;: 4.5 },
+    { &quot;frequency_hz&quot;: 230, &quot;gain_db&quot;: 2.0 },
+    { &quot;frequency_hz&quot;: 910, &quot;gain_db&quot;: -1.0 },
+    { &quot;frequency_hz&quot;: 3600, &quot;gain_db&quot;: 1.5 },
+    { &quot;frequency_hz&quot;: 14000, &quot;gain_db&quot;: 3.0 }
+  ],
+  &quot;virtualizer_strength&quot;: 15,
+  &quot;bass_boost_strength&quot;: 25
+}
+</code></pre>
+                    </div>
+                </div>
+
                 <!-- What to Try Next Section -->
                 <div class="doc-next-section">
                     <div class="doc-next-title">What to Try Next: Related Recipes</div>
                     <div class="doc-next-grid">
-                        <a href="design-system/index.html" class="doc-next-card">
+                        <a href="design-system/index.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-music">Audio</span>
                             <h4>Fine-Tuning the 10-Band Equalizer</h4>
                             <p>Learn how to save custom EQ presets for headphones, car audio, and Bluetooth speakers.</p>
                         </a>
-                        <a href="#s2950" class="doc-next-card doc-link-bookmark" data-target="S2950">
+                        <a href=""#s2950"" class="doc-next-card doc-link-bookmark" data-target="S2950">
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
                             <h4>Setting Up SMB Streaming on Home NAS</h4>
                             <p>Stream your high-resolution FLAC library directly without filling your device storage.</p>
@@ -226,9 +268,9 @@
                 <nav class="doc-toc">
                     <div class="doc-toc-title">On this page</div>
                     <ul class="doc-toc-list">
-                        <li><a href="#step-1" class="doc-toc-link">1. Locate Music Directory</a></li>
-                        <li><a href="#step-2" class="doc-toc-link">2. Playback and Queue</a></li>
-                        <li><a href="#step-3" class="doc-toc-link">3. Quick Sorting Operations</a></li>
+                        <li><a href="#step-1" class="doc-toc-link">1. Locate and Open Your Music Directory</a></li>
+                        <li><a href="#step-2" class="doc-toc-link">2. Start Playback and Control the Queue</a></li>
+                        <li><a href="#step-3" class="doc-toc-link">3. Quick Sorting & File Operations</a></li>
                     </ul>
                 </nav>
             </aside>
@@ -251,7 +293,6 @@
     <!-- Interactive scripts: Theme switcher & 13-Language selector -->
     <script>
         (function () {
-            // Theme toggle
             var btn = document.getElementById('themeBtn');
             if (btn) {
                 btn.addEventListener('click', function () {
@@ -262,7 +303,6 @@
                 });
             }
 
-            // Language picker dropdown
             var langBtn = document.getElementById('langBtn');
             var langMenu = document.getElementById('langMenu');
             if (langBtn && langMenu) {
@@ -275,11 +315,9 @@
                 });
             }
 
-            // Language state resolver: URL ?lang= -> localStorage -> navigator -> default 'en'
             var urlParams = new URLSearchParams(window.location.search);
             var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
             
-            // Mark active language in dropdown and update button label
             var items = document.querySelectorAll('.doc-lang-item');
             items.forEach(function (item) {
                 var lang = item.getAttribute('data-lang');
@@ -299,82 +337,11 @@
         }());
     </script>
 
-    <!-- Background Animated Waves & Particles Canvas -->
-    <canvas id="docCanvas"></canvas>
-    <script>
-        (function () {
-            var canvas = document.getElementById('docCanvas');
-            if (!canvas) return;
-            var ctx = canvas.getContext('2d');
-            var width, height, animId;
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
+    <script src="assets/wave-particles.js"></script>
 
-            function resize() {
-                width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
-            }
-
-            var particles = [];
-            var PARTICLE_COUNT = 45;
-
-            function initParticles() {
-                particles = [];
-                for (var i = 0; i < PARTICLE_COUNT; i++) {
-                    particles.push({
-                        x: Math.random() * width,
-                        y: Math.random() * height,
-                        radius: Math.random() * 1.6 + 0.5,
-                        vx: (Math.random() - 0.5) * 0.25,
-                        vy: (Math.random() - 0.5) * 0.25,
-                        hue: (Math.random() < 0.5 ? 135 + Math.random() * 20 : 40 + Math.random() * 15)
-                    });
-                }
-            }
-
-            var time = 0;
-            function draw() {
-                ctx.clearRect(0, 0, width, height);
-                time += 0.002;
-                ctx.lineWidth = 1.4;
-                for (var j = 0; j < 4; j++) {
-                    ctx.beginPath();
-                    var phaseShift = j * 20;
-                    for (var i = 0; i <= width; i += 24) {
-                        var y = height * 0.35 +
-                            Math.sin(i * 0.0022 + time + phaseShift) * height * 0.25 *
-                            Math.sin(time * 0.25 + j * 0.25);
-                        if (i === 0) ctx.moveTo(i, y);
-                        else ctx.lineTo(i, y);
-                    }
-                    var waveHue = (j % 2 === 0) ? (135 + j * 6) : (44 + j * 4);
-                    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-                    ctx.strokeStyle = 'hsla(' + waveHue + ', 65%, ' + (isDark ? '55%' : '40%') + ', ' + (isDark ? '0.18' : '0.10') + ')';
-                    ctx.stroke();
-                }
-                particles.forEach(function (p) {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    if (p.x < 0 || p.x > width) p.vx *= -1;
-                    if (p.y < 0 || p.y > height) p.vy *= -1;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-                    ctx.fillStyle = 'hsla(' + p.hue + ', 90%, ' + (isDark ? '70%' : '45%') + ', ' + (isDark ? '0.4' : '0.25') + ')';
-                    ctx.fill();
-                });
-                animId = requestAnimationFrame(draw);
-            }
-
-            window.addEventListener('resize', function () { resize(); initParticles(); });
-            document.addEventListener('visibilitychange', function () {
-                if (document.hidden) { cancelAnimationFrame(animId); } else { draw(); }
-            });
-            resize();
-            initParticles();
-            draw();
-        }());
-    </script>
+    <!-- In-browser Search Modal Engine -->
+    <script src="assets/search.js"></script>
 </body>
 </html>
-
-
-

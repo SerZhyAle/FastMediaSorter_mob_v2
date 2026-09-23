@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.domain.files
 
 import android.content.Context
 import android.net.Uri
+import com.sza.fastmediasorter.wear.data.files.WearWatchFilePublisher
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
@@ -84,20 +85,86 @@ class WearFileCapabilityPolicyTest {
     }
 
     /**
-     * S2004: the phone still holds the original this copy was fetched from, so this class alone may
-     * be asked to open it there - and it keeps everything a watch-owned file allows besides.
+     * S2004 put opening on the phone here, and S3359 took the two "to phone" errands away: the phone
+     * still holds the original, so handing it back there is an errand with nothing to do, and the
+     * copy onto the watch takes their place.
      */
     @Test
-    fun `a paired phone copy is offered opening on the phone as well`() {
+    fun `a paired phone copy trades the to-phone pair for both directions onto the watch`() {
+        val dirs = appDirs()
+
         assertEquals(
             setOf(
-                WearFileOperationKind.SEND_TO_PHONE,
-                WearFileOperationKind.MOVE_TO_PHONE,
+                WearFileOperationKind.DELETE,
+                WearFileOperationKind.RENAME,
+                WearFileOperationKind.OPEN_ON_PHONE,
+                WearFileOperationKind.COPY_TO_WATCH,
+                WearFileOperationKind.MOVE_TO_WATCH
+            ),
+            policyFor(dirs).allowedOperations(phoneCopy(dirs, "clip.mp4", VIDEO_MIME_TYPE), isNetworkSource = false)
+        )
+    }
+
+    /** A document reaches none of the watch's three category lists, so it is offered no copy at all. */
+    @Test
+    fun `a document copy of a phone file is offered neither direction`() {
+        val dirs = appDirs()
+        val document = phoneCopy(dirs, "manual.pdf", DOCUMENT_MIME_TYPE)
+
+        assertEquals(
+            setOf(
                 WearFileOperationKind.DELETE,
                 WearFileOperationKind.RENAME,
                 WearFileOperationKind.OPEN_ON_PHONE
             ),
-            policy.allowedOperations(WearFileStorageClass.PHONE_COPY)
+            policyFor(dirs).allowedOperations(document, isNetworkSource = false)
+        )
+    }
+
+    /** An undeclared type names no collection either, so it is withheld exactly as a document is. */
+    @Test
+    fun `a copy with no declared type is offered no copy onto the watch`() {
+        val dirs = appDirs()
+
+        assertTrue(
+            WearFileOperationKind.COPY_TO_WATCH !in
+                policyFor(dirs).allowedOperations(phoneCopy(dirs, "blob", null), isNetworkSource = false)
+        )
+    }
+
+    /**
+     * The one class that gains operations rather than trading them: a share allows nothing of its own
+     * (S1863), and both entries are about the watch's storage rather than the server's listing.
+     */
+    @Test
+    fun `a network audio file is offered both directions onto the watch and nothing else`() {
+        val dirs = appDirs()
+        val remote = mediaFile(File(dirs.cache, "track.mp3"), AUDIO_MIME_TYPE)
+
+        assertEquals(
+            setOf(WearFileOperationKind.COPY_TO_WATCH, WearFileOperationKind.MOVE_TO_WATCH),
+            policyFor(dirs).allowedOperations(remote, isNetworkSource = true)
+        )
+    }
+
+    /**
+     * API 28: the publisher cannot insert a row without a storage permission this watch never asks
+     * for, so the entry is withheld rather than drawn and refused (S2004 ADR-4).
+     */
+    @Test
+    fun `a watch that cannot publish is offered no copy onto the watch`() {
+        val dirs = appDirs()
+        val policy = policyFor(dirs, watchAvailable = false)
+        val remote = mediaFile(File(dirs.cache, "track.mp3"), AUDIO_MIME_TYPE)
+
+        val phoneCopyAnswer =
+            policy.allowedOperations(phoneCopy(dirs, "clip.mp4", VIDEO_MIME_TYPE), isNetworkSource = false)
+        assertTrue(WearFileOperationKind.COPY_TO_WATCH !in phoneCopyAnswer)
+        // The move is withheld with the copy: it is a copy plus a removal, and the copy half cannot land.
+        assertTrue(WearFileOperationKind.MOVE_TO_WATCH !in phoneCopyAnswer)
+        assertEquals(
+            emptySet<WearFileOperationKind>(),
+            policy.allowedOperations(remote, isNetworkSource = true)
         )
     }
 
@@ -213,6 +280,76 @@ class WearFileCapabilityPolicyTest {
         )
     }
 
+    /**
+     * The whole direction table in one case, because strategic §11 criteria 6, 7 and 9 are statements
+     * about every class and every type at once: a later change that drops one cell - a document that
+     * starts offering a copy, a phone copy that gets its "to phone" pair back, a share that starts
+     * offering a move nothing can perform - fails here rather than on the one surface someone happens
+     * to open.
+     */
+    @Test
+    fun `the direction table holds for every storage class and every type`() {
+        val dirs = appDirs()
+        val policy = policyFor(dirs)
+        val types = listOf(IMAGE_MIME_TYPE, AUDIO_MIME_TYPE, VIDEO_MIME_TYPE, DOCUMENT_MIME_TYPE)
+
+        WearFileStorageClass.entries.forEach { storageClass ->
+            types.forEach { mimeType ->
+                val allowed = policy.allowedOperations(
+                    fileIn(dirs, storageClass, mimeType),
+                    isNetworkSource = storageClass == WearFileStorageClass.NETWORK
+                )
+                assertDirection("$storageClass/$mimeType", storageClass, mimeType, allowed)
+            }
+        }
+    }
+
+    private fun assertDirection(
+        case: String,
+        storageClass: WearFileStorageClass,
+        mimeType: String,
+        allowed: Set<WearFileOperationKind>
+    ) {
+        assertEquals(
+            "$case answered the wrong way about copying onto the watch",
+            storageClass in TO_WATCH_CLASSES && mimeType != DOCUMENT_MIME_TYPE,
+            WearFileOperationKind.COPY_TO_WATCH in allowed
+        )
+        // S3359 phase 04: both sources of a borrowed file can now be made to let go of the original -
+        // the phone answers a request, a share is removed from by the watch - so the move follows the
+        // copy exactly. A file already on the watch still has nowhere else to go.
+        assertEquals(
+            "$case answered the wrong way about moving onto the watch",
+            storageClass in TO_WATCH_CLASSES && mimeType != DOCUMENT_MIME_TYPE,
+            WearFileOperationKind.MOVE_TO_WATCH in allowed
+        )
+        if (storageClass == WearFileStorageClass.PHONE_COPY) {
+            assertTrue(
+                "$case offered back to the phone the file the phone still holds",
+                allowed.none { it in TO_PHONE_KINDS }
+            )
+        } else if (storageClass != WearFileStorageClass.NETWORK) {
+            assertTrue(
+                "$case stopped offering the watch's own file to the phone",
+                WearFileOperationKind.SEND_TO_PHONE in allowed
+            )
+        }
+    }
+
+    /** A path the classifier reads as [storageClass]: the directory is what decides the class. */
+    private fun fileIn(
+        dirs: AppDirs,
+        storageClass: WearFileStorageClass,
+        mimeType: String
+    ): WearMediaFile = when (storageClass) {
+        WearFileStorageClass.APP_OWNED -> mediaFile(File(dirs.cache, TABLE_FILE_NAME), mimeType)
+        WearFileStorageClass.PHONE_COPY -> phoneCopy(dirs, TABLE_FILE_NAME, mimeType)
+        WearFileStorageClass.MEDIA_STORE ->
+            mediaFile(File(temporaryFolder.root, "camera/$TABLE_FILE_NAME"), mimeType)
+        // The caller declares this one, so the path it happens to point at changes nothing.
+        WearFileStorageClass.NETWORK -> mediaFile(File(dirs.cache, TABLE_FILE_NAME), mimeType)
+    }
+
     @Test
     fun `suffix lands before the extension`() {
         val suffixed = WearFileNameConflictResolver.applySecondsSuffix(
@@ -295,12 +432,17 @@ class WearFileCapabilityPolicyTest {
         )
     }
 
-    private fun policyFor(dirs: AppDirs): WearFileCapabilityPolicy {
+    private fun policyFor(dirs: AppDirs, watchAvailable: Boolean = true): WearFileCapabilityPolicy {
         val context = mockk<Context>()
         every { context.cacheDir } returns dirs.cache
         every { context.filesDir } returns dirs.files
         every { context.getExternalFilesDir(null) } returns dirs.externalFiles
-        return WearFileCapabilityPolicy(context, consentThatIs(available = false), receiversThatAre(emptyList()))
+        return WearFileCapabilityPolicy(
+            context,
+            consentThatIs(available = false),
+            receiversThatAre(emptyList()),
+            publisherThatIs(available = watchAvailable)
+        )
     }
 
     /** Classification never consults the confirmation, so these cases fix it either way. */
@@ -313,7 +455,8 @@ class WearFileCapabilityPolicyTest {
     ): WearFileCapabilityPolicy = WearFileCapabilityPolicy(
         mockk<Context>(relaxed = true),
         consentThatIs(available),
-        receiversThatAre(receivers)
+        receiversThatAre(receivers),
+        publisherThatIs(available = true)
     )
 
     private fun consentThatIs(available: Boolean): WearMediaStoreConsent {
@@ -330,8 +473,18 @@ class WearFileCapabilityPolicyTest {
 
     private fun receiver(id: String) = WearSendToReceiverEntry(id = id, title = id)
 
+    private fun publisherThatIs(available: Boolean): WearWatchFilePublisher {
+        val publisher = mockk<WearWatchFilePublisher>()
+        every { publisher.isAvailable() } returns available
+        return publisher
+    }
+
+    /** A path under the one directory the phone browser writes to, which is what makes it a phone copy. */
+    private fun phoneCopy(dirs: AppDirs, name: String, mimeType: String?): WearMediaFile =
+        mediaFile(File(File(dirs.cache, WEAR_PHONE_FILE_CACHE_DIR), name), mimeType)
+
     /** A file URI mocked rather than parsed: `Uri.parse` is not available to a plain JVM test. */
-    private fun mediaFile(file: File): WearMediaFile {
+    private fun mediaFile(file: File, mimeType: String? = null): WearMediaFile {
         val uri = mockk<Uri>()
         every { uri.scheme } returns "file"
         every { uri.path } returns file.absolutePath
@@ -339,7 +492,7 @@ class WearFileCapabilityPolicyTest {
             id = file.name.hashCode().toLong(),
             name = file.name,
             uri = uri,
-            mimeType = null,
+            mimeType = mimeType,
             size = 0L,
             dateModified = 0L
         )
@@ -351,5 +504,21 @@ class WearFileCapabilityPolicyTest {
 
         /** Enough files to force the seconds suffix to repeat within one run. */
         const val BATCH_SIZE = 5
+
+        const val AUDIO_MIME_TYPE = "audio/mpeg"
+        const val VIDEO_MIME_TYPE = "video/mp4"
+        const val IMAGE_MIME_TYPE = "image/jpeg"
+        const val DOCUMENT_MIME_TYPE = "application/pdf"
+
+        /** One name for every cell of the table: the directory decides the class, never the name. */
+        const val TABLE_FILE_NAME = "item.bin"
+
+        /** The two classes whose original lives somewhere other than this watch. */
+        val TO_WATCH_CLASSES = setOf(WearFileStorageClass.PHONE_COPY, WearFileStorageClass.NETWORK)
+
+        val TO_PHONE_KINDS = setOf(
+            WearFileOperationKind.SEND_TO_PHONE,
+            WearFileOperationKind.MOVE_TO_PHONE
+        )
     }
 }

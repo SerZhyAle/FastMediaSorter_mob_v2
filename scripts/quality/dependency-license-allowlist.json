@@ -1,0 +1,84 @@
+{
+  "_about": "S3371 dependency admission: the licence set this app already ships. Seeded from the distinct spdx values of app_v2/src/main/res/raw/oss_notices_*.json across all seven flavors, so the first PR run judges new dependencies rather than the project's own set. Regenerate the seed by re-reading those files; add an entry only with a reason.",
+  "_consumers": [
+    ".github/workflows/dependency-scan.yml - allow-licenses is built from the spdx entries, allow-dependencies-licenses from the packages of the non-spdx ones"
+  ],
+  "licenses": [
+    {
+      "id": "Apache-2.0",
+      "spdx": true,
+      "flavors": ["standard", "noLegal", "lite", "photos", "legacy", "vr", "foss"],
+      "reason": "The licence of almost every AndroidX, Google and Kotlin artifact the app builds on; permissive, no distribution obligation beyond the notice the app already ships."
+    },
+    {
+      "id": "MIT",
+      "spdx": true,
+      "flavors": ["standard", "noLegal", "lite", "photos", "legacy", "vr", "foss"],
+      "reason": "Permissive, notice-only; already carried in every flavor's OSS notices."
+    },
+    {
+      "id": "BSD-2-Clause",
+      "spdx": true,
+      "flavors": ["standard", "noLegal", "lite", "photos", "legacy", "vr", "foss"],
+      "reason": "Permissive, notice-only; shipped in every flavor."
+    },
+    {
+      "id": "BSD-3-Clause",
+      "spdx": true,
+      "flavors": ["standard", "noLegal", "lite", "photos", "legacy", "vr", "foss"],
+      "reason": "Permissive, notice-only, plus a no-endorsement clause the app does not breach; shipped in every flavor."
+    },
+    {
+      "id": "GPL-2.0-with-classpath-exception",
+      "spdx": true,
+      "flavors": ["standard", "noLegal", "lite", "photos", "legacy", "vr", "foss"],
+      "reason": "The classpath exception is what makes it admissible: linking does not propagate the copyleft to the app."
+    },
+    {
+      "id": "LGPL-2.1-or-later",
+      "spdx": true,
+      "flavors": ["standard", "noLegal", "legacy", "vr"],
+      "reason": "Admissible while the library stays dynamically linked and replaceable, which is how these four flavors consume it. A NEW LGPL dependency that would be statically linked is a decision, not an allowlist hit."
+    },
+    {
+      "id": "GPL-3.0-or-later",
+      "spdx": true,
+      "flavors": ["noLegal"],
+      "reason": "noLegal only, and deliberately: that flavor is not distributed through a store. A GPL-3.0 dependency reaching any other flavor is a licence change for the whole app and must not pass silently."
+    },
+    {
+      "id": "BSD-2-Clause AND Apache-2.0 AND MIT",
+      "spdx": false,
+      "packages": ["maven/com.github.bumptech.glide:glide"],
+      "flavors": ["standard", "noLegal", "lite", "photos", "legacy", "vr", "foss"],
+      "reason": "Glide's composite expression. Every member is already allowed above; it is listed as a package exemption because the composite string is not a single SPDX identifier the PR gate can match."
+    },
+    {
+      "id": "Android Software Development Kit License",
+      "spdx": false,
+      "packages": [
+        "maven/com.google.android.gms:play-services-auth",
+        "maven/com.google.android.gms:play-services-auth-blockstore",
+        "maven/com.google.android.gms:play-services-cast-framework",
+        "maven/com.google.android.gms:play-services-wearable",
+        "maven/com.google.android.libraries.identity.googleid:googleid"
+      ],
+      "flavors": ["standard", "noLegal", "lite", "photos", "legacy", "vr", "foss"],
+      "reason": "Google's own SDK terms, not an SPDX identifier. Accepted per package rather than per licence, so a new Google artifact under the same terms is still reviewed."
+    },
+    {
+      "id": "ML Kit Terms of Service",
+      "spdx": false,
+      "packages": ["maven/com.google.mlkit:language-id", "maven/com.google.mlkit:translate"],
+      "flavors": ["standard", "noLegal", "legacy", "vr"],
+      "reason": "Google's ML Kit terms, not SPDX. Named per package: the two the translation feature already ships."
+    },
+    {
+      "id": "Play Core Software Development Kit Terms of Service",
+      "spdx": false,
+      "packages": ["maven/com.google.android.play:feature-delivery-ktx", "maven/com.google.android.play:review-ktx"],
+      "flavors": ["standard", "noLegal", "lite", "photos", "legacy", "vr"],
+      "reason": "Google Play Core terms, not SPDX. Named per package: feature delivery and the in-app review prompt. foss ships neither."
+    }
+  ]
+}

@@ -22,7 +22,6 @@ import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
 import com.sza.fastmediasorter.ui.wear.WatchListenLaunchActivity
 import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
-import timber.log.Timber
 
 /**
  * S0774: single home for the main-window programs menu - item registration, count, click dispatch,
@@ -203,6 +202,7 @@ class MainProgramsMenuCoordinator(
         MENU_ITEM_MIRROR -> AppLaunchPanelRouteIntents.mirror(activity)
         // S3216: manager-less like the two watch-listen rows above, so its launch lives here.
         MENU_ITEM_SOS -> AppLaunchPanelRouteIntents.sos(activity)
+        MENU_ITEM_SCHEDULED_TASKS -> AppLaunchPanelRouteIntents.scheduledTasks(activity)
         MENU_ITEM_BLACK_SCREEN -> AppLaunchPanelRouteIntents.blackScreen(activity)
         // S2881: the two watch-listen programs are manager-less, so their launch lives here beside
         // the other registry rows - found on device, where a row without a branch here tapped dead.
@@ -297,6 +297,10 @@ class MainProgramsMenuCoordinator(
         // dead, which is the S2881 finding.
         const val MENU_ITEM_SOS = 31
 
+        // S3365: the scheduled-operations program - manager-less like SOS, so its launch lives in
+        // launchIntentFor beside the other registry rows.
+        const val MENU_ITEM_SCHEDULED_TASKS = 32
+
         /**
          * The menu item id each sub-program's tap is dispatched on - the one thing ADR-1 keeps out of
          * the registry that this file still has to own.
@@ -330,6 +334,7 @@ class MainProgramsMenuCoordinator(
             InternalRouteCatalog.KEY_STOPWATCH to MENU_ITEM_STOPWATCH,
             InternalRouteCatalog.KEY_TOURIST_INFO to MENU_ITEM_TOURIST,
             InternalRouteCatalog.KEY_BROADCAST to MainBroadcastMenuManager.MENU_ITEM_BROADCAST,
+            InternalRouteCatalog.KEY_SCHEDULED_TASKS to MENU_ITEM_SCHEDULED_TASKS,
         )
 
         /** The route keys the menu can draw - read by SubProgramCatalogCompletenessTest. */

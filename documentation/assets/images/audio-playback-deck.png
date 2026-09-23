@@ -1,0 +1,27 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#0d1117" rx="8"/>
+  <rect x="30" y="30" width="300" height="300" fill="#161b22" rx="12" stroke="#30363d"/>
+  <circle cx="180" cy="180" r="80" fill="#238636" opacity="0.8"/>
+  <text x="180" y="195" fill="#ffffff" font-family="sans-serif" font-size="48" text-anchor="middle">▶</text>
+
+  <g transform="translate(360, 40)">
+    <text x="0" y="30" fill="#f0f6fc" font-family="sans-serif" font-size="24" font-weight="bold">Midnight Horizon (Remix)</text>
+    <text x="0" y="60" fill="#8b949e" font-family="sans-serif" font-size="16">Solar Pulse • 24-bit 96kHz FLAC</text>
+
+    <line x1="0" y1="120" x2="390" y2="120" stroke="#30363d" stroke-width="6" stroke-linecap="round"/>
+    <line x1="0" y1="120" x2="160" y2="120" stroke="#3fb950" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="160" cy="120" r="8" fill="#3fb950"/>
+
+    <text x="0" y="150" fill="#8b949e" font-family="sans-serif" font-size="13">01:42</text>
+    <text x="390" y="150" fill="#8b949e" font-family="sans-serif" font-size="13" text-anchor="end">04:15</text>
+
+    <g transform="translate(80, 200)">
+      <circle cx="0" cy="0" r="24" fill="#21262d"/>
+      <text x="0" y="6" fill="#f0f6fc" font-size="18" text-anchor="middle">⏮</text>
+      <circle cx="80" cy="0" r="32" fill="#238636"/>
+      <text x="80" y="8" fill="#ffffff" font-size="24" text-anchor="middle">⏸</text>
+      <circle cx="160" cy="0" r="24" fill="#21262d"/>
+      <text x="160" y="6" fill="#f0f6fc" font-size="18" text-anchor="middle">⏭</text>
+    </g>
+  </g>
+</svg>

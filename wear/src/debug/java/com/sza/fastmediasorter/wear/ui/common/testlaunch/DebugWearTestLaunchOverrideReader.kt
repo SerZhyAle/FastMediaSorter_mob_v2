@@ -25,7 +25,6 @@ class DebugWearTestLaunchOverrideReader @Inject constructor() : WearTestLaunchOv
     override fun read(intent: Intent): WearTestLaunchOverride? = try {
         val screenDp = intent.takeIf { it.hasExtra(EXTRA_TEST_SCREEN_DP) }?.getIntExtra(EXTRA_TEST_SCREEN_DP, 0)
         val override = parseWearTestLaunchOverride(intent.getStringExtra(EXTRA_TEST_GEOMETRY), screenDp)
-        Timber.d("S3201: test launch override geometry=${override?.geometryMode} screenDp=${override?.screenDp}")
         override
     } catch (e: BadParcelableException) {
         // The Activity is exported; a malformed bundle from another app is a plain launch, not a crash.

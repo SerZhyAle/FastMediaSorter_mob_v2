@@ -35,6 +35,11 @@ Per ogni schermo e ogni tipo di comando:
 • Widget della schermata Home - apri risorsa, continua a leggere, musica casuale, foto della fotocamera.
 • Riquadro nelle Impostazioni rapide per l'audio in background. Ricerca in tutte le impostazioni.
 
+Sul tuo orologio:
+
+• App - Calcolatrice, Cronometro e Mini-gioco.
+• Riquadro Programmi - aggiungilo al tuo carosello di riquadri per aprirne uno qualsiasi con un solo tocco.
+
 Libero, aperto e privato - il codice sorgente è pubblicato con licenza Apache License 2.0, e la navigazione locale, SMB, FTP e SFTP, insieme ai visualizzatori di immagini, video, audio, PDF ed EPUB, funzionano del tutto offline, senza alcun account.
 
 Source and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2

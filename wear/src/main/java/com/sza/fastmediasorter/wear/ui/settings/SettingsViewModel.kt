@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportClient
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportOutcome
 import com.sza.fastmediasorter.wear.domain.capability.WearGeometryDefaults
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
@@ -66,6 +67,9 @@ private const val INDEX_GEOMETRY_MODE = 20
 /** S3256: appended to combine list for dim clock and status overlay preference. */
 private const val INDEX_DIM_CLOCK_OVERLAY = 21
 
+/** S3383: appended for the reason stated above - the reads are positional and unchecked. */
+private const val INDEX_FILEDO_OPERATIONS = 22
+
 /**
  * ViewModel for Settings screen.
  * Manages loading and updating of app settings.
@@ -79,13 +83,20 @@ class SettingsViewModel @Inject constructor(
     private val openUrlOnPhoneRepository: WearOpenUrlOnPhoneRepository,
     private val setStreamsSectionEnabled: SetStreamsSectionEnabledUseCase,
     private val observeGeometryMode: ObserveWearGeometryModeUseCase,
-    private val geometryDefaults: WearGeometryDefaults
+    private val geometryDefaults: WearGeometryDefaults,
+    private val capabilities: WearRestrictedCapabilities
 ) : ViewModel() {
 
+    // S3362: build-time answers, so they are seeded once here rather than combined as a flow. Every
+    // settings screen reads them from this one state, which is also the only state the four screens
+    // share - a second source would let two pages disagree about what this build carries.
     private val _uiState = MutableStateFlow(
         SettingsUiState(
             appVersion = BuildConfig.VERSION_NAME,
-            buildNumber = BuildConfig.VERSION_CODE.toString()
+            buildNumber = BuildConfig.VERSION_CODE.toString(),
+            offersMediaAccess = capabilities.offersMediaAccess,
+            offersVoiceRecording = capabilities.offersVoiceRecording,
+            offersContentTransfer = capabilities.offersContentTransfer
         )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -117,6 +128,21 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * S3362: the rows of the settings root, which follow the same capability answers as the routes
+     * behind them.
+     *
+     * A method rather than a field of the state because the permissions row depends on what
+     * `PermissionsSettingsViewModel` found, which this view model does not observe; the screen knows
+     * both and hands that one answer in.
+     */
+    fun destinationsFor(hasPermissionRows: Boolean): List<String> =
+        SettingsDestinationCatalog.destinations(
+            offersMediaAccess = capabilities.offersMediaAccess,
+            offersRemoteSources = capabilities.offersRemoteSources,
+            hasPermissionRows = hasPermissionRows
+        )
 
     /**
      * Every flow the settings screen reads, in the order the `INDEX_*` constants name.
@@ -151,7 +177,8 @@ class SettingsViewModel @Inject constructor(
         // S2773: the RESOLVED view, not the stored choice - the row has to show what the watch is laid
         // out with from the moment it is installed, and the stored choice is null until first touched.
         observeGeometryMode(),
-        preferencesRepository.dimClockOverlayEnabled
+        preferencesRepository.dimClockOverlayEnabled,
+        preferencesRepository.fileDoOperationsEnabled
     )
 
     private fun loadSettings() {
@@ -180,6 +207,7 @@ class SettingsViewModel @Inject constructor(
                 val colorScheme = values[INDEX_COLOR_SCHEME] as WearColorScheme
                 val geometryMode = values[INDEX_GEOMETRY_MODE] as WearGeometryMode
                 val dimClockOverlay = values[INDEX_DIM_CLOCK_OVERLAY] as Boolean
+                val fileDoOperations = values[INDEX_FILEDO_OPERATIONS] as Boolean
                 _uiState.value.copy(
                     backgroundMode = background,
                     colorScheme = colorScheme,
@@ -205,6 +233,7 @@ class SettingsViewModel @Inject constructor(
                     geometryMode = geometryMode,
                     offersGeometryModeSwitch = geometryDefaults.offersModeSwitch,
                     dimClockOverlayEnabled = dimClockOverlay,
+                    fileDoOperationsEnabled = fileDoOperations,
                     isLoading = false
                 )
             }.collect { combinedState ->
@@ -424,6 +453,12 @@ class SettingsViewModel @Inject constructor(
     fun toggleAutoRotation() {
         viewModelScope.launch {
             preferencesRepository.setAutoRotationEnabled(!_uiState.value.isAutoRotationEnabled)
+        }
+    }
+
+    fun toggleFileDoOperations() {
+        viewModelScope.launch {
+            preferencesRepository.setFileDoOperationsEnabled(!_uiState.value.fileDoOperationsEnabled)
         }
     }
 

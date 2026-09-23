@@ -52,7 +52,16 @@ object OverlayPlateGeometry {
     /**
      * Final plate bounds for one translated block.
      *
-     * @param viewBottom the drawing surface's own bottom edge, the only limit on downward growth.
+     * The overflow rule OCR-OVERLAY rule 9 asks a product to write down, and this is where it lives:
+     * - the plate grows downward from the source top while the view has room below it;
+     * - once it would pass the view bottom, its bottom is pinned there and it grows upward instead,
+     *   so the text always sits on the backing and the source line stays covered;
+     * - it never grows above the view top, so a translation taller than the whole view gets a
+     *   full-height plate and the caller shrinks the type ([OVERFLOW_FONT_STEP] down to
+     *   [OVERFLOW_FONT_FLOOR]) before accepting that its tail runs past the edge;
+     * - plates are painted in block order, so a plate lifted onto the one above it wins.
+     *
+     * @param viewBottom the drawing surface's own bottom edge; the view top is 0.
      */
     fun plateBounds(
         source: OverlaySourceBox,
@@ -64,16 +73,28 @@ object OverlayPlateGeometry {
         // S1713: the sideways cap is gone with the growth direction it belonged to - a plate that
         // widens covers the picture beside the line, which the line never occupied.
         val right = source.left + (translation.width + bothSides).coerceAtLeast(source.width)
-        // S1713: downward is the direction a plate may grow, and it grows as far as the translation
-        // needs. The surface's own bottom is the only limit, because a plate past it is drawn
-        // nowhere. Coercing the room first keeps the range valid when the box starts below the edge.
-        val roomBelow = (viewBottom - source.top).coerceAtLeast(source.height)
-        val grown = (translation.height + bothSides).coerceIn(source.height, roomBelow)
+        val needed = (translation.height + bothSides).coerceAtLeast(source.height)
+        // A box that already starts below the edge keeps its own extent: the plate still has to
+        // cover the source line, and the part past the edge is drawn nowhere anyway.
+        val lowestBottom = viewBottom.coerceAtLeast(source.top + source.height)
+        val bottom = (source.top + needed).coerceAtMost(lowestBottom)
+        // A box that starts above the view top is not pulled down to it: the anchor never moves down.
+        val top = (bottom - needed).coerceIn(minOf(0f, source.top), source.top)
         return OverlayPlateBounds(
             left = source.left,
-            top = source.top,
+            top = top,
             right = right,
-            bottom = source.top + grown,
+            bottom = bottom,
         )
     }
+
+    /**
+     * Type-size ladder for a translation taller than the whole view (OCR-OVERLAY rule 9).
+     * Inherited, not derived here: `ocr-pipeline.md` §3.4 of the reference implementation steps the
+     * font down 8% at a time with a floor at 50% of the base size.
+     */
+    const val OVERFLOW_FONT_STEP = 0.92f
+
+    /** Floor of the ladder as a share of the starting type size; see [OVERFLOW_FONT_STEP]. */
+    const val OVERFLOW_FONT_FLOOR = 0.5f
 }

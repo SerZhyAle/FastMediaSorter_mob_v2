@@ -1,7 +1,13 @@
 package com.sza.fastmediasorter.di
 
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DefaultDimChipActionRouter
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DefaultDimChipIconLoader
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DefaultDimClockInteractionHandler
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DefaultDimClockStyleProvider
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DefaultDimStatusContentProvider
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimChipActionRouter
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimChipIconLoader
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockInteractionHandler
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockStyleProvider
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimStatusContentProvider
 import dagger.Binds
@@ -28,4 +34,22 @@ abstract class LauncherDisabledDimOverlayModule {
     abstract fun bindDimStatusContentProvider(
         impl: DefaultDimStatusContentProvider
     ): DimStatusContentProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindDimChipIconLoader(
+        impl: DefaultDimChipIconLoader
+    ): DimChipIconLoader
+
+    @Binds
+    @Singleton
+    abstract fun bindDimChipActionRouter(
+        impl: DefaultDimChipActionRouter
+    ): DimChipActionRouter
+
+    @Binds
+    @Singleton
+    abstract fun bindDimClockInteractionHandler(
+        impl: DefaultDimClockInteractionHandler
+    ): DimClockInteractionHandler
 }

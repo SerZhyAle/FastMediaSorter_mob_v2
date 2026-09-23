@@ -5,11 +5,11 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.google.android.material.appbar.MaterialToolbar
+    <com.sza.fastmediasorter.ui.common.widget.StandardToolbar
         android:id="@+id/system_info_toolbar"
+        style="@style/Widget.FastMediaSorter.Toolbar.Flat"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
         android:title="@string/settings_system_info_title"
         app:navigationIcon="@drawable/ic_arrow_back" />
 

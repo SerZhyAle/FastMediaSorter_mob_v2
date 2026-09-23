@@ -81,6 +81,7 @@ object OneDriveRestClientUtils {
             ?.takeIf { it.isNotEmpty() }
 
         val webViewUrl: String? = item.optString("webUrl").takeIf { it.isNotEmpty() }
+        val parentId: String? = item.optJSONObject("parentReference")?.optString("id")?.takeIf { it.isNotEmpty() }
 
         return CloudFile(
             id = id,
@@ -91,7 +92,8 @@ object OneDriveRestClientUtils {
             modifiedDate = modifiedDate,
             mimeType = mimeType,
             thumbnailUrl = thumbnailUrl,
-            webViewUrl = webViewUrl
+            webViewUrl = webViewUrl,
+            parentId = parentId
         )
     }
 

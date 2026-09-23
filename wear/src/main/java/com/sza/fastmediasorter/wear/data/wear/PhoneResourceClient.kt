@@ -10,6 +10,9 @@ import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
+import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceDeleteAck
+import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceDeleteOutcome
+import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceDeleteRequest
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourcePage
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceRequestKind
@@ -107,6 +110,95 @@ class PhoneResourceClient @Inject constructor(
             approval
         }
     }
+
+    /**
+     * S3359: asks the phone to remove the original of a file this watch has already published.
+     *
+     * [expectedSizeBytes] is the length of the copy this watch wrote, measured after the write - the
+     * phone re-measures the file it is about to delete against it and refuses on a mismatch, which is
+     * what keeps a stateless token from addressing a file that was replaced in the meantime.
+     *
+     * Returns null when nothing answered inside the client's usual wait. The caller must read that as
+     * "not confirmed" and never as a removal: strategic §7 rates a move reported over a lost answer as
+     * the one failure that looks like success.
+     */
+    suspend fun requestDelete(token: String, expectedSizeBytes: Long): WearPhoneResourceDeleteOutcome? {
+        val request = WearPhoneResourceDeleteRequest(
+            requestId = UUID.randomUUID().toString(),
+            token = token,
+            expectedSizeBytes = expectedSizeBytes
+        )
+        val sent = connectedPhoneId()?.let { node ->
+            runCatching {
+                Wearable.getMessageClient(context)
+                    .sendMessage(
+                        node,
+                        WearDataLayerPaths.PHONE_RESOURCE_DELETE_REQUEST,
+                        gson.toJson(request).toByteArray()
+                    )
+                    .await()
+            }.onFailure { Timber.w(it, "Phone delete request could not be sent") }
+        }
+
+        return if (sent?.isSuccess == true) {
+            withTimeoutOrNull(RESPONSE_TIMEOUT_MS) { awaitDeleteAck(request.requestId) }?.outcome
+        } else {
+            // No phone, or the ask never left this watch - both are "not confirmed", never a removal.
+            null
+        }
+    }
+
+    /**
+     * Waits for the one ack carrying [requestId], with [awaitPage]'s lifecycle: the listener is removed
+     * on every exit, and the per-request Data Item is deleted once read so the paths do not accumulate
+     * on either device (S2985).
+     */
+    private suspend fun awaitDeleteAck(requestId: String): WearPhoneResourceDeleteAck {
+        val dataClient = Wearable.getDataClient(context)
+        var registered: DataClient.OnDataChangedListener? = null
+        var dataItemUri: Uri? = null
+
+        return try {
+            suspendCancellableCoroutine { continuation ->
+                val listener = DataClient.OnDataChangedListener { events ->
+                    val match = events.firstMatchingDeleteAckWithUri(requestId)
+                    events.release()
+                    if (match != null && continuation.isActive) {
+                        dataItemUri = match.first
+                        continuation.resume(match.second)
+                    }
+                }
+                registered = listener
+                dataClient.addListener(listener)
+            }
+        } finally {
+            registered?.let { dataClient.removeListener(it) }
+            dataItemUri?.let { uri ->
+                runCatching { dataClient.deleteDataItems(uri).await() }
+                    .onFailure { Timber.w(it, "Could not delete phone delete-ack DataItem") }
+            }
+        }
+    }
+
+    private fun DataEventBuffer.firstMatchingDeleteAckWithUri(
+        requestId: String
+    ): Pair<Uri, WearPhoneResourceDeleteAck>? = this
+        .asSequence()
+        .filter { it.type == DataEvent.TYPE_CHANGED }
+        .filter { event ->
+            val path = event.dataItem.uri.path ?: return@filter false
+            path.startsWith(WearDataLayerPaths.PHONE_RESOURCE_DELETE_ACK + "/")
+        }
+        .mapNotNull { event ->
+            val payload = DataMapItem.fromDataItem(event.dataItem).dataMap.getByteArray("payload")
+            val ack = payload?.let { decodeDeleteAck(it) }
+            if (ack?.requestId == requestId) event.dataItem.uri to ack else null
+        }
+        .firstOrNull()
+
+    private fun decodeDeleteAck(payload: ByteArray): WearPhoneResourceDeleteAck? = runCatching {
+        gson.fromJson(payload.decodeToString(), WearPhoneResourceDeleteAck::class.java)
+    }.onFailure { Timber.w(it, "Unreadable phone delete acknowledgement") }.getOrNull()
 
     private suspend fun request(request: WearPhoneResourceRequest, path: String): PhoneResourceOutcome {
         val nodeId = connectedPhoneId()

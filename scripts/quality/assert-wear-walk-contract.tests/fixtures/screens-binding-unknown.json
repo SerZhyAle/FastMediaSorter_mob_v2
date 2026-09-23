@@ -1,0 +1,24 @@
+{
+  "_comment": [
+    "Fixture: S3358 - a catalog binding naming no enum member. The boundary tests read this field to",
+    "decide which catalog row the entry stands for, so an unknown id is a check that quietly does nothing."
+  ],
+  "screens": [
+    {
+      "id": "alpha",
+      "name": "Alpha",
+      "expect": "Hello",
+      "screen": "AlphaScreen",
+      "expectRes": "good_marker",
+      "homeSection": "RESOURCESS",
+      "wearApp": "CALCULATORR"
+    }
+  ],
+  "excluded": [
+    {
+      "screen": "BetaScreen",
+      "reason": "not-a-destination",
+      "note": "Fixture: nested helper."
+    }
+  ]
+}

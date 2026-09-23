@@ -8,7 +8,6 @@ import android.content.Intent
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.broadcast.BroadcastEntryActivity
-import timber.log.Timber
 
 /**
  * S2818: home-screen widget for Live Broadcast - one static button that opens the entry

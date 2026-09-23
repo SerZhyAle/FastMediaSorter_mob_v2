@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "sourceId": "src-nas-01",
+      "filePath": "/photos/2024/beach.jpg",
+      "isFavorite": true,
+      "changedAt": 1757900000000
+    },
+    {
+      "sourceId": "src-nas-01",
+      "filePath": "/photos/2024/old.jpg",
+      "isFavorite": false,
+      "changedAt": 1757900100000
+    }
+  ]
+}

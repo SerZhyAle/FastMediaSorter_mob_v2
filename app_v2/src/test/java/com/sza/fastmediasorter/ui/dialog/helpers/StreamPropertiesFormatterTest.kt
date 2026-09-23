@@ -75,17 +75,40 @@ class StreamPropertiesFormatterTest {
         assertTrue(lines.filter { it.contains(':') }.all { it.substringAfter(':').isNotBlank() })
     }
 
+    @Test
+    fun `access property distinguishes open, geo, and generic restriction per STREAM-BANK rule 10`() {
+        val cases = listOf(
+            null to R.string.stream_info_access_open,
+            "" to R.string.stream_info_access_open,
+            "   " to R.string.stream_info_access_open,
+            "geo" to R.string.stream_info_access_geo,
+            "GEO" to R.string.stream_info_access_geo,
+            "paid" to R.string.stream_info_access_restricted,
+            "subscription" to R.string.stream_info_access_restricted,
+            "unknown_token" to R.string.stream_info_access_restricted,
+        )
+
+        cases.forEach { (token, expectedRes) ->
+            val group = formatter.catalogGroup(entity(access = token), lastPlayOutcome = null)
+            val accessProperty = group.properties.first { it.labelRes == R.string.stream_info_label_access }
+
+            assertEquals("Failed for access token '$token'", text(expectedRes), accessProperty.value)
+        }
+    }
+
     private fun text(resId: Int) = StreamInfoValue.Text(resId.toString())
 
     private fun entity(
         mediaKind: String = "VIDEO",
         sourceOrigin: String = "MANUAL",
+        access: String? = null,
     ): StreamSourceEntity = StreamSourceEntity(
         id = "id",
         url = "http://example.invalid/live",
         title = "Channel",
         mediaKind = mediaKind,
         sourceOrigin = sourceOrigin,
+        access = access,
         sortIndex = 0,
         addedAt = 0L,
     )

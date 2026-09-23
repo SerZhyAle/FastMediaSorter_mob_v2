@@ -13,7 +13,7 @@ import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -195,9 +195,8 @@ class ScheduledTasksWidgetProvider : AppWidgetProvider() {
             )
             views.setOnClickPendingIntent(R.id.widget_scheduled_toggle_pause, togglePausePending)
 
-            // Open-settings PendingIntent for the status area - deep-links to the scheduled section.
-            val settingsIntent = Intent(context, SettingsActivity::class.java)
-                .putExtra(SettingsActivity.EXTRA_OPEN_SCHEDULED, true)
+            // S3365: the status-area tap opens the program screen instead of the settings section.
+            val settingsIntent = Intent(context, ScheduledOperationsActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             val settingsPending = PendingIntent.getActivity(
                 context, appWidgetId * 10 + 3, settingsIntent, flags
@@ -213,9 +212,8 @@ class ScheduledTasksWidgetProvider : AppWidgetProvider() {
             views.setRemoteAdapter(R.id.widget_scheduled_list, serviceIntent)
             views.setEmptyView(R.id.widget_scheduled_list, R.id.widget_scheduled_empty)
 
-            // Row clicks open the scheduled section too (rows fill in an empty intent).
-            val listTemplateIntent = Intent(context, SettingsActivity::class.java)
-                .putExtra(SettingsActivity.EXTRA_OPEN_SCHEDULED, true)
+            // S3365: row clicks land on the program screen as well (rows fill in an empty intent).
+            val listTemplateIntent = Intent(context, ScheduledOperationsActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             val listTemplatePending = PendingIntent.getActivity(
                 context, appWidgetId * 10 + 4, listTemplateIntent,

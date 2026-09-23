@@ -30,7 +30,8 @@ import javax.inject.Singleton
  * The choice is cached per network and cleared on a network change (via [NetworkStateMonitor]); a cold
  * connection in a new network pays one happy-eyeballs probe round, steady-state operations pay nothing.
  * Credentials for every candidate exist (the importer saves one row per host:port), and the host key is
- * the same server key on every address, so a resolved endpoint connects and pins exactly like the primary.
+ * the same server key on every address; [SftpHostKeyPinRegistry] maps each candidate and the mDNS
+ * winner to the resource's pin, so a resolved endpoint is verified exactly like the primary.
  */
 @Singleton
 class SftpEndpointResolver @Inject constructor(

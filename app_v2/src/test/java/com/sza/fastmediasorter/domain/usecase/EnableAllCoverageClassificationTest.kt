@@ -386,6 +386,7 @@ class EnableAllCoverageClassificationTest {
                 "defaultGridMode",
                 "defaultRememberFileList",
                 "defaultShowCommandPanel",
+                "dimClockOverlayEnabled",
                 "disable3dVr",
                 "disableAnimations",
                 "dynamicBackgroundExtension",

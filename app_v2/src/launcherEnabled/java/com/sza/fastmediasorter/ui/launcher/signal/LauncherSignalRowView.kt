@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * S1421 ADR-3: the signal icons, laid out as two groups pressed to the edges with the display cutout's own

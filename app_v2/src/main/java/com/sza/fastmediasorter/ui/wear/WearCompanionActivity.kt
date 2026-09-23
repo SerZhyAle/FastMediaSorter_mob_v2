@@ -54,7 +54,7 @@ class WearCompanionActivity : AppCompatActivity(), WearCompanionHeaderHost {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.toolbar.setUpNavigation(this)
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
                 add(R.id.wearCompanionContainer, WearSyncSettingsFragment(), COMPANION_TAG)

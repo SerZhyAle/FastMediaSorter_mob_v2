@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S3242: reusable confirm/cancel action pair for dialog_shell / sheet_shell content, replacing
+     retyped button pairs across dialog layouts (see docs/ui/PHONE_UI_COMPONENT_PATTERNS.md §2.1). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="end">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDialogCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/dialog_action_button_gap"
+        android:text="@string/cancel"
+        style="@style/Widget.FastMediaSorter.Button.DialogCancel" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDialogConfirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/ok"
+        style="@style/Widget.FastMediaSorter.Button.DialogConfirm" />
+
+</LinearLayout>

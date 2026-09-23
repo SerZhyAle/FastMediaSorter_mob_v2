@@ -70,27 +70,41 @@
 
         <LinearLayout android:id="@+id/containerRemovableVolumes" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone" />
 
+        <!-- S3354: the whole manual-path section is one group - S2012 withdraws it where no typed
+             path can ever resolve, and a lone heading over nothing reads as a broken dialog. -->
+        <LinearLayout android:id="@+id/groupManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+            <!-- Divider -->
+            <View android:layout_width="match_parent" android:layout_height="@dimen/item_divider_height" android:background="?android:attr/listDivider" android:layout_marginVertical="@dimen/margin_small" />
+
+            <!-- Manual Path Section - S3355: one heading rank across the whole dialog -->
+            <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader android:id="@+id/headerManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" app:csh_title="@string/or_enter_path_manually" app:csh_expanded="true" />
+
+            <LinearLayout android:id="@+id/containerManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/folder_path" app:helperText="@string/folder_path_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" android:imeOptions="flagNoExtractUi" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnValidatePath" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/validate_and_select" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_medium" app:icon="@drawable/ic_search" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
         <!-- Divider -->
         <View android:layout_width="match_parent" android:layout_height="@dimen/item_divider_height" android:background="?android:attr/listDivider" android:layout_marginVertical="@dimen/margin_small" />
 
-        <!-- Manual Path Section -->
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/or_enter_path_manually" android:textStyle="bold" android:textSize="@dimen/resource_card_title_text_size" android:layout_marginBottom="@dimen/margin_small" />
+        <!-- SAF Picker Section - S3355: one heading rank across the whole dialog -->
+        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader android:id="@+id/headerSystemPicker" android:layout_width="match_parent" android:layout_height="wrap_content" app:csh_title="@string/or_use_system_picker" app:csh_expanded="true" />
 
-        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/folder_path" app:helperText="@string/folder_path_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
-
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etManualPath" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:maxLines="1" android:imeOptions="flagNoExtractUi" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnValidatePath" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/validate_and_select" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_medium" app:icon="@drawable/ic_search" />
-
-        <!-- Divider -->
-        <View android:layout_width="match_parent" android:layout_height="@dimen/item_divider_height" android:background="?android:attr/listDivider" android:layout_marginVertical="@dimen/margin_small" />
-
-        <!-- SAF Picker Section -->
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/or_use_system_picker" android:textStyle="bold" android:textSize="@dimen/resource_card_title_text_size" android:layout_marginBottom="@dimen/margin_small" />
+        <LinearLayout android:id="@+id/containerSystemPicker" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
         <com.google.android.material.button.MaterialButton android:id="@+id/btnBrowseWithSAF" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/browse_with_system_picker" app:icon="@drawable/ic_search" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

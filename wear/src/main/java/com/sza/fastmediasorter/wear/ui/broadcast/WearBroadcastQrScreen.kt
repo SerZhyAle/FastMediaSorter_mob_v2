@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -65,9 +64,6 @@ private val CODE_MIN_SIDE = 104.dp
 fun WearBroadcastQrScreen(viewModel: WearBroadcastViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val live = state as? WearBroadcastSessionState.Live
-
-    LaunchedEffect(Unit) {
-    }
 
     WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {
         Column(

@@ -13,12 +13,25 @@ import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
 
-    // S1045: edits/copies resource credentials (passwords, passphrases).
-    override fun isSensitiveScreen(): Boolean = true
+    // S1045 protected the editor whatever it edits; S3356: only the network types (SMB/SFTP/FTP)
+    // render a connection-password field, so the fragment reports the rendered truth. Seeded true:
+    // an EDIT/COPY session learns its type only after the resource loads, and the load window must
+    // not expose a prefilled password form to a screenshot.
+    override fun isSensitiveScreen(): Boolean = editorShowsCredentialField
+    private var editorShowsCredentialField = true
+
+    /** S3356: single entry point the fragment uses to move the answer; repeats are ignored. */
+    internal fun onEditorCredentialFieldVisibility(showsCredentialField: Boolean) {
+        if (editorShowsCredentialField == showsCredentialField) return
+        editorShowsCredentialField = showsCredentialField
+        Timber.d("S3356: editor credential field visible=$showsCredentialField")
+        refreshSecureFlag()
+    }
 
     override fun getViewBinding(): ActivityResourceEditorBinding {
         return ActivityResourceEditorBinding.inflate(layoutInflater)

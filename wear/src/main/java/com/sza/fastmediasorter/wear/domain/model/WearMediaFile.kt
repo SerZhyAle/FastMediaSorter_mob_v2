@@ -19,7 +19,11 @@ data class WearMediaFile(
     // Only a MediaStore row carries them - a network listing knows the file name and nothing else.
     val artist: String? = null,
     val album: String? = null,
-    val title: String? = null
+    val title: String? = null,
+    // S3383: MediaStore's RELATIVE_PATH (API 29+), null for every other origin. A shared-storage row
+    // carries a content uri and no path, and this is what both finds its file and decides whether a
+    // FileDO container may be written beside it.
+    val relativePath: String? = null
 )
 
 /** Maximum file count displayed numerically before capping at "###" (S2476). */

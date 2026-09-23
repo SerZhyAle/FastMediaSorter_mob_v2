@@ -77,8 +77,13 @@ function Invoke-GateChild {
         if (-not $finished) {
             Write-Host ("gate-pool: CANNOT VERIFY - joining '{0}' exceeded {1}s; the gate was stopped unjudged." -f `
                     ($argv -join ' '), $script:GatePoolJoinTimeoutSeconds) -ForegroundColor Yellow
-            try { Stop-Job -Job $job -ErrorAction SilentlyContinue } catch { }
-            try { Remove-Job -Job $job -Force -ErrorAction SilentlyContinue } catch { }
+            # S3341: the branch's own wait needs the same bound the join has. Stop-Job waits for
+            # the job's thread and the thread waits for the child process it spawned, so a child
+            # that cannot die makes this wait unbounded. Kill the child tree, settle briefly,
+            # abandon the job if the stop still cannot land.
+            $markerScript = $argv | Where-Object { $_ -like '*.ps1' } | Select-Object -First 1
+            $cleanupMarker = if ($markerScript) { [System.IO.Path]::GetFileName($markerScript) } else { '' }
+            Invoke-ClosureJobCleanup -Job $job -ChildProcessMarker $cleanupMarker
             $script:PooledElapsedMs = [int]($script:GatePoolJoinTimeoutSeconds * 1000)
             $global:LASTEXITCODE = 2
             return
@@ -107,13 +112,49 @@ function Reset-PooledElapsedMs { $script:PooledElapsedMs = $null }
 # the work cost.
 function Set-PooledElapsedMs([int]$ElapsedMs) { $script:PooledElapsedMs = $ElapsedMs }
 
+# S3341: bounded teardown for a gate job that outlived its join ceiling. Stop-Job waits for the
+# job's thread, and the thread waits for the child process it spawned - a child that cannot die
+# (a process stuck in uninterruptible kernel I/O) turns every unbounded wait on the job into a
+# closure hang; the detekt join's timeout branch was journalled blocking 4.5 h past a 1800 s
+# ceiling on 2026-09-19. Three stages, each bounded: kill the child process tree, give the job a
+# short window to settle, abandon it if the stop still cannot land. The abandoned job dies with
+# this process; whatever the child acquired (a build lock) is recovered by the staleness window.
+function Invoke-ClosureJobCleanup {
+    param(
+        [Parameter(Mandatory)]$Job,
+        # A fragment of the child's command line, normally its script file name - it narrows the
+        # kill to THIS job's child, never to a sibling gate's. Empty skips the kill.
+        [string]$ChildProcessMarker = '',
+        [int]$SettleSeconds = 30
+    )
+    if ($ChildProcessMarker) {
+        # Thread jobs run in-process, so the child each job spawned is a direct child of $PID.
+        $children = @(Get-CimInstance Win32_Process -Filter "ParentProcessId = $PID AND Name LIKE 'pwsh%'" -ErrorAction SilentlyContinue |
+            Where-Object { $_.CommandLine -like "*$ChildProcessMarker*" })
+        foreach ($child in $children) {
+            try { taskkill.exe /PID $child.ProcessId /T /F 2>&1 | Out-Null } catch { }
+        }
+    }
+    # Killing the child unblocks the job's thread. Stop-Job and Remove-Job wait for that thread,
+    # so they run only once the job already reached a terminal state - never while it could block.
+    if (Wait-Job -Job $Job -Timeout $SettleSeconds) {
+        try { Stop-Job -Job $Job -ErrorAction SilentlyContinue } catch { }
+        try { Remove-Job -Job $Job -Force -ErrorAction SilentlyContinue } catch { }
+        return
+    }
+    Write-Host ("  the job's child did not die inside {0}s - the job is abandoned; its child process " +
+        "may outlive this closure and hold its build lock until the staleness window clears it." -f $SettleSeconds)
+}
+
 # A gate whose call site was never reached - the run ended early - still owns a running child.
 function Stop-GatePool {
     foreach ($key in @($script:GatePool.Keys)) {
         $job = $script:GatePool[$key]
         if (-not $job) { continue }
-        try { Stop-Job -Job $job -ErrorAction SilentlyContinue } catch { }
-        try { Remove-Job -Job $job -Force -ErrorAction SilentlyContinue } catch { }
+        # S3341: the teardown waits on the same thread the join waited on - bound it the same way.
+        $markerScript = ($key -split [char]1) | Where-Object { $_ -like '*.ps1' } | Select-Object -First 1
+        $cleanupMarker = if ($markerScript) { [System.IO.Path]::GetFileName($markerScript) } else { '' }
+        Invoke-ClosureJobCleanup -Job $job -ChildProcessMarker $cleanupMarker
     }
     $script:GatePool.Clear()
 }

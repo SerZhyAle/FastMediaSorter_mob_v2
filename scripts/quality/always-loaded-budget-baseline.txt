@@ -66,6 +66,6 @@
 # it has. Rule 35 lost its device roster and GAINED coverage: the fleet file carries a Meta Quest 3
 # that neither always-loaded file named at all, which is the drift Rule 35's own last sentence
 # predicts. The raise this reverses is the S2851 entry above.
-CLAUDE.md|39963|42542|the refusal text of the gate the rule names, a .claude/rules/<topic>.md with paths: frontmatter, or docs/ + dev/ for mechanism prose
+CLAUDE.md|39810|42542|the refusal text of the gate the rule names, a .claude/rules/<topic>.md with paths: frontmatter, or docs/ + dev/ for mechanism prose
 AGENTS.md|38359|45008|the same destination as the CLAUDE.md rule it mirrors - these two move together
 .claude/agents/android-rd-specialist.md|9762|9762|CLAUDE.md when the line is a project rule, or the skill that needs it

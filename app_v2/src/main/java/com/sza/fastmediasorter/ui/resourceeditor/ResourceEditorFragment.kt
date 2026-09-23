@@ -139,9 +139,7 @@ class ResourceEditorFragment : Fragment() {
             ResourceEditorMode.COPY -> getString(R.string.title_copy_resource)
         }
         binding.toolbar.subtitle = null
-        binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
-        }
+        binding.toolbar.setUpNavigation(requireActivity())
         updateToolbarTypeSubtitle(resourceType ?: ResourceType.LOCAL)
     }
 
@@ -857,6 +855,12 @@ class ResourceEditorFragment : Fragment() {
             binding.cardDestination.isVisible = false
             binding.headerDestination.isVisible = false
         }
+
+        // S3356: the host window carries FLAG_SECURE only while a connection-password input is
+        // actually on screen. isShown, not isVisible, so a hidden ancestor section also counts as
+        // absent; the activity de-duplicates repeats.
+        (requireActivity() as? ResourceEditorActivity)
+            ?.onEditorCredentialFieldVisibility(binding.tilPassword.isShown)
     }
 
     private fun renderScanningSection(visibleKeys: Set<ResourceFieldKey>) {

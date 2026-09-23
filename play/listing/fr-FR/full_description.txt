@@ -35,6 +35,11 @@ Pour chaque écran et chaque commande :
 • Widgets d'accueil - ouvrir une ressource, reprendre la lecture, musique aléatoire, photos.
 • Tuile de Réglages rapides pour l'audio en arrière-plan. Recherche dans tous les réglages.
 
+Sur votre montre :
+
+• Applications - Calculatrice, Chronomètre et Mini-jeu.
+• Tuile Programmes - ajoutez-la à votre carrousel de tuiles pour ouvrir n'importe laquelle d'une simple pression.
+
 Libre, ouvert et privé - le code source paraît sous licence Apache License 2.0, et la navigation locale, SMB, FTP et SFTP, ainsi que les visionneuses image, vidéo, audio, PDF et EPUB, fonctionnent hors ligne, sans aucun compte.
 
 Source and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2

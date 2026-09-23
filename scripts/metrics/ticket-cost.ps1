@@ -52,10 +52,11 @@ if ($Verb -ne 'Summary' -and $Id -notmatch '^S\d{4}$') {
     exit 2
 }
 
-$python = @('python', 'python3', 'py') |
-    ForEach-Object { Get-Command $_ -CommandType Application -ErrorAction SilentlyContinue } |
-    Select-Object -First 1
-if (-not $python) {
+# S3342: `python3` is gone from the candidates and the helper drops WindowsApps aliases - both
+# resolve to a zero-length Store stub here, and RUNNING one opens a modal "Select an app" picker.
+. (Join-Path $PSScriptRoot '../utils/lib/python-interpreter.ps1')
+$pythonPath = Get-WorkingPythonPath
+if (-not $pythonPath) {
     Write-Host 'ticket-cost: python not found on PATH.' -ForegroundColor Red
     exit 2
 }
@@ -85,5 +86,5 @@ switch ($Verb) {
     }
 }
 
-& $python.Source @pyArgs
+& $pythonPath @pyArgs
 exit $LASTEXITCODE

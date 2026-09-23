@@ -116,6 +116,10 @@ class PhoneWearListenerService : WearableListenerService() {
     // collaborator like the cast and camera handlers above rather than in this class's dispatch.
     @Inject lateinit var sosCommandFromWatchHandler: SosCommandFromWatchHandler
 
+    // S3359: removing an original the watch has copied is the same shape - a precondition, then a
+    // decision - and this class has no room for another function either way.
+    @Inject lateinit var wearDeleteRequestHandler: WearDeleteRequestHandler
+
     // S2462: built from the injected Gson rather than injected itself - it carries no state and no
     // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
     private val settingsPayloadDecoder: WearSettingsPayloadDecoder by lazy {
@@ -197,10 +201,16 @@ class PhoneWearListenerService : WearableListenerService() {
             // S3216: the distress-signal routes are matched by the handler rather than by two branches
             // here. This class is AT detekt's 40-function ceiling, so a third dispatch half of its own
             // would not compile clean, and the handler is what a branch would delegate to anyway. An
-            // unrecognised route still ends quietly, because the handler answers false and nothing reads
-            // the answer.
+            // unrecognised route still ends quietly, because the last handler in the chain answers
+            // false and nothing reads the answer.
+            //
+            // S3359: the delete route joins the same fall-through rather than a branch above. Each
+            // handler claims its own paths and reports whether it did, so a route lands with exactly
+            // one of them and adding the next one costs no function here.
             else -> applicationScope.launch {
-                sosCommandFromWatchHandler.handle(event.path, event.data)
+                if (!sosCommandFromWatchHandler.handle(event.path, event.data)) {
+                    wearDeleteRequestHandler.handle(event.path, event.data)
+                }
             }
         }
     }

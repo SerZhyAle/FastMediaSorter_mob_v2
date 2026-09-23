@@ -95,7 +95,6 @@ class BrowseCommandOverflowManager(
         }
 
         val allocation = allocateCommandBar(slots, available, reserved)
-        val previous = overflowedIds.toSet()
 
         eligible.forEach { c ->
             val view = c.barView ?: return@forEach

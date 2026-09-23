@@ -128,7 +128,7 @@
     <string name="setting_allow_separate_window">नई विंडो की अनुमति दें</string>
     <string name="setting_allow_separate_window_desc">फ़ोल्डर और फ़ाइलें अलग विंडो में खोलें</string>
     <string name="setting_background_sync_desc">पृष्ठभूमि में नेटवर्क स्रोतों में बदलाव अपने आप जाँचें</string>
-    <string name="setting_calculator_desc">मुख्य मेन्यू और लॉन्चर विजेट में कैलकुलेटर दिखाएँ</string>
+    <string name="setting_calculator_desc">कैलकुलेटर को प्रोग्राम मेनू, क्विक-एक्सेस पैनल और लॉन्चर डेस्कटॉप पर दिखाएँ</string>
     <string name="setting_camera_ocr_only_desc">अनुवाद का चरण छोड़ें और पहचाना गया पाठ सीधे दिखाएँ</string>
     <string name="setting_camera_ocr_only_title">केवल OCR (अनुवाद नहीं)</string>
     <string name="setting_camera_ocr_translation_desc">तेज़ फ़ोटो-OCR-अनुवाद प्रवाह चालू करें</string>
@@ -262,7 +262,7 @@
     <string name="settings_wear_group_description">अगर आपके पास Wear OS घड़ी है तो इसे चालू करें। साथी ऐप यहीं से खुलता है और तय करता है कि यह फ़ोन घड़ी के साथ क्या साझा करेगा।</string>
     <string name="settings_wear_install_guide_button">घड़ी पर कैसे इंस्टॉल करें</string>
     <string name="settings_wear_web_portal_button">घड़ी के बारे में सब कुछ</string>
-    <string name="setting_stopwatch_desc">मुख्य मेनू और लॉन्चर विजेट में स्टॉपवॉच दिखाएँ</string>
+    <string name="setting_stopwatch_desc">स्टॉपवॉच को प्रोग्राम मेनू, क्विक-एक्सेस पैनल और लॉन्चर डेस्कटॉप पर दिखाएँ</string>
     <string name="cross_device_transfer_send_to_device">मेरे डिवाइस पर भेजें (Drive)</string>
     <string name="cross_device_transfer_pending_title">लंबित डिवाइस स्थानांतरण</string>
     <string name="cross_device_transfer_receive_and_delete">प्राप्त करें और क्लाउड से हटाएं</string>

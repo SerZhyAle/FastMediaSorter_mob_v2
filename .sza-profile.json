@@ -75,7 +75,12 @@
       { "pattern": "^(index|nolegal)[^/]*\\.html$", "domain": "Code.Scripts" },
       { "pattern": "^(styles\\.css|sitemap\\.xml|robots\\.txt|_config\\.yml|_typos\\.toml)$", "domain": "Code.Scripts" },
       { "pattern": "^(GEMINI\\.md|LICENSE|THIRD_PARTY_LICENSES\\.md)$", "domain": "Code.Scripts" },
-      { "pattern": "^(favicon[^/]*|icon\\.png|apple-touch-icon\\.png)$", "domain": "Code.Scripts" }
+      { "pattern": "^(favicon[^/]*|icon\\.png|apple-touch-icon\\.png)$", "domain": "Code.Scripts" },
+      { "pattern": "^(benchmark|watchface|corex)/", "domain": "Code" },
+      { "pattern": "^(documentation|_layouts|fdroid|inttent|\\.agents)/", "domain": "Code.Scripts" },
+      { "pattern": "^broadcast-import\\.html$", "domain": "Code.Scripts" },
+      { "pattern": "^\\.(aiexclude|claudeignore|editorconfig|gitattributes|gitignore|mcp\\.json|zcodeignore)$", "domain": "Code.Scripts" },
+      { "pattern": "^(build-debug\\.PS1|test_credentials\\.json\\.template)$", "domain": "Code.Scripts" }
     ],
     "agentProcessNames": ["claude.exe", "claude", "codex.exe", "codex"],
     "buildEngine": {
@@ -133,7 +138,8 @@
       "mono": { "argsTemplate": ["-p", "{prompt}", "--permission-mode", "{permissionMode}", "--model", "{model}", "--append-system-prompt-file", ".claude/runner/silent-mode.md"] }
     },
     "idleRunThreshold": 2,
-    "idleOutcomes": ["ok", "timeout"]
+    "idleOutcomesComment": "S3340, 2026-09-19. The list was [\"ok\", \"timeout\"] and that is why the idle series never grew: measured over 2026-09-17..19, 52 of 54 runs that moved no status carried outcome \"no-progress-or-claim-lost\", which was not in the list, so the ticket stayed in automatic ranking and was handed out again - S3288 five times in a row, S3271 four, eight more three. The canon library batch/_idle-runs.ps1 already defaults to the wider set; this project had narrowed it with no reason recorded. The combined outcome cannot tell \"a sibling took the lease\" from \"nothing moved\", which is what the threshold is for: one lost claim leaves the ticket ranked, two runs in a row with no movement take it out - reversibly, since naming the ticket overrides and /spec-sweep reviews what the series parked.",
+    "idleOutcomes": ["ok", "timeout", "claim-lost", "claim-lost-before-launch", "no-progress-or-claim-lost", "launch-failed"]
   },
   "concurrency": {
     "comment": "S3308. How much work may run at once, as one declared value bounded from two measured sides rather than as whatever number of sessions happened to be open. maxSessions is the owner's ruling of 2026-09-19, taken against a measured 11 simultaneous sessions. The two thresholds below it drop the allowance to one lane: idleRunSharePercentMax is the share of runner runs that moved no status, above which more lanes buy nothing, and fastCheckLagSecondsMax is how far past its documented duration the phone code fast check may run before added concurrency is being paid for in build time - 14.1 s of lag is the check taking twice the figure docs/BUILD_TEST_FAST_PATH.md documents for it. holdSecondsMax is the age at which a Rule 23 domain hold is reported as having outlived its edit window; every hold of the script domain measured on 2026-09-19 ran 4 to 418 s except the one that ran at least 41 minutes and cost a neighbouring session 747 s. Read by scripts/utils/measure-process-throughput.ps1 and by a.ps1's runner targets.",

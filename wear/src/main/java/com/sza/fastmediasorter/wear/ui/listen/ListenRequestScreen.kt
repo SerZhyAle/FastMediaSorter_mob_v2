@@ -44,7 +44,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
-import timber.log.Timber
 
 private val SECTION_GAP = 6.dp
 private val STATUS_ICON_SIZE = 32.dp
@@ -73,7 +72,6 @@ fun ListenRequestScreen(
     val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
 
     LaunchedEffect(Unit) {
-        Timber.d("S3259: listen request screen shown - actions are StandardWearChip")
         if (state is ListenRequestUiState.Requesting) {
             viewModel.confirm()
         }

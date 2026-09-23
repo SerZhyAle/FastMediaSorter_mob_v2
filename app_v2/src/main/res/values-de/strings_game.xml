@@ -35,7 +35,7 @@
     <string name="game_score">Ergebnis: %1$d</string>
     <string name="game_settings_help_message">Ermöglicht ein lokales, rundenbasiertes Puzzle. Das Spiel bleibt deaktiviert, bis Sie es einschalten.</string>
     <string name="game_settings_help_title">Minispiel</string>
-    <string name="game_settings_toggle_subtitle">Das Spiel im Hauptmenü und im Launcher-Widget anzeigen</string>
+    <string name="game_settings_toggle_subtitle">Das Spiel im Programmmenü, im Schnellzugriffsbereich und auf dem Launcher-Desktop anzeigen</string>
     <string name="game_settings_toggle_title">Minispiel</string>
     <string name="game_status_game_over">Kryvavitsa hat dich erwischt. Starte ein neues Spiel, um es erneut zu versuchen.</string>
     <string name="game_status_invalid_board">Dieses Spielbrett kann nicht gespielt werden. Ändere seine Größe oder öffne ein voreingestelltes Spielbrett.</string>

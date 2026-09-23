@@ -72,7 +72,6 @@ class LauncherIdleScreenOffManager(
     fun onChargingChanged(charging: Boolean) {
         if (isCharging == charging) return
         isCharging = charging
-        Timber.d("S3284: charging=%b, effective timeout=%ds", charging, effectiveTimeoutSeconds())
         resetTimer()
     }
 

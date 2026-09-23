@@ -16,10 +16,10 @@ import com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptor
 import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.dialog.SimpleValueChoiceDialog
-import com.sza.fastmediasorter.ui.settings.SettingsViewModel
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
+import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.util.Locale
@@ -157,10 +157,12 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
 
             // Cannot swap if source is auto-detect
             if (sourceCode != "auto") {
-                viewModel.updateSettings(viewModel.settings.value.copy(
-                    translationSourceLanguage = targetCode,
-                    translationTargetLanguage = sourceCode
-                ))
+                viewModel.updateSettings(
+                    viewModel.settings.value.copy(
+                        translationSourceLanguage = targetCode,
+                        translationTargetLanguage = sourceCode
+                    )
+                )
             }
         }
 
@@ -388,7 +390,9 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun updateTranslationPrewarmStatus(status: TranslationModelPrewarmStatus) {
-        if (!capabilityAvailability.isTranslationAvailable(requireContext()) || !viewModel.settings.value.enableTranslation) {
+        val translationOn = capabilityAvailability.isTranslationAvailable(requireContext()) &&
+            viewModel.settings.value.enableTranslation
+        if (!translationOn) {
             binding.layoutTranslationPrewarmStatus.isVisible = false
             binding.btnTranslationPrewarmRetry.isVisible = false
             return

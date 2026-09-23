@@ -400,6 +400,12 @@
   "file_info_filename_label",
   "file_info_host_label",
   "file_name_label",
+  {
+    "key": "filedo_password_hint",
+    "locales": [
+      "it"
+    ]
+  },
   "filter",
   "filter_label_date_short",
   "filter_label_name_short",
@@ -1818,6 +1824,12 @@
   "wear_document_format_epub",
   "wear_document_format_pdf",
   "wear_document_format_text",
+  {
+    "key": "wear_filedo_password_hint",
+    "locales": [
+      "it"
+    ]
+  },
   "wear_game_level_description",
   "wear_game_rules_legend_title",
   "wear_motion_monitor_gyroscope",

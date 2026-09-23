@@ -37,12 +37,12 @@
     <string name="widget_unlock_screen_prompt">解锁屏幕以添加小部件</string>
     <string name="settings_add_home_widget_title">向安卓主屏幕添加小部件。</string>
     <string name="widget_picker_dialog_title">选择小部件</string>
-    <string name="widget_scheduled_tasks_label">计划任务</string>
+    <string name="widget_scheduled_tasks_label">计划操作</string>
     <string name="widget_scheduled_tasks_description">计划文件操作的状态和控制</string>
     <string name="widget_scheduled_run_all">全部运行</string>
     <string name="widget_scheduled_pause_all">全部暂停</string>
     <string name="widget_scheduled_resume_all">全部恢复</string>
-    <string name="widget_scheduled_empty">没有计划任务</string>
+    <string name="widget_scheduled_empty">没有计划操作</string>
     <string name="widget_scheduled_active_count">%1$d 活跃</string>
     <string name="widget_scheduled_last_ok">最后：OK %1$s</string>
     <string name="widget_scheduled_last_error">最后：错误 %1$s</string>

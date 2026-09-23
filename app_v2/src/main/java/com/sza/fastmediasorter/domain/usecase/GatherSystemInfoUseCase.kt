@@ -400,7 +400,6 @@ class GatherSystemInfoUseCase @Inject constructor(
     // denial and reports the field as unknown - the report loses one line, nothing crashes.
     @SuppressLint("MissingPermission")
     private fun userName(): String {
-        Timber.d("S3155: userName system info gathered")
         val um = context.getSystemService(Context.USER_SERVICE) as UserManager
         return sanitize(um.userName)
     }

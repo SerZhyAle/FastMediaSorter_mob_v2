@@ -47,6 +47,14 @@ object BroadcastSettingsStore {
     // S3049: microphone digital PCM gain percentage (50% - 400%, default 100%).
     private val keyMicGainPercent = intPreferencesKey("broadcast_mic_gain_percent")
 
+    // S3349: the acoustic-feedback guard; absent means on, so an installation that predates the
+    // ticket gets the guard without a migration.
+    private val keyFeedbackGuardEnabled = booleanPreferencesKey("broadcast_feedback_guard_enabled")
+
+    // S2551: the owner's standing "my watch may see my camera" answer, read by the noLegal settings
+    // row that arms the capture.
+    private val keyWatchCameraStandby = booleanPreferencesKey("broadcast_watch_camera_standby")
+
     // S3237: the lens the broadcast screen last opened, so the choice survives an Activity recreation
     // and the next launch.
     private val keyCameraLensId = stringPreferencesKey("broadcast_camera_lens_id")
@@ -102,7 +110,9 @@ object BroadcastSettingsStore {
             videoFps = preferences[keyVideoFps] ?: 30,
             videoBitrateBps = preferences[keyVideoBitrateBps] ?: 2_000_000,
             micGainPercent = preferences[keyMicGainPercent] ?: 100,
+            feedbackGuardEnabled = preferences[keyFeedbackGuardEnabled] ?: true,
             cameraLensId = preferences[keyCameraLensId],
+            watchCameraStandby = preferences[keyWatchCameraStandby] ?: false,
         ),
     )
 
@@ -123,6 +133,8 @@ object BroadcastSettingsStore {
         preferences[keyVideoFps] = broadcast.videoFps
         preferences[keyVideoBitrateBps] = broadcast.videoBitrateBps
         preferences[keyMicGainPercent] = broadcast.micGainPercent
+        preferences[keyFeedbackGuardEnabled] = broadcast.feedbackGuardEnabled
+        preferences[keyWatchCameraStandby] = broadcast.watchCameraStandby
         // S3237: unlike the device id above, a null here is a real value - the user cleared the choice
         // or the stored lens no longer exists - so it removes the key instead of leaving a stale id.
         val lensId = broadcast.cameraLensId

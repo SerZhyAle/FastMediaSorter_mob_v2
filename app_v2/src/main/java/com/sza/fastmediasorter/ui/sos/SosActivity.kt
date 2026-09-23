@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.WindowManager
 import androidx.activity.viewModels
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.sza.fastmediasorter.R
@@ -82,6 +83,7 @@ class SosActivity : BaseActivity<ActivitySosBinding>() {
     override fun onDestroy() {
         binding.groupSosMode.removeOnButtonCheckedListener(modeCheckedListener)
         binding.btnSosStop.setOnClickListener(null)
+        applyWindowBrightness(WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
         if (isFinishing && !stopRequested) {
             viewModel.requestStopEverywhere()
             SosService.stop(this)
@@ -105,7 +107,20 @@ class SosActivity : BaseActivity<ActivitySosBinding>() {
         if (!mode.engagesLight) {
             renderStrobe(lit = false)
         }
+        applyWindowBrightness(
+            if (mode.engagesLight) MAX_BRIGHTNESS else WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        )
         SosService.start(this, mode)
+    }
+
+    /**
+     * S3333: the strobe is only as bright as the window it flashes in, and a phone that dimmed itself
+     * before the signal started flashes at that dimmed level - which is what a daylight rescuer does not
+     * see. Only this window's attribute is touched, never the device's own brightness setting, so leaving
+     * the window is the whole of the restore.
+     */
+    private fun applyWindowBrightness(value: Float) {
+        window.attributes = window.attributes.apply { screenBrightness = value }
     }
 
     private fun renderStrobe(lit: Boolean) {
@@ -132,6 +147,8 @@ class SosActivity : BaseActivity<ActivitySosBinding>() {
     }
 
     companion object {
+
+        private const val MAX_BRIGHTNESS = 1.0f
 
         const val EXTRA_MODE = "sos_mode"
 

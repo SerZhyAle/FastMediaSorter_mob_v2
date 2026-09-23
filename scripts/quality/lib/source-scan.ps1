@@ -155,7 +155,11 @@ function Invoke-SourceScan {
         if ([string]::IsNullOrEmpty($text)) { continue }
 
         foreach ($m in $applicable) {
-            $count = [int](& $m.CountInText $text)
+            # The second argument is the repo-relative path. Rules whose count is a property of a
+            # FILE PAIR rather than of the text alone (S3255 landscape parity) read it; every
+            # existing param($text) predicate is unaffected - extra positional arguments fall
+            # through to $args.
+            $count = [int](& $m.CountInText $text $rel)
             if ($count -le 0) { continue }
             $entry = $results[$m.Name]
             $entry.Count += $count

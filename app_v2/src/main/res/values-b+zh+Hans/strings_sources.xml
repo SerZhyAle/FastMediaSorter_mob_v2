@@ -61,7 +61,7 @@
     <string name="cloud_list_files_failed">无法从云端加载文件。请重试。</string>
     <string name="cloud_list_folders_failed">无法从云端加载文件夹。请重试。</string>
     <string name="cloud_metadata_failed">无法从云端加载文件详情。请重试。</string>
-    <string name="cloud_restore_instructions">需要恢复 Google 云端硬盘连接。\n\n请执行以下操作：\n1. 转到主菜单\n2. 打开“资源”\n3. 点击“%1$s”\n4. 使用您的 Google 帐户登录</string>
+    <string name="cloud_restore_instructions">Google Drive 连接需要恢复。\n\n请：\n1. 打开主界面\n2. 点按 \"%1$s\"\n3. 使用您的 Google 帐号登录</string>
     <string name="cloud_search_failed">无法搜索云存储。请重试。</string>
     <string name="cloud_sign_out_failed">无法退出云端账户。请重试。</string>
     <string name="cloud_storage">云存储</string>
@@ -74,7 +74,7 @@
     <string name="dropbox_authentication_failed">Dropbox 身份验证失败</string>
     <string name="dropbox_beta_email_body">您好，\n\n请将我的 Dropbox 帐户添加到 FastMediaSorter 测试人员名单中。\n\n我的 Dropbox 邮箱地址：</string>
     <string name="dropbox_beta_email_subject">FastMediaSorter - Dropbox Beta 版访问请求</string>
-    <string name="dropbox_beta_message">Dropbox 集成目前处于有限测试阶段。\n\n⚠️ 为什么需要联系你们？\nDropbox 要求应用开发者在审核期间手动为测试人员注册。这只是 Dropbox 方面的一次性技术手续 - 你的邮箱仅用于将你的 Dropbox 账户加入允许列表。\n\n🔒 我们完全尊重你的隐私：\n• 我们不会收集、存储或分享你的邮箱\n• 我们不会访问你的任何文件或数据\n• 你的邮箱仅用于在此应用内为你授予 Dropbox 访问权限\n\n如需获取访问权限，请发送邮件至：\nserzhyale@gmail.com</string>
+    <string name="dropbox_beta_message">Dropbox 集成目前处于有限测试阶段。\n\n⚠️ 为什么需要联系你们？\nDropbox 要求应用开发者在审核期间手动为测试人员注册。这只是 Dropbox 方面的一次性技术手续 - 你的邮箱仅用于将你的 Dropbox 账户加入允许列表。\n\n🔒 我们完全尊重你的隐私：\n• 我们不会收集、存储或分享你的邮箱\n• 我们不会访问你的任何文件或数据\n• 你的邮箱仅用于在此应用内为你授予 Dropbox 访问权限\n\n如需获取访问权限，请发送邮件至：\nsza@ukr.net</string>
     <string name="dropbox_beta_send_email">发送电子邮件</string>
     <string name="dropbox_beta_title">Dropbox Beta 版访问权限</string>
     <string name="dropbox_connection_test_failed">连接失败：%1$s</string>

@@ -39,8 +39,8 @@ import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
 import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
+import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.ui.settings.DefaultAppsDialogFragment
-import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
@@ -52,7 +52,6 @@ import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsGesturesManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsProgramsManager
-import com.sza.fastmediasorter.ui.settings.helpers.OperationsScheduledManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsSectionsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsSendCommandsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsWearGroupManager
@@ -73,7 +72,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     private var _binding: FragmentSettingsDestinationsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
-    private val scheduledViewModel: ScheduledOperationsViewModel by activityViewModels()
 
     // S1885: the paired-watch row reads Wear state, which belongs to the Wear view model rather
     // than to the settings one.
@@ -149,17 +147,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     // S2797: the scope is read per call - viewLifecycleOwner is a different object after recreation.
     private val destinationLabelResolver by lazy {
         DestinationLabelResolver({ viewLifecycleOwner.lifecycleScope }, viewModel.resourceRepository)
-    }
-    private val scheduledManager by lazy {
-        OperationsScheduledManager(
-            binding,
-            viewModel,
-            scheduledViewModel,
-            this,
-            mediaCapabilities,
-            notificationsPermissionLauncher,
-            folderPickerLauncher,
-        ) { isUpdatingFromSettings }
     }
     private val captureManager by lazy {
         OperationsCaptureManager(
@@ -239,19 +226,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             gesturesManager.onOverlayPermissionResult()
         }
 
-    private val notificationsPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String> =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            scheduledManager.onResume()
-        }
-
-    // S1009: SAF folder picker for the scheduled-op local-folder source/target option. Must be created
-    // at field-init time (Fragment requirement for registerForActivityResult). Explicit type breaks the
-    // recursive inference with the lazy scheduledManager (which takes this launcher in its constructor).
-    private val folderPickerLauncher: androidx.activity.result.ActivityResultLauncher<android.net.Uri?> =
-        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-            scheduledManager.onFolderPicked(uri)
-        }
-
     // S1010: separate SAF launcher for the "Local Folder" write-receiver option, kept apart from
     // S1009's scheduled-op launcher above so the two picks can never resolve into each other.
     private val localFolderDestinationPickerLauncher: ActivityResultLauncher<Uri?> =
@@ -268,9 +242,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
         sectionsHost.registerAll(wearGroupManager.isAvailableInBuild, BuildConfig.ENABLE_SCHEDULED_OPERATIONS)
-        scheduledManager.setup()
         observeData()
-        scheduledManager.checkAndExpandFromIntent()
         sectionsHost.handleIntentSection(requireActivity().intent)
     }
 
@@ -280,11 +252,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
      */
     override fun collapsibleSections(): com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager =
         sectionsHost.sections()
-
-    override fun onResume() {
-        super.onResume()
-        scheduledManager.onResume()
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -349,6 +316,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(useTrash = isChecked))
             binding.btnClearTrash.isVisible = isChecked
+        }
+        binding.rowEnableFileDoOperations.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(enableFileDoOperations = isChecked))
         }
         binding.btnClearTrash.setOnClickListener {
             viewModel.clearAllTrash(requireContext())
@@ -452,6 +423,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         binding.rowOpenStopwatchSettings.setOnRowClickListener {
             StopwatchSettingsDialogFragment.newInstance()
                 .show(childFragmentManager, StopwatchSettingsDialogFragment.TAG)
+        }
+
+        // S3365: the settings keep exactly one entry point to the scheduled-operations program -
+        // this link row; the card that used to sit here was deleted and the screen owns management.
+        binding.rowOpenScheduledOpsScreen.setOnRowClickListener {
+            startActivity(android.content.Intent(requireContext(), ScheduledOperationsActivity::class.java))
         }
 
         // OCR/Translation toggles (containerAdditionalPrograms).
@@ -604,7 +581,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             // S2797: every label below is re-rendered here, so a lookup left over
                             // from the previous pass can only write a stale name.
                             destinationLabelResolver.cancelPending()
-                            scheduledManager.render(settings)
                             binding.rowEnableCopying.setCheckedSilently(settings.enableCopying)
                             binding.rowGoToNextAfterCopy.setCheckedSilently(settings.goToNextAfterCopy)
                             binding.rowOverwriteOnCopy.setCheckedSilently(settings.overwriteOnCopy)
@@ -617,6 +593,8 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             binding.rowConfirmMove.setCheckedSilently(settings.confirmMove)
                             binding.rowUseTrash.setCheckedSilently(settings.useTrash)
                             binding.btnClearTrash.isVisible = settings.useTrash
+                            binding.rowEnableFileDoOperations
+                                .setCheckedSilently(settings.enableFileDoOperations)
                             binding.layoutConfirmDelete.visibility =
                                 if (settings.enableSafeMode) View.VISIBLE else View.GONE
                             binding.layoutConfirmMove.visibility =
@@ -649,8 +627,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             }
 
                             // OtherFeatures group (moved from Player tab).
-                            val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable(requireContext()) &&
-                                DeviceCapabilities.isOcrSupported(requireContext())
+                            val hasOcrAndTranslation =
+                                capabilityAvailability.isTranslationAvailable(requireContext()) &&
+                                    DeviceCapabilities.isOcrSupported(requireContext())
                             if (hasOcrAndTranslation) {
                                 if (binding.rowCameraOcrTranslationEnabled.isChecked != settings.cameraOcrTranslationEnabled) {
                                     binding.rowCameraOcrTranslationEnabled.setCheckedSilently(
@@ -697,13 +676,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
                         updateCopyOptionsVisibility(settings.enableCopying)
                         updateMoveOptionsVisibility(settings.enableMoving)
-                    }
-                }
-
-                // Keep resources StateFlow warm and trigger automate dialog once resources arrive.
-                launch {
-                    viewModel.resources.collect { resources ->
-                        if (resources.isNotEmpty()) scheduledManager.onResourcesReady()
                     }
                 }
             }

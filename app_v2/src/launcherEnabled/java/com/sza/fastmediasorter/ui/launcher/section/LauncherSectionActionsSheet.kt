@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.launcher.section
 
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,10 +7,10 @@ import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.LauncherSignalListItemBinding
 import com.sza.fastmediasorter.databinding.SheetLauncherSectionActionsBinding
+import com.sza.fastmediasorter.ui.common.dialog.BaseAppBottomSheet
 
 /**
  * S1742 §03.1: bottom sheet listing options available for a section header.
@@ -19,7 +18,7 @@ import com.sza.fastmediasorter.databinding.SheetLauncherSectionActionsBinding
  * Caller populates [items] and [onItemClick] before calling [show]. The first row automatically takes focus
  * so D-pad and TV users can navigate without an initial tap.
  */
-class LauncherSectionActionsSheet : BottomSheetDialogFragment() {
+class LauncherSectionActionsSheet : BaseAppBottomSheet() {
 
     enum class Action {
         RENAME,
@@ -40,17 +39,13 @@ class LauncherSectionActionsSheet : BottomSheetDialogFragment() {
 
     private var binding: SheetLauncherSectionActionsBinding? = null
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View = SheetLauncherSectionActionsBinding.inflate(inflater, container, false)
-        .also { binding = it }
-        .root
+    override val contentLayout: Int = R.layout.sheet_launcher_section_actions
+    override val requestKey: String = REQUEST_KEY
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val list = binding?.launcherSectionActionsList ?: return
+    override fun bindContent(content: View) {
+        val sheet = SheetLauncherSectionActionsBinding.bind(content)
+        binding = sheet
+        val list = sheet.launcherSectionActionsList
         list.layoutManager = LinearLayoutManager(requireContext())
         list.adapter = ActionsAdapter()
         list.doOnPreDraw {
@@ -96,5 +91,9 @@ class LauncherSectionActionsSheet : BottomSheetDialogFragment() {
                 dismiss()
             }
         }
+    }
+
+    private companion object {
+        const val REQUEST_KEY = "launcher_section_actions_sheet"
     }
 }

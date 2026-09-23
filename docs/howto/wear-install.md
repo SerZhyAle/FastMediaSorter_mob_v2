@@ -7,7 +7,7 @@ permalink: /docs/howto/wear-install.html
 
 > **Level:** Beginner &bull; **Time:** ~5 minutes &bull; **Device:** Wear OS smartwatch paired with an Android phone
 
-> **Two versions.** The version from Google Play is a small first release: Calculator, Stopwatch, Mini-game, Water flashlight, Clipboard, Settings and the Programs tile. Music, photos, network shares and phone features are in the full version only, a direct APK download from [Downloads](../DOWNLOADS.md).
+> **Two versions.** The version from Google Play is a small first release: Calculator, Stopwatch, Mini-game, Settings and the Programs tile. Music, photos, network shares and phone features are in the full version only, a direct APK download from [Downloads](../DOWNLOADS.md).
 
 [Русский](wear-install-ru.md) | [Українська](wear-install-uk.md)
 

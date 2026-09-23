@@ -86,6 +86,43 @@ function Get-GateReferenceNames {
 
 <#
 .SYNOPSIS
+    Gate script names referenced by one file and by the lib files it dot-sources.
+
+.DESCRIPTION
+    S3254: a runner's argument vectors can live in a dot-sourced lib beside it (the Rule 2 ceiling
+    extraction of post-change.ps1), so a gate's only textual reference may sit one hop from the
+    runner's own text. This follows exactly that hop: string tokens of the runner naming a
+    lib/*.ps1 are resolved against the repo root when they carry it, else against the runner's own
+    directory, and the lib's token references are unioned in. One level only - no lib in this tree
+    dot-sources another.
+#>
+function Get-GateReferenceNamesWithLibs {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string]$RepoRoot
+    )
+
+    $names = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($n in (Get-GateReferenceNames $Path)) { [void]$names.Add($n) }
+
+    $tokens = $null; $errors = $null
+    [void][System.Management.Automation.Language.Parser]::ParseFile($Path, [ref]$tokens, [ref]$errors)
+    $runnerDir = Split-Path -Parent $Path
+    foreach ($t in $tokens) {
+        if ($t.Kind -notin @('StringLiteral', 'StringExpandable')) { continue }
+        $lib = [string]$t.Value
+        if ($lib -notmatch '(^|[\\/])lib[\\/][A-Za-z0-9_-]+\.ps1$') { continue }
+        $libPath = if ($lib -match '^([A-Za-z]:|[\\/])') { $lib }
+            elseif ($lib -match '^scripts[\\/]') { Join-Path $RepoRoot $lib }
+            else { Join-Path $runnerDir $lib }
+        if (-not (Test-Path -LiteralPath $libPath)) { continue }
+        foreach ($n in (Get-GateReferenceNames $libPath)) { [void]$names.Add($n) }
+    }
+    return , $names
+}
+
+<#
+.SYNOPSIS
     Map of placement class -> set of gate names the runners for that class actually reference.
 #>
 function Get-GatePlacementMembership {
@@ -108,7 +145,7 @@ function Get-GatePlacementMembership {
     foreach ($class in $sources.Keys) {
         $set = [System.Collections.Generic.HashSet[string]]::new()
         foreach ($rel in $sources[$class]) {
-            foreach ($n in (Get-GateReferenceNames (Join-Path $RepoRoot $rel))) { [void]$set.Add($n) }
+            foreach ($n in (Get-GateReferenceNamesWithLibs -Path (Join-Path $RepoRoot $rel) -RepoRoot $RepoRoot)) { [void]$set.Add($n) }
         }
         $map[$class] = $set
     }

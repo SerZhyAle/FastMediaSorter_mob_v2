@@ -11847,6 +11847,38 @@
         {
           "url": "https://pro06.caster.fm:8050/radio",
           "order": 230
+        },
+        {
+          "url": "https://medinaamazigh.ice.infomaniak.ch/medinaamazigh-128.mp3",
+          "order": 231
+        },
+        {
+          "url": "https://stream.zeno.fm/nzdw7gqc0s8uv",
+          "order": 232
+        },
+        {
+          "url": "https://a6.asurahosting.com:8880/radio.mp3",
+          "order": 233
+        },
+        {
+          "url": "http://stream.zeno.fm/6s8719ctbphvv",
+          "order": 234
+        },
+        {
+          "url": "http://22183.live.streamtheworld.com:3690/FM702_SC",
+          "order": 235
+        },
+        {
+          "url": "http://25223.live.streamtheworld.com/FM947AAC_SC",
+          "order": 236
+        },
+        {
+          "url": "http://27873.live.streamtheworld.com:3690/CAPE_TALK_SC",
+          "order": 237
+        },
+        {
+          "url": "https://stream.zeno.fm/xu7hp12tzv8uv",
+          "order": 238
         }
       ]
     },
@@ -27421,6 +27453,18 @@
         {
           "url": "http://ilm.stream35.radiohost.de/ilm_iloveusonlyrapradio_mp3-192?upd-meta&upd-scheme=http&_art=dD0xNzg5NTQzNDAwJmQ9OGQ1MTNlZGVjYThmZGZjODdhODc",
           "order": 2324
+        },
+        {
+          "url": "http://s6-webradio.antenne.de/hits-fuer-kids",
+          "order": 2325
+        },
+        {
+          "url": "https://stream.0nlineradio.com/gospel?ref=radiobrowser",
+          "order": 2326
+        },
+        {
+          "url": "https://regiocast.streamabc.net/regc-psr2000er1212201-mp3-192-6313640?sABC=6no08119%230%23q280o0r09ns9qpq3889p9qqn13p5753s%23fgernzf.enqvbcfe.qr&aw_0_1st.playerid=streams.radiopsr.de&amsparams=playerid:streams.radiopsr.de;skey:1789952281",
+          "order": 2327
         }
       ]
     },
@@ -29527,6 +29571,10 @@
         {
           "url": "https://chaosfm.com:8443/stream",
           "order": 149
+        },
+        {
+          "url": "https://media-the.musicradio.com/CapitalXTRALondonMP3",
+          "order": 150
         }
       ]
     },

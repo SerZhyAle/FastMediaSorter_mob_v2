@@ -35,7 +35,7 @@
     <string name="game_score">得分：%1$d</string>
     <string name="game_settings_help_message">启用本地回合制解谜游戏。游戏默认关闭，需要手动开启。</string>
     <string name="game_settings_help_title">小游戏</string>
-    <string name="game_settings_toggle_subtitle">在主菜单和启动器小部件中显示游戏</string>
+    <string name="game_settings_toggle_subtitle">在程序菜单、快捷访问面板和启动器桌面上显示游戏</string>
     <string name="game_settings_toggle_title">小游戏</string>
     <string name="game_status_game_over">克里瓦维察抓住了你。开始新游戏再试一次吧。</string>
     <string name="game_status_invalid_board">此棋盘无法使用。请更改棋盘大小或打开预设棋盘。</string>

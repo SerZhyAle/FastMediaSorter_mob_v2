@@ -4,7 +4,6 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S2797: renders the destination-resource label of a settings row, one render pass at a time.

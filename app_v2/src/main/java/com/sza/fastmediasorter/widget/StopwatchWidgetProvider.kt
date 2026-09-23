@@ -12,7 +12,6 @@ import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.stopwatch.StopwatchActivity
 import com.sza.fastmediasorter.widget.helpers.StopwatchWidgetStateStore
-import timber.log.Timber
 
 /**
  * S1411 phase 08 - a home-screen cell that starts and stops its own measurement without opening the

@@ -10,8 +10,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.tourist.TouristInfoActivity
 import com.sza.fastmediasorter.widget.registry.HomeWidgetAccent
 
-import timber.log.Timber
-
 /**
  * S3033: home-screen widget for Tourist Info sub-program - launches [TouristInfoActivity].
  */

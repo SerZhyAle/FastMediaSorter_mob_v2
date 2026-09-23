@@ -87,7 +87,8 @@ class SendResourcesToWatchUseCase @Inject constructor(
         // subsequent push - without that, this branch is unreachable whenever the tombstone store is
         // non-empty, which is always once a deletion has been recorded.
         // S3046: forceDispatch allows explicit watch sync requests to answer even when empty.
-        if (!forceDispatch && collected.payloads.isEmpty() && deselectedIds.isEmpty() && tombstones.orEmpty().isEmpty()) {
+        val nothingToSend = collected.payloads.isEmpty() && deselectedIds.isEmpty() && tombstones.orEmpty().isEmpty()
+        if (!forceDispatch && nothingToSend) {
             return@runCatching SendResult(
                 sent = 0,
                 skipped = collected.skipped,

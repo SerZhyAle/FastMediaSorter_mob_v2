@@ -142,6 +142,8 @@ class PhotoVideoStandaloneActivity :
     // collaborators stay behind dagger.Lazy until a network-only flow actually needs them.
     @Inject lateinit var smbClient: Lazy<SmbClient>
 
+    @Inject lateinit var dimHeadingProvider: Lazy<com.sza.fastmediasorter.ui.common.widget.DimHeadingProvider>
+
     @Inject lateinit var sftpClient: Lazy<SftpClient>
 
     @Inject lateinit var ftpClient: Lazy<FtpClient>
@@ -284,12 +286,14 @@ class PhotoVideoStandaloneActivity :
     private var videoReleasedOnStop = false
 
     // S0393 wave-C: black-screen overlay (dim screen during video playback). Generic manager.
-    private val blackScreenManager by lazy {
+    private val blackScreenManagerDelegate = lazy {
         com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager(
             java.lang.ref.WeakReference(this),
             com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager(this),
+            headingProviderLazy = dimHeadingProvider,
         )
     }
+    private val blackScreenManager by blackScreenManagerDelegate
 
     // S0393 wave-C: TranslationManager only for its OCR recognition facade (extractTextOnly).
     private val ocrTranslationManager by lazy {
@@ -1164,6 +1168,9 @@ class PhotoVideoStandaloneActivity :
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
+        if (blackScreenManagerDelegate.isInitialized()) {
+            blackScreenManager.onHostConfigurationChanged()
+        }
     }
 
     private fun setupVideoControls(pv: PlayerView) {

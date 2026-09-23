@@ -2,13 +2,13 @@ package com.sza.fastmediasorter.wear.domain.model
 
 /**
  * S2130 raised this to 5 for [WearPhoneResourceResponseStatus.NO_RESOURCE_FOR_TYPE], S2981 to 6 for
- * [WearPhoneResourceResponseStatus.COMPANION_DISABLED].
+ * [WearPhoneResourceResponseStatus.COMPANION_DISABLED], S3359 to 7 for the delete request and its ack.
  *
  * Both sides move together, in one change: an unknown enum name deserialises to null through Gson,
  * so a watch built before the value would read the new status as a malformed page rather than as an
  * unknown one. There is no installed base to negotiate with - the pair ships as one artifact set.
  */
-const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 6
+const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 7
 
 enum class WearPhoneResourceRequestKind {
     ROOT,
@@ -101,6 +101,61 @@ data class WearPhoneResourcePage(
     // page that carries no `items` key is an empty page, so every reader goes through `.orEmpty()`.
     val items: List<WearPhoneResourceItem>? = null,
     val nextPageToken: String? = null
+)
+
+/**
+ * S3359: what the phone did with the original behind a delete request.
+ *
+ * Only [DELETED] lets the watch report a move; every other member, and a lost answer, mean the copy is
+ * on the watch and the original is still on the phone - which strategic §7 requires to be said plainly
+ * rather than rounded up to "moved".
+ */
+enum class WearPhoneResourceDeleteOutcome {
+
+    /** The original is gone from the phone. */
+    DELETED,
+
+    /**
+     * The phone can reach the file and may not remove it without a system dialog no listener can show.
+     *
+     * Kept apart from [NOT_FOUND] because nothing is wrong here: the copy is stored, the original is
+     * where it was, and the owner can delete it on the phone if they want to.
+     */
+    COPIED_ONLY,
+
+    /** The token resolved to nothing this phone serves - moved, renamed or on a withdrawn resource. */
+    NOT_FOUND,
+
+    /**
+     * The file behind the token is no longer the size the watch copied.
+     *
+     * The refusal exists because the token carries no identity of its own beyond a path, so a file
+     * replaced between the copy and this request would otherwise be deleted in the original's place.
+     */
+    SIZE_MISMATCH,
+
+    /** The owner switched the Wear Companion off on the phone, so it acts on nothing the watch asks. */
+    COMPANION_DISABLED
+}
+
+/**
+ * S3359: one ask to remove the original of a file this watch has already published.
+ *
+ * [expectedSizeBytes] is the length of the copy the watch verified, not the size the browse page
+ * announced - the point of the field is that the phone re-measures what it is about to delete.
+ */
+data class WearPhoneResourceDeleteRequest(
+    val schemaVersion: Int = WEAR_PHONE_RESOURCE_SCHEMA_VERSION,
+    val requestId: String,
+    val token: String,
+    val expectedSizeBytes: Long
+)
+
+/** S3359: the phone's answer to one [WearPhoneResourceDeleteRequest], correlated by `requestId`. */
+data class WearPhoneResourceDeleteAck(
+    val schemaVersion: Int = WEAR_PHONE_RESOURCE_SCHEMA_VERSION,
+    val requestId: String,
+    val outcome: WearPhoneResourceDeleteOutcome
 )
 
 /**

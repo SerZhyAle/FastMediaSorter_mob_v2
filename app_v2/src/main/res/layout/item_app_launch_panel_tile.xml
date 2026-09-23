@@ -31,8 +31,8 @@
 
         <ImageView
             android:id="@+id/ivPanelTileIcon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="@dimen/icon_tier_48"
+            android:layout_height="@dimen/icon_tier_48"
             android:importantForAccessibility="no"
             tools:src="@drawable/ic_add" />
 

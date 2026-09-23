@@ -42,7 +42,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
-import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 6.dp
 private val VALUE_VERTICAL_PADDING = 4.dp
@@ -136,7 +135,6 @@ private fun ScreenTitle() {
 @Composable
 private fun LastReadingCard(last: HeartRateHistoryEntry) {
     val zone = HeartRateZone.classify(last.bpm)
-    Timber.d("S3261: body sensor last reading drawn as StandardWearCard")
     StandardWearCard(
         modifier = Modifier.padding(horizontal = CARD_HORIZONTAL_INSET, vertical = VALUE_VERTICAL_PADDING)
     ) {

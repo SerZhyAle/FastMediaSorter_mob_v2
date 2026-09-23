@@ -47,7 +47,9 @@
       - assert-dotsource-tracked       (S2616 every dot-sourced script target is in the git index)
       - assert-document-registry-coverage (S2618 every directory holding documents is registered or excused)
       - assert-temp-root-inventory     (S3030 every top-level entry of temp/ is declared or ticket-bound)
+      - assert-lock-path-coverage      (S3456 every tracked path matches a lock path rule)
       - assert-wear-store-boundary     (S3178 both Wear merged manifests vs the store boundary policy)
+      - assert-install-trust           (S3451 trust page sections, APK hand-out links, never-does facts)
 
     Where every gate belongs, and who decided it: scripts/quality/gate-placement.jsonl (S2870).
     That registry replaced the two paragraphs that used to stand here naming the gate deliberately
@@ -171,6 +173,33 @@ $gates = [ordered]@{
     # missing locales is one batch either way. Deliberately NOT passed -Quiet - that switch suppresses
     # the per-violation lines, and "which locale" is the whole content of this gate's report.
     'assert-play-listing-locales.ps1'  = @()
+    # S3364. Three store pre-publication checks added as one block because they share one subject
+    # (Rule 33): the shipped artifact a release publishes, not any one changed file. The identity
+    # gate reads the phone and wear build configurations (WO-G7), the ABI gate reads the built wear
+    # release APK, and the packaging gate measures the built VR-flavor APK against the Meta VRC
+    # limits - a miss reaches a user only when the owner submits an artifact to a store; each gate
+    # names its own measured pair or ABI set; and re-running one costs about a second. Thresholds
+    # come from store-prepublish-thresholds.psd1, so a store policy change is a data edit. Each gate
+    # degrades to a stated advisory skip (exit 0) when its artifact is not built yet, which is the
+    # same semantics the delivery-size gate above accepts for an unreachable release.
+    'assert-wear-phone-identity-parity.ps1' = @()   # S3364 - subject: the shipped phone+wear identity pair
+    'assert-wear-64bit-abi.ps1'             = @()   # S3364 - subject: the shipped wear release APK
+    'assert-meta-packaging-limits.ps1'      = @()   # S3364 - subject: the shipped VR-flavor release APK
+    # S3371. The numeric performance budgets in scripts/quality/perf-budgets.json, the first of them
+    # the Wear cold start S3368 won. Rule 33 puts it here on all four criteria: a cold start
+    # regresses because of a new dependency, an added initializer or something nobody in this
+    # repository wrote, so no changed set can be blamed and no author could have been asked; its
+    # subject is a MEASURED artifact, not a file; each finding prints its metric, the measurement,
+    # the budget and the tolerance ceiling; and re-measuring costs the same whenever it is done. The
+    # measurement also needs a device and minutes, which the per-ticket closure must not spend -
+    # strategic ADR-4 keeps the whole measurement contour out of PR for that reason.
+    #
+    # Run here with no -Measured, so it judges the freshness of each budget's recorded source
+    # measurement against staleAfterDays and answers exit 2 - could not verify - once one goes
+    # stale. The release flow passes -Measured <file> once it has run the metric's producer. The
+    # loop below collapses every non-zero code to FAIL, which is the intended reading: a release
+    # that never measured a budgeted metric has not proved the budget, it has only failed to look.
+    'assert-perf-budget.ps1'                = @()   # S3371 - subject: the measured performance budgets
     # S2597. The other half of the same listing tree: its locale sibling above judges the TEXTS,
     # this one judges the images the publisher declares in SINGLE_IMAGES. Rule 33 places it here on
     # the same four criteria, and for one more reason of its own - the defect it guards is invisible
@@ -278,6 +307,11 @@ $gates = [ordered]@{
     # neighbour's lock file or queue marker - which is how S2998's blacklist and then S3025's suite
     # assertion were each broken by a process that was not under test.
     'assert-temp-root-inventory.ps1'   = @('-Quiet')
+    # S3456. Every tracked path against locks.pathRules in .sza-profile.json, because a path no rule
+    # matches takes every code domain and serialises phone, watch and scripts work behind one site
+    # edit. Release scope: the subject is the repository root, not a changed file, and the cost of
+    # a miss is over-serialisation until the release, not a defect a user sees.
+    'assert-lock-path-coverage.ps1'    = @('-Quiet')
     # S3178. The two Wear merged manifests against wear/config/store-boundary-policy.json. Release
     # scope on all four Rule 33 criteria: a sensitive permission in the store variant reaches a user
     # only when the Wear bundle is published; its subject is a built artifact rather than a changed
@@ -289,6 +323,21 @@ $gates = [ordered]@{
     # -RequireArtifacts note; the loop below collapses every non-zero code to FAIL, and a phone
     # release is not the moment to refuse over a watch artifact this checkout never built.
     'assert-wear-store-boundary.ps1'   = @()
+    # S3380. docs/SECURITY_POSTURE.md - the permission and network-surface inventories the privacy
+    # page, the in-app perm_rationale_* strings and the store-form sources all render from - against
+    # what the manifests declare and what the build links in. Release scope on all four Rule 33
+    # criteria: a divergence reaches a user only through a published listing or a store review; its
+    # subject is every manifest of both modules against one document, so no changed file can be
+    # blamed; each finding names its own permission, string key or artifact; and reconciling the
+    # inventory costs the same edit whenever it is done. Not passed -Quiet: which permission or key
+    # diverged is the whole content of the report.
+    'assert-security-posture.ps1'      = @()
+    # S3451. Contract INSTALL-TRUST rules 1, 6 and 7: the trust page's sections, the link from every
+    # page handing out the APK, and the "never does" facts against the privacy policy and the code.
+    # Release scope because the defect it exists for is a NEW page with a download link, a file no
+    # per-ticket trigger can name in advance, so only a whole-tree walk finds it. Left out of
+    # $gateInputGroups on purpose: it reads the root-level site pages, which no group covers.
+    'assert-install-trust.ps1'         = @()
 }
 
 # S3010. Which fingerprint input groups each gate reads, for -OnlyGroups. Deliberately PARTIAL: a
@@ -310,6 +359,7 @@ $gateInputGroups = @{
     'assert-suite-tracked.ps1'                    = @('scripts')
     'assert-dotsource-tracked.ps1'                = @('scripts')
     'assert-wear-store-boundary.ps1'              = @('wear-src')
+    'assert-security-posture.ps1'                 = @('phone-src', 'wear-src', 'docs')
 }
 
 # S3010 follow-up: a value that names no group selects nothing but the unmapped gates, and the batch

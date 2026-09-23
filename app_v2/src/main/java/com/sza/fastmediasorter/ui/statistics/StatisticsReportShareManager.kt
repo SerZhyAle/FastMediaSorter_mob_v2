@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
+import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
@@ -38,8 +39,8 @@ class StatisticsReportShareManager @Inject constructor(
             toast(R.string.statistics_no_email_app)
             return
         }
-        val email = context.getString(R.string.statistics_author_email)
-        val subject = context.getString(R.string.statistics_email_subject)
+        val email = SupportIntentFactory.SUPPORT_EMAIL
+        val subject = SupportIntentFactory.versionedSubject(context.getString(R.string.statistics_email_subject))
 
         // Pre-check resolvability so an empty device (no mail/handler app) gets a clear message
         // rather than a chooser that immediately dead-ends (Rule 21: *Compat, no raw overload).

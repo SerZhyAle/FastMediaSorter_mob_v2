@@ -98,7 +98,7 @@ if ($axisLines) {
     foreach ($line in $axisLines) { Write-Host "  $line" }
 }
 
-# The one number ADR-3 of docs/OCR_OVERLAY_ACCURACY.md 12.1 is read from (S2036).
+# The one number ADR-3 of ocr-overlay-accuracy.md 12.1 is read from (S2036).
 $spread = $reportLines | Where-Object { $_ -match '^\*\*Height-fraction spread' } | Select-Object -First 1
 if ($spread) {
     Write-Host ""

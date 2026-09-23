@@ -244,7 +244,6 @@ class VoiceRecordingService : Service() {
             return
         }
         sessionWakeLock = wearPower.acquirePartialWakeLock(WearPowerManager.SESSION_WAKE_LOCK_TAG)
-        Timber.d("S3265: session wake lock held=%s", sessionWakeLock?.isHeld == true)
     }
 
     private fun releaseSessionWakeLock() {
@@ -303,6 +302,16 @@ class VoiceRecordingService : Service() {
         // dispatcher. The accept loop the server launches picks its own IO dispatcher.
         val endpoint = withContext(Dispatchers.IO) {
             lanServer.start(serviceScope, sessionManager.liveSink)
+        }
+        if (endpoint.isLoopback) {
+            // S3416: the request screen's readiness check ran before this service started, so Wi-Fi
+            // lost in between reaches here as a loopback address. Failed goes first so the teardown
+            // this triggers keeps it instead of clearing it to Idle.
+            Timber.i("No LAN address at bind time; refusing the listening session")
+            listenSession.publish(ListenSessionState.Failed)
+            listenAckSender.answerRefusal(ListenRefusal.NO_NETWORK)
+            stopSession()
+            return
         }
         listenSession.publish(ListenSessionState.Live(endpoint))
         // The address goes to the phone from here rather than from the confirmation screen: the

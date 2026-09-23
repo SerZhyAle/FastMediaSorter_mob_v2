@@ -31,4 +31,5 @@
     <string name="translation_source_language_and_ocr">मूल भाषा और ओसीआर</string>
     <string name="translation_started">अनुवाद शुरू हो गया है..</string>
     <string name="translation_target_language">अनुवाद करने के लिए</string>
+    <string name="ocr_language_assumed_unreadable">टेक्स्ट ऐसी लिपि में है जिसके लिए रिकग्नाइज़र सेट नहीं किया गया था, इसलिए चित्र पर कोई अनुवाद नहीं दिखाया गया। अनुवाद सेटिंग में मूल भाषा चुनें।</string>
 </resources>

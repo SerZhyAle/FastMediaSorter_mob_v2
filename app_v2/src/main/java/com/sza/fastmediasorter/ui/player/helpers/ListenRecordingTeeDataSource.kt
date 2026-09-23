@@ -39,8 +39,6 @@ internal class ListenRecordingTeeDataSource(
             Timber.i(e, "Could not open the listening recording sink; playing without recording")
             null
         }
-        if (sink != null) {
-        }
         return length
     }
 

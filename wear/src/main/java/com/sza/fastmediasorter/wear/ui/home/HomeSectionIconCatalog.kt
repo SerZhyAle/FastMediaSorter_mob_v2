@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.ui.home
 import androidx.annotation.DrawableRes
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
 
 /**
  * The single place on the watch that knows which glyph a home section wears.
@@ -47,5 +48,41 @@ object HomeSectionIconCatalog {
         // has the section id alone, and says the only true thing available then: a program of the
         // Apps list is behind it.
         HomeSectionId.LAST_USED_APP -> R.drawable.ic_apps
+    }
+
+    /**
+     * Which content type a home section stands for, or null when it stands for none.
+     *
+     * The home screen lists origins, not content types, so only streams names one outright. The rest
+     * take the catalog's `OTHER` tone, which is the umbrella the catalog already documents for "a
+     * source registered in this app" - the same reading that gave the Resources section its glyph.
+     *
+     * Favourites is null deliberately: `ic_resource_favorites` is a fixed amber badge with no tint
+     * hook, so a semantic tone would repaint the star (strategic §11 criterion 7).
+     *
+     * S3434: lifted out of `HomeScreen.kt` for the same reason as the glyph table above - the sections
+     * tile paints its plates from this answer, and a second copy would let a tile cell and its home row
+     * wear two hues.
+     */
+    fun contentTypeFor(id: HomeSectionId): WearContentType? = when (id) {
+        HomeSectionId.FAVOURITES -> null
+        // S2499: a recent channel is a channel, so it takes the same tone the Streams section does.
+        HomeSectionId.STREAMS,
+        HomeSectionId.LAST_USED_STREAM -> WearContentType.STREAM
+        HomeSectionId.LAST_USED_RESOURCE,
+        HomeSectionId.RESOURCES,
+        HomeSectionId.PHONE,
+        HomeSectionId.LOCAL,
+        // S2509: OTHER rather than STREAM. This row is a program of this app, not a channel registered
+        // in it - giving it the stream tone would say the watch has a channel to play.
+        HomeSectionId.BROADCAST,
+        // S2551: OTHER for the same reason as the row above. What this one opens IS a stream, but it is
+        // one that exists only while the session does - giving it the stream tone would place it beside
+        // the registered channels, which is exactly what the ticket's non-goal keeps it out of.
+        HomeSectionId.PHONE_CAMERA,
+        // S3116: never reached while the row carries its program - the accent answers first - and
+        // OTHER when it does not, for the same reason as the Programs row: it is a program of this app.
+        HomeSectionId.LAST_USED_APP,
+        HomeSectionId.APPS -> WearContentType.OTHER
     }
 }

@@ -26,12 +26,14 @@ import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.domain.usecase.EnsureWatchResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetPairedWatchStatusUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportWatchSourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.ObserveDimClockOverlayEnabledUseCase
 import com.sza.fastmediasorter.domain.usecase.ObserveUnitSystemUseCase
 import com.sza.fastmediasorter.domain.usecase.SendWearBackgroundImageUseCase
 import com.sza.fastmediasorter.service.WatchListenSessionManager
 import com.sza.fastmediasorter.service.WearDataLayerPaths
 import com.sza.fastmediasorter.service.WearListenState
 import com.sza.fastmediasorter.service.WearSyncEvents
+import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockStyleProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -160,6 +162,11 @@ class WearSyncViewModel @Inject constructor(
     private val wearFileTransferRepository: WearFileTransferRepository,
     private val wearSettingsMirrorStore: SharedPreferencesWearSettingsMirrorStore,
     private val observeUnitSystemUseCase: ObserveUnitSystemUseCase,
+    // S3330: the phone's own dim-clock overlay toggle, so the companion window's `payload()` builder
+    // can send the real value instead of the dead `settings`/`dimClockStyleProvider` parameters it
+    // used to default to null.
+    private val observeDimClockOverlayEnabledUseCase: ObserveDimClockOverlayEnabledUseCase,
+    private val dimClockStyleProvider: DimClockStyleProvider,
     // S2881: the session itself lives in the process, not here - this screen is one of its readers.
     private val watchListenSessionManager: WatchListenSessionManager,
     // S2515 (ADR-4): mirror writes outlive this ViewModel on purpose - see rememberSettings.
@@ -172,6 +179,21 @@ class WearSyncViewModel @Inject constructor(
      */
     val unitSystem: StateFlow<UnitSystem> = observeUnitSystemUseCase()
         .stateIn(viewModelScope, SharingStarted.Eagerly, UnitSystem.DEFAULT)
+
+    /**
+     * S3330: the phone's own dim-clock overlay toggle, live, so the companion window's `payload()`
+     * builder can send it - the field is `BOTH` in the registry, so this ride is required, unlike
+     * [unitSystem]'s one-way `PHONE_ONLY` trip.
+     */
+    val dimClockOverlayEnabled: StateFlow<Boolean> = observeDimClockOverlayEnabledUseCase()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    /**
+     * S3330: the seconds-cadence half of the same pair. Read on demand rather than observed - the
+     * provider has no change notification, and the value is one-way (`PHONE_ONLY`), the same shape
+     * `unitSystem` already has.
+     */
+    val dimClockSecondsVisible: Boolean get() = dimClockStyleProvider.secondsVisible
 
     // S1885: seeded Unknown so the settings row starts neutral instead of claiming a watch is
     // absent before the bridge has been asked.

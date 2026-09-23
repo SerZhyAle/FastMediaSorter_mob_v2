@@ -241,7 +241,7 @@ param(
     # the mistake S1831 recorded for the preview sheet. Until this parameter existed the logo sheet was
     # measured against nothing at all - Assert-AtlasBudget has one call site and it guards the favicon
     # atlas - so a sheet of any size reached publication unopposed. No external consumer declares a pin
-    # or a ceiling for this asset (docs/STREAM_CATALOG_CONSUMERS.md, S1828), so the number is ours to
+    # or a ceiling for this asset (stream-catalog/CONSUMERS.md, S1828), so the number is ours to
     # pick: 48 MiB sits well above the 16.0 MB measured for today's 4148 tiles and above the ~28.6 MB
     # the format ceiling's 7080 tiles would cost, making it a regression alarm, not a brake on growth.
     [int]$MaxLogoAtlasBytes = 50331648,

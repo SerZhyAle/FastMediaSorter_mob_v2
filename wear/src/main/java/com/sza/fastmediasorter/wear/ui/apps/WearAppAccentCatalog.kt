@@ -17,6 +17,11 @@ import com.sza.fastmediasorter.wear.domain.model.WearAppId
  * it shows, and one canonicalKey is known to diverge from the phone's route key (S2579), which must
  * not be able to reach the colour.
  *
+ * S3434: the watch-only tones (pink, cyan, brown, emerald, slate, scarlet) are kept as declared product
+ * tones, not drift from a shared palette. ICON-RENDER 0.10 section 10 item D shares only the category,
+ * source and state hues; `accent` and every program tone belong to the product, and folding these back
+ * into the phone's eight would repeat a tone on one watch screen.
+ *
  * Exhaustive with no else branch on purpose: a sixth watch program must fail compilation here rather
  * than silently inherit a default colour.
  */

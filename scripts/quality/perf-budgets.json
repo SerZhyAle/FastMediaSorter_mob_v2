@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "staleAfterDays": 90,
+  "budgets": [
+    {
+      "metric": "wear-cold-start",
+      "unit": "ms",
+      "budget": 4503,
+      "tolerancePercent": 10,
+      "direction": "lower-is-better",
+      "what": "Wear OS cold start: process fork to the first composed frame of the watch home screen.",
+      "producer": "scripts/utils/wear-cold-start-measure.ps1 -Runs 5",
+      "source": {
+        "ticket": "S3368",
+        "measuredOn": "2026-09-22",
+        "value": 4503,
+        "note": "4503 ms measured on the watch at the S3368 pre-handoff run, against the 5292 ms pre-S3368 baseline. The budget is the achieved number, not the old one: a budget set at the number already beaten is the only kind that can detect the regression back to it."
+      }
+    }
+  ]
+}

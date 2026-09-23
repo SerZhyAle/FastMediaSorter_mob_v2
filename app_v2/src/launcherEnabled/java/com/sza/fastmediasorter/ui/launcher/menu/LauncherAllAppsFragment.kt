@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.model.launcher.LauncherAllAppsPreviewGeometry
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAllAppsGestureManager
@@ -39,7 +40,6 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -163,6 +163,13 @@ class LauncherAllAppsFragment : DialogFragment() {
             renderGroups()
             applyEmptyState(apps.isEmpty())
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // The grid and the search field consume keys themselves; the delegate adds the Escape route
+        // that closes the overlay, matching what Back already does.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
     override fun onDestroyView() {

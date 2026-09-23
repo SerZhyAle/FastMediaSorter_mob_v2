@@ -31,4 +31,5 @@
     <string name="translation_source_language_and_ocr">মূল ভাষা এবং ওসিআর</string>
     <string name="translation_started">অনুবাদ শুরু হয়েছে।</string>
     <string name="translation_target_language">অনুবাদ করুন</string>
+    <string name="ocr_language_assumed_unreadable">লেখাটি এমন একটি লিপিতে যার জন্য শনাক্তকারী সেট আপ করা হয়নি, তাই ছবির উপর কোনো অনুবাদ দেখানো হয়নি। অনুবাদ সেটিংসে মূল ভাষা বেছে নিন।</string>
 </resources>

@@ -1,8 +1,8 @@
 # Activity Catalog - app_v2
 
-*Generated: 2026-09-10 07:11*
+*Generated: 2026-09-21 23:07*
 
-**60 Activities · 16 with role · 1 launcher**
+**66 Activities · 17 with role · 1 launcher**
 
 | Class | Launcher | Exported | Flavors | Tags | Role (EN) | Role (RU) |
 |-------|:--------:|:--------:|---------|------|-----------|-----------|
@@ -12,6 +12,8 @@
 | AudioStandaloneActivity |  |  | –vr |  |  |  |
 | AuthSessionsActivity |  |  | –vr | auth, sessions, cloud, settings, google-drive, dropbox, onedrive | Saved cloud authentication sessions management screen | Управление сохранёнными сессиями авторизации в облаке |
 | BlackScreenActivity |  |  | –vr |  |  |  |
+| BroadcastControlActivity |  |  | –vr |  |  |  |
+| BroadcastEntryActivity |  |  | –vr |  |  |  |
 | BroadcastShareActivity |  |  | –vr |  |  |  |
 | BrowseActivity |  | ✓ | –vr | browse, files, sort, filter, select | File browser for a single resource; handles sorting, filtering, selection | Браузер файлов одного источника; сортировка, фильтр, выделение |
 | CalculatorActivity |  |  | –vr |  |  |  |
@@ -51,17 +53,21 @@
 | ResourceEditorActivity |  |  | –vr | edit, resource, settings, credentials | Edit settings of an existing resource (name, type, credentials, display options) | Редактирование настроек существующего источника |
 | ResourceImportActivity |  | ✓ | –vr |  |  |  |
 | ResourceLaunchWidgetConfigActivity |  | ✓ | –vr | widget, config, launcher, homescreen | Configuration activity for the Resource Launch home-screen widget | Настройка виджета быстрого запуска источника на рабочем столе |
+| ScheduledOperationsActivity |  |  | –vr | scheduled, programs, widget, registry | Standalone scheduled-operations program screen (S3365): master toggle, operations list, create/edit dialog, group run controls, run history. Not exported; reached from the programs menu, quick-access panel, widget PendingIntents, launcher picker, Browse create action and the settings link row | Отдельный экран программы запланированных операций: мастер-тумблер, список операций, диалог создания и редактирования, групповые запуски, история запусков |
 | ScreenRecordingLaunchActivity |  |  | –vr |  |  |  |
 | SettingsActivity |  | ✓ | –vr | settings, preferences, config | App settings host; delegates to preference fragments | Настройки приложения; контейнер для фрагментов настроек |
+| SosActivity |  |  | –vr |  |  |  |
 | StandalonePlayerActivity |  | ✓ | –vr | player, external, intent, view, fullscreen, pip, standalone | Exported player for external intents (VIEW from file managers); supports PiP | Внешний плеер для интентов из файловых менеджеров; поддерживает PiP |
 | StandalonePlayerDispatcherActivity |  |  | –vr |  |  |  |
 | StatisticsActivity |  |  | –vr |  |  |  |
 | StopwatchActivity |  |  | –vr |  |  |  |
 | StreamLaunchWidgetConfigActivity |  | ✓ | –vr |  |  |  |
 | StreamPlayLaunchActivity |  |  | –vr |  |  |  |
-| StreamsActivity |  |  | –vr |  |  |  |
+| StreamsActivity |  | ✓ | –vr |  |  |  |
 | SystemInfoActivity |  |  | –vr |  |  |  |
 | TextStandaloneActivity |  |  | –vr |  |  |  |
+| TouristInfoActivity |  |  | –vr |  |  |  |
+| WatchListenLaunchActivity |  |  | –vr |  |  |  |
 | WaterFlashlightActivity |  |  | –vr |  |  |  |
 | WearCompanionActivity |  |  | –vr |  |  |  |
 | WearResourceSelectionActivity |  |  | –vr |  |  |  |

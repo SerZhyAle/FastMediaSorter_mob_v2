@@ -199,15 +199,10 @@ class LauncherHomeViewModel @Inject constructor(
         .distinctUntilChanged()
 
     /**
-     * S1431 ADR-4: how many recent icons the taskbar row can actually show, reported by the row itself once
-     * it has a width. Seeded at [RECENTS_LIMIT], which is also the floor - a measured row is allowed to ask
-     * for more than the six the list showed before this ticket, never for fewer.
+     * S3412: recents are scrollable across full history (up to [MAX_RECENTS_LIMIT]), sorted by launch
+     * frequency with recency tie-break.
      */
-    private val _recentsCapacity = MutableStateFlow(RECENTS_LIMIT)
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val recentIcons: Flow<List<LauncherTaskbarIcon>> = _recentsCapacity
-        .flatMapLatest { taskbarDependencies.queryRecentCommands(it) }
+    val recentIcons: Flow<List<LauncherTaskbarIcon>> = taskbarDependencies.queryRecentCommands(MAX_RECENTS_LIMIT)
         .map { entries ->
             entries.map { entry ->
                 LauncherTaskbarIcon(
@@ -1082,20 +1077,9 @@ class LauncherHomeViewModel @Inject constructor(
         get() = { shortcutDependencies.pickContactShortcut.installedMessengers() }
 
     /**
-     * S1431 ADR-4: the recents row's own measurement of how many icons it fits, written by the row after
-     * layout. Floored at [RECENTS_LIMIT] on write, so a narrow row scrolls through the same six as before
-     * rather than losing entries, and raised above it when the tray leaves the bar or the device turns
-     * landscape.
-     *
-     * A property rather than a setter function on purpose: this class sits exactly at detekt's
-     * `TooManyFunctions` ceiling of 40, and one more named function would trip it. The decomposition that
-     * would earn the 41st is a ticket of its own, not a side effect of adding one measurement input.
+     * S1431 ADR-4 / S3412: legacy recents capacity property retained for callback compatibility.
      */
-    var recentsCapacity: Int
-        get() = _recentsCapacity.value
-        set(value) {
-            _recentsCapacity.value = value.coerceAtLeast(RECENTS_LIMIT)
-        }
+    var recentsCapacity: Int = RECENTS_LIMIT
 
     /**
      * S2060: the add-flow's chosen target square, durable across process death via [SavedStateHandle].
@@ -1241,6 +1225,9 @@ class LauncherHomeViewModel @Inject constructor(
 
         /** As many recents as fit a phone taskbar beside the Start button and the tray. */
         const val RECENTS_LIMIT = 6
+
+        /** S3412: maximum recent commands loaded for the scrollable taskbar recents strip. */
+        const val MAX_RECENTS_LIMIT = 50
 
         const val KEY_PENDING_ROW = "launcher_pending_row"
         const val KEY_PENDING_COL = "launcher_pending_col"

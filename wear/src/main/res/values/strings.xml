@@ -45,11 +45,9 @@
     <string name="password">Password</string>
     <string name="test_connection">Test</string>
     <string name="save">Save</string>
-    <string name="smb_sources">SMB Shares</string>
     <string name="done">Done</string>
 
     <!-- Sync from Phone strings -->
-    <string name="wear_no_sources">No network sources.\nSync from phone or add manually.</string>
     <string name="wear_sync_from_phone">Sync from Phone</string>
     <string name="wear_sync_receiving">Receiving data..</string>
     <string name="wear_sync_receiving_from">Receiving from %s..</string>
@@ -59,17 +57,16 @@
 
     <!-- Export to Phone strings (S0111 Phase 03) -->
     <string name="wear_export_to_phone">Send to phone</string>
-    <string name="wear_export_success">Sources sent</string>
+    <string name="wear_export_success">Resources sent</string>
 
     <!-- Phase 2: Source CRUD -->
-    <string name="delete_source">Delete Source</string>
     <string name="delete_source_confirm">Delete \u201c%s\u201d?</string>
     <string name="protocol">Protocol</string>
     <string name="port">Port</string>
     <string name="domain">Domain</string>
     <string name="use_ssh_key">Use SSH Key</string>
     <string name="ssh_private_key">Private Key</string>
-    <string name="add_network_source">Add Source</string>
+    <string name="add_network_source">Add resource</string>
     <string name="ftp_connection">FTP</string>
     <string name="sftp_connection">SFTP</string>
     <string name="connection_test_not_supported">Test not available for this protocol</string>
@@ -133,12 +130,12 @@
     <string name="wear_view_mode_grid3">Grid 3</string>
     <string name="wear_keep_screen_awake">Keep screen on</string>
     <string name="wear_section_last_used">Last used</string>
-    <string name="wear_section_favourites">Favourites</string>
+    <string name="wear_section_favourites">Favorites</string>
     <string name="wear_section_resources">Resources</string>
     <string name="wear_section_phone">Phone</string>
     <string name="wear_section_local">Local</string>
     <string name="wear_section_streams">Streams</string>
-    <string name="wear_section_apps">Apps</string>
+    <string name="wear_section_apps">Programs</string>
     <string name="wear_coming_soon">Coming soon</string>
     <string name="wear_phone_video">Video</string>
     <string name="wear_phone_audio">Audio</string>
@@ -147,7 +144,7 @@
     <string name="screen_settings_title">Screen</string>
     <string name="screen_settings_view_mode">Screens view</string>
     <string name="wear_streams_section_enabled">Streams</string>
-    <string name="wear_resources_empty_hint">Nothing has arrived from the phone yet. On the phone open Wear-companion and pick the resources to send here.</string>
+    <string name="wear_resources_empty_hint">Nothing has arrived from the phone yet. On the phone open Wear Companion and pick the resources to send here.</string>
     <string name="screen_settings_keep_awake">Keep screen on</string>
     <string name="about_send_logs">Send logs to developer</string>
     <string name="about_send_logs_sending">Sending..</string>
@@ -220,7 +217,7 @@
     <string name="phone_resource_open_unsupported">The watch has no player for this kind of file.</string>
     <string name="phone_resource_opening">Getting the file from your phone..</string>
     <string name="wear_favourites_empty">Nothing marked yet. Tap the heart while playing a file.</string>
-    <string name="wear_favourites_unmark">Remove from favourites</string>
+    <string name="wear_favourites_unmark">Remove from favorites</string>
     <string name="wear_favourites_unopenable">This one was saved before the watch started remembering how to open it.</string>
     <string name="phone_resource_source_unavailable">This resource is not responding. The phone is connected - check the resource, then retry.</string>
     <string name="wear_phone_recents">Recents</string>
@@ -299,8 +296,8 @@
     <string name="wear_streams_filter_topic_header">Topic</string>
     <string name="wear_streams_filter_language_header">Language</string>
     <string name="wear_close_app">Close app</string>
-    <string name="wear_player_favorite_add">Add to favourites</string>
-    <string name="wear_player_favorite_remove">Remove from favourites</string>
+    <string name="wear_player_favorite_add">Add to favorites</string>
+    <string name="wear_player_favorite_remove">Remove from favorites</string>
     <string name="wear_voice_recorder_channel_name">Voice recording</string>
     <string name="wear_voice_recorder_notification_title">Recording a voice note</string>
     <string name="wear_voice_note_app">Voice recorder</string>
@@ -352,7 +349,7 @@
     <string name="wear_file_op_outcome_too_large">Too large to send</string>
     <string name="wear_file_op_outcome_phone_unreachable">Phone did not answer - keep it nearby and try again</string>
     <string name="wear_file_op_outcome_failed">Did not work - try again</string>
-    <string name="wear_file_op_outcome_cancelled">Cancelled</string>
+    <string name="wear_file_op_outcome_cancelled">Canceled</string>
     <string name="wear_file_op_renamed_to">Saved as %1$s</string>
     <string name="wear_media_types_all_disabled">All content types are off in settings. Turn one on to see media here.</string>
     <string name="wear_file_actions_for">Actions for %1$s</string>
@@ -370,8 +367,8 @@
     <string name="wear_unsupported_file_title">Cannot open here</string>
     <string name="wear_complication_last_resource_label">Last Resource</string>
     <string name="wear_complication_last_resource_description">Shortcut to open the most recently used media resource</string>
-    <string name="wear_complication_favourites_label">Favourites</string>
-    <string name="wear_complication_favourites_description">Shows favourites count and opens favourites list</string>
+    <string name="wear_complication_favourites_label">Favorites</string>
+    <string name="wear_complication_favourites_description">Shows favorites count and opens favorites list</string>
     <string name="wear_complication_now_playing_label">Now Playing</string>
     <string name="wear_complication_now_playing_description">Shows currently playing or last played track</string>
     <string name="wear_phone_all">All</string>
@@ -588,7 +585,7 @@
     <string name="wear_power_saving_below">Below %1$d%%</string>
     <string name="wear_power_saving_increase">Raise the threshold</string>
     <string name="wear_power_saving_decrease">Lower the threshold</string>
-    <string name="wear_setting_color_scheme">Colour scheme</string>
+    <string name="wear_setting_color_scheme">Color scheme</string>
     <string name="wear_color_scheme_dark">Dark</string>
     <string name="wear_color_scheme_light">Light</string>
     <string name="wear_color_scheme_dark_green">Dark green</string>
@@ -598,7 +595,6 @@
     <string name="wear_color_scheme_light_blue">Light blue</string>
     <string name="wear_color_scheme_light_red">Light red</string>
     <string name="wear_water_flashlight_app">Water flashlight</string>
-    <string name="wear_water_flashlight_locked_hint">Locked. Use the buttons</string>
     <string name="system_info_section_environment">Environment</string>
     <string name="system_info_environment_light">Light</string>
     <string name="system_info_environment_pressure">Pressure</string>
@@ -719,7 +715,7 @@
     <string name="wear_phone_camera_failed_expired">Nobody answered on the phone</string>
     <string name="wear_phone_camera_failed_capture">The phone could not open its camera</string>
     <string name="wear_phone_camera_failed_busy">The phone is already streaming</string>
-    <string name="wear_phone_camera_failed_not_supported">This phone build cannot send video</string>
+    <string name="wear_phone_camera_failed_not_supported">The phone app\'s edition cannot send video</string>
     <string name="wear_phone_camera_failed_unknown">The phone refused, without saying why</string>
     <string name="wear_tile_shortcut_more">More</string>
     <string name="wear_streams_filter_collections_header">Collections</string>
@@ -931,10 +927,40 @@
     <string name="wear_onboarding_slogan">Your media companion on the wrist</string>
     <string name="wear_onboarding_skip_all">Skip all</string>
     <string name="wear_onboarding_page_indicator">Step %1$d of %2$d</string>
-    <string name="wear_battery_optimization_title">Battery saving may stop the broadcast</string>
-    <string name="wear_battery_optimization_desc">Let the app keep working in the background so the sound does not cut out.</string>
-    <string name="wear_battery_optimization_grant">Allow background work</string>
     <string name="dim_clock_overlay_toggle">Show clock and status while dimmed</string>
     <string name="dim_clock_status_cd">Clock and status on the dimmed screen</string>
     <string name="ok">OK</string>
+    <string name="wear_file_op_copy_to_watch">Copy to watch</string>
+    <string name="wear_file_op_move_to_watch">Move to watch</string>
+    <string name="wear_file_op_outcome_no_space">Not enough space on the watch - free some up and try again</string>
+    <string name="wear_file_op_outcome_copied_source_kept">Copied to the watch - the original stayed where it was</string>
+    <string name="wear_filedo_op_encrypt">Encrypt FileDO</string>
+    <string name="wear_filedo_op_decrypt">Decrypt FileDO</string>
+    <string name="wear_settings_filedo_operations">FileDO encryption</string>
+    <string name="wear_filedo_title_encrypt">Encrypt</string>
+    <string name="wear_filedo_title_decrypt">Decrypt</string>
+    <string name="wear_filedo_title_open">Open the container</string>
+    <string name="wear_filedo_password_hint">Password</string>
+    <string name="wear_filedo_password_repeat_hint">Repeat the password</string>
+    <string name="wear_filedo_password_mismatch">The two entries differ</string>
+    <string name="wear_filedo_empty_warning">An empty password protects nothing. Anyone who gets the file opens it.</string>
+    <string name="wear_filedo_working">Working..</string>
+    <string name="wear_filedo_result_packed">Encrypted. The original is still here.</string>
+    <string name="wear_filedo_result_restored">Decrypted.</string>
+    <string name="wear_filedo_result_wrong">Wrong password, not a container, or the file was altered.</string>
+    <string name="wear_filedo_result_damaged">The file is damaged.</string>
+    <string name="wear_filedo_result_unsupported">This app does not read this container.</string>
+    <string name="wear_filedo_result_memory">Not enough memory on this watch for this container.</string>
+    <string name="wear_filedo_result_failed">Could not finish.</string>
+    <string name="wear_filedo_result_not_viewable">The watch does not open this kind of file.</string>
+    <string name="wear_filedo_remember">Remember password</string>
+    <string name="wear_filedo_remembered_forgotten">The saved password did not fit and was forgotten. Enter the password.</string>
+    <string name="wear_water_flashlight_exit_hint">Locked. Swipe back 3 times fast to exit</string>
+    <string name="wear_complication_last_resource_a11y">Last resource: %1$s</string>
+    <string name="wear_complication_now_playing_a11y">Playing: %1$s</string>
+    <string name="wear_complication_last_played_a11y">Last played: %1$s</string>
+    <plurals name="wear_complication_favorites_count">
+        <item quantity="one">%d favorite</item>
+        <item quantity="other">%d favorites</item>
+    </plurals>
 </resources>

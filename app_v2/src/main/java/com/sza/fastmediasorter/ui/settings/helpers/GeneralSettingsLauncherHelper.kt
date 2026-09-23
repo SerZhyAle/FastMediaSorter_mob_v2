@@ -22,7 +22,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * S1088: owns the System-launcher entry in General -> Interface.
- * S3024: Consolidated primary window choice (Home screen, Desktop in-app, Resource Manager)
+ * S3024: Consolidated primary window choice (Home screen, Desktop in-app, Main screen)
  * backed by [LauncherPrimaryWindowManager] plus the button that opens [LauncherSettingsDialogFragment]
  * for the launcher's own settings. Hidden when the build has no launcher surface
  * ([LauncherModeContract.isAvailableInBuild]).

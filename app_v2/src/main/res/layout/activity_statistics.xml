@@ -18,17 +18,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.google.android.material.appbar.MaterialToolbar
+        <com.sza.fastmediasorter.ui.common.widget.StandardToolbar
             android:id="@+id/toolbar"
+            style="@style/Widget.FastMediaSorter.Toolbar.Primary"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/toolbar_elevation"
             android:nextFocusDown="@id/rvStatistics"
             app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="?attr/colorOnPrimary"
-            app:title="@string/statistics_title"
-            app:titleTextColor="?attr/colorOnPrimary" />
+            app:title="@string/statistics_title" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -53,7 +50,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/colorSurface"
-            android:elevation="@dimen/toolbar_elevation"
+            android:elevation="@dimen/dimension_zero"
             android:gravity="end"
             android:orientation="horizontal"
             android:paddingStart="@dimen/margin_large"

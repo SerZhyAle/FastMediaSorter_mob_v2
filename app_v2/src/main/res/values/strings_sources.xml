@@ -3,7 +3,7 @@
     <string name="smb_add_manual_resource">Add This Resource</string>
     <string name="smb_add_manually">Add Manually</string>
     <string name="smb_auto_reset_notification">SMB connections reset automatically</string>
-    <string name="smb_credentials">Network Folder (SMB)</string>
+    <string name="smb_credentials">Network folder (SMB)</string>
     <string name="smb_domain">Domain (optional)</string>
     <string name="smb_domain_hint">Leave empty if not needed</string>
     <string name="smb_enter_share_manually">+ Enter share name manually..</string>
@@ -60,7 +60,7 @@
     <string name="cloud_list_files_failed">Couldn\'t load files from the cloud. Try again.</string>
     <string name="cloud_list_folders_failed">Couldn\'t load folders from the cloud. Try again.</string>
     <string name="cloud_metadata_failed">Couldn\'t load file details from the cloud. Try again.</string>
-    <string name="cloud_restore_instructions">Google Drive connection needs to be restored.\n\nPlease:\n1. Go to Main Menu\n2. Open \'Resources\'\n3. Tap on \"%1$s\"\n4. Sign in with your Google account</string>
+    <string name="cloud_restore_instructions">Google Drive connection needs to be restored.\n\nPlease:\n1. Open the main screen\n2. Tap \"%1$s\"\n3. Sign in with your Google account</string>
     <string name="cloud_search_failed">Couldn\'t search the cloud storage. Try again.</string>
     <string name="cloud_sign_out_failed">Couldn\'t sign out of the cloud account. Try again.</string>
     <string name="cloud_storage">Cloud Storage</string>
@@ -73,7 +73,7 @@
     <string name="dropbox_authentication_failed">Dropbox authentication failed</string>
     <string name="dropbox_beta_email_body">Hello,\n\nPlease add my Dropbox account to the FastMediaSorter beta tester list.\n\nMy Dropbox email: </string>
     <string name="dropbox_beta_email_subject">FastMediaSorter - Dropbox Beta Access Request</string>
-    <string name="dropbox_beta_message">Dropbox integration is currently in limited beta.\n\n⚠️ Why do I need to contact you?\nDropbox requires app developers to manually register testers during the review period. This is a one-time technical formality on Dropbox\u2019s side \u2014 your email is only used to add your Dropbox account to the allowed list.\n\n🔒 Your privacy is fully respected:\n\u2022 We do NOT collect, store, or share your email\n\u2022 We do NOT access any of your files or data\n\u2022 Your email is used solely to grant you Dropbox access in this app\n\nTo get access, email us:\nserzhyale@gmail.com</string>
+    <string name="dropbox_beta_message">Dropbox integration is currently in limited beta.\n\n⚠️ Why do I need to contact you?\nDropbox requires app developers to manually register testers during the review period. This is a one-time technical formality on Dropbox\u2019s side \u2014 your email is only used to add your Dropbox account to the allowed list.\n\n🔒 Your privacy is fully respected:\n\u2022 We do NOT collect, store, or share your email\n\u2022 We do NOT access any of your files or data\n\u2022 Your email is used solely to grant you Dropbox access in this app\n\nTo get access, email us:\nsza@ukr.net</string>
     <string name="dropbox_beta_send_email">Send Email</string>
     <string name="dropbox_beta_title">Dropbox Beta Access</string>
     <string name="dropbox_connection_test_failed">Connection failed: %1$s</string>

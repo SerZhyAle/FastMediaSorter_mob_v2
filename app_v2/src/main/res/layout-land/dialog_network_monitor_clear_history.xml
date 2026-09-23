@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Landscape variant of res/layout/dialog_network_monitor_clear_history.xml (S1433 content, S3254
+  added this counterpart): same structure and ids. Carries the portrait D-pad chain between the
+  cancel button and the destructive clear button (nextFocusRight/nextFocusLeft) so rotation does not
+  strand the focus (docs/ui/PHONE_UI_COMPONENT_PATTERNS.md 5.3).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/dialog_padding_large">
+
+    <TextView
+        android:id="@+id/tvDialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="@dimen/margin_large"
+        android:text="@string/network_monitor_history_clear_title"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+
+    <TextView
+        android:id="@+id/tvMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="@dimen/dialog_padding_large"
+        android:text="@string/network_monitor_history_clear_message"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusRight="@+id/btnClearHistory"
+            android:text="@string/cancel" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClearHistory"
+            style="@style/Widget.FastMediaSorter.Button.DialogDestructive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_action_button_gap"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusLeft="@+id/btnCancel"
+            android:text="@string/network_monitor_history_clear_confirm" />
+    </LinearLayout>
+</LinearLayout>

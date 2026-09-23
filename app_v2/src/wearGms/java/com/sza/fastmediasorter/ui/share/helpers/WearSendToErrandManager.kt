@@ -41,18 +41,25 @@ class WearSendToErrandManager @Inject constructor(
      * shown one message either way and the log already carries which of them it was.
      */
     suspend fun run(activity: Activity, savedPath: String, receiverId: String): Boolean {
+        val handler = supportedHandler(activity, receiverId)
+        val content = handler?.let { contentFor(savedPath) }
+        return handler != null && content != null && runHandler(activity, handler, content, receiverId)
+    }
+
+    private fun supportedHandler(activity: Activity, receiverId: String): ShareTargetHandler? {
         val target = registry.all().firstOrNull { it.id == receiverId }
         val handler = handlers[receiverId]
-        if (target == null || handler == null) {
-            Timber.w("Send to from watch: this build declares no receiver %s", receiverId)
-            return false
+        return when {
+            target == null || handler == null -> {
+                Timber.w("Send to from watch: this build declares no receiver %s", receiverId)
+                null
+            }
+            !handler.isSupportedBy(activity) -> {
+                Timber.w("Send to from watch: %s is not supported by this host", receiverId)
+                null
+            }
+            else -> handler
         }
-        if (!handler.isSupportedBy(activity)) {
-            Timber.w("Send to from watch: %s is not supported by this host", receiverId)
-            return false
-        }
-        val content = contentFor(savedPath) ?: return false
-        return runHandler(activity, handler, content, receiverId)
     }
 
     @Suppress("TooGenericExceptionCaught")
@@ -86,19 +93,20 @@ class WearSendToErrandManager @Inject constructor(
             Timber.w("Send to from watch: %s is gone", file.name)
             return null
         }
-        val uri = runCatching {
+        return runCatching {
             FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         }.onFailure {
             Timber.w(it, "Send to from watch: %s is outside every shared provider path", file.name)
-        }.getOrNull() ?: return null
-        // A name this phone cannot classify still has bytes and a receiver waiting for them, so it
-        // travels as an unclassified binary rather than being refused for a missing category.
-        val mediaType = MediaTypeUtils.getMediaType(file.name) ?: MediaType.BINARY_OTHER
-        return ShareableContent(
-            uris = listOf(uri),
-            mime = ShareableContent.mimeForMediaType(file.name, mediaType),
-            mediaType = mediaType,
-            displayName = file.name
-        )
+        }.getOrNull()?.let { uri ->
+            // A name this phone cannot classify still has bytes and a receiver waiting for them, so it
+            // travels as an unclassified binary rather than being refused for a missing category.
+            val mediaType = MediaTypeUtils.getMediaType(file.name) ?: MediaType.BINARY_OTHER
+            ShareableContent(
+                uris = listOf(uri),
+                mime = ShareableContent.mimeForMediaType(file.name, mediaType),
+                mediaType = mediaType,
+                displayName = file.name
+            )
+        }
     }
 }

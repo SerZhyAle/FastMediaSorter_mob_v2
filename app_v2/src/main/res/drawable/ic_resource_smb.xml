@@ -2,27 +2,12 @@
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
-    android:viewportHeight="24">
-    <!-- Folder body with tab -->
+    android:viewportHeight="24"
+    android:tint="@color/color_source_smb">
+    <!-- S3433: one paint - the network mark (three nodes and their links) is cut out of the folder
+         with evenOdd instead of painted white over it, so the glyph stays one drawing in every look. -->
     <path
-        android:fillColor="#2196F3"
-        android:pathData="M10,4H4C2.9,4 2,4.9 2,6L2,18C2,19.1 2.9,20 4,20H20C21.1,20 22,19.1 22,18V8C22,6.9 21.1,6 20,6H12L10,4Z" />
-    <!-- Network connector lines between three nodes -->
-    <path
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.5"
-        android:pathData="M9,16 L13.5,12 M13.5,12 L18,16" />
-    <!-- Left node -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M9,16 m-2,0 a2,2 0,1,0 4,0 a2,2 0,1,0 -4,0" />
-    <!-- Center top node -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M13.5,12 m-2,0 a2,2 0,1,0 4,0 a2,2 0,1,0 -4,0" />
-    <!-- Right node -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M18,16 m-2,0 a2,2 0,1,0 4,0 a2,2 0,1,0 -4,0" />
+        android:fillColor="@android:color/white"
+        android:fillType="evenOdd"
+        android:pathData="M10,4H4C2.9,4 2,4.9 2,6L2,18C2,19.1 2.9,20 4,20H20C21.1,20 22,19.1 22,18V8C22,6.9 21.1,6 20,6H12L10,4ZM7,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM11.5,12a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM16,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM10.993,15.232L12.503,13.889L11.507,12.768L9.997,14.111ZM14.497,13.889L16.007,15.232L17.003,14.111L15.493,12.768Z" />
 </vector>

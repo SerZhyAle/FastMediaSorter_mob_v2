@@ -6,13 +6,13 @@
     android:layout_height="match_parent">
 
     <!-- Toolbar container: Title on first row, tabs on second row (portrait) -->
-    <LinearLayout android:id="@+id/toolbarContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:layout_constraintTop_toTopOf="parent">
+    <LinearLayout android:id="@+id/toolbarContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="?attr/colorPrimary" android:elevation="@dimen/dimension_zero" app:layout_constraintTop_toTopOf="parent">
 
         <!-- Title row with back button and settings text -->
-        <LinearLayout android:id="@+id/titleRow" android:layout_width="match_parent" android:layout_height="34dp" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:orientation="horizontal" android:gravity="center_vertical">
+        <LinearLayout android:id="@+id/titleRow" android:layout_width="match_parent" android:layout_height="34dp" android:background="?attr/colorPrimary" android:elevation="@dimen/dimension_zero" android:orientation="horizontal" android:gravity="center_vertical">
 
             <!-- Back button -->
-            <ImageButton android:id="@+id/backButton" android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_arrow_back" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:contentDescription="@string/back" app:tint="?attr/colorOnPrimary" />
+            <ImageButton android:id="@+id/backButton" android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_arrow_back" android:background="?attr/colorPrimary" android:elevation="@dimen/dimension_zero" android:contentDescription="@string/back" app:tint="?attr/colorOnPrimary" />
 
             <!-- Settings title -->
             <TextView android:id="@+id/titleText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings" android:textColor="?attr/colorOnPrimary" android:textSize="@dimen/activity_player_btnInfo_textSize" android:textStyle="bold" tools:ignore="SpUsage" />
@@ -24,7 +24,7 @@
         </LinearLayout>
 
         <!-- Tabs row -->
-        <com.google.android.material.tabs.TabLayout android:id="@+id/tabLayout" android:layout_width="match_parent" android:layout_height="@dimen/settings_tabs_height" android:background="@android:color/transparent" android:elevation="@dimen/toolbar_elevation" app:tabTextAppearance="@style/TextAppearance.FastMediaSorter.SettingsTabConnected" app:tabTextColor="@color/settings_tab_text" app:tabSelectedTextColor="?attr/colorOnSurface" app:tabIndicatorHeight="0dp" app:tabIndicatorFullWidth="false" app:tabMode="fixed" app:tabGravity="fill" app:tabMinWidth="0dp" app:tabPaddingStart="0dp" app:tabPaddingEnd="0dp">
+        <com.google.android.material.tabs.TabLayout android:id="@+id/tabLayout" android:layout_width="match_parent" android:layout_height="@dimen/settings_tabs_height" android:background="@android:color/transparent" android:elevation="@dimen/dimension_zero" app:tabTextAppearance="@style/TextAppearance.FastMediaSorter.SettingsTabConnected" app:tabTextColor="@color/settings_tab_text" app:tabSelectedTextColor="?attr/colorOnSurface" app:tabIndicatorHeight="0dp" app:tabIndicatorFullWidth="false" app:tabMode="fixed" app:tabGravity="fill" app:tabMinWidth="0dp" app:tabPaddingStart="0dp" app:tabPaddingEnd="0dp">
 
             <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_tab_general" />
 

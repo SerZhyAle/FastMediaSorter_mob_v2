@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.databinding.ViewStartupBrandFrameBinding
 import com.sza.fastmediasorter.domain.model.UnitScale
 import com.sza.fastmediasorter.domain.model.UnitSystem
 import dagger.hilt.android.EntryPointAccessors
-import timber.log.Timber
 
 /**
  * S2556: the phone's startup brand frame - the logo, the wordmark and the current time with

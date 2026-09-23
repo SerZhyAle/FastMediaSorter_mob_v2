@@ -61,7 +61,7 @@
     <string name="cloud_list_files_failed">Die Dateien konnten nicht aus der Cloud geladen werden. Bitte versuchen Sie es erneut.</string>
     <string name="cloud_list_folders_failed">Ordner konnten nicht aus der Cloud geladen werden. Bitte versuchen Sie es erneut.</string>
     <string name="cloud_metadata_failed">Die Dateidetails konnten nicht aus der Cloud geladen werden. Bitte versuchen Sie es erneut.</string>
-    <string name="cloud_restore_instructions">Die Google Drive-Verbindung muss wiederhergestellt werden.\n\nBitte:\n1. Gehen Sie zum Hauptmenü\n2. Öffnen Sie „Ressourcen“\n3. Tippen Sie auf „%1$s“\n4. Melden Sie sich mit Ihrem Google-Konto an</string>
+    <string name="cloud_restore_instructions">Die Google Drive-Verbindung muss wiederhergestellt werden.\n\nBitte:\n1. Hauptbildschirm öffnen\n2. Auf \"%1$s\" tippen\n3. Mit Ihrem Google-Konto anmelden</string>
     <string name="cloud_search_failed">Die Suche im Cloud-Speicher ist fehlgeschlagen. Bitte versuchen Sie es erneut.</string>
     <string name="cloud_sign_out_failed">Die Abmeldung vom Cloud-Konto ist fehlgeschlagen. Bitte versuchen Sie es erneut.</string>
     <string name="cloud_storage">Cloud-Speicher</string>
@@ -74,7 +74,7 @@
     <string name="dropbox_authentication_failed">Dropbox-Authentifizierung fehlgeschlagen</string>
     <string name="dropbox_beta_email_body">Hallo,\n\nBitte fügen Sie mein Dropbox-Konto der FastMediaSorter-Beta-Testerliste hinzu.\n\nMeine Dropbox-E-Mail-Adresse:</string>
     <string name="dropbox_beta_email_subject">FastMediaSorter - Dropbox-Beta-Zugriffsanfrage</string>
-    <string name="dropbox_beta_message">Dropbox-Integration befindet sich derzeit in einer eingeschränkten Beta.\n\n⚠️ Warum muss ich euch kontaktieren?\nDropbox verlangt von App-Entwicklern, Tester während der Überprüfungsphase manuell zu registrieren. Dies ist eine einmalige technische Formalität auf Dropbox\u2019s Seite \u2014 deine E-Mail-Adresse wird nur verwendet, um dein Dropbox-Konto zur erlaubten Liste hinzuzufügen.\n\n🔒 Deine Privatsphäre wird vollständig respektiert:\n\u2022 Wir sammeln, speichern oder teilen deine E-Mail-Adresse NICHT\n\u2022 Wir greifen NICHT auf deine Dateien oder Daten zu\n\u2022 Deine E-Mail-Adresse wird ausschließlich verwendet, um dir Dropbox-Zugriff in dieser App zu gewähren\n\nUm Zugriff zu erhalten, schreib uns:\nserzhyale@gmail.com</string>
+    <string name="dropbox_beta_message">Dropbox-Integration befindet sich derzeit in einer eingeschränkten Beta.\n\n⚠️ Warum muss ich euch kontaktieren?\nDropbox verlangt von App-Entwicklern, Tester während der Überprüfungsphase manuell zu registrieren. Dies ist eine einmalige technische Formalität auf Seiten von Dropbox - deine E-Mail-Adresse wird nur verwendet, um dein Dropbox-Konto zur erlaubten Liste hinzuzufügen.\n\n🔒 Deine Privatsphäre wird vollständig respektiert:\n\u2022 Wir sammeln, speichern oder teilen deine E-Mail-Adresse NICHT\n\u2022 Wir greifen NICHT auf deine Dateien oder Daten zu\n\u2022 Deine E-Mail-Adresse wird ausschließlich verwendet, um dir Dropbox-Zugriff in dieser App zu gewähren\n\nUm Zugriff zu erhalten, schreib uns:\nsza@ukr.net</string>
     <string name="dropbox_beta_send_email">E-Mail senden</string>
     <string name="dropbox_beta_title">Dropbox Beta-Zugang</string>
     <string name="dropbox_connection_test_failed">Verbindung fehlgeschlagen: %1$s</string>

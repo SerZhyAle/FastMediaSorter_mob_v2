@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -16,8 +15,6 @@ import androidx.annotation.StringRes
 import androidx.core.content.res.use
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.ui.dialog.TooltipDialog
-import timber.log.Timber
 
 /**
  * Canonical reusable switch/toggle row for settings fragments and forms.
@@ -26,8 +23,8 @@ import timber.log.Timber
  * optional trailing action slot for the rare row that needs a secondary action.
  *
  * The view owns visual state only - checked persistence stays outside the component.
- * Tapping anywhere on the row toggles the switch. The helper icon opens [TooltipDialog]
- * when a help payload is configured; it is hidden otherwise without breaking the layout.
+ * Tapping anywhere on the row toggles the switch. The helper icon chrome is the shared
+ * [HelpRowDelegate]; it is hidden without a payload, without breaking the layout.
  *
  * Public XML attributes use the `str_` prefix (see `attrs.xml`).
  *
@@ -37,19 +34,17 @@ class SettingsToggleRow @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : LinearLayout(context, attrs, defStyleAttr) {
+) : LinearLayout(context, attrs, defStyleAttr), HelpableRow {
 
     private val switchView: MaterialSwitch
     private val iconView: ImageView
     private val titleView: TextView
     private val subtitleView: TextView
-    private val helpIcon: ImageButton
+    private val help: HelpRowDelegate
     private val trailingSlot: FrameLayout
     private val textGroup: LinearLayout
     private val titleLineSpacer: View
 
-    private var helpTitleText: CharSequence? = null
-    private var helpMessageText: CharSequence? = null
     private var checkedChangeListener: ((Boolean) -> Unit)? = null
 
     /**
@@ -64,9 +59,8 @@ class SettingsToggleRow @JvmOverloads constructor(
     /**
      * `true` when the optional help icon is visible.
      */
-    @get:JvmName("getHelpVisible")
-    val isHelpVisible: Boolean
-        get() = helpIcon.visibility == View.VISIBLE
+    override val isHelpVisible: Boolean
+        get() = help.isHelpVisible
 
     init {
         orientation = HORIZONTAL
@@ -86,15 +80,14 @@ class SettingsToggleRow @JvmOverloads constructor(
         iconView = findViewById(R.id.str_icon)
         titleView = findViewById(R.id.str_title)
         subtitleView = findViewById(R.id.str_subtitle)
-        helpIcon = findViewById(R.id.str_iconHelp)
+        help = HelpRowDelegate(findViewById(R.id.str_iconHelp), "SettingsToggleRow")
         trailingSlot = findViewById(R.id.str_trailingSlot)
         textGroup = findViewById(R.id.str_textGroup)
         titleLineSpacer = findViewById(R.id.str_titleLineSpacer)
 
         bindRowClicks()
-        bindHelpClick()
         applyAttributes(attrs, defStyleAttr)
-        syncHelpVisibility()
+        help.syncVisibility()
     }
 
     /**
@@ -160,19 +153,16 @@ class SettingsToggleRow @JvmOverloads constructor(
      * Stores the help payload and makes the help icon available.
      * Call [setHelpVisible] (false) to hide without dropping the payload.
      */
-    fun setHelp(@StringRes titleRes: Int, @StringRes messageRes: Int) {
-        helpTitleText = context.getText(titleRes)
-        helpMessageText = context.getText(messageRes)
-        setHelpVisible(true)
+    override fun setHelp(@StringRes titleRes: Int, @StringRes messageRes: Int) {
+        help.setHelp(titleRes, messageRes)
     }
 
     /**
      * Shows or hides the help icon without dropping the stored help payload.
      * Hidden when no payload is configured regardless of the requested value.
      */
-    fun setHelpVisible(visible: Boolean) {
-        helpIcon.visibility = if (visible && hasHelpPayload()) View.VISIBLE else View.GONE
-        helpIcon.contentDescription = helpTitleText?.toString().orEmpty()
+    override fun setHelpVisible(visible: Boolean) {
+        help.setHelpVisible(visible)
     }
 
     /**
@@ -200,7 +190,7 @@ class SettingsToggleRow @JvmOverloads constructor(
         super.setEnabled(enabled)
         switchView.isEnabled = enabled
         iconView.isEnabled = enabled
-        helpIcon.isEnabled = enabled
+        help.setEnabled(enabled)
         titleView.isEnabled = enabled
         subtitleView.isEnabled = enabled
         alpha = if (enabled) 1f else 0.5f
@@ -261,43 +251,21 @@ class SettingsToggleRow @JvmOverloads constructor(
         }
     }
 
-    private fun bindHelpClick() {
-        helpIcon.setOnClickListener {
-            val title = helpTitleText
-            val message = helpMessageText
-            if (title.isNullOrEmpty() || message.isNullOrEmpty()) {
-                Timber.w("SettingsToggleRow: help requested without payload")
-                return@setOnClickListener
-            }
-            TooltipDialog.show(context, title.toString(), message.toString())
-        }
-    }
-
     private fun applyAttributes(attrs: AttributeSet?, defStyleAttr: Int) {
         if (attrs == null) return
         context.obtainStyledAttributes(attrs, R.styleable.SettingsToggleRow, defStyleAttr, 0).use { typedArray ->
             val title = typedArray.getText(R.styleable.SettingsToggleRow_str_title) ?: ""
             setTitle(title)
             setSubtitle(typedArray.getText(R.styleable.SettingsToggleRow_str_subtitle))
-            helpTitleText = typedArray.getText(R.styleable.SettingsToggleRow_str_helpTitle)
-            helpMessageText = typedArray.getText(R.styleable.SettingsToggleRow_str_helpMessage)
-            val showHelp = typedArray.getBoolean(R.styleable.SettingsToggleRow_str_showHelp, false)
-            helpIcon.visibility = if (showHelp && hasHelpPayload()) View.VISIBLE else View.GONE
+            help.setPayload(
+                typedArray.getText(R.styleable.SettingsToggleRow_str_helpTitle),
+                typedArray.getText(R.styleable.SettingsToggleRow_str_helpMessage)
+            )
+            help.applyInitialVisibility(typedArray.getBoolean(R.styleable.SettingsToggleRow_str_showHelp, false))
             val initiallyChecked = typedArray.getBoolean(R.styleable.SettingsToggleRow_str_checked, false)
             switchView.isChecked = initiallyChecked
             val iconRes = typedArray.getResourceId(R.styleable.SettingsToggleRow_str_icon, 0)
             if (iconRes != 0) setIcon(iconRes)
         }
-    }
-
-    private fun syncHelpVisibility() {
-        if (!hasHelpPayload()) {
-            helpIcon.visibility = View.GONE
-        }
-        helpIcon.contentDescription = helpTitleText?.toString().orEmpty()
-    }
-
-    private fun hasHelpPayload(): Boolean {
-        return !helpTitleText.isNullOrEmpty() && !helpMessageText.isNullOrEmpty()
     }
 }

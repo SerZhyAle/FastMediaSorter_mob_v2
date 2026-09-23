@@ -7,7 +7,6 @@ import androidx.datastore.preferences.core.edit
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

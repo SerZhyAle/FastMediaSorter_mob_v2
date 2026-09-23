@@ -27,7 +27,12 @@ data class CloudFile(
     val modifiedDate: Long = 0,
     val mimeType: String? = null,
     val thumbnailUrl: String? = null,
-    val webViewUrl: String? = null
+    val webViewUrl: String? = null,
+    /**
+     * S3409: the containing folder's id in the provider's own addressing, null when the provider
+     * names none. Dropbox addresses by path, so its root is the empty string, not null.
+     */
+    val parentId: String? = null
 )
 
 /**

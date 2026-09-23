@@ -356,6 +356,22 @@ object SubProgramCatalog {
             ),
             widgetKey = "camera_launch",
         ),
+        // S3365: the scheduled-operations program joins the registry - one entry puts it on every
+        // sub-program surface. The off-switch is the master toggle the settings card used to own;
+        // availability, widget gate and enable-all already read it, so no settings migration.
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_SCHEDULED_TASKS,
+            order = 165,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+                SubProgramSurface.OS_APP_SHORTCUT,
+                SubProgramSurface.WIDGET,
+            ),
+            widgetKey = "scheduled_tasks",
+            disable = { it.copy(enableScheduledOperations = false) },
+        ),
     )
 
     /** Every sub-program, in the one order shown on every surface (ADR-5). */

@@ -287,6 +287,8 @@ class LayoutSettingsSearchSource @Inject constructor(
         // Transient permission-prompt action buttons gated purely by mutable runtime state (a
         // permission grant +/- a toggle), not by flavor/DI/device capability. They are hidden the
         // vast majority of the time, so search must not index them as if they were settings (S0604).
+        // S3365: btnScheduledNotificationPermission moved with the group onto the program screen -
+        // the id survives there and stays de-indexed for the same reason.
         val TRANSIENT_ACTION_BUTTON_IDS: Set<Int> = setOf(
             R.id.btnNotificationPermission,
             R.id.btnScheduledNotificationPermission

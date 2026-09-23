@@ -83,6 +83,12 @@ class BroadcastSettingsPanelManager @Inject constructor(
             if (!renderingFromSettings) update(activity) { it.copy(enableBroadcasting = checked) }
         }
 
+        panel.rowFeedbackGuard.setOnCheckedChangeListener { checked ->
+            if (!renderingFromSettings) {
+                update(activity) { it.copy(broadcast = it.broadcast.copy(feedbackGuardEnabled = checked)) }
+            }
+        }
+
         panel.rowAutoOpenShare.setOnCheckedChangeListener { checked ->
             if (!renderingFromSettings) {
                 update(activity) { it.copy(broadcast = it.broadcast.copy(autoOpenShare = checked)) }
@@ -118,6 +124,7 @@ class BroadcastSettingsPanelManager @Inject constructor(
         renderingFromSettings = true
         panel.rowStreamTitle.isVisible = settings.enableBroadcasting
         panel.broadcastConfigGroup.isVisible = settings.enableBroadcasting
+        panel.rowFeedbackGuard.isVisible = settings.enableBroadcasting
         panel.rowAutoOpenShare.isVisible = settings.enableBroadcasting
         if (panel.rowStreamTitle.text.toString() != settings.broadcast.streamTitle) {
             panel.rowStreamTitle.text = settings.broadcast.streamTitle
@@ -125,6 +132,9 @@ class BroadcastSettingsPanelManager @Inject constructor(
         renderPort(panel, settings.broadcast.port)
         if (panel.rowEnableBroadcasting.isChecked != settings.enableBroadcasting) {
             panel.rowEnableBroadcasting.setCheckedSilently(settings.enableBroadcasting)
+        }
+        if (panel.rowFeedbackGuard.isChecked != settings.broadcast.feedbackGuardEnabled) {
+            panel.rowFeedbackGuard.setCheckedSilently(settings.broadcast.feedbackGuardEnabled)
         }
         if (panel.rowAutoOpenShare.isChecked != settings.broadcast.autoOpenShare) {
             panel.rowAutoOpenShare.setCheckedSilently(settings.broadcast.autoOpenShare)

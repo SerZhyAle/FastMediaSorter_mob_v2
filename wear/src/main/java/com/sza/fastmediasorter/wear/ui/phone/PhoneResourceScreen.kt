@@ -94,7 +94,6 @@ import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 
@@ -120,7 +119,6 @@ fun PhoneResourceScreen(
     val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
 
     val openOutcome by viewModel.openOutcome.collectAsStateWithLifecycle()
-    Timber.d("S3259: phone resource screen shown - single-column rows are EntryTileRow")
 
     // Back walks the folder trail first; only the root hands Back back to navigation.
     BackHandler(enabled = true) {
@@ -580,11 +578,18 @@ private fun PhoneFileActionsMenu(
                     viewModel.runOperation(entry, WearFileOperation.SendToPhone)
                 WearFileOperationKind.MOVE_TO_PHONE ->
                     viewModel.runOperation(entry, WearFileOperation.MoveToPhone)
+                WearFileOperationKind.COPY_TO_WATCH ->
+                    viewModel.runOperation(entry, WearFileOperation.CopyToWatch)
+                WearFileOperationKind.MOVE_TO_WATCH ->
+                    viewModel.runOperation(entry, WearFileOperation.MoveToWatch)
                 // The only surface that can ask: the token addressing the phone's own original is the
                 // one this list was built from.
                 WearFileOperationKind.OPEN_ON_PHONE ->
                     viewModel.runOperation(entry, WearFileOperation.OpenOnPhone(entry.token))
                 WearFileOperationKind.SEND_TO_RECEIVER -> onSendTo()
+                // S3383: this list never offers either one - the credential screen both need lives
+                // in the browse graph - so the branch is unreachable and says so rather than acting.
+                WearFileOperationKind.ENCRYPT_FILEDO, WearFileOperationKind.DECRYPT_FILEDO -> Unit
             }
         },
         onDismiss = onClose
@@ -872,6 +877,8 @@ private fun WearFileOperationOutcome.toStatusRes(): Int = when (this) {
     // confirmation - the branch exists because the enum is shared, not because it is reachable here.
     WearFileOperationOutcome.NEEDS_CONSENT -> R.string.wear_file_op_outcome_needs_consent
     WearFileOperationOutcome.REFUSED_TOO_LARGE -> R.string.wear_file_op_outcome_too_large
+    WearFileOperationOutcome.REFUSED_NO_SPACE -> R.string.wear_file_op_outcome_no_space
+    WearFileOperationOutcome.COPIED_SOURCE_KEPT -> R.string.wear_file_op_outcome_copied_source_kept
     WearFileOperationOutcome.PHONE_UNREACHABLE -> R.string.wear_file_op_outcome_phone_unreachable
     WearFileOperationOutcome.OPENED_ON_PHONE -> R.string.wear_open_on_phone_shown
     WearFileOperationOutcome.NOTIFIED_ON_PHONE -> R.string.wear_open_on_phone_notified
@@ -893,7 +900,11 @@ private fun WearFileOperationOutcome.isSuccess(): Boolean = this == WearFileOper
     this == WearFileOperationOutcome.OPENED_ON_PHONE ||
     this == WearFileOperationOutcome.NOTIFIED_ON_PHONE ||
     // S2142: the errand is on the phone waiting for a tap - the watch's half of it worked.
-    this == WearFileOperationOutcome.AWAITING_PHONE_ACTION
+    this == WearFileOperationOutcome.AWAITING_PHONE_ACTION ||
+    // S3359: the copy is on the watch and only the removal was declined, so the line reports what the
+    // owner asked for happening in part. Painted as an error it read as "nothing was copied", which is
+    // the opposite of what the phone answered.
+    this == WearFileOperationOutcome.COPIED_SOURCE_KEPT
 
 private fun WearPhoneResourceResponseStatus?.toMessageRes(): Int = when (this) {
     WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE -> R.string.phone_resource_source_unavailable
