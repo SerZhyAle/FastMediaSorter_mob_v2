@@ -4,11 +4,11 @@
 <resources>
     <string name="browse_media_type_disabled">نوع الوسائط هذا معطل. فعّله في الإعدادات.</string>
     <string name="browse_no_media_files">لم يتم العثور على ملفات وسائط. جرّب مجلداً أو نوع وسائط آخر.</string>
-    <string name="browse_network_source_not_found">مصدر الشبكة هذا لم يعد متاحاً. ارجع واختر مصدراً آخر.</string>
-    <string name="browse_network_connection_failed">تعذر الاتصال بهذا المصدر. تحقق من الاتصال ثم حاول مرة أخرى.</string>
+    <string name="browse_network_source_not_found">مورد الشبكة هذا لم يعد متاحًا. عُد واختر موردًا آخر.</string>
+    <string name="browse_network_connection_failed">تعذّر الاتصال بهذا المورد. تحقق من الاتصال وحاول مرة أخرى.</string>
     <string name="browse_load_failed">تعذر تحميل الملفات. حاول مرة أخرى.</string>
     <string name="browse_network_error_refused">تم رفض الاتصال. تحقق من مشاركة الملفات في الكمبيوتر.</string>
     <string name="browse_network_error_timeout">لم يتم الرد في الوقت المحدد. تحقق من الشبكة وحاول مجددًا.</string>
-    <string name="browse_network_error_auth">اسم المستخدم أو كلمة المرور غير صحيحة. قم بتحديث المصدر على هاتفك.</string>
+    <string name="browse_network_error_auth">اسم المستخدم أو كلمة المرور غير صحيحة. حدّث المورد على هاتفك.</string>
     <string name="browse_network_error_unknown_host">لم يتم العثور على الكمبيوتر في هذه الشبكة. تحقق من الاتصال باللاسلكي.</string>
 </resources>

@@ -3953,7 +3953,7 @@ scripts/quality/assert-play-listing-screenshot-geometry.ps1
   Params:
     -ListingRoot               [String]
     -MaxBandShare              [Double] = 0.20
-    -MaxFrameRingWidth         [Double] = 0.04
+    -MaxFrameRingWidth         [Double] = 0.09
     -Gate                      [SwitchParameter]
     -Quiet                     [SwitchParameter]
     -Help                      [SwitchParameter]

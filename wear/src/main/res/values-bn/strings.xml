@@ -46,14 +46,14 @@
     <string name="wear_sync_stats">যোগ করা হয়েছে: %1$d  আপডেট করা হয়েছে: %2$d</string>
     <string name="wear_sync_browse_now">এখনই ব্রাউজ করুন</string>
     <string name="wear_export_to_phone">ফোনে পাঠান</string>
-    <string name="wear_export_success">সোর্স পাঠানো হয়েছে</string>
+    <string name="wear_export_success">রিসোর্স পাঠানো হয়েছে</string>
     <string name="delete_source_confirm">মুছুন\u201c%s\u201d?</string>
     <string name="protocol">প্রোটোকল</string>
     <string name="port">পোর্ট</string>
     <string name="domain">ডোমেইন</string>
     <string name="use_ssh_key">SSH কী ব্যবহার করুন</string>
     <string name="ssh_private_key">প্রাইভেট কী</string>
-    <string name="add_network_source">সোর্স যোগ করুন</string>
+    <string name="add_network_source">রিসোর্স যোগ করুন</string>
     <string name="ftp_connection">FTP</string>
     <string name="sftp_connection">SFTP</string>
     <string name="connection_test_not_supported">এই প্রোটোকলের জন্য পরীক্ষা উপলব্ধ নয়</string>
@@ -126,7 +126,7 @@
     <string name="screen_settings_title">স্ক্রিন</string>
     <string name="screen_settings_view_mode">স্ক্রিন ভিউ</string>
     <string name="wear_streams_section_enabled">স্ট্রিম</string>
-    <string name="wear_resources_empty_hint">ফোন থেকে এখনো কিছু আসেনি। ফোনে Wear-companion খুলুন এবং এখানে পাঠানোর জন্য রিসোর্স বেছে নিন।</string>
+    <string name="wear_resources_empty_hint">ফোন থেকে এখনও কিছু আসেনি। ফোনে Wear Companion খুলুন এবং এখানে পাঠানোর জন্য রিসোর্স বেছে নিন।</string>
     <string name="screen_settings_keep_awake">স্ক্রিন চালু রাখুন</string>
     <string name="about_send_logs">ডেভেলপারের কাছে লগ পাঠান</string>
     <string name="about_send_logs_sending">পাঠানো হচ্ছে..</string>
@@ -678,7 +678,7 @@
     <string name="wear_phone_camera_failed_expired">ফোনে কেউ সাড়া দেয়নি</string>
     <string name="wear_phone_camera_failed_capture">ফোন তার ক্যামেরা খুলতে পারেনি</string>
     <string name="wear_phone_camera_failed_busy">ফোন ইতিমধ্যে সম্প্রচার করছে</string>
-    <string name="wear_phone_camera_failed_not_supported">এই ফোন সংস্করণ ভিডিও পাঠাতে পারে না</string>
+    <string name="wear_phone_camera_failed_not_supported">ফোন অ্যাপের এই সংস্করণ ভিডিও পাঠাতে পারে না</string>
     <string name="wear_phone_camera_failed_unknown">ফোন কারণ না বলেই প্রত্যাখ্যান করেছে</string>
     <string name="wear_tile_shortcut_more">আরও</string>
     <string name="wear_streams_filter_collections_header">কালেকশন</string>
@@ -907,4 +907,12 @@
     <string name="wear_filedo_result_not_viewable">ঘড়িটি এই ধরনের ফাইল খোলে না।</string>
     <string name="wear_filedo_remember">পাসওয়ার্ড মনে রাখুন</string>
     <string name="wear_filedo_remembered_forgotten">সংরক্ষিত পাসওয়ার্ড মেলেনি এবং ভুলে যাওয়া হয়েছে। পাসওয়ার্ড লিখুন।</string>
+    <string name="wear_water_flashlight_exit_hint">লক করা। বের হতে দ্রুত 3 বার পিছনে সোয়াইপ করুন</string>
+    <string name="wear_complication_last_resource_a11y">শেষ রিসোর্স: %1$s</string>
+    <string name="wear_complication_now_playing_a11y">চলছে: %1$s</string>
+    <string name="wear_complication_last_played_a11y">শেষ চালানো: %1$s</string>
+    <plurals name="wear_complication_favorites_count">
+        <item quantity="one">%d টি প্রিয়</item>
+        <item quantity="other">%d টি প্রিয়</item>
+    </plurals>
 </resources>

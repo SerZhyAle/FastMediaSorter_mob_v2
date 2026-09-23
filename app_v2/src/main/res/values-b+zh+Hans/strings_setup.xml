@@ -29,12 +29,12 @@
     <string name="welcome_profile_personal_smartphone_title">个人手机</string>
     <string name="welcome_profile_photo_frame_desc">把设备变成数码相框。停用视频、音频和文件操作；启动后立即打开幻灯片。</string>
     <string name="welcome_profile_photo_frame_title">数码相框</string>
-    <string name="welcome_profile_selector_title">设备使用场景</string>
+    <string name="welcome_profile_selector_title">设备配置文件</string>
     <string name="welcome_profile_tv_media_box_desc">适合电视和媒体中心。优化方向键与遥控器导航，使用大按钮，并隐藏细小的触摸控件。</string>
     <string name="welcome_profile_tv_media_box_title">电视 / 媒体盒子</string>
     <string name="welcome_profile_video_player_desc">适合纯视频设备。隐藏照片、音乐和文档查看器；优先快速播放视频和显示缩略图。</string>
     <string name="welcome_profile_video_player_title">视频播放器</string>
-    <string name="welcome_profile_vr_headset_desc">最适合虚拟现实设备。在支持的硬件版本上预先启用3D/360°布局和沉浸式控件。</string>
+    <string name="welcome_profile_vr_headset_desc">最适合虚拟现实设备。在支持的头显上预先启用 3D/360° 布局和沉浸式控制。</string>
     <string name="welcome_profile_vr_headset_title">VR 头显</string>
     <string name="welcome_recommended_badge">（推荐）</string>
     <string name="welcome_title_1">欢迎使用 FastMediaSorter！</string>
@@ -62,7 +62,7 @@
     <string name="sysinfo_field_display_count">显示屏</string>
     <string name="sysinfo_field_fingerprint">系统指纹</string>
     <string name="sysinfo_field_first_install">首次安装</string>
-    <string name="sysinfo_field_flavor">版本变体</string>
+    <string name="sysinfo_field_flavor">版本</string>
     <string name="sysinfo_field_font_scale">字体缩放</string>
     <string name="sysinfo_field_gles">OpenGL ES</string>
     <string name="sysinfo_field_hdr">HDR</string>
@@ -117,7 +117,7 @@
     <string name="welcome_theme_auto">自动</string>
     <string name="welcome_theme_light">浅色</string>
     <string name="welcome_theme_dark">深色</string>
-    <string name="welcome_networks_title">网络来源</string>
+    <string name="welcome_networks_title">网络资源</string>
     <string name="welcome_networks_description">从网络共享和远程存储添加媒体。</string>
     <string name="welcome_profiles_title">您打算怎样使用这台设备？</string>
     <string name="welcome_profiles_subtitle">选择一个场景 - 我们会据此调整默认设置。</string>
@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">直播流</string>
     <string name="welcome_role_streams_detail">来自现成目录的网络电台、电视和视频频道</string>
     <string name="welcome_role_wear">手表应用</string>
-    <string name="welcome_role_wear_detail">Wear OS 配套应用 - 在手腕上浏览和播放</string>
+    <string name="welcome_role_wear_detail">手表应用 - 直接在手腕上浏览和播放</string>
 </resources>

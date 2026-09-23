@@ -37,12 +37,12 @@
     <string name="widget_unlock_screen_prompt">افتح قفل الشاشة لإضافة الأداة</string>
     <string name="settings_add_home_widget_title">أضف أداة إلى الشاشة الرئيسية لنظام أندرويد.</string>
     <string name="widget_picker_dialog_title">اختر أداة</string>
-    <string name="widget_scheduled_tasks_label">المهام المجدولة</string>
+    <string name="widget_scheduled_tasks_label">العمليات المجدولة</string>
     <string name="widget_scheduled_tasks_description">حالة وضوابط عمليات الملفات المجدولة</string>
     <string name="widget_scheduled_run_all">تشغيل الكل</string>
     <string name="widget_scheduled_pause_all">إيقاف الكل</string>
     <string name="widget_scheduled_resume_all">استئناف الكل</string>
-    <string name="widget_scheduled_empty">لا توجد مهام مجدولة</string>
+    <string name="widget_scheduled_empty">لا توجد عمليات مجدولة</string>
     <string name="widget_scheduled_active_count">نشط %1$d</string>
     <string name="widget_scheduled_last_ok">الأخير: موافق %1$s</string>
     <string name="widget_scheduled_last_error">آخر: خطأ %1$s</string>

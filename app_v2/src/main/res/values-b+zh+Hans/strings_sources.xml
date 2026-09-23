@@ -61,7 +61,7 @@
     <string name="cloud_list_files_failed">无法从云端加载文件。请重试。</string>
     <string name="cloud_list_folders_failed">无法从云端加载文件夹。请重试。</string>
     <string name="cloud_metadata_failed">无法从云端加载文件详情。请重试。</string>
-    <string name="cloud_restore_instructions">需要恢复 Google 云端硬盘连接。\n\n请执行以下操作：\n1. 转到主菜单\n2. 打开“资源”\n3. 点击“%1$s”\n4. 使用您的 Google 帐户登录</string>
+    <string name="cloud_restore_instructions">Google Drive 连接需要恢复。\n\n请：\n1. 打开主界面\n2. 点按 \"%1$s\"\n3. 使用您的 Google 帐号登录</string>
     <string name="cloud_search_failed">无法搜索云存储。请重试。</string>
     <string name="cloud_sign_out_failed">无法退出云端账户。请重试。</string>
     <string name="cloud_storage">云存储</string>

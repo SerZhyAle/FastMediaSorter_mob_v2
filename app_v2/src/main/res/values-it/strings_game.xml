@@ -35,7 +35,7 @@
     <string name="game_score">Punteggio: %1$d</string>
     <string name="game_settings_help_message">Consente di giocare a un puzzle a turni in locale. Il gioco rimane disattivato finché non lo si attiva.</string>
     <string name="game_settings_help_title">Minigioco</string>
-    <string name="game_settings_toggle_subtitle">Mostra il gioco nel menu principale e nel widget di avvio</string>
+    <string name="game_settings_toggle_subtitle">Mostra il gioco nel menu dei programmi, nel pannello di accesso rapido e sul desktop del launcher</string>
     <string name="game_settings_toggle_title">Minigioco</string>
     <string name="game_status_game_over">Kryvavitsa ti ha catturato. Inizia una nuova partita per riprovare.</string>
     <string name="game_status_invalid_board">Questa scacchiera non è utilizzabile. Modifica le dimensioni o apri una scacchiera preimpostata.</string>

@@ -31,4 +31,5 @@
     <string name="translation_source_language_and_ocr">Lingua originale e OCR</string>
     <string name="translation_started">Traduzione iniziata.</string>
     <string name="translation_target_language">Traduci in</string>
+    <string name="ocr_language_assumed_unreadable">Il testo è in una scrittura per cui il riconoscitore non è stato configurato, quindi nessuna traduzione viene disegnata sull\'immagine. Scegli la lingua originale nelle impostazioni di traduzione.</string>
 </resources>

@@ -92,7 +92,6 @@ class BlackScreenOverlayManager(
         }
         decorView.addView(view)
         overlayView = view
-        Timber.d("S3370: player black screen dim shown")
         headingProviderLazy?.get()?.setActive(true)
 
         isVisible = true

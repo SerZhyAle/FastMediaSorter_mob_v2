@@ -129,7 +129,7 @@
     <string name="setting_allow_separate_window">Autoriser les nouvelles fenêtres</string>
     <string name="setting_allow_separate_window_desc">Ouvrir dossiers et fichiers dans une fenêtre distincte</string>
     <string name="setting_background_sync_desc">Vérifier automatiquement en arrière-plan si les sources réseau ont changé</string>
-    <string name="setting_calculator_desc">Afficher la Calculatrice dans le menu principal et le widget du lanceur</string>
+    <string name="setting_calculator_desc">Afficher la Calculatrice dans le menu des programmes, le panneau d\'accès rapide et sur le bureau du lanceur</string>
     <string name="setting_camera_ocr_only_desc">Sauter l\'étape de traduction et afficher directement le texte reconnu</string>
     <string name="setting_camera_ocr_only_title">OCR seul (sans traduction)</string>
     <string name="setting_camera_ocr_translation_desc">Activer le parcours rapide Photo-OCR-Traduction</string>
@@ -263,7 +263,7 @@
     <string name="settings_wear_group_description">Activez cette option si vous avez une montre Wear OS. L\'application compagnon s\'ouvre d\'ici et décide ce que ce téléphone partage avec la montre.</string>
     <string name="settings_wear_install_guide_button">Comment installer sur une montre</string>
     <string name="settings_wear_web_portal_button">Tout sur la montre</string>
-    <string name="setting_stopwatch_desc">Afficher le Chronomètre dans le menu principal et le widget du lanceur</string>
+    <string name="setting_stopwatch_desc">Afficher le Chronomètre dans le menu des programmes, le panneau d\'accès rapide et sur le bureau du lanceur</string>
     <string name="cross_device_transfer_send_to_device">Envoyer vers mon appareil (Drive)</string>
     <string name="cross_device_transfer_pending_title">Transferts d\'appareil en attente</string>
     <string name="cross_device_transfer_receive_and_delete">Recevoir et supprimer du cloud</string>

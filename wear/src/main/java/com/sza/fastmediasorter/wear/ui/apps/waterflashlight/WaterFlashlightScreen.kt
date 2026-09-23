@@ -43,7 +43,6 @@ import com.sza.fastmediasorter.wear.ui.common.SystemShadeLockEffect
 import com.sza.fastmediasorter.wear.ui.common.findActivity
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 /**
  * The water flashlight on the watch: the display itself is the light, and no touch closes it
@@ -77,7 +76,6 @@ fun WaterFlashlightScreen(
     // returns (measured on the Galaxy Watch 7, 2026-09-23), so the gate has to decide here as well.
     BackHandler {
         val leaving = exitGate.onBack(System.currentTimeMillis())
-        Timber.d("S3394: water flashlight back via dispatcher, leaving=$leaving")
         if (leaving) {
             currentLeave()
         }
@@ -157,7 +155,6 @@ private fun WaterFlashlightExitGate.onScreenKey(event: KeyEvent, onLeave: () -> 
         event.type == KeyEventType.KeyUp -> onKeyUp(event.key.keyCode, nowMs)
         else -> false
     }
-    Timber.d("S3394: water flashlight key ${event.type} ${event.key.keyCode}, leaving=$leaving")
     if (leaving) {
         onLeave()
     }

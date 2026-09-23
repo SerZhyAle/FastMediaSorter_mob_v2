@@ -37,12 +37,12 @@
     <string name="widget_unlock_screen_prompt">উইজেটটি যোগ করতে স্ক্রিনটি আনলক করুন।</string>
     <string name="settings_add_home_widget_title">অ্যান্ড্রয়েড হোম স্ক্রিনে উইজেট যোগ করুন।</string>
     <string name="widget_picker_dialog_title">একটি উইজেট বেছে নিন</string>
-    <string name="widget_scheduled_tasks_label">নির্ধারিত কাজ</string>
+    <string name="widget_scheduled_tasks_label">নির্ধারিত অপারেশন</string>
     <string name="widget_scheduled_tasks_description">নির্ধারিত ফাইল অপারেশনের অবস্থা এবং নিয়ন্ত্রণ</string>
     <string name="widget_scheduled_run_all">সব চালান</string>
     <string name="widget_scheduled_pause_all">সবকিছু থামান</string>
     <string name="widget_scheduled_resume_all">সবগুলো পুনরায় শুরু করুন</string>
-    <string name="widget_scheduled_empty">কোনো নির্ধারিত কাজ নেই</string>
+    <string name="widget_scheduled_empty">কোনো নির্ধারিত অপারেশন নেই</string>
     <string name="widget_scheduled_active_count">%1$d সক্রিয়</string>
     <string name="widget_scheduled_last_ok">শেষ: ঠিক আছে %1$s</string>
     <string name="widget_scheduled_last_error">সর্বশেষ: ত্রুটি %1$s</string>

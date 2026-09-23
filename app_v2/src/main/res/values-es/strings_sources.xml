@@ -61,7 +61,7 @@
     <string name="cloud_list_files_failed">No se pudieron cargar los archivos desde la nube. Inténtalo de nuevo.</string>
     <string name="cloud_list_folders_failed">No se pudieron cargar las carpetas desde la nube. Inténtalo de nuevo.</string>
     <string name="cloud_metadata_failed">No se pudieron cargar los detalles del archivo desde la nube. Inténtalo de nuevo.</string>
-    <string name="cloud_restore_instructions">Es necesario restablecer la conexión con Google Drive.\n\nPor favor:\n1. Ve al menú principal\n2. Abre \'Recursos\'\n3. Pulsa en \"%1$s\"\n4. Inicia sesión con tu cuenta de Google</string>
+    <string name="cloud_restore_instructions">Hay que restablecer la conexión con Google Drive.\n\nPor favor:\n1. Abre la pantalla principal\n2. Toca \"%1$s\"\n3. Inicia sesión con tu cuenta de Google</string>
     <string name="cloud_search_failed">No se pudo buscar en el almacenamiento en la nube. Inténtalo de nuevo.</string>
     <string name="cloud_sign_out_failed">No se pudo cerrar sesión en la cuenta en la nube. Inténtalo de nuevo.</string>
     <string name="cloud_storage">Almacenamiento en la nube</string>

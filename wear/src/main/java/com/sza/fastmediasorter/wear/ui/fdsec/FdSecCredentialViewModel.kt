@@ -97,7 +97,6 @@ class FdSecCredentialViewModel @Inject constructor(
      * file - and the screen says so before handing the field back.
      */
     private fun tryRemembered() {
-        Timber.d("S3397: tryRemembered entered, OPEN mode auto-attempt")
         viewModelScope.launch {
             val credential = rememberedCredential.read() ?: return@launch
             // Raised before the target is resolved: fetching a network container takes long enough for
@@ -170,7 +169,6 @@ class FdSecCredentialViewModel @Inject constructor(
         if (mode != WearFdSecMode.OPEN) {
             return null
         }
-        Timber.d("S3407: network container fetched over its source protocol before the credential step")
         return downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.CONTAINER)
             .getOrNull()
             ?.let { FdSecTarget(it, fetched = true) }
@@ -179,7 +177,6 @@ class FdSecCredentialViewModel @Inject constructor(
     private suspend fun localTarget(file: WearMediaFile): FdSecTarget? = withContext(Dispatchers.IO) {
         val own = stager.localFileOf(file)?.takeIf { it.isFile }
         val shared = if (own == null) stager.sharedStorageFileOf(file) else null
-        Timber.d("S3383: credential target resolved by path or by a staged copy")
         when {
             own != null -> FdSecTarget(own)
             shared != null -> FdSecTarget(shared, inSharedStorage = true)

@@ -46,14 +46,14 @@
     <string name="wear_sync_stats">Ajoutés : %1$d  Mis à jour : %2$d</string>
     <string name="wear_sync_browse_now">Parcourir maintenant</string>
     <string name="wear_export_to_phone">Envoyer au téléphone</string>
-    <string name="wear_export_success">Sources envoyées</string>
+    <string name="wear_export_success">Ressources envoyées</string>
     <string name="delete_source_confirm">Supprimer \u201c%s\u201d?</string>
     <string name="protocol">Protocole</string>
     <string name="port">Port</string>
     <string name="domain">Domaine</string>
     <string name="use_ssh_key">Utiliser une clé SSH</string>
     <string name="ssh_private_key">Clé privée</string>
-    <string name="add_network_source">Ajouter une source</string>
+    <string name="add_network_source">Ajouter une ressource</string>
     <string name="ftp_connection">FTP</string>
     <string name="sftp_connection">SFTP</string>
     <string name="connection_test_not_supported">Test non disponible pour ce protocole</string>
@@ -126,7 +126,7 @@
     <string name="screen_settings_title">Écran</string>
     <string name="screen_settings_view_mode">Vue des écrans</string>
     <string name="wear_streams_section_enabled">Flux</string>
-    <string name="wear_resources_empty_hint">Rien n\'est encore arrivé du téléphone. Sur le téléphone, ouvrez le compagnon Wear et choisissez les ressources à envoyer ici.</string>
+    <string name="wear_resources_empty_hint">Rien n\'est encore arrivé du téléphone. Sur le téléphone, ouvrez Wear Companion et choisissez les ressources à envoyer ici.</string>
     <string name="screen_settings_keep_awake">Garder l\'écran allumé</string>
     <string name="about_send_logs">Envoyer les journaux au développeur</string>
     <string name="about_send_logs_sending">Envoi en cours..</string>
@@ -678,7 +678,7 @@
     <string name="wear_phone_camera_failed_expired">Personne n\'a répondu sur le téléphone</string>
     <string name="wear_phone_camera_failed_capture">Le téléphone n\'a pas pu ouvrir sa caméra</string>
     <string name="wear_phone_camera_failed_busy">Le téléphone diffuse déjà</string>
-    <string name="wear_phone_camera_failed_not_supported">Cette version du téléphone ne peut pas envoyer de vidéo</string>
+    <string name="wear_phone_camera_failed_not_supported">L\'édition de l\'app du téléphone ne peut pas envoyer de vidéo</string>
     <string name="wear_phone_camera_failed_unknown">Le téléphone a refusé, sans donner de raison</string>
     <string name="wear_tile_shortcut_more">Plus</string>
     <string name="wear_streams_filter_collections_header">Collections</string>
@@ -907,4 +907,12 @@
     <string name="wear_filedo_result_not_viewable">La montre n\'ouvre pas ce type de fichier.</string>
     <string name="wear_filedo_remember">Mémoriser le mot de passe</string>
     <string name="wear_filedo_remembered_forgotten">Le mot de passe enregistré ne convenait pas et a été oublié. Saisissez le mot de passe.</string>
+    <string name="wear_water_flashlight_exit_hint">Verrouillé. Balayez 3 fois rapidement vers l\'arrière pour quitter</string>
+    <string name="wear_complication_last_resource_a11y">Dernière ressource : %1$s</string>
+    <string name="wear_complication_now_playing_a11y">Lecture : %1$s</string>
+    <string name="wear_complication_last_played_a11y">Dernière lecture : %1$s</string>
+    <plurals name="wear_complication_favorites_count">
+        <item quantity="one">%d favori</item>
+        <item quantity="other">%d favoris</item>
+    </plurals>
 </resources>

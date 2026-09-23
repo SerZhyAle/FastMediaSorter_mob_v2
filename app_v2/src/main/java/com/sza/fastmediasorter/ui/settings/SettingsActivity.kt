@@ -201,7 +201,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         // and finish. The extra is removed so a re-delivered intent does not loop the redirect.
         if (intent.getBooleanExtra(EXTRA_OPEN_SCHEDULED, false)) {
             intent.removeExtra(EXTRA_OPEN_SCHEDULED)
-            Timber.d("S3365: redirecting stale scheduled deep-link to the program screen")
             startActivity(android.content.Intent(this, ScheduledOperationsActivity::class.java))
             finish()
             super.onCreate(savedInstanceState)

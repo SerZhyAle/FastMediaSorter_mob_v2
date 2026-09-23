@@ -130,11 +130,11 @@
     <string name="virtual_comment_camera_photos">الصور والفيديوهات من كاميرا الجهاز</string>
     <string name="virtual_comment_all_images">ملفات الصور المحلية (jpg, png, gif, webp..)</string>
     <string name="virtual_comment_all_docs">المستندات المحلية (PDF, EPUB, نص, Office)</string>
-    <string name="special_virtual_folders">مجلدات خاصة</string>
+    <string name="special_virtual_folders">الموارد الافتراضية</string>
     <string name="virtual_resource_already_added">تمت الإضافة بالفعل</string>
     <string name="virtual_resource_added">تمت إضافة المورد \"%1$s\"</string>
     <string name="rescan_all_virtual_warning_title">إعادة مسح كل الموارد</string>
-    <string name="rescan_all_virtual_warning_message">تتضمن القائمة مجلدات تجميعية افتراضية (كل الموسيقى، كل الفيديوهات، كل الصور، كل المستندات). قد تستغرق إعادة المسح الكامل وقتًا طويلاً. هل تريد المتابعة؟</string>
+    <string name="rescan_all_virtual_warning_message">تتضمن القائمة موارد افتراضية (كل الموسيقى، كل الفيديوهات، كل الصور، كل المستندات). قد تستغرق إعادة الفحص الكاملة وقتًا طويلاً. هل تريد المتابعة؟</string>
     <string name="connection_failed">فشل الاتصال</string>
     <string name="retry">إعادة المحاولة</string>
     <string name="select_resource_type">اختر نوع المورد</string>
@@ -146,7 +146,7 @@
     <string name="error_vob_route_message">تعذّر تشغيل دفق برنامج DVD هذا (.vob) عبر الشبكة.\n\nانسخ الملف محليًا أو استخدم مشغّلًا مخصصًا يدعم DVD Program Stream عبر SMB/SFTP/FTP.</string>
     <string name="error_bdts_format_title">الصيغة غير مدعومة</string>
     <string name="error_bdts_format_message">تعذّر تشغيل Blu-ray Transport Stream (.m2ts).\n\nإذا كانت جميع المسارات الصوتية بصيغة TrueHD أو DTS-HD MA، فاختر مسارًا آخر أو حوّل الملف إلى MP4/MKV باستخدام (HandBrake, ffmpeg).</string>
-    <string name="warning_m2ts_audio_unsupported">مسارات الصوت غير قابلة لفك الترميز في هذا الإصدار: %1$s.\nالتشغيل بدون صوت. المدعوم: AC-3, E-AC-3, DTS (core), AAC.</string>
+    <string name="warning_m2ts_audio_unsupported">مسارات صوتية لا يمكن فك ترميزها في هذا الإصدار: %1$s.\nالتشغيل بدون صوت. المدعوم: AC-3، E-AC-3، DTS (core)، AAC.</string>
     <string name="error_cloud_auth_expired">تعذّر الوصول إلى \"%1$s\" - انتهت صلاحية المصادقة أو انتهت مهلة الجلسة</string>
     <string name="error_cloud_auth_suggestion">يُرجى إعادة مصادقة حساب التخزين السحابي في الإعدادات ← تعديل المورد</string>
     <string name="error_cloud_connection_failed">تعذّر الوصول إلى \"%1$s\" - فشل الاتصال بالسحابة</string>
@@ -255,7 +255,7 @@
     <string name="permissions_required_title">الأذونات مطلوبة</string>
     <string name="support_images_description">دعم الصور الثابتة</string>
     <string name="supported_image_formats">المدعوم: JPG وPNG وBMP وWEBP</string>
-    <string name="max_recipients">الحد الأقصى للمستلمين (1-30)</string>
+    <string name="max_recipients">الحد الأقصى للوجهات (1-30)</string>
     <string name="max_recipients_error">يجب أن تكون القيمة بين 1 و30</string>
     <string name="load_full_size_images">تحميل الصور بالدقة الكاملة</string>
     <string name="load_full_size_images_hint">يتيح إيماءات التكبير بإصبعين والتدوير في وضع لوحة الأوامر، لكنه يستهلك مزيدًا من البيانات والذاكرة. معطّل افتراضيًا (يحمّل بدقة 1920 بكسل).</string>
@@ -277,7 +277,7 @@
     <string name="error_resource_unavailable">المورد \"%1$s\" غير متاح. تحقق من الاتصال أو إعدادات المورد.</string>
     <string name="error_folder_load_failed">تعذّر فتح المجلد.</string>
     <string name="error_favorite_status_update_failed">تعذّر تحديث حالة المفضّلة.</string>
-    <string name="error_add_destination_failed">تعذّرت إضافة هذا المجلد إلى الفرز السريع.</string>
+    <string name="error_add_destination_failed">تعذّرت إضافة هذا المورد إلى الفرز السريع.</string>
     <string name="error_cloud_provider_not_configured">خدمة السحابة غير مُعدّة لهذا المجلد.</string>
     <string name="error_folder_loading_blocked_by_video_player">تعذّر تحميل هذا المجلد أثناء تشغيل الفيديو.\n\nيستخدم مشغّل الفيديو اتصال الشبكة حاليًا.\n\nأغلق المشغّل وحاول مرة أخرى.</string>
     <string name="error_folder_loading_blocked_by_video_player_details">يحتفظ تشغيل الفيديو بالأولوية لتجنّب ازدحام الشبكة وتقطّع التشغيل.</string>
@@ -337,12 +337,12 @@
     <string name="overwrite_on_move">استبدال الملف الموجود عند النقل</string>
     <string name="add_destination">+ إضافة</string>
     <string name="destinations_list_header">وجهات الفرز السريع</string>
-    <string name="add_resources_first_message">أضف المجلدات أولًا في الشاشة الرئيسية، قبل تحديد أي منها للفرز السريع.</string>
+    <string name="add_resources_first_message">أضف الموارد في الشاشة الرئيسية أولاً، ثم حدّدها للفرز السريع.</string>
     <string name="register_as_destination">تحديد للفرز السريع</string>
     <string name="add_resource_title">إضافة مورد</string>
     <string name="copy_resource_title">تكرار إعدادات المورد</string>
     <string name="resource_type_local">محلي</string>
-    <string name="resource_type_smb">مجلد شبكة SMB</string>
+    <string name="resource_type_smb">مجلد شبكة (SMB)</string>
     <string name="resource_type_sftp">SFTP</string>
     <string name="resource_type_ftp">FTP</string>
     <string name="resource_type_cloud">سحابة</string>
@@ -375,7 +375,7 @@
     <string name="cb_local_scan_subdirectories_desc">البحث عن ملفات الوسائط في جميع المجلدات الفرعية المتداخلة</string>
     <string name="cb_local_add_to_destinations_desc">تحديد هذا المجلد كوجهة للفرز السريع</string>
     <string name="cb_local_read_only_mode_desc">يمنع عمليات الملفات (نسخ، نقل، حذف)</string>
-    <string name="cb_smb_add_to_destinations_desc">تحديد هذه المشاركة كوجهة للفرز السريع</string>
+    <string name="cb_smb_add_to_destinations_desc">تحديد مجلد الشبكة هذا كوجهة للفرز السريع</string>
     <string name="cb_smb_read_only_mode_desc">يمنع عمليات الملفات (نسخ، نقل، حذف)</string>
     <string name="cb_smb_scan_subdirectories_desc">البحث عن ملفات الوسائط في جميع المجلدات الفرعية المتداخلة</string>
     <string name="cb_smb_all_files_desc">إظهار جميع أنواع الملفات، وليس الوسائط فقط</string>
@@ -522,7 +522,7 @@
     <string name="tooltip_grid_size_title">حجم أيقونات الشبكة</string>
     <string name="tooltip_grid_size_message">حجم الصور المصغّرة بالبكسل في عرض الشبكة. الافتراضي: 96dp. النطاق: 32-256dp (بخطوات 8dp).</string>
     <string name="tooltip_destinations_title">الوجهات</string>
-    <string name="tooltip_destinations_message">أهداف فرز سريعة لتنظيم الملفات بسرعة. الحد الأقصى 30 وجهة. لكل وجهة رقم ولون لتمييزها بسهولة.</string>
+    <string name="tooltip_destinations_message">وجهات الفرز السريع لتنظيم الملفات بسرعة. حتى 30 وجهة. لكل منها رقم ولون لسهولة التمييز.</string>
     <string name="tooltip_touch_zones_title">مناطق اللمس</string>
     <string name="hint_touch_zone_3zone" formatted="false">وضع لوحة الأوامر\n\nيسار 20% - الملف السابق\nالوسط 60% - تحديد / إجراءات\nيمين 20% - الملف التالي\n\nاضغط في أي مكان للإغلاق</string>
     <string name="hint_touch_zone_media">وضع تشغيل الوسائط\n\nمناطق اللمس نشطة في الجزء العلوي فقط.\nالجزء السفلي مخصص لعناصر تحكم المشغّل.\n\nاضغط في أي مكان للإغلاق</string>
@@ -1178,7 +1178,7 @@
     <string name="label_is_destination">استخدام كمجلد وجهة</string>
     <string name="label_is_read_only">وضع القراءة فقط</string>
     <string name="label_scan_subdirectories">فحص المجلدات الفرعية</string>
-    <string name="label_all_files">وضع مدير الملفات (تصفح كل الملفات وإدارتها)</string>
+    <string name="label_all_files">وضع كل الملفات (تصفّح كل الملفات وإدارتها)</string>
     <string name="label_disable_thumbnails">تعطيل الصور المصغّرة</string>
     <string name="label_show_hidden_files">إظهار الملفات المخفية</string>
     <string name="label_show_subfolders_as_items">إظهار المجلدات الفرعية كعناصر</string>
@@ -1358,8 +1358,8 @@
     <string name="error_folder_rename_failed">تعذّرت إعادة تسمية المجلد.</string>
     <string name="error_some_operations_failed">فشلت %1$d من %2$d عملية</string>
     <string name="menu_automate_source">الأتمتة..</string>
-    <string name="menu_add_receiver">أضف إلى قائمة الفرز</string>
-    <string name="msg_added_as_receiver">تمت إضافة المورد إلى قائمة الفرز</string>
+    <string name="menu_add_receiver">إضافة إلى الفرز السريع</string>
+    <string name="msg_added_as_receiver">تمت إضافة المورد إلى الفرز السريع</string>
     <string name="btn_edit_receiver">تهيئة</string>
     <string name="archive_files">أرشيف</string>
     <string name="archive_dialog_title">أرشفة الملفات المختارة</string>
@@ -1419,11 +1419,11 @@
     <string name="wear_companion">تطبيق Wear المرافق</string>
     <string name="tooltip_wear_companion_title">تطبيق Wear المرافق</string>
     <string name="tooltip_wear_companion_message">أرسل موارد الشبكة لديك (SMB وFTP وSFTP) إلى ساعة Wear OS مقترنة لتتصفحها وتشغّلها مباشرة من معصمك. انقر على الزر لاختيار أنواع الوسائط التي تتم مزامنتها وضبط إعدادات التشغيل على الساعة.</string>
-    <string name="wear_sync_description">أرسل مصادر الشبكة إلى ساعة Wear OS المتصلة.</string>
+    <string name="wear_sync_description">أرسل موارد الشبكة إلى ساعة Wear OS المتصلة.</string>
     <string name="wear_push_to_watch">الإرسال إلى الساعة</string>
     <string name="wear_sync_ready">جاهز للمزامنة</string>
     <string name="wear_sync_sending">جارٍ الإرسال إلى الساعة..</string>
-    <string name="wear_sync_success">تم إرسال %d مصدر إلى الساعة</string>
+    <string name="wear_sync_success">تم إرسال %d مورد إلى الساعة</string>
     <string name="wear_sync_failed">تعذّرت المزامنة مع الساعة. حاول مرة أخرى.</string>
     <string name="wear_settings_audio">الصوت</string>
     <string name="wear_settings_video">الفيديو</string>
@@ -1432,8 +1432,8 @@
     <string name="wear_settings_album_art">صورة الألبوم</string>
     <string name="wear_settings_slideshow_interval">فاصل عرض الشرائح (بالثواني)</string>
     <string name="wear_push_settings_failed">تعذّر إرسال إعدادات الساعة. حاول مرة أخرى.</string>
-    <string name="wear_import_pending_title">تم استلام مصادر من الساعة</string>
-    <string name="wear_import_pending_desc">%1$d مصدر من %2$s</string>
+    <string name="wear_import_pending_title">تم استلام موارد الساعة</string>
+    <string name="wear_import_pending_desc">%1$d موارد من %2$s</string>
     <string name="wear_import_accept">استيراد</string>
     <string name="wear_import_dismiss">تجاهل</string>
     <string name="wear_now_playing_title">قيد التشغيل على الساعة</string>
@@ -1473,7 +1473,7 @@
     <string name="s0116_toast_saved_to_downloads">تم الحفظ في مجلد التنزيلات: %1$s</string>
     <string name="s0116_toast_drm_blocked">محتوى محمي - لا يمكن التنزيل</string>
     <string name="s0116_toast_mux_failed">تعذر تجميع ملف MP4 (برنامج الترميز: %1$s)</string>
-    <string name="s0116_toast_streaming_disabled">البث غير متوفر في هذه النسخة</string>
+    <string name="s0116_toast_streaming_disabled">البث غير متاح في هذا الإصدار</string>
     <string name="s0116_toast_auth_required">يلزم تسجيل الدخول لـ %1$s - افتح الإعدادات</string>
     <string name="s0151_toast_content_unavailable">لم أتمكن من الحصول على المحتوى من هذا الرابط</string>
     <string name="s0151_dialog_auth_title">هل ترغب بتسجيل الدخول إلى %1$s؟</string>
@@ -1921,7 +1921,7 @@
     <string name="app_picker_title">اختر تطبيقًا</string>
     <string name="app_launch_panel_title">التشغيل السريع</string>
     <string name="app_launch_panel_edit_action">تعديل</string>
-    <string name="screenshot_gesture_action_open_panel">فتح لوحة التطبيقات</string>
+    <string name="screenshot_gesture_action_open_panel">فتح لوحة الوصول السريع</string>
     <string name="statistics_metric_files_renamed">المعاد تسميتها</string>
     <string name="statistics_metric_favorites_added">المضافة إلى المفضلة</string>
     <string name="statistics_metric_favorites_removed">المزالة من المفضلة</string>
@@ -1963,7 +1963,7 @@
     <string name="app_launch_panel_reset">إعادة ضبط اللوحة</string>
     <string name="app_launch_panel_reset_confirm_title">إعادة ضبط اللوحة؟</string>
     <string name="app_launch_panel_reset_confirm_message">تعود اللوحة إلى المجموعة الافتراضية من التطبيقات والاختصارات التي أُنشئت عند التثبيت.</string>
-    <string name="app_launch_panel_settings_edit_button">تعديل لوحة التطبيقات</string>
+    <string name="app_launch_panel_settings_edit_button">تعديل لوحة الوصول السريع</string>
     <string name="streams_edit">تعديل</string>
     <string name="streams_send_link">إرسال الرابط</string>
     <string name="streams_share_chooser_title">مشاركة رابط البث</string>
@@ -2009,7 +2009,7 @@
     <string name="camera_geotag_permission_denied">يتطلب الوسم الجغرافي إذن الموقع</string>
     <string name="setting_show_programs_panel_title">لوحة البرامج</string>
     <string name="setting_show_programs_panel_summary">عرض قائمة البرامج كشريط أفقي فوق قائمة الموارد. يُخفي زر النقاط الثلاث.</string>
-    <string name="setting_show_streams_panel_title">إظهار لوحة البث في النافذة الرئيسية</string>
+    <string name="setting_show_streams_panel_title">إظهار لوحة البث في الشاشة الرئيسية</string>
     <string name="setting_show_streams_panel_summary">إظهار القنوات المثبَّتة كشريط أفقي فوق قائمة الموارد، مع اختصار إلى البث.</string>
     <string name="panel_remove_title">هل تريد إزالته من اللوحة؟</string>
     <string name="panel_remove_program_message">سيتم إخفاء %1$s. يمكنك إعادة تشغيله من الإعدادات.</string>
@@ -2074,7 +2074,7 @@
     <string name="camera_scenario_ocr_translate">التعرف على النص</string>
     <string name="recording_pause">إيقاف التسجيل مؤقتًا</string>
     <string name="recording_resume">استئناف التسجيل</string>
-    <string name="settings_category_main_window_interface">واجهة النافذة الرئيسية</string>
+    <string name="settings_category_main_window_interface">واجهة الشاشة الرئيسية</string>
     <string name="streams_move_up">تحريك لأعلى</string>
     <string name="streams_move_down">تحريك لأسفل</string>
     <string name="streams_move_to_top">نقل إلى الأعلى</string>
@@ -2146,7 +2146,7 @@
     <string name="gesture_action_explain_share">يلتقط الشاشة ويفتح لوحة المشاركة في النظام.</string>
     <string name="gesture_action_explain_crop_and_share">يلتقط الشاشة ويتيح لك قصّها ثم يشارك النتيجة.</string>
     <string name="gesture_action_explain_open_app">يفتح التطبيق الذي تختاره لهذه الإيماءة. وإذا لم تختر تطبيقًا، يفتح FastMediaSorter.</string>
-    <string name="gesture_action_explain_open_panel">يفتح لوحة التشغيل السريع للتطبيقات.</string>
+    <string name="gesture_action_explain_open_panel">يفتح لوحة الوصول السريع.</string>
     <string name="gesture_action_explain_launch_camera">يفتح الكاميرا المدمجة في التطبيق.</string>
     <string name="gesture_action_explain_take_photo">يلتقط صورة بالكاميرا المدمجة ويحفظها.</string>
     <string name="gesture_action_explain_take_photo_send_to">يلتقط صورة ويرسلها إلى المستلمين الذين اخترتهم.</string>
@@ -2260,7 +2260,7 @@
     <string name="launcher_edit_kind_os">إعداد Android</string>
     <string name="launcher_edit_kind_gadget">أداة</string>
     <string name="launcher_edit_pick_stream_title">اختر بثًا</string>
-    <string name="launcher_edit_pick_gadget_title">اختيار أداة</string>
+    <string name="launcher_edit_pick_gadget_title">اختر أداة</string>
     <string name="launcher_edit_remove_cell_named">إزالة %1$s من سطح المكتب</string>
     <string name="launcher_edit_mode_browse">تصفح</string>
     <string name="launcher_edit_mode_slideshow">عرض شرائح</string>
@@ -2380,7 +2380,7 @@
     <string name="pdf_text_selection_word_not_found">لم يتم العثور على هذه الكلمة - حددها يدويًا</string>
     <string name="launcher_settings_replace_status_area_title">إخفاء شريط حالة النظام</string>
     <string name="launcher_gadget_favorites_empty">لا شيء في المفضلة بعد. اضغط لفتحها.</string>
-    <string name="launcher_gadget_scheduled_empty">لا توجد مهام مجدولة بعد. اضغط لإعداد واحدة.</string>
+    <string name="launcher_gadget_scheduled_empty">لا توجد عمليات مجدولة بعد. انقر لإعداد واحدة.</string>
     <string name="settings_add_launcher_widget">إضافة أداة إلى سطح مكتب المشغّل</string>
     <string name="launcher_widget_placed">أُضيفت إلى سطح مكتب المشغّل</string>
     <string name="launcher_widget_no_room">لا مساحة على سطح مكتب المشغّل. أخلِ مكانًا وحاول مرة أخرى.</string>
@@ -2656,8 +2656,8 @@
     <string name="streams_unavailable_offline_title">لا يوجد اتصال</string>
     <string name="streams_unavailable_offline_message">«%1$s» توقّف - جهازك غير متصل. تحقّق من الاتصال وأعد المحاولة.</string>
     <string name="launcher_settings_top_status_strip_title">شريط الحالة العلوي</string>
-    <string name="launcher_settings_top_status_strip_summary">تنتقل الساعة بالثواني إلى يسار الشريط العلوي ومؤشرات الجهاز إلى يمينه، ما يفسح مجالًا أكبر في لوحة البدء للتطبيقات الأخيرة.</string>
-    <string name="launcher_settings_tray_moved_hint">تظهر المؤشرات على الشريط العلوي أثناء تفعيل هذا الوضع. أوقفه لإعادتها إلى لوحة البدء.</string>
+    <string name="launcher_settings_top_status_strip_summary">تنتقل الساعة مع الثواني إلى يسار الشريط العلوي ومؤشرات الجهاز إلى يمينه، مما يفسح شريط المهام لمزيد من التطبيقات الأخيرة.</string>
+    <string name="launcher_settings_tray_moved_hint">تكون المؤشرات في الشريط العلوي ما دام هذا الوضع مفعّلاً. أوقفه لإعادتها إلى شريط المهام.</string>
     <string name="gesture_slot_app_label">التطبيق المراد تشغيله</string>
     <string name="gesture_slot_app_none">لم يُختر - انقر لاختيار تطبيق</string>
     <string name="gesture_slot_app_reset">مسح الاختيار</string>
@@ -2894,7 +2894,7 @@
     <string name="launcher_gadget_media_document_open">اضغط للفتح في القارئ</string>
     <string name="launcher_edit_streams_loading">جارٍ تحميل البث..</string>
     <string name="launcher_tray_indicator_action">%1$s. اضغط لفتح إعدادات Android المطابقة</string>
-    <string name="launcher_home_cell_too_wide">هذه الأداة أعرض من شبكة سطح المكتب. أدر الشاشة أو اختر أداة أضيق.</string>
+    <string name="launcher_home_cell_too_wide">هذه الأداة أعرض من شبكة سطح المكتب. دوّر الشاشة أو اختر أداة أضيق.</string>
     <string name="launcher_section_create">إنشاء قسم..</string>
     <string name="launcher_section_name_title">اسم القسم</string>
     <string name="launcher_section_name_hint">على سبيل المثال: العمل</string>
@@ -2918,7 +2918,7 @@
     <string name="wear_resource_selection_title">الموارد الخاصة بالساعة</string>
     <string name="wear_resource_selection_hint">يمكن إرسال موارد الشبكة فقط (SMB وFTP وSFTP) إلى الساعة، لذا هذه هي المدرجة فقط. حدد ما تريد إرساله.</string>
     <string name="wear_resource_selection_select_all">تحديد الكل</string>
-    <string name="wear_resource_selection_empty">لا توجد موارد شبكة بعد. يمكن إرسال موارد SMB وFTP وSFTP فقط إلى الساعة - أضف واحدًا من شاشة الموارد، ثم عد لاختيار ما تحصل عليه الساعة.</string>
+    <string name="wear_resource_selection_empty">لا توجد موارد شبكة بعد. يمكن إرسال موارد SMB وFTP وSFTP فقط إلى الساعة - أضف موردًا في الشاشة الرئيسية، ثم عُد لاختيار ما تحصل عليه الساعة.</string>
     <string name="wear_sync_nothing_selected">لا توجد موارد محدّدة للساعة بعد. افتح الموارد الخاصة بالساعة وحدّد التي تريد إرسالها.</string>
     <string name="wear_settings_view_mode">عرض الرئيسية والموارد</string>
     <string name="wear_settings_view_mode_list">قائمة</string>
@@ -3290,7 +3290,7 @@
     <string name="mirror_video_button">تسجيل فيديو</string>
     <string name="mirror_zoom_button">تكبير %1$sx</string>
     <string name="mirror_no_front_camera">لا توجد كاميرا أمامية في هذا الجهاز، لذا لا يمكن فتح المرآة</string>
-    <string name="launcher_settings_screen_timeout_subtitle_no_lock">يجعل الشاشة سوداء عندما يكون سطح المكتب خاملاً. لا يستطيع هذا الإصدار قفل الجهاز.</string>
+    <string name="launcher_settings_screen_timeout_subtitle_no_lock">يجعل الشاشة سوداء عندما يكون سطح المكتب خاملاً. لا يمكن لهذا الإصدار قفل الجهاز.</string>
     <string name="launcher_settings_tray_tethering_title">نقطة اتصال Wi-Fi</string>
     <string name="launcher_settings_tray_tethering_subtitle">إظهار حالة نقطة الاتصال في شريط الإشعارات</string>
     <string name="launcher_tray_tethering_on">نقطة اتصال Wi-Fi مشغّلة</string>
@@ -3516,7 +3516,7 @@
     <string name="watch_listen_state_waiting">بانتظار الساعة</string>
     <string name="watch_listen_state_listening">جارٍ الاستماع</string>
     <string name="watch_listen_state_recording">جارٍ التسجيل</string>
-    <string name="wear_sync_removed">تمت إزالة %d مصدر (مصادر) من الساعة</string>
+    <string name="wear_sync_removed">تمت إزالة %d مورد من الساعة</string>
     <string name="wear_sync_settings_no_ack">لم تؤكد الساعة الإعدادات. قد تكون مغلقة أو خارج النطاق.</string>
     <string name="tourist_info_title">سائح</string>
     <string name="tourist_info_panel_desc">لوحة ملاحة وقياس عن بُعد في الوقت الفعلي</string>
@@ -3595,8 +3595,8 @@
     <string name="broadcast_control_blank_screen">شاشة سوداء</string>
     <string name="broadcast_control_blank_screen_cd">تغطية التطبيق بشاشة سوداء مع استمرار الإذاعة</string>
     <string name="broadcast_share_save_failed">تعذّر حفظ الملف</string>
-    <string name="launcher_settings_taskbar_rows_title">صفوف لوحة البدء</string>
-    <string name="launcher_settings_taskbar_rows_subtitle">تعرض اللوحة الأطول تطبيقات حديثة أكثر وترصّ مؤشرات شريط الحالة</string>
+    <string name="launcher_settings_taskbar_rows_title">صفوف شريط المهام</string>
+    <string name="launcher_settings_taskbar_rows_subtitle">شريط مهام أطول يعرض المزيد من التطبيقات الأخيرة ويكدّس مؤشرات الدرج</string>
     <string name="tourist_unit_mph">mph</string>
     <string name="wear_system_info_channel_name">معلومات نظام الساعة</string>
     <string name="wear_system_info_notification_title">تم استلام تقرير الساعة</string>
@@ -3624,10 +3624,10 @@
     <string name="launcher_primary_window_home_desc">يصبح التطبيق الشاشة الرئيسية لجهازك</string>
     <string name="launcher_primary_window_desktop_title">سطح المكتب كنافذة رئيسية</string>
     <string name="launcher_primary_window_desktop_desc">يفتح سطح المكتب داخل التطبيق دون تغيير الشاشة الرئيسية للجهاز</string>
-    <string name="launcher_primary_window_resource_manager_title">مدير الموارد</string>
+    <string name="launcher_primary_window_resource_manager_title">الشاشة الرئيسية</string>
     <string name="launcher_primary_window_resource_manager_desc">يفتح إدارة الملفات وموارد الوسائط مباشرة</string>
     <string name="setting_launcher_primary_window_title">نافذة البدء الرئيسية</string>
-    <string name="setting_launcher_primary_window_desc">اختر ما إذا كان التطبيق يفتح كشاشة رئيسية للجهاز أو كسطح مكتب داخلي أو كمدير موارد</string>
+    <string name="setting_launcher_primary_window_desc">اختر ما إذا كان التطبيق يفتح كشاشة البداية للجهاز أو كسطح مكتب داخل التطبيق أو كالشاشة الرئيسية</string>
     <string-array name="launcher_primary_window_options">
         <item>@string/launcher_primary_window_home_title</item>
         <item>@string/launcher_primary_window_desktop_title</item>
@@ -3676,7 +3676,7 @@
     <string name="launcher_settings_screen_timeout_on_charge_title">مهلة الشاشة أثناء الشحن</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">يطفئ الشاشة بعد فترة من عدم النشاط أثناء توصيل الشاحن</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">مهلة الشاشة أثناء الشحن</string>
-    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">يجعل الشاشة سوداء بعد فترة من عدم النشاط أثناء توصيل الشاحن. هذا الإصدار لا يمكنه قفل الجهاز.</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">يجعل الشاشة سوداء بعد فترة من عدم النشاط أثناء توصيل الشاحن. لا يمكن لهذا الإصدار قفل الجهاز.</string>
     <string name="settings_watch_camera_standby">السماح لساعتي برؤية الكاميرا</string>
     <string name="settings_watch_camera_standby_summary">يشغّل الكاميرا الآن، حتى تتمكن الساعة المقترنة من فتح الصورة لاحقًا بينما يبقى الهاتف في جيبك</string>
     <string name="settings_watch_camera_standby_failed">تعذّر تشغيل الكاميرا للساعة</string>
@@ -3705,4 +3705,10 @@
     <string name="filedo_open_refused_executable">تحتوي هذه الحاوية على برنامج أو نص برمجي. لن يتم فتحها.</string>
     <string name="filedo_password_remember">تذكر كلمة المرور وتجربتها على كل ملف .fd-sec</string>
     <string name="filedo_remembered_password_forgotten">كلمة المرور المحفوظة لم تفتح هذا الملف وتم نسيانها. أدخل كلمة المرور لهذا الملف.</string>
+    <string name="stream_access_restricted">🔒 مقيّد</string>
+    <string name="stream_access_restricted_desc">قد توجد قيود على الوصول - قد لا يعمل في بيئتك أو منطقتك</string>
+    <string name="stream_info_access_restricted">مقيّد</string>
+    <string name="sftp_host_key_presented_format">بصمة مفتاح المضيف للخادم:\n%1$s</string>
+    <string name="sftp_pin_host_key">تثبيت مفتاح المضيف</string>
+    <string name="sftp_host_key_pinned_toast">تم تثبيت بصمة مفتاح المضيف للخادم</string>
 </resources>

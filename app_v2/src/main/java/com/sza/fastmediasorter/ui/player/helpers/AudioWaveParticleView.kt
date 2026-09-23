@@ -647,7 +647,6 @@ class AudioWaveParticleView @JvmOverloads constructor(
                 animator.resume()
             }
             !animator.isRunning -> {
-                Timber.d("S3414: fresh wave session - clock, ramp, particles and wash paced by elapsed frames")
                 pendingStaticFrame = false
                 randomizeParams()
                 startupFrameCount = 0f

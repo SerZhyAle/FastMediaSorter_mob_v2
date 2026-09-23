@@ -128,7 +128,7 @@
     <string name="setting_allow_separate_window">নতুন উইন্ডোর অনুমতি দিন</string>
     <string name="setting_allow_separate_window_desc">ফোল্ডার ও ফাইল আলাদা উইন্ডোতে খুলুন</string>
     <string name="setting_background_sync_desc">পটভূমিতে নেটওয়ার্ক উৎসে পরিবর্তন হয়েছে কি না স্বয়ংক্রিয়ভাবে দেখুন</string>
-    <string name="setting_calculator_desc">মূল মেনু ও লঞ্চার উইজেটে ক্যালকুলেটর দেখান</string>
+    <string name="setting_calculator_desc">ক্যালকুলেটর প্রোগ্রাম মেনু, দ্রুত-অ্যাক্সেস প্যানেল এবং লঞ্চার ডেস্কটপে দেখান</string>
     <string name="setting_camera_ocr_only_desc">অনুবাদের ধাপ বাদ দিয়ে শনাক্ত করা লেখা সরাসরি দেখান</string>
     <string name="setting_camera_ocr_only_title">শুধু OCR (অনুবাদ ছাড়া)</string>
     <string name="setting_camera_ocr_translation_desc">দ্রুত ছবি-OCR-অনুবাদ প্রবাহ চালু করুন</string>
@@ -262,7 +262,7 @@
     <string name="settings_wear_group_description">আপনার যদি Wear OS ঘড়ি থাকে তবে এটি চালু করুন। সঙ্গী অ্যাপটি এখান থেকে খোলে এবং ঠিক করে এই ফোনটি ঘড়ির সঙ্গে কী ভাগ করবে।</string>
     <string name="settings_wear_install_guide_button">ঘড়িতে কীভাবে ইনস্টল করবেন</string>
     <string name="settings_wear_web_portal_button">ঘড়ি সম্পর্কে সব</string>
-    <string name="setting_stopwatch_desc">প্রধান মেনু ও লঞ্চার উইজেটে স্টপওয়াচ দেখান</string>
+    <string name="setting_stopwatch_desc">স্টপওয়াচ প্রোগ্রাম মেনু, দ্রুত-অ্যাক্সেস প্যানেল এবং লঞ্চার ডেস্কটপে দেখান</string>
     <string name="cross_device_transfer_send_to_device">আমার ডিভাইসে পাঠান (Drive)</string>
     <string name="cross_device_transfer_pending_title">মুলতুবি ডিভাইস স্থানান্তর</string>
     <string name="cross_device_transfer_receive_and_delete">গ্রহণ করুন এবং ক্লাউড থেকে মুছুন</string>

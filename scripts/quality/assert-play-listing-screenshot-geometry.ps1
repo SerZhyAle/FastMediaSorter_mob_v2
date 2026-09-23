@@ -45,8 +45,17 @@
     background. The brightness STEP at the ring's inner edge was measured too and rejected: a bezel
     painted over dim content is brighter than that content, so the step goes negative on two of four
     synthetic framed frames while reaching 25 on a real unframed one - wrong in both directions. The
-    width separates them by a factor of four (live 0.0-0.005 against synthetic 0.10-0.22) and holds
-    across the whole 8..20 range of the measurement's flatness constant.
+    width separates them and holds across the whole 8..20 range of the measurement's flatness
+    constant.
+
+    THE CEILING IS CALIBRATED ON THE CORPUS, SO A RECAPTURE RE-OPENS IT. It was first set at 0.04
+    against the old frames, whose rows ran to the rim (live 0.0-0.005). The 2026-09-23 recapture
+    (S3362) holds sparse dark screens that keep their ink inside the round display, and measured
+    0.025-0.040 with no bezel at all - the old ceiling had no margin left, and one honest frame with
+    a thin antialiased rim read 0.055 and failed as a device frame (S3468). Re-measured on that
+    corpus: honest frames plus a 3% rim read at most 0.070, every synthetic bezel of 8% or more
+    reads at least 0.110, whatever its shade from black to the dark threshold. The ceiling sits
+    between the two; re-measure both sides before moving it again.
 
     BOUNDS IS APPLIED ONLY TO THE TYPES THE COMPOSER ACTUALLY WRITES, and the report says which
     types it therefore left unbounded. The tree carries a third screenshot type, wearScreenshots,
@@ -94,8 +103,8 @@
 
 .PARAMETER MaxFrameRingWidth
     Widest content-free ring a wear screenshot may carry at its rim, as a share of the inscribed
-    radius. Defaults to 0.04, which sits four times above the live corpus and four times below every
-    synthetic framed frame measured for S2764.
+    radius. Defaults to 0.09, between the widest honest frame (0.070, live corpus plus a thin rim)
+    and the narrowest synthetic bezel of 8% (0.110), both measured 2026-09-23 (S3468).
 
 .PARAMETER Gate
     Accepted for the release-scope runner's uniform child invocation; this gate is always fatal on
@@ -129,7 +138,7 @@
 param(
     [string]$ListingRoot,
     [double]$MaxBandShare = 0.20,
-    [double]$MaxFrameRingWidth = 0.04,
+    [double]$MaxFrameRingWidth = 0.09,
     [switch]$Gate,
     [switch]$Quiet,
     [switch]$Help

@@ -35,7 +35,7 @@
     <string name="game_score">Score : %1$d</string>
     <string name="game_settings_help_message">Permet de jouer à un jeu de puzzle local au tour par tour. Le jeu reste désactivé jusqu\'à ce que vous l\'activiez.</string>
     <string name="game_settings_help_title">Mini-jeu</string>
-    <string name="game_settings_toggle_subtitle">Afficher le jeu dans le menu principal et le widget de lancement</string>
+    <string name="game_settings_toggle_subtitle">Afficher le jeu dans le menu des programmes, le panneau d\'accès rapide et sur le bureau du lanceur</string>
     <string name="game_settings_toggle_title">Mini-jeu</string>
     <string name="game_status_game_over">Kryvavitsa vous a attrapé. Lancez une nouvelle partie pour réessayer.</string>
     <string name="game_status_invalid_board">Ce plateau est inutilisable. Modifiez sa taille ou ouvrez un plateau prédéfini.</string>

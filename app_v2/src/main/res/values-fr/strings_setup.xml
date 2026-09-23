@@ -29,12 +29,12 @@
     <string name="welcome_profile_personal_smartphone_title">Smartphone personnel</string>
     <string name="welcome_profile_photo_frame_desc">Transforme l\'appareil en cadre photo numérique. Désactive vidéo, audio et opérations sur les fichiers ; ouvre le diaporama dès le lancement.</string>
     <string name="welcome_profile_photo_frame_title">Cadre photo</string>
-    <string name="welcome_profile_selector_title">Profil d\'utilisation de l\'appareil</string>
+    <string name="welcome_profile_selector_title">Profil de l\'appareil</string>
     <string name="welcome_profile_tv_media_box_desc">Idéal pour téléviseurs et centres multimédias. Optimise la navigation à la télécommande, utilise de grands boutons et masque les petits contrôles tactiles.</string>
     <string name="welcome_profile_tv_media_box_title">TV / boîtier multimédia</string>
     <string name="welcome_profile_video_player_desc">Idéal pour les appareils vidéo seuls. Masque photos, musique et lecteurs de documents ; privilégie la lecture rapide et les vignettes.</string>
     <string name="welcome_profile_video_player_title">Lecteur vidéo</string>
-    <string name="welcome_profile_vr_headset_desc">Idéal pour les appareils de réalité virtuelle. Active par défaut les dispositions 3D/360° et les commandes immersives sur les variantes matérielles prises en charge.</string>
+    <string name="welcome_profile_vr_headset_desc">Idéal pour les appareils de réalité virtuelle. Active d\'emblée les dispositions 3D/360° et les commandes immersives sur les casques compatibles.</string>
     <string name="welcome_profile_vr_headset_title">Casque VR</string>
     <string name="welcome_recommended_badge">(Recommandé)</string>
     <string name="welcome_title_1">Bienvenue dans FastMediaSorter !</string>
@@ -62,7 +62,7 @@
     <string name="sysinfo_field_display_count">Écrans</string>
     <string name="sysinfo_field_fingerprint">Fingerprint</string>
     <string name="sysinfo_field_first_install">Première installation</string>
-    <string name="sysinfo_field_flavor">Variante</string>
+    <string name="sysinfo_field_flavor">Édition</string>
     <string name="sysinfo_field_font_scale">Échelle de police</string>
     <string name="sysinfo_field_gles">OpenGL ES</string>
     <string name="sysinfo_field_hdr">HDR</string>
@@ -117,7 +117,7 @@
     <string name="welcome_theme_auto">Automatique</string>
     <string name="welcome_theme_light">Clair</string>
     <string name="welcome_theme_dark">Sombre</string>
-    <string name="welcome_networks_title">Sources réseau</string>
+    <string name="welcome_networks_title">Ressources réseau</string>
     <string name="welcome_networks_description">Ajoutez des médias depuis des partages réseau et du stockage distant.</string>
     <string name="welcome_profiles_title">Comment allez-vous utiliser cet appareil ?</string>
     <string name="welcome_profiles_subtitle">Choisissez un profil, nous ajusterons les réglages par défaut.</string>
@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">Flux</string>
     <string name="welcome_role_streams_detail">Radio internet, chaînes TV et vidéo depuis un catalogue prêt à l\'emploi</string>
     <string name="welcome_role_wear">Appli montre</string>
-    <string name="welcome_role_wear_detail">Un compagnon Wear OS - parcourez et lisez directement à votre poignet</string>
+    <string name="welcome_role_wear_detail">L\'app de la montre - parcourez et lisez directement à votre poignet</string>
 </resources>

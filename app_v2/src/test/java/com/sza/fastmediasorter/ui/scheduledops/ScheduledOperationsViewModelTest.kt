@@ -75,7 +75,10 @@ class ScheduledOperationsViewModelTest {
         intervalMinutes = 0,
     )
 
-    private fun viewModel(operations: List<ScheduledOperation> = listOf(sampleOperation)) =
+    private fun viewModel(
+        operations: List<ScheduledOperation> = listOf(sampleOperation),
+        resourcesList: List<com.sza.fastmediasorter.domain.model.MediaResource> = emptyList(),
+    ) =
         ScheduledOperationsViewModel(
             getScheduledOperationsUseCase = getScheduledOperations.also {
                 every { it() } returns flowOf(operations)
@@ -91,7 +94,7 @@ class ScheduledOperationsViewModelTest {
             resolveLocalFolderResourceUseCase = resolveLocalFolderResource,
             checkLocalFolderWritableUseCase = checkLocalFolderWritable,
             getResourcesUseCase = getResources.also {
-                every { it() } returns flowOf(emptyList())
+                every { it() } returns flowOf(resourcesList)
             },
             cleanupHiddenResourceUseCase = cleanupHiddenResource,
         )
@@ -103,6 +106,17 @@ class ScheduledOperationsViewModelTest {
         val job = launch { viewModel.operations.toList(emitted) }
         advanceUntilIdle()
         assertEquals(listOf(sampleOperation), emitted.last())
+        job.cancel()
+    }
+
+    @Test
+    fun resourcesExposesRepositoryList() = runTest {
+        val sampleResource = mockk<com.sza.fastmediasorter.domain.model.MediaResource>()
+        val viewModel = viewModel(resourcesList = listOf(sampleResource))
+        val emitted = mutableListOf<List<com.sza.fastmediasorter.domain.model.MediaResource>>()
+        val job = launch { viewModel.resources.toList(emitted) }
+        advanceUntilIdle()
+        assertEquals(listOf(sampleResource), emitted.last())
         job.cancel()
     }
 

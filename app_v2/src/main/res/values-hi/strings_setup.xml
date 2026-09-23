@@ -29,12 +29,12 @@
     <string name="welcome_profile_personal_smartphone_title">निजी स्मार्टफ़ोन</string>
     <string name="welcome_profile_photo_frame_desc">डिवाइस को डिजिटल फ़ोटो फ़्रेम में बदल देता है। वीडियो, ऑडियो और फ़ाइल कार्य बंद करता है; शुरू होते ही स्लाइडशो खोलता है।</string>
     <string name="welcome_profile_photo_frame_title">फ़ोटो फ़्रेम</string>
-    <string name="welcome_profile_selector_title">डिवाइस उपयोग प्रोफ़ाइल</string>
+    <string name="welcome_profile_selector_title">डिवाइस प्रोफ़ाइल</string>
     <string name="welcome_profile_tv_media_box_desc">टीवी और मीडिया सेंटर के लिए सबसे अच्छा। डी-पैड/रिमोट नेविगेशन बेहतर बनाता है, बड़े बटन इस्तेमाल करता है और छोटे टच नियंत्रण छिपाता है।</string>
     <string name="welcome_profile_tv_media_box_title">टीवी / मीडिया बॉक्स</string>
     <string name="welcome_profile_video_player_desc">केवल वीडियो वाले डिवाइस के लिए सबसे अच्छा। फ़ोटो, संगीत और दस्तावेज़ व्यूअर छिपाता है; तेज़ वीडियो प्लेबैक और थंबनेल को प्राथमिकता देता है।</string>
     <string name="welcome_profile_video_player_title">वीडियो प्लेयर</string>
-    <string name="welcome_profile_vr_headset_desc">वर्चुअल रियलिटी डिवाइस के लिए सर्वोत्तम. समर्थित हार्डवेयर फ़्लेवर पर 3D/360° लेआउट और इमर्सिव नियंत्रण पहले से सक्षम करता है.</string>
+    <string name="welcome_profile_vr_headset_desc">वर्चुअल रियलिटी डिवाइस के लिए सबसे अच्छा। समर्थित हेडसेट पर 3D/360° लेआउट और इमर्सिव नियंत्रण पहले से चालू करता है।</string>
     <string name="welcome_profile_vr_headset_title">VR हेडसेट</string>
     <string name="welcome_recommended_badge">(अनुशंसित)</string>
     <string name="welcome_title_1">FastMediaSorter में आपका स्वागत है!</string>
@@ -62,7 +62,7 @@
     <string name="sysinfo_field_display_count">डिस्प्ले</string>
     <string name="sysinfo_field_fingerprint">फ़िंगरप्रिंट</string>
     <string name="sysinfo_field_first_install">पहली इंस्टॉलेशन</string>
-    <string name="sysinfo_field_flavor">वैरिएंट</string>
+    <string name="sysinfo_field_flavor">संस्करण</string>
     <string name="sysinfo_field_font_scale">फ़ॉन्ट स्केल</string>
     <string name="sysinfo_field_gles">OpenGL ES</string>
     <string name="sysinfo_field_hdr">HDR</string>
@@ -117,7 +117,7 @@
     <string name="welcome_theme_auto">स्वचालित</string>
     <string name="welcome_theme_light">हल्की</string>
     <string name="welcome_theme_dark">गहरी</string>
-    <string name="welcome_networks_title">नेटवर्क स्रोत</string>
+    <string name="welcome_networks_title">नेटवर्क संसाधन</string>
     <string name="welcome_networks_description">नेटवर्क शेयर और दूरस्थ स्टोरेज से मीडिया जोड़ें।</string>
     <string name="welcome_profiles_title">आप इस डिवाइस का उपयोग कैसे करेंगे?</string>
     <string name="welcome_profiles_subtitle">एक प्रोफ़ाइल चुनें - हम डिफ़ॉल्ट सेटिंग उसी के अनुसार कर देंगे।</string>
@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">स्ट्रीम</string>
     <string name="welcome_role_streams_detail">तैयार कैटलॉग से इंटरनेट रेडियो, टीवी और वीडियो चैनल</string>
     <string name="welcome_role_wear">घड़ी ऐप</string>
-    <string name="welcome_role_wear_detail">Wear OS साथी ऐप - सीधे अपनी कलाई पर ब्राउज़ करें और चलाएँ</string>
+    <string name="welcome_role_wear_detail">वॉच ऐप - सीधे अपनी कलाई पर ब्राउज़ करें और चलाएँ</string>
 </resources>

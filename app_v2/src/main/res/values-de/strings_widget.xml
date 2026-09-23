@@ -37,12 +37,12 @@
     <string name="widget_unlock_screen_prompt">Entsperren Sie den Bildschirm, um das Widget hinzuzufügen.</string>
     <string name="settings_add_home_widget_title">Widget zum Android-Startbildschirm hinzufügen..</string>
     <string name="widget_picker_dialog_title">Wählen Sie ein Widget aus.</string>
-    <string name="widget_scheduled_tasks_label">Geplante Aufgaben</string>
+    <string name="widget_scheduled_tasks_label">Geplante Vorgänge</string>
     <string name="widget_scheduled_tasks_description">Status und Steuerung für geplante Dateivorgänge</string>
     <string name="widget_scheduled_run_all">Alle ausführen</string>
     <string name="widget_scheduled_pause_all">Alle pausieren</string>
     <string name="widget_scheduled_resume_all">Alle Lebensläufe</string>
-    <string name="widget_scheduled_empty">Keine geplanten Aufgaben</string>
+    <string name="widget_scheduled_empty">Keine geplanten Vorgänge</string>
     <string name="widget_scheduled_active_count">%1$d aktiv</string>
     <string name="widget_scheduled_last_ok">Letzte Meldung: OK %1$s</string>
     <string name="widget_scheduled_last_error">Letzter Fehler: %1$s</string>

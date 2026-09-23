@@ -61,7 +61,7 @@
     <string name="cloud_list_files_failed">کلاؤڈ سے فائلیں لوڈ نہیں ہو سکیں۔ دوبارہ کوشش کریں۔</string>
     <string name="cloud_list_folders_failed">کلاؤڈ سے فولڈرز لوڈ نہیں ہو سکے۔ دوبارہ کوشش کریں۔</string>
     <string name="cloud_metadata_failed">کلاؤڈ سے فائل کی تفصیلات لوڈ نہیں کی جا سکیں۔ دوبارہ کوشش کریں۔</string>
-    <string name="cloud_restore_instructions">Google Drive کنکشن کو بحال کرنے کی ضرورت ہے۔\n\nبراہ کرم:\n1۔ مین مینو پر جائیں\n2۔ \'وسائل\' کھولیں\n3۔ \"%1$s\" پر تھپتھپائیں\n4۔ اپنے گوگل اکاؤنٹ سے سائن ان کریں۔</string>
+    <string name="cloud_restore_instructions">Google Drive کنکشن بحال کرنا ضروری ہے۔\n\nبراہ کرم:\n1. مرکزی اسکرین کھولیں\n2. \"%1$s\" پر ٹیپ کریں\n3. اپنے Google اکاؤنٹ سے سائن ان کریں</string>
     <string name="cloud_search_failed">کلاؤڈ اسٹوریج کو تلاش نہیں کیا جا سکا۔ دوبارہ کوشش کریں۔</string>
     <string name="cloud_sign_out_failed">کلاؤڈ اکاؤنٹ سے سائن آؤٹ نہیں ہو سکا۔ دوبارہ کوشش کریں۔</string>
     <string name="cloud_storage">کلاؤڈ اسٹوریج</string>

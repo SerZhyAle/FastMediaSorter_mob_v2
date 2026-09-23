@@ -37,12 +37,12 @@
     <string name="widget_unlock_screen_prompt">ویجیٹ شامل کرنے کے لیے اسکرین کو غیر مقفل کریں۔</string>
     <string name="settings_add_home_widget_title">اینڈرائیڈ ہوم اسکرین پر ویجیٹ شامل کریں۔</string>
     <string name="widget_picker_dialog_title">ایک ویجیٹ منتخب کریں۔</string>
-    <string name="widget_scheduled_tasks_label">طے شدہ کام</string>
+    <string name="widget_scheduled_tasks_label">طے شدہ کارروائیاں</string>
     <string name="widget_scheduled_tasks_description">شیڈول فائل آپریشنز کے لیے سٹیٹس اور کنٹرولز</string>
     <string name="widget_scheduled_run_all">سب چلائیں۔</string>
     <string name="widget_scheduled_pause_all">سب کو روک دیں۔</string>
     <string name="widget_scheduled_resume_all">تمام کو دوبارہ شروع کریں۔</string>
-    <string name="widget_scheduled_empty">کوئی طے شدہ کام نہیں ہیں۔</string>
+    <string name="widget_scheduled_empty">کوئی طے شدہ کارروائی نہیں</string>
     <string name="widget_scheduled_active_count">%1$d فعال</string>
     <string name="widget_scheduled_last_ok">آخری: ٹھیک ہے %1$s</string>
     <string name="widget_scheduled_last_error">آخری: خرابی %1$s</string>

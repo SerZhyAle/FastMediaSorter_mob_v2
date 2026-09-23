@@ -172,7 +172,6 @@ class WearFolderWalkViewModel @Inject constructor(
      * would fetch the file.
      */
     private fun networkContainerId(entry: WearFolderEntry, uri: Uri, level: WearFolderAddress.NetworkLevel): Long {
-        Timber.d("S3407: network walk routes a container to the credential screen")
         return prepareNetworkFile(
             WearNetworkFileOpenRequest(
                 sourceId = level.sourceId,
@@ -196,7 +195,6 @@ class WearFolderWalkViewModel @Inject constructor(
             relativePath = (level as? WearFolderAddress.MediaStoreFolder)?.relativePath
         )
         selectedMedia.selectFile(file = container, isNetworkSource = false)
-        Timber.d("S3383: folder walk routes a container to the credential screen")
         return container.id
     }
 

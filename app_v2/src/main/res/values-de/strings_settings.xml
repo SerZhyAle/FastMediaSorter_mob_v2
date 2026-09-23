@@ -128,7 +128,7 @@
     <string name="setting_allow_separate_window">Neue Fenster erlauben</string>
     <string name="setting_allow_separate_window_desc">Ordner und Dateien in einem eigenen Fenster öffnen</string>
     <string name="setting_background_sync_desc">Netzwerkquellen im Hintergrund automatisch auf Änderungen prüfen</string>
-    <string name="setting_calculator_desc">Den Rechner im Hauptmenü und im Launcher-Widget anzeigen</string>
+    <string name="setting_calculator_desc">Rechner im Programmmenü, im Schnellzugriffsbereich und auf dem Launcher-Desktop anzeigen</string>
     <string name="setting_camera_ocr_only_desc">Den Übersetzungsschritt überspringen und den erkannten Text direkt zeigen</string>
     <string name="setting_camera_ocr_only_title">Nur OCR (ohne Übersetzung)</string>
     <string name="setting_camera_ocr_translation_desc">Den schnellen Ablauf Foto-OCR-Übersetzung aktivieren</string>
@@ -262,7 +262,7 @@
     <string name="settings_wear_group_description">Aktivieren Sie dies, wenn Sie eine Wear OS Uhr haben. Die Begleit-App wird von hier geöffnet und legt fest, was dieses Telefon mit der Uhr teilt.</string>
     <string name="settings_wear_install_guide_button">So installieren Sie es auf einer Uhr</string>
     <string name="settings_wear_web_portal_button">Alles über die Uhr</string>
-    <string name="setting_stopwatch_desc">Stoppuhr im Hauptmenü und im Launcher-Widget anzeigen</string>
+    <string name="setting_stopwatch_desc">Stoppuhr im Programmmenü, im Schnellzugriffsbereich und auf dem Launcher-Desktop anzeigen</string>
     <string name="cross_device_transfer_send_to_device">An mein Gerät senden (Drive)</string>
     <string name="cross_device_transfer_pending_title">Ausstehende Geräteübertragungen</string>
     <string name="cross_device_transfer_receive_and_delete">Empfangen und aus der Cloud löschen</string>

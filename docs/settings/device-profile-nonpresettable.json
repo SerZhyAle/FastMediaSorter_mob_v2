@@ -3,6 +3,7 @@
   "fields": [
     { "field": "defaultUser", "reason": "credential - belongs to the user, never to a device profile" },
     { "field": "defaultPassword", "reason": "credential - belongs to the user, never to a device profile" },
+    { "field": "enableFileDoOperations", "reason": "deliberate opt-in - encrypting a file behind a credential the owner then forgets is unrecoverable, so only the user may reveal these operations, never a device profile (S3382)" },
 
     { "field": "lastUsedResourceId", "reason": "pointer to a resource row that exists only on this install" },
     { "field": "lastSelectedLocalFolder", "reason": "pointer to a folder that exists only on this install" },

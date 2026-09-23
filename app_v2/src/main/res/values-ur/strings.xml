@@ -126,11 +126,11 @@
     <string name="virtual_comment_camera_photos">آلے کے کیمرے کی تصاویر اور ویڈیوز</string>
     <string name="virtual_comment_all_images">مقامی تصویری فائلیں (jpg, png, gif, webp..)</string>
     <string name="virtual_comment_all_docs">مقامی دستاویزات (PDF, EPUB, text, Office)</string>
-    <string name="special_virtual_folders">خصوصی فولڈرز</string>
+    <string name="special_virtual_folders">ورچوئل وسائل</string>
     <string name="virtual_resource_already_added">پہلے سے شامل ہے</string>
     <string name="virtual_resource_added">ریسورس \"%1$s\" شامل کر دیا گیا</string>
     <string name="rescan_all_virtual_warning_title">تمام ریسورسز دوبارہ اسکین کریں</string>
-    <string name="rescan_all_virtual_warning_message">فہرست میں مجازی مجموعی فولڈرز شامل ہیں (تمام موسیقی، تمام ویڈیوز، تمام تصاویر، تمام دستاویزات)۔ مکمل دوبارہ اسکین کافی وقت لے سکتا ہے۔ جاری رکھیں؟</string>
+    <string name="rescan_all_virtual_warning_message">فہرست میں ورچوئل وسائل شامل ہیں (تمام موسیقی، تمام ویڈیوز، تمام تصاویر، تمام دستاویزات)۔ مکمل دوبارہ اسکین میں کافی وقت لگ سکتا ہے۔ جاری رکھیں؟</string>
     <string name="connection_failed">کنکشن ناکام ہو گیا</string>
     <string name="retry">دوبارہ کوشش کریں</string>
     <string name="select_resource_type">ریسورس کی قسم منتخب کریں</string>
@@ -142,7 +142,7 @@
     <string name="error_vob_route_message">یہ DVD program stream (.vob) نیٹ ورک پر نہیں چل سکی۔\n\nفائل کو مقامی طور پر کاپی کریں یا کوئی ایسا مخصوص پلیئر استعمال کریں جو SMB/SFTP/FTP پر DVD Program Stream سپورٹ کرتا ہو۔</string>
     <string name="error_bdts_format_title">فارمیٹ سپورٹڈ نہیں</string>
     <string name="error_bdts_format_message">Blu-ray Transport Stream (.m2ts) نہیں چل سکی۔\n\nاگر تمام آڈیو ٹریکس TrueHD یا DTS-HD MA استعمال کرتے ہیں، تو کوئی دوسرا ٹریک منتخب کریں یا فائل کو MP4/MKV میں ٹرانس کوڈ کریں (HandBrake, ffmpeg)۔</string>
-    <string name="warning_m2ts_audio_unsupported">اس بلڈ میں آڈیو ٹریکس ڈی کوڈ نہیں ہو سکتے: %1$s۔\nبغیر آواز کے چلایا جا رہا ہے۔ سپورٹڈ: AC-3, E-AC-3, DTS (core), AAC۔</string>
+    <string name="warning_m2ts_audio_unsupported">اس ایڈیشن میں ڈی کوڈ نہ ہونے والے آڈیو ٹریکس: %1$s۔\nآواز کے بغیر چل رہا ہے۔ معاون: AC-3، E-AC-3، DTS (core)، AAC۔</string>
     <string name="error_cloud_auth_expired">\"%1$s\" تک رسائی نہیں ہو سکی - تصدیق ختم ہو گئی یا سیشن کا وقت ختم ہو گیا</string>
     <string name="error_cloud_auth_suggestion">براہ کرم ترتیبات → وسیلہ ترمیم میں اپنے کلاؤڈ اسٹوریج اکاؤنٹ کی دوبارہ توثیق کریں</string>
     <string name="error_cloud_connection_failed">\"%1$s\" تک رسائی نہیں ہو سکی - کلاؤڈ کنکشن ناکام ہو گیا</string>
@@ -251,7 +251,7 @@
     <string name="permissions_required_title">اجازتیں درکار ہیں</string>
     <string name="support_images_description">جامد تصاویر کی معاونت</string>
     <string name="supported_image_formats">معاون: JPG, PNG, BMP, WEBP</string>
-    <string name="max_recipients">زیادہ سے زیادہ وصول کنندگان (1-30)</string>
+    <string name="max_recipients">زیادہ سے زیادہ منازل (1-30)</string>
     <string name="max_recipients_error">قدر 1 اور 30 کے درمیان ہونی چاہیے</string>
     <string name="load_full_size_images">تصاویر مکمل ریزولوشن میں لوڈ کریں</string>
     <string name="load_full_size_images_hint">کمانڈ پینل موڈ میں پنچ ٹو زوم اور گھمانے کے اشارے فعال کرتا ہے، لیکن زیادہ ڈیٹا اور میموری استعمال کرتا ہے۔ بطور ڈیفالٹ بند (1920px ریزولوشن لوڈ کرتا ہے)۔</string>
@@ -273,7 +273,7 @@
     <string name="error_resource_unavailable">وسیلہ \"%1$s\" دستیاب نہیں ہے۔ کنکشن یا وسیلے کی سیٹنگز چیک کریں۔</string>
     <string name="error_folder_load_failed">فولڈر نہیں کھل سکا۔</string>
     <string name="error_favorite_status_update_failed">پسندیدہ کی حالت اپ ڈیٹ نہیں ہو سکی۔</string>
-    <string name="error_add_destination_failed">یہ فولڈر Quick Sort میں شامل نہیں ہو سکا۔</string>
+    <string name="error_add_destination_failed">اس وسیلے کو کوئیک سورٹ میں شامل نہیں کیا جا سکا۔</string>
     <string name="error_cloud_provider_not_configured">اس فولڈر کے لیے کلاؤڈ سروس سیٹ اپ نہیں ہے۔</string>
     <string name="error_folder_loading_blocked_by_video_player">ویڈیو چلتے وقت یہ فولڈر لوڈ نہیں ہو سکتا۔\n\nویڈیو پلیئر ابھی نیٹ ورک کنکشن استعمال کر رہا ہے۔\n\nپلیئر بند کریں اور دوبارہ کوشش کریں۔</string>
     <string name="error_folder_loading_blocked_by_video_player_details">نیٹ ورک کی بھیڑ اور پلے بیک میں رکاوٹ سے بچنے کے لیے ویڈیو پلے بیک کو ترجیح دی جاتی ہے۔</string>
@@ -333,12 +333,12 @@
     <string name="overwrite_on_move">منتقل کرتے وقت موجودہ فائل کو اوور رائٹ کریں</string>
     <string name="add_destination">+ شامل کریں</string>
     <string name="destinations_list_header">فوری ترتیب کی منازل</string>
-    <string name="add_resources_first_message">فوری ترتیب کے لیے کسی کو نشان زد کرنے سے پہلے، مرکزی اسکرین پر فولڈرز شامل کریں۔</string>
+    <string name="add_resources_first_message">پہلے مرکزی اسکرین پر وسائل شامل کریں، پھر انہیں کوئیک سورٹ کے لیے نشان زد کریں۔</string>
     <string name="register_as_destination">فوری ترتیب کے لیے نشان زد کریں</string>
     <string name="add_resource_title">ذریعہ شامل کریں</string>
     <string name="copy_resource_title">ذریعے کی ترتیبات کی نقل بنائیں</string>
     <string name="resource_type_local">مقامی</string>
-    <string name="resource_type_smb">نیٹ ورک فولڈر SMB</string>
+    <string name="resource_type_smb">نیٹ ورک فولڈر (SMB)</string>
     <string name="resource_type_sftp">SFTP</string>
     <string name="resource_type_ftp">FTP</string>
     <string name="resource_type_cloud">کلاؤڈ</string>
@@ -371,7 +371,7 @@
     <string name="cb_local_scan_subdirectories_desc">تمام نیسٹڈ ذیلی فولڈرز میں میڈیا فائلیں تلاش کریں</string>
     <string name="cb_local_add_to_destinations_desc">اس فولڈر کو فوری ترتیب کی منزل کے طور پر نشان زد کریں</string>
     <string name="cb_local_read_only_mode_desc">فائل کارروائیوں کو روکتا ہے (کاپی، منتقلی، حذف)</string>
-    <string name="cb_smb_add_to_destinations_desc">اس شیئر کو فوری ترتیب کی منزل کے طور پر نشان زد کریں</string>
+    <string name="cb_smb_add_to_destinations_desc">اس نیٹ ورک فولڈر کو کوئیک سورٹ منزل کے طور پر نشان زد کریں</string>
     <string name="cb_smb_read_only_mode_desc">فائل کارروائیوں کو روکتا ہے (کاپی، منتقلی، حذف)</string>
     <string name="cb_smb_scan_subdirectories_desc">تمام نیسٹڈ ذیلی فولڈرز میں میڈیا فائلیں تلاش کریں</string>
     <string name="cb_smb_all_files_desc">صرف میڈیا نہیں بلکہ تمام فائل اقسام دکھائیں</string>
@@ -518,7 +518,7 @@
     <string name="tooltip_grid_size_title">گرڈ آئیکن کا سائز</string>
     <string name="tooltip_grid_size_message">گرڈ ویو کے لیے تھمب نیل کا سائز پکسلز میں۔ طے شدہ: 96dp۔ حد: 32-256dp (8dp کے اضافے سے)۔</string>
     <string name="tooltip_destinations_title">منازل</string>
-    <string name="tooltip_destinations_message">فائلوں کی تیز تنظیم کے لیے فوری ترتیب کی منازل۔ زیادہ سے زیادہ 30 منازل۔ آسان شناخت کے لیے ہر ایک کا اپنا نمبر اور رنگ ہوتا ہے۔</string>
+    <string name="tooltip_destinations_message">فائلوں کو تیزی سے ترتیب دینے کے لیے کوئیک سورٹ منازل۔ زیادہ سے زیادہ 30 منازل۔ آسان شناخت کے لیے ہر ایک کا ایک نمبر اور رنگ ہے۔</string>
     <string name="tooltip_touch_zones_title">ٹچ زونز</string>
     <string name="hint_touch_zone_3zone" formatted="false">کمانڈ پینل موڈ\n\nبائیں 20% - پچھلی فائل\nدرمیان 60% - منتخب کریں / اعمال\nدائیں 20% - اگلی فائل\n\nبند کرنے کے لیے کہیں بھی ٹیپ کریں</string>
     <string name="hint_touch_zone_media">میڈیا پلے بیک موڈ\n\nٹچ زونز صرف اوپری حصے میں فعال ہیں۔\nنچلا حصہ پلیئر کنٹرولز کے لیے مخصوص ہے۔\n\nبند کرنے کے لیے کہیں بھی ٹیپ کریں</string>
@@ -1162,7 +1162,7 @@
     <string name="label_is_destination">بطور منزل فولڈر استعمال کریں</string>
     <string name="label_is_read_only">صرف پڑھنے کا موڈ</string>
     <string name="label_scan_subdirectories">ذیلی فولڈرز اسکین کریں</string>
-    <string name="label_all_files">فائل مینیجر موڈ (تمام فائلیں براؤز اور منظم کریں)</string>
+    <string name="label_all_files">تمام فائلیں موڈ (تمام فائلیں براؤز اور منظم کریں)</string>
     <string name="label_disable_thumbnails">تھمب نیلز غیر فعال کریں</string>
     <string name="label_show_hidden_files">پوشیدہ فائلیں دکھائیں</string>
     <string name="label_show_subfolders_as_items">ذیلی فولڈرز کو آئٹمز کے طور پر دکھائیں</string>
@@ -1343,8 +1343,8 @@
     <string name="error_folder_rename_failed">فولڈر کا نام تبدیل نہیں ہو سکا۔</string>
     <string name="error_some_operations_failed">%2$d میں سے %1$d عمل ناکام ہوئے</string>
     <string name="menu_automate_source">آٹومیشن..</string>
-    <string name="menu_add_receiver">ترتیب کی فہرست میں شامل کریں۔</string>
-    <string name="msg_added_as_receiver">وسیلہ Sort List میں شامل ہو گیا</string>
+    <string name="menu_add_receiver">کوئیک سورٹ میں شامل کریں</string>
+    <string name="msg_added_as_receiver">وسیلہ کوئیک سورٹ میں شامل کر دیا گیا</string>
     <string name="btn_edit_receiver">ترتیب دیں۔</string>
     <string name="archive_files">آرکائیو</string>
     <string name="archive_dialog_title">منتخب فائلوں کو محفوظ کریں۔</string>
@@ -1404,11 +1404,11 @@
     <string name="wear_companion">Wear ساتھی</string>
     <string name="tooltip_wear_companion_title">Wear ساتھی</string>
     <string name="tooltip_wear_companion_message">اپنے نیٹ ورک وسائل (SMB، FTP، SFTP) جوڑی بنائی گئی Wear OS گھڑی کو بھیجیں تاکہ آپ انہیں براہ راست اپنی کلائی سے دیکھ اور چلا سکیں۔ یہ چننے کے لیے کہ کون سی میڈیا اقسام ہم آہنگ ہوں، اور گھڑی کی پلے بیک ترتیبات ٹھیک کرنے کے لیے، بٹن پر ٹیپ کریں۔</string>
-    <string name="wear_sync_description">نیٹ ورک ذرائع اپنی منسلک Wear OS گھڑی کو بھیجیں۔</string>
+    <string name="wear_sync_description">نیٹ ورک وسائل اپنی منسلک Wear OS گھڑی پر بھیجیں۔</string>
     <string name="wear_push_to_watch">گھڑی کو بھیجیں</string>
     <string name="wear_sync_ready">مطابقت پذیری کے لیے تیار</string>
     <string name="wear_sync_sending">گھڑی کو بھیجا جا رہا ہے..</string>
-    <string name="wear_sync_success">%d ذرائع گھڑی کو بھیج دیے گئے</string>
+    <string name="wear_sync_success">گھڑی پر %d وسائل بھیجے گئے</string>
     <string name="wear_sync_failed">گھڑی کے ساتھ مطابقت پذیری نہیں ہو سکی۔ دوبارہ کوشش کریں۔</string>
     <string name="wear_settings_audio">آڈیو</string>
     <string name="wear_settings_video">ویڈیو</string>
@@ -1417,8 +1417,8 @@
     <string name="wear_settings_album_art">البم آرٹ</string>
     <string name="wear_settings_slideshow_interval">سلائیڈ شو وقفہ (سیکنڈ)</string>
     <string name="wear_push_settings_failed">گھڑی کی سیٹنگز نہیں بھیجی جا سکیں۔ دوبارہ کوشش کریں۔</string>
-    <string name="wear_import_pending_title">گھڑی سے ذرائع موصول ہوئے</string>
-    <string name="wear_import_pending_desc">%2$s سے %1$d ذرائع</string>
+    <string name="wear_import_pending_title">گھڑی کے وسائل موصول ہوئے</string>
+    <string name="wear_import_pending_desc">%2$s سے %1$d وسائل</string>
     <string name="wear_import_accept">درآمد کریں</string>
     <string name="wear_import_dismiss">برخاست کریں</string>
     <string name="wear_now_playing_title">گھڑی پر ابھی چل رہا ہے</string>
@@ -1458,7 +1458,7 @@
     <string name="s0116_toast_saved_to_downloads">ڈاؤن لوڈز میں محفوظ کیا گیا: %1$s</string>
     <string name="s0116_toast_drm_blocked">محفوظ مواد - ڈاؤن لوڈ ممکن نہیں ہے۔</string>
     <string name="s0116_toast_mux_failed">MP4 کو جمع نہیں کیا جا سکا (کوڈیک: %1$s)</string>
-    <string name="s0116_toast_streaming_disabled">اس تعمیر میں اسٹریمز دستیاب نہیں ہیں۔</string>
+    <string name="s0116_toast_streaming_disabled">اس ایڈیشن میں اسٹریمز دستیاب نہیں ہیں</string>
     <string name="s0116_toast_auth_required">%1$s کے لیے سائن ان درکار ہے - ترتیبات کھولیں۔</string>
     <string name="s0151_toast_content_unavailable">اس لنک پر مواد نہیں مل سکا</string>
     <string name="s0151_dialog_auth_title">%1$s میں سائن ان کریں؟</string>
@@ -1903,7 +1903,7 @@
     <string name="app_picker_title">ایپ چنیں</string>
     <string name="app_launch_panel_title">فوری آغاز</string>
     <string name="app_launch_panel_edit_action">ترمیم</string>
-    <string name="screenshot_gesture_action_open_panel">ایپ پینل کھولیں</string>
+    <string name="screenshot_gesture_action_open_panel">فوری رسائی پینل کھولیں</string>
     <string name="statistics_metric_files_renamed">نام تبدیل شدہ</string>
     <string name="statistics_metric_favorites_added">پسندیدہ میں شامل</string>
     <string name="statistics_metric_favorites_removed">پسندیدہ سے ہٹائی گئیں</string>
@@ -1945,7 +1945,7 @@
     <string name="app_launch_panel_reset">پینل دوبارہ ترتیب دیں</string>
     <string name="app_launch_panel_reset_confirm_title">پینل دوبارہ ترتیب دیں؟</string>
     <string name="app_launch_panel_reset_confirm_message">پینل ایپس اور شارٹ کٹس کے اس طے شدہ سیٹ پر واپس آ جاتا ہے جو انسٹال کے وقت بنایا گیا تھا۔</string>
-    <string name="app_launch_panel_settings_edit_button">ایپ پینل میں ترمیم کریں</string>
+    <string name="app_launch_panel_settings_edit_button">فوری رسائی پینل میں ترمیم کریں</string>
     <string name="streams_edit">ترمیم</string>
     <string name="streams_send_link">لنک بھیجیں</string>
     <string name="streams_share_chooser_title">سٹریم لنک شیئر کریں</string>
@@ -1991,7 +1991,7 @@
     <string name="camera_geotag_permission_denied">جیو ٹیگنگ کے لیے مقام کی اجازت درکار ہے</string>
     <string name="setting_show_programs_panel_title">پروگرام پینل</string>
     <string name="setting_show_programs_panel_summary">پروگرام مینو کو ذرائع کی فہرست کے اوپر افقی پٹی کے طور پر دکھاتا ہے۔ تین نقطوں والا بٹن چھپا دیتا ہے۔</string>
-    <string name="setting_show_streams_panel_title">مرکزی ونڈو میں سٹریمز کا پینل دکھائیں</string>
+    <string name="setting_show_streams_panel_title">مرکزی اسکرین پر اسٹریمز پینل دکھائیں</string>
     <string name="setting_show_streams_panel_summary">پن کیے گئے چینل ذرائع کی فہرست کے اوپر افقی پٹی کے طور پر دکھائیں، سٹریمز کے شارٹ کٹ کے ساتھ۔</string>
     <string name="panel_remove_title">پینل سے ہٹائیں؟</string>
     <string name="panel_remove_program_message">%1$s کو چھپایا جائے گا۔ آپ اسے ترتیبات میں دوبارہ آن کر سکتے ہیں۔</string>
@@ -2056,7 +2056,7 @@
     <string name="camera_scenario_ocr_translate">متن کی شناخت</string>
     <string name="recording_pause">ریکارڈنگ روک دیں۔</string>
     <string name="recording_resume">ریکارڈنگ دوبارہ شروع کریں۔</string>
-    <string name="settings_category_main_window_interface">مرکزی ونڈو کا انٹرفیس</string>
+    <string name="settings_category_main_window_interface">مرکزی اسکرین کا انٹرفیس</string>
     <string name="streams_move_up">اوپر لے جائیں</string>
     <string name="streams_move_down">نیچے لے جائیں</string>
     <string name="streams_move_to_top">سب سے اوپر لے جائیں</string>
@@ -2128,7 +2128,7 @@
     <string name="gesture_action_explain_share">اسکرین کیپچر کر کے سسٹم کی شیئر شیٹ کھولتا ہے۔</string>
     <string name="gesture_action_explain_crop_and_share">اسکرین کیپچر کرتا ہے، آپ کو اسے کاٹنے دیتا ہے، پھر نتیجہ شیئر کرتا ہے۔</string>
     <string name="gesture_action_explain_open_app">اس اشارے کے لیے منتخب کردہ ایپ کھولتا ہے۔ کوئی ایپ منتخب نہ ہو تو FastMediaSorter کھولتا ہے۔</string>
-    <string name="gesture_action_explain_open_panel">ایپس کے فوری آغاز کا پینل کھولتا ہے۔</string>
+    <string name="gesture_action_explain_open_panel">فوری رسائی پینل کھولتا ہے۔</string>
     <string name="gesture_action_explain_launch_camera">ایپ کے اندر کا کیمرہ کھولتا ہے۔</string>
     <string name="gesture_action_explain_take_photo">ایپ کے اندر کے کیمرے سے تصویر لے کر محفوظ کرتا ہے۔</string>
     <string name="gesture_action_explain_take_photo_send_to">تصویر لے کر اسے آپ کے منتخب کردہ وصول کنندگان کو بھیجتا ہے۔</string>
@@ -2242,7 +2242,7 @@
     <string name="launcher_edit_kind_os">اینڈرائیڈ سیٹنگ</string>
     <string name="launcher_edit_kind_gadget">ویجٹ</string>
     <string name="launcher_edit_pick_stream_title">ایک اسٹریم منتخب کریں</string>
-    <string name="launcher_edit_pick_gadget_title">ویجٹ منتخب کریں</string>
+    <string name="launcher_edit_pick_gadget_title">ایک گیجٹ منتخب کریں</string>
     <string name="launcher_edit_remove_cell_named">%1$s کو ڈیسک ٹاپ سے ہٹائیں</string>
     <string name="launcher_edit_mode_browse">براؤز</string>
     <string name="launcher_edit_mode_slideshow">سلائیڈ شو</string>
@@ -2362,8 +2362,8 @@
     <string name="pdf_text_selection_word_not_found">وہ لفظ نہیں مل سکا - اسے دستی طور پر منتخب کریں۔</string>
     <string name="launcher_settings_replace_status_area_title">سسٹم اسٹیٹس بار چھپائیں</string>
     <string name="launcher_gadget_favorites_empty">ابھی تک پسندیدہ میں کچھ نہیں۔ انہیں کھولنے کے لیے تھپتھپائیں۔</string>
-    <string name="launcher_gadget_scheduled_empty">ابھی تک کوئی شیڈول شدہ ٹاسک نہیں۔ ایک سیٹ اپ کرنے کے لیے تھپتھپائیں۔</string>
-    <string name="settings_add_launcher_widget">لانچر کے ڈیسک ٹاپ پر ویجٹ شامل کریں</string>
+    <string name="launcher_gadget_scheduled_empty">ابھی تک کوئی طے شدہ کارروائی نہیں۔ سیٹ اپ کرنے کے لیے ٹیپ کریں۔</string>
+    <string name="settings_add_launcher_widget">لانچر ڈیسک ٹاپ میں ایک گیجٹ شامل کریں</string>
     <string name="launcher_widget_placed">لانچر ڈیسک ٹاپ میں شامل کر دیا گیا</string>
     <string name="launcher_widget_no_room">لانچر ڈیسک ٹاپ پر جگہ نہیں ہے۔ کوئی جگہ خالی کریں اور دوبارہ کوشش کریں۔</string>
     <string name="launcher_contact_no_app">اس آلے پر کچھ بھی وہ رابطہ عمل نہیں کھول سکتا۔</string>
@@ -2397,7 +2397,7 @@
     <string name="removable_volume_button_label">%1$s - %2$s مفت</string>
     <string name="removable_volume_button_description">ہٹنے والا میڈیم %1$s، %2$s مفت۔ اس والیوم کو کھولتا ہے۔</string>
     <string name="removable_volume_access_request">%1$s کو پڑھنے کے لیے، اگلے کھلنے والے سسٹم ڈائیلاگ میں اس والیوم کو منتخب کریں - ایپ کو صرف آپ کے منتخب کردہ فولڈر تک رسائی حاصل ہوتی ہے۔</string>
-    <string name="launcher_edit_resize_hint_drag">ویجٹ کا سائز تبدیل کرنے کے لیے یہ کونا گھسیٹیں۔</string>
+    <string name="launcher_edit_resize_hint_drag">گیجٹ کا سائز بدلنے کے لیے یہ کونا گھسیٹیں۔</string>
     <string name="launcher_edit_kind_action">لانچر عمل</string>
     <string name="launcher_settings_reset_title">لانچر کی سیٹنگز ری سیٹ کریں</string>
     <string name="launcher_settings_reset_message">سسٹم لانچر کی سیٹنگز اپنی ڈیفالٹ حالت پر ری سیٹ ہو جائیں گی۔ ڈیسک ٹاپ کی ترتیب، پن کیے گئے آئیکنز اور وال پیپر انسٹالیشن کے فوراً بعد والی حالت میں واپس چلے جائیں گے۔ لانچر سے باہر کچھ بھی متاثر نہیں ہوتا۔</string>
@@ -2638,8 +2638,8 @@
     <string name="streams_unavailable_offline_title">کوئی کنکشن نہیں</string>
     <string name="streams_unavailable_offline_message">\"%1$s\" رک گئی - آپ کا آلہ آف لائن ہے۔ اپنا کنکشن جانچ کر دوبارہ کوشش کریں۔</string>
     <string name="launcher_settings_top_status_strip_title">اوپری اسٹیٹس بار</string>
-    <string name="launcher_settings_top_status_strip_summary">سیکنڈز والی گھڑی ٹاپ بار کے بائیں طرف اور آلے کے اشارے دائیں طرف چلے جاتے ہیں، جس سے اسٹارٹ پینل مزید حالیہ ایپس کے لیے خالی ہو جاتا ہے۔</string>
-    <string name="launcher_settings_tray_moved_hint">جب یہ موڈ آن ہو تو اشارے ٹاپ بار پر ہوتے ہیں۔ انہیں اسٹارٹ پینل پر واپس لانے کے لیے اسے بند کریں۔</string>
+    <string name="launcher_settings_top_status_strip_summary">سیکنڈز والی گھڑی اوپری بار کے بائیں جانب اور ڈیوائس اشارے دائیں جانب چلے جاتے ہیں، جس سے ٹاسک بار میں مزید حالیہ ایپس کے لیے جگہ بنتی ہے۔</string>
+    <string name="launcher_settings_tray_moved_hint">یہ موڈ آن ہونے تک اشارے اوپری بار پر رہتے ہیں۔ انہیں ٹاسک بار پر واپس لانے کے لیے اسے بند کریں۔</string>
     <string name="gesture_slot_app_label">لانچ کرنے کے لیے ایپ</string>
     <string name="gesture_slot_app_none">منتخب نہیں - ایپ چننے کے لیے ٹیپ کریں</string>
     <string name="gesture_slot_app_reset">انتخاب صاف کریں</string>
@@ -2845,7 +2845,7 @@
     <string name="launcher_settings_tray_network_subtitle">Wi-Fi یا موبائل نیٹ ورک اسٹیٹس آئیکن دکھائیں</string>
     <string name="launcher_settings_tray_battery_subtitle">بیٹری کی سطح اور چارجنگ اشارہ دکھائیں</string>
     <string name="launcher_settings_replace_status_area_subtitle">اسکرین کی جگہ خالی کرنے کے لیے ڈیسک ٹاپ پر Android کا اوپری اسٹیٹس بار چھپائیں</string>
-    <string name="launcher_settings_lock_desktop_subtitle">ڈیسک ٹاپ پر آئیکنز اور ویجٹس کو منتقل کرنے، شامل کرنے، یا حذف کرنے سے روکیں</string>
+    <string name="launcher_settings_lock_desktop_subtitle">ڈیسک ٹاپ پر آئیکنز اور گیجٹس کو منتقل کرنے، شامل کرنے یا حذف کرنے سے روکیں</string>
     <string name="launcher_section_main">مرکزی</string>
     <string name="launcher_now_playing_artwork">البم آرٹ</string>
     <string name="launcher_gadget_translator">مترجم</string>
@@ -2877,7 +2877,7 @@
     <string name="launcher_gadget_media_document_open">ریڈر میں کھولنے کے لیے ٹیپ کریں</string>
     <string name="launcher_edit_streams_loading">اسٹریمز لوڈ ہو رہی ہیں..</string>
     <string name="launcher_tray_indicator_action">%1$s۔ متعلقہ Android ترتیبات کھولنے کے لیے ٹیپ کریں</string>
-    <string name="launcher_home_cell_too_wide">یہ ویجٹ ڈیسک ٹاپ گرڈ سے چوڑا ہے۔ اسکرین گھمائیں یا زیادہ تنگ ویجٹ منتخب کریں۔</string>
+    <string name="launcher_home_cell_too_wide">یہ گیجٹ ڈیسک ٹاپ گرڈ سے زیادہ چوڑا ہے۔ اسکرین گھمائیں یا کم چوڑا گیجٹ منتخب کریں۔</string>
     <string name="launcher_section_create">ایک سیکشن بنائیں..</string>
     <string name="launcher_section_name_title">سیکشن کا نام</string>
     <string name="launcher_section_name_hint">مثال کے طور پر: کام</string>
@@ -2901,7 +2901,7 @@
     <string name="wear_resource_selection_title">واچ کے لیے وسائل</string>
     <string name="wear_resource_selection_hint">صرف نیٹ ورک ریسورسز (SMB، FTP، SFTP) کو واچ پر بھیجا جا سکتا ہے، اس لیے صرف وہی درج ہیں۔ بھیجنے کے لیے مطلوبہ آئٹمز پر نشان لگائیں۔</string>
     <string name="wear_resource_selection_select_all">سب منتخب کریں</string>
-    <string name="wear_resource_selection_empty">ابھی تک کوئی نیٹ ورک ریسورس نہیں ہے۔ صرف SMB، FTP اور SFTP ریسورسز واچ پر بھیجے جا سکتے ہیں - ریسورسز اسکرین پر ایک شامل کریں، پھر واپس آ کر منتخب کریں کہ واچ کو کیا ملے گا۔</string>
+    <string name="wear_resource_selection_empty">ابھی تک کوئی نیٹ ورک وسائل نہیں۔ گھڑی پر صرف SMB، FTP اور SFTP وسائل بھیجے جا سکتے ہیں - مرکزی اسکرین پر ایک شامل کریں، پھر واپس آ کر منتخب کریں کہ گھڑی کو کیا ملے۔</string>
     <string name="wear_sync_nothing_selected">ابھی تک واچ کے لیے کوئی وسیلہ نشان زد نہیں۔ واچ کے لیے وسائل کھولیں اور بھیجنے والوں کو ٹک کریں۔</string>
     <string name="wear_settings_view_mode">ہوم اور وسائل کا منظر</string>
     <string name="wear_settings_view_mode_list">فہرست</string>
@@ -3273,7 +3273,7 @@
     <string name="mirror_video_button">ویڈیو ریکارڈ کریں</string>
     <string name="mirror_zoom_button">زوم %1$sx</string>
     <string name="mirror_no_front_camera">اس ڈیوائس میں سامنے والا کیمرہ نہیں، اس لیے آئینہ نہیں کھل سکتا</string>
-    <string name="launcher_settings_screen_timeout_subtitle_no_lock">ڈیسک ٹاپ بیکار ہونے پر اسکرین سیاہ کر دیتا ہے۔ یہ بلڈ ڈیوائس کو مقفل نہیں کر سکتا۔</string>
+    <string name="launcher_settings_screen_timeout_subtitle_no_lock">ڈیسک ٹاپ غیر فعال ہونے پر اسکرین سیاہ کر دیتا ہے۔ یہ ایڈیشن ڈیوائس کو لاک نہیں کر سکتا۔</string>
     <string name="launcher_settings_tray_tethering_title">Wi-Fi ہاٹ اسپاٹ</string>
     <string name="launcher_settings_tray_tethering_subtitle">ٹرے میں ہاٹ اسپاٹ کی حالت دکھائیں</string>
     <string name="launcher_tray_tethering_on">Wi-Fi ہاٹ اسپاٹ آن</string>
@@ -3499,7 +3499,7 @@
     <string name="watch_listen_state_waiting">واچ کا انتظار ہے</string>
     <string name="watch_listen_state_listening">سنا جا رہا ہے</string>
     <string name="watch_listen_state_recording">ریکارڈنگ ہو رہی ہے</string>
-    <string name="wear_sync_removed">واچ سے %d ریسورس ہٹا دیے گئے</string>
+    <string name="wear_sync_removed">گھڑی سے %d وسائل ہٹا دیے گئے</string>
     <string name="wear_sync_settings_no_ack">واچ نے سیٹنگز کی تصدیق نہیں کی۔ ہو سکتا ہے وہ بند ہو یا رینج سے باہر ہو۔</string>
     <string name="tourist_info_title">سیاح</string>
     <string name="tourist_info_panel_desc">ریئل ٹائم نیویگیشن اور ٹیلی میٹری ڈیش بورڈ</string>
@@ -3578,8 +3578,8 @@
     <string name="broadcast_control_blank_screen">سیاہ اسکرین</string>
     <string name="broadcast_control_blank_screen_cd">نشریات جاری رہنے کے دوران ایپ کو سیاہ اسکرین سے ڈھانپیں</string>
     <string name="broadcast_share_save_failed">فائل محفوظ نہیں ہو سکی</string>
-    <string name="launcher_settings_taskbar_rows_title">اسٹارٹ پینل کی قطاریں</string>
-    <string name="launcher_settings_taskbar_rows_subtitle">اونچا پینل مزید حالیہ ایپس دکھاتا ہے اور ٹرے کے اشاروں کو ایک کے اوپر ایک رکھتا ہے</string>
+    <string name="launcher_settings_taskbar_rows_title">ٹاسک بار کی قطاریں</string>
+    <string name="launcher_settings_taskbar_rows_subtitle">اونچا ٹاسک بار مزید حالیہ ایپس دکھاتا ہے اور ٹرے اشاروں کو اوپر تلے رکھتا ہے</string>
     <string name="tourist_unit_mph">mph</string>
     <string name="wear_system_info_channel_name">گھڑی کی سسٹم معلومات</string>
     <string name="wear_system_info_notification_title">گھڑی کی رپورٹ موصول ہوئی</string>
@@ -3607,10 +3607,10 @@
     <string name="launcher_primary_window_home_desc">ایپ آپ کے آلے کی ہوم اسکرین بن جاتی ہے</string>
     <string name="launcher_primary_window_desktop_title">ڈیسک ٹاپ بطور بنیادی ونڈو</string>
     <string name="launcher_primary_window_desktop_desc">آلے کی ہوم اسکرین تبدیل کیے بغیر ایپ کے اندر ڈیسک ٹاپ کھولتا ہے</string>
-    <string name="launcher_primary_window_resource_manager_title">ریسورس مینیجر</string>
+    <string name="launcher_primary_window_resource_manager_title">مرکزی اسکرین</string>
     <string name="launcher_primary_window_resource_manager_desc">فائل اور میڈیا وسائل کا انتظام براہ راست کھولتا ہے</string>
     <string name="setting_launcher_primary_window_title">بنیادی آغاز ونڈو</string>
-    <string name="setting_launcher_primary_window_desc">منتخب کریں کہ ایپ آلے کی ہوم اسکرین، ایپ کے اندر ڈیسک ٹاپ، یا ریسورس مینیجر کے طور پر کھلے</string>
+    <string name="setting_launcher_primary_window_desc">منتخب کریں کہ ایپ ڈیوائس ہوم اسکرین، ایپ کے اندر ڈیسک ٹاپ یا مرکزی اسکرین کے طور پر کھلے</string>
     <string-array name="launcher_primary_window_options">
         <item>@string/launcher_primary_window_home_title</item>
         <item>@string/launcher_primary_window_desktop_title</item>
@@ -3659,7 +3659,7 @@
     <string name="launcher_settings_screen_timeout_on_charge_title">چارجنگ کے دوران اسکرین ٹائم آؤٹ</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">چارجر منسلک ہونے کے دوران غیر فعالیت کے بعد اسکرین بند کر دیتا ہے</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">چارجنگ کے دوران اسکرین ٹائم آؤٹ</string>
-    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">چارجر منسلک ہونے کے دوران غیر فعالیت کے بعد اسکرین سیاہ کر دیتا ہے۔ یہ بلڈ آلہ مقفل نہیں کر سکتا۔</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">چارجر منسلک ہونے کے دوران غیر فعالیت کے بعد اسکرین سیاہ کر دیتا ہے۔ یہ ایڈیشن ڈیوائس کو لاک نہیں کر سکتا۔</string>
     <string name="settings_watch_camera_standby">میری گھڑی کو میرا کیمرہ دیکھنے دیں</string>
     <string name="settings_watch_camera_standby_summary">کیمرہ ابھی چالو کرتا ہے، تاکہ فون جیب میں رہتے ہوئے بھی جوڑی بنی گھڑی بعد میں تصویر کھول سکے</string>
     <string name="settings_watch_camera_standby_failed">گھڑی کے لیے کیمرہ چالو نہیں کیا جا سکا</string>
@@ -3688,4 +3688,10 @@
     <string name="filedo_open_refused_executable">اس کنٹینر میں کوئی پروگرام یا اسکرپٹ ہے۔ اسے نہیں کھولا جائے گا۔</string>
     <string name="filedo_password_remember">پاس ورڈ یاد رکھیں اور ہر .fd-sec فائل پر آزمائیں</string>
     <string name="filedo_remembered_password_forgotten">محفوظ پاس ورڈ نے یہ فائل نہیں کھولی اور اسے بھلا دیا گیا۔ اس فائل کا پاس ورڈ درج کریں۔</string>
+    <string name="stream_access_restricted">🔒 محدود</string>
+    <string name="stream_access_restricted_desc">رسائی پر پابندیاں ہو سکتی ہیں - ممکن ہے آپ کے ماحول یا علاقے میں نہ چلے</string>
+    <string name="stream_info_access_restricted">محدود</string>
+    <string name="sftp_host_key_presented_format">سرور ہوسٹ کلید فنگر پرنٹ:\n%1$s</string>
+    <string name="sftp_pin_host_key">ہوسٹ کلید پن کریں</string>
+    <string name="sftp_host_key_pinned_toast">سرور ہوسٹ کلید فنگر پرنٹ پن کر دیا گیا</string>
 </resources>

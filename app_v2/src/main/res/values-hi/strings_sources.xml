@@ -61,7 +61,7 @@
     <string name="cloud_list_files_failed">क्लाउड से फाइलें लोड नहीं हो सकीं। कृपया पुनः प्रयास करें।</string>
     <string name="cloud_list_folders_failed">क्लाउड से फ़ोल्डर लोड नहीं हो सके। कृपया पुनः प्रयास करें।</string>
     <string name="cloud_metadata_failed">क्लाउड से फ़ाइल विवरण लोड नहीं हो सका। कृपया पुनः प्रयास करें।</string>
-    <string name="cloud_restore_instructions">Google ड्राइव कनेक्शन को पुनर्स्थापित करने की आवश्यकता है।\n\nकृपया:\n1. मुख्य मेनू पर जाएं\n2. \'संसाधन\' खोलें\n3. \"%1$s\" पर टैप करें\n4. अपने Google खाते से साइन इन करें</string>
+    <string name="cloud_restore_instructions">Google Drive कनेक्शन को पुनर्स्थापित करना होगा।\n\nकृपया:\n1. मुख्य स्क्रीन खोलें\n2. \"%1$s\" पर टैप करें\n3. अपने Google खाते से साइन इन करें</string>
     <string name="cloud_search_failed">क्लाउड स्टोरेज में खोज नहीं हो सकी। कृपया पुनः प्रयास करें।</string>
     <string name="cloud_sign_out_failed">क्लाउड अकाउंट से लॉग आउट नहीं कर पा रहे हैं। कृपया पुनः प्रयास करें।</string>
     <string name="cloud_storage">घन संग्रहण</string>

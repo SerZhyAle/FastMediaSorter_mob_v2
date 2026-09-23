@@ -40,7 +40,6 @@ import com.sza.fastmediasorter.wear.ui.common.dimresponse.TapResponseGeometry
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import kotlin.random.Random
 
 /** How long the acknowledgement ring takes to spread out and fade - slow on purpose (S3370 doubled it). */
@@ -172,7 +171,6 @@ internal fun WearDimOverlay(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { point ->
-                        Timber.d("S3370: wear dim tap response started")
                         tapMark = point
                         lastUserActivity.longValue = System.currentTimeMillis()
                         val reading = heading

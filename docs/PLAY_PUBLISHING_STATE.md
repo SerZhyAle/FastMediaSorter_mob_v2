@@ -162,7 +162,7 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-**Verdict:** `insufficient-data` - measured 2026-09-19 (UTC), window 2026-08-20..2026-09-16 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+**Verdict:** `insufficient-data` - measured 2026-09-23 (UTC), window 2026-08-26..2026-09-22 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Finding | Scope | Value | Band | Colour | Distinct users |
 |---------|-------|-------|------|--------|----------------|
@@ -174,16 +174,16 @@ the only writer of this block and the only script that reads that API.
 Google anomalies in the window: none.
 
 Top error issues by distinct users (10):
-- `CRASH` com.sza.fastmediasorter.ui.browse.managers.KeyboardNavigationManager.movePosition at `java.lang.IllegalArgumentException` - 5 users, 31 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/79e19874f6c07ec33547e74447d4ad6d/details)
+- `CRASH` com.sza.fastmediasorter.ui.browse.managers.KeyboardNavigationManager.movePosition at `java.lang.IllegalArgumentException` - 4 users, 30 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/79e19874f6c07ec33547e74447d4ad6d/details)
 - `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 4 users, 15 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
-- `CRASH` com.sza.fastmediasorter.ui.icon.ResourceIconRegistry.randomIdFor at `java.util.NoSuchElementException` - 2 users, 2 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/a6da2615cb54d58b9e0b918422451575/details)
-- `APPLICATION_NOT_RESPONDING` android.view.View.isImportantForAutofill at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/2ddded2b2b021809a3bf8f73ce35bbd2/details)
-- `APPLICATION_NOT_RESPONDING` android.content.ContextWrapper.getSystemServiceName at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/381d940961edf26db2d1da7fc3a5bd54/details)
+- `CRASH` com.sza.fastmediasorter.core.cache.MediaFilesCacheManager.clearAllCaches at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 260915215 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/2e3fceb39a01cb7b3ff9e119aff3a3e5/details)
 - `APPLICATION_NOT_RESPONDING` androidx.recyclerview.widget.OpReorderer.getLastMoveOutOfOrder at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260912134 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/4973f43d832111cb3ab08b3f52aa3823/details)
 - `CRASH` com.sza.fastmediasorter.ui.browse.managers.BrowseShutdownCoordinator.buildNetworkResourceKey at `java.net.URISyntaxException` - 1 users, 5 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/6b3f881bedc99196c06248781b22b350/details)
 - `APPLICATION_NOT_RESPONDING` android.view.View.collectPreferKeepClearRects at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/730c8efb2083eaf072dfcd1061fc3344/details)
-- `CRASH` com.sza.fastmediasorter.core.ui.BaseActivity.getBinding at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/8210bf01b4d65c648a82dbf47e0df6ef/details)
 - `APPLICATION_NOT_RESPONDING` androidx.recyclerview.widget.AdapterHelper.findPositionOffset at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/92124ceaf03478d223c737437290a8f1/details)
+- `APPLICATION_NOT_RESPONDING` com.sza.fastmediasorter.core.ui.BaseActivity.dispatchGenericMotionEvent at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/a183da1e9db2dd5f6e1661508e40d272/details)
+- `CRASH` com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore.prefs_delegate$lambda$0 at `javax.crypto.AEADBadTagException` - 1 users, 2 reports, last versionCode 260912134 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/a5cb8257ba37c0467310a95a78d003b5/details)
+- `CRASH` com.sza.fastmediasorter.ui.icon.ResourceIconRegistry.randomIdFor at `java.util.NoSuchElementException` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/a6da2615cb54d58b9e0b918422451575/details)
 
 <!-- s2272:measured:vitals:end -->
 

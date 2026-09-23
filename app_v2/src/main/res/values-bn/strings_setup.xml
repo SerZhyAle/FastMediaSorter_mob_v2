@@ -29,12 +29,12 @@
     <string name="welcome_profile_personal_smartphone_title">ব্যক্তিগত স্মার্টফোন</string>
     <string name="welcome_profile_photo_frame_desc">ডিভাইসটিকে ডিজিটাল ফটো ফ্রেমে পরিণত করে। ভিডিও, অডিও ও ফাইলের কাজ বন্ধ করে; চালু হওয়ামাত্র স্লাইডশো খোলে।</string>
     <string name="welcome_profile_photo_frame_title">ফটো ফ্রেম</string>
-    <string name="welcome_profile_selector_title">ডিভাইস ব্যবহারের ধরন</string>
+    <string name="welcome_profile_selector_title">ডিভাইস প্রোফাইল</string>
     <string name="welcome_profile_tv_media_box_desc">টিভি ও মিডিয়া সেন্টারের জন্য সবচেয়ে উপযুক্ত। ডি-প্যাড/রিমোট চলাচল উন্নত করে, বড় বোতাম ব্যবহার করে এবং ছোট স্পর্শ নিয়ন্ত্রণ লুকায়।</string>
     <string name="welcome_profile_tv_media_box_title">টিভি / মিডিয়া বক্স</string>
     <string name="welcome_profile_video_player_desc">শুধু ভিডিও ডিভাইসের জন্য সবচেয়ে উপযুক্ত। ছবি, গান ও নথি দর্শক লুকায়; দ্রুত ভিডিও চালানো ও থাম্বনেইলকে অগ্রাধিকার দেয়।</string>
     <string name="welcome_profile_video_player_title">ভিডিও প্লেয়ার</string>
-    <string name="welcome_profile_vr_headset_desc">ভার্চুয়াল রিয়েলিটি ডিভাইসের জন্য সেরা। সমর্থিত হার্ডওয়্যার ফ্লেভারে 3D/360° লেআউট এবং ইমার্সিভ কন্ট্রোল আগে থেকেই সক্রিয় করে।</string>
+    <string name="welcome_profile_vr_headset_desc">ভার্চুয়াল রিয়েলিটি ডিভাইসের জন্য সেরা। সমর্থিত হেডসেটে 3D/360° লেআউট এবং ইমারসিভ নিয়ন্ত্রণ আগে থেকেই চালু করে।</string>
     <string name="welcome_profile_vr_headset_title">VR হেডসেট</string>
     <string name="welcome_recommended_badge">(প্রস্তাবিত)</string>
     <string name="welcome_title_1">FastMediaSorter-এ স্বাগতম!</string>
@@ -62,7 +62,7 @@
     <string name="sysinfo_field_display_count">ডিসপ্লে</string>
     <string name="sysinfo_field_fingerprint">ফিঙ্গারপ্রিন্ট</string>
     <string name="sysinfo_field_first_install">প্রথম ইনস্টল</string>
-    <string name="sysinfo_field_flavor">ভ্যারিয়েন্ট</string>
+    <string name="sysinfo_field_flavor">সংস্করণ</string>
     <string name="sysinfo_field_font_scale">ফন্ট স্কেল</string>
     <string name="sysinfo_field_gles">OpenGL ES</string>
     <string name="sysinfo_field_hdr">HDR</string>
@@ -117,7 +117,7 @@
     <string name="welcome_theme_auto">স্বয়ংক্রিয়</string>
     <string name="welcome_theme_light">হালকা</string>
     <string name="welcome_theme_dark">গাঢ়</string>
-    <string name="welcome_networks_title">নেটওয়ার্ক উৎস</string>
+    <string name="welcome_networks_title">নেটওয়ার্ক রিসোর্স</string>
     <string name="welcome_networks_description">নেটওয়ার্ক শেয়ার ও দূরবর্তী স্টোরেজ থেকে মিডিয়া যোগ করুন।</string>
     <string name="welcome_profiles_title">এই ডিভাইসটি কীভাবে ব্যবহার করবেন?</string>
     <string name="welcome_profiles_subtitle">একটি ধরন বেছে নিন - আমরা ডিফল্ট সেটিংস সেভাবেই সাজিয়ে দেব।</string>
@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">স্ট্রিম</string>
     <string name="welcome_role_streams_detail">তৈরি ক্যাটালগ থেকে ইন্টারনেট রেডিও, টিভি আর ভিডিও চ্যানেল</string>
     <string name="welcome_role_wear">ঘড়ির অ্যাপ</string>
-    <string name="welcome_role_wear_detail">একটি Wear OS সঙ্গী অ্যাপ - কব্জিতেই ব্রাউজ করুন আর চালান</string>
+    <string name="welcome_role_wear_detail">ঘড়ির অ্যাপ - সরাসরি আপনার কবজিতে ব্রাউজ করুন ও চালান</string>
 </resources>

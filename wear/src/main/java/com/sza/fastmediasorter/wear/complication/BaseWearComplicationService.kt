@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.writeTo
 import com.sza.fastmediasorter.wear.domain.usecase.LoadWearComplicationContentUseCase
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -34,7 +33,6 @@ abstract class BaseWearComplicationService : SuspendingComplicationDataSourceSer
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData? {
         val text = WearComplicationTextFormatter(resources).format(loadContent(kind)) ?: return null
-        Timber.d("S3404: complication $kind long '${text.longText}' a11y '${text.contentDescription}'")
         return mapTextToData(request.complicationType, text)
     }
 

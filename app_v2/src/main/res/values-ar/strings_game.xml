@@ -35,7 +35,7 @@
     <string name="game_score">النتيجة: %1$d</string>
     <string name="game_settings_help_message">يُتيح هذا الخيار حل لغز محلي يعتمد على الأدوار. وتبقى اللعبة متوقفة حتى تقوم بتشغيله.</string>
     <string name="game_settings_help_title">لعبة مصغرة</string>
-    <string name="game_settings_toggle_subtitle">اعرض اللعبة في القائمة الرئيسية وأداة التشغيل</string>
+    <string name="game_settings_toggle_subtitle">إظهار اللعبة في قائمة البرامج ولوحة الوصول السريع وعلى سطح مكتب المشغّل</string>
     <string name="game_settings_toggle_title">لعبة مصغرة</string>
     <string name="game_status_game_over">لقد أمسك بك كريفافيتسا. ابدأ لعبة جديدة لمحاولة مرة أخرى.</string>
     <string name="game_status_invalid_board">لا يمكن اللعب على هذه اللوحة. قم بتغيير حجمها أو افتح لوحة مُعدة مسبقًا.</string>

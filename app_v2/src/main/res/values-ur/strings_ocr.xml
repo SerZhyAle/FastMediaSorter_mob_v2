@@ -31,4 +31,5 @@
     <string name="translation_source_language_and_ocr">اصل زبان اور OCR</string>
     <string name="translation_started">ترجمہ شروع ہوا..</string>
     <string name="translation_target_language">میں ترجمہ کریں۔</string>
+    <string name="ocr_language_assumed_unreadable">متن ایسے رسم الخط میں ہے جس کے لیے شناخت کار سیٹ اپ نہیں کیا گیا تھا، اس لیے تصویر پر کوئی ترجمہ نہیں دکھایا گیا۔ ترجمے کی ترتیبات میں اصل زبان منتخب کریں۔</string>
 </resources>

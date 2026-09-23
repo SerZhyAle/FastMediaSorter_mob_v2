@@ -80,10 +80,15 @@ class ScheduledOperationsScreenManager(
     }
 
     fun observeData() {
+        Timber.d("S3365: ScheduledOperationsScreenManager observing data")
         activity.collectOnLifecycle(scheduledViewModel.operations) { ops ->
             scheduledAdapter.submitList(ops)
             binding.tvNoScheduledOps.isVisible = ops.isEmpty() && scheduledViewModel.isEnabled.value
             scheduleToggleReconcile()
+        }
+        activity.collectOnLifecycle(scheduledViewModel.resources) {
+            scheduledAdapter.notifyDataSetChanged()
+            autoOpenFromBrowse()
         }
         activity.collectOnLifecycle(scheduledViewModel.isEnabled) { enabled ->
             binding.rowScheduledOpsEnabled.setCheckedSilently(enabled)
@@ -143,7 +148,6 @@ class ScheduledOperationsScreenManager(
 
     private fun toggleHistory() {
         historyVisible = !historyVisible
-        Timber.d("S3365: run history toggled")
         binding.containerScheduledHistory.isVisible = historyVisible
         if (historyVisible) renderHistory()
     }
@@ -250,7 +254,6 @@ class ScheduledOperationsScreenManager(
             scheduledViewModel.resources.value.isNotEmpty() && sourceId != NO_RESOURCE_ID
         if (!ready) return
         activity.intent.removeExtra(ScheduledOperationsActivity.EXTRA_SOURCE_RESOURCE_ID)
-        Timber.d("S3365: auto-opening create dialog from Browse")
         openScheduledOperationDialog(existing = null, prefilledSourceId = sourceId)
     }
 

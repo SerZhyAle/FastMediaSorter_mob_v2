@@ -4,11 +4,11 @@
 <resources>
     <string name="browse_media_type_disabled">Dieser Medientyp ist in den Einstellungen deaktiviert. Aktivieren Sie ihn dort.</string>
     <string name="browse_no_media_files">Keine Mediendateien gefunden. Versuchen Sie einen anderen Ordner oder Medientyp.</string>
-    <string name="browse_network_source_not_found">Diese Netzwerkquelle ist nicht mehr verfügbar. Gehen Sie zurück und wählen Sie eine andere.</string>
-    <string name="browse_network_connection_failed">Verbindung mit dieser Quelle nicht möglich. Prüfen Sie die Verbindung und versuchen Sie es erneut.</string>
+    <string name="browse_network_source_not_found">Diese Netzwerkressource ist nicht mehr verfügbar. Gehen Sie zurück und wählen Sie eine andere Ressource.</string>
+    <string name="browse_network_connection_failed">Verbindung zu dieser Ressource fehlgeschlagen. Prüfen Sie die Verbindung und versuchen Sie es erneut.</string>
     <string name="browse_load_failed">Dateien konnten nicht geladen werden. Versuchen Sie es erneut.</string>
     <string name="browse_network_error_refused">Verbindung verweigert. Prüfen Sie, ob der Computer Dateien freigibt.</string>
     <string name="browse_network_error_timeout">Keine Antwort in der Zeit. Prüfen Sie das Netzwerk und versuchen Sie es erneut.</string>
-    <string name="browse_network_error_auth">Falscher Benutzername oder Passwort. Aktualisieren Sie die Quelle auf Ihrem Telefon.</string>
+    <string name="browse_network_error_auth">Falscher Benutzername oder falsches Passwort. Aktualisieren Sie die Ressource auf Ihrem Telefon.</string>
     <string name="browse_network_error_unknown_host">Computer in diesem Netzwerk nicht gefunden. Wi-Fi prüfen.</string>
 </resources>

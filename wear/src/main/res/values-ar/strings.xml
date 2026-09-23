@@ -46,14 +46,14 @@
     <string name="wear_sync_stats">أُضيف: %1$d  تم التحديث: %2$d</string>
     <string name="wear_sync_browse_now">تصفح الآن</string>
     <string name="wear_export_to_phone">إرسال إلى الهاتف</string>
-    <string name="wear_export_success">تم إرسال المصادر</string>
+    <string name="wear_export_success">تم إرسال الموارد</string>
     <string name="delete_source_confirm">حذف \u201c%s\u201d؟</string>
     <string name="protocol">البروتوكول</string>
     <string name="port">المنفذ</string>
     <string name="domain">النطاق</string>
     <string name="use_ssh_key">استخدام مفتاح SSH</string>
     <string name="ssh_private_key">المفتاح الخاص</string>
-    <string name="add_network_source">إضافة مصدر</string>
+    <string name="add_network_source">إضافة مورد</string>
     <string name="ftp_connection">FTP</string>
     <string name="sftp_connection">SFTP</string>
     <string name="connection_test_not_supported">الاختبار غير متاح لهذا البروتوكول</string>
@@ -126,7 +126,7 @@
     <string name="screen_settings_title">شاشة</string>
     <string name="screen_settings_view_mode">عرض الشاشات</string>
     <string name="wear_streams_section_enabled">البث</string>
-    <string name="wear_resources_empty_hint">لم يصل شيء من الهاتف بعد. افتح تطبيق الساعة المرافق على الهاتف واختر الموارد لإرسالها إلى هنا.</string>
+    <string name="wear_resources_empty_hint">لم يصل شيء من الهاتف بعد. افتح Wear Companion على الهاتف واختر الموارد لإرسالها إلى هنا.</string>
     <string name="screen_settings_keep_awake">إبقاء الشاشة قيد التشغيل</string>
     <string name="about_send_logs">إرسال السجلات إلى المطوّر</string>
     <string name="about_send_logs_sending">جارٍ الإرسال..</string>
@@ -678,7 +678,7 @@
     <string name="wear_phone_camera_failed_expired">لم يستجب أحد على الهاتف</string>
     <string name="wear_phone_camera_failed_capture">تعذّر على الهاتف فتح كاميرته</string>
     <string name="wear_phone_camera_failed_busy">الهاتف يذيع بالفعل</string>
-    <string name="wear_phone_camera_failed_not_supported">هذا الإصدار من الهاتف لا يمكنه إرسال فيديو</string>
+    <string name="wear_phone_camera_failed_not_supported">إصدار تطبيق الهاتف لا يمكنه إرسال الفيديو</string>
     <string name="wear_phone_camera_failed_unknown">رفض الهاتف دون إبداء السبب</string>
     <string name="wear_tile_shortcut_more">المزيد</string>
     <string name="wear_streams_filter_collections_header">المجموعات</string>
@@ -907,4 +907,12 @@
     <string name="wear_filedo_result_not_viewable">الساعة لا تفتح هذا النوع من الملفات.</string>
     <string name="wear_filedo_remember">تذكر كلمة المرور</string>
     <string name="wear_filedo_remembered_forgotten">كلمة المرور المحفوظة لم تتطابق وتم نسيانها. أدخل كلمة المرور.</string>
+    <string name="wear_water_flashlight_exit_hint">مقفل. اسحب للخلف 3 مرات بسرعة للخروج</string>
+    <string name="wear_complication_last_resource_a11y">آخر مورد: %1$s</string>
+    <string name="wear_complication_now_playing_a11y">قيد التشغيل: %1$s</string>
+    <string name="wear_complication_last_played_a11y">آخر تشغيل: %1$s</string>
+    <plurals name="wear_complication_favorites_count">
+        <item quantity="one">%d مفضّل</item>
+        <item quantity="other">%d مفضّلة</item>
+    </plurals>
 </resources>

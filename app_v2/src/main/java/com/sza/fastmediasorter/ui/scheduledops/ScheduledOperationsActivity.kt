@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityScheduledOperationsBinding
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 /** Host for the scheduled-operations program. Screen behavior lives in [ScheduledOperationsScreenManager]. */
@@ -40,7 +39,6 @@ class ScheduledOperationsActivity : BaseActivity<ActivityScheduledOperationsBind
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Timber.d("S3365: program screen onCreate")
     }
 
     override fun setupViews() {

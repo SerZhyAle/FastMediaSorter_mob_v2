@@ -46,14 +46,14 @@
     <string name="wear_sync_stats">已添加：%1$d  已更新：%2$d</string>
     <string name="wear_sync_browse_now">立即浏览</string>
     <string name="wear_export_to_phone">发送到手机</string>
-    <string name="wear_export_success">来源已发送</string>
+    <string name="wear_export_success">资源已发送</string>
     <string name="delete_source_confirm">删除\"%s\"？</string>
     <string name="protocol">协议</string>
     <string name="port">端口</string>
     <string name="domain">域</string>
     <string name="use_ssh_key">使用 SSH 密钥</string>
     <string name="ssh_private_key">私钥</string>
-    <string name="add_network_source">添加来源</string>
+    <string name="add_network_source">添加资源</string>
     <string name="ftp_connection">FTP</string>
     <string name="sftp_connection">SFTP</string>
     <string name="connection_test_not_supported">此协议不支持测试</string>
@@ -126,7 +126,7 @@
     <string name="screen_settings_title">屏幕</string>
     <string name="screen_settings_view_mode">屏幕视图</string>
     <string name="wear_streams_section_enabled">直播源</string>
-    <string name="wear_resources_empty_hint">尚未从手机接收到任何内容。请在手机上打开\"手表伴侣\"，选择要发送到这里的资源。</string>
+    <string name="wear_resources_empty_hint">尚未从手机收到任何内容。请在手机上打开 Wear Companion 并选择要发送到此处的资源。</string>
     <string name="screen_settings_keep_awake">保持屏幕常亮</string>
     <string name="about_send_logs">将日志发送给开发者</string>
     <string name="about_send_logs_sending">正在发送..</string>
@@ -678,7 +678,7 @@
     <string name="wear_phone_camera_failed_expired">手机上无人应答</string>
     <string name="wear_phone_camera_failed_capture">手机未能开启摄像头</string>
     <string name="wear_phone_camera_failed_busy">手机已在推流</string>
-    <string name="wear_phone_camera_failed_not_supported">此手机版本无法发送视频</string>
+    <string name="wear_phone_camera_failed_not_supported">手机应用的此版本无法发送视频</string>
     <string name="wear_phone_camera_failed_unknown">手机拒绝，未说明原因</string>
     <string name="wear_tile_shortcut_more">更多</string>
     <string name="wear_streams_filter_collections_header">合集</string>
@@ -907,4 +907,12 @@
     <string name="wear_filedo_result_not_viewable">手表无法打开此类文件。</string>
     <string name="wear_filedo_remember">记住密码</string>
     <string name="wear_filedo_remembered_forgotten">保存的密码不匹配，已被遗忘。请输入密码。</string>
+    <string name="wear_water_flashlight_exit_hint">已锁定。快速向后滑动 3 次即可退出</string>
+    <string name="wear_complication_last_resource_a11y">上次资源：%1$s</string>
+    <string name="wear_complication_now_playing_a11y">正在播放：%1$s</string>
+    <string name="wear_complication_last_played_a11y">上次播放：%1$s</string>
+    <plurals name="wear_complication_favorites_count">
+        <item quantity="one">%d 个收藏</item>
+        <item quantity="other">%d 个收藏</item>
+    </plurals>
 </resources>

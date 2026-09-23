@@ -128,7 +128,7 @@
     <string name="setting_allow_separate_window">نئی ونڈوز کی اجازت دیں</string>
     <string name="setting_allow_separate_window_desc">فولڈر اور فائلیں الگ ونڈو میں کھولیں</string>
     <string name="setting_background_sync_desc">پس منظر میں نیٹ ورک ذرائع کی تبدیلی خودکار طور پر جانچیں</string>
-    <string name="setting_calculator_desc">مرکزی مینو اور لانچر ویجٹ میں کیلکولیٹر دکھائیں</string>
+    <string name="setting_calculator_desc">کیلکولیٹر کو پروگرامز مینو، فوری رسائی پینل اور لانچر ڈیسک ٹاپ پر دکھائیں</string>
     <string name="setting_camera_ocr_only_desc">ترجمے کا مرحلہ چھوڑ کر پہچانا گیا متن براہِ راست دکھائیں</string>
     <string name="setting_camera_ocr_only_title">صرف OCR (ترجمہ نہیں)</string>
     <string name="setting_camera_ocr_translation_desc">تیز تصویر-OCR-ترجمہ کا سلسلہ فعال کریں</string>
@@ -262,7 +262,7 @@
     <string name="settings_wear_group_description">اگر آپ کے پاس Wear OS گھڑی ہے تو یہ آن کریں۔ ساتھی ایپ یہیں سے کھلتی ہے اور طے کرتی ہے کہ یہ فون گھڑی کے ساتھ کیا شیئر کرے گا۔</string>
     <string name="settings_wear_install_guide_button">گھڑی پر انسٹال کرنے کا طریقہ</string>
     <string name="settings_wear_web_portal_button">گھڑی کے بارے میں سب کچھ</string>
-    <string name="setting_stopwatch_desc">مرکزی مینو اور لانچر وجٹ میں سٹاپ واچ دکھائیں</string>
+    <string name="setting_stopwatch_desc">اسٹاپ واچ کو پروگرامز مینو، فوری رسائی پینل اور لانچر ڈیسک ٹاپ پر دکھائیں</string>
     <string name="cross_device_transfer_send_to_device">میرے آلے پر بھیجیں (Drive)</string>
     <string name="cross_device_transfer_pending_title">زیر التوا آلہ منتقلیاں</string>
     <string name="cross_device_transfer_receive_and_delete">وصول کریں اور کلاؤڈ سے حذف کریں</string>

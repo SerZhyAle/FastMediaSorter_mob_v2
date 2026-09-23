@@ -126,11 +126,11 @@
     <string name="virtual_comment_camera_photos">डिवाइस कैमरे से फ़ोटो और वीडियो</string>
     <string name="virtual_comment_all_images">स्थानीय छवि फ़ाइलें (jpg, png, gif, webp..)</string>
     <string name="virtual_comment_all_docs">स्थानीय दस्तावेज़ (PDF, EPUB, टेक्स्ट, Office)</string>
-    <string name="special_virtual_folders">विशेष फ़ोल्डर</string>
+    <string name="special_virtual_folders">वर्चुअल संसाधन</string>
     <string name="virtual_resource_already_added">पहले से जोड़ा गया</string>
     <string name="virtual_resource_added">संसाधन \"%1$s\" जोड़ा गया</string>
     <string name="rescan_all_virtual_warning_title">सभी संसाधन फिर से स्कैन करें</string>
-    <string name="rescan_all_virtual_warning_message">सूची में वर्चुअल एग्रीगेट फ़ोल्डर शामिल हैं (सभी संगीत, सभी वीडियो, सभी चित्र, सभी दस्तावेज़)। पूर्ण रीस्कैन में काफी समय लग सकता है। जारी रखें?</string>
+    <string name="rescan_all_virtual_warning_message">सूची में वर्चुअल संसाधन शामिल हैं (सभी संगीत, सभी वीडियो, सभी चित्र, सभी दस्तावेज़)। पूरा रीस्कैन काफ़ी समय ले सकता है। जारी रखें?</string>
     <string name="connection_failed">कनेक्शन विफल</string>
     <string name="retry">पुनः प्रयास करें</string>
     <string name="select_resource_type">संसाधन प्रकार चुनें</string>
@@ -142,7 +142,7 @@
     <string name="error_vob_route_message">यह DVD प्रोग्राम स्ट्रीम (.vob) नेटवर्क पर चलाई नहीं जा सकी.\n\nफ़ाइल को स्थानीय रूप से कॉपी करें या ऐसा प्लेयर इस्तेमाल करें जो SMB/SFTP/FTP पर DVD प्रोग्राम स्ट्रीम को सपोर्ट करता हो.</string>
     <string name="error_bdts_format_title">प्रारूप समर्थित नहीं</string>
     <string name="error_bdts_format_message">Blu-ray ट्रांसपोर्ट स्ट्रीम (.m2ts) चलाई नहीं जा सकी.\n\nअगर सभी ऑडियो ट्रैक TrueHD या DTS-HD MA इस्तेमाल करते हैं, तो कोई दूसरा ट्रैक चुनें या फ़ाइल को MP4/MKV में ट्रांसकोड करें (HandBrake, ffmpeg).</string>
-    <string name="warning_m2ts_audio_unsupported">इस बिल्ड में डीकोड न किए जा सकने वाले ऑडियो ट्रैक: %1$s.\nबिना ध्वनि के चलाया जा रहा है. समर्थित: AC-3, E-AC-3, DTS (कोर), AAC.</string>
+    <string name="warning_m2ts_audio_unsupported">इस संस्करण में डिकोड न होने वाले ऑडियो ट्रैक: %1$s।\nबिना आवाज़ के चल रहा है। समर्थित: AC-3, E-AC-3, DTS (core), AAC।</string>
     <string name="error_cloud_auth_expired">\"%1$s\" तक पहुंच नहीं हो सकी - प्रमाणीकरण की समय सीमा समाप्त हो गई या सत्र खत्म हो गया</string>
     <string name="error_cloud_auth_suggestion">कृपया सेटिंग्स → संसाधन संपादित करें में अपना क्लाउड स्टोरेज खाता फिर से प्रमाणित करें</string>
     <string name="error_cloud_connection_failed">\"%1$s\" तक पहुंच नहीं हो सकी - क्लाउड कनेक्शन विफल रहा</string>
@@ -251,7 +251,7 @@
     <string name="permissions_required_title">अनुमतियां आवश्यक</string>
     <string name="support_images_description">स्थिर छवियों का समर्थन</string>
     <string name="supported_image_formats">समर्थित: JPG, PNG, BMP, WEBP</string>
-    <string name="max_recipients">अधिकतम प्राप्तकर्ता (1-30)</string>
+    <string name="max_recipients">अधिकतम गंतव्य (1-30)</string>
     <string name="max_recipients_error">मान 1 और 30 के बीच होना चाहिए</string>
     <string name="load_full_size_images">छवियां पूर्ण रिज़ॉल्यूशन में लोड करें</string>
     <string name="load_full_size_images_hint">कमांड पैनल मोड में पिंच-टू-ज़ूम और घुमाव जेस्चर चालू करता है, लेकिन ज़्यादा डेटा और मेमोरी इस्तेमाल करता है। डिफ़ॉल्ट रूप से बंद (1920px रिज़ॉल्यूशन लोड करता है)।</string>
@@ -273,7 +273,7 @@
     <string name="error_resource_unavailable">संसाधन \"%1$s\" उपलब्ध नहीं है. कनेक्शन या संसाधन सेटिंग्स जांचें.</string>
     <string name="error_folder_load_failed">फ़ोल्डर खोला नहीं जा सका.</string>
     <string name="error_favorite_status_update_failed">पसंदीदा स्थिति अपडेट नहीं की जा सकी.</string>
-    <string name="error_add_destination_failed">इस फ़ोल्डर को Quick Sort में नहीं जोड़ा जा सका.</string>
+    <string name="error_add_destination_failed">इस संसाधन को क्विक सॉर्ट में नहीं जोड़ा जा सका।</string>
     <string name="error_cloud_provider_not_configured">इस फ़ोल्डर के लिए क्लाउड सेवा सेट अप नहीं है.</string>
     <string name="error_folder_loading_blocked_by_video_player">वीडियो चलते समय यह फ़ोल्डर लोड नहीं किया जा सकता.\n\nवीडियो प्लेयर अभी नेटवर्क कनेक्शन इस्तेमाल कर रहा है.\n\nप्लेयर बंद करें और फिर से कोशिश करें.</string>
     <string name="error_folder_loading_blocked_by_video_player_details">नेटवर्क भीड़भाड़ और प्लेबैक अटकने से बचने के लिए वीडियो प्लेबैक को प्राथमिकता दी जाती है.</string>
@@ -333,12 +333,12 @@
     <string name="overwrite_on_move">मूव पर अधिलेखित करें</string>
     <string name="add_destination">+ जोड़ें</string>
     <string name="destinations_list_header">त्वरित सॉर्ट गंतव्य</string>
-    <string name="add_resources_first_message">त्वरित सॉर्ट के लिए किसी को चिह्नित करने से पहले, मुख्य स्क्रीन पर फ़ोल्डर जोड़ें.</string>
+    <string name="add_resources_first_message">पहले मुख्य स्क्रीन पर संसाधन जोड़ें, फिर उन्हें क्विक सॉर्ट के लिए चिह्नित करें।</string>
     <string name="register_as_destination">त्वरित सॉर्ट के लिए चिह्नित करें</string>
     <string name="add_resource_title">संसाधन जोड़ें</string>
     <string name="copy_resource_title">संसाधन सेटिंग्स की प्रतिलिपि बनाएं</string>
     <string name="resource_type_local">स्थानीय</string>
-    <string name="resource_type_smb">नेटवर्क फ़ोल्डर SMB</string>
+    <string name="resource_type_smb">नेटवर्क फ़ोल्डर (SMB)</string>
     <string name="resource_type_sftp">SFTP</string>
     <string name="resource_type_ftp">FTP</string>
     <string name="resource_type_cloud">क्लाउड</string>
@@ -371,7 +371,7 @@
     <string name="cb_local_scan_subdirectories_desc">सभी नेस्टेड उप-निर्देशिकाओं में मीडिया फ़ाइलें खोजें</string>
     <string name="cb_local_add_to_destinations_desc">इस फ़ोल्डर को त्वरित सॉर्ट गंतव्य के रूप में चिह्नित करें</string>
     <string name="cb_local_read_only_mode_desc">फ़ाइल कार्रवाइयां रोकता है (कॉपी, स्थानांतरण, हटाना)</string>
-    <string name="cb_smb_add_to_destinations_desc">इस शेयर को त्वरित सॉर्ट गंतव्य के रूप में चिह्नित करें</string>
+    <string name="cb_smb_add_to_destinations_desc">इस नेटवर्क फ़ोल्डर को क्विक सॉर्ट गंतव्य के रूप में चिह्नित करें</string>
     <string name="cb_smb_read_only_mode_desc">फ़ाइल कार्रवाइयां रोकता है (कॉपी, स्थानांतरण, हटाना)</string>
     <string name="cb_smb_scan_subdirectories_desc">सभी नेस्टेड उप-निर्देशिकाओं में मीडिया फ़ाइलें खोजें</string>
     <string name="cb_smb_all_files_desc">मीडिया के अलावा सभी फ़ाइल प्रकार दिखाएं</string>
@@ -518,7 +518,7 @@
     <string name="tooltip_grid_size_title">ग्रिड आइकन आकार</string>
     <string name="tooltip_grid_size_message">ग्रिड दृश्य के लिए थंबनेल का आकार पिक्सेल में। डिफ़ॉल्ट: 96dp। सीमा: 32-256dp (8dp के अंतराल पर)।</string>
     <string name="tooltip_destinations_title">गंतव्य</string>
-    <string name="tooltip_destinations_message">तेज़ फ़ाइल व्यवस्थापन के लिए त्वरित सॉर्ट लक्ष्य। अधिकतम 30 गंतव्य। आसान पहचान के लिए हर एक का अपना नंबर और रंग होता है।</string>
+    <string name="tooltip_destinations_message">फ़ाइलों को तेज़ी से व्यवस्थित करने के लिए क्विक सॉर्ट गंतव्य। अधिकतम 30 गंतव्य। आसान पहचान के लिए हर एक की अपनी संख्या और रंग है।</string>
     <string name="tooltip_touch_zones_title">टच ज़ोन</string>
     <string name="hint_touch_zone_3zone" formatted="false">कमांड पैनल मोड\n\nबायां 20% - पिछली फ़ाइल\nमध्य 60% - चुनें / कार्रवाइयां\nदायां 20% - अगली फ़ाइल\n\nबंद करने के लिए कहीं भी टैप करें</string>
     <string name="hint_touch_zone_media">मीडिया प्लेबैक मोड\n\nटच ज़ोन केवल ऊपरी हिस्से में सक्रिय हैं.\nनिचला हिस्सा प्लेयर नियंत्रणों के लिए आरक्षित है.\n\nबंद करने के लिए कहीं भी टैप करें</string>
@@ -1162,7 +1162,7 @@
     <string name="label_is_destination">गंतव्य फ़ोल्डर के रूप में उपयोग करें</string>
     <string name="label_is_read_only">केवल पढ़ने का मोड</string>
     <string name="label_scan_subdirectories">उप-निर्देशिकाएं स्कैन करें</string>
-    <string name="label_all_files">फ़ाइल प्रबंधक मोड (सभी फ़ाइलें ब्राउज़ और प्रबंधित करें)</string>
+    <string name="label_all_files">सभी फ़ाइलें मोड (सभी फ़ाइलें ब्राउज़ और प्रबंधित करें)</string>
     <string name="label_disable_thumbnails">थंबनेल बंद करें</string>
     <string name="label_show_hidden_files">छिपी हुई फ़ाइलें दिखाएं</string>
     <string name="label_show_subfolders_as_items">उप-फ़ोल्डर को आइटम के रूप में दिखाएं</string>
@@ -1343,8 +1343,8 @@
     <string name="error_folder_rename_failed">फ़ोल्डर का नाम नहीं बदला जा सका.</string>
     <string name="error_some_operations_failed">%2$d में से %1$d कार्रवाइयां विफल रहीं</string>
     <string name="menu_automate_source">स्वचालन..</string>
-    <string name="menu_add_receiver">सॉर्ट सूची में जोड़ें</string>
-    <string name="msg_added_as_receiver">संसाधन Sort List में जोड़ा गया</string>
+    <string name="menu_add_receiver">क्विक सॉर्ट में जोड़ें</string>
+    <string name="msg_added_as_receiver">संसाधन क्विक सॉर्ट में जोड़ा गया</string>
     <string name="btn_edit_receiver">कॉन्फ़िगर</string>
     <string name="archive_files">पुरालेख</string>
     <string name="archive_dialog_title">चयनित फ़ाइलों को संग्रहित करें</string>
@@ -1404,11 +1404,11 @@
     <string name="wear_companion">Wear कंपेनियन</string>
     <string name="tooltip_wear_companion_title">Wear कंपेनियन</string>
     <string name="tooltip_wear_companion_message">अपने नेटवर्क संसाधन (SMB, FTP, SFTP) युग्मित Wear OS घड़ी पर भेजें ताकि आप उन्हें सीधे अपनी कलाई से ब्राउज़ और चला सकें। कौन से मीडिया प्रकार सिंक हों यह चुनने और घड़ी की प्लेबैक सेटिंग समायोजित करने के लिए बटन पर टैप करें।</string>
-    <string name="wear_sync_description">अपनी जुड़ी हुई Wear OS घड़ी पर नेटवर्क स्रोत भेजें.</string>
+    <string name="wear_sync_description">नेटवर्क संसाधनों को अपनी कनेक्टेड Wear OS घड़ी पर भेजें।</string>
     <string name="wear_push_to_watch">घड़ी पर भेजें</string>
     <string name="wear_sync_ready">सिंक के लिए तैयार</string>
     <string name="wear_sync_sending">घड़ी पर भेजा जा रहा है..</string>
-    <string name="wear_sync_success">%d स्रोत घड़ी पर भेजे गए</string>
+    <string name="wear_sync_success">घड़ी पर %d संसाधन भेजे गए</string>
     <string name="wear_sync_failed">घड़ी के साथ सिंक नहीं हो सका. फिर से कोशिश करें.</string>
     <string name="wear_settings_audio">ऑडियो</string>
     <string name="wear_settings_video">वीडियो</string>
@@ -1417,8 +1417,8 @@
     <string name="wear_settings_album_art">एल्बम आर्ट</string>
     <string name="wear_settings_slideshow_interval">स्लाइडशो अंतराल (सेकंड)</string>
     <string name="wear_push_settings_failed">घड़ी की सेटिंग्स नहीं भेजी जा सकीं. फिर से कोशिश करें.</string>
-    <string name="wear_import_pending_title">घड़ी से स्रोत प्राप्त हुए</string>
-    <string name="wear_import_pending_desc">%2$s से %1$d स्रोत</string>
+    <string name="wear_import_pending_title">घड़ी के संसाधन प्राप्त हुए</string>
+    <string name="wear_import_pending_desc">%2$s से %1$d संसाधन</string>
     <string name="wear_import_accept">आयात करें</string>
     <string name="wear_import_dismiss">खारिज करें</string>
     <string name="wear_now_playing_title">घड़ी पर अभी चल रहा है</string>
@@ -1458,7 +1458,7 @@
     <string name="s0116_toast_saved_to_downloads">डाउनलोड में सहेजा गया: %1$s</string>
     <string name="s0116_toast_drm_blocked">संरक्षित सामग्री - डाउनलोड संभव नहीं है</string>
     <string name="s0116_toast_mux_failed">MP4 फ़ाइल को असेंबल नहीं किया जा सका (कोडेक: %1$s)</string>
-    <string name="s0116_toast_streaming_disabled">इस बिल्ड में स्ट्रीम उपलब्ध नहीं हैं</string>
+    <string name="s0116_toast_streaming_disabled">इस संस्करण में स्ट्रीम उपलब्ध नहीं हैं</string>
     <string name="s0116_toast_auth_required">%1$s के लिए साइन इन करना आवश्यक है - सेटिंग्स खोलें</string>
     <string name="s0151_toast_content_unavailable">इस लिंक पर सामग्री नहीं मिल पाई</string>
     <string name="s0151_dialog_auth_title">%1$s में साइन इन करें?</string>
@@ -1901,7 +1901,7 @@
     <string name="app_picker_title">कोई ऐप चुनें</string>
     <string name="app_launch_panel_title">त्वरित लॉन्च</string>
     <string name="app_launch_panel_edit_action">संपादित करें</string>
-    <string name="screenshot_gesture_action_open_panel">ऐप पैनल खोलें</string>
+    <string name="screenshot_gesture_action_open_panel">क्विक-एक्सेस पैनल खोलें</string>
     <string name="statistics_metric_files_renamed">नाम बदले गए</string>
     <string name="statistics_metric_favorites_added">पसंदीदा में जोड़े गए</string>
     <string name="statistics_metric_favorites_removed">पसंदीदा से हटाए गए</string>
@@ -1943,7 +1943,7 @@
     <string name="app_launch_panel_reset">पैनल रीसेट करें</string>
     <string name="app_launch_panel_reset_confirm_title">पैनल रीसेट करें?</string>
     <string name="app_launch_panel_reset_confirm_message">पैनल इंस्टॉल के समय बनाए गए ऐप और शॉर्टकट के डिफ़ॉल्ट सेट पर लौट आएगा।</string>
-    <string name="app_launch_panel_settings_edit_button">ऐप पैनल संपादित करें</string>
+    <string name="app_launch_panel_settings_edit_button">क्विक-एक्सेस पैनल संपादित करें</string>
     <string name="streams_edit">संपादित करें</string>
     <string name="streams_send_link">लिंक भेजें</string>
     <string name="streams_share_chooser_title">स्ट्रीम लिंक साझा करें</string>
@@ -1989,7 +1989,7 @@
     <string name="camera_geotag_permission_denied">जियोटैगिंग के लिए स्थान अनुमति चाहिए</string>
     <string name="setting_show_programs_panel_title">कार्यक्रम पैनल</string>
     <string name="setting_show_programs_panel_summary">कार्यक्रम मेनू को संसाधन सूची के ऊपर क्षैतिज पट्टी के रूप में दिखाएँ। तीन-बिंदु वाला बटन छिप जाता है।</string>
-    <string name="setting_show_streams_panel_title">मुख्य विंडो में स्ट्रीम पैनल दिखाएँ</string>
+    <string name="setting_show_streams_panel_title">मुख्य स्क्रीन पर स्ट्रीम पैनल दिखाएँ</string>
     <string name="setting_show_streams_panel_summary">पिन किए गए चैनल संसाधन सूची के ऊपर क्षैतिज पट्टी के रूप में दिखाएँ, स्ट्रीम के शॉर्टकट के साथ।</string>
     <string name="panel_remove_title">पैनल से हटा दें?</string>
     <string name="panel_remove_program_message">%1$s छिपा दिए जाएंगे। आप सेटिंग्स में जाकर इसे वापस चालू कर सकते हैं।</string>
@@ -2053,7 +2053,7 @@
     <string name="camera_scenario_ocr_translate">पाठ पहचान</string>
     <string name="recording_pause">रिकॉर्डिंग रोकें</string>
     <string name="recording_resume">रिकॉर्डिंग फिर से शुरू करें</string>
-    <string name="settings_category_main_window_interface">मुख्य विंडो का इंटरफ़ेस</string>
+    <string name="settings_category_main_window_interface">मुख्य स्क्रीन इंटरफ़ेस</string>
     <string name="streams_move_up">ऊपर ले जाएं</string>
     <string name="streams_move_down">नीचे ले जाएं</string>
     <string name="streams_move_to_top">सबसे ऊपर ले जाएं</string>
@@ -2125,7 +2125,7 @@
     <string name="gesture_action_explain_share">स्क्रीन कैप्चर करता है और सिस्टम शेयर शीट खोलता है।</string>
     <string name="gesture_action_explain_crop_and_share">स्क्रीन कैप्चर करता है, आपको उसे क्रॉप करने देता है, फिर परिणाम साझा करता है।</string>
     <string name="gesture_action_explain_open_app">इस जेस्चर के लिए आपके चुने हुए ऐप को खोलता है। कोई ऐप न चुने जाने पर FastMediaSorter खुलता है।</string>
-    <string name="gesture_action_explain_open_panel">त्वरित ऐप-लॉन्च पैनल खोलता है।</string>
+    <string name="gesture_action_explain_open_panel">क्विक-एक्सेस पैनल खोलता है।</string>
     <string name="gesture_action_explain_launch_camera">ऐप का अपना कैमरा खोलता है।</string>
     <string name="gesture_action_explain_take_photo">ऐप के कैमरे से फ़ोटो लेता है और उसे सहेजता है।</string>
     <string name="gesture_action_explain_take_photo_send_to">फ़ोटो लेता है और उसे आपके चुने हुए प्राप्तकर्ताओं को भेजता है।</string>
@@ -2239,7 +2239,7 @@
     <string name="launcher_edit_kind_os">Android सेटिंग</string>
     <string name="launcher_edit_kind_gadget">विजेट</string>
     <string name="launcher_edit_pick_stream_title">एक स्ट्रीम चुनें</string>
-    <string name="launcher_edit_pick_gadget_title">एक विजेट चुनें</string>
+    <string name="launcher_edit_pick_gadget_title">गैजेट चुनें</string>
     <string name="launcher_edit_remove_cell_named">%1$s को डेस्कटॉप से हटाएं</string>
     <string name="launcher_edit_mode_browse">ब्राउज़ करें</string>
     <string name="launcher_edit_mode_slideshow">स्लाइडशो</string>
@@ -2359,8 +2359,8 @@
     <string name="pdf_text_selection_word_not_found">वह शब्द नहीं मिला - कृपया उसे मैन्युअल रूप से चुनें</string>
     <string name="launcher_settings_replace_status_area_title">सिस्टम स्टेटस बार छिपाएं</string>
     <string name="launcher_gadget_favorites_empty">पसंदीदा में अभी तक कुछ नहीं है. उन्हें खोलने के लिए टैप करें.</string>
-    <string name="launcher_gadget_scheduled_empty">अभी तक कोई शेड्यूल किया गया कार्य नहीं है. एक सेट करने के लिए टैप करें.</string>
-    <string name="settings_add_launcher_widget">लॉन्चर की होम स्क्रीन पर विजेट जोड़ें</string>
+    <string name="launcher_gadget_scheduled_empty">अभी कोई शेड्यूल किया गया ऑपरेशन नहीं है। सेट करने के लिए टैप करें।</string>
+    <string name="settings_add_launcher_widget">लॉन्चर डेस्कटॉप पर गैजेट जोड़ें</string>
     <string name="launcher_widget_placed">लॉन्चर डेस्कटॉप में जोड़ा गया</string>
     <string name="launcher_widget_no_room">लॉन्चर डेस्कटॉप पर जगह नहीं है. जगह खाली करें और फिर से कोशिश करें.</string>
     <string name="launcher_contact_no_app">इस डिवाइस पर कुछ भी वह संपर्क कार्रवाई नहीं खोल सकता.</string>
@@ -2393,7 +2393,7 @@
     <string name="removable_volumes_section">हटाने योग्य मीडिया</string>
     <string name="removable_volume_button_description">हटाने योग्य माध्यम %1$s, %2$s निःशुल्क। इस खंड को खोलता है।</string>
     <string name="removable_volume_access_request">%1$s पढ़ने के लिए, अगले खुलने वाले सिस्टम डायलॉग में इस वॉल्यूम को चुनें - ऐप को केवल आपके द्वारा चुने गए फ़ोल्डर तक ही पहुंच प्राप्त होती है।</string>
-    <string name="launcher_edit_resize_hint_drag">विजेट का आकार बदलने के लिए इस कोने को खींचें.</string>
+    <string name="launcher_edit_resize_hint_drag">गैजेट का आकार बदलने के लिए इस कोने को खींचें।</string>
     <string name="launcher_edit_kind_action">लॉन्चर कार्रवाई</string>
     <string name="launcher_settings_reset_title">लॉन्चर सेटिंग्स रीसेट करें</string>
     <string name="launcher_settings_reset_message">सिस्टम लॉन्चर सेटिंग्स को उनकी डिफ़ॉल्ट स्थिति में रीसेट कर दिया जाएगा. डेस्कटॉप लेआउट, पिन किए गए आइकन और वॉलपेपर इंस्टॉलेशन के तुरंत बाद की स्थिति में वापस आ जाएंगे. लॉन्चर के बाहर कुछ भी प्रभावित नहीं होता.</string>
@@ -2634,8 +2634,8 @@
     <string name="streams_unavailable_offline_title">कोई कनेक्शन नहीं</string>
     <string name="streams_unavailable_offline_message">\"%1$s\" रुक गया - आपका डिवाइस ऑफ़लाइन है। अपना कनेक्शन जांचें और फिर कोशिश करें।</string>
     <string name="launcher_settings_top_status_strip_title">ऊपरी स्टेटस बार</string>
-    <string name="launcher_settings_top_status_strip_summary">सेकंड वाली घड़ी टॉप बार के बाईं ओर और डिवाइस संकेतक दाईं ओर चले जाते हैं, जिससे स्टार्ट पैनल में हाल के और ऐप्स के लिए जगह बनती है.</string>
-    <string name="launcher_settings_tray_moved_hint">जब वह मोड चालू होता है, तो संकेतक टॉप बार पर होते हैं. उन्हें स्टार्ट पैनल में वापस लाने के लिए इसे बंद करें.</string>
+    <string name="launcher_settings_top_status_strip_summary">सेकंड वाली घड़ी शीर्ष बार के बाईं ओर और डिवाइस संकेतक दाईं ओर चले जाते हैं, जिससे टास्कबार में हाल के और ऐप्स के लिए जगह बनती है।</string>
+    <string name="launcher_settings_tray_moved_hint">यह मोड चालू रहने पर संकेतक शीर्ष बार पर होते हैं। उन्हें टास्कबार पर वापस लाने के लिए इसे बंद करें।</string>
     <string name="gesture_slot_app_label">लॉन्च करने के लिए ऐप</string>
     <string name="gesture_slot_app_none">चुना नहीं गया - ऐप चुनने के लिए टैप करें</string>
     <string name="gesture_slot_app_reset">चयन हटाएँ</string>
@@ -2841,7 +2841,7 @@
     <string name="launcher_settings_tray_network_subtitle">Wi-Fi या मोबाइल नेटवर्क स्टेटस आइकन दिखाएं</string>
     <string name="launcher_settings_tray_battery_subtitle">बैटरी स्तर और चार्जिंग संकेतक दिखाएं</string>
     <string name="launcher_settings_replace_status_area_subtitle">स्क्रीन स्थान खाली करने के लिए डेस्कटॉप पर Android टॉप स्टेटस बार छिपाएं</string>
-    <string name="launcher_settings_lock_desktop_subtitle">डेस्कटॉप पर आइकन और विजेट को हिलाने, जोड़ने या हटाने से रोकें</string>
+    <string name="launcher_settings_lock_desktop_subtitle">डेस्कटॉप पर आइकन और गैजेट को हिलाने, जोड़ने या हटाने से रोकें</string>
     <string name="launcher_section_main">मुख्य</string>
     <string name="launcher_now_playing_artwork">एल्बम आर्ट</string>
     <string name="launcher_gadget_translator">अनुवादक</string>
@@ -2873,7 +2873,7 @@
     <string name="launcher_gadget_media_document_open">रीडर में खोलने के लिए टैप करें</string>
     <string name="launcher_edit_streams_loading">स्ट्रीम लोड हो रही हैं..</string>
     <string name="launcher_tray_indicator_action">%1$s. संबंधित Android सेटिंग्स खोलने के लिए टैप करें</string>
-    <string name="launcher_home_cell_too_wide">यह विजेट डेस्कटॉप ग्रिड से चौड़ा है. स्क्रीन घुमाएं या संकरा विजेट चुनें.</string>
+    <string name="launcher_home_cell_too_wide">यह गैजेट डेस्कटॉप ग्रिड से चौड़ा है। स्क्रीन घुमाएँ या कोई संकरा गैजेट चुनें।</string>
     <string name="launcher_section_create">सेक्शन बनाएं..</string>
     <string name="launcher_section_name_title">सेक्शन नाम</string>
     <string name="launcher_section_name_hint">उदाहरण: काम</string>
@@ -2897,7 +2897,7 @@
     <string name="wear_resource_selection_title">वॉच के लिए संसाधन</string>
     <string name="wear_resource_selection_hint">केवल नेटवर्क रिसोर्स (SMB, FTP, SFTP) को वॉच पर भेजा जा सकता है, इसलिए केवल वही सूचीबद्ध हैं. भेजने के लिए चुनें.</string>
     <string name="wear_resource_selection_select_all">सभी चुनें</string>
-    <string name="wear_resource_selection_empty">अभी तक कोई नेटवर्क रिसोर्स नहीं है. केवल SMB, FTP और SFTP रिसोर्स वॉच पर भेजे जा सकते हैं - रिसोर्सेज़ स्क्रीन पर एक जोड़ें, फिर वापस आकर चुनें कि वॉच को क्या मिलेगा.</string>
+    <string name="wear_resource_selection_empty">अभी कोई नेटवर्क संसाधन नहीं है। घड़ी पर केवल SMB, FTP और SFTP संसाधन भेजे जा सकते हैं - मुख्य स्क्रीन पर एक जोड़ें, फिर वापस आकर चुनें कि घड़ी को क्या मिलेगा।</string>
     <string name="wear_sync_nothing_selected">वॉच के लिए अभी तक कोई संसाधन चिह्नित नहीं है. वॉच के लिए संसाधन खोलें और भेजने वाले संसाधनों पर टिक करें.</string>
     <string name="wear_settings_view_mode">होम और संसाधन दृश्य</string>
     <string name="wear_settings_view_mode_list">सूची</string>
@@ -3269,7 +3269,7 @@
     <string name="mirror_video_button">वीडियो रिकॉर्ड करें</string>
     <string name="mirror_zoom_button">ज़ूम %1$sx</string>
     <string name="mirror_no_front_camera">इस डिवाइस में सामने का कैमरा नहीं है, इसलिए दर्पण नहीं खुल सकता</string>
-    <string name="launcher_settings_screen_timeout_subtitle_no_lock">डेस्कटॉप निष्क्रिय होने पर स्क्रीन काली कर देता है। यह बिल्ड डिवाइस को लॉक नहीं कर सकता।</string>
+    <string name="launcher_settings_screen_timeout_subtitle_no_lock">डेस्कटॉप निष्क्रिय होने पर स्क्रीन काली कर देता है। यह संस्करण डिवाइस को लॉक नहीं कर सकता।</string>
     <string name="launcher_settings_tray_tethering_title">Wi-Fi हॉटस्पॉट</string>
     <string name="launcher_settings_tray_tethering_subtitle">ट्रे में हॉटस्पॉट की स्थिति दिखाएँ</string>
     <string name="launcher_tray_tethering_on">Wi-Fi हॉटस्पॉट चालू</string>
@@ -3495,7 +3495,7 @@
     <string name="watch_listen_state_waiting">वॉच का इंतज़ार हो रहा है</string>
     <string name="watch_listen_state_listening">सुन रहा है</string>
     <string name="watch_listen_state_recording">रिकॉर्ड हो रहा है</string>
-    <string name="wear_sync_removed">वॉच से %d सोर्स हटाए गए</string>
+    <string name="wear_sync_removed">घड़ी से %d संसाधन हटाए गए</string>
     <string name="wear_sync_settings_no_ack">वॉच ने सेटिंग्स की पुष्टि नहीं की. हो सकता है वह बंद हो या रेंज से बाहर हो.</string>
     <string name="tourist_info_title">टूरिस्ट</string>
     <string name="tourist_info_panel_desc">रीयल-टाइम नेविगेशन और टेलीमेट्री डैशबोर्ड</string>
@@ -3574,8 +3574,8 @@
     <string name="broadcast_control_blank_screen">काली स्क्रीन</string>
     <string name="broadcast_control_blank_screen_cd">प्रसारण चलते रहने तक ऐप को काली स्क्रीन से ढकें</string>
     <string name="broadcast_share_save_failed">फ़ाइल सहेजी नहीं जा सकी</string>
-    <string name="launcher_settings_taskbar_rows_title">स्टार्ट पैनल की पंक्तियां</string>
-    <string name="launcher_settings_taskbar_rows_subtitle">ऊंचा पैनल ज़्यादा हाल के ऐप दिखाता है और ट्रे संकेतकों को एक के ऊपर एक रखता है</string>
+    <string name="launcher_settings_taskbar_rows_title">टास्कबार पंक्तियाँ</string>
+    <string name="launcher_settings_taskbar_rows_subtitle">ऊँचा टास्कबार हाल के अधिक ऐप्स दिखाता है और ट्रे संकेतकों को एक के ऊपर एक रखता है</string>
     <string name="tourist_unit_mph">mph</string>
     <string name="wear_system_info_channel_name">घड़ी की सिस्टम जानकारी</string>
     <string name="wear_system_info_notification_title">घड़ी की रिपोर्ट मिली</string>
@@ -3603,10 +3603,10 @@
     <string name="launcher_primary_window_home_desc">ऐप आपके डिवाइस की होम स्क्रीन बन जाता है</string>
     <string name="launcher_primary_window_desktop_title">डेस्कटॉप मुख्य विंडो के रूप में</string>
     <string name="launcher_primary_window_desktop_desc">डिवाइस की होम स्क्रीन बदले बिना ऐप के भीतर डेस्कटॉप खोलता है</string>
-    <string name="launcher_primary_window_resource_manager_title">रिसोर्स मैनेजर</string>
+    <string name="launcher_primary_window_resource_manager_title">मुख्य स्क्रीन</string>
     <string name="launcher_primary_window_resource_manager_desc">फ़ाइल और मीडिया संसाधन प्रबंधन सीधे खोलता है</string>
     <string name="setting_launcher_primary_window_title">मुख्य स्टार्टअप विंडो</string>
-    <string name="setting_launcher_primary_window_desc">चुनें कि ऐप डिवाइस की होम स्क्रीन, ऐप के भीतर डेस्कटॉप या रिसोर्स मैनेजर के रूप में खुले</string>
+    <string name="setting_launcher_primary_window_desc">चुनें कि ऐप डिवाइस होम स्क्रीन, इन-ऐप डेस्कटॉप या मुख्य स्क्रीन के रूप में खुले</string>
     <string-array name="launcher_primary_window_options">
         <item>@string/launcher_primary_window_home_title</item>
         <item>@string/launcher_primary_window_desktop_title</item>
@@ -3655,7 +3655,7 @@
     <string name="launcher_settings_screen_timeout_on_charge_title">चार्ज पर स्क्रीन टाइमआउट</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">चार्जर कनेक्ट रहने पर निष्क्रियता के बाद स्क्रीन बंद कर देता है</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">चार्ज पर स्क्रीन टाइमआउट</string>
-    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">चार्जर कनेक्ट रहने पर निष्क्रियता के बाद स्क्रीन काली कर देता है. यह बिल्ड डिवाइस लॉक नहीं कर सकता.</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">चार्जर जुड़े होने पर निष्क्रियता के बाद स्क्रीन काली कर देता है। यह संस्करण डिवाइस को लॉक नहीं कर सकता।</string>
     <string name="settings_watch_camera_standby">मेरी घड़ी को मेरा कैमरा देखने दें</string>
     <string name="settings_watch_camera_standby_summary">कैमरा अभी चालू करता है, ताकि फ़ोन जेब में रहते हुए भी युग्मित घड़ी बाद में तस्वीर खोल सके</string>
     <string name="settings_watch_camera_standby_failed">घड़ी के लिए कैमरा चालू नहीं किया जा सका</string>
@@ -3684,4 +3684,10 @@
     <string name="filedo_open_refused_executable">इस कंटेनर में कोई प्रोग्राम या स्क्रिप्ट है। इसे खोला नहीं जाएगा।</string>
     <string name="filedo_password_remember">पासवर्ड याद रखें और हर .fd-sec फ़ाइल पर आज़माएँ</string>
     <string name="filedo_remembered_password_forgotten">सहेजा गया पासवर्ड इस फ़ाइल को नहीं खोल सका और भुला दिया गया। इस फ़ाइल का पासवर्ड दर्ज करें।</string>
+    <string name="stream_access_restricted">🔒 प्रतिबंधित</string>
+    <string name="stream_access_restricted_desc">पहुँच प्रतिबंध हो सकते हैं - आपके परिवेश या क्षेत्र में शायद न चले</string>
+    <string name="stream_info_access_restricted">प्रतिबंधित</string>
+    <string name="sftp_host_key_presented_format">सर्वर होस्ट कुंजी फ़िंगरप्रिंट:\n%1$s</string>
+    <string name="sftp_pin_host_key">होस्ट कुंजी पिन करें</string>
+    <string name="sftp_host_key_pinned_toast">सर्वर होस्ट कुंजी फ़िंगरप्रिंट पिन किया गया</string>
 </resources>

@@ -61,7 +61,7 @@
     <string name="cloud_list_files_failed">ক্লাউড থেকে ফাইল লোড করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="cloud_list_folders_failed">ক্লাউড থেকে ফোল্ডারগুলো লোড করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="cloud_metadata_failed">ক্লাউড থেকে ফাইলের বিবরণ লোড করা যায়নি। আবার চেষ্টা করুন।</string>
-    <string name="cloud_restore_instructions">গুগল ড্রাইভ সংযোগ পুনরুদ্ধার করা প্রয়োজন।\n\nঅনুগ্রহ করে:\n১. মূল মেনুতে যান\n২. \'রিসোর্সেস\' খুলুন\n৩. \"%1$s\"-এ ট্যাপ করুন\n৪. আপনার গুগল অ্যাকাউন্ট দিয়ে সাইন ইন করুন</string>
+    <string name="cloud_restore_instructions">Google Drive সংযোগ পুনরুদ্ধার করতে হবে।\n\nঅনুগ্রহ করে:\n1. প্রধান স্ক্রিন খুলুন\n2. \"%1$s\" এ ট্যাপ করুন\n3. আপনার Google অ্যাকাউন্ট দিয়ে সাইন ইন করুন</string>
     <string name="cloud_search_failed">ক্লাউড স্টোরেজে অনুসন্ধান করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="cloud_sign_out_failed">ক্লাউড অ্যাকাউন্ট থেকে সাইন আউট করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="cloud_storage">ক্লাউড স্টোরেজ</string>

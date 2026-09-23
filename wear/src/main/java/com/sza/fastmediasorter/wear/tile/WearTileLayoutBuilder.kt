@@ -123,7 +123,6 @@ class WearTileLayoutBuilder @Inject constructor(
             )
         }
 
-        Timber.d("S3434: shortcut tile draws decorated plates for %d cells", plan.shown.size)
         val layoutBuilder = MultiButtonLayout.Builder()
         plan.shown.forEach { shortcut ->
             val clickable = ModifiersBuilders.Clickable.Builder()

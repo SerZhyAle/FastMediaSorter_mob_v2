@@ -196,7 +196,6 @@ class BrowseFileOperationsManager @Inject constructor(
                 // file beside the selected one, so a file that may not be renamed is offered neither.
                 .let { allowed ->
                     val single = selected.singleOrNull()
-                    Timber.d("S3383: FileDO offer asks whether the folder takes a container")
                     val writable = WearFileOperationKind.RENAME in allowed &&
                         single != null && takesContainerBeside(single)
                     allowed + fdSec.offerFor(singleName = single?.name, enabled = fileDoEnabled, writable = writable)

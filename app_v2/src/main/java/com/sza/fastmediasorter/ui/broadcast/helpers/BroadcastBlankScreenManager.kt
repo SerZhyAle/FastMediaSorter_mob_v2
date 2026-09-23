@@ -25,7 +25,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -118,7 +117,6 @@ class BroadcastBlankScreenManager @Inject constructor(
             ),
         )
         overlay = WeakReference(view)
-        Timber.d("S3370: broadcast blank screen dim shown")
 
         SystemBarsManager(activity).enterFullscreenMode()
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)

@@ -44,7 +44,6 @@ class NetworkSourceRepositoryImpl(
     private val sourcesFlow = MutableStateFlow(readSourcesFromPrefs())
 
     init {
-        Timber.d("S3368: NetworkSourceRepositoryImpl constructed - protocol stacks deferred behind Lazy")
     }
 
     override suspend fun getAllSources(): List<NetworkSource> = withContext(Dispatchers.IO) {

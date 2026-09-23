@@ -35,7 +35,7 @@
     <string name="game_score">स्कोर: %1$d</string>
     <string name="game_settings_help_message">यह एक स्थानीय बारी-आधारित पहेली को सक्षम बनाता है। जब तक आप इसे चालू नहीं करते, गेम बंद रहता है।</string>
     <string name="game_settings_help_title">मिनी खेल</string>
-    <string name="game_settings_toggle_subtitle">गेम को मुख्य मेनू और लॉन्चर विजेट में दिखाएं</string>
+    <string name="game_settings_toggle_subtitle">गेम को प्रोग्राम मेनू, क्विक-एक्सेस पैनल और लॉन्चर डेस्कटॉप पर दिखाएँ</string>
     <string name="game_settings_toggle_title">मिनी खेल</string>
     <string name="game_status_game_over">क्रिवावित्सा ने आपको पकड़ लिया। दोबारा कोशिश करने के लिए नया गेम शुरू करें।</string>
     <string name="game_status_invalid_board">इस बोर्ड पर नहीं खेला जा सकता। इसका आकार बदलें या पहले से सेट किया हुआ बोर्ड खोलें।</string>

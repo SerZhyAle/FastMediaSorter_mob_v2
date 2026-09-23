@@ -127,11 +127,11 @@
     <string name="virtual_comment_camera_photos">Foto e video della fotocamera del dispositivo</string>
     <string name="virtual_comment_all_images">File immagine locali (jpg, png, gif, webp..)</string>
     <string name="virtual_comment_all_docs">Documenti locali (PDF, EPUB, testo, Office)</string>
-    <string name="special_virtual_folders">Cartelle speciali</string>
+    <string name="special_virtual_folders">Risorse virtuali</string>
     <string name="virtual_resource_already_added">Già aggiunta</string>
     <string name="virtual_resource_added">Risorsa \"%1$s\" aggiunta</string>
     <string name="rescan_all_virtual_warning_title">Rianalizza tutte le risorse</string>
-    <string name="rescan_all_virtual_warning_message">L\'elenco include cartelle aggregate virtuali (Tutta la musica, Tutti i video, Tutte le immagini, Tutti i documenti). La nuova analisi completa potrebbe richiedere molto tempo. Continuare?</string>
+    <string name="rescan_all_virtual_warning_message">L\'elenco include risorse virtuali (Tutta la musica, Tutti i video, Tutte le immagini, Tutti i documenti). La nuova scansione completa può richiedere molto tempo. Continuare?</string>
     <string name="connection_failed">Connessione non riuscita</string>
     <string name="retry">Riprova</string>
     <string name="select_resource_type">Seleziona il tipo di risorsa</string>
@@ -143,7 +143,7 @@
     <string name="error_vob_route_message">Questo file video DVD (.vob) non può essere riprodotto in rete.\n\nCopia il file in locale oppure usa un player dedicato che supporti DVD Program Stream su SMB/SFTP/FTP.</string>
     <string name="error_bdts_format_title">Formato non supportato</string>
     <string name="error_bdts_format_message">Impossibile riprodurre il Blu-ray Transport Stream (.m2ts).\n\nSe tutte le tracce audio usano TrueHD o DTS-HD MA, seleziona una traccia diversa oppure converti il file in MP4/MKV (HandBrake, ffmpeg).</string>
-    <string name="warning_m2ts_audio_unsupported">Tracce audio non decodificabili in questa build: %1$s.\nRiproduzione senza audio. Supportate: AC-3, E-AC-3, DTS (core), AAC.</string>
+    <string name="warning_m2ts_audio_unsupported">Tracce audio non decodificabili in questa edizione: %1$s.\nRiproduzione senza audio. Supportati: AC-3, E-AC-3, DTS (core), AAC.</string>
     <string name="error_cloud_auth_expired">Impossibile accedere a \"%1$s\" - autenticazione scaduta o sessione terminata</string>
     <string name="error_cloud_auth_suggestion">Esegui di nuovo l\'autenticazione dell\'account di archiviazione cloud in Impostazioni → Modifica risorsa</string>
     <string name="error_cloud_connection_failed">Impossibile accedere a \"%1$s\" - connessione al cloud non riuscita</string>
@@ -252,7 +252,7 @@
     <string name="permissions_required_title">Autorizzazioni richieste</string>
     <string name="support_images_description">Supporta immagini statiche</string>
     <string name="supported_image_formats">Supportati: JPG, PNG, BMP, WEBP</string>
-    <string name="max_recipients">Destinatari massimi (1-30)</string>
+    <string name="max_recipients">Destinazioni max (1-30)</string>
     <string name="max_recipients_error">Il valore deve essere compreso tra 1 e 30</string>
     <string name="load_full_size_images">Carica immagini a piena risoluzione</string>
     <string name="load_full_size_images_hint">Attiva i gesti di zoom con le dita e rotazione nella modalità pannello comandi, ma usa più dati e memoria. Disattivato per impostazione predefinita (carica a risoluzione 1920px).</string>
@@ -274,7 +274,7 @@
     <string name="error_resource_unavailable">La risorsa \"%1$s\" non è disponibile. Controlla la connessione o le impostazioni della risorsa.</string>
     <string name="error_folder_load_failed">Impossibile aprire la cartella.</string>
     <string name="error_favorite_status_update_failed">Impossibile aggiornare lo stato dei preferiti.</string>
-    <string name="error_add_destination_failed">Impossibile aggiungere questa cartella a Smistamento rapido.</string>
+    <string name="error_add_destination_failed">Impossibile aggiungere questa risorsa all\'Ordinamento rapido.</string>
     <string name="error_cloud_provider_not_configured">Il servizio cloud non è configurato per questa cartella.</string>
     <string name="error_folder_loading_blocked_by_video_player">Impossibile caricare questa cartella mentre è in riproduzione un video.\n\nIl lettore video sta usando la connessione di rete in questo momento.\n\nChiudi il lettore e riprova.</string>
     <string name="error_folder_loading_blocked_by_video_player_details">La riproduzione video mantiene la priorità per evitare congestione di rete e scatti nella riproduzione.</string>
@@ -334,12 +334,12 @@
     <string name="overwrite_on_move">Sovrascrivi il file esistente durante lo spostamento</string>
     <string name="add_destination">+ Aggiungi</string>
     <string name="destinations_list_header">Destinazioni di smistamento rapido</string>
-    <string name="add_resources_first_message">Aggiungi prima le cartelle nella schermata principale, prima di contrassegnarne una per lo smistamento rapido.</string>
+    <string name="add_resources_first_message">Aggiungi prima le risorse nella schermata principale, poi contrassegnale per l\'Ordinamento rapido.</string>
     <string name="register_as_destination">Contrassegna per smistamento rapido</string>
     <string name="add_resource_title">Aggiungi risorsa</string>
     <string name="copy_resource_title">Duplica impostazioni risorsa</string>
     <string name="resource_type_local">Locale</string>
-    <string name="resource_type_smb">Cartella di rete SMB</string>
+    <string name="resource_type_smb">Cartella di rete (SMB)</string>
     <string name="resource_type_sftp">SFTP</string>
     <string name="resource_type_ftp">FTP</string>
     <string name="resource_type_cloud">Cloud</string>
@@ -372,7 +372,7 @@
     <string name="cb_local_scan_subdirectories_desc">Cerca file multimediali in tutte le sottocartelle annidate</string>
     <string name="cb_local_add_to_destinations_desc">Contrassegna questa cartella come destinazione di smistamento rapido</string>
     <string name="cb_local_read_only_mode_desc">Impedisce le operazioni sui file (copia, sposta, elimina)</string>
-    <string name="cb_smb_add_to_destinations_desc">Contrassegna questa condivisione come destinazione di smistamento rapido</string>
+    <string name="cb_smb_add_to_destinations_desc">Contrassegna questa cartella di rete come destinazione dell\'Ordinamento rapido</string>
     <string name="cb_smb_read_only_mode_desc">Impedisce le operazioni sui file (copia, sposta, elimina)</string>
     <string name="cb_smb_scan_subdirectories_desc">Cerca file multimediali in tutte le sottocartelle annidate</string>
     <string name="cb_smb_all_files_desc">Mostra tutti i tipi di file, non solo quelli multimediali</string>
@@ -519,7 +519,7 @@
     <string name="tooltip_grid_size_title">Dimensione delle icone della griglia</string>
     <string name="tooltip_grid_size_message">Dimensione delle miniature in pixel per la vista a griglia. Predefinita: 96dp. Intervallo: 32-256dp (a passi di 8dp).</string>
     <string name="tooltip_destinations_title">Destinazioni</string>
-    <string name="tooltip_destinations_message">Destinazioni di ordinamento rapido per organizzare i file velocemente. Massimo 30 destinazioni. Ognuna ha un numero e un colore per riconoscerla facilmente.</string>
+    <string name="tooltip_destinations_message">Destinazioni dell\'Ordinamento rapido per organizzare i file velocemente. Fino a 30 destinazioni. Ognuna ha un numero e un colore per riconoscerla facilmente.</string>
     <string name="tooltip_touch_zones_title">Zone tattili</string>
     <string name="hint_touch_zone_3zone" formatted="false">Modalità pannello comandi\n\n20% sinistra - File precedente\n60% centro - Seleziona / Azioni\n20% destra - File successivo\n\nTocca ovunque per chiudere</string>
     <string name="hint_touch_zone_media">Modalità riproduzione multimediale\n\nLe zone touch sono attive solo nella parte superiore.\nLa parte inferiore è riservata ai controlli del lettore.\n\nTocca ovunque per chiudere</string>
@@ -1166,7 +1166,7 @@
     <string name="label_is_destination">Usa come cartella di destinazione</string>
     <string name="label_is_read_only">Modalità sola lettura</string>
     <string name="label_scan_subdirectories">Scansiona sottocartelle</string>
-    <string name="label_all_files">Modalità gestione file (sfoglia e gestisci tutti i file)</string>
+    <string name="label_all_files">Modalità Tutti i file (sfoglia e gestisci tutti i file)</string>
     <string name="label_disable_thumbnails">Disattiva miniature</string>
     <string name="label_show_hidden_files">Mostra file nascosti</string>
     <string name="label_show_subfolders_as_items">Mostra sottocartelle come elementi</string>
@@ -1347,8 +1347,8 @@
     <string name="error_folder_rename_failed">Impossibile rinominare la cartella.</string>
     <string name="error_some_operations_failed">%1$d di %2$d operazioni non riuscite</string>
     <string name="menu_automate_source">Automazione..</string>
-    <string name="menu_add_receiver">Aggiungi all\'elenco di ordinamento</string>
-    <string name="msg_added_as_receiver">Risorsa aggiunta all\'elenco di smistamento</string>
+    <string name="menu_add_receiver">Aggiungi all\'Ordinamento rapido</string>
+    <string name="msg_added_as_receiver">Risorsa aggiunta all\'Ordinamento rapido</string>
     <string name="btn_edit_receiver">Configura</string>
     <string name="archive_files">Archivio</string>
     <string name="archive_dialog_title">Archivia i file selezionati</string>
@@ -1408,11 +1408,11 @@
     <string name="wear_companion">App companion per Wear</string>
     <string name="tooltip_wear_companion_title">App companion per Wear</string>
     <string name="tooltip_wear_companion_message">Invia le tue risorse di rete (SMB, FTP, SFTP) a un orologio Wear OS abbinato, così puoi sfogliarle e riprodurle direttamente dal polso. Tocca il pulsante per scegliere quali tipi di file sincronizzare e regolare le impostazioni di riproduzione dell\'orologio.</string>
-    <string name="wear_sync_description">Invia le sorgenti di rete all\'orologio Wear OS collegato.</string>
+    <string name="wear_sync_description">Invia risorse di rete al tuo orologio Wear OS connesso.</string>
     <string name="wear_push_to_watch">Invia all\'orologio</string>
     <string name="wear_sync_ready">Pronto per la sincronizzazione</string>
     <string name="wear_sync_sending">Invio all\'orologio..</string>
-    <string name="wear_sync_success">Inviate %d sorgenti all\'orologio</string>
+    <string name="wear_sync_success">%d risorsa/e inviata/e all\'orologio</string>
     <string name="wear_sync_failed">Impossibile sincronizzare con l\'orologio. Riprova.</string>
     <string name="wear_settings_audio">Audio</string>
     <string name="wear_settings_video">Video</string>
@@ -1421,8 +1421,8 @@
     <string name="wear_settings_album_art">Copertina dell\'album</string>
     <string name="wear_settings_slideshow_interval">Intervallo della presentazione (secondi)</string>
     <string name="wear_push_settings_failed">Impossibile inviare le impostazioni dell\'orologio. Riprova.</string>
-    <string name="wear_import_pending_title">Sorgenti ricevute dall\'orologio</string>
-    <string name="wear_import_pending_desc">%1$d sorgenti da %2$s</string>
+    <string name="wear_import_pending_title">Risorse dell\'orologio ricevute</string>
+    <string name="wear_import_pending_desc">%1$d risorse da %2$s</string>
     <string name="wear_import_accept">Importa</string>
     <string name="wear_import_dismiss">Ignora</string>
     <string name="wear_now_playing_title">In riproduzione sull\'orologio</string>
@@ -1462,7 +1462,7 @@
     <string name="s0116_toast_saved_to_downloads">Salvato in Download: %1$s</string>
     <string name="s0116_toast_drm_blocked">Contenuto protetto - download non possibile</string>
     <string name="s0116_toast_mux_failed">Impossibile creare il file MP4 (codec: %1$s)</string>
-    <string name="s0116_toast_streaming_disabled">Streaming non disponibile in questa versione</string>
+    <string name="s0116_toast_streaming_disabled">Gli stream non sono disponibili in questa edizione</string>
     <string name="s0116_toast_auth_required">Accesso richiesto per %1$s - apri Impostazioni</string>
     <string name="s0151_toast_content_unavailable">Impossibile ottenere il contenuto a questo link</string>
     <string name="s0151_dialog_auth_title">Vuoi accedere a %1$s?</string>
@@ -1908,7 +1908,7 @@
     <string name="app_picker_title">Scegli un\'app</string>
     <string name="app_launch_panel_title">Avvio rapido</string>
     <string name="app_launch_panel_edit_action">Modifica</string>
-    <string name="screenshot_gesture_action_open_panel">Apri pannello app</string>
+    <string name="screenshot_gesture_action_open_panel">Apri pannello di accesso rapido</string>
     <string name="statistics_metric_files_renamed">Rinominati</string>
     <string name="statistics_metric_favorites_added">Aggiunti ai preferiti</string>
     <string name="statistics_metric_favorites_removed">Rimossi dai preferiti</string>
@@ -1950,7 +1950,7 @@
     <string name="app_launch_panel_reset">Reimposta il pannello</string>
     <string name="app_launch_panel_reset_confirm_title">Reimpostare il pannello?</string>
     <string name="app_launch_panel_reset_confirm_message">Il pannello torna al set predefinito di app e collegamenti creato durante l\'installazione.</string>
-    <string name="app_launch_panel_settings_edit_button">Modifica il pannello app</string>
+    <string name="app_launch_panel_settings_edit_button">Modifica pannello di accesso rapido</string>
     <string name="streams_edit">Modifica</string>
     <string name="streams_send_link">Invia link</string>
     <string name="streams_share_chooser_title">Condividi il link dello stream</string>
@@ -1996,7 +1996,7 @@
     <string name="camera_geotag_permission_denied">La geolocalizzazione richiede l\'autorizzazione alla posizione</string>
     <string name="setting_show_programs_panel_title">Pannello dei programmi</string>
     <string name="setting_show_programs_panel_summary">Rispecchia il menu dei programmi come barra orizzontale sopra l\'elenco delle risorse. Nasconde il pulsante con i tre puntini.</string>
-    <string name="setting_show_streams_panel_title">Mostra il pannello degli stream nella finestra principale</string>
+    <string name="setting_show_streams_panel_title">Mostra il pannello degli stream nella schermata principale</string>
     <string name="setting_show_streams_panel_summary">Mostra i canali fissati come barra orizzontale sopra l\'elenco delle risorse, con una scorciatoia agli Stream.</string>
     <string name="panel_remove_title">Rimuovere dal pannello?</string>
     <string name="panel_remove_program_message">%1$s verrà nascosto. Puoi riattivarlo nelle Impostazioni.</string>
@@ -2061,7 +2061,7 @@
     <string name="camera_scenario_ocr_translate">Riconoscimento testo</string>
     <string name="recording_pause">Metti in pausa la registrazione</string>
     <string name="recording_resume">Riprendi la registrazione</string>
-    <string name="settings_category_main_window_interface">Interfaccia della finestra principale</string>
+    <string name="settings_category_main_window_interface">Interfaccia della schermata principale</string>
     <string name="streams_move_up">Sposta su</string>
     <string name="streams_move_down">Sposta giù</string>
     <string name="streams_move_to_top">Sposta in cima</string>
@@ -2133,7 +2133,7 @@
     <string name="gesture_action_explain_share">Cattura lo schermo e apre il pannello di condivisione di sistema.</string>
     <string name="gesture_action_explain_crop_and_share">Cattura lo schermo, ti lascia ritagliarlo, poi condivide il risultato.</string>
     <string name="gesture_action_explain_open_app">Apre l\'app che scegli per questo gesto. Se non è stata scelta nessuna app, apre FastMediaSorter.</string>
-    <string name="gesture_action_explain_open_panel">Apre il pannello di avvio rapido delle app.</string>
+    <string name="gesture_action_explain_open_panel">Apre il pannello di accesso rapido.</string>
     <string name="gesture_action_explain_launch_camera">Apre la fotocamera integrata nell\'app.</string>
     <string name="gesture_action_explain_take_photo">Scatta una foto con la fotocamera integrata e la salva.</string>
     <string name="gesture_action_explain_take_photo_send_to">Scatta una foto e la invia ai destinatari che hai scelto.</string>
@@ -2247,7 +2247,7 @@
     <string name="launcher_edit_kind_os">Impostazione Android</string>
     <string name="launcher_edit_kind_gadget">Widget</string>
     <string name="launcher_edit_pick_stream_title">Scegli uno stream</string>
-    <string name="launcher_edit_pick_gadget_title">Scegli un widget</string>
+    <string name="launcher_edit_pick_gadget_title">Scegli un gadget</string>
     <string name="launcher_edit_remove_cell_named">Rimuovi %1$s dal desktop</string>
     <string name="launcher_edit_mode_browse">Sfoglia</string>
     <string name="launcher_edit_mode_slideshow">Presentazione</string>
@@ -2367,8 +2367,8 @@
     <string name="pdf_text_selection_word_not_found">Non è stata trovata la parola: selezionala manualmente.</string>
     <string name="launcher_settings_replace_status_area_title">Nascondi la barra di stato di sistema</string>
     <string name="launcher_gadget_favorites_empty">Ancora nulla nei preferiti. Tocca per aprirli.</string>
-    <string name="launcher_gadget_scheduled_empty">Nessuna attività pianificata ancora. Tocca per impostarne una.</string>
-    <string name="settings_add_launcher_widget">Aggiungi un widget alla schermata Home del launcher</string>
+    <string name="launcher_gadget_scheduled_empty">Nessuna operazione pianificata. Tocca per configurarne una.</string>
+    <string name="settings_add_launcher_widget">Aggiungi un gadget al desktop del launcher</string>
     <string name="launcher_widget_placed">Aggiunto al desktop del launcher</string>
     <string name="launcher_widget_no_room">Non c\'è spazio sul desktop del launcher. Libera un posto e riprova.</string>
     <string name="launcher_contact_no_app">Nessuna app su questo dispositivo può eseguire questa azione sul contatto.</string>
@@ -2402,7 +2402,7 @@
     <string name="removable_volume_button_label">%1$s - %2$s gratis</string>
     <string name="removable_volume_button_description">Supporto rimovibile %1$s, %2$s gratis. Apre questo volume.</string>
     <string name="removable_volume_access_request">Per leggere %1$s, seleziona questo volume nella finestra di dialogo di sistema che si aprirà successivamente: l\'applicazione avrà accesso solo alla cartella selezionata.</string>
-    <string name="launcher_edit_resize_hint_drag">Trascina questo angolo per ridimensionare il widget.</string>
+    <string name="launcher_edit_resize_hint_drag">Trascina questo angolo per ridimensionare il gadget.</string>
     <string name="launcher_edit_kind_action">Azione del launcher</string>
     <string name="launcher_settings_reset_title">Ripristina le impostazioni del launcher</string>
     <string name="launcher_settings_reset_message">Le impostazioni del launcher di sistema verranno ripristinate ai valori predefiniti. La disposizione del desktop, le icone bloccate e lo sfondo tornano allo stato che avevano subito dopo l\'installazione. Nient\'altro al di fuori del launcher viene modificato.</string>
@@ -2643,8 +2643,8 @@
     <string name="streams_unavailable_offline_title">Nessuna connessione</string>
     <string name="streams_unavailable_offline_message">«%1$s» si è interrotto - il dispositivo è offline. Controlla la connessione e riprova.</string>
     <string name="launcher_settings_top_status_strip_title">Barra di stato superiore</string>
-    <string name="launcher_settings_top_status_strip_summary">L\'orologio con i secondi si sposta a sinistra della barra superiore e gli indicatori del dispositivo a destra, liberando il pannello Start per altre app recenti.</string>
-    <string name="launcher_settings_tray_moved_hint">Gli indicatori si trovano sulla barra superiore quando questa modalità è attiva. Disattivala per riportarli nel pannello Start.</string>
+    <string name="launcher_settings_top_status_strip_summary">L\'orologio con i secondi si sposta a sinistra della barra superiore e gli indicatori del dispositivo a destra, liberando la barra delle applicazioni per altre app recenti.</string>
+    <string name="launcher_settings_tray_moved_hint">Gli indicatori sono nella barra superiore finché quella modalità è attiva. Disattivala per riportarli nella barra delle applicazioni.</string>
     <string name="gesture_slot_app_label">App da avviare</string>
     <string name="gesture_slot_app_none">Non scelta - tocca per scegliere un\'app</string>
     <string name="gesture_slot_app_reset">Cancella la scelta</string>
@@ -2850,7 +2850,7 @@
     <string name="launcher_settings_tray_network_subtitle">Mostra l\'icona di stato del Wi-Fi o della rete mobile</string>
     <string name="launcher_settings_tray_battery_subtitle">Mostra il livello della batteria e l\'indicatore di ricarica</string>
     <string name="launcher_settings_replace_status_area_subtitle">Nascondi la barra di stato superiore di Android sul desktop per liberare spazio sullo schermo</string>
-    <string name="launcher_settings_lock_desktop_subtitle">Impedisci di spostare, aggiungere o eliminare icone e widget sul desktop</string>
+    <string name="launcher_settings_lock_desktop_subtitle">Impedisci di spostare, aggiungere o eliminare icone e gadget sul desktop</string>
     <string name="launcher_section_main">Principale</string>
     <string name="launcher_now_playing_artwork">Copertina dell\'album</string>
     <string name="launcher_gadget_translator">Traduttore</string>
@@ -2882,7 +2882,7 @@
     <string name="launcher_gadget_media_document_open">Tocca per aprire nel lettore</string>
     <string name="launcher_edit_streams_loading">Caricamento stream..</string>
     <string name="launcher_tray_indicator_action">%1$s. Tocca per aprire le impostazioni Android corrispondenti</string>
-    <string name="launcher_home_cell_too_wide">Questo widget è più largo della griglia del desktop. Ruota lo schermo o scegli un widget più stretto.</string>
+    <string name="launcher_home_cell_too_wide">Questo gadget è più largo della griglia del desktop. Ruota lo schermo o scegli un gadget più stretto.</string>
     <string name="launcher_section_create">Crea una sezione..</string>
     <string name="launcher_section_name_title">Nome della sezione</string>
     <string name="launcher_section_name_hint">Ad esempio: Lavoro</string>
@@ -2906,7 +2906,7 @@
     <string name="wear_resource_selection_title">Risorse per l\'orologio</string>
     <string name="wear_resource_selection_hint">Solo le risorse di rete (SMB, FTP, SFTP) possono essere inviate all\'orologio, quindi sono elencate solo quelle. Seleziona quelle da inviare.</string>
     <string name="wear_resource_selection_select_all">Seleziona tutto</string>
-    <string name="wear_resource_selection_empty">Nessuna risorsa di rete per ora. Solo le risorse SMB, FTP e SFTP possono essere inviate all\'orologio - aggiungine una nella schermata Risorse, poi torna qui per scegliere cosa ricevere sull\'orologio.</string>
+    <string name="wear_resource_selection_empty">Ancora nessuna risorsa di rete. Solo le risorse SMB, FTP e SFTP possono essere inviate all\'orologio - aggiungine una nella schermata principale, poi torna qui per scegliere cosa riceve l\'orologio.</string>
     <string name="wear_sync_nothing_selected">Nessuna risorsa contrassegnata per l\'orologio ancora. Apri Risorse per l\'orologio e seleziona quelle da inviare.</string>
     <string name="wear_settings_view_mode">Vista Home e Risorse</string>
     <string name="wear_settings_view_mode_list">Elenco</string>
@@ -3278,7 +3278,7 @@
     <string name="mirror_video_button">Registra un video</string>
     <string name="mirror_zoom_button">Zoom %1$sx</string>
     <string name="mirror_no_front_camera">Questo dispositivo non ha la fotocamera frontale, quindi lo specchio non può aprirsi</string>
-    <string name="launcher_settings_screen_timeout_subtitle_no_lock">Rende nero lo schermo quando la scrivania è inattiva. Questa build non può bloccare il dispositivo.</string>
+    <string name="launcher_settings_screen_timeout_subtitle_no_lock">Rende lo schermo nero quando il desktop è inattivo. Questa edizione non può bloccare il dispositivo.</string>
     <string name="launcher_settings_tray_tethering_title">Hotspot Wi-Fi</string>
     <string name="launcher_settings_tray_tethering_subtitle">Mostra lo stato dell\'hotspot nella barra</string>
     <string name="launcher_tray_tethering_on">Hotspot Wi-Fi attivo</string>
@@ -3504,7 +3504,7 @@
     <string name="watch_listen_state_waiting">In attesa dell\'orologio</string>
     <string name="watch_listen_state_listening">In ascolto</string>
     <string name="watch_listen_state_recording">Registrazione in corso</string>
-    <string name="wear_sync_removed">Rimosse %d risorse dall\'orologio</string>
+    <string name="wear_sync_removed">%d risorsa/e rimossa/e dall\'orologio</string>
     <string name="wear_sync_settings_no_ack">L\'orologio non ha confermato le impostazioni. Potrebbe essere spento o fuori portata.</string>
     <string name="tourist_info_title">Turista</string>
     <string name="tourist_info_panel_desc">Pannello di navigazione e telemetria in tempo reale</string>
@@ -3583,8 +3583,8 @@
     <string name="broadcast_control_blank_screen">Schermo nero</string>
     <string name="broadcast_control_blank_screen_cd">Copri l\'app con uno schermo nero mentre la trasmissione continua</string>
     <string name="broadcast_share_save_failed">Impossibile salvare il file</string>
-    <string name="launcher_settings_taskbar_rows_title">Righe del pannello Start</string>
-    <string name="launcher_settings_taskbar_rows_subtitle">Un pannello più alto mostra più app recenti e impila gli indicatori di sistema</string>
+    <string name="launcher_settings_taskbar_rows_title">Righe della barra delle applicazioni</string>
+    <string name="launcher_settings_taskbar_rows_subtitle">Una barra delle applicazioni più alta mostra più app recenti e impila gli indicatori dell\'area di notifica</string>
     <string name="tourist_unit_mph">mph</string>
     <string name="wear_system_info_channel_name">Informazioni di sistema dell\'orologio</string>
     <string name="wear_system_info_notification_title">Rapporto dell\'orologio ricevuto</string>
@@ -3612,10 +3612,10 @@
     <string name="launcher_primary_window_home_desc">L\'app diventa la schermata Home del tuo dispositivo</string>
     <string name="launcher_primary_window_desktop_title">Scrivania come finestra principale</string>
     <string name="launcher_primary_window_desktop_desc">Apre la scrivania dentro l\'app senza cambiare la schermata Home del dispositivo</string>
-    <string name="launcher_primary_window_resource_manager_title">Gestore risorse</string>
+    <string name="launcher_primary_window_resource_manager_title">Schermata principale</string>
     <string name="launcher_primary_window_resource_manager_desc">Apre direttamente la gestione di file e risorse multimediali</string>
     <string name="setting_launcher_primary_window_title">Finestra di avvio principale</string>
-    <string name="setting_launcher_primary_window_desc">Scegli se l\'app si apre come schermata Home del dispositivo, scrivania interna o Gestore risorse</string>
+    <string name="setting_launcher_primary_window_desc">Scegli se l\'app si apre come schermata home del dispositivo, desktop integrato o schermata principale</string>
     <string-array name="launcher_primary_window_options">
         <item>@string/launcher_primary_window_home_title</item>
         <item>@string/launcher_primary_window_desktop_title</item>
@@ -3664,7 +3664,7 @@
     <string name="launcher_settings_screen_timeout_on_charge_title">Timeout schermo sotto carica</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">Spegne lo schermo dopo un periodo di inattività mentre il caricabatterie è collegato</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Timeout schermo sotto carica</string>
-    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Rende nero lo schermo dopo un periodo di inattività mentre il caricabatterie è collegato. Questa build non può bloccare il dispositivo.</string>
+    <string name="launcher_settings_screen_timeout_on_charge_subtitle_no_lock">Rende lo schermo nero dopo un periodo di inattività mentre il caricabatterie è collegato. Questa edizione non può bloccare il dispositivo.</string>
     <string name="settings_watch_camera_standby">Consenti all\'orologio di vedere la mia fotocamera</string>
     <string name="settings_watch_camera_standby_summary">Avvia subito la fotocamera, così l\'orologio abbinato può aprire l\'immagine più tardi mentre il telefono resta in tasca</string>
     <string name="settings_watch_camera_standby_failed">Impossibile avviare la fotocamera per l\'orologio</string>
@@ -3693,4 +3693,10 @@
     <string name="filedo_open_refused_executable">Questo contenitore contiene un programma o uno script. Non viene aperto.</string>
     <string name="filedo_password_remember">Ricorda la password e provala su ogni file .fd-sec</string>
     <string name="filedo_remembered_password_forgotten">La password salvata non ha aperto questo file ed è stata dimenticata. Inserisci la password di questo file.</string>
+    <string name="stream_access_restricted">🔒 Con restrizioni</string>
+    <string name="stream_access_restricted_desc">Potrebbe avere restrizioni di accesso - potrebbe non essere riprodotto nel tuo ambiente o nella tua regione</string>
+    <string name="stream_info_access_restricted">Con restrizioni</string>
+    <string name="sftp_host_key_presented_format">Impronta della chiave host del server:\n%1$s</string>
+    <string name="sftp_pin_host_key">Fissa chiave host</string>
+    <string name="sftp_host_key_pinned_toast">Impronta della chiave host del server fissata</string>
 </resources>

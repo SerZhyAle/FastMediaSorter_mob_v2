@@ -101,7 +101,6 @@ class BrowseFdSecManager @Inject constructor(
      * or it did not fit - in which case it has already been forgotten and the owner is told so.
      */
     fun openAsMedia(scope: CoroutineScope, file: MediaFile) {
-        Timber.d("S3397: openAsMedia entered, remembered credential tried first")
         scope.launch {
             val source = File(openWorkspace(), System.nanoTime().toString() + SOURCE_SUFFIX)
             val container = localizeContainer(file.path, source)

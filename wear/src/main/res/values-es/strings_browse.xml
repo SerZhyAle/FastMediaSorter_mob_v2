@@ -4,11 +4,11 @@
 <resources>
     <string name="browse_media_type_disabled">Este tipo de archivo multimedia está desactivado en Ajustes. Actívalo allí.</string>
     <string name="browse_no_media_files">No se encontraron archivos multimedia. Prueba otra carpeta o tipo de medio.</string>
-    <string name="browse_network_source_not_found">Esta fuente de red ya no está disponible. Vuelve y elige otra.</string>
-    <string name="browse_network_connection_failed">No se pudo conectar a esta fuente. Comprueba la conexión e inténtalo de nuevo.</string>
+    <string name="browse_network_source_not_found">Este recurso de red ya no está disponible. Vuelve atrás y elige otro recurso.</string>
+    <string name="browse_network_connection_failed">No se pudo conectar a este recurso. Comprueba la conexión e inténtalo de nuevo.</string>
     <string name="browse_load_failed">No se pudieron cargar los archivos. Inténtalo de nuevo.</string>
     <string name="browse_network_error_refused">Conexión rechazada. Comprueba que el ordenador comparte archivos.</string>
     <string name="browse_network_error_timeout">Sin respuesta a tiempo. Comprueba la red e inténtalo de nuevo.</string>
-    <string name="browse_network_error_auth">Usuario o contraseña incorrectos. Actualiza la fuente en tu teléfono.</string>
+    <string name="browse_network_error_auth">Nombre de usuario o contraseña incorrectos. Actualiza el recurso en tu teléfono.</string>
     <string name="browse_network_error_unknown_host">Ordenador no encontrado en esta red. Comprueba la conexión Wi-Fi.</string>
 </resources>

@@ -23,7 +23,10 @@ object SftpConnectionTester {
 
     private const val CONNECTION_TIMEOUT = 10_000
 
-    /** Test password-based SFTP connection. Returns [Result.success] with presented host key fingerprint or [Result.failure] on any error. */
+    /**
+     * Test password-based SFTP connection. Returns [Result.success] with presented host key
+     * fingerprint or [Result.failure] on any error.
+     */
     suspend fun testConnection(
         host: String,
         port: Int = 22,

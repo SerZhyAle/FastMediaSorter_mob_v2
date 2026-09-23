@@ -29,12 +29,12 @@
     <string name="welcome_profile_personal_smartphone_title">Celular pessoal</string>
     <string name="welcome_profile_photo_frame_desc">Transforma o aparelho num porta-retratos digital. Desativa vídeo, áudio e operações com arquivos; abre a apresentação ao iniciar.</string>
     <string name="welcome_profile_photo_frame_title">Porta-retratos</string>
-    <string name="welcome_profile_selector_title">Perfil de uso do aparelho</string>
+    <string name="welcome_profile_selector_title">Perfil do dispositivo</string>
     <string name="welcome_profile_tv_media_box_desc">Ideal para TVs e centrais de mídia. Otimiza a navegação por controle remoto, usa botões grandes e oculta os controles de toque miúdos.</string>
     <string name="welcome_profile_tv_media_box_title">TV / caixa de mídia</string>
     <string name="welcome_profile_video_player_desc">Ideal para aparelhos só de vídeo. Oculta fotos, músicas e visualizadores de documentos; prioriza a reprodução rápida e as miniaturas.</string>
     <string name="welcome_profile_video_player_title">Leitor de vídeo</string>
-    <string name="welcome_profile_vr_headset_desc">Ideal para dispositivos de realidade virtual. Ativa previamente esquemas 3D/360° e controlos imersivos nas variantes de hardware suportadas.</string>
+    <string name="welcome_profile_vr_headset_desc">Ideal para dispositivos de realidade virtual. Ativa previamente layouts 3D/360° e controles imersivos em headsets compatíveis.</string>
     <string name="welcome_profile_vr_headset_title">Óculos de RV</string>
     <string name="welcome_recommended_badge">(Recomendado)</string>
     <string name="welcome_title_1">Bem-vindo ao FastMediaSorter!</string>
@@ -62,7 +62,7 @@
     <string name="sysinfo_field_display_count">Telas</string>
     <string name="sysinfo_field_fingerprint">Fingerprint</string>
     <string name="sysinfo_field_first_install">Primeira instalação</string>
-    <string name="sysinfo_field_flavor">Variante</string>
+    <string name="sysinfo_field_flavor">Edição</string>
     <string name="sysinfo_field_font_scale">Escala da fonte</string>
     <string name="sysinfo_field_gles">OpenGL ES</string>
     <string name="sysinfo_field_hdr">HDR</string>
@@ -117,7 +117,7 @@
     <string name="welcome_theme_auto">Automático</string>
     <string name="welcome_theme_light">Claro</string>
     <string name="welcome_theme_dark">Escuro</string>
-    <string name="welcome_networks_title">Fontes de rede</string>
+    <string name="welcome_networks_title">Recursos de rede</string>
     <string name="welcome_networks_description">Adicione mídia de pastas compartilhadas na rede e de armazenamento remoto.</string>
     <string name="welcome_profiles_title">Como você vai usar este aparelho?</string>
     <string name="welcome_profiles_subtitle">Escolha um perfil - vamos ajustar os padrões.</string>
@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">Transmissões</string>
     <string name="welcome_role_streams_detail">Rádio na internet, canais de TV e vídeo a partir de um catálogo pronto a usar</string>
     <string name="welcome_role_wear">App do relógio</string>
-    <string name="welcome_role_wear_detail">Uma app complementar para Wear OS - navegue e reproduza no seu pulso</string>
+    <string name="welcome_role_wear_detail">O app do relógio - navegue e reproduza direto no seu pulso</string>
 </resources>

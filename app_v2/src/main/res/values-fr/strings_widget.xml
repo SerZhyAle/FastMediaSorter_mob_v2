@@ -37,12 +37,12 @@
     <string name="widget_unlock_screen_prompt">Déverrouillez l\'écran pour ajouter le widget</string>
     <string name="settings_add_home_widget_title">Ajouter un widget à l\'écran d\'accueil Android.</string>
     <string name="widget_picker_dialog_title">Choisissez un widget</string>
-    <string name="widget_scheduled_tasks_label">Tâches planifiées</string>
+    <string name="widget_scheduled_tasks_label">Opérations planifiées</string>
     <string name="widget_scheduled_tasks_description">État et contrôles des opérations de fichiers planifiées</string>
     <string name="widget_scheduled_run_all">Tout exécuter</string>
     <string name="widget_scheduled_pause_all">Tout mettre en pause</string>
     <string name="widget_scheduled_resume_all">Reprendre tout</string>
-    <string name="widget_scheduled_empty">Aucune tâche planifiée</string>
+    <string name="widget_scheduled_empty">Aucune opération planifiée</string>
     <string name="widget_scheduled_active_count">%1$d actif</string>
     <string name="widget_scheduled_last_ok">Dernier : OK %1$s</string>
     <string name="widget_scheduled_last_error">Dernière erreur : %1$s</string>

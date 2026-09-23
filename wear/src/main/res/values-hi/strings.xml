@@ -46,14 +46,14 @@
     <string name="wear_sync_stats">जोड़े गए: %1$d  अपडेट किए गए: %2$d</string>
     <string name="wear_sync_browse_now">अभी ब्राउज़ करें</string>
     <string name="wear_export_to_phone">फ़ोन पर भेजें</string>
-    <string name="wear_export_success">स्रोत भेजे गए</string>
+    <string name="wear_export_success">संसाधन भेजे गए</string>
     <string name="delete_source_confirm">\"%s\" हटाएं?</string>
     <string name="protocol">प्रोटोकॉल</string>
     <string name="port">पोर्ट</string>
     <string name="domain">डोमेन</string>
     <string name="use_ssh_key">SSH कुंजी का उपयोग करें</string>
     <string name="ssh_private_key">निजी कुंजी</string>
-    <string name="add_network_source">स्रोत जोड़ें</string>
+    <string name="add_network_source">संसाधन जोड़ें</string>
     <string name="ftp_connection">FTP</string>
     <string name="sftp_connection">SFTP</string>
     <string name="connection_test_not_supported">इस प्रोटोकॉल के लिए टेस्ट उपलब्ध नहीं है</string>
@@ -126,7 +126,7 @@
     <string name="screen_settings_title">स्क्रीन</string>
     <string name="screen_settings_view_mode">स्क्रीन दृश्य</string>
     <string name="wear_streams_section_enabled">स्ट्रीम</string>
-    <string name="wear_resources_empty_hint">फ़ोन से अभी तक कुछ नहीं आया है. फ़ोन पर Wear-companion खोलें और यहां भेजने के लिए संसाधन चुनें.</string>
+    <string name="wear_resources_empty_hint">फ़ोन से अभी तक कुछ नहीं आया। फ़ोन पर Wear Companion खोलें और यहाँ भेजने के लिए संसाधन चुनें।</string>
     <string name="screen_settings_keep_awake">स्क्रीन चालू रखें</string>
     <string name="about_send_logs">डेवलपर को लॉग भेजें</string>
     <string name="about_send_logs_sending">भेजा जा रहा है..</string>
@@ -678,7 +678,7 @@
     <string name="wear_phone_camera_failed_expired">फोन पर किसी ने जवाब नहीं दिया</string>
     <string name="wear_phone_camera_failed_capture">फोन अपना कैमरा नहीं खोल सका</string>
     <string name="wear_phone_camera_failed_busy">फोन पहले से स्ट्रीम कर रहा है</string>
-    <string name="wear_phone_camera_failed_not_supported">यह फोन वर्शन वीडियो नहीं भेज सकता</string>
+    <string name="wear_phone_camera_failed_not_supported">फ़ोन ऐप का यह संस्करण वीडियो नहीं भेज सकता</string>
     <string name="wear_phone_camera_failed_unknown">फोन ने बिना कारण बताए मना कर दिया</string>
     <string name="wear_tile_shortcut_more">और</string>
     <string name="wear_streams_filter_collections_header">कलेक्शन</string>
@@ -907,4 +907,12 @@
     <string name="wear_filedo_result_not_viewable">घड़ी इस प्रकार की फ़ाइल नहीं खोलती।</string>
     <string name="wear_filedo_remember">पासवर्ड याद रखें</string>
     <string name="wear_filedo_remembered_forgotten">सहेजा गया पासवर्ड मेल नहीं खाया और भुला दिया गया। पासवर्ड दर्ज करें।</string>
+    <string name="wear_water_flashlight_exit_hint">लॉक है। बाहर निकलने के लिए 3 बार तेज़ी से पीछे स्वाइप करें</string>
+    <string name="wear_complication_last_resource_a11y">पिछला संसाधन: %1$s</string>
+    <string name="wear_complication_now_playing_a11y">चल रहा है: %1$s</string>
+    <string name="wear_complication_last_played_a11y">पिछली बार चलाया गया: %1$s</string>
+    <plurals name="wear_complication_favorites_count">
+        <item quantity="one">%d पसंदीदा</item>
+        <item quantity="other">%d पसंदीदा</item>
+    </plurals>
 </resources>

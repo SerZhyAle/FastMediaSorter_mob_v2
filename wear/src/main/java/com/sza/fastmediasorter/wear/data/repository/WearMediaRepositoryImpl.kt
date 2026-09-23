@@ -116,7 +116,6 @@ class WearMediaRepositoryImpl(
         // S3383: a container has no type until it is opened, so no type switch can hide it, and no
         // mime selection above can find it - MediaStore indexes it as octet-stream or as nothing.
         mediaFiles.addAll(queryContainers())
-        Timber.d("S3383: flat listing includes FileDO containers")
 
         mediaFiles.sortedByDescending { it.dateModified }
     }

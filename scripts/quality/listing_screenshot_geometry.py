@@ -77,7 +77,8 @@ COLOR_TOLERANCE = 8
 # "no content here" means, and they are not a tuning surface either - measured 2026-09-08 across
 # the flatness range 8..20 the five live wear frames stay at or below 0.025 while four synthetic
 # framed ones stay at or above 0.10, so the separation does not depend on where inside that range
-# the constant sits (S2764 §3.2).
+# the constant sits (S2764 §3.2). The ceiling that turns this width into a verdict is policy and
+# lives in the gate, which records its own re-calibration on the 2026-09-23 corpus (S3468).
 RING_STEP = 0.005
 RING_FLAT_STD = 12.0
 RING_DARK_MEAN = 40.0

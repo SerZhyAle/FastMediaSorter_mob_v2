@@ -61,7 +61,7 @@
     <string name="cloud_list_files_failed">Die Dateien konnten nicht aus der Cloud geladen werden. Bitte versuchen Sie es erneut.</string>
     <string name="cloud_list_folders_failed">Ordner konnten nicht aus der Cloud geladen werden. Bitte versuchen Sie es erneut.</string>
     <string name="cloud_metadata_failed">Die Dateidetails konnten nicht aus der Cloud geladen werden. Bitte versuchen Sie es erneut.</string>
-    <string name="cloud_restore_instructions">Die Google Drive-Verbindung muss wiederhergestellt werden.\n\nBitte:\n1. Gehen Sie zum Hauptmenü\n2. Öffnen Sie „Ressourcen“\n3. Tippen Sie auf „%1$s“\n4. Melden Sie sich mit Ihrem Google-Konto an</string>
+    <string name="cloud_restore_instructions">Die Google Drive-Verbindung muss wiederhergestellt werden.\n\nBitte:\n1. Hauptbildschirm öffnen\n2. Auf \"%1$s\" tippen\n3. Mit Ihrem Google-Konto anmelden</string>
     <string name="cloud_search_failed">Die Suche im Cloud-Speicher ist fehlgeschlagen. Bitte versuchen Sie es erneut.</string>
     <string name="cloud_sign_out_failed">Die Abmeldung vom Cloud-Konto ist fehlgeschlagen. Bitte versuchen Sie es erneut.</string>
     <string name="cloud_storage">Cloud-Speicher</string>

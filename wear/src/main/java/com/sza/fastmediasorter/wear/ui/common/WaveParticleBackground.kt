@@ -25,7 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -305,7 +304,6 @@ private class WaveParticleSession(
     }
 
     private fun reroll() {
-        Timber.d("S3414: watch wave session rolled - ramp, contract opacities, paced wash")
         rolled = true
         waveCount = Random.nextInt(WAVE_COUNT_MIN, WAVE_COUNT_MAX + 1)
         stepPx = WAVE_STEP_PX * scale * (WAVE_STEP_JITTER_MIN + Random.nextFloat() * WAVE_STEP_JITTER_SPAN)

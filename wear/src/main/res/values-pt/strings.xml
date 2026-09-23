@@ -46,14 +46,14 @@
     <string name="wear_sync_stats">Adicionados: %1$d  Atualizados: %2$d</string>
     <string name="wear_sync_browse_now">Explorar agora</string>
     <string name="wear_export_to_phone">Enviar para o telemóvel</string>
-    <string name="wear_export_success">Origens enviadas</string>
+    <string name="wear_export_success">Recursos enviados</string>
     <string name="delete_source_confirm">Eliminar \u201c%s\u201d?</string>
     <string name="protocol">Protocolo</string>
     <string name="port">Porta</string>
     <string name="domain">Domínio</string>
     <string name="use_ssh_key">Usar chave SSH</string>
     <string name="ssh_private_key">Chave privada</string>
-    <string name="add_network_source">Adicionar origem</string>
+    <string name="add_network_source">Adicionar recurso</string>
     <string name="ftp_connection">FTP</string>
     <string name="sftp_connection">SFTP</string>
     <string name="connection_test_not_supported">Teste não disponível para este protocolo</string>
@@ -126,7 +126,7 @@
     <string name="screen_settings_title">Tela</string>
     <string name="screen_settings_view_mode">Vista de ecrãs</string>
     <string name="wear_streams_section_enabled">Transmissões</string>
-    <string name="wear_resources_empty_hint">Ainda não chegou nada do telemóvel. No telemóvel, abra o Companion do relógio e escolha os recursos a enviar para aqui.</string>
+    <string name="wear_resources_empty_hint">Nada chegou do telefone ainda. No telefone, abra o Wear Companion e escolha os recursos a enviar para cá.</string>
     <string name="screen_settings_keep_awake">Manter o ecrã ligado</string>
     <string name="about_send_logs">Enviar registos ao programador</string>
     <string name="about_send_logs_sending">A enviar..</string>
@@ -678,7 +678,7 @@
     <string name="wear_phone_camera_failed_expired">Ninguém respondeu no telefone</string>
     <string name="wear_phone_camera_failed_capture">O telefone não conseguiu abrir a câmera</string>
     <string name="wear_phone_camera_failed_busy">O telefone já está a difundir</string>
-    <string name="wear_phone_camera_failed_not_supported">Esta versão do telefone não pode enviar vídeo</string>
+    <string name="wear_phone_camera_failed_not_supported">A edição do app do telefone não pode enviar vídeo</string>
     <string name="wear_phone_camera_failed_unknown">O telefone recusou, sem dizer o motivo</string>
     <string name="wear_tile_shortcut_more">Mais</string>
     <string name="wear_streams_filter_collections_header">Coleções</string>
@@ -907,4 +907,12 @@
     <string name="wear_filedo_result_not_viewable">O relógio não abre este tipo de arquivo.</string>
     <string name="wear_filedo_remember">Lembrar senha</string>
     <string name="wear_filedo_remembered_forgotten">A senha salva não serviu e foi esquecida. Digite a senha.</string>
+    <string name="wear_water_flashlight_exit_hint">Bloqueado. Deslize para voltar 3 vezes rápido para sair</string>
+    <string name="wear_complication_last_resource_a11y">Último recurso: %1$s</string>
+    <string name="wear_complication_now_playing_a11y">Reproduzindo: %1$s</string>
+    <string name="wear_complication_last_played_a11y">Última reprodução: %1$s</string>
+    <plurals name="wear_complication_favorites_count">
+        <item quantity="one">%d favorito</item>
+        <item quantity="other">%d favoritos</item>
+    </plurals>
 </resources>

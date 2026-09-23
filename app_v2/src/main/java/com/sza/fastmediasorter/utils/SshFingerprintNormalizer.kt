@@ -76,13 +76,11 @@ object SshFingerprintNormalizer {
     }
 
     /**
-     * Compute canonical SHA256 fingerprint from base64-encoded public key string (as returned by JSch [HostKey.getKey]).
+     * Compute canonical SHA256 fingerprint from base64-encoded public key string
+     * (as returned by JSch [HostKey.getKey]).
      */
-    fun fromBase64Key(base64Key: String?): String? {
-        if (base64Key.isNullOrBlank()) return null
-        val bytes = decodeBase64OrNull(base64Key) ?: return null
-        return fromRawKeyBytes(bytes)
-    }
+    fun fromBase64Key(base64Key: String?): String? =
+        base64Key?.takeIf { it.isNotBlank() }?.let { decodeBase64OrNull(it) }?.let { fromRawKeyBytes(it) }
 
     private fun decodeBase64OrNull(s: String): ByteArray? {
         // Accept both padded and unpadded base64; strategy: strip any trailing `=`, then re-pad
