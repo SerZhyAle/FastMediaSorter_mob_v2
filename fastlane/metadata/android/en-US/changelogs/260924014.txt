@@ -1,0 +1,3 @@
+• Encrypted file containers (.fd-sec) - keep files in password-protected containers beside local and cloud files, with an optional remembered viewing password, on the phone and on the watch.
+• More from the watch - copy or move a phone or network file to the watch with a confirmation, use the phone camera from the watch, coloured plates on shortcut tiles, complication text in your language and a new icon accent palette.
+..
