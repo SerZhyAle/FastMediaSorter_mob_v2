@@ -54,13 +54,6 @@ object LicensedDeviceClass {
     /** smallestScreenWidthDp at or above which a normal-UI-mode device is a tablet, not a handheld. */
     private const val TABLET_MIN_SMALLEST_WIDTH_DP = 600
 
-    /**
-     * `Configuration.UI_MODE_TYPE_DESK`, spelled out because the constant only exists from API 31 and
-     * this code compiles down to minSdk 23 - referencing the field directly would inline a value the
-     * lint baseline then has to excuse.
-     */
-    private const val UI_MODE_TYPE_DESK = 0x06
-
     @Volatile
     private var cached: DeviceClass? = null
 
@@ -98,8 +91,10 @@ object LicensedDeviceClass {
                 uiMode == Configuration.UI_MODE_TYPE_TELEVISION -> DeviceClass.TELEVISION
             uiMode == Configuration.UI_MODE_TYPE_WATCH -> DeviceClass.WATCH
             DetectionHelper.isChromebook(context) -> DeviceClass.CHROMEBOOK
-            DetectionHelper.hasPcFeature(context) || uiMode == UI_MODE_TYPE_DESK -> DeviceClass.DESKTOP
-            uiMode == Configuration.UI_MODE_TYPE_NORMAL -> handheldOrTablet(context)
+            DetectionHelper.hasPcFeature(context) -> DeviceClass.DESKTOP
+            // Desk mode means a phone or tablet sitting in a dock, not a desktop computer.
+            uiMode == Configuration.UI_MODE_TYPE_NORMAL ||
+                uiMode == Configuration.UI_MODE_TYPE_DESK -> handheldOrTablet(context)
             else -> DeviceClass.UNKNOWN
         }
     }

@@ -7,7 +7,7 @@ permalink: /docs/howto/scenario-download-organizer.html
 
 > **Level:** Beginner &bull; **Flavor:** Any (Standard, Lite, Photos, Legacy, VR, noLegal)
 
-[Русский](scenario-download-organizer-ru.md) | [Українська](scenario-download-organizer-uk.md)
+{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="en" %}
 
 **Quick Sort** is FastMediaSorter's star feature: set up your folders once, then sort hundreds of files by just tapping a number. No drag-and-drop. No menus. Just tap **1**, **2**, or **3** - and the file is gone to the right place.
 
@@ -26,7 +26,7 @@ permalink: /docs/howto/scenario-download-organizer.html
 ## Step 1 - Add Your Downloads Folder
 
 1. Open the app
-2. Tap **Add (⊕)** in the top toolbar
+2. Tap **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** in the top toolbar
 3. Select **"Local Folder"**
 4. Navigate to your **Downloads** folder - it is usually right there, named `Download` or `Downloads`
    - If you don't see it: try the path `/sdcard/Download`
@@ -52,7 +52,7 @@ Think of it like physical folders on your desk. Examples:
 
 **You can create these folders right inside FastMediaSorter:**
 1. Open the Downloads resource
-2. Tap the **menu (⋮)** button → **Create folder**
+2. Tap the **menu <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button → **Create folder**
 3. Type the folder name → tap **OK**
 
 Or create the folders in your phone's regular file manager - they'll appear automatically in FastMediaSorter.

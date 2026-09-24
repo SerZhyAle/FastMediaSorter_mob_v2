@@ -114,6 +114,8 @@ FastMediaSorter собран на перечисленных ниже компо
 | FFmpeg (custom Media3 decoder build) (встроенный бинарник) | `local:fms-ffmpeg-dts` | [LGPL-2.1-or-later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) | standard, noLegal, legacy, vr | [link](https://github.com/androidx/media/tree/release/libraries/decoder_ffmpeg) |
 | Zip4j | `net.lingala.zip4j:zip4j` | [Apache-2.0](https://raw.githubusercontent.com/srikanth-lingala/zip4j/master/LICENSE) | все сборки | [link](https://github.com/srikanth-lingala/zip4j) |
 | AppAuth for Android | `net.openid:appauth` | [Apache-2.0](https://raw.githubusercontent.com/openid/AppAuth-Android/master/LICENSE) | legacy, lite, noLegal, photos, standard, vr | [link](https://github.com/openid/AppAuth-Android) |
+| Apache MINA SSHD Core | `org.apache.sshd:sshd-core` | [Apache-2.0](https://raw.githubusercontent.com/apache/mina-sshd/master/LICENSE.txt) | все сборки | [link](https://github.com/apache/mina-sshd) |
+| Apache MINA SSHD SFTP | `org.apache.sshd:sshd-sftp` | [Apache-2.0](https://raw.githubusercontent.com/apache/mina-sshd/master/LICENSE.txt) | все сборки | [link](https://github.com/apache/mina-sshd) |
 | Bouncy Castle Provider (через `com.hierynomus:smbj`) | `org.bouncycastle:bcprov-jdk18on` | [MIT](https://www.bouncycastle.org/licence.html) | все сборки | [link](https://github.com/bcgit/bc-java) |
 | Bouncy Castle Provider (через `com.hierynomus:smbj`) | `org.bouncycastle:bcprov-jdk18on` | [MIT](https://www.bouncycastle.org/licence.html) | все сборки | [link](https://github.com/bcgit/bc-java) |
 | Kotlin Coroutines Android | `org.jetbrains.kotlinx:kotlinx-coroutines-android` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/Kotlin/kotlinx.coroutines) |
@@ -155,6 +157,7 @@ FastMediaSorter собран на перечисленных ниже компо
 - **Tesseract4Android** (`Apache-2.0`) - Bundles Tesseract OCR (Apache-2.0) and Leptonica (BSD-2-Clause) as native libraries.
 - **epub4j** (`Apache-2.0`) - Apache-2.0 per the repository LICENSE and the 4.2 POM. The upstream epublib project this is forked from declares LGPL in its parent POM, which is why the two are sometimes conflated.
 - **FFmpeg (custom Media3 decoder build)** (`LGPL-2.1-or-later`) - Built from FFmpeg sources by scripts/builders/build-ffmpeg-dts.sh and shipped as app_v2/libs/fms-ffmpeg-dts.aar. Its configure invocation passes neither --enable-gpl nor --enable-nonfree and disables postproc, the GPL component, so the produced binary is LGPL-2.1-or-later.
+- **Apache MINA SSHD Core** (`Apache-2.0`) - S3041: embedded SFTP server. Pulls sshd-common, which shares the same licence and source.
 - **Bouncy Castle Provider** (`MIT`) - Published as the "Bouncy Castle Licence"; the text is verbatim MIT with their copyright, so scanners report NOASSERTION and the identifier is set by hand.
 - **Bouncy Castle Provider** (`MIT`) - Published as the "Bouncy Castle Licence"; the text is verbatim MIT with their copyright, so scanners report NOASSERTION and the identifier is set by hand.
 - **OpenXR Loader for Android** (`Apache-2.0`) - Loader sources carry Apache-2.0 OR MIT. The shipped native library statically links jsoncpp (MIT), jnipp (MIT) and android-jni-wrappers (BSL-1.0).

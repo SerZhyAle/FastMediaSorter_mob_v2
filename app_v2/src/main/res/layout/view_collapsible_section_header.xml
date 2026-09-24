@@ -51,7 +51,7 @@
             android:clickable="true"
             android:contentDescription=""
             android:focusable="true"
-            android:src="@drawable/ic_help_outline_24"
+            android:src="@drawable/ic_help_outline"
             app:tint="@color/text_color_secondary"
             android:visibility="gone" />
 

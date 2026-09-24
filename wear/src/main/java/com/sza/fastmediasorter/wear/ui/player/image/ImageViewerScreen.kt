@@ -21,8 +21,6 @@ import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.CastConnected
 import androidx.compose.material.icons.filled.CropFree
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -30,6 +28,8 @@ import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +50,7 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
@@ -295,7 +296,7 @@ private fun ImageViewerContent(
         var showMenu by rememberSaveable { mutableStateOf(false) }
 
         if (isImageError) {
-            ErrorContent(message = stringResource(R.string.wear_state_error))
+            ImageFallback(uiState.mediaFile?.name, Modifier.align(Alignment.Center))
         } else {
             ZoomableImage(
                 uiState = uiState,
@@ -628,7 +629,7 @@ private fun ImageSecondaryRow(
         if (imageFavoriteOnPanel()) {
             PlayerCommandButton(
                 onClick = actions.onToggleFavorite,
-                icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                icon = if (isFavorite) Icons.Filled.Star else Icons.Filled.StarBorder,
                 contentDescription = favoriteDesc,
                 size = targetSize,
                 checked = isFavorite
@@ -707,7 +708,7 @@ private fun imageMenuActions(
             )
         }
         if (!imageFavoriteOnPanel()) {
-            val icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+            val icon = if (isFavorite) Icons.Filled.Star else Icons.Filled.StarBorder
             add(playerMenuAction(favoriteLabel, icon, onDismiss, actions.onToggleFavorite))
         }
         if (!panelDrawsRestoredCommands) {
@@ -719,6 +720,21 @@ private fun imageMenuActions(
         // closes the list, and the outer rows of a round screen are the easiest to reach by accident.
         addAll(actions.fileActions.map { entry -> entry.closingWith(onDismiss) })
     }
+}
+
+/**
+ * A photo that cannot be decoded is shown as the image glyph, not a warning: nothing is wrong from
+ * the wearer's side (ICON-EXTERNAL rule 4). It keeps the name the photo would have been read by.
+ */
+@Composable
+private fun ImageFallback(description: String?, modifier: Modifier = Modifier) {
+    Timber.d("S3444: watch image viewer load failed, image glyph shown")
+    Icon(
+        painter = painterResource(R.drawable.ic_image),
+        contentDescription = description,
+        tint = MaterialTheme.colors.onSurfaceVariant,
+        modifier = modifier.size(ERROR_GLYPH_SIZE)
+    )
 }
 
 @Composable

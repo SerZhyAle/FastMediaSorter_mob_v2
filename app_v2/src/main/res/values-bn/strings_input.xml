@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">প্রাথমিক পদক্ষেপ (ঠিক আছে / প্রয়োগ করুন)</string>
     <string name="kbm_help_dialog_toggle">টগল বিকল্প</string>
     <string name="kbm_help_empty">এই স্ক্রিনের জন্য এখনও কোনো শর্টকাট নিবন্ধিত হয়নি।</string>
-    <string name="kbm_help_full_docs_link">সম্পূর্ণ কীবোর্ড / মাউস রেফারেন্স খুলুন..</string>
     <string name="kbm_help_global_escape">বাতিল করুন, নির্বাচন মুছে ফেলুন, ডায়ালগ বন্ধ করুন</string>
     <string name="kbm_help_global_exit">বর্তমান স্ক্রিন থেকে প্রস্থান করুন</string>
     <string name="kbm_help_global_f1">এই সাহায্য দেখান</string>

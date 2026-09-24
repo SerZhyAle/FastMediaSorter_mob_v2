@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">Ação principal (OK / Aplicar)</string>
     <string name="kbm_help_dialog_toggle">Alternar opção</string>
     <string name="kbm_help_empty">Ainda não existem atalhos registrados para esta tela.</string>
-    <string name="kbm_help_full_docs_link">Abra a lista completa de referência de teclado/mouse..</string>
     <string name="kbm_help_global_escape">Cancelar, limpar seleção, fechar caixa de diálogo</string>
     <string name="kbm_help_global_exit">Sair da tela atual</string>
     <string name="kbm_help_global_f1">Mostrar esta ajuda</string>

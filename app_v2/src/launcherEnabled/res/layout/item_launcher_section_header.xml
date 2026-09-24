@@ -76,7 +76,7 @@
             android:layout_marginStart="@dimen/margin_small"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
-            android:contentDescription="@string/launcher_section_actions_title"
+            android:contentDescription="@string/cd_more_actions_section"
             android:focusable="true"
             android:visibility="gone"
             app:srcCompat="@drawable/ic_more_vert"

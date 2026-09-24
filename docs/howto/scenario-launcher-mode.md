@@ -7,7 +7,7 @@ permalink: /docs/howto/scenario-launcher-mode.html
 
 > **Level:** Beginner &bull; **Flavor:** Standard / noLegal
 
-[Русский](scenario-launcher-mode-ru.md) | [Українська](scenario-launcher-mode-uk.md)
+{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="en" %}
 
 FastMediaSorter can replace your device's home screen with its own desktop - your folders, a clock, the weather, your apps, and a taskbar along one edge. If you have ever used a Windows desktop it will feel familiar: things stay where you put them, and a Start button opens the menu. This is called **launcher mode**.
 

@@ -34,10 +34,10 @@ weakest of them.
 
 ## Field 1 - "All files access" (limit 500 characters)
 
-Uses 491 of 500 characters.
+Uses 492 of 500 characters.
 
 ```text
-Core feature: sorting files into folders the user chooses. The user opens a source folder, views each file, then copies, moves, renames or deletes it into a destination folder anywhere on shared storage. This is the app's only purpose and the opening line of its store listing. Without all-files access the app cannot read the source folder the user picked or write into the destination folder, so the sort loop cannot run and the app does nothing. Every file type is sorted, not only media.
+Core feature: sorting files into folders the user chooses. The user opens a source folder, views each file, then copies, moves, renames or deletes it into a destination folder anywhere on shared storage. This is the app's core function and the opening line of its store listing. Without all-files access the app cannot read the source folder the user picked or write into the destination folder, so the sort loop cannot run and the app does nothing. Every file type is sorted, not only media.
 ```
 
 ## Field 2 - "Technical reason" (limit 500 characters)
@@ -143,6 +143,8 @@ its own to lose the review.
 The live category is `Photography`, which disagrees with a declaration whose core functionality is
 file organizing. The category is not itself a rejection reason, and changing it is the owner's call -
 see `PLAY_CONSOLE_CHECKLIST.md` section D.
+
+Still open after the S2271 repositioning: the listing now presents the app as a device shell built around the file-sorting core, and the category decision stays with the owner. The core-function claim above and the opening block of `play/listing/en-US/full_description.txt` must keep saying the same thing.
 
 ---
 

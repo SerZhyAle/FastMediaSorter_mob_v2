@@ -38,7 +38,7 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 
 | Target | Wall clock | Verdict |
 | --- | ---: | --- |
-| `a.ps1 fg` (fast static gates, 68 gates concurrent since S2451) | 79 s | foreground |
+| `a.ps1 fg` (fast static gates, 70 gates concurrent since S2451) | 79 s | foreground |
 <!-- S2612 moved this measurement out of CLAUDE.md Rule 6, which was at its always-loaded ceiling.
      `fg` is the one target that ever crossed the 120 s threshold: 45 gates running one at a time
      reached 142.8 s and were preempted into the background twice, delivering the verdict the way

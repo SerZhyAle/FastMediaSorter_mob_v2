@@ -11,7 +11,7 @@
     <item
         android:id="@+id/action_open_in_vr_cinema"
         android:title="@string/action_open_in_vr_cinema"
-        android:icon="@drawable/ic_play" />
+        android:icon="@drawable/ic_vr_headset" />
     <item
         android:id="@+id/action_add_to_home_screen"
         android:title="@string/widget_add_to_home_screen"
@@ -19,7 +19,7 @@
     <item
         android:id="@+id/action_edit"
         android:title="@string/edit"
-        android:icon="@drawable/ic_edit_20" />
+        android:icon="@drawable/ic_edit" />
     <item
         android:id="@+id/action_copy"
         android:title="@string/copy_resource"
@@ -27,7 +27,7 @@
     <item
         android:id="@+id/action_export_resource"
         android:title="@string/resource_menu_export"
-        android:icon="@drawable/ic_share" />
+        android:icon="@drawable/ic_export" />
     <item
         android:id="@+id/action_share_sftp_access"
         android:title="@string/resource_menu_share_sftp_access"
@@ -40,7 +40,7 @@
     <item
         android:id="@+id/action_reconnect_resource"
         android:title="@string/resource_menu_reconnect_resource"
-        android:icon="@drawable/ic_folder_open_24" />
+        android:icon="@drawable/ic_reconnect" />
     <item
         android:id="@+id/action_move_up"
         android:title="@string/move_up"

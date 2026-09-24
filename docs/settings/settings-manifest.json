@@ -1451,6 +1451,36 @@
       "titleUk": "Зберегти логи"
     },
     {
+      "key": "btnSftpServerAddRoot",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Add folder",
+      "titleRu": "Добавить папку",
+      "titleUk": "Додати папку"
+    },
+    {
+      "key": "btnSftpServerNewPassword",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "New password",
+      "titleRu": "Новый пароль",
+      "titleUk": "Новий пароль"
+    },
+    {
+      "key": "btnSftpServerShowQr",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Show pairing code",
+      "titleRu": "Показать код для подключения",
+      "titleUk": "Показати код для підключення"
+    },
+    {
       "key": "btnShareLogs",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1619,6 +1649,16 @@
       "titleEn": "Remote resources (SMB/(S)FTP/Cloud)",
       "titleRu": "Удалённые ресурсы (SMB/(S)FTP/Облако)",
       "titleUk": "Віддалені ресурси (SMB/(S)FTP/Хмара)"
+    },
+    {
+      "key": "headerSftpServer",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Share over SFTP",
+      "titleRu": "Доступ по SFTP",
+      "titleUk": "Доступ через SFTP"
     },
     {
       "key": "headerSystem",
@@ -1919,6 +1959,16 @@
       "titleEn": "Secure sensitive screens",
       "titleRu": "Защищать секретные экраны",
       "titleUk": "Захищати секретні екрани"
+    },
+    {
+      "key": "rowSftpServerEnabled",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "SFTP server",
+      "titleRu": "SFTP-сервер",
+      "titleUk": "SFTP-сервер"
     },
     {
       "key": "rowShowHiddenFiles",
@@ -3438,7 +3488,7 @@
       "kind": "BUTTON",
       "titleEn": "Cancel",
       "titleRu": "Отмена",
-      "titleUk": "Відміна"
+      "titleUk": "Скасувати"
     },
     {
       "key": "rowStopwatchMusic",

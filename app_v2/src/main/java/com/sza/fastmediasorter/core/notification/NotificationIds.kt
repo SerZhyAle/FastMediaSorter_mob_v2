@@ -56,6 +56,9 @@ object NotificationIds {
     /** S3216: the running distress signal - siren, torch strobe, and the action that ends both. */
     const val SOS_SIGNAL = 4212
 
+    /** S3041: the running embedded SFTP server, with the action that stops it. */
+    const val SFTP_SERVER = 4213
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 

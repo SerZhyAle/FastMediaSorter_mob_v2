@@ -8,7 +8,7 @@ All screenshots go to: `docs/howto/screenshots/`
 
 | File name | Scenario | Step | What must be visible on screen | Source |
 |-----------|----------|------|-------------------------------|--------|
-| `screenshot-smb-step1.png` | SMB Setup | 1 | FastMediaSorter main screen; **Add (⊕)** button in the top toolbar must be clearly visible | 📸 Phone/tablet |
+| `screenshot-smb-step1.png` | SMB Setup | 1 | FastMediaSorter main screen; **Add** button in the top toolbar must be clearly visible | 📸 Phone/tablet |
 | `screenshot-smb-step2.png` | SMB Setup | 2 | "Add Resource" type selection screen with options list (Local, SMB, SFTP, Cloud..) | 📸 Phone/tablet |
 | `screenshot-smb-step3.png` | SMB Setup | 3 | SMB form with **IP address entered manually** in the Server field (e.g. `192.168.1.100`) and Share name filled (e.g. `Photos`); no scan used | 📸 Phone/tablet |
 | `screenshot-smb-step4.png` | SMB Setup | 4 | Green **"Connection successful"** toast or banner after Test Connection | 📸 Phone/tablet (needs real SMB) |

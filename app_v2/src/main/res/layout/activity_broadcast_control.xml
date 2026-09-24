@@ -133,7 +133,7 @@
             android:focusable="true"
             android:clickable="true"
             android:text="@string/broadcast_entry_start"
-            app:icon="@drawable/ic_display" />
+            app:icon="@drawable/ic_live_broadcast" />
 
         <!-- LIVE STREAM CONTROLS CONTAINER -->
         <LinearLayout
@@ -163,7 +163,7 @@
                     android:nextFocusRight="@+id/btnToggleMic"
                     android:nextFocusDown="@+id/btnSwitchCamera"
                     android:text="@string/broadcast_control_camera_on"
-                    app:icon="@drawable/ic_display" />
+                    app:icon="@drawable/ic_camera_capture" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnToggleMic"
@@ -244,7 +244,7 @@
                 android:clickable="true"
                 android:nextFocusUp="@+id/btnSendToWatch"
                 android:text="@string/broadcast_control_stop"
-                app:icon="@drawable/ic_cancel" />
+                app:icon="@drawable/ic_stop" />
         </LinearLayout>
 
         <!-- SHARE & QR PANEL CONTAINER (LIVE STATE) -->

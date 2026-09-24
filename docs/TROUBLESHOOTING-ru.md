@@ -7,6 +7,8 @@ permalink: /docs/TROUBLESHOOTING_RU.html
 
 Частые проблемы и решения для FastMediaSorter v2.
 
+{% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="ru" %}
+
 ---
 
 ## Проблемы с подключением

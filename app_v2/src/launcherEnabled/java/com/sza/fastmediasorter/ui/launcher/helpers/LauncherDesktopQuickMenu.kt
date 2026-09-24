@@ -72,7 +72,7 @@ class LauncherDesktopQuickMenu(
             ),
             LauncherAppMenuRow.Action(
                 label = context.getString(R.string.launcher_quick_menu_edit_desktop),
-                iconRes = R.drawable.ic_edit_20,
+                iconRes = R.drawable.ic_edit,
                 onSelected = onEditDesktop,
             ),
             LauncherAppMenuRow.Action(

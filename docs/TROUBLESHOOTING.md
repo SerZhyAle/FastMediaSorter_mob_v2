@@ -7,6 +7,8 @@ permalink: /docs/TROUBLESHOOTING.html
 
 Current troubleshooting guide for FastMediaSorter v2. Use the canonical flavor matrix in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) when the issue depends on the selected build path (Standard, Lite, Photos, Legacy, or XR / noLegal).
 
+{% include lang-switcher.html doc="TROUBLESHOOTING" dir="/docs/" current="en" %}
+
 ---
 
 ## Connection Issues

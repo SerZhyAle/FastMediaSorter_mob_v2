@@ -5,7 +5,7 @@
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical|end">
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnScan" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/scan_button" app:icon="@drawable/ic_search" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnScan" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/scan_button" app:icon="@drawable/ic_scan" />
 
             <com.google.android.material.button.MaterialButton android:id="@+id/btnAddManually" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_button_margin_start" android:text="@string/add_manually_button" app:icon="@drawable/ic_add" />
 

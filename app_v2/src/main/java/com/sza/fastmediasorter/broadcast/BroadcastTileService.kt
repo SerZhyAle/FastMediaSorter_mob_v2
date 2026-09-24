@@ -26,7 +26,7 @@ class BroadcastTileService : TileService() {
         val tile = qsTile ?: return
         tile.state = Tile.STATE_INACTIVE
         tile.label = getString(R.string.tile_broadcast_label)
-        tile.icon = Icon.createWithResource(this, R.drawable.ic_display)
+        tile.icon = Icon.createWithResource(this, R.drawable.ic_live_broadcast)
         tile.updateTile()
     }
 

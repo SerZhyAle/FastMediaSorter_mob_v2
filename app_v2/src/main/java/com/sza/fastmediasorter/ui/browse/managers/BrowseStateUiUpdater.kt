@@ -31,7 +31,6 @@ import com.sza.fastmediasorter.utils.setBadgeText
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /**
  * Applies BrowseState changes to the UI: filter badge, selection panel, display mode,
@@ -309,12 +308,12 @@ class BrowseStateUiUpdater(
 
         val isSubfolder = state.isSubfolderMode && state.currentPath != null && state.currentPath != stateResource.path
         if (isSubfolder) {
-            binding.btnResourceAction.setImageResource(R.drawable.ic_folder_24)
+            binding.btnResourceAction.setImageResource(R.drawable.ic_folder)
             binding.btnResourceAction.isClickable = false
             binding.btnResourceAction.isFocusable = false
             binding.btnResourceAction.visibility = View.VISIBLE
         } else {
-            binding.btnResourceAction.setImageResource(R.drawable.ic_edit_20)
+            binding.btnResourceAction.setImageResource(R.drawable.ic_edit)
             binding.btnResourceAction.isClickable = true
             binding.btnResourceAction.isFocusable = true
             binding.btnResourceAction.visibility = View.VISIBLE

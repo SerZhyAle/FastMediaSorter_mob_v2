@@ -38,6 +38,7 @@
         <exclude domain="sharedpref" path="google_drive_credentials.xml" />
         <exclude domain="sharedpref" path="dropbox_credentials.xml" />
         <exclude domain="sharedpref" path="link_download_cookies.xml" />
+        <exclude domain="sharedpref" path="fdsec_remembered_credential.xml" />
     </cloud-backup>
 
     <device-transfer>
@@ -59,5 +60,6 @@
         <exclude domain="sharedpref" path="google_drive_credentials.xml" />
         <exclude domain="sharedpref" path="dropbox_credentials.xml" />
         <exclude domain="sharedpref" path="link_download_cookies.xml" />
+        <exclude domain="sharedpref" path="fdsec_remembered_credential.xml" />
     </device-transfer>
 </data-extraction-rules>

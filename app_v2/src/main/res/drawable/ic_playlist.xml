@@ -6,7 +6,7 @@
     android:tint="?attr/colorControlNormal">
     <!--
         A list of tracks: three stacked lines with a note on the last one. Distinct from
-        ic_music_note (one track) and ic_view_list (a generic list) - a playlist is specifically
+        ic_audio (one track) and ic_view_list (a generic list) - a playlist is specifically
         "several tracks", and reusing either of those would say the wrong thing.
     -->
     <path

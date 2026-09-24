@@ -30,8 +30,6 @@ import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.CastConnected
 import androidx.compose.material.icons.filled.CropFree
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -41,6 +39,8 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -568,9 +568,9 @@ private fun FavoriteButton(
     PlayerCommandButton(
         onClick = onToggleFavorite,
         icon = if (isFavorite) {
-            Icons.Filled.Favorite
+            Icons.Filled.Star
         } else {
-            Icons.Filled.FavoriteBorder
+            Icons.Filled.StarBorder
         },
         contentDescription = description,
         size = size,
@@ -744,7 +744,7 @@ private fun videoMenuActions(
             )
         }
         if (showFavorite) {
-            val icon = if (uiState.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+            val icon = if (uiState.isFavorite) Icons.Filled.Star else Icons.Filled.StarBorder
             add(playerMenuAction(favoriteLabel, icon, onDismiss, actions.onToggleFavorite))
         }
         if (uiState.isStream) {

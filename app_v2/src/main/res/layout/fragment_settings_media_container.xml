@@ -115,7 +115,7 @@
                     android:id="@+id/headerStreams"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:csh_icon="@drawable/ic_cast"
+                    app:csh_icon="@drawable/ic_stream"
                     app:csh_title="@string/settings_streams_section" />
 
                 <FrameLayout android:id="@+id/containerStreams" android:layout_width="match_parent" android:layout_height="wrap_content" />

@@ -396,15 +396,19 @@ class BrowseButtonSetupHelper(
         val OPERATION_ACTIONS = listOf(
             ActionBarView.Action(R.id.actionBrowseCopy, R.drawable.ic_copy, R.string.copy),
             ActionBarView.Action(R.id.actionBrowseMove, R.drawable.ic_move, R.string.move),
-            ActionBarView.Action(R.id.actionBrowseRename, R.drawable.ic_edit_20, R.string.rename),
+            ActionBarView.Action(R.id.actionBrowseRename, R.drawable.ic_edit, R.string.rename),
             ActionBarView.Action(R.id.actionBrowseDelete, R.drawable.ic_delete, R.string.delete),
             ActionBarView.Action(R.id.actionBrowseUndo, R.drawable.ic_undo, R.string.undo),
             ActionBarView.Action(R.id.actionBrowseShare, R.drawable.ic_share, R.string.share),
-            ActionBarView.Action(R.id.actionBrowseArchive, R.drawable.ic_cloud_upload, R.string.archive_files),
+            ActionBarView.Action(R.id.actionBrowseArchive, R.drawable.ic_archive, R.string.archive_files),
         )
 
         val SCROLL_TOP_ACTIONS = listOf(
-            ActionBarView.Action(R.id.actionBrowseScrollToTop, R.drawable.ic_arrow_upward, R.string.scroll_to_top),
+            ActionBarView.Action(
+                R.id.actionBrowseScrollToTop,
+                R.drawable.ic_vertical_align_top,
+                R.string.scroll_to_top,
+            ),
             ActionBarView.Action(R.id.actionBrowsePageUp, R.drawable.ic_double_arrow_up, R.string.scroll_page_up),
         )
 
@@ -416,7 +420,7 @@ class BrowseButtonSetupHelper(
             ),
             ActionBarView.Action(
                 R.id.actionBrowseScrollToBottom,
-                R.drawable.ic_arrow_downward,
+                R.drawable.ic_vertical_align_bottom,
                 R.string.scroll_to_bottom,
             ),
         )

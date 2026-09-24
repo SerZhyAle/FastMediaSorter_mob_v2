@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.link.cookie
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
@@ -10,6 +11,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
 import java.net.HttpCookie
+import java.security.GeneralSecurityException
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,11 +28,26 @@ class EncryptedCookieStore @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
 
-    private val prefs by lazy {
+    private val prefs: SharedPreferences by lazy {
+        try {
+            openPrefs()
+        } catch (error: GeneralSecurityException) {
+            // The Tink keyset stored inside the file no longer decrypts under the Keystore master key
+            // (Keystore reset, device transfer), and a lazy that throws re-throws on every access.
+            // Cookies are re-obtainable by signing in again, so the unreadable file is reset once.
+            // A plain clear() rather than deleteSharedPreferences: the legacy flavor runs on API 23.
+            Timber.w(error, "EncryptedCookieStore: unreadable keyset, resetting %s", FILE_NAME)
+            Timber.d("S3472: cookie store keyset unreadable, file reset and reopened")
+            context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE).edit().clear().commit()
+            openPrefs()
+        }
+    }
+
+    private fun openPrefs(): SharedPreferences {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
-        EncryptedSharedPreferences.create(
+        return EncryptedSharedPreferences.create(
             context,
             FILE_NAME,
             masterKey,

@@ -268,7 +268,7 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
             Option(
                 id = source.id,
                 label = source.title,
-                leading = tile?.let { LeadingVisual.Thumbnail(it) } ?: LeadingVisual.IconRes(R.drawable.ic_cast),
+                leading = tile?.let { LeadingVisual.Thumbnail(it) } ?: LeadingVisual.IconRes(R.drawable.ic_stream),
             )
         }
 

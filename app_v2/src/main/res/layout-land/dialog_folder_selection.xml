@@ -344,7 +344,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="@string/browse_with_system_picker"
-            app:icon="@drawable/ic_search" />
+            app:icon="@drawable/ic_folder" />
 
         </LinearLayout>
 

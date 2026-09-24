@@ -38,7 +38,7 @@
                 android:layout_width="@dimen/control_button_size"
                 android:layout_height="@dimen/control_button_size"
                 android:layout_marginStart="@dimen/dialog_field_spacing"
-                android:contentDescription="@string/clear_all"
+                android:contentDescription="@string/streams_filter_clear"
                 app:icon="@drawable/ic_filter_clear"
                 app:iconSize="@dimen/icon_tier_32"
                 app:iconTint="?attr/colorOnSurfaceVariant" />

@@ -46,7 +46,7 @@
                     android:clickable="true"
                     android:contentDescription=""
                     android:focusable="true"
-                    android:src="@drawable/ic_help_outline_24"
+                    android:src="@drawable/ic_help_outline"
                     app:tint="@color/text_color_secondary"
                     android:visibility="gone" />
 
@@ -92,7 +92,7 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:endIconContentDescription="@string/select"
+        app:endIconContentDescription="@string/cd_choose_from_list"
         app:endIconDrawable="@drawable/ic_arrow_drop_down"
         app:endIconMode="custom">
 

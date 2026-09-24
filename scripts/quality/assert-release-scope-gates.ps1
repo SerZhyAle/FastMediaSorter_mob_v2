@@ -1,4 +1,4 @@
-﻿#requires -Version 7.0
+#requires -Version 7.0
 <#
 .SYNOPSIS
     S1939: run the RELEASE-SCOPE quality gates in ONE process over the whole tree.
@@ -50,6 +50,12 @@
       - assert-lock-path-coverage      (S3456 every tracked path matches a lock path rule)
       - assert-wear-store-boundary     (S3178 both Wear merged manifests vs the store boundary policy)
       - assert-install-trust           (S3451 trust page sections, APK hand-out links, never-does facts)
+      - assert-docs-coverage           (S3422 every active feature is mapped to a documentation page)
+      - assert-page-style              (S3453 page UA label, theme pre-paint, reference kit or its exception)
+      - assert-page-content            (S3452 no emoji in markup or scripts, header link to #get, above-the-fold order)
+      - assert-site-family-map         (S3454 footer grid vs its one source vs the catalog map, one contact)
+      - assert-site-languages-current  (S1211 _data/languages.yml vs a fresh render of locales_config.xml)
+      - assert-positioning-consistency (S2271 site, READMEs, showcase, replaces and listings name the eight pillars in order)
 
     Where every gate belongs, and who decided it: scripts/quality/gate-placement.jsonl (S2870).
     That registry replaced the two paragraphs that used to stand here naming the gate deliberately
@@ -338,6 +344,46 @@ $gates = [ordered]@{
     # per-ticket trigger can name in advance, so only a whole-tree walk finds it. Left out of
     # $gateInputGroups on purpose: it reads the root-level site pages, which no group covers.
     'assert-install-trust.ps1'         = @()
+    # S3422. Every active feature in docs/ALL_FEATURES*.jsonl against docs/coverage-manifest.jsonl,
+    # the documentation programme's map of which help page explains it (S2945). Release scope on all
+    # four Rule 33 criteria: a missing map row reaches no reader, because the manifest plans pages
+    # and publishes none; its subject is two ledgers with different authors - every feature ticket
+    # writes the first, the documentation programme the second - so a per-ticket run would refuse a
+    # feature closure over a row its author does not own; each finding names its own feature id; and
+    # mapping a batch of features costs one edit whenever it is done. -SummaryOnly drops the
+    # per-ticket and per-area tallies, which are progress figures rather than findings.
+    'assert-docs-coverage.ps1'         = @('-SummaryOnly')
+    # S3453. Contract PAGE-STYLE on the six product pages: the RU / EN / UA switcher, the sza-theme
+    # pre-paint before the first stylesheet, and the reference kit byte-identical or its dated
+    # exception open in the catalog registry. Release scope because a finding reaches a user only
+    # when the site is published, and the exception half expires on a date no changed file names.
+    # Left out of $gateInputGroups on purpose: it reads the root-level site pages and the catalog.
+    'assert-page-style.ps1'            = @('-Quiet')
+    # S3452. Contract PAGE-CONTENT on the same six pages: no pictographic code point in markup or
+    # inline scripts, escaped forms included, and the order site-header, H1 with tagline and lead,
+    # #get, site-footer. Release scope for the same reason as its neighbour. Left out of
+    # $gateInputGroups on purpose: it reads the root-level site pages.
+    'assert-page-content.ps1'          = @('-Quiet')
+    # S3454. Contract SITE-FAMILY-MAP: every page footer block equals its render from
+    # scripts/site/family-footer.json, that source equals the catalog map's section 2, and one contact.
+    # Release scope: a finding reaches a visitor only when the site is published, and the map half
+    # changes on the hub's clock, which no changed file here names. Left out of $gateInputGroups on
+    # purpose: it reads the root-level site pages and the catalog.
+    'assert-site-family-map.ps1'       = @('-Quiet')
+    # S1211. _data/languages.yml against a fresh render from locales_config.xml. Release scope: its
+    # subject is the site's whole language composition, and a stale list reaches a reader only when
+    # the site is published.
+    'assert-site-languages-current.ps1' = @('-Quiet')
+    # S2271. Every positioning surface names the eight pillars of docs/POSITIONING*.md in canonical
+    # order. Release scope: its subject is the agreement between surfaces owned by different tickets,
+    # and a drifted surface reaches a reader only when the site or a listing is published. Left out of
+    # $gateInputGroups on purpose: it reads root-level pages and the store listing trees.
+    'assert-positioning-consistency.ps1' = @('-Quiet')
+    # S2972. Every external link of the documentation corpus still answers (404/410 or an
+    # unresolvable host fails). Release scope: its subject is the outside internet, which changes on
+    # no ticket's clock, and a dead link reaches a reader only when the site is published. Left out
+    # of $gateInputGroups on purpose: its verdict moves without any file here changing.
+    'assert-docs-external-links.ps1'   = @('-Quiet')
 }
 
 # S3010. Which fingerprint input groups each gate reads, for -OnlyGroups. Deliberately PARTIAL: a
@@ -352,6 +398,7 @@ $gateInputGroups = @{
     'assert-splash-brand-sync.ps1'                = @('phone-src')
     'assert-icon-inventory-sync.ps1'              = @('docs', 'phone-src')
     'assert-doc-icons-sync.ps1'                   = @('docs')
+    'assert-docs-coverage.ps1'                    = @('docs')
     'assert-archive-artefacts.ps1'                = @('specs-archive')
     'assert-source-gates.ps1'                     = @('phone-src', 'wear-src')
     'assert-document-registry-coverage.ps1'       = @('docs', 'scripts')

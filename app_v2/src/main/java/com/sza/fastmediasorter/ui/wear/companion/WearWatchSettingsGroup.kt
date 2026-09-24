@@ -104,7 +104,7 @@ private fun coercePanelAutoHide(seconds: Int): Int =
     PANEL_AUTO_HIDE_INTERVALS.minByOrNull { kotlin.math.abs(it - seconds) }
         ?: PANEL_AUTO_HIDE_INTERVALS.first()
 
-// S2094: matches the View-side canonical row's ic_help_outline_24 - a touch target close to
+// S2094: matches the View-side canonical row's ic_help_outline - a touch target close to
 // the default IconButton size with a slightly smaller glyph, per docs/ARCHITECTURE.md Pattern A.
 private val SETTINGS_HELP_ICON_SIZE = 24.dp
 private val SETTINGS_HELP_ICON_GLYPH_SIZE = 18.dp
@@ -562,7 +562,7 @@ private fun StreamsSectionSwitch(state: WatchSettingsState, onChanged: () -> Uni
         label = stringResource(R.string.wear_setting_streams_section),
         description = stringResource(R.string.wear_setting_streams_section_desc),
         checked = state.streamsSectionEnabled,
-        iconRes = R.drawable.ic_cast
+        iconRes = R.drawable.ic_stream
     ) {
         state.streamsSectionEnabled = it
         onChanged()

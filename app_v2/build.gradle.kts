@@ -3,6 +3,10 @@ import java.io.FileInputStream
 import java.io.File
 import java.time.Duration
 import java.util.Properties
+import org.gradle.kotlin.dsl.support.serviceOf
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
@@ -1572,6 +1576,8 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "/META-INF/DEPENDENCIES"
+            // S3041: MINA SSHD's client file-system providers; the embedded server uses none of them.
+            excludes += "META-INF/services/java.nio.file.spi.FileSystemProvider"
             excludes += "/META-INF/LICENSE"
             excludes += "/META-INF/LICENSE.txt"
             excludes += "/META-INF/NOTICE"
@@ -2399,6 +2405,11 @@ dependencies {
     
     // Network - SFTP (JSch for Android - better KEX support than SSHJ)
     implementation(libs.jsch)
+
+    // S3041: embedded SFTP server. MINA SSHD keeps Bouncy Castle and EdDSA as optional POM
+    // dependencies, so neither arrives transitively and the BC drift assertion below stays untouched.
+    implementation(libs.apache.sshd.core)
+    implementation(libs.apache.sshd.sftp)
     
     // Network - FTP
     implementation(libs.commons.net)
@@ -2627,4 +2638,42 @@ configurations.matching {
 ksp {
     // Export Room schema JSON into a committed dir so future migrations are validatable (S0731).
     arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+// S3041: MINA SSHD's sshd-sftp registers org.apache.sshd.sftp.client.fs.SftpFileSystemProvider as a
+// java.nio.file service. With that registration on the unit-test runtime classpath Robolectric's native
+// SQLite never loads, and every Robolectric test fails with UnsatisfiedLinkError at
+// SQLiteConnectionNatives.nativeOpen (measured 2026-09-24: QuantityFormatterTest 9/9 red with the
+// registration present, 9/9 green with the same jar minus that one file). The embedded server needs none
+// of MINA's client file systems, so unit tests get sshd-sftp rebuilt without the service file; the APK
+// drops the same file in packaging.
+val sshdSftpOriginal: Configuration by configurations.creating {
+    isCanBeConsumed = false
+    isTransitive = false
+}
+
+dependencies {
+    sshdSftpOriginal(libs.apache.sshd.sftp)
+}
+
+val sshdArchiveOperations: ArchiveOperations = serviceOf<ArchiveOperations>()
+
+val sshdSftpWithoutNioProviders = tasks.register<Jar>("sshdSftpWithoutNioProviders") {
+    val archives = sshdArchiveOperations
+    from(sshdSftpOriginal.elements.map { jars -> jars.map { archives.zipTree(it.asFile) } }) {
+        exclude("META-INF/services/java.nio.file.spi.FileSystemProvider")
+    }
+    archiveFileName.set("sshd-sftp-no-nio-providers.jar")
+    destinationDirectory.set(layout.buildDirectory.dir("intermediates/sshd-no-nio-providers"))
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+configurations.matching { it.name.endsWith("UnitTestRuntimeClasspath") }.configureEach {
+    exclude(group = "org.apache.sshd", module = "sshd-sftp")
+}
+
+dependencies {
+    testRuntimeOnly(
+        files(sshdSftpWithoutNioProviders.flatMap { it.archiveFile }).builtBy(sshdSftpWithoutNioProviders),
+    )
 }

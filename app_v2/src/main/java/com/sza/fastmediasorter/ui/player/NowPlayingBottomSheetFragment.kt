@@ -170,11 +170,11 @@ class NowPlayingBottomSheetFragment : BaseAppBottomSheet() {
         if (state.albumArtUri != null) {
             Glide.with(this)
                 .load(state.albumArtUri)
-                .placeholder(R.drawable.ic_music_note)
-                .error(R.drawable.ic_music_note)
+                .placeholder(R.drawable.ic_audio)
+                .error(R.drawable.ic_audio)
                 .into(artwork)
         } else {
-            artwork.setImageResource(R.drawable.ic_music_note)
+            artwork.setImageResource(R.drawable.ic_audio)
         }
 
         btnPlayPause.setImageResource(

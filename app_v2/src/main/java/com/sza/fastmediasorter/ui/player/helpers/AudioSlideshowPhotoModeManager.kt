@@ -227,11 +227,13 @@ class AudioSlideshowPhotoModeManager(
                 }
             }
 
+            val previousPhoto = binding.imageView.drawable
             glideRequest
                 .priority(Priority.HIGH)
                 .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(0))
-                .placeholder(binding.imageView.drawable)
+                .placeholder(previousPhoto)
+                .error(previousPhoto ?: AudioArtworkPlaceholder.imageOnDarkSurface(activity))
                 .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
                     override fun onResourceReady(
                         resource: android.graphics.drawable.Drawable,
@@ -283,6 +285,8 @@ class AudioSlideshowPhotoModeManager(
                         isFirstResource: Boolean
                     ): Boolean {
                         Timber.e(e, "Failed to load audio slideshow photo")
+                        Timber.d("S3444: slideshow photo failed, previous photo or image glyph stays")
+                        if (previousPhoto == null) binding.imageView.scaleType = ImageView.ScaleType.FIT_CENTER
                         return false
                     }
                 })

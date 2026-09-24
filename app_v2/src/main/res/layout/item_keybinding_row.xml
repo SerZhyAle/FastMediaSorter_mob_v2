@@ -38,7 +38,7 @@
         android:layout_height="40dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/keybinding_row_remap"
-        android:src="@drawable/ic_edit_20"
+        android:src="@drawable/ic_edit"
         app:tint="?attr/colorPrimary"
         xmlns:app="http://schemas.android.com/apk/res-auto" />
 
@@ -48,7 +48,7 @@
         android:layout_height="40dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/keybinding_row_reset"
-        android:src="@drawable/ic_refresh"
+        android:src="@drawable/ic_restore_defaults"
         app:tint="?attr/colorOnSurface"
         xmlns:app="http://schemas.android.com/apk/res-auto" />
 

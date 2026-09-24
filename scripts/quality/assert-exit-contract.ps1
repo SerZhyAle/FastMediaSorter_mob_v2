@@ -73,11 +73,23 @@
     degradation path, so if one ever appears between runs this gate names it instead of
     quietly reporting a verdict about a smaller set than its summary line claims.
 
+    RULE D - a check names its verdict (S3423, contract CHECK-VERDICT rule 5). Every
+    `assert-*.ps1` under the scanned roots carries, outside comments, the literals
+    `<basename>: PASS` and `<basename>: FAIL`. A 2026-09-23 conformance sample found a gate
+    whose passing run ended on a count line with no verdict word, and two thin wrappers
+    whose only verdict line named the aggregator they forward to - a reader matching on the
+    script's own name found nothing. Measured 2026-09-24: 62 of 147 checks lacked it - one of
+    them, assert-fast-gates.ps1, composes its PASS word in a variable, which a lexical rule
+    cannot see; it stays listed rather than widening the match to any interpolation. They
+    are listed by path in scripts/quality/verdict-line-baseline.txt, which may only shrink:
+    a listed script that now complies, or no longer exists, fails the gate until its line
+    is removed. A -Path fixture probe gates with an empty list.
+
     Exit codes:
-      0 - no unreachable exit site, no silent script, Rule C at or below baseline
-          (or report mode).
-      1 - substantive failure: an unreachable exit site, a silent script, or Rule C
-          above its baseline.
+      0 - no unreachable exit site, no silent script, Rule C at or below baseline,
+          no unlisted or stale Rule D entry (or report mode).
+      1 - substantive failure: an unreachable exit site, a silent script, Rule C
+          above its baseline, or a Rule D check with no verdict line / a stale listing.
       2 - the gate itself cannot run (scan root missing). Distinct from 1 on purpose -
           this gate must not commit the very sin it audits.
 
@@ -150,6 +162,17 @@ $lookahead = 3
 # blank line between the message and the exit).
 $reasonLookback = 4
 $reasonBaselineFile = Join-Path $PSScriptRoot 'exit-reason-baseline.txt'
+
+# Rule D: the scripts that predate the rule, by repo-relative path. A -Path fixture probe gates with an
+# empty residue so it can assert the refusal; it cannot know which of the repo's residue it is looking at.
+$verdictBaselineFile = Join-Path $PSScriptRoot 'verdict-line-baseline.txt'
+$verdictResidue = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+if (-not $Path -and (Test-Path -LiteralPath $verdictBaselineFile)) {
+    foreach ($l in (Get-Content -LiteralPath $verdictBaselineFile)) {
+        $t = $l.Trim()
+        if ($t -and -not $t.StartsWith('#')) { [void]$verdictResidue.Add($t) }
+    }
+}
 
 # --- Condition 1, S1547: the terminating mode can be inherited ---------------------------------
 # One predicate for both uses - the scanned file and any library it sources - so the two can never
@@ -317,9 +340,25 @@ $findings = @()
 $silent = @()
 $reasonless = @()
 $parseFallback = @()
+$noVerdict = @()
+$verdictScanned = @()
 foreach ($f in $files) {
     $lines = Get-Content -LiteralPath $f.FullName -ErrorAction SilentlyContinue
     if (-not $lines) { continue }
+
+    # Rule D (S3423, CHECK-VERDICT rule 5): an assert-*.ps1 names itself on its verdict line, with a
+    # closed-set word on both outcomes. Lexical is enough - the subject is the file's own name, known
+    # statically. Comments are stripped first, so a header's .EXAMPLE output cannot stand in for code.
+    if ($f.Name -like 'assert-*.ps1') {
+        $rel = $f.FullName.Replace($repoRoot + [IO.Path]::DirectorySeparatorChar, '') -replace '\\', '/'
+        $verdictScanned += $rel
+        $code = ((($lines -join "`n") -replace '(?s)<#.*?#>', '') -split "`n" |
+            Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
+        $subject = [regex]::Escape($f.BaseName)
+        if (-not (($code -match "$($subject):\s*PASS") -and ($code -match "$($subject):\s*FAIL"))) {
+            $noVerdict += $rel
+        }
+    }
 
     # Rule C: an `exit N` (N non-zero) with no message printed just before it. Unlike rules A
     # and B this one does not depend on $ErrorActionPreference, so it runs over every file.
@@ -467,13 +506,34 @@ if (-not $Quiet -and $reasonless.Count -gt 0) {
     Write-Host '  Fix: print why before exiting - Write-Error "<what failed and what fixes it>" -ErrorAction Continue.' -ForegroundColor Yellow
 }
 
-Write-Host ("assert-exit-contract: expected: 0 | actual: {0} unreachable exit site(s), {1} silent script(s), {2} reasonless exit(s) (baseline {3})" -f $findings.Count, $silent.Count, $reasonless.Count, $reasonBaseline)
+# Rule D ratchets on NAMES, not a count: a count lets one fix pay for one new offender unseen. A listed
+# script that now complies - or no longer exists - is stale and must leave the list, so the list shrinks.
+$newNoVerdict = @($noVerdict | Where-Object { -not $verdictResidue.Contains($_) })
+$staleVerdict = @($verdictResidue | Where-Object { $noVerdict -notcontains $_ } | Sort-Object)
+if (-not $Quiet) {
+    foreach ($v in $newNoVerdict) {
+        Write-Host ("  {0}  prints no '<name>: PASS' and '<name>: FAIL' verdict line" -f $v) -ForegroundColor Red
+    }
+    if ($newNoVerdict.Count -gt 0) {
+        Write-Host ''
+        Write-Host ("  Fix: end every judging path with Write-Host '<script name>: PASS' or '<script name>: FAIL' (CHECK-VERDICT rule 5); 'CANNOT VERIFY' for exit 2.") -ForegroundColor Yellow
+    }
+    foreach ($v in $staleVerdict) {
+        Write-Host ("  {0}  is listed in verdict-line-baseline.txt but now complies or is gone" -f $v) -ForegroundColor Red
+    }
+    if ($staleVerdict.Count -gt 0) {
+        Write-Host ''
+        Write-Host '  Fix: delete those lines from scripts/quality/verdict-line-baseline.txt - the residue may only shrink.' -ForegroundColor Yellow
+    }
+}
 
-if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline)) {
-    Write-Host 'assert-exit-contract: FAIL - a script cannot deliver the exit code it means to send, or exits without saying why.' -ForegroundColor Red
+Write-Host ("assert-exit-contract: expected: 0 | actual: {0} unreachable exit site(s), {1} silent script(s), {2} reasonless exit(s) (baseline {3}), {4} verdict-less check(s) of {5} (residue {6}, stale {7})" -f $findings.Count, $silent.Count, $reasonless.Count, $reasonBaseline, $newNoVerdict.Count, $verdictScanned.Count, $verdictResidue.Count, $staleVerdict.Count)
+
+if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0)) {
+    Write-Host 'assert-exit-contract: FAIL - a script cannot deliver the exit code it means to send, exits without saying why, or names no verdict.' -ForegroundColor Red
     exit 1
 }
-if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0) {
-    Write-Host 'assert-exit-contract: PASS - every exit code is reachable and every scanned script sets one.' -ForegroundColor Green
+if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0) {
+    Write-Host 'assert-exit-contract: PASS - every exit code is reachable, every scanned script sets one, and every check names its verdict.' -ForegroundColor Green
 }
 exit 0

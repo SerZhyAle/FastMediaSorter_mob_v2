@@ -4,12 +4,11 @@
     copy. It needs its own file: without one, API 33+ would resolve the main v33 icon and this build
     would silently lose the skull badge its v26 icon carries.
 
-    The monochrome layer itself is the shared silhouette, badge included only in the coloured foreground.
-    A badged monochrome asset does not exist and drawing one is out of this ticket's scope by its own
-    section 0 - noted as a limitation rather than invented.
+    S3431: the monochrome layer carries the skull badge too, so a themed icon on Android 13+ keeps the
+    mark that tells this build apart.
 -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@mipmap/ic_launcher_adaptive_back" />
     <foreground android:drawable="@drawable/ic_launcher_nolegal_fore" />
-    <monochrome android:drawable="@drawable/ic_launcher_monochrome" />
+    <monochrome android:drawable="@drawable/ic_launcher_nolegal_monochrome" />
 </adaptive-icon>

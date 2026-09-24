@@ -52,7 +52,8 @@
         },
         {
           "label": "@string/settings_tab_general",
-          "note": "Tab strip carries no id - see _comment."
+          "note": "Tab strip carries no id - see _comment.",
+          "action": "select-tab"
         },
         {
           "resourceId": "headerAuthorization",
@@ -78,7 +79,8 @@
           "from": "main"
         },
         {
-          "label": "@string/settings_tab_media"
+          "label": "@string/settings_tab_media",
+          "action": "select-tab"
         },
         {
           "resourceId": "headerStreams",
@@ -126,7 +128,8 @@
           "from": "main"
         },
         {
-          "label": "@string/settings_tab_general"
+          "label": "@string/settings_tab_general",
+          "action": "select-tab"
         },
         {
           "resourceId": "headerAuthorization",

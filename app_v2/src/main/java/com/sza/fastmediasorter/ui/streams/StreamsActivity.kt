@@ -1434,7 +1434,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             filter.country != null ||
             filter.mediaKind != StreamsViewModel.MediaKindFilter.ALL ||
             filter.pinnedOnly
-        binding.btnFilter.setImageResource(if (active) R.drawable.ic_tune_active else R.drawable.ic_tune)
+        Timber.d("S3429: streams filter button draws the funnel, active=%s", active)
+        binding.btnFilter.setImageResource(if (active) R.drawable.ic_filter_active else R.drawable.ic_filter)
         binding.btnFilter.contentDescription =
             getString(if (active) R.string.streams_filter_active else R.string.streams_filter)
     }

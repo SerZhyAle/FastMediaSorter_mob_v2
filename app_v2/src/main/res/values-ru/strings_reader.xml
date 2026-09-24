@@ -51,7 +51,7 @@
     <string name="epub_reader_font_size">Размер шрифта</string>
     <string name="epub_reader_line_height">Межстрочный интервал</string>
     <string name="epub_reader_margin">Горизонтальный отступ</string>
-    <string name="epub_reader_settings">Настройки чтения</string>
+    <string name="epub_reader_settings">Настройки книги</string>
     <string name="epub_reader_theme">Тема</string>
     <string name="epub_search_all_chapters">Поиск по всем главам</string>
     <string name="epub_search_hint">Поиск текста..</string>
@@ -62,11 +62,11 @@
     <string name="epub_text_empty_tts">Текст в главе не найден</string>
     <string name="text_content_hint">Текстовое содержимое</string>
     <string name="text_editing_large_file">Редактирование недоступно для файлов с несколькими страницами</string>
-    <string name="text_editor_action_cancel">Отменить</string>
+    <string name="text_editor_action_cancel">Отмена</string>
     <string name="text_editor_action_save">Сохранить</string>
     <string name="text_editor_action_save_close">Сохранить и закрыть</string>
-    <string name="text_editor_action_save_send">Сохранить и отправить</string>
-    <string name="text_editor_action_send_keep">В Keep</string>
+    <string name="text_editor_action_save_send">Сохранить и отправить в..</string>
+    <string name="text_editor_action_send_keep">Создать заметку в Keep</string>
     <string name="text_editor_keep_unavailable">Google Keep не установлен.</string>
     <string name="text_file_display_error">Не получилось показать этот текстовый файл. Попробуйте ещё раз.</string>
     <string name="text_file_load_failed">Не получилось открыть этот текстовый файл. Попробуйте ещё раз.</string>

@@ -399,7 +399,7 @@ class StreamGridAdapter(
         private fun bindPlayStatus(outcome: String?) {
             val (iconRes, colorRes, descRes) = when (outcome) {
                 RecordStreamPlayOutcomeUseCase.OUTCOME_OK ->
-                    Triple(R.drawable.ic_stream_status_ok, R.color.stream_status_ok, R.string.stream_status_ok)
+                    Triple(R.drawable.ic_check_circle, R.color.stream_status_ok, R.string.stream_status_ok)
                 RecordStreamPlayOutcomeUseCase.OUTCOME_FAIL ->
                     Triple(
                         R.drawable.ic_stream_status_failed,

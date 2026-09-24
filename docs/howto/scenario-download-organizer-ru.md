@@ -7,7 +7,7 @@ permalink: /docs/howto/scenario-download-organizer-ru.html
 
 > **Уровень:** Начинающий &bull; **Версия:** Любая (Standard, Lite, Photos, Legacy, VR, noLegal)
 
-[English](scenario-download-organizer.md) | [Українська](scenario-download-organizer-uk.md)
+{% include lang-switcher.html doc="scenario-download-organizer" dir="/docs/howto/" current="ru" %}
 
 **Quick Sort** - главная «фишка» FastMediaSorter: настройте папки назначения один раз, а затем сортируйте сотни файлов, просто нажимая номер. Никакого перетаскивания. Никаких меню. Просто нажали **1**, **2** или **3** - файл ушёл в нужное место.
 
@@ -26,7 +26,7 @@ permalink: /docs/howto/scenario-download-organizer-ru.html
 ## Шаг 1 - Добавьте папку Загрузки
 
 1. Откройте приложение
-2. Нажмите **Добавить (⊕)** на панели инструментов
+2. Нажмите **Добавить <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** на панели инструментов
 3. Выберите **"Локальная папка"**
 4. Найдите папку **Загрузки** - обычно она сразу видна с именем `Download` или `Загрузки`
    - Если не видно: попробуйте путь `/sdcard/Download`
@@ -52,7 +52,7 @@ permalink: /docs/howto/scenario-download-organizer-ru.html
 
 **Папки можно создать прямо в FastMediaSorter:**
 1. Откройте ресурс Загрузки
-2. Нажмите кнопку **меню (⋮)** → **Создать папку**
+2. Нажмите кнопку **меню <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **Создать папку**
 3. Введите название → нажмите **ОК**
 
 Или создайте папки в обычном файловом менеджере телефона - они появятся в FastMediaSorter автоматически.

@@ -38,6 +38,7 @@ function Parse-Frontmatter([string]$rawText) {
     $inIngredients = $false
     $inNext = $false
     $inSnippets = $false
+    $inTips = $false
 
     $lines = $yamlBlock -split "\r?\n"
     for ($i = 0; $i -lt $lines.Length; $i++) {
@@ -54,6 +55,7 @@ function Parse-Frontmatter([string]$rawText) {
             $inIngredients = ($key -eq 'ingredients')
             $inNext = ($key -eq 'next_recipes')
             $inSnippets = ($key -eq 'snippets')
+            $inTips = ($key -eq 'tips')
 
             if ($inSteps) {
                 $meta['steps'] = [System.Collections.Generic.List[object]]::new()
@@ -63,6 +65,15 @@ function Parse-Frontmatter([string]$rawText) {
                 $meta['next_recipes'] = [System.Collections.Generic.List[object]]::new()
             } elseif ($inSnippets) {
                 $meta['snippets'] = [System.Collections.Generic.List[object]]::new()
+            } elseif ($inTips) {
+                $meta['tips'] = [System.Collections.Generic.List[string]]::new()
+            } elseif ($val -eq '|') {
+                $multiTop = [System.Text.StringBuilder]::new()
+                while ($i + 1 -lt $lines.Length -and ($lines[$i + 1].StartsWith('  ') -or [string]::IsNullOrWhiteSpace($lines[$i + 1]))) {
+                    $i++
+                    $multiTop.AppendLine($lines[$i].TrimStart()) | Out-Null
+                }
+                $meta[$key] = $multiTop.ToString().Trim()
             } else {
                 # Clean quotes
                 if ($val.StartsWith('"') -and $val.EndsWith('"') -and $val.Length -ge 2) {
@@ -80,6 +91,15 @@ function Parse-Frontmatter([string]$rawText) {
                 $item = $item.Substring(1, $item.Length - 2)
             }
             $meta['ingredients'].Add($item)
+            continue
+        }
+
+        if ($inTips -and $line -match '^\s*-\s+(.*)$') {
+            $tip = $Matches[1].Trim()
+            if ($tip.StartsWith('"') -and $tip.EndsWith('"') -and $tip.Length -ge 2) {
+                $tip = $tip.Substring(1, $tip.Length - 2)
+            }
+            $meta['tips'].Add($tip)
             continue
         }
 
@@ -164,12 +184,187 @@ function Format-MarkdownInline([string]$text) {
     $text = [regex]::Replace($text, '\*\*([^*]+)\*\*', '<strong>$1</strong>')
     # code `code`
     $text = [regex]::Replace($text, '`([^`]+)`', '<code>$1</code>')
+    # links [text](page:<page_id>) | [text](term:<term_id>) | [text](https://..)
+    $text = [regex]::Replace($text, '\[([^\]]+)\]\(([^)\s]+)\)', {
+            param($lm)
+            Resolve-MarkdownLink $lm.Groups[1].Value $lm.Groups[2].Value
+        })
     return $text
 }
 
-function Render-RecipeHtml([hashtable]$doc) {
+# Links name a page by its permanent page_id, never by file path, so a page can move without
+# breaking its readers; a page that is not written yet renders as a bookmark (S2945 linking rules).
+function Resolve-MarkdownLink([string]$label, [string]$target) {
+    if ($target.StartsWith('page:')) {
+        $pageId = $target.Substring(5)
+        if (-not $script:ManifestPages.ContainsKey($pageId)) {
+            throw "Link to unknown page_id '$pageId' in $($script:CurrentOutRel)"
+        }
+        if ($script:PageTargets.ContainsKey($pageId)) {
+            $href = Get-RelativeHref $script:CurrentOutRel $script:PageTargets[$pageId]
+            return "<a href=`"$href`" class=`"doc-link`">$label</a>"
+        }
+        $owner = $script:ManifestPages[$pageId].ticket
+        return "<span class=`"doc-bookmark`" data-page-id=`"$pageId`" title=`"Covered in $owner`">$label</span>"
+    }
+    if ($target.StartsWith('term:')) {
+        $termId = $target.Substring(5)
+        if (-not $script:TermIds.Contains($termId)) {
+            throw "Link to unknown termbase id '$termId' in $($script:CurrentOutRel)"
+        }
+        return "<span class=`"doc-link-term`" data-term=`"$termId`">$label</span>"
+    }
+    if ($target -match '^https?://') {
+        return "<a href=`"$target`" target=`"_blank`" rel=`"noopener`" class=`"doc-link-external`">$label</a>"
+    }
+    return "<a href=`"$target`" class=`"doc-link`">$label</a>"
+}
+
+function Get-RelativeHref([string]$fromRel, [string]$toRel) {
+    $fromDir = Split-Path $fromRel -Parent
+    if ([string]::IsNullOrEmpty($fromDir)) { return $toRel }
+    return [System.IO.Path]::GetRelativePath($fromDir, $toRel).Replace('\', '/')
+}
+
+function Get-CorpusNavHtml([string]$outRel, [string]$p) {
+    if ($script:CorpusPages.Count -eq 0) { return "" }
+    $nav = [System.Text.StringBuilder]::new()
+    $groups = $script:CorpusPages | Sort-Object Category, Order, Title | Group-Object Category
+    foreach ($group in $groups) {
+        $nav.Append("`n                <div class=`"doc-sidebar-section`">`n                    <div class=`"doc-sidebar-title`">$($group.Name)</div>`n                    <ul class=`"doc-sidebar-list`">") | Out-Null
+        foreach ($page in $group.Group) {
+            $active = if ($page.OutRel -eq $outRel) { ' active' } else { '' }
+            $nav.Append("`n                        <li><a href=`"$p$($page.OutRel)`" class=`"doc-sidebar-link$active`">$($page.Title)</a></li>") | Out-Null
+        }
+        $nav.Append("`n                    </ul>`n                </div>") | Out-Null
+    }
+    return $nav.ToString()
+}
+
+function Format-MarkdownBlock([string]$text) {
+    if ([string]::IsNullOrWhiteSpace($text)) { return "" }
+    $blocks = [regex]::Split($text.Trim(), '\r?\n\s*\r?\n')
+    $out = [System.Collections.Generic.List[string]]::new()
+    foreach ($block in $blocks) {
+        $blockLines = @($block -split '\r?\n' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $bullets = @($blockLines | Where-Object { $_ -match '^\s*[-*]\s+' })
+        $numbered = @($blockLines | Where-Object { $_ -match '^\s*\d+\.\s+' })
+        if ($bullets.Count -eq $blockLines.Count) {
+            $items = $blockLines | ForEach-Object { "<li>" + (Format-MarkdownInline ($_ -replace '^\s*[-*]\s+', '')) + "</li>" }
+            $out.Add("<ul>" + ($items -join '') + "</ul>")
+        } elseif ($numbered.Count -eq $blockLines.Count) {
+            $items = $blockLines | ForEach-Object { "<li>" + (Format-MarkdownInline ($_ -replace '^\s*\d+\.\s+', '')) + "</li>" }
+            $out.Add("<ol>" + ($items -join '') + "</ol>")
+        } else {
+            $out.Add("<p>" + (Format-MarkdownInline ($blockLines -join ' ')) + "</p>")
+        }
+    }
+    return ($out -join "`n                        ")
+}
+
+function ConvertTo-PlainText([string]$markdown) {
+    if ([string]::IsNullOrWhiteSpace($markdown)) { return '' }
+    $plain = [regex]::Replace($markdown, '\[([^\]]+)\]\([^)]*\)', '$1')
+    $plain = $plain -replace '\*\*|__|`', ''
+    return ($plain -replace '\s+', ' ').Trim()
+}
+
+function ConvertTo-HtmlAttribute([string]$text) {
+    return [System.Net.WebUtility]::HtmlEncode(([string]$text))
+}
+
+# S2972: the canon sitemap generator reads a page's address only from a `permalink:` line in its
+# first 12 lines, and a static HTML file has nowhere else to declare one. `layout: null` keeps
+# Jekyll from wrapping the page in a theme layout once it sees front matter.
+function Get-PageFrontMatter([string]$outRel) {
+    if (-not $outRel.Contains('/')) { return '' }
+    return "---`npermalink: /documentation/$outRel`nlayout: null`n---`n"
+}
+
+function Get-SeoHeadHtml([hashtable]$m, [string]$outRel) {
+    $pageUrl = "$script:SiteBase/documentation/$outRel"
+    $title = [string]$m['title']
+    $desc = [string]$m['description']
+    $ogImage = $script:DefaultOgImage
+    $twitterCard = 'summary'
+    foreach ($st in @($m['steps'])) {
+        if ($st -and $st['image'] -and $st['image']['src']) {
+            $ogImage = "$script:SiteBase/documentation/$($st['image']['src'])"
+            $twitterCard = 'summary_large_image'
+            break
+        }
+    }
+
+    $crumbs = [System.Collections.Generic.List[object]]::new()
+    $crumbs.Add([ordered]@{ '@type' = 'ListItem'; position = 1; name = 'Home'; item = "$script:SiteBase/" })
+    $crumbs.Add([ordered]@{ '@type' = 'ListItem'; position = 2; name = 'Documentation'; item = "$script:SiteBase/documentation/" })
+    $crumbs.Add([ordered]@{ '@type' = 'ListItem'; position = 3; name = $title; item = $pageUrl })
+    $graph = [System.Collections.Generic.List[object]]::new()
+    $graph.Add([ordered]@{ '@type' = 'BreadcrumbList'; itemListElement = $crumbs.ToArray() })
+
+    $steps = @($m['steps'] | Where-Object { $_ })
+    if ($steps.Count -gt 0) {
+        $howToSteps = foreach ($st in $steps) {
+            $sid = if ($st['id']) { $st['id'] } else { "step-$($st['number'])" }
+            [ordered]@{
+                '@type'  = 'HowToStep'
+                position = [int]$st['number']
+                name     = [string]$st['title']
+                text     = (ConvertTo-PlainText $st['text'])
+                url      = "$pageUrl#$sid"
+            }
+        }
+        $graph.Add([ordered]@{
+                '@type'     = 'HowTo'
+                name        = $title
+                description = $desc
+                inLanguage  = 'en'
+                image       = $ogImage
+                step        = @($howToSteps)
+            })
+    } else {
+        $graph.Add([ordered]@{
+                '@type'     = 'TechArticle'
+                headline    = $title
+                description = $desc
+                inLanguage  = 'en'
+                url         = $pageUrl
+            })
+    }
+    $ld = [ordered]@{ '@context' = 'https://schema.org'; '@graph' = $graph.ToArray() }
+    $ldJson = ConvertTo-Json $ld -Depth 10 -EscapeHandling EscapeHtml
+
+    $t = ConvertTo-HtmlAttribute "$title - Fast Media Sorter"
+    $d = ConvertTo-HtmlAttribute $desc
+    return @"
+    <link rel="canonical" href="$pageUrl">
+    <link rel="alternate" hreflang="en" href="$pageUrl">
+    <link rel="alternate" hreflang="x-default" href="$pageUrl">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="$pageUrl">
+    <meta property="og:title" content="$t">
+    <meta property="og:description" content="$d">
+    <meta property="og:image" content="$ogImage">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="$twitterCard">
+    <meta name="twitter:title" content="$t">
+    <meta name="twitter:description" content="$d">
+    <meta name="twitter:image" content="$ogImage">
+    <script type="application/ld+json">
+$ldJson
+    </script>
+"@
+}
+
+function Render-RecipeHtml([hashtable]$doc, [string]$outRel) {
     $m = $doc.Meta
-    $body = $doc.Body
+    $body = Format-MarkdownInline $doc.Body
+    $script:CurrentOutRel = $outRel
+    $p = '../' * ($outRel.Split('/').Count - 1)
+    $corpusNav = Get-CorpusNavHtml $outRel $p
+    $seoHead = Get-SeoHeadHtml $m $outRel
+    $frontMatter = Get-PageFrontMatter $outRel
 
     $title = $m['title']
     $desc = $m['description']
@@ -189,7 +384,7 @@ function Render-RecipeHtml([hashtable]$doc) {
 
     # Pre-HTML Chrome
     $sb.AppendLine(@"
-<!DOCTYPE html>
+$frontMatter<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -197,10 +392,11 @@ function Render-RecipeHtml([hashtable]$doc) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>$title - Fast Media Sorter</title>
     <meta name="description" content="$desc">
-    
-    <link rel="icon" type="image/x-icon" href="../favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+$seoHead
+
+    <link rel="icon" type="image/x-icon" href="${p}../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="${p}../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="${p}../favicon-16x16.png">
 
     <!-- Pre-paint theme resolver -->
     <script>
@@ -219,8 +415,8 @@ function Render-RecipeHtml([hashtable]$doc) {
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="../styles.css">
-    <link rel="stylesheet" href="assets/docs.css">
+    <link rel="stylesheet" href="${p}../styles.css">
+    <link rel="stylesheet" href="${p}assets/docs.css">
 </head>
 
 <body class="doc-body">
@@ -229,8 +425,8 @@ function Render-RecipeHtml([hashtable]$doc) {
     <header class="doc-header">
         <div class="doc-header-inner">
             <div style="display: flex; align-items: center; gap: 1rem;">
-                <a class="doc-header-brand" href="../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+                <a class="doc-header-brand" href="${p}../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="${p}index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
@@ -241,10 +437,10 @@ function Render-RecipeHtml([hashtable]$doc) {
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="sample-recipe.html" class="doc-header-link $(if ($m['canonical_url'] -eq 'documentation/sample-recipe.html') { 'active' })">Audio Recipe</a>
-                <a href="sample-settings-recipe.html" class="doc-header-link $(if ($m['canonical_url'] -eq 'documentation/sample-settings-recipe.html') { 'active' })">Settings Recipe</a>
-                <a href="sample-program-recipe.html" class="doc-header-link $(if ($m['canonical_url'] -eq 'documentation/sample-program-recipe.html') { 'active' })">Programs Recipe</a>
-                <a href="design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="${p}sample-recipe.html" class="doc-header-link $(if ($m['canonical_url'] -eq 'documentation/sample-recipe.html') { 'active' })">Audio Recipe</a>
+                <a href="${p}sample-settings-recipe.html" class="doc-header-link $(if ($m['canonical_url'] -eq 'documentation/sample-settings-recipe.html') { 'active' })">Settings Recipe</a>
+                <a href="${p}sample-program-recipe.html" class="doc-header-link $(if ($m['canonical_url'] -eq 'documentation/sample-program-recipe.html') { 'active' })">Programs Recipe</a>
+                <a href="${p}design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
                 <!-- 13-Language Selector -->
@@ -267,7 +463,7 @@ function Render-RecipeHtml([hashtable]$doc) {
                     </div>
                 </div>
 
-                <a href="../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <a href="${p}../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="${p}../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
                 <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
             </nav>
         </div>
@@ -277,9 +473,9 @@ function Render-RecipeHtml([hashtable]$doc) {
 
         <!-- Breadcrumbs -->
         <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
-            <a href="../index.html">Home</a>
+            <a href="${p}../index.html">Home</a>
             <span class="doc-breadcrumb-separator">/</span>
-            <a href="index.html">Documentation</a>
+            <a href="${p}index.html">Documentation</a>
             <span class="doc-breadcrumb-separator">/</span>
             <span>$category</span>
             <span class="doc-breadcrumb-separator">/</span>
@@ -293,21 +489,21 @@ function Render-RecipeHtml([hashtable]$doc) {
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Getting Started</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="index.html" class="doc-sidebar-link">Docs Home</a></li>
-                        <li><a href="sample-recipe.html" class="doc-sidebar-link $(if ($m['canonical_url'] -eq 'documentation/sample-recipe.html') { 'active' })">Audio Recipe</a></li>
-                        <li><a href="sample-settings-recipe.html" class="doc-sidebar-link $(if ($m['canonical_url'] -eq 'documentation/sample-settings-recipe.html') { 'active' })">Settings Recipe</a></li>
-                        <li><a href="sample-program-recipe.html" class="doc-sidebar-link $(if ($m['canonical_url'] -eq 'documentation/sample-program-recipe.html') { 'active' })">Programs Recipe</a></li>
-                        <li><a href="design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                        <li><a href="${p}index.html" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="${p}sample-recipe.html" class="doc-sidebar-link $(if ($m['canonical_url'] -eq 'documentation/sample-recipe.html') { 'active' })">Audio Recipe</a></li>
+                        <li><a href="${p}sample-settings-recipe.html" class="doc-sidebar-link $(if ($m['canonical_url'] -eq 'documentation/sample-settings-recipe.html') { 'active' })">Settings Recipe</a></li>
+                        <li><a href="${p}sample-program-recipe.html" class="doc-sidebar-link $(if ($m['canonical_url'] -eq 'documentation/sample-program-recipe.html') { 'active' })">Programs Recipe</a></li>
+                        <li><a href="${p}design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Media Categories</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
-                        <li><a href="index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
-                        <li><a href="index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                        <li><a href="${p}sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="${p}index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="${p}index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
                     </ul>
-                </div>
+                </div>$corpusNav
             </aside>
 
             <!-- Main Recipe Content -->
@@ -325,6 +521,15 @@ function Render-RecipeHtml([hashtable]$doc) {
                     $body
                 </p>
 "@) | Out-Null
+
+    if ($m['why']) {
+        $whyHtml = Format-MarkdownBlock $m['why']
+        $sb.AppendLine(@"
+
+                <h2 id="why">Why You'll Love This</h2>
+                        $whyHtml
+"@) | Out-Null
+    }
 
     # Prerequisites Card
     if ($m['ingredients'] -and $m['ingredients'].Count -gt 0) {
@@ -351,14 +556,7 @@ function Render-RecipeHtml([hashtable]$doc) {
             $snum = $st['number']
             $sid = if ($st['id']) { $st['id'] } else { "step-$snum" }
             $stitle = $st['title']
-            $stext = Format-MarkdownInline $st['text']
-
-            # paragraph handling
-            $stextHtml = if ($stext.Contains("`n")) {
-                "<p>" + ($stext -replace "\r?\n\r?\n", "</p>`n<p>") + "</p>"
-            } else {
-                "<p>$stext</p>"
-            }
+            $stextHtml = Format-MarkdownBlock $st['text']
 
             $sb.AppendLine(@"
 
@@ -376,7 +574,7 @@ function Render-RecipeHtml([hashtable]$doc) {
                 $img = $st['image']
                 $sb.AppendLine(@"
                         <figure class="doc-figure">
-                            <img src="$($img['src'])" alt="$($img['alt'])" class="doc-screenshot" loading="lazy" />
+                            <img src="${p}$($img['src'])" alt="$($img['alt'])" class="doc-screenshot" loading="lazy" />
                             <figcaption>$($img['caption'])</figcaption>
                         </figure>
 "@) | Out-Null
@@ -413,13 +611,37 @@ function Render-RecipeHtml([hashtable]$doc) {
                             <div class="doc-callout-title">
                                 <span class="doc-callout-icon">$coIcon</span> $($co['title'])
                             </div>
-                            <p>$($co['text'])</p>
+                            <p>$(Format-MarkdownInline $co['text'])</p>
                         </div>
 "@) | Out-Null
             }
 
             $sb.AppendLine("                    </div>`n                </div>") | Out-Null
         }
+    }
+
+    if ($m['outcome']) {
+        $outcomeHtml = Format-MarkdownBlock $m['outcome']
+        $sb.AppendLine(@"
+
+                <h2 id="outcome">What You Get</h2>
+                <div class="doc-callout doc-callout-note">
+                        $outcomeHtml
+                </div>
+"@) | Out-Null
+    }
+
+    if ($m['tips'] -and $m['tips'].Count -gt 0) {
+        $tipItems = ($m['tips'] | ForEach-Object { "<li>" + (Format-MarkdownInline $_) + "</li>" }) -join "`n                        "
+        $sb.AppendLine(@"
+
+                <h2 id="tips">Tips and Troubleshooting</h2>
+                <div class="doc-callout doc-callout-tip">
+                    <ul>
+                        $tipItems
+                    </ul>
+                </div>
+"@) | Out-Null
     }
 
     # External Snippets
@@ -458,7 +680,18 @@ function Render-RecipeHtml([hashtable]$doc) {
             $nclass = if ($nr['target']) { "doc-next-card doc-link-bookmark" } else { "doc-next-card" }
             $nbadge = if ($nr['badge']) { $nr['badge'] } else { "Docs" }
             $nbadgeType = if ($nr['badge_type']) { "doc-badge-" + $nr['badge_type'] } else { "doc-badge-docs" }
-            
+            if ($nurl.StartsWith('page:')) {
+                $nextPageId = $nurl.Substring(5)
+                if (-not $script:ManifestPages.ContainsKey($nextPageId)) {
+                    throw "Next recipe links to unknown page_id '$nextPageId' in $outRel"
+                }
+                if ($script:PageTargets.ContainsKey($nextPageId)) {
+                    $nurl = Get-RelativeHref $outRel $script:PageTargets[$nextPageId]
+                } else {
+                    $nr['bookmark_id'] = $nextPageId
+                }
+            }
+
             if ($nr['bookmark_id']) {
                 $sb.AppendLine(@"
                         <div class="doc-next-card">
@@ -491,6 +724,9 @@ function Render-RecipeHtml([hashtable]$doc) {
                     <div class="doc-toc-title">On this page</div>
                     <ul class="doc-toc-list">
 "@) | Out-Null
+    if ($m['why']) {
+        $sb.AppendLine("                        <li><a href=`"#why`" class=`"doc-toc-link`">Why You'll Love This</a></li>") | Out-Null
+    }
     if ($m['steps']) {
         foreach ($st in $m['steps']) {
             $snum = $st['number']
@@ -498,6 +734,12 @@ function Render-RecipeHtml([hashtable]$doc) {
             $stitle = $st['title']
             $sb.AppendLine("                        <li><a href=`"#$sid`" class=`"doc-toc-link`">$snum. $stitle</a></li>") | Out-Null
         }
+    }
+    if ($m['outcome']) {
+        $sb.AppendLine("                        <li><a href=`"#outcome`" class=`"doc-toc-link`">What You Get</a></li>") | Out-Null
+    }
+    if ($m['tips'] -and $m['tips'].Count -gt 0) {
+        $sb.AppendLine("                        <li><a href=`"#tips`" class=`"doc-toc-link`">Tips and Troubleshooting</a></li>") | Out-Null
     }
     $sb.AppendLine(@"
                     </ul>
@@ -512,8 +754,8 @@ function Render-RecipeHtml([hashtable]$doc) {
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../privacy.html">Privacy Policy</a>
-                <a href="design-system/index.html">Component System</a>
+                <a href="${p}../privacy.html">Privacy Policy</a>
+                <a href="${p}design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
         </div>
@@ -568,10 +810,10 @@ function Render-RecipeHtml([hashtable]$doc) {
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
-    <script src="assets/wave-particles.js"></script>
+    <script src="${p}assets/wave-particles.js"></script>
 
     <!-- In-browser Search Modal Engine -->
-    <script src="assets/search.js"></script>
+    <script src="${p}assets/search.js"></script>
 </body>
 </html>
 "@) | Out-Null
@@ -585,13 +827,69 @@ Write-Host "Found $($recipeFiles.Count) external Markdown recipes in $ContentDir
 $compiledCount = 0
 $mismatches = 0
 
+$script:SiteBase = ([string]((Get-Content (Join-Path $repoRoot '.sza-profile.json') -Raw | ConvertFrom-Json).site.baseUrl)).TrimEnd('/')
+# store_assets/ is excluded from the Jekyll build, so the landing pages' screenshot answers 404;
+# the touch icon is the one brand image the site is guaranteed to serve.
+$script:DefaultOgImage = "$script:SiteBase/apple-touch-icon.png"
+
+$script:ManifestPages = @{}
+$pageManifestPath = Join-Path $repoRoot 'docs/docs-pages-manifest.jsonl'
+if (Test-Path $pageManifestPath) {
+    Get-Content $pageManifestPath -Encoding utf8 | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object {
+        $pageRecord = ConvertFrom-Json $_
+        $script:ManifestPages[$pageRecord.page_id] = $pageRecord
+    }
+}
+$script:TermIds = [System.Collections.Generic.HashSet[string]]::new()
+$termbasePath = Join-Path $repoRoot 'docs/termbase.jsonl'
+if (Test-Path $termbasePath) {
+    Get-Content $termbasePath -Encoding utf8 | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object {
+        $null = $script:TermIds.Add((ConvertFrom-Json $_).id)
+    }
+}
+
+# First pass: every recipe's output path must be known before any page renders, because a page
+# links its siblings by page_id and draws the corpus sidebar from all of them.
+$parsedRecipes = [System.Collections.Generic.List[object]]::new()
+$script:PageTargets = @{}
+$script:CorpusPages = [System.Collections.Generic.List[object]]::new()
 foreach ($rf in $recipeFiles) {
     $raw = Get-Content $rf.FullName -Raw -Encoding utf8
     $parsed = Parse-Frontmatter $raw
-    $html = Render-RecipeHtml $parsed
+    $canonical = [string]$parsed.Meta['canonical_url']
+    $outRel = if ($canonical -match '^documentation/(.+/.+\.html)$') {
+        $Matches[1]
+    } else {
+        [System.IO.Path]::ChangeExtension($rf.Name, '.html')
+    }
+    $parsedRecipes.Add([PSCustomObject]@{ Parsed = $parsed; OutRel = $outRel })
+    $pageId = [string]$parsed.Meta['page_id']
+    if ($pageId) { $script:PageTargets[$pageId] = $outRel }
+    if ($outRel.Contains('/')) {
+        $script:CorpusPages.Add([PSCustomObject]@{
+                OutRel   = $outRel
+                Title    = $parsed.Meta['nav_title'] ?? $parsed.Meta['title']
+                Category = $parsed.Meta['category']
+                Order    = $parsed.Meta['recipe_number']
+            })
+    }
+}
 
-    $outFileName = [System.IO.Path]::ChangeExtension($rf.Name, '.html')
+foreach ($pr in $parsedRecipes) {
+    $html = Render-RecipeHtml $pr.Parsed $pr.OutRel
+    # S2972: a page with front matter goes through Liquid on the Pages build, where a stray
+    # template marker either aborts the whole site build or silently eats page text.
+    if ($pr.OutRel.Contains('/') -and $html -match '\{\{|\{%') {
+        Write-Error "generate-docs-pages: $($pr.OutRel) contains a Liquid marker ({{ or {%) - Jekyll would evaluate it; reword the recipe source."
+        exit 1
+    }
+
+    $outFileName = $pr.OutRel
     $outFilePath = Join-Path $outputRoot $outFileName
+    $outFileDir = Split-Path $outFilePath -Parent
+    if (-not $Check -and -not (Test-Path $outFileDir)) {
+        $null = New-Item -ItemType Directory -Force $outFileDir
+    }
 
     if ($Check) {
         if (-not (Test-Path $outFilePath)) {
@@ -607,8 +905,9 @@ foreach ($rf in $recipeFiles) {
             }
         }
     } else {
-        [System.IO.File]::WriteAllText($outFilePath, $html, [System.Text.Encoding]::UTF8)
-        Write-Host "  [COMPILED] $($rf.Name) -> $outFileName" -ForegroundColor Green
+        # No BOM: Jekyll detects front matter only when the file starts with `---`.
+        [System.IO.File]::WriteAllText($outFilePath, $html, [System.Text.UTF8Encoding]::new($false))
+        Write-Host "  [COMPILED] -> $outFileName" -ForegroundColor Green
         $compiledCount++
     }
 }

@@ -142,7 +142,9 @@ foreach ($file in (Get-ChildItem -LiteralPath (Join-Path $repoRoot 'scripts') -R
     if ($registered.ContainsKey($rel.ToLowerInvariant())) { continue }
     # The helper and its own suite write nothing of their own; a test harness writing into temp/
     # is not a writer of a Code.* path either.
-    if ($rel -match '\.tests/' -or $rel -eq $helperRel) { continue }
+    # Both suite layouts count: `<name>.tests/` and `<name>/tests/` - the second writes its fixture
+    # tree under a temp root whose sub-paths (`docs/README.md`) look like Code.* literals.
+    if ($rel -match '(\.tests|/tests)/' -or $rel -eq $helperRel) { continue }
 
     # S3083: the write and the Code.* literal must share a line. Matching them anywhere in the file
     # counted a script that writes only temp/ output but dot-sources a scripts/ helper, and the

@@ -29,10 +29,12 @@ object MediaFilesCacheManager {
         heapBudget.toInt()
     }
 
-    // S0729: LruCache.get/put are internally synchronized, but the ArrayList stored as the value is
-    // mutated in place (set/add/removeAll) on Main while RandomPhotoFrameWidgetRefresher iterates a
-    // toList() snapshot on IO. Guard every value-content mutation AND the snapshot read with one lock
-    // so the two never interleave (no ConcurrentModificationException / torn read).
+    // S0729: one lock serializes every read-modify-write of a resource's list against the snapshot read
+    // on IO (RandomPhotoFrameWidgetRefresher), so an update is never lost to a concurrent replace.
+    // S3470: a stored list is never mutated after put(). LruCache charges sizeOf() at put() and
+    // subtracts sizeOf(previous) on replace/removal; an in-place resize made that subtraction read the
+    // new length, the running total drifted, and evictAll() threw IllegalStateException
+    // ("sizeOf() is reporting inconsistent results"). Every mutator builds a new list and put()s it.
     private val lock = Any()
     
     // Cache key = resourceId, value = list of MediaFiles
@@ -92,7 +94,7 @@ object MediaFilesCacheManager {
         val list = cache.get(resourceId) ?: return@synchronized false
         val index = list.indexOfFirst { it.path == oldPath }
         if (index >= 0) {
-            list[index] = newFile
+            cache.put(resourceId, list.toMutableList().also { it[index] = newFile })
             Timber.d("MediaFilesCache: Updated file at index $index (${oldPath} → ${newFile.path})")
             return@synchronized true
         }
@@ -120,7 +122,7 @@ object MediaFilesCacheManager {
             filePath
         }
         
-        val removed = list.removeAll { cachedFile ->
+        val remaining = list.filterNot { cachedFile ->
             // Normalize cached file path for comparison
             val cachedPath = try {
                 if (cachedFile.path.startsWith("content://")) {
@@ -135,10 +137,14 @@ object MediaFilesCacheManager {
             
             cachedPath == normalizedPath
         }
-        
+
+        val removed = remaining.size != list.size
         if (removed) {
-            reaccount(resourceId, list)
-            Timber.d("MediaFilesCache: Removed file $filePath from resource $resourceId (${list.size} files remaining)")
+            cache.put(resourceId, remaining.toMutableList())
+            Timber.d(
+                "MediaFilesCache: Removed file $filePath from resource $resourceId " +
+                    "(${remaining.size} files remaining)"
+            )
         } else {
             Timber.w("MediaFilesCache: File not found for removal: $filePath (normalized: $normalizedPath)")
         }
@@ -150,43 +156,33 @@ object MediaFilesCacheManager {
      * Inserts in correct position based on current sort order (caller's responsibility to sort).
      */
     fun addFile(resourceId: Long, file: MediaFile) = synchronized(lock) {
-        val list = cache.get(resourceId) ?: mutableListOf<MediaFile>().also { cache.put(resourceId, it) }
-        list.add(file)
-        reaccount(resourceId, list)
-        Timber.d("MediaFilesCache: Added file ${file.path} to resource $resourceId (${list.size} files total)")
+        // S1299: re-putting a NEW list charges the grown size against the budget; a list grown in
+        // place was never charged and the "bounded" cache silently exceeded it.
+        val updated = (cache.get(resourceId)?.toMutableList() ?: mutableListOf()).also { it.add(file) }
+        cache.put(resourceId, updated)
+        Timber.d("MediaFilesCache: Added file ${file.path} to resource $resourceId (${updated.size} files total)")
     }
 
-    /**
-     * S1299: LruCache charges sizeOf() at put() time only. These lists are mutated in place, so
-     * without a re-put the accounting drifts from reality - files added during a long session were
-     * never charged against the budget and the "bounded" cache silently exceeded it.
-     */
-    private fun reaccount(resourceId: Long, list: MutableList<MediaFile>) {
-        cache.put(resourceId, list)
-    }
-    
     /**
      * Clears cache for a specific resource (e.g., on explicit refresh).
      */
     fun clearCache(resourceId: Long) {
-        cache.remove(resourceId)
+        synchronized(lock) { cache.remove(resourceId) }
         Timber.d("MediaFilesCache: Cleared cache for resource $resourceId")
     }
-    
+
     /**
      * Clears all cached lists (e.g., on app logout or memory pressure).
      */
     fun clearAllCaches() {
-        cache.evictAll()
+        synchronized(lock) { cache.evictAll() }
         Timber.d("MediaFilesCache: Cleared all caches")
     }
-    
+
     /**
      * Checks if a resource has cached data.
      */
-    fun isCached(resourceId: Long): Boolean {
-        return cache.get(resourceId) != null
-    }
+    fun isCached(resourceId: Long): Boolean = synchronized(lock) { cache.get(resourceId) != null }
     
     /**
      * Gets current size of cached list without retrieving it.

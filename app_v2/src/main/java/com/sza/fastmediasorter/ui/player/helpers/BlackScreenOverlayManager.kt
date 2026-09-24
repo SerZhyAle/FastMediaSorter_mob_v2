@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -123,18 +124,17 @@ class BlackScreenOverlayManager(
     }
 
     /**
-     * S3369: the dim screen turns the way the video player would. A host outside the player family
-     * follows the program-wide policy, which honours the system rotation lock, while the player by
-     * default follows the sensor past it - so the launcher's dim screen stayed portrait where a video
-     * would have turned. The host's own request is put back on [hide].
+     * S3369 / S3475: the dim screen turns by the physical sensor, the way a camera stream's frame
+     * turns. S3369 routed it through the player's follow-system choice, and with that choice on the
+     * system rotation lock kept the launcher's dim screen portrait while the stream on the same phone
+     * rotated. Only the player's own "rotation sensor off" still pins it. The host's own request is
+     * put back on [hide].
      */
     private fun applyPlayerRotationPolicy(activity: Activity, settings: AppSettings) {
         if (activity is SelfManagedScreenOrientation) return
         if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)) return
-        val orientation = ScreenRotationManager.orientationFor(
-            settings.playerFollowSystemRotation,
-            settings.playerRotationSensorEnabled,
-        )
+        val orientation = dimOrientationFor(settings.playerRotationSensorEnabled)
+        Timber.d("S3475: dim orientation request=$orientation host=${activity.javaClass.simpleName}")
         if (orientationBeforeDim == null) orientationBeforeDim = activity.requestedOrientation
         activity.requestedOrientation = orientation
     }
@@ -208,8 +208,6 @@ class BlackScreenOverlayManager(
      */
     fun onTouchEvent(event: MotionEvent): Boolean {
         val target: View? = if (isVisible) dimClockView ?: overlayView else null
-        if (target != null && event.actionMasked == MotionEvent.ACTION_DOWN) {
-        }
         target?.dispatchTouchEvent(event)
         return target != null
     }
@@ -261,5 +259,14 @@ class BlackScreenOverlayManager(
      */
     private fun setButtonBacklight(activity: Activity, value: Float) {
         activity.window.attributes = activity.window.attributes.apply { buttonBrightness = value }
+    }
+
+    internal companion object {
+        /** S3475: the sensor past the system lock, unless the player's rotation sensor is switched off. */
+        internal fun dimOrientationFor(sensorEnabled: Boolean): Int = if (sensorEnabled) {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_LOCKED
+        }
     }
 }

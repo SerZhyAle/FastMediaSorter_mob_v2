@@ -307,6 +307,46 @@ exit 11
     $hereString = New-Fixture 'herestring.ps1' $hereStringBody
     Assert-That 'L5 gate exits 0 for a Write-Error inside a here-string body' ((Invoke-Gate $hereString) -eq 0) 'expected 0'
 
+    # --- D: rule D (S3423) - an assert-*.ps1 names itself on a closed-set verdict line. ---
+    Write-Host 'D: an assert-*.ps1 must print <name>: PASS and <name>: FAIL' -ForegroundColor Yellow
+    $noVerdict = New-Fixture 'assert-probe-noverdict.ps1' @'
+Write-Host 'count: baseline 3 | actual 3'
+exit 0
+'@
+    Assert-That 'D1 gate exits 1 on a check with no verdict line' ((Invoke-Gate $noVerdict) -eq 1) 'expected 1'
+
+    $withVerdict = New-Fixture 'assert-probe-verdict.ps1' @'
+if ($args.Count -gt 0) { Write-Host 'assert-probe-verdict: FAIL'; exit 1 }
+Write-Host 'assert-probe-verdict: PASS'
+exit 0
+'@
+    Assert-That 'D2 gate exits 0 on a check naming both verdicts' ((Invoke-Gate $withVerdict) -eq 0) 'expected 0'
+
+    # The words only in a comment are documentation, not a verdict the run prints.
+    $commentOnly = New-Fixture 'assert-probe-comment.ps1' @'
+<#
+    Prints "assert-probe-comment: PASS" or "assert-probe-comment: FAIL".
+#>
+# assert-probe-comment: PASS
+Write-Host 'done'
+exit 0
+'@
+    Assert-That 'D3 gate exits 1 when the verdict words sit only in comments' ((Invoke-Gate $commentOnly) -eq 1) 'expected 1'
+
+    # Another script's name on the line is not this script's verdict - the wrapper case.
+    $wrapper = New-Fixture 'assert-probe-wrapper.ps1' @'
+Write-Host 'assert-source-gates: PASS'
+Write-Host 'assert-source-gates: FAIL'
+exit 0
+'@
+    Assert-That 'D4 gate exits 1 when the verdict line names a different script' ((Invoke-Gate $wrapper) -eq 1) 'expected 1'
+
+    $notACheck = New-Fixture 'helper-noverdict.ps1' @'
+Write-Host 'done'
+exit 0
+'@
+    Assert-That 'D5 gate exits 0 for a script whose name is not assert-*' ((Invoke-Gate $notACheck) -eq 0) 'expected 0'
+
     # --- H: live regression - the real tree stays clean (all 18 S1070 sites cured). ---
     Write-Host 'H: the repository scripts/ tree has no unreachable exit site' -ForegroundColor Yellow
     & $pwshExe -NoProfile -File $gate -Gate -Quiet *> $null

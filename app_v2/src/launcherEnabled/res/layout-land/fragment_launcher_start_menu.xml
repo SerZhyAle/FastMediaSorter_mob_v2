@@ -73,9 +73,9 @@
             android:nextFocusUp="@id/rowCreateResource"
             android:text="@string/launcher_menu_all_apps"
             android:textColor="?attr/launcherStartRowGroup1"
-            app:icon="@drawable/ic_launcher_all_apps"
+            app:icon="@drawable/ic_apps"
             app:iconGravity="start"
-            app:iconTint="@null" />
+            app:iconTint="?attr/launcherStartRowGroup1" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowAndroidSettings"

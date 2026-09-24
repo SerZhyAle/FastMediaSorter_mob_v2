@@ -227,19 +227,21 @@ class StreamSourceAdapter(
          *
          * S0785: when the url has no tile (null index or a decode that yields nothing), fall back to the
          * channel's country flag in the same slot so the row keeps its alignment instead of collapsing;
-         * rows carrying neither a tile nor a country still leave the slot empty (owner decision S0668).
+         * a row with neither shows its media-kind glyph, as the grid tile does (ICON-EXTERNAL rule 4:
+         * a missing picture is replaced by the glyph of what it stands for, never an empty slot).
          */
         private fun bindFavicon(source: StreamSourceEntity) {
             val url = source.url
             boundUrl = url
             cancelFaviconLoad()
             binding.ivFavicon.setImageDrawable(null)
+            ImageViewCompat.setImageTintList(binding.ivFavicon, null)
             binding.ivFavicon.visibility = View.GONE
             binding.tvFaviconFlag.visibility = View.GONE
             val scope = faviconScope
             val index = faviconResolver(url)
             if (scope == null || index == null) {
-                showCountryFlagFallback(source.country)
+                showFaviconFallback(source)
                 return
             }
             faviconJob = scope.launch {
@@ -248,23 +250,34 @@ class StreamSourceAdapter(
                 if (boundUrl != url) return@launch
                 if (tile != null) {
                     binding.tvFaviconFlag.visibility = View.GONE
+                    ImageViewCompat.setImageTintList(binding.ivFavicon, null)
                     binding.ivFavicon.setImageBitmap(tile)
                     binding.ivFavicon.visibility = View.VISIBLE
                 } else {
-                    showCountryFlagFallback(source.country)
+                    showFaviconFallback(source)
                 }
             }
         }
 
-        /** S0785: put the stream's country flag in the leading slot when no favicon tile is available. */
-        private fun showCountryFlagFallback(country: String?) {
-            val code = country?.trim()?.takeIf { it.isNotBlank() }
-            if (code == null || !LanguageFlagFormatter.applyCountryFlagGlyph(binding.tvFaviconFlag, code)) {
-                binding.tvFaviconFlag.visibility = View.GONE
+        /** S0785: the country flag fills the leading slot when no favicon tile is available. */
+        private fun showFaviconFallback(source: StreamSourceEntity) {
+            val code = source.country?.trim()?.takeIf { it.isNotBlank() }
+            if (code != null && LanguageFlagFormatter.applyCountryFlagGlyph(binding.tvFaviconFlag, code)) {
+                binding.ivFavicon.visibility = View.GONE
+                binding.tvFaviconFlag.visibility = View.VISIBLE
                 return
             }
-            binding.ivFavicon.visibility = View.GONE
-            binding.tvFaviconFlag.visibility = View.VISIBLE
+            Timber.d("S3444: stream row without favicon or flag shows the media-kind glyph")
+            binding.tvFaviconFlag.visibility = View.GONE
+            val view = binding.ivFavicon
+            view.setImageResource(if (source.mediaKind == "AUDIO") R.drawable.ic_audio else R.drawable.ic_video)
+            ImageViewCompat.setImageTintList(
+                view,
+                ColorStateList.valueOf(
+                    MaterialColors.getColor(view, com.google.android.material.R.attr.colorOnSurfaceVariant)
+                )
+            )
+            view.visibility = View.VISIBLE
         }
 
         // S1169: partial-rebind entry points used by the payload path - repaint one affordance only.
@@ -280,7 +293,7 @@ class StreamSourceAdapter(
         private fun bindPlayStatus(outcome: String?) {
             val (iconRes, colorRes, descRes) = when (outcome) {
                 RecordStreamPlayOutcomeUseCase.OUTCOME_OK ->
-                    Triple(R.drawable.ic_stream_status_ok, R.color.stream_status_ok, R.string.stream_status_ok)
+                    Triple(R.drawable.ic_check_circle, R.color.stream_status_ok, R.string.stream_status_ok)
                 RecordStreamPlayOutcomeUseCase.OUTCOME_FAIL ->
                     Triple(
                         R.drawable.ic_stream_status_failed,

@@ -20,7 +20,9 @@
       CATALOG.md                 the vocabulary as a reading page, grouped, with every glyph and its
                                  looks, closed by the style report: every exported glyph measured
                                  against section 10 item A, departures named with the reason this
-                                 product declares in scripts/quality/icon-style-exceptions.txt
+                                 product declares in scripts/quality/icon-style-exceptions.txt;
+                                 and by the contrast report: every colour role against every
+                                 theme surface at 3:1 (ICON-RENDER rule 3, S3443)
       gallery.html               every glyph at three sizes on the light, dark and six accent
                                  themes of this product, with right-to-left mirroring and the three
                                  looks shown
@@ -31,7 +33,8 @@
     Glyphs take `currentColor` for every paint, so each implementation colours them from its own
     theme role; records whose colour role is `brand` or `fixed` keep their literal colours.
 
-    The catalog is found through -CatalogRoot, falling back to $env:FMS_CONTRACTS_ROOT. A clone
+    The catalog is found through -CatalogRoot, falling back to FMS_CONTRACTS_ROOT in the process,
+    then at user scope. A clone
     without the catalog is the ordinary case, so that is "could not verify", not a failure.
 
     Exit codes:
@@ -55,6 +58,8 @@ function Stop-Verdict([int] $code, [string] $word, [string[]] $reasons) {
     exit $code
 }
 
+# A session started before the user variable was set still finds it, as assert-icon-contract.ps1 does.
+if ([string]::IsNullOrWhiteSpace($CatalogRoot)) { $CatalogRoot = [Environment]::GetEnvironmentVariable('FMS_CONTRACTS_ROOT', 'User') }
 if ([string]::IsNullOrWhiteSpace($CatalogRoot)) {
     Stop-Verdict 2 'COULD NOT VERIFY' @('no catalog root: pass -CatalogRoot or set FMS_CONTRACTS_ROOT (CLAUDE.md names the location)')
 }
@@ -212,12 +217,14 @@ function Add-Theme([string] $key, [string] $label, [hashtable] $roles, [hashtabl
     $bg = $roles['colorSurface']; if (-not $bg) { $bg = $roles['colorBackground'] }; if (-not $bg) { $bg = $fallback.bg }
     $fg = $roles['colorOnSurface']; if (-not $fg) { $fg = $fallback.fg }
     $ac = $roles['colorPrimary']; if (-not $ac) { $ac = $fallback.accent }
+    # A content glyph is tinted ?attr/colorControlNormal, which Material 3 points at colorOnSurfaceVariant.
+    $content = $roles['colorOnSurfaceVariant']; if (-not $content) { $content = $fallback.content }; if (-not $content) { $content = $fg }
     $cat = [ordered]@{}
     foreach ($c in 'music', 'video', 'image', 'docs', 'other') {
         $v = Resolve-Colour ("@color/color_media_$c") $cmap
         $cat[$c] = if ($v) { (Split-Argb $v)[0] } else { $fg }
     }
-    $themeRows.Add([pscustomobject]@{ key = $key; label = $label; bg = $bg; fg = $fg; accent = $ac; category = $cat })
+    $themeRows.Add([pscustomobject]@{ key = $key; label = $label; bg = $bg; fg = $fg; content = $content; accent = $ac; category = $cat })
 }
 $lightBase = Get-ThemeRoles $themesMain 'Theme.FastMediaSorter.App' $colourMap
 $darkBase = Get-ThemeRoles $themesNight 'Theme.FastMediaSorter.App' $nightColours
@@ -232,7 +239,7 @@ foreach ($o in @(
         @('light-red', 'Light red', 'ThemeOverlay.FastMediaSorter.LightRed', $false))) {
     $map = if ($o[3]) { $nightColours } else { $colourMap }
     $base = if ($o[3]) { $themeRows[1] } else { $themeRows[0] }
-    Add-Theme $o[0] $o[1] (Get-ThemeRoles $themesMain $o[2] $map) @{ bg = $base.bg; fg = $base.fg; accent = $base.accent } $map
+    Add-Theme $o[0] $o[1] (Get-ThemeRoles $themesMain $o[2] $map) @{ bg = $base.bg; fg = $base.fg; content = $base.content; accent = $base.accent } $map
 }
 
 # ------------------------------------------------------------------ palette and looks (section 10, items B, D, E, F)
@@ -351,6 +358,32 @@ else {
     }
 }
 $md.Add('')
+
+# ICON-RENDER rule 3 / conformance rung 4 (S3443): a glyph paints one role colour, so the role against
+# the surface is the glyph against the surface.
+$contrastLow = New-Object System.Collections.Generic.List[string]
+$md.Add('## Contrast report')
+$md.Add('')
+$md.Add('`ICON-RENDER` rule 3: every glyph colour role against the surface of each theme the reference product ships,')
+$md.Add('read from its resources. `content` is `colorControlNormal` (`colorOnSurfaceVariant` in Material 3), `accent` is')
+$md.Add('`colorPrimary`, the five `category` columns are the content-kind colours. A ratio in bold is under 3 : 1.')
+$md.Add('')
+$md.Add('| Theme | Surface | content | accent | music | video | image | docs | other |')
+$md.Add('| --- | --- | --- | --- | --- | --- | --- | --- | --- |')
+foreach ($t in $themeRows) {
+    $cells = New-Object System.Collections.Generic.List[string]
+    $pairs = [ordered]@{ content = $t.content; accent = $t.accent }
+    foreach ($c in $t.category.Keys) { $pairs[$c] = $t.category[$c] }
+    foreach ($role in $pairs.Keys) {
+        $ratio = Get-ContrastRatio $pairs[$role] $t.bg
+        $txt = $ratio.ToString('0.00', [cultureinfo]::InvariantCulture)
+        if ($ratio -lt 3.0) { $cells.Add("**$txt**"); $contrastLow.Add("$($t.key)/$role $txt") } else { $cells.Add($txt) }
+    }
+    $md.Add("| $($t.label) | ``$($t.bg)`` | $($cells -join ' | ') |")
+}
+$md.Add('')
+$md.Add($(if ($contrastLow.Count) { "Under 3 : 1: $($contrastLow.Count) - $($contrastLow -join ', ')." } else { 'Every role reaches 3 : 1 on every theme.' }))
+$md.Add('')
 $files['::CATALOG.md'] = ($md -join "`n") + "`n"
 
 # ------------------------------------------------------------------ gallery.html
@@ -453,5 +486,6 @@ $glyphCount = @($files.Keys | Where-Object { -not $_.StartsWith('::') }).Count
 $openStyle = @($styleRows | Where-Object { -not $_.Why }).Count
 Write-Host ("  meanings: $($records.Count); glyph files: $glyphCount; decorated looks: $($looksOf.Count); hues: $($palette.Count); pruned: $pruned; themes: $($themeRows.Count)")
 Write-Host ("  style report: $($styleRows.Count) departure(s), $openStyle open")
+Write-Host ("  contrast report: $($contrastLow.Count) role(s) under 3:1 across $($themeRows.Count) themes")
 Write-Host 'export-icon-contract: PASS'
 exit 0

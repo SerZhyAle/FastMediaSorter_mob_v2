@@ -19,7 +19,7 @@
          (CommandPanelController); this flat item is the big-buttons ListPopupWindow fallback → sheet. -->
     <item
         android:id="@+id/menu_send_to"
-        android:icon="@drawable/ic_share"
+        android:icon="@drawable/ic_send_plane"
         android:title="@string/share_to_menu_title"
         app:showAsAction="never" />
 
@@ -44,7 +44,7 @@
 
     <item
         android:id="@+id/menu_slideshow"
-        android:icon="@drawable/ic_play"
+        android:icon="@drawable/ic_slideshow"
         android:title="@string/slideshow"
         app:showAsAction="never" />
 
@@ -160,13 +160,13 @@
     <!-- Edit (Image/Video/TXT) -->
     <item
         android:id="@+id/menu_edit"
-        android:icon="@drawable/ic_edit_20"
+        android:icon="@drawable/ic_edit"
         android:title="@string/menu_edit_adjust"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/menu_edit_text"
-        android:icon="@drawable/ic_edit_20"
+        android:icon="@drawable/ic_edit"
         android:title="@string/menu_edit_file_text"
         app:showAsAction="never" />
 
@@ -208,7 +208,7 @@
     <!-- Read Aloud TTS (TXT) -->
     <item
         android:id="@+id/menu_read_aloud"
-        android:icon="@drawable/ic_microphone"
+        android:icon="@drawable/ic_read_aloud"
         android:title="@string/read_aloud"
         app:showAsAction="never" />
 

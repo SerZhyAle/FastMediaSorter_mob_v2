@@ -5,7 +5,6 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.AppDatabase
@@ -87,20 +86,26 @@ class AudioNowPlayingWidgetProvider : AppWidgetProvider() {
                 R.id.widget_audio_now_playing_favorite,
                 if (snapshot.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
             )
-            bindArtwork(views, snapshot)
+            bindArtwork(context, views, snapshot)
             bindActions(context, views, snapshot)
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
         private fun bindArtwork(
+            context: Context,
             views: RemoteViews,
             snapshot: AudioNowPlayingSnapshotStore.Snapshot
         ) {
-            val artworkUri = snapshot.artworkUri.takeIf { snapshot.active && it.isNotBlank() }
+            val artworkUri = snapshot.artworkUri.takeIf { snapshot.active }
+                ?.let { WidgetPlateGlyph.drawableUriOrNull(context, it) }
             if (artworkUri != null) {
-                views.setImageViewUri(R.id.widget_audio_now_playing_artwork, Uri.parse(artworkUri))
+                views.setImageViewUri(R.id.widget_audio_now_playing_artwork, artworkUri)
             } else {
-                views.setImageViewResource(R.id.widget_audio_now_playing_artwork, R.drawable.ic_music_note)
+                Timber.d("S3444: now-playing widget artwork absent or unreadable, audio glyph shown")
+                views.setImageViewIcon(
+                    R.id.widget_audio_now_playing_artwork,
+                    WidgetPlateGlyph.icon(context, R.drawable.ic_audio),
+                )
             }
         }
 

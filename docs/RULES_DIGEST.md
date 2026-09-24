@@ -302,7 +302,7 @@ runtimes, which must follow `docs/NON_CLAUDE_RUNTIME_RULES.md` manually.
 
 ## 9. FastMediaSorter complete quality-gate inventory
 
-There are 144 `scripts/quality/assert-*.ps1` entry points. This is the complete
+There are 155 `scripts/quality/assert-*.ps1` entry points. This is the complete
 filename inventory, retained here for automation research; the gate-placement
 registry and each script define its exact trigger and refusal scope. These names
 are an FMS implementation map, not a portable rule list.
@@ -316,7 +316,9 @@ assert-appsettings-persistence        assert-archive-artefacts
 assert-artifact-version-fresh         assert-backup-rules-consistent
 assert-baseline-inventory
 assert-bridge-scenario-coverage       assert-ci-cost-map
+assert-check-subject
 assert-code-domain-writers            assert-codex-transcript-hygiene
+assert-contract-pointers
 assert-credential-encryption          assert-ctor-arg-slots
 assert-delivery-size-estimates        assert-deobfuscation-retained
 assert-deprecated-pm-flags            assert-detekt
@@ -330,6 +332,7 @@ assert-docs-external-content          assert-docs-screenshots
 assert-docs-search                    assert-docs-termbase
 assert-enum-persistence-contract      assert-exit-contract
 assert-fast-gates                     assert-fgs-notifications
+assert-fdsec-vectors-provenance
 assert-file-line-ceiling              assert-fileop-journal-pairing
 assert-flavor-binding-coverage        assert-flavor-count-prose
 assert-mutation-producer-registration
@@ -342,8 +345,11 @@ assert-guide-coverage                 assert-harness-drift
 assert-hook-inventory                 assert-howto-settings-paths
 assert-icon-inventory-sync            assert-invoked-tracked
 assert-icon-style
+assert-icon-contract
+assert-install-trust
 assert-launcher-contrast              assert-launcher-reset-coverage
 assert-lint-baseline-absorption
+assert-lock-path-coverage
 assert-layout-variant-id-parity       assert-listener-symmetry
 assert-log-redaction                  assert-maestro-oracle
 assert-manifest-risk-diff             assert-memory-budget
@@ -357,8 +363,10 @@ assert-non-null-assertion             assert-notification-small-icon
 assert-orientation-implied-feature    assert-orientation-layout-pairing
 assert-orphaned-merged-resources      assert-oss-notices
 assert-packaging-excludes-parity      assert-perf-budget
+assert-page-content                   assert-page-style
 assert-play-listing-graphics          assert-play-listing-locales
 assert-play-listing-screenshot-geometry
+assert-positioning-consistency
 assert-prerelease-content-gates       assert-qualified-gradle-tasks
 assert-qualifier-shadowing            assert-quantity-format-seam
 assert-release-scope-gates            assert-resource-icon-parity
@@ -370,6 +378,7 @@ assert-sdk-pin-claims                 assert-sensitive-settings-annotated
 assert-security-posture
 assert-settings-catalog-complete      assert-settings-doc-sync
 assert-shared-test-flavor-scope       assert-source-gates
+assert-site-family-map                assert-site-languages-current
 assert-spec-catalog-valid             assert-splash-brand-sync
 assert-stream-asset-revisions         assert-string-format
 assert-suite-tracked                  assert-swallowed-cancellation

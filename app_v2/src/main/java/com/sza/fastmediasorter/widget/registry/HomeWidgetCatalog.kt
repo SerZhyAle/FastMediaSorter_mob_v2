@@ -266,7 +266,7 @@ class HomeWidgetCatalog @Inject constructor(
             gadgetSpanW = 1,
             gadgetSpanH = 1,
             labelRes = R.string.widget_stream_launch_label,
-            iconRes = R.drawable.ic_cast,
+            iconRes = R.drawable.ic_stream,
             descriptionRes = R.string.widget_stream_launch_description,
         ),
         HomeWidgetEntry(
@@ -275,7 +275,7 @@ class HomeWidgetCatalog @Inject constructor(
             gadgetSpanW = 1,
             gadgetSpanH = 1,
             labelRes = R.string.widget_broadcast_label,
-            iconRes = R.drawable.ic_cast,
+            iconRes = R.drawable.ic_live_broadcast,
             descriptionRes = R.string.widget_broadcast_label,
             settingGate = { it.enableBroadcasting },
         ),

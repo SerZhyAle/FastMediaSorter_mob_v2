@@ -2,6 +2,7 @@
 [versions]
 
 accompanist-permissions = "0.34.0"
+apache-sshd = "2.15.0"
 androidx-activity-compose = "1.10.1"
 androidx-activity-ktx = "1.10.1"
 androidx-appfunctions = "1.0.0-alpha11"
@@ -247,6 +248,9 @@ google-play-feature-delivery-ktx = { group = "com.google.android.play", name = "
 google-play-review-ktx = { group = "com.google.android.play", name = "review-ktx", version.ref = "google-play-review-ktx" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 jsch = { group = "com.github.mwiede", name = "jsch", version.ref = "jsch" }
+# S3041: embedded SFTP server (Apache MINA SSHD); the client side stays on JSch.
+apache-sshd-core = { group = "org.apache.sshd", name = "sshd-core", version.ref = "apache-sshd" }
+apache-sshd-sftp = { group = "org.apache.sshd", name = "sshd-sftp", version.ref = "apache-sshd" }
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines-android" }

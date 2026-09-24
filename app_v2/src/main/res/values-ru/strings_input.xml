@@ -149,8 +149,8 @@
     <string name="keybinding_remap_reset_all">Сбросить всё</string>
     <string name="keybinding_remap_search_hint">Поиск команд..</string>
     <string name="keybinding_row_no_binding">-</string>
-    <string name="keybinding_row_remap">Назначить</string>
-    <string name="keybinding_row_reset">Сбросить по умолчанию</string>
+    <string name="keybinding_row_remap">Редактировать назначение</string>
+    <string name="keybinding_row_reset">Сбросить к стандартным</string>
     <string name="kbm_help_browse_back">В родительскую папку</string>
     <string name="kbm_help_browse_open">Открыть папку или файл</string>
     <string name="kbm_help_dialog_arrows">Навигация по строкам</string>
@@ -158,7 +158,6 @@
     <string name="kbm_help_dialog_primary">Основное действие (OK / Применить)</string>
     <string name="kbm_help_dialog_toggle">Переключить параметр</string>
     <string name="kbm_help_empty">Для этого экрана пока нет сочетаний клавиш.</string>
-    <string name="kbm_help_full_docs_link">Открыть полную справку по клавиатуре и мыши ..</string>
     <string name="kbm_help_global_escape">Отмена, снять выделение, закрыть диалог</string>
     <string name="kbm_help_global_exit">Закрыть текущий экран</string>
     <string name="kbm_help_global_f1">Показать эту справку</string>
@@ -230,7 +229,7 @@
     <string name="touch_zone_queue">Очередь</string>
     <string name="touch_zone_rename">ПЕРЕИМ.</string>
     <string name="touch_zone_slideshow">СЛАЙДШОУ</string>
-    <string name="touch_zones_help">Показать сенсорные зоны</string>
+    <string name="touch_zones_help">Справка: показать сенсорные зоны</string>
     <string name="touch_zones_legend_title">Легенда сенсорных зон:</string>
     <string name="touch_zones_overlay_zoneBack_text">НАЗАД</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">ПАНЕЛЬ\nКОМАНД</string>
@@ -242,4 +241,8 @@
     <string name="touch_zones_overlay_zoneRename_text">ПЕРЕИМЕНОВАТЬ</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">СЛАЙДШОУ</string>
     <string name="touch_zones_scheme">Схема сенсорных зон (Изображения/Видео) для полноэкранного режима</string>
+    <string name="docs_help_open_page">Открыть страницу справки об этом экране ..</string>
+    <string name="docs_help_fallback_title">Откройте справку на другом устройстве</string>
+    <string name="docs_help_fallback_no_browser">На этом устройстве нет веб-браузера. Отсканируйте QR-код телефоном или введите адрес ниже.</string>
+    <string name="docs_help_fallback_offline">Сейчас нет подключения к интернету. Отсканируйте QR-код телефоном или откройте адрес ниже позже.</string>
 </resources>

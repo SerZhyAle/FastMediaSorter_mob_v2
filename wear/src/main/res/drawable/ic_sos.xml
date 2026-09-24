@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S3216: the distress-signal program, the phone's own glyph copied name-for-name rather than
-     redrawn - the two devices run one program and the Apps list is read against the phone's. -->
+<!-- S3429: feature.sos - the distress-signal program, drawn as the letters SOS in a frame so it is
+     never read as status.warning (the triangle). One drawing on the phone and the watch: the two
+     devices run one program. Tinted at the usage site. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:fillColor="@android:color/white"
-        android:pathData="M1,21h22L12,2L1,21zM13,18h-2v-2h2V18zM13,14h-2v-4h2V14z" />
+        android:pathData="M4,5h16c1.1,0 2,0.9 2,2v10c0,1.1 -0.9,2 -2,2H4c-1.1,0 -2,-0.9 -2,-2V7c0,-1.1 0.9,-2 2,-2z"
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="2" />
+    <path
+        android:pathData="M8,9.6c-0.3,-0.6 -0.9,-1 -1.7,-1 -1,0 -1.7,0.6 -1.7,1.4 0,1.9 3.5,1.2 3.5,3.2 0,0.9 -0.8,1.5 -1.8,1.5 -0.8,0 -1.5,-0.4 -1.8,-1.1M12,8.6c1.1,0 1.8,1.2 1.8,2.9s-0.7,2.9 -1.8,2.9 -1.8,-1.2 -1.8,-2.9 0.7,-2.9 1.8,-2.9zM19.4,9.6c-0.3,-0.6 -0.9,-1 -1.7,-1 -1,0 -1.7,0.6 -1.7,1.4 0,1.9 3.5,1.2 3.5,3.2 0,0.9 -0.8,1.5 -1.8,1.5 -0.8,0 -1.5,-0.4 -1.8,-1.1"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeWidth="1.5" />
 </vector>

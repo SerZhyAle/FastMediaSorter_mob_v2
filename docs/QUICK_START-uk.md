@@ -7,7 +7,7 @@ permalink: /docs/QUICK_START_UK.html
 
 *Почніть за 5 хвилин! Простий посібник для новачків.*
 
-[English](QUICK_START.md) | [Русский](QUICK_START-ru.md)
+{% include lang-switcher.html doc="QUICK_START" dir="/docs/" current="uk" %}
 
 ---
 

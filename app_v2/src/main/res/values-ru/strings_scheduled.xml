@@ -24,7 +24,7 @@
     <string name="scheduled_ops_battery_dialog_title">Разрешить работу в фоне</string>
     <string name="scheduled_ops_btn_add">Добавить</string>
     <string name="scheduled_ops_btn_clear_all">Очистить всё</string>
-    <string name="scheduled_ops_btn_log">Журнал</string>
+    <string name="scheduled_ops_btn_log">История</string>
     <string name="scheduled_ops_btn_run_now">Запустить сейчас</string>
     <string name="scheduled_ops_col_condition">Условия</string>
     <string name="scheduled_ops_col_operation">Операция</string>

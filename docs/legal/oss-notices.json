@@ -2480,6 +2480,56 @@
       "note": null
     },
     {
+      "coordinate": "org.apache.sshd:sshd-core",
+      "modules": [
+        "app_v2"
+      ],
+      "name": "Apache MINA SSHD Core",
+      "spdx": "Apache-2.0",
+      "licenseUrl": "https://raw.githubusercontent.com/apache/mina-sshd/master/LICENSE.txt",
+      "sourceUrl": "https://github.com/apache/mina-sshd",
+      "oss": true,
+      "shippedIn": [
+        "foss",
+        "legacy",
+        "lite",
+        "noLegal",
+        "photos",
+        "standard",
+        "vr"
+      ],
+      "allFlavors": true,
+      "transitive": false,
+      "via": null,
+      "bundled": false,
+      "note": "S3041: embedded SFTP server. Pulls sshd-common, which shares the same licence and source."
+    },
+    {
+      "coordinate": "org.apache.sshd:sshd-sftp",
+      "modules": [
+        "app_v2"
+      ],
+      "name": "Apache MINA SSHD SFTP",
+      "spdx": "Apache-2.0",
+      "licenseUrl": "https://raw.githubusercontent.com/apache/mina-sshd/master/LICENSE.txt",
+      "sourceUrl": "https://github.com/apache/mina-sshd",
+      "oss": true,
+      "shippedIn": [
+        "foss",
+        "legacy",
+        "lite",
+        "noLegal",
+        "photos",
+        "standard",
+        "vr"
+      ],
+      "allFlavors": true,
+      "transitive": false,
+      "via": null,
+      "bundled": false,
+      "note": null
+    },
+    {
       "coordinate": "org.bouncycastle:bcprov-jdk18on",
       "modules": [
         "app_v2",

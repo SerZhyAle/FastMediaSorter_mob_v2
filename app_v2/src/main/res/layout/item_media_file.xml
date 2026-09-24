@@ -129,7 +129,7 @@
         android:contentDescription="@string/rename"
         android:scaleType="fitCenter"
         android:padding="2dp"
-        android:src="@drawable/ic_edit_20"
+        android:src="@drawable/ic_rename"
         app:tint="@color/selector_themed_button_tint"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -14,6 +14,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.launcher.LauncherPrimaryWindowManager
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.logging.LogExportHelper
@@ -31,6 +32,7 @@ import com.sza.fastmediasorter.domain.usecase.CredentialAuditor
 import com.sza.fastmediasorter.domain.usecase.DeleteUnusedCredentialsUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageSftpServerUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
@@ -54,6 +56,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPrefetchHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsProfileHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsResetHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
+import com.sza.fastmediasorter.ui.settings.helpers.SftpServerSettingsPanelManager
 import com.sza.fastmediasorter.ui.settings.helpers.UnusedCredentialsHelper
 import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoDialogManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -120,6 +123,11 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     @Inject lateinit var cctChecker: com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
 
+    // S3041: embedded SFTP server card.
+    @Inject lateinit var manageSftpServerUseCase: ManageSftpServerUseCase
+
+    @Inject lateinit var mediaCapabilities: MediaCapabilities
+
     // Shared flag passed as lambdas to helpers that need to suppress listeners during programmatic updates
     private var isUpdatingSpinner = false
 
@@ -181,7 +189,23 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             uri?.let { backupViewModel.previewResourceImport(it) }
         }
 
+    private val sftpServerRootPickerLauncher: androidx.activity.result.ActivityResultLauncher<android.content.Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (_binding != null) sftpServerPanel.onRootPickerResult(result.resultCode, result.data)
+        }
+
     private val calculateOptimalCacheSizeUseCase by lazy { CalculateOptimalCacheSizeUseCase() }
+
+    private val sftpServerPanel by lazy {
+        SftpServerSettingsPanelManager(
+            fragment = this,
+            binding = binding,
+            manageSftpServer = manageSftpServerUseCase,
+            capabilityAvailability = capabilityAvailability,
+            mediaCapabilities = mediaCapabilities,
+            launchRootPicker = sftpServerRootPickerLauncher::launch,
+        )
+    }
 
     // All helpers are lazy - binding is only valid after onCreateView, and helpers are first
     // accessed from onViewCreated, so initialization is always safe.
@@ -329,6 +353,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         observersHelper.refreshLastSyncStatus()
         cacheHelper.checkAndSuggestOptimalCacheSize()
         unusedCredentialsHelper.bind()
+        sftpServerPanel.bind()
         setupGeneralLayouts()
         setupCollapsibleSections()
         launcherHelper.setup()
@@ -510,6 +535,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         )
         register(binding.headerFileBrowser, binding.containerFileBrowser, "general__file_browser")
         register(binding.headerRemoteSources, binding.containerRemoteSources, "general__remote_sources")
+        register(binding.headerSftpServer, binding.containerSftpServer, "general__sftp_server")
         register(binding.headerAuthorization, binding.containerAuthorization, "general__authorization")
         register(binding.headerAppData, binding.containerAppData, "general__app_data")
         register(binding.headerSystem, binding.containerSystem, "general__system")

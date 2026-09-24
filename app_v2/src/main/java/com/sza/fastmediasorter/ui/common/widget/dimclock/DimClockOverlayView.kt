@@ -5,21 +5,27 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.GestureDetector
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewConfiguration
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextClock
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DimClockOverlayBinding
 import com.sza.fastmediasorter.databinding.ItemDimStatusChipBinding
@@ -64,6 +70,8 @@ class DimClockOverlayView @JvmOverloads constructor(
     private var currentUnitSystem: UnitSystem = UnitSystem.METRIC
     private val ticker = DimClockTicker()
     private var currentStyle: DimClockStyle? = null
+    private var lastNotificationChips: List<DimStatusChip>? = null
+    private var lastStatusChips: List<DimStatusChip>? = null
 
     /**
      * S3366: invoked by a chip or battery tap before its intent starts - ADR-2's ordering, so the
@@ -230,47 +238,124 @@ class DimClockOverlayView @JvmOverloads constructor(
         binding.dimBatteryBox.backgroundTintList = ColorStateList.valueOf(color)
     }
 
+    /**
+     * S3475: each row re-renders only when its own chips changed. The status row may tick every second
+     * (transfer speed), and rebuilding the notification row on that tick would restart every
+     * application-icon load, flashing the fallback glyph once a second.
+     */
     private fun renderChips(chips: List<DimStatusChip>) {
         val notifChips = chips.filter { it.isNotification }
         val statusChips = chips.filter { !it.isNotification }
 
-        binding.dimNotificationsRow.isVisible = notifChips.isNotEmpty()
-        populateChipContainer(binding.dimNotificationsRow, notifChips)
+        if (notifChips != lastNotificationChips) {
+            lastNotificationChips = notifChips
+            renderNotificationRow(notifChips)
+        }
+        if (statusChips != lastStatusChips) {
+            lastStatusChips = statusChips
+            populateChipContainer(binding.dimNetworkChipsContainer, statusChips)
+        }
+    }
 
-        populateChipContainer(binding.dimNetworkChipsContainer, statusChips)
+    /**
+     * S3475: the row holds as many chips as fit before the end safe edge; the rest fold into one
+     * "N+" cell, because a row that runs off the screen hides exactly the count the glance is for.
+     * The width is unknown before the first layout, so the fit waits for it.
+     */
+    private fun renderNotificationRow(chips: List<DimStatusChip>) {
+        val row = binding.dimNotificationsRow
+        row.isVisible = chips.isNotEmpty()
+        if (chips.isEmpty()) {
+            row.removeAllViews()
+            return
+        }
+        if (!isLaidOut) {
+            doOnLayout { if (lastNotificationChips == chips) renderNotificationRow(chips) }
+            return
+        }
+        val chipSize = resources.getDimensionPixelSize(R.dimen.dim_clock_chip_size)
+        val spacing = resources.getDimensionPixelSize(R.dimen.dim_clock_chip_spacing)
+        val block = binding.dimClockContentBlock
+        val burnIn = (DimClockTicker.BURN_IN_AMPLITUDE_DP * resources.displayMetrics.density).toInt()
+        val available = width - block.paddingStart - block.paddingEnd - burnIn
+        val shown = visibleNotificationCount(chips.size, notificationSlotsFor(available, chipSize, spacing))
+        populateChipContainer(row, chips.take(shown))
+        val hidden = chips.size - shown
+        Timber.d("S3475: notification row total=${chips.size} shown=$shown hidden=$hidden available=$available")
+        if (hidden > 0) {
+            row.addView(
+                textCell(
+                    context.getString(R.string.dim_clock_notifications_overflow, hidden),
+                    context.getString(R.string.dim_clock_notifications_overflow_cd, hidden),
+                ),
+            )
+        }
     }
 
     private fun populateChipContainer(container: LinearLayout, chips: List<DimStatusChip>) {
         container.removeAllViews()
         val inflater = LayoutInflater.from(context)
-        val router = actionRouter
         chips.forEach { chip ->
-            val chipBinding = ItemDimStatusChipBinding.inflate(inflater, container, false)
-            val chipView = chipBinding.root
-            val iconView = chipBinding.dimChipIcon
-            val badgeView = chipBinding.dimChipBadge
-
-            if (chip.iconResId != 0) {
-                iconView.setImageResource(chip.iconResId)
-                iconView.imageTintList = ColorStateList.valueOf(Color.WHITE)
-            }
-            loadApplicationIcon(chip, iconView)
-            if (chip.count > 1) {
-                badgeView.isVisible = true
-                badgeView.text = chip.count.toString()
+            val text = chip.text
+            val chipView = if (text != null) {
+                textCell(text, chip.contentDescription)
             } else {
-                badgeView.isVisible = false
+                iconCell(inflater, container, chip)
             }
-            chipView.contentDescription = chip.contentDescription
-            if (router != null) {
-                chipView.isClickable = true
-                chipView.isFocusable = true
-                chipView.setOnClickListener {
-                    onDimExitRequested?.invoke()
-                    router.openChip(chip)
-                }
-            }
+            wireChipTap(chipView, chip)
             container.addView(chipView)
+        }
+    }
+
+    private fun iconCell(inflater: LayoutInflater, container: LinearLayout, chip: DimStatusChip): View {
+        val chipBinding = ItemDimStatusChipBinding.inflate(inflater, container, false)
+        val iconView = chipBinding.dimChipIcon
+        if (chip.iconResId != 0) {
+            iconView.setImageResource(chip.iconResId)
+            iconView.imageTintList = ColorStateList.valueOf(glyphColor(chip.highlighted))
+        }
+        chip.iconLevel?.let(iconView::setImageLevel)
+        loadApplicationIcon(chip, iconView)
+        val badge = chip.badgeText ?: chip.count.takeIf { it > 1 }?.toString()
+        chipBinding.dimChipBadge.isVisible = badge != null
+        chipBinding.dimChipBadge.text = badge
+        chipBinding.dimChipCornerMarker.isVisible = chip.cornerMarkResId != 0
+        if (chip.cornerMarkResId != 0) chipBinding.dimChipCornerMarker.setBackgroundResource(chip.cornerMarkResId)
+        chipBinding.root.contentDescription = chip.contentDescription
+        return chipBinding.root
+    }
+
+    /** A highlighted glyph takes the theme's primary colour, as the tray paints a connected device. */
+    private fun glyphColor(highlighted: Boolean): Int = if (highlighted) {
+        MaterialColors.getColor(this, androidx.appcompat.R.attr.colorPrimary, Color.WHITE)
+    } else {
+        Color.WHITE
+    }
+
+    private fun textCell(text: String, description: String?): TextView {
+        val chipSize = resources.getDimensionPixelSize(R.dimen.dim_clock_chip_size)
+        return TextView(context).apply {
+            this.text = text
+            contentDescription = description
+            setTextColor(Color.WHITE)
+            setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.dim_clock_battery_text_size))
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            minWidth = chipSize
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, chipSize).apply {
+                marginEnd = resources.getDimensionPixelSize(R.dimen.dim_clock_chip_spacing)
+            }
+        }
+    }
+
+    private fun wireChipTap(chipView: View, chip: DimStatusChip) {
+        val router = actionRouter ?: return
+        chipView.isClickable = true
+        chipView.isFocusable = true
+        chipView.setOnClickListener {
+            onDimExitRequested?.invoke()
+            router.openChip(chip)
         }
     }
 
@@ -426,6 +511,17 @@ class DimClockOverlayView @JvmOverloads constructor(
                 basePadding + endSafe,
                 basePadding + safe.bottom,
             )
+        }
+
+        /** S3475: how many chip slots fit in [availablePx]; the last chip needs no trailing spacing. */
+        internal fun notificationSlotsFor(availablePx: Int, chipPx: Int, spacingPx: Int): Int =
+            if (availablePx <= 0) 0 else (availablePx + spacingPx) / (chipPx + spacingPx)
+
+        /** S3475: chips drawn out of [total] when [slots] fit; an overflow gives one slot to "N+". */
+        internal fun visibleNotificationCount(total: Int, slots: Int): Int = when {
+            total <= slots -> total
+            slots <= 1 -> 0
+            else -> slots - 1
         }
 
         /** Bolt plus the percent value while charging, the bare number otherwise. */

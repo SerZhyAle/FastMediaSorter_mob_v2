@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">Primäre Aktion (OK / Anwenden)</string>
     <string name="kbm_help_dialog_toggle">Option umschalten</string>
     <string name="kbm_help_empty">Für diesen Bildschirm sind noch keine Tastenkombinationen registriert.</string>
-    <string name="kbm_help_full_docs_link">Vollständige Tastatur-/Mausreferenz öffnen ..</string>
     <string name="kbm_help_global_escape">Abbrechen, Auswahl löschen, Dialog schließen</string>
     <string name="kbm_help_global_exit">Aktuellen Bildschirm verlassen</string>
     <string name="kbm_help_global_f1">Diese Hilfe anzeigen</string>

@@ -14,7 +14,7 @@
         android:id="@+id/widget_broadcast_icon"
         android:layout_width="@dimen/widget_icon_size_large"
         android:layout_height="@dimen/widget_icon_size_large"
-        android:src="@drawable/ic_display"
+        android:src="@drawable/ic_live_broadcast"
         android:contentDescription="@string/widget_broadcast_label" />
 
     <TextView

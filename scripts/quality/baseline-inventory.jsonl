@@ -113,3 +113,6 @@
 {"file":"wear/lint-baseline.ids","shape":"set","owner":"scripts/quality/assert-lint-baseline-absorption.ps1","write":"raise-with-reason","verdict":"safe"}
 {"file":"wear/lint-baseline.xml","shape":"xml","owner":"scripts/quality/assert-lint-baseline-absorption.ps1","write":"guarded","verdict":"safe"}
 {"file":"scripts/quality/check-subject-baseline.txt","shape":"set","owner":"scripts/quality/assert-check-subject.ps1","write":"hand-only","verdict":"safe"}
+{"file":"scripts/quality/gate-placement-seeded-baseline.txt","shape":"set","owner":"scripts/quality/assert-gate-placement.ps1","write":"raise-with-reason","verdict":"safe"}
+{"file":"scripts/quality/verdict-line-baseline.txt","shape":"set","owner":"scripts/quality/assert-exit-contract.ps1","write":"hand-only","verdict":"safe"}
+{"file":"scripts/quality/icon-contract-baseline.txt","shape":"set","owner":"scripts/quality/assert-icon-contract.ps1","write":"down-only","verdict":"safe"}

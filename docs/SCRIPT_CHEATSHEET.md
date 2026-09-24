@@ -2126,6 +2126,20 @@ scripts/docs/apply-doc-icons.ps1
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 ```
 
+### build-docs-pdf.ps1
+Builds the downloadable documentation PDF from the published documentation corpus (S2971).
+
+```
+scripts/docs/build-docs-pdf.ps1
+  Builds the downloadable documentation PDF from the published documentation corpus (S2971).
+  Params:
+    -OutputPath             [String] = 'documentation/assets/FastMediaSorter-Documentation.pdf'
+    -BrowserPath            [String]
+    -WorkDir                [String] = 'temp/docs-pdf'
+    -TimeoutSeconds         [Int32] = 300
+  Exit: 0 - the PDF was written.; 1 - the build failed: no page could be read, the browser failed or timed out, or it
+```
+
 ### capture-docs-screenshots.ps1
 Capture Documentation Screenshots Automation Harness
 
@@ -2245,6 +2259,19 @@ scripts/docs/generate-oss-notices.ps1
   Exit: 0 artifacts written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 could not verify: parser or manifest missing, a shipping coordinate
 ```
 
+### generate-site-languages.ps1
+S1211 - render the site's language list from the app's locale declaration.
+
+```
+scripts/docs/generate-site-languages.ps1
+  S1211 - render the site's language list from the app's locale declaration.
+  Params:
+    -RepoRoot              [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -LocalesConfig         [String]
+    -OutFile               [String]
+  Exit: 0 written; 1 a declared locale has no endonym entry in the table; 2 the XML is missing or unparseable, or declares no locale
+```
+
 ### OssDependencyParser.ps1
 S1495 - dependency coordinate parser for the OSS notice generator.
 
@@ -2280,6 +2307,18 @@ scripts/docs/render-settings-reference.ps1
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -OutDir           [String]
   Exit: 0 - the four reference pages were written.; 4 - Code.Scripts is held by another session: nothing was written, the place
+```
+
+### render-wear-icon-legend.ps1
+S3442 - render the watch icon legend: every glyph the watch draws, beside its ICON-SET name.
+
+```
+scripts/docs/render-wear-icon-legend.ps1
+  S3442 - render the watch icon legend: every glyph the watch draws, beside its ICON-SET name.
+  Params:
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -CatalogRoot         [String]
+  Exit: 0 - the legend pages and their SVGs were written.; 1 - a referenced, mapped drawable has no source file or cannot be converted; nothing was written.; 2 - the vocabulary or the declaration is missing or unreadable; nothing was written.; 4 - Code.Scripts is held by another session: nothing was written, the place in the queue is
 ```
 
 ### strip-landing-filter-emoji.ps1
@@ -2743,15 +2782,16 @@ scripts/quality/assert-artifact-version-fresh.ps1
 ```
 
 ### assert-backup-rules-consistent.ps1
-S1552: the API 31+ data-extraction rules must repeat every exclusion the pre-31 backup rules state.
+S1552/S3480: in every module the API 31+ data-extraction rules must repeat every exclusion the pre-31 backup rules state, and the manifest must point at both files.
 
 ```
 scripts/quality/assert-backup-rules-consistent.ps1
-  S1552: the API 31+ data-extraction rules must repeat every exclusion the pre-31 backup rules state.
+  S1552/S3480: in every module the API 31+ data-extraction rules must repeat every exclusion the pre-31 backup rules state, and the manifest must point at both files.
   Params:
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
-  Exit: 0 - clean, every pre-31 exclusion is repeated in both API 31+ sections; 1 - at least one exclusion is missing, or a root element is wrong; 2 - cannot verify: a rules file is missing or is not well-formed XML
+    -Root          [String]
+  Exit: 0 - clean, every module wires both files and repeats every pre-31 exclusion in both API 31+ sections; 1 - at least one exclusion or manifest reference is missing, or a root element is wrong; 2 - cannot verify: a manifest or rules file is missing or is not well-formed XML
 ```
 
 ### assert-baseline-inventory.ps1
@@ -2835,6 +2875,19 @@ scripts/quality/assert-codex-transcript-hygiene.ps1
   Params:
     -Id  (req)  [String]
   Exit: 0 - not applicable (wrong runtime, or no rollout found), or applicable with zero findings.; 2 - measure-codex-transcript.ps1 itself could not verify (its own exit 2).; 3 - applicable, and one or more findings (advisory).
+```
+
+### assert-contract-pointers.ps1
+Contract gate: the contract pointer files, their index, the summary table and the catalog registry must name one set of ids and versions.
+
+```
+scripts/quality/assert-contract-pointers.ps1
+  Contract gate: the contract pointer files, their index, the summary table and the catalog registry must name one set of ids and versions.
+  Params:
+    -Quiet               [SwitchParameter]
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+  Exit: 0 pointers, index, summary and registry agree on every id and version.; 1 a pointer, the index, the summary or the registry disagrees - each finding is printed.; 2 the gate itself cannot run: docs/contracts/, its README.md or the summary file is missing,
 ```
 
 ### assert-credential-encryption.ps1
@@ -3064,6 +3117,20 @@ scripts/quality/assert-docs-external-content.ps1
     -SnippetDir         [String] = "docs/content/snippets"
 ```
 
+### assert-docs-external-links.ps1
+S2972 gate: every external link of the user documentation corpus still answers.
+
+```
+scripts/quality/assert-docs-external-links.ps1
+  S2972 gate: every external link of the user documentation corpus still answers.
+  Params:
+    -RepoRoot           [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate               [SwitchParameter]
+    -Quiet              [SwitchParameter]
+    -TimeoutSec         [Int32] = 20
+  Exit: 0 every external link answers, or answers with a non-fatal warning; 1 at least one external link is dead (404/410 or unresolvable host); 2 cannot verify: no link could be requested at all (no network), or the corpus is missing
+```
+
 ### assert-docs-screenshots.ps1
 Quality Gate: Assert Documentation Screenshots and Image Bookmarks
 
@@ -3155,7 +3222,7 @@ scripts/quality/assert-exit-contract.ps1
     -Path                   [String] = ''
     -Quiet                  [SwitchParameter]
     -ReasonBaseline         [Int32] = -1
-  Exit: 0 - no unreachable exit site, no silent script, Rule C at or below baseline
+  Exit: 0 - no unreachable exit site, no silent script, Rule C at or below baseline,
 ```
 
 ### assert-fast-gates.ps1
@@ -3173,6 +3240,19 @@ scripts/quality/assert-fast-gates.ps1
     -ThrottleLimit         [Int32] = 0  {range 0..64}
     -ShowPasses            [SwitchParameter]
   Exit: 0 every gate passed; or, with -ChangedFiles, every gate that judged the changed set
+```
+
+### assert-fdsec-vectors-provenance.ps1
+Contract gate: the vendored FDSEC-FORMAT conformance vectors must still be the catalog's vectors.
+
+```
+scripts/quality/assert-fdsec-vectors-provenance.ps1
+  Contract gate: the vendored FDSEC-FORMAT conformance vectors must still be the catalog's vectors.
+  Params:
+    -Quiet               [SwitchParameter]
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+  Exit: 0 every vendored file and every catalog vector matches its PROVENANCE.txt row.; 1 a vendored file or a catalog vector differs from its row, or the catalog publishes a
 ```
 
 ### assert-fgs-notifications.ps1
@@ -3338,8 +3418,9 @@ scripts/quality/assert-gate-placement.ps1
     -RepoRoot             [String]
     -Registry             [String]
     -SourceMap            [String]
+    -Journal              [String]
     -Help                 [SwitchParameter]
-  Exit: 0 registry and wiring agree (or findings exist but -Gate was not passed).; 1 at least one finding, under -Gate with a declared input in the changed set.; 2 cannot verify - the registry is missing or a line is not valid JSON.; 3 advisory: findings exist but no declared input was in the changed set (S2824).
+  Exit: 0 registry and wiring agree (or findings exist but -Gate was not passed).; 1 at least one finding, under -Gate with a declared input in the changed set.; 2 cannot verify - the registry is missing or a line is not valid JSON, or the spec-catalog
 ```
 
 ### assert-gate-timing-claims.ps1
@@ -3438,6 +3519,25 @@ scripts/quality/assert-howto-settings-paths.ps1
     -Gate                     [SwitchParameter]
     -IncludeNarrative         [SwitchParameter]
     -RepoRoot                 [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+```
+
+### assert-icon-contract.ps1
+S3432: rungs 2, 3 and 5 of the icon contract's conformance ladder (ICON-SET, catalog folder iconography/, README section 6) - every glyph maps to a meaning, labels agree with glyphs, and the docs show the meaning's glyph.
+
+```
+scripts/quality/assert-icon-contract.ps1
+  S3432: rungs 2, 3 and 5 of the icon contract's conformance ladder (ICON-SET, catalog folder iconography/, README section 6) - every glyph maps to a meaning, labels agree with glyphs, and the docs show the meaning's glyph.
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+    -ChangedFiles           [String] = ''
+    -CatalogRoot            [String] = ''
+    -SeedDimension          [String] = ''
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -BaselineFile           [String] = ''
+  Exit: 0 - every key is baselined or excused and no charged baseline line is stale; a -List run; a
 ```
 
 ### assert-icon-inventory-sync.ps1
@@ -3905,6 +4005,36 @@ scripts/quality/assert-packaging-excludes-parity.ps1
   Exit: 0 - clean, every module carrying a shared library repeats its payload exclusions; 1 - a module is missing an exclusion, or an unknown payload prefix appeared; 2 - cannot verify: a build file is missing, or has no packaging/resources block to read
 ```
 
+### assert-page-content.ps1
+S3452 conformance gate for contract PAGE-CONTENT 1.1: no emoji, and the above-the-fold order.
+
+```
+scripts/quality/assert-page-content.ps1
+  S3452 conformance gate for contract PAGE-CONTENT 1.1: no emoji, and the above-the-fold order.
+  Params:
+    -Root          [String]
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+    -Help          [SwitchParameter]
+  Exit: 0 - every page passed every check.; 1 - at least one EMOJI or ORDER finding.; 2 - cannot verify: the root or a page is missing.
+```
+
+### assert-page-style.ps1
+S3453 conformance gate for contract PAGE-STYLE 1.0: language switcher, theme pre-paint, kit stylesheet.
+
+```
+scripts/quality/assert-page-style.ps1
+  S3453 conformance gate for contract PAGE-STYLE 1.0: language switcher, theme pre-paint, kit stylesheet.
+  Params:
+    -Root                [String]
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+    -Today               [String]
+    -Gate                [SwitchParameter]
+    -Quiet               [SwitchParameter]
+    -Help                [SwitchParameter]
+  Exit: 0 - every page passed every check.; 1 - at least one LANG, THEME or KIT finding.; 2 - cannot verify: the root, a page, the catalog, its registry or its reference kit is missing.
+```
+
 ### assert-perf-budget.ps1
 Release-scope gate: a budgeted performance metric must have a fresh measurement, and that measurement must stay inside the budget plus its stated tolerance.
 
@@ -3958,6 +4088,20 @@ scripts/quality/assert-play-listing-screenshot-geometry.ps1
     -Quiet                     [SwitchParameter]
     -Help                      [SwitchParameter]
   Exit: 0 - every composed screenshot is inside the band ceiling, its carousel's shape and Play
+```
+
+### assert-positioning-consistency.ps1
+S2271 gate: every positioning surface names the eight pillars of docs/POSITIONING*.md in order.
+
+```
+scripts/quality/assert-positioning-consistency.ps1
+  S2271 gate: every positioning surface names the eight pillars of docs/POSITIONING*.md in order.
+  Params:
+    -Root          [String]
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+    -Help          [SwitchParameter]
+  Exit: 0 - every surface names every pillar in canonical order.; 1 - at least one surface misses a pillar or names it out of order.; 2 - cannot verify: the root, a canonical file or a surface is missing, or the canonical
 ```
 
 ### assert-prerelease-content-gates.ps1
@@ -4222,6 +4366,34 @@ scripts/quality/assert-shared-test-flavor-scope.ps1
     -Module            [String] = 'app_v2'
     -DumpIndex         [SwitchParameter]
   Exit: 0 - no violation (or violations found without -Gate).; 1 - at least one violation, and -Gate was passed.; 2 - could not verify: the build file is unreadable, its mount map carries a line this gate
+```
+
+### assert-site-family-map.ps1
+S3454 conformance gate for contract SITE-FAMILY-MAP 1.1: the footer grid and the one contact.
+
+```
+scripts/quality/assert-site-family-map.ps1
+  S3454 conformance gate for contract SITE-FAMILY-MAP 1.1: the footer grid and the one contact.
+  Params:
+    -Root                [String]
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+    -Gate                [SwitchParameter]
+    -Quiet               [SwitchParameter]
+    -Help                [SwitchParameter]
+  Exit: 0 - every check passed.; 1 - at least one RENDER, MAP, SELF or CONTACT finding.; 2 - cannot verify: the root, a page, README.md, _config.yml, the source, the renderer or the
+```
+
+### assert-site-languages-current.ps1
+S1211 freshness gate: _data/languages.yml equals a fresh render from locales_config.xml.
+
+```
+scripts/quality/assert-site-languages-current.ps1
+  S1211 freshness gate: _data/languages.yml equals a fresh render from locales_config.xml.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
+  Exit: 0 _data/languages.yml is current; 1 _data/languages.yml is missing or differs from a fresh render; 2 cannot verify: the generator is missing or refused to render (its own message is shown)
 ```
 
 ### assert-source-gates.ps1
@@ -5302,6 +5474,28 @@ scripts/quality/assert-hook-inventory.tests/run-tests.ps1
   Exit: 0 every case passed; 1 at least one case failed
 ```
 
+## scripts\quality\assert-icon-contract.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-icon-contract.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
+## scripts\quality\assert-icon-style.tests
+
+### Run-Tests.ps1
+Contract suite for rule `tint` of assert-icon-style.ps1 (S3430), judged by scripts/quality/lib/icon-tint-rule.ps1.
+
+```
+scripts/quality/assert-icon-style.tests/Run-Tests.ps1
+  Contract suite for rule `tint` of assert-icon-style.ps1 (S3430), judged by scripts/quality/lib/icon-tint-rule.ps1.
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed; 2 could not run - the rule library is missing
+```
+
 ## scripts\quality\assert-install-trust.tests
 
 ### Run-Tests.ps1
@@ -5408,6 +5602,26 @@ scripts/quality/assert-orientation-layout-pairing.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-page-content.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-page-content.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
+## scripts\quality\assert-page-style.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-page-style.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-play-listing-screenshot-geometry.tests
 
 ### Run-Tests.ps1
@@ -5442,6 +5656,16 @@ scripts/quality/assert-shared-test-flavor-scope.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1453) - regression suite for the flavor/source-set mount map and the gate on it.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-site-family-map.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-site-family-map.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
 ```
 
 ## scripts\quality\assert-suite-tracked.tests
@@ -5785,6 +6009,15 @@ scripts/quality/lib/house-text-style.ps1
   (no param block)
 ```
 
+### icon-tint-rule.ps1
+S3430: ICON-RENDER rule 2 for the phone's glyph files - a glyph that paints a literal colour must
+
+```
+scripts/quality/lib/icon-tint-rule.ps1
+  S3430: ICON-RENDER rule 2 for the phone's glyph files - a glyph that paints a literal colour must
+  (no param block)
+```
+
 ### listener-symmetry-count.ps1
 Counting core of the listener-symmetry gate (S1559).
 
@@ -5845,6 +6078,15 @@ The declared-catalog gates of scripts/post-change.ps1 - each one judging a hand-
 ```
 scripts/quality/lib/post-change-declared-catalog-gates.ps1
   The declared-catalog gates of scripts/post-change.ps1 - each one judging a hand-maintained declaration against the module it claims to describe.
+  (no param block)
+```
+
+### post-change-docs-corpus-gates.ps1
+The documentation-corpus gates of scripts/post-change.ps1 - the published help pages under documentation/ and the sources they are generated from.
+
+```
+scripts/quality/lib/post-change-docs-corpus-gates.ps1
+  The documentation-corpus gates of scripts/post-change.ps1 - the published help pages under documentation/ and the sources they are generated from.
   (no param block)
 ```
 
@@ -6502,6 +6744,20 @@ scripts/site/ping-indexnow.ps1
   Params:
     -Url         [String[]]
   Exit: 2 = invalid invocation or unreadable sitemap.
+```
+
+### render-family-footer.ps1
+Render the footer tools grid of the six product pages from scripts/site/family-footer.json.
+
+```
+scripts/site/render-family-footer.ps1
+  Render the footer tools grid of the six product pages from scripts/site/family-footer.json.
+  Params:
+    -Root          [String]
+    -Check         [SwitchParameter]
+    -Quiet         [SwitchParameter]
+    -Help          [SwitchParameter]
+  Exit: 0 - every page matches the source (after writing, or already).; 1 - -Check only: at least one page differs from the source or carries no markers.; 2 - cannot render: the root, the source or a page is missing, the source is malformed, or a
 ```
 
 ## scripts\spec_catalog

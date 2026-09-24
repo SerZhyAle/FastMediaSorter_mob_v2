@@ -62,3 +62,24 @@ there means the repository agreed to stop maintaining that tree as documentation
 Drop it under an existing group's globs with a `permalink:` and you are done - the sitemap picks it up
 on the next `generate.ps1`. If it should not be announced, add it to that record's `sitemap_exclude`
 with a reason. If it belongs to no existing group, add a record.
+
+## Adding a language to the site (S1211)
+
+The site takes its language list from the app, so a language is data and text, never a template or a
+workflow edit. `_includes/lang-switcher.html`, `_layouts/` and `.github/workflows/jekyll-gh-pages.yml`
+stay untouched.
+
+1. Add the locale to `app_v2/src/main/res/xml/locales_config.xml` - the one declaration of the
+   languages the product supports.
+2. Add its endonym and text direction to the table in `scripts/docs/generate-site-languages.ps1`; the
+   generator exits 1 and names the tag until that row exists.
+3. Run `pwsh -NoProfile -File scripts/docs/generate-site-languages.ps1`, which rewrites
+   `_data/languages.yml`. `scripts/quality/assert-site-languages-current.ps1` refuses a stale copy at
+   release scope.
+4. Create one localized file per page of the localized page set, named `<page>-<slug>.md` (the slug is
+   the tag lowercased: `zh-hans`), each with its own `permalink:` and the same
+   `{% include lang-switcher.html .. %}` line as its English sibling, `current=` set to the new tag. The
+   switcher lists a language only once its file exists, so a partly translated set still publishes.
+5. Add the tag to the `languages` field of each affected record in `docs/DOCUMENT_REGISTRY.jsonl`, then
+   run `pwsh -NoProfile -File scripts/document_registry/generate.ps1` so `docs/DOCS_MAP.md` and
+   `sitemap.xml` list the new pages, and `validate.ps1` to confirm.

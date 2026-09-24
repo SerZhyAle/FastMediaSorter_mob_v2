@@ -59,5 +59,6 @@ Authors place image bookmarks using the `doc-img-bookmark` container in HTML:
 ## Validation & Quality Gates
 
 - `scripts/quality/assert-docs-screenshots.ps1` parses all HTML/Markdown files in `documentation/`.
+- The closure (`scripts/post-change.ps1`) runs it, fatal, whenever the changed set carries a file under `documentation/`, `docs/content/` or `docs/docs-pages-manifest.jsonl`.
 - In normal development mode, valid image bookmarks are counted and reported as pending capture items.
 - In strict mode (`-Strict`, used in release certification S2975), any unrendered image bookmark causes a gate failure.

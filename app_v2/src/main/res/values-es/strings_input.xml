@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">Acción principal (Aceptar / Aplicar)</string>
     <string name="kbm_help_dialog_toggle">Opción de alternancia</string>
     <string name="kbm_help_empty">Aún no se han registrado accesos directos para esta pantalla.</string>
-    <string name="kbm_help_full_docs_link">Consulte la referencia completa del teclado y el ratón.</string>
     <string name="kbm_help_global_escape">Cancelar, borrar selección, cerrar diálogo</string>
     <string name="kbm_help_global_exit">Salir de la pantalla actual</string>
     <string name="kbm_help_global_f1">Mostrar esta ayuda</string>

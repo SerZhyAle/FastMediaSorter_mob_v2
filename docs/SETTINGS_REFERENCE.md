@@ -41,6 +41,9 @@ _Generated from the app. Do not edit by hand._
 | Reset SMB | Clears all saved SMB network connection credentials and configurations. |
 | Restore settings from Google Drive | Restores app settings from a backup stored in your Google Drive account. |
 | Save Debug Logs | Saves the current debug log to a file on the device for sharing or inspection. |
+| Add folder | Picks a folder through the system picker and adds it to the folders the server shares. |
+| New password | Replaces the server login password with a new random one; clients need the new password afterwards. |
+| Show pairing code | Shows a pairing code with the address, login and host key fingerprint for another FastMediaSorter to scan. |
 | Share Debug Logs | Shares the current debug log via the system share sheet. |
 | Show Log | Opens the full app log for review within the app. |
 | Current Session Log | Opens the log for the current app session only. |
@@ -58,6 +61,7 @@ _Generated from the app. Do not edit by hand._
 | General interface settings | Settings that control the overall look and interaction style of the app. |
 | Main screen interface | Settings that control which optional panels and menus appear on the main window. |
 | Remote resources (SMB/(S)FTP/Cloud) | Settings for connecting to remote file sources: SMB network shares, FTP/SFTP servers, and cloud storage. |
+| Share over SFTP | Groups the embedded SFTP server: share folders picked on this phone with other devices on the network. |
 | Background sync, network and cache | Settings for background sync, network connection limits, and local cache management. |
 | Allow All Files mode | Grants access to all files on the device, including system folders (requires All Files permission). |
 | Allow new windows | Allows opening additional app windows in multi-window or split-screen mode. |
@@ -88,6 +92,7 @@ _Generated from the app. Do not edit by hand._
 | Resource grid cell size | Sets how large the resource cells are in the main window grid: small fits more resources per row, large makes each one bigger. |
 | Show resource actions in menu ⋮ | Off adds shortcut buttons for the frequent resource actions (edit, duplicate, move, delete) directly on the row. The ⋮ menu with the full action list is always available either way. |
 | Secure sensitive screens | Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default. |
+| SFTP server | Starts or stops the SFTP server; while it runs a notification with a Stop action stays in the shade. |
 | Show hidden files | Shows files and folders whose names begin with a dot (hidden by convention). |
 | Programs panel | Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu. |
 | Show streams panel on the main screen | Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section. |
@@ -158,7 +163,7 @@ _Available in: Standard, Legacy, VR_
 | Support PDF documents | Enables viewing of PDF files in the built-in document viewer. |
 | Support text files (.txt, .md, .log, .json, .xml) | Enables viewing of plain text files (.txt, .md, .log, .json, .xml) in the built-in viewer. |
 
-## <img src="icons/doc/ic_cast.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Streams
+## <img src="icons/doc/ic_stream.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Streams
 
 | Setting | What it does |
 |---|---|
@@ -174,7 +179,7 @@ _Available in: Standard, Legacy, VR_
 | Enable Picture-in-Picture | Enables Picture-in-Picture mode so playback continues in a floating window when you leave the player. Same setting as in the playback section. |
 | Visualize audio streams as music | Opens an audio stream in the full-screen visualizer player instead of the inline mini-control when tapped. |
 
-## <img src="icons/doc/ic_camera_capture.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Other
+## <img src="icons/doc/ic_translate.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Other
 
 | Setting | What it does |
 |---|---|
@@ -456,7 +461,7 @@ _Reached from Network Monitor -> Satellites, not from Settings._
 |---|---|
 | Record the track on this device | Writes the satellite positions to a file on this device while the Network Monitor Satellites screen is open. Off after installation; the track never leaves the device and can be shared from that screen. |
 
-## <img src="icons/doc/ic_display.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Wear OS
+## <img src="icons/doc/ic_watch.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Wear OS
 
 _Reached from Wear OS watch app -> Settings._
 

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.capability
 
 import android.content.Context
+import android.os.Build
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.util.DeviceCapabilities
 import com.sza.fastmediasorter.core.util.LicensedDeviceClass
@@ -111,6 +112,18 @@ class CapabilityAvailability @Inject constructor(
      * everywhere else - a `standard` build prompts per request and has nothing to arm ahead of time.
      */
     fun isWatchCameraStandbyAvailable(): Boolean = CAP_WATCH_CAMERA_STANDBY in compiled
+
+    /**
+     * Whether the embedded SFTP server may be offered: the flavor ships local-network sources
+     * (absent in `lite`) AND the device runs API 26+. MINA SSHD is built on `java.nio.file`, which
+     * Android gained in API 26, so the minSdk-23 flavors (`legacy`, `foss`) hide the feature on
+     * older devices instead of failing at server start.
+     *
+     * The flavor axis arrives as the flavor-bound [MediaCapabilities] rather than a build-flag read,
+     * which shared code may not do (CLAUDE.md Rule 14).
+     */
+    fun isSftpServerAvailable(mediaCapabilities: MediaCapabilities): Boolean =
+        mediaCapabilities.supportsLocalNetworkSources && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
 
     enum class TranslationUnavailableReason {
         /** This flavor does not link ML Kit translation at all. */

@@ -189,7 +189,7 @@ class PictureInPictureManager(
         val isPlaying = isVideoPlaying()
 
         val playAction = createRemoteAction(
-            if (isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play,
+            if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
             if (isPlaying) activity.getString(R.string.pip_pause) else activity.getString(R.string.pip_play),
             if (isPlaying) CONTROL_PAUSE else CONTROL_PLAY,
             if (isPlaying) REQUEST_PAUSE else REQUEST_PLAY
@@ -225,8 +225,12 @@ class PictureInPictureManager(
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        // The picture-in-picture controls sit on the system's dark scrim whatever our theme is, so the
+        // glyph carries the overlay colour itself rather than a theme tint resolved outside our process.
+        val icon = Icon.createWithResource(activity, iconRes)
+            .setTint(ContextCompat.getColor(activity, R.color.player_overlay_on_primary))
         return RemoteAction(
-            Icon.createWithResource(activity, iconRes),
+            icon,
             title,
             title,
             pendingIntent

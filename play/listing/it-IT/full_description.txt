@@ -43,3 +43,4 @@ Sul tuo orologio:
 Libero, aperto e privato - il codice sorgente è pubblicato con licenza Apache License 2.0, e la navigazione locale, SMB, FTP e SFTP, insieme ai visualizzatori di immagini, video, audio, PDF ed EPUB, funzionano del tutto offline, senza alcun account.
 
 Source and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2
+User guide: https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/

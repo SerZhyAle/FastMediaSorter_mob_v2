@@ -354,6 +354,8 @@
              foreground type: the siren is what the platform can see it doing, and there is no alarm
              type to declare. -->
         <service android:name=".ui.sos.SosService" android:exported="false" android:foregroundServiceType="mediaPlayback" />
+        <!-- S3041: embedded SFTP server; dataSync reuses the FOREGROUND_SERVICE_DATA_SYNC permission above. -->
+        <service android:name=".service.SftpServerService" android:exported="false" android:foregroundServiceType="dataSync" />
 
         <!-- S2211: autonomous Black Screen application surface -->
         <activity android:name=".ui.blackscreen.BlackScreenActivity" android:exported="false" android:label="@string/launcher_action_black_screen" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
@@ -578,7 +580,7 @@
         </receiver>
 
         <!-- S1916: Stream launch widget - present wherever SUPPORT_STREAMS is, removed in lite/photos -->
-        <receiver android:name=".widget.StreamLaunchWidgetProvider" android:exported="true" android:label="@string/widget_stream_launch_label" android:icon="@drawable/ic_cast">
+        <receiver android:name=".widget.StreamLaunchWidgetProvider" android:exported="true" android:label="@string/widget_stream_launch_label" android:icon="@drawable/ic_stream">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -721,7 +723,7 @@
         </activity>
 
         <!-- Calculator Widget -->
-        <receiver android:name=".widget.CalculatorWidgetProvider" android:exported="true" android:label="@string/widget_calculator_label" android:icon="@drawable/ic_widget_calculator">
+        <receiver android:name=".widget.CalculatorWidgetProvider" android:exported="true" android:label="@string/widget_calculator_label" android:icon="@drawable/ic_calculator">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

@@ -24,7 +24,7 @@ class BrowseSortMenuManager(
     companion object {
         fun getSortModeIconRes(mode: SortMode): Int? {
             return when (mode) {
-                SortMode.RANDOM -> R.drawable.ic_sort_random
+                SortMode.RANDOM -> R.drawable.ic_random_nav
                 else -> null
             }
         }

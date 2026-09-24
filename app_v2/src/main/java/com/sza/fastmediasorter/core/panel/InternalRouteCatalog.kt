@@ -183,7 +183,7 @@ object InternalRouteCatalog {
         Route(
             key = KEY_STREAMS,
             labelRes = R.string.app_launch_panel_route_streams,
-            iconRes = R.drawable.ic_cast,
+            iconRes = R.drawable.ic_stream,
             intent = AppLaunchPanelRouteIntents::streams,
         ),
         Route(
@@ -195,7 +195,7 @@ object InternalRouteCatalog {
         Route(
             key = KEY_BROADCAST,
             labelRes = R.string.broadcast_menu_label,
-            iconRes = R.drawable.ic_cast,
+            iconRes = R.drawable.ic_live_broadcast,
             intent = AppLaunchPanelRouteIntents::broadcast,
             settingsIntent = AppLaunchPanelRouteIntents::broadcastSettings,
         ),
@@ -273,13 +273,13 @@ object InternalRouteCatalog {
         Route(
             key = KEY_TAKE_PHOTO_SEND_TO,
             labelRes = R.string.screenshot_gesture_action_take_photo_send_to,
-            iconRes = R.drawable.ic_camera_send_to,
+            iconRes = R.drawable.ic_send_plane,
             intent = AppLaunchPanelRouteIntents::takePhotoSendTo,
         ),
         Route(
             key = KEY_TAKE_PHOTO_EDIT,
             labelRes = R.string.screenshot_gesture_action_take_photo_edit,
-            iconRes = R.drawable.ic_edit_20,
+            iconRes = R.drawable.ic_edit,
             intent = AppLaunchPanelRouteIntents::takePhotoEdit,
         ),
         Route(

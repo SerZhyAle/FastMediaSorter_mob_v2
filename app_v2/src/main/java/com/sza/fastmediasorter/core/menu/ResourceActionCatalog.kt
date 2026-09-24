@@ -33,9 +33,9 @@ enum class ResourceMenuAction(
         R.drawable.ic_widget_resource_launch,
         R.id.action_add_to_home_screen,
     ),
-    EDIT(R.string.edit, R.drawable.ic_edit_20, R.id.action_edit),
+    EDIT(R.string.edit, R.drawable.ic_edit, R.id.action_edit),
     COPY(R.string.copy_resource, R.drawable.ic_copy, R.id.action_copy),
-    EXPORT(R.string.resource_menu_export, R.drawable.ic_share, R.id.action_export_resource),
+    EXPORT(R.string.resource_menu_export, R.drawable.ic_export, R.id.action_export_resource),
     SHARE_SFTP_ACCESS(
         R.string.resource_menu_share_sftp_access,
         R.drawable.ic_share,
@@ -44,7 +44,7 @@ enum class ResourceMenuAction(
     SCAN(R.string.action_refresh_resource, R.drawable.ic_refresh, R.id.action_scan),
     RECONNECT_RESOURCE(
         R.string.resource_menu_reconnect_resource,
-        R.drawable.ic_folder_open_24,
+        R.drawable.ic_reconnect,
         R.id.action_reconnect_resource,
     ),
     MOVE_UP(R.string.move_up, R.drawable.ic_arrow_upward, R.id.action_move_up),

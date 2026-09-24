@@ -5,12 +5,14 @@ permalink: /docs/FAQ.html
 ---
 # ❓ Frequently Asked Questions (FAQ)
 
+{% include lang-switcher.html doc="FAQ" dir="/docs/" current="en" %}
+
 ---
 
 ## General Questions
 
 ### What is FastMediaSorter?
-FastMediaSorter v2 is an Android app for quickly organizing photos, videos, and audio files from local folders, network drives (SMB/SFTP/FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
+FastMediaSorter v2 is a complete shell for an Android device: it takes over the home screen, plays your media, opens live streams, launches your apps, talks to your watch, keeps an eye on the device, and manages every file you own - in local folders, on network drives (SMB/SFTP/FTP) and in cloud storage (Google Drive, OneDrive, Dropbox).
 
 ### Is it free?
 Yes! FastMediaSorter v2 is completely free and open-source.
@@ -375,7 +377,7 @@ Settings → Media → **Documents** → **"Support EPUB e-books"**
 **Yes!** While reading, use the **-A/+A buttons** at the bottom to decrease/increase font size (14-32px range). Settings are saved per-book.
 
 ### Can I search text in EPUB?
-**Yes!** Tap the **Search button** (🔍) to open search panel. Type your query and navigate through matches with Prev/Next buttons.
+**Yes!** Tap the **Search button** <img src="icons/doc/ic_search.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> to open search panel. Type your query and navigate through matches with Prev/Next buttons.
 
 ### Does it work with network/cloud files?
 **Yes!** EPUB files are automatically downloaded to cache when opened from SMB/SFTP/FTP/Cloud storage.

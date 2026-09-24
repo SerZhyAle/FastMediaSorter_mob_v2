@@ -2,7 +2,8 @@
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
-    android:viewportHeight="24">
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
     <!-- S3433 fit: moves the ink into the 20-unit live area of the 24 grid (ICON-RENDER 0.10
          item A); the path data is the original drawing, untouched. -->
     <group

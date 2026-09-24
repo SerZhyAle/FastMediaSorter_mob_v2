@@ -26,13 +26,13 @@
         <service
             android:name="com.sza.fastmediasorter.broadcast.BroadcastTileService"
             android:exported="true"
-            android:icon="@drawable/ic_display"
+            android:icon="@drawable/ic_live_broadcast"
             android:label="@string/tile_broadcast_label"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" />
         <receiver
             android:name="com.sza.fastmediasorter.widget.BroadcastEntryWidgetProvider"
             android:exported="true"
-            android:icon="@drawable/ic_display"
+            android:icon="@drawable/ic_live_broadcast"
             android:label="@string/widget_broadcast_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

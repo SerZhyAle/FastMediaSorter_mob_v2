@@ -149,8 +149,8 @@
     <string name="keybinding_remap_reset_all">Скинути все</string>
     <string name="keybinding_remap_search_hint">Пошук команд..</string>
     <string name="keybinding_row_no_binding">-</string>
-    <string name="keybinding_row_remap">Призначити</string>
-    <string name="keybinding_row_reset">За замовчуванням</string>
+    <string name="keybinding_row_remap">Редагувати призначення</string>
+    <string name="keybinding_row_reset">Скинути до стандартних</string>
     <string name="kbm_help_browse_back">У батьківську папку</string>
     <string name="kbm_help_browse_open">Відкрити папку або файл</string>
     <string name="kbm_help_dialog_arrows">Навігація між рядками</string>
@@ -158,7 +158,6 @@
     <string name="kbm_help_dialog_primary">Основна дія (OK / Застосувати)</string>
     <string name="kbm_help_dialog_toggle">Перемкнути параметр</string>
     <string name="kbm_help_empty">Для цього екрана сполучень клавіш ще немає.</string>
-    <string name="kbm_help_full_docs_link">Відкрити повну довідку з клавіатури та миші ..</string>
     <string name="kbm_help_global_escape">Скасувати, зняти виділення, закрити діалог</string>
     <string name="kbm_help_global_exit">Закрити поточний екран</string>
     <string name="kbm_help_global_f1">Показати цю довідку</string>
@@ -230,7 +229,7 @@
     <string name="touch_zone_queue">Черга</string>
     <string name="touch_zone_rename">ПЕРЕІМ.</string>
     <string name="touch_zone_slideshow">СЛАЙДШОУ</string>
-    <string name="touch_zones_help">Показати сенсорні зони</string>
+    <string name="touch_zones_help">Довідка: показати сенсорні зони</string>
     <string name="touch_zones_legend_title">Легенда сенсорних зон:</string>
     <string name="touch_zones_overlay_zoneBack_text">НАЗАД</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">ПАНЕЛЬ\nКОМАНД</string>
@@ -242,4 +241,8 @@
     <string name="touch_zones_overlay_zoneRename_text">ПЕРЕЙМЕНУВАТИ</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">СЛАЙДШОУ</string>
     <string name="touch_zones_scheme">Схема сенсорних зон (Зображення/Відео) для повноекранного режиму</string>
+    <string name="docs_help_open_page">Відкрити сторінку довідки про цей екран ..</string>
+    <string name="docs_help_fallback_title">Відкрийте довідку на іншому пристрої</string>
+    <string name="docs_help_fallback_no_browser">На цьому пристрої немає веб-браузера. Відскануйте QR-код телефоном або введіть адресу нижче.</string>
+    <string name="docs_help_fallback_offline">Зараз немає підключення до інтернету. Відскануйте QR-код телефоном або відкрийте адресу нижче пізніше.</string>
 </resources>

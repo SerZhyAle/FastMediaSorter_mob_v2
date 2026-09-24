@@ -37,9 +37,9 @@ class RecognitionBackend(
     private val capabilityRepository: DeliverableCapabilityRepository,
     private val libraryLoader: DeliveredNativeLibraryLoader,
     private val statsSink: StatsSink,
-    // S1712: the discard channel. Off by default, and while it is off this costs one flag comparison
-    // per fragment and allocates nothing.
-    private val discardRecorder: OcrDiscardRecorder = OcrDiscardRecorder(),
+    // S3446: on in every build - `OCR-OVERLAY` rule 12 wants the record where bug reports come from, and a
+    // switch would have to be flipped before the bug. Only its text-free lines reach the log.
+    private val discardRecorder: OcrDiscardRecorder = OcrDiscardRecorder().apply { setEnabled(true) },
 ) : TextRecognitionFacade {
 
     // Languages that use Cyrillic script.
@@ -185,7 +185,11 @@ class RecognitionBackend(
         )
 
         lastBlocksRefusedForLanguage = false
-        if (!ocrBlocks.isNullOrEmpty()) {
+        if (ocrBlocks.isNullOrEmpty()) {
+            discardRecorder.beginRun()
+            Timber.d("S3446: discard record written for a recognition that read nothing")
+            Timber.i("OCR discard record: %s", discardRecorder.summaryLine(readCount = 0))
+        } else {
             val languageAssumed = settings.translationSourceLanguage.equals("auto", ignoreCase = true) ||
                 (ocrEngine === offlineOcrEngineProvider.defaultEngine && mappedTesseractLang(sourceLang) == null)
             val filteredBlocks = acceptedBlocks(ocrBlocks, languageAssumed)
@@ -229,11 +233,16 @@ class RecognitionBackend(
         val refusedTexts = mutableListOf<String>()
         // S3039: cut before the filter so every piece is judged on its own - a junk glyph cut off a real line
         // fails the filter instead of stretching that line's plate across the artwork.
-        OcrLineSplitter.split(ocrBlocks).forEach { block ->
+        val pieces = OcrLineSplitter.split(ocrBlocks)
+        pieces.forEach { block ->
             val verdict = OcrBlockFilter.evaluate(block)
             discardRecorder.record(block, verdict)
             if (verdict == OcrBlockFilter.Verdict.ACCEPTED) kept.add(block) else refusedTexts.add(block.text)
         }
+        Timber.d("S3446: discard record written for a recognition with lines")
+        Timber.i("OCR discard record: %s", discardRecorder.summaryLine(readCount = pieces.size))
+        discardRecorder.lastRun.forEach { Timber.i("OCR discarded: %s", it.toLogLine()) }
+        Timber.d("S3418: language guard assumed=$languageAssumed kept=${kept.size} refused=${refusedTexts.size}")
         if (!OcrLanguageGuard.shouldRefuse(languageAssumed, kept.map { it.text }, refusedTexts)) {
             return kept
         }

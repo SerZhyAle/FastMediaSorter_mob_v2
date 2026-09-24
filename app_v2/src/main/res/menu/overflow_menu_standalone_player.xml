@@ -21,7 +21,7 @@
             <!-- S0393 wave-C: full image edit (rotate/flip/filters/adjust) via the generic ImageEditDialog -->
             <item
                 android:id="@+id/menu_edit_image"
-                android:icon="@drawable/ic_edit_20"
+                android:icon="@drawable/ic_edit"
                 android:title="@string/menu_edit_adjust"
                 app:showAsAction="never" />
 
@@ -82,7 +82,7 @@
     <!-- S1364: screen-autorotate toggle, parity with the embedded player. -->
     <item
         android:id="@+id/menu_autorotate_standalone"
-        android:icon="@drawable/ic_rotation_unlocked"
+        android:icon="@drawable/ic_screen_rotation"
         android:title="@string/menu_autorotate_screen_title"
         android:checkable="true"
         app:showAsAction="never" />

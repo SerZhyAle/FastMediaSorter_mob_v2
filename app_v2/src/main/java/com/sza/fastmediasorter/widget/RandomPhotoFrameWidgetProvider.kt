@@ -6,7 +6,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.view.View
 import android.widget.RemoteViews
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -19,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class RandomPhotoFrameWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(
@@ -87,6 +87,9 @@ class RandomPhotoFrameWidgetProvider : AppWidgetProvider() {
                 storedSnapshot
             }
             val views = RemoteViews(context.packageName, R.layout.widget_random_photo_frame)
+            val photoUri = snapshot.selectedThumbnailUri
+                .takeIf { snapshot.isConfigured && snapshot.hasRenderablePhoto }
+                ?.let { WidgetPlateGlyph.drawableUriOrNull(context, it) }
 
             if (!snapshot.isConfigured) {
                 views.setImageViewResource(
@@ -110,11 +113,8 @@ class RandomPhotoFrameWidgetProvider : AppWidgetProvider() {
                     R.id.widget_random_photo_frame_image,
                     context.getString(R.string.widget_random_photo_frame_label)
                 )
-            } else if (snapshot.hasRenderablePhoto && snapshot.selectedThumbnailUri.isNotBlank()) {
-                views.setImageViewUri(
-                    R.id.widget_random_photo_frame_image,
-                    Uri.parse(snapshot.selectedThumbnailUri)
-                )
+            } else if (photoUri != null) {
+                views.setImageViewUri(R.id.widget_random_photo_frame_image, photoUri)
                 views.setViewVisibility(R.id.widget_random_photo_frame_overlay, View.GONE)
                 views.setContentDescription(
                     R.id.widget_random_photo_frame_image,
@@ -127,33 +127,7 @@ class RandomPhotoFrameWidgetProvider : AppWidgetProvider() {
                     openSelectedPhotoPendingIntent(context, appWidgetId, snapshot)
                 )
             } else {
-                views.setImageViewResource(
-                    R.id.widget_random_photo_frame_image,
-                    R.drawable.ic_image
-                )
-                views.setViewVisibility(R.id.widget_random_photo_frame_overlay, View.VISIBLE)
-                views.setTextViewText(
-                    R.id.widget_random_photo_frame_title,
-                    snapshot.resourceName.ifBlank {
-                        context.getString(R.string.widget_random_photo_frame_empty_title)
-                    }
-                )
-                views.setTextViewText(
-                    R.id.widget_random_photo_frame_subtitle,
-                    snapshot.fallbackMessage.ifBlank {
-                        context.getString(R.string.widget_random_photo_frame_cache_empty)
-                    }
-                )
-                views.setOnClickPendingIntent(
-                    R.id.widget_random_photo_frame_container,
-                    browsePendingIntent(context, appWidgetId, snapshot.resourceId)
-                )
-                views.setContentDescription(
-                    R.id.widget_random_photo_frame_image,
-                    snapshot.fallbackMessage.ifBlank {
-                        context.getString(R.string.widget_random_photo_frame_label)
-                    }
-                )
+                bindMissingPhoto(context, appWidgetId, views, snapshot)
             }
 
             // S1930: a launcher cell has no AppWidget host, and a negative id matches no widget - pushing
@@ -161,6 +135,42 @@ class RandomPhotoFrameWidgetProvider : AppWidgetProvider() {
             if (!LauncherWidgetToken.isLauncherToken(appWidgetId)) {
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
+        }
+
+        private fun bindMissingPhoto(
+            context: Context,
+            appWidgetId: Int,
+            views: RemoteViews,
+            snapshot: RandomPhotoFrameSnapshotStore.Snapshot
+        ) {
+            Timber.d("S3444: photo frame widget without a readable photo shows the image glyph")
+            views.setImageViewResource(
+                R.id.widget_random_photo_frame_image,
+                R.drawable.ic_image
+            )
+            views.setViewVisibility(R.id.widget_random_photo_frame_overlay, View.VISIBLE)
+            views.setTextViewText(
+                R.id.widget_random_photo_frame_title,
+                snapshot.resourceName.ifBlank {
+                    context.getString(R.string.widget_random_photo_frame_empty_title)
+                }
+            )
+            views.setTextViewText(
+                R.id.widget_random_photo_frame_subtitle,
+                snapshot.fallbackMessage.ifBlank {
+                    context.getString(R.string.widget_random_photo_frame_cache_empty)
+                }
+            )
+            views.setOnClickPendingIntent(
+                R.id.widget_random_photo_frame_container,
+                browsePendingIntent(context, appWidgetId, snapshot.resourceId)
+            )
+            views.setContentDescription(
+                R.id.widget_random_photo_frame_image,
+                snapshot.fallbackMessage.ifBlank {
+                    context.getString(R.string.widget_random_photo_frame_label)
+                }
+            )
         }
 
         private fun configPendingIntent(context: Context, appWidgetId: Int): PendingIntent {

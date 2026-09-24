@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.ui.common.MediaColorCategory
 import com.sza.fastmediasorter.ui.common.MediaTypeColorCatalog
+import com.sza.fastmediasorter.ui.common.tintIconsFromTheme
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.util.LimitedStorageReach
 import com.sza.fastmediasorter.util.VirtualPathUtils
@@ -277,7 +278,7 @@ class ResourceAdapter(
             // Single category: audio=note, docs=book, video=video icon, images=image icon.
             val indicator = when {
                 types == setOf(MediaType.AUDIO) -> SingleCategoryIndicator(
-                    iconRes = R.drawable.ic_music_note,
+                    iconRes = R.drawable.ic_audio,
                     color = categoryColor(context, MediaColorCategory.MUSIC)
                 )
                 types.isNotEmpty() && types.all { it in DOCUMENT_TYPES } -> SingleCategoryIndicator(
@@ -599,7 +600,7 @@ class ResourceAdapter(
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                         applyActionVisibility(popup.menu, resource, view.context)
                         popup.setForceShowIcon(true)
-                        tintPopupMenuIcons(view.context, popup.menu)
+                        popup.menu.tintIconsFromTheme(view.context)
                         popup.setOnMenuItemClickListener { item -> onActionSelected(item.itemId, resource) }
                         popup.show()
                     }
@@ -915,7 +916,7 @@ class ResourceAdapter(
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                         applyActionVisibility(popup.menu, resource, view.context)
                         popup.setForceShowIcon(true)
-                        tintPopupMenuIcons(view.context, popup.menu)
+                        popup.menu.tintIconsFromTheme(view.context)
                         popup.setOnMenuItemClickListener { item ->
                             onActionSelected(item.itemId, resource)
                         }
@@ -973,25 +974,5 @@ private fun applyUnavailableSurface(surface: android.view.View, isAvailable: Boo
         surface.setBackgroundColor(
             ContextCompat.getColor(surface.context, R.color.unavailable_resource_bg)
         )
-    }
-}
-
-/**
- * PopupMenu renders raw menu icons untinted. Most of this menu's vectors are plain white fills
- * (shared with dark player overlays), so in the light theme they turn invisible/white. Tint
- * mutated copies with colorControlNormal so icons always match the popup's own text color.
- */
-private fun tintPopupMenuIcons(context: android.content.Context, menu: android.view.Menu) {
-    val tv = android.util.TypedValue()
-    val resolved = context.theme.resolveAttribute(androidx.appcompat.R.attr.colorControlNormal, tv, true) ||
-        context.theme.resolveAttribute(android.R.attr.colorControlNormal, tv, true)
-    if (!resolved) return
-    val color = if (tv.resourceId != 0) ContextCompat.getColor(context, tv.resourceId) else tv.data
-    for (i in 0 until menu.size()) {
-        val item = menu.getItem(i)
-        val icon = item.icon ?: continue
-        val wrapped = DrawableCompat.wrap(icon.mutate())
-        DrawableCompat.setTint(wrapped, color)
-        item.icon = wrapped
     }
 }

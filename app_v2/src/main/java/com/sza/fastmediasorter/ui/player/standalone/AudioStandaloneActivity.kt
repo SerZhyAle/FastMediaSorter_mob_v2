@@ -447,7 +447,7 @@ class AudioStandaloneActivity :
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
-            popup.applyStandaloneOverflowIcons()
+            popup.applyStandaloneOverflowIcons(anchor.context)
             // S0393: shared menu - hide image/video-only items; keep audio items (YouTube/lyrics/sleep).
             // S1364: hiding menu_edit_section_standalone removes its children with it, so the editing
             // ids are no longer listed individually. That also retires menu_rotate_content_standalone

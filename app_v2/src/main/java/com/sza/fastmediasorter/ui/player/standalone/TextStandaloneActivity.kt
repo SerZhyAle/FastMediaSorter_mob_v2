@@ -422,7 +422,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
-            popup.applyStandaloneOverflowIcons()
+            popup.applyStandaloneOverflowIcons(anchor.context)
             // S0393: this menu is shared with the image/audio hosts - hide their type-specific items here.
             // S0459 §11.7: "Send to Keep" is dropped from the overflow - the unified Send-to menu
             // (btnShareCmd -> SendToMenuManager) already offers the Keep-text receiver for TEXT content.

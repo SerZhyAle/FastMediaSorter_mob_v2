@@ -15,13 +15,13 @@ This document establishes the canonical assignment of all 32 feature inventory a
 | **S2952** | Images, Audio & Slideshow | Image & GIF Viewer, Audio Player, Slideshow | Photo viewer, GIF zoom, Slideshow transitions, Music player & playlists |
 | **S2953** | Documents & Text Editor | Documents, Text Editor | PDF/EPUB reader, Office formats, Markdown/Text editor |
 | **S2954** | Streams Channel Catalog | Streams (Catalog Partition) | IPTV catalog, M3U import, EPG, favorite streams |
-| **S2955** | Streams Playback & Recording | Streams (Playback Partition) | Live HLS/DASH playback, background radio, stream recording, time-shift |
+| **S2955** | Streams Playback | Streams (Playback Partition) | Live HLS/DASH playback, background radio, weak-connection behavior, shortcuts, widget and streams panel, Chromecast, watch, VR and Live Broadcast reception |
 | **S2956** | Camera & Screen Recording | Camera, Screen Capture | Quick snaps, screen recorder with audio, screenshot editor |
-| **S2957** | OCR, Translation, Drawing & Sharing | OCR & Translation, Drawing & Annotations, Sharing | Offline OCR, inline translation, sketch tool, QuickShare / Nearby |
+| **S2957** | OCR, Translation, Drawing & Sharing | OCR & Translation, Drawing & Annotations, Sharing, Send-to menu, Resource sharing (SFTP QR) | Offline OCR, on-device translation overlays, drawing editor, Send to.. menu and its receivers |
 | **S2958** | Launcher: Desktop & Wallpapers | Launcher (Desktop Partition) | Grid layout, icon packs, wallpaper engine, desktop folders |
-| **S2959** | Launcher: Gadgets, Widgets & App Drawer | Launcher (Widgets Partition), Widgets | App drawer search/tags, media gadgets, Android widget host |
+| **S2959** | Launcher: Gadgets & Widgets | Launcher (Widgets Partition), Widgets | Desktop gadgets, gadget placement, home-screen widgets |
 | **S2960** | Launcher: Taskbar, Menus & Gestures | Launcher (Taskbar Partition) | Dock/taskbar, navigation gestures, desktop context menus |
-| **S2961** | Programs, Statistics & Diagnostics | Programs & Tools, Usage Statistics, Diagnostics | Built-in utilities, disk usage stats, crash logs & diagnostics |
+| **S2961** | Programs, Statistics & Diagnostics | Programs & Tools, Usage Statistics, Diagnostics | Built-in programs (flashlights, mirror, SOS, calculator, stopwatch, mini-game), usage statistics, System information & the debug log; Live Broadcast is described on the S2951 casting page |
 | **S2962** | Settings & Navigation | Settings & Navigation | Global settings hierarchy, appearance, sorting/playback defaults, privacy |
 | **S2963** | General Features, Backup & TV | General | Backup/restore zip, Keyboard & D-Pad navigation, Android TV, Foldables |
 | **S2964** | Watch: Setup, Companion & Sync | Wear OS (Setup & Sync Partition) | Watch installation, Bluetooth companion pairing, Tile complications |
@@ -33,12 +33,12 @@ This document establishes the canonical assignment of all 32 feature inventory a
 
 1. **Streams Area (Streams)**:
    - S2954 owns discovery, channels, M3U loading, and EPG metadata.
-   - S2955 owns player playback engines, buffer tuning, and stream recording.
+   - S2955 owns playback, buffering and weak-connection behavior, one-tap starts (shortcuts, widget, streams panel), and taking a stream to a TV, a watch or a VR headset, including Live Broadcast reception.
 
 2. **Launcher Area (Launcher & Widgets)**:
    - S2958 owns the desktop canvas, icons, and wallpapers.
-   - S2959 owns the app drawer, media gadgets, and Android widget embedding.
-   - S2960 owns the taskbar, gestures, hotkeys, and context menus.
+   - S2959 owns the desktop gadgets, gadget placement and sizing, and the home-screen widgets.
+   - S2960 owns the taskbar, the All apps list, gestures, hotkeys, and context menus.
 
 3. **Wear OS Area (Wear OS)**:
    - S2964 owns pairing, sync protocols, and watch face tiles.

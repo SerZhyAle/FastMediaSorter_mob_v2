@@ -287,8 +287,8 @@ class NowPlayingManager(
         noteShown = false
         Glide.with(activityBinding.root.context)
             .load(artworkUri)
-            .placeholder(R.drawable.ic_music_note)
-            .error(R.drawable.ic_music_note)
+            .placeholder(R.drawable.ic_audio)
+            .error(R.drawable.ic_audio)
             .into(bar.miniArtwork)
     }
 
@@ -333,7 +333,7 @@ class NowPlayingManager(
         val bar = miniBar ?: return
         // A still-pending artwork load would otherwise land on top of the note a moment later.
         Glide.with(activityBinding.root.context).clear(bar.miniArtwork)
-        bar.miniArtwork.setImageResource(R.drawable.ic_music_note)
+        bar.miniArtwork.setImageResource(R.drawable.ic_audio)
         noteShown = true
         applyNoteRotation(isPlaying)
     }

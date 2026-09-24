@@ -839,7 +839,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
-            popup.applyStandaloneOverflowIcons()
+            popup.applyStandaloneOverflowIcons(anchor.context)
             // S0459: this deprecated host only wires "Open in FMS"; the shared menu also declares
             // image/audio items (e.g. Google Lens) that have no handler here. Hide everything else so
             // no orphaned item renders as a dead tap. (Full host removal tracked under S0393.)

@@ -6,7 +6,7 @@
     <LinearLayout android:id="@+id/topCommandPanel" android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="@dimen/player_cmd_padding_vertical" android:paddingHorizontal="@dimen/player_cmd_padding_horizontal" android:background="@color/activity_player_unified_topCommandPanel_background" android:visibility="gone" app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Back Button (Keep it at start) -->
-        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/back" android:src="@drawable/ic_back" app:tint="@color/white" />
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/back" android:src="@drawable/ic_arrow_back" app:tint="@color/white" />
 
         <!-- Scrollable Middle Section for Actions -->
         <HorizontalScrollView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:scrollbars="none">
@@ -17,7 +17,7 @@
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnBlackScreenCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/black_screen_button_title" android:src="@drawable/ic_black_screen" android:visibility="gone" />
 
                 <!-- S0162: Rotation toggle - visible only when followSystemRotation=false and hasAccelerometer -->
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRotationToggleCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/rotation_toggle_sensor_on_desc" android:src="@drawable/ic_rotation_unlocked" android:visibility="gone" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRotationToggleCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/rotation_toggle_sensor_on_desc" android:src="@drawable/ic_screen_rotation" android:visibility="gone" />
 
                 <!-- Text Actions -->
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@null" />
@@ -28,7 +28,7 @@
 
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnCopyTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_copy" android:visibility="gone" android:contentDescription="@null" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEditTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_edit_20" android:visibility="gone" android:contentDescription="@string/menu_edit_file_text" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEditTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_edit" android:visibility="gone" android:contentDescription="@string/menu_edit_file_text" />
 
                 <!-- PDF Actions -->
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchPdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@null" />
@@ -77,7 +77,7 @@
 
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRenameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_rename" android:contentDescription="@null" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEditCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_edit_20" android:visibility="gone" android:contentDescription="@string/menu_edit_adjust" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEditCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_edit" android:visibility="gone" android:contentDescription="@string/menu_edit_adjust" />
 
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSaveFrameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_save_frame" android:visibility="gone" android:contentDescription="@null" />
 
@@ -109,7 +109,7 @@
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnFullscreenCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_fullscreen" android:visibility="gone" android:contentDescription="@null" />
 
                 <!-- S0103: fixed anchor - already before nav block -->
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSlideshowCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_play" android:contentDescription="@null" android:visibility="gone" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSlideshowCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_slideshow" android:contentDescription="@null" android:visibility="gone" />
 
                 <!-- Navigation at end of scrollable area (same set as portrait, all part of adaptive system) -->
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPreviousCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_previous" android:contentDescription="@null" android:visibility="gone" />
@@ -144,7 +144,7 @@
 
            <!-- S1007: not D-pad/keyboard focusable - the video surface itself must never wear the
                 app-wide TV focus decoration (core/ui/focus/FocusDecorationController); only real controls should. -->
-           <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:focusable="false" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_music_note" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="?attr/customPlayerControlsLayout" />
+           <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:focusable="false" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_audio" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="?attr/customPlayerControlsLayout" />
 
         <ViewStub android:id="@+id/altEngineViewStub" android:layout_width="match_parent" android:layout_height="match_parent" android:layout="@layout/view_alt_engine_surface" />
 
@@ -226,7 +226,7 @@
         <!-- S1647: portrait parity - touch-zone help button, visible in fullscreen touch-zone mode for
              IMAGE/GIF. Top-end inside the media area rather than at the root, so the command panel above
              cannot cover it the way a parent-anchored copy would. Declared last for z-order, as in portrait. -->
-        <ImageButton android:id="@+id/btnTouchZonesHelp" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:layout_gravity="top|end" android:layout_marginTop="@dimen/player_epub_button_margin_top" android:layout_marginEnd="@dimen/player_epub_button_margin_end" android:background="@drawable/bg_circle_dark" android:src="@drawable/ic_help_outline_24" android:contentDescription="@string/touch_zones_help" android:scaleType="fitCenter" android:padding="@dimen/player_epub_button_padding" android:elevation="@dimen/elevation_player_overlay" android:visibility="gone" />
+        <ImageButton android:id="@+id/btnTouchZonesHelp" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:layout_gravity="top|end" android:layout_marginTop="@dimen/player_epub_button_margin_top" android:layout_marginEnd="@dimen/player_epub_button_margin_end" android:background="@drawable/bg_circle_dark" android:src="@drawable/ic_help_outline" android:contentDescription="@string/touch_zones_help" android:scaleType="fitCenter" android:padding="@dimen/player_epub_button_padding" android:elevation="@dimen/elevation_player_overlay" android:visibility="gone" />
 
         <!-- S0021: Diagnostic FPS overlay (parity with portrait layout). -->
         <TextView android:id="@+id/tvPlayerFpsOverlay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|end" android:layout_marginTop="@dimen/margin_small" android:layout_marginEnd="@dimen/margin_small" android:background="@drawable/bg_fps_overlay" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="2dp" android:textColor="@color/white" android:textSize="@dimen/toggler_desc_text_size" android:elevation="@dimen/elevation_player_overlay" android:focusable="false" android:clickable="false" android:visibility="gone" />
@@ -270,7 +270,7 @@
     <!-- Fullscreen controls overlay (Portrait style, hidden but required for binding types) -->
     <LinearLayout android:id="@+id/controlsOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@android:color/transparent" android:visibility="gone">
 
-        <com.sza.fastmediasorter.ui.common.widget.StandardToolbar android:id="@+id/toolbar" style="@style/Widget.FastMediaSorter.Toolbar.Primary" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" app:navigationIcon="@drawable/ic_back" />
+        <com.sza.fastmediasorter.ui.common.widget.StandardToolbar android:id="@+id/toolbar" style="@style/Widget.FastMediaSorter.Toolbar.Primary" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" app:navigationIcon="@drawable/ic_arrow_back" />
 
         <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
 

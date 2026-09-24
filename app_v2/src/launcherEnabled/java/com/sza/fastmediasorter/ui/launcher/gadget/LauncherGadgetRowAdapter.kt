@@ -15,10 +15,9 @@ import com.sza.fastmediasorter.ui.icon.RecyclableIconTint
  * One row in a list gadget. [id] is the row's identity; [bitmap] is an already-decoded favicon tile
  * (streams) and wins over [iconRes] (tracks) when present.
  *
- * [tintIcon] is per-row, not a layout attribute, because the leading slot holds three different kinds
- * of image and only one of them may be tinted: a favicon bitmap would be repainted a flat colour, and
- * ic_music_note is a gold gradient a tint would destroy - but ic_cast fills white and is invisible on
- * the card without one.
+ * [tintIcon] is per-row, not a layout attribute, because the leading slot holds both favicon bitmaps
+ * and glyphs, and only the glyphs may be tinted: a favicon bitmap would be repainted a flat colour,
+ * while a glyph needs the card's text colour to stay visible on it.
  */
 data class LauncherGadgetRow(
     val id: String,

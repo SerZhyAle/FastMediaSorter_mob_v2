@@ -47,6 +47,30 @@ declared in `scripts/quality/icon-style-exceptions.txt`, each with its reason; a
 stale fails the gate. The contract export writes the same measurement into `CATALOG.md`,
 "Style report".
 
+`scripts/quality/assert-icon-contract.ps1` holds rungs 2, 3 and 5 of the contract's
+conformance ladder (S3432):
+
+- every `ic*` drawable the source references maps to a vocabulary meaning or is declared private;
+- a control whose label is a meaning's exact name shows that meaning's glyph;
+- a Russian or Ukrainian string never carries another meaning's name;
+- the doc icon map and the termbase pictures are vocabulary glyphs;
+- a control whose only label is its glyph has an accessible name that contains the name of the
+  glyph's meaning, in English, Russian and Ukrainian (`ICON-RENDER` rule 8, S3443). "Contains",
+  not "equals": "Back to list" names Back. Compose `Icons.*` vectors on the watch are not judged
+  until they are mapped to meanings (S3482).
+
+What the vocabulary cannot know lives in `docs/icons/icon-contract-map.json`:
+
+- private artwork patterns;
+- product drawables that draw an existing meaning under another file name;
+- qualified labels;
+- the meaning of each termbase term.
+
+Today's deviations sit in `scripts/quality/icon-contract-baseline.txt`, which may fall and never
+rise: a fix lowers it with `-UpdateBaseline`, and a new dimension is seeded once with
+`-UpdateBaseline -SeedDimension <name>`. The gate finds the catalog through
+`FMS_CONTRACTS_ROOT` (process or user scope) or `-CatalogRoot`, and without one it exits 2.
+
 ## Convention: icons, not emoji
 
 - User documentation uses the actual app icons under `docs/icons/svg/`, not decorative
@@ -97,6 +121,20 @@ Run the three stages in order after an icon or a related string changes:
    ```
 
 Steps 2 and 3 are idempotent - a re-run is byte-identical when nothing changed.
+
+4. Watch legend (S3442), from the watch source, `icon-contract-map.json` and the ICON-SET vocabulary
+   in the contracts catalog - every `ic_*` glyph the watch references, named with its canonical
+   EN/RU/UK name, into `docs/wear/ICON_LEGEND*.md` and `docs/icons/svg/wear/`:
+
+   ```
+   pwsh -NoProfile -File scripts/docs/render-wear-icon-legend.ps1
+   ```
+
+The docs/site page icons come from `doc-icon-map.json` (`export-doc-icon-pngs.ps1`, `apply-doc-icons.ps1`):
+every slot draws the vocabulary glyph of its concept, `pageIcons` declares each hand-embedded page-title
+icon and `controlGlyphs` each glyph shown beside a control's name in prose.
+`scripts/quality/assert-doc-icons-sync.ps1` refuses an icon on any docs page the map does not declare and
+an emoji in parentheses standing in for a control's glyph (ICON-SET rule 8).
 
 ## Drift gate
 

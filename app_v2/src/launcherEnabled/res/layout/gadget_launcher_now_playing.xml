@@ -40,7 +40,7 @@
             android:contentDescription="@string/launcher_now_playing_artwork"
             android:scaleType="fitCenter"
             android:visibility="gone"
-            tools:src="@drawable/ic_play"
+            tools:src="@drawable/ic_audio"
             tools:visibility="visible" />
 
     <LinearLayout
@@ -103,7 +103,7 @@
                 android:layout_width="@dimen/launcher_gadget_action_size"
                 android:layout_height="@dimen/launcher_gadget_action_size"
                 android:background="@android:color/transparent"
-                android:contentDescription="@string/previous"
+                android:contentDescription="@string/previous_item"
                 android:focusable="true"
                 android:foreground="@drawable/focus_button_background"
                 android:padding="6dp"
@@ -129,7 +129,7 @@
                 android:layout_width="@dimen/launcher_gadget_action_size"
                 android:layout_height="@dimen/launcher_gadget_action_size"
                 android:background="@android:color/transparent"
-                android:contentDescription="@string/next"
+                android:contentDescription="@string/next_item"
                 android:focusable="true"
                 android:foreground="@drawable/focus_button_background"
                 android:padding="6dp"

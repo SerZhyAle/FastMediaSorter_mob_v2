@@ -45,6 +45,8 @@
       - assert-rule-digest-sync      (S1548 CLAUDE.md numbered rules vs the two full digests)
       - assert-gson-persistence-contract (S1639 a durable Gson model whose wire names nothing pins)
       - assert-stream-asset-revisions (S1828 a pinned stream-catalog asset that would stop being published)
+      - assert-fdsec-vectors-provenance (S3420 vendored FDSEC-FORMAT vectors vs the catalog copy)
+      - assert-contract-pointers     (S3457 contract pointer files vs their index, summary and the catalog registry)
       - assert-migration-test-pairing (S1844 a Room migration with no instrumented migration test)
  - assert-migration-schema-conformance (S2306 migration SQL that disagrees with the exported schema)
       - assert-launcher-contrast     (S1895 a launcher colour measured under 7:1 on its own surface)
@@ -441,6 +443,14 @@ $gates = [ordered]@{
     # so a pinned revision survives only because no action removes it. Reads the pinned names from
     # stream-catalog/CONSUMERS.md and the revision defaults from the publisher; two file reads.
     'assert-stream-asset-revisions.ps1'         = @('-Quiet')
+    # S3420: the vendored FDSEC-FORMAT conformance vectors against the catalog copy they came from.
+    # The vectors decide conformance, so a catalog regeneration would otherwise leave FdSecVectorsTest
+    # green against stale bytes. Hashes a few small files; exit 3 (SKIP) without FMS_CONTRACTS_ROOT.
+    'assert-fdsec-vectors-provenance.ps1'       = @('-Quiet')
+    # S3457: docs/contracts/<ID>.md, its README index, the summary table and the catalog registry
+    # must name one set of ids and versions; the LIVE-BROADCAST pointer had drifted two versions.
+    # Reads 25 small files; exit 3 (SKIP) without FMS_CONTRACTS_ROOT once the in-repo half passed.
+    'assert-contract-pointers.ps1'              = @('-Quiet')
     # S1470: primary constructors approaching the 255 argument-slot ceiling. AppSettings crossed it
     # at one field per ticket; kotlinc and D8 both accepted the class and only the runtime verifier
     # refused it, so the build stayed green while the app could not start at all. Source parse of

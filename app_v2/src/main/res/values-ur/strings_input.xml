@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">بنیادی کارروائی (ٹھیک ہے / درخواست دیں)</string>
     <string name="kbm_help_dialog_toggle">ٹوگل آپشن</string>
     <string name="kbm_help_empty">اس اسکرین کے لیے ابھی تک کوئی شارٹ کٹ رجسٹرڈ نہیں ہے۔</string>
-    <string name="kbm_help_full_docs_link">مکمل کی بورڈ / ماؤس کا حوالہ کھولیں ..</string>
     <string name="kbm_help_global_escape">منسوخ کریں، انتخاب صاف کریں، ڈائیلاگ بند کریں۔</string>
     <string name="kbm_help_global_exit">موجودہ اسکرین سے باہر نکلیں۔</string>
     <string name="kbm_help_global_f1">یہ مدد دکھائیں۔</string>

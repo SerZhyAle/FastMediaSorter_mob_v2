@@ -10,15 +10,19 @@ permalink: /docs/README.html
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
-**📖 Other Languages:** [🇷🇺 Русский](README-ru.md) | [🇺🇦 Українська](README-uk.md)
+{% include lang-switcher.html doc="README" dir="/docs/" current="en" %}
 
 **📦 Download:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
 
 Installing the APK directly? Android warns about a package it has not seen before - [why the warning appears, and what to tap](INSTALL_TRUST.md).
 
+**📘 User documentation:** [step-by-step guides for every feature, with search](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/)
+
 ## About the Project
 
-**FastMediaSorter v2** is a powerful Android application for quick and convenient sorting of media files (images, videos, GIFs, audio, documents). It is designed as a single center for managing files from local folders, network drives (SMB, SFTP, FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
+**FastMediaSorter v2** is a complete shell for an Android device. It takes over the home screen, plays your media, opens live streams, launches your apps, talks to your watch, keeps an eye on the device, and manages every file you own - in local folders, on network drives (SMB, SFTP, FTP) and in cloud storage (Google Drive, OneDrive, Dropbox).
+
+It is built on eight pillars: device shell, media player, live streams, app launching, a replacement for stock apps, a companion on the watch, device monitoring and a full file manager. Sorting files across all of those sources is where the app started, and it is still the foundation the rest is built on - but it is no longer the whole of it.
 
 This manual now follows the same public vocabulary as the canonical feature inventory in [FEATURES.md](FEATURES.md) and the doc map in [DOCS_MAP.md](DOCS_MAP.md). Use those two pages as the current source of truth for the app story, available editions, and current feature surface.
 
@@ -444,7 +448,7 @@ Tests run automatically on every push via GitHub Actions. See [`.github/workflow
   - FTP: Apache Commons Net 3.10.0
 - **Cloud**: Google Drive API, OneDrive (MSAL), Dropbox API with OAuth 2.0
 - **OCR & Translation**:
-  - Tesseract4Android (Tesseract 5.3.x) - text extraction for every script
+  - Tesseract4Android (Tesseract 5.3.x) - text extraction for Latin and Cyrillic scripts
   - Google ML Kit (Translation, Language Identification) - translation of the extracted text
 - **Search & Lyrics**: api.lyrics.ovh (JSON API)
 

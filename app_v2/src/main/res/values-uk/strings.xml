@@ -17,7 +17,7 @@
     <string name="camera_ocr_camera_error">Не вдалося запустити камеру або зробити знімок</string>
     <string name="camera_ocr_engine_error">Служба перекладу наразі недоступна</string>
     <string name="camera_ocr_crop_retry">Перезняти</string>
-    <string name="camera_ocr_crop_confirm">OK</string>
+    <string name="camera_ocr_crop_confirm">Застосувати</string>
     <string name="camera_ocr_crop_frame_desc">Рамка виділення області</string>
     <string name="start_player">Запустити плеєр</string>
     <string name="add">Додати</string>
@@ -29,10 +29,10 @@
     <string name="drag_handle_description">Перетягнути для зміни порядку</string>
     <string name="rename">Перейменувати</string>
     <string name="edit">Редагувати</string>
-    <string name="control">Керування</string>
+    <string name="control">Налаштування відтворення</string>
     <string name="undo">Скасувати</string>
     <string name="action_retry">Повторити</string>
-    <string name="cancel">Відміна</string>
+    <string name="cancel">Скасувати</string>
     <string name="sign_in">Увійти</string>
     <string name="ok">OK</string>
     <string name="help">Допомога</string>
@@ -141,8 +141,8 @@
     <string name="clear_all">Очистити все</string>
     <string name="filter">Фільтр</string>
     <string name="refresh">Оновити</string>
-    <string name="copy_resource">Дублювати налаштування ресурсу</string>
-    <string name="exit">Вихід</string>
+    <string name="copy_resource">Копіювати налаштування ресурсу</string>
+    <string name="exit">Вийти</string>
     <string name="sort">Сортування</string>
     <string name="toggle_view">Вид</string>
     <string name="toggle_view_short">Список/Табл.</string>
@@ -253,7 +253,7 @@
     <string name="media_type_pdf">PDF</string>
     <string name="media_type_epub">EPUB</string>
     <string name="media_type_office_documents">Офісні документи</string>
-    <string name="filter_check_all_types">Позначити всі типи</string>
+    <string name="filter_check_all_types">Вибрати всі типи</string>
     <string name="filter_by_size">Фільтр за розміром файлу (МБ)</string>
     <string name="min_date">Мін. дата</string>
     <string name="max_date">Макс. дата</string>
@@ -420,13 +420,13 @@
     <string name="font_family_serif">З засічками</string>
     <string name="font_family_monospace">Моноширинний</string>
     <string name="enable_google_lens">Дозволити надсилання в Google Lens</string>
-    <string name="swap_languages">Поміняти мови місцями</string>
+    <string name="swap_languages">Поміняти місцями мови</string>
     <string name="search_audio_covers_online">Шукати обкладинки аудіо онлайн</string>
     <string name="search_covers_only_on_wifi">Шукати тільки по Wi-Fi</string>
     <string name="default_sort_mode">Режим сортування за замовчуванням</string>
     <string name="slideshow_interval">Слайдшоу за замовч. (сек.)</string>
     <string name="slideshow_interval_inline">Слайдшоу (с)</string>
-    <string name="fullscreen_mode">Повноекранний режим</string>
+    <string name="fullscreen_mode">На весь екран</string>
     <string name="minutes">Хвилин</string>
     <string name="stop">Стоп</string>
     <string name="scan_stopped">Сканування зупинено. Працюємо з %d файлами</string>
@@ -443,7 +443,7 @@
     <string name="allow_delete">Дозволити видалення</string>
     <string name="confirm_delete">Підтверджувати видалення</string>
     <string name="hide_grid_action_buttons">Не показувати команди на ескізах</string>
-    <string name="overflow_menu">Додатково</string>
+    <string name="overflow_menu">Ще</string>
     <string name="hide_system_ui_in_fullscreen">Приховувати елементи ОС у повноекранному режимі</string>
     <string name="show_command_panel_by_default">Показувати панель команд за замовчуванням</string>
     <string name="show_detailed_errors">Показувати детальні помилки</string>
@@ -505,7 +505,7 @@
     <string name="favorites_empty_hint">Позначте файли зірочкою, щоб зібрати їх тут. Без тиску.</string>
 
     <string name="counting">підрахунок..</string>
-    <string name="clear_trash">Очистити кошик</string>
+    <string name="clear_trash">Видалити все в кошику</string>
     <string name="trash_cleared">Папок кошика видалено: %d</string>
     <string name="add_to_destinations">Додати до швидкого сортування</string>
     <string name="back">Назад</string>
@@ -617,7 +617,7 @@
     <string name="tooltip_audio_size_limits_message">Фільтрація аудіофайлів за розміром (у МБ). Встановіть мінімальне та максимальне значення для відображення лише аудіо у вказаному діапазоні розмірів.</string>
     <string name="enable_slideshow_background_music">Музика під час слайдшоу</string>
     <string name="music_resource_label">Ресурс фонової музики</string>
-    <string name="select_music_source">Вибрати джерело музики</string>
+    <string name="select_music_source">Вибрати ресурс з музикою</string>
     <string name="no_music_source_selected">Джерело музики не вибрано</string>
     <string name="resource_not_found">Ресурс не знайдено</string>
     <string name="error_resource_unavailable">Ресурс \"%1$s\" недоступний. Перевірте підключення або налаштування ресурсу.</string>
@@ -703,7 +703,7 @@
     <string name="searching_lyrics">Пошук тексту пісні..</string>
     <string name="lyrics_not_found">Лірика не знайдена</string>
     <string name="error_timeout_lyrics">Час очікування вичерпано. Будь ласка, перевірте підключення до Інтернету та спробуйте ще раз.</string>
-    <string name="search_in_youtube_music">У YouMusic</string>
+    <string name="search_in_youtube_music">У YouTube Music</string>
     <string name="search_in_youtube_music_no_app">Програму YouTube Music не знайдено</string>
 
     <!-- Add Resource -->
@@ -1335,7 +1335,7 @@
     <string name="increase_translation_font">Збільшити шрифт перекладу</string>
     <string name="integration_tests_description">Автоматичне тестування файлових операцій по всіх типах ресурсів</string>
     <string name="integration_tests_title">Інтеграційні тести</string>
-    <string name="more_options">Додаткові параметри</string>
+    <string name="more_options">Ще</string>
     <string name="msg_gif_extract_api_unavailable">Вилучення кадрів для цього формату потребує Android 9+ (API 28+)</string>
     <string name="msg_operation_cancelled">Операцію скасовано</string>
     <string name="next_chapter">Наступний розділ</string>
@@ -1347,7 +1347,7 @@
     <string name="notification_channel_audio_playback">Відтворення аудіо</string>
     <string name="picture_in_picture">Картинка в картинці</string>
     <string name="pip_play">Відтворити</string>
-    <string name="play_pause">Відтворення / Пауза</string>
+    <string name="play_pause">Відтворити / пауза</string>
     <string name="previous_chapter">Попередній розділ</string>
     <string name="previous_file">Попередній файл</string>
     <string name="previous_match">Попереднє співпадіння</string>
@@ -1358,7 +1358,7 @@
     <string name="reader_theme_light">Світла</string>
     <string name="reader_theme_sepia">Сепія</string>
     <string name="redo">Повторити</string>
-    <string name="reopen_with_encoding">Відкрити з кодуванням..</string>
+    <string name="reopen_with_encoding">Оновити з кодуванням..</string>
     <string name="replace">Замінити</string>
     <string name="replace_all">Замінити всі</string>
     <string name="replace_hint">Замінити на..</string>
@@ -1369,7 +1369,7 @@
     <string name="resource_pin_code_hint">4-6 цифр для захисту цього ресурсу</string>
     <string name="resource_type_icon">Іконка типу ресурсу</string>
     <string name="cd_resource_icon_quick_slideshow">Запустити слайдшоу</string>
-    <string name="rewind_10_seconds">На 10 секунд назад</string>
+    <string name="rewind_10_seconds">Перемотати назад на 10 секунд</string>
     <string name="scanning_resources">Сканування ресурсів..</string>
     <string name="search_in_pdf">Пошук у PDF</string>
     <string name="select_audio_track">Вибрати аудіодоріжку</string>
@@ -1531,7 +1531,7 @@
     <string name="print_fallback_to_share">Діалог друку не відкрився - відкрито меню «Поділитися». Виберіть застосунок для друку.</string>
 
     <!-- Chromecast / Cast -->
-    <string name="cast_to_chromecast">Трансляція..</string>
+    <string name="cast_to_chromecast">Вивести на екран..</string>
     <string name="cast_connected">Трансляція на %s</string>
     <string name="cast_disconnected">Трансляцію завершено</string>
     <string name="cast_video_too_large">Відео завелике для трансляції (&gt; 50 МБ)</string>
@@ -1546,7 +1546,7 @@
     <string name="now_playing_queue_label">Черга</string>
     <string name="now_playing_queue_title">Черга</string>
     <string name="now_playing_track_count">Черга (%d)</string>
-    <string name="now_playing_back_to_player">← Зараз грає</string>
+    <string name="now_playing_back_to_player">Зараз грає</string>
     <string name="now_playing_play_pause_desc">Відтворити / Пауза</string>
     <string name="now_playing_play_desc">Відтворити</string>
     <string name="now_playing_pause_desc">Пауза</string>
@@ -1558,8 +1558,8 @@
     <string name="action_find_duplicates">Знайти дублікати</string>
     <string name="action_delete_duplicates">Знайти та видалити дублікати</string>
     <string name="action_delete_by_size">Видалення за розміром..</string>
-    <string name="cd_resource_ops_menu">Меню операцій з ресурсом</string>
-    <string name="cmd_camera_capture">Зйомка камерою</string>
+    <string name="cd_resource_ops_menu">Ще: дії з ресурсом</string>
+    <string name="cmd_camera_capture">Зробити фото</string>
     <string name="camera_capture_filename_title">Зберегти як</string>
     <string name="camera_capture_saved">Збережено: %s</string>
     <string name="camera_capture_error_save_generic">Не вдалося зберегти знятий файл</string>
@@ -1697,7 +1697,7 @@
     <!-- Керування у VR - вміст шпаргалки -->
 
     <!-- S0100 Microphone recording -->
-    <string name="mic_recording_button_content_desc">Запис аудіо</string>
+    <string name="mic_recording_button_content_desc">Мікрофон: запис аудіо</string>
     <string name="mic_recording_hold_hint">Утримайте для запису</string>
     <string name="mic_recording_filename_title">Зберегти запис</string>
     <string name="mic_recording_saved">Запис збережено: %s</string>
@@ -1864,8 +1864,8 @@
     <string name="link_download_notif_text_downloading_pct">Завантаження %1$d%%</string>
     <string name="link_download_notif_action_cancel">Скасувати</string>
     <string name="auth_sessions_info_text">Тут зберігаються авторизації, збережені через вбудований браузер. Кожен запис містить куки для одного облікового запису на одному сайті. Записи «Вхід відхилено» створено при виборі «Не пропонувати» - вони вимикають діалог авторизації для цього сайту. Щоб додати другий обліковий запис для того ж сайту, скористайтесь «Додати авторизацію» у меню.</string>
-    <string name="rotation_toggle_sensor_on_desc">Поворот екрана: розблоковано</string>
-    <string name="rotation_toggle_sensor_off_desc">Поворот екрана: заблоковано</string>
+    <string name="rotation_toggle_sensor_on_desc">Автоповорот: увімкнено</string>
+    <string name="rotation_toggle_sensor_off_desc">Поворот заблоковано</string>
     <string name="link_download_notif_text_preview_only_signed_in">Не вдалося отримати вміст сторінки. Вхід в акаунт не потрібен.</string>
     <string name="error_reason_local_destination_permission_denied">Не вдалося зберегти - Android не дозволяє запис у цю папку. Спробуйте зберегти в Music, Movies, Pictures або Downloads.</string>
     <string name="s0266_apk_download_preparing">Готується встановлення..</string>
@@ -2060,7 +2060,7 @@
     <string name="share_target_title_email">Ел. пошта</string>
     <string name="share_target_title_app">Надіслати в застосунок</string>
     <string name="share_target_subtitle_not_installed">Не встановлено</string>
-    <string name="share_to_menu_title">Надіслати в..</string>
+    <string name="share_to_menu_title">Надіслати до..</string>
     <string name="share_to_first_file_hint">застосується до першого файлу</string>
     <string name="share_to_send_failed">Не вдалося надіслати файл</string>
     <string name="share_target_title_keep_text">Keep: текст</string>
@@ -2197,7 +2197,7 @@
     <string name="streams_title">Трансляції</string>
     <string name="streams_add">Додати трансляцію</string>
     <string name="streams_import">Імпорт списку</string>
-    <string name="streams_refresh">Перевірити канали</string>
+    <string name="streams_refresh">Оновити стан каналів</string>
     <string name="streams_pin_to_top">Закріпити вгорі</string>
     <string name="streams_remove">Видалити</string>
     <string name="streams_add_url_hint">URL трансляції (http, https, rtsp)</string>
@@ -2212,7 +2212,7 @@
     <string name="settings_streams_summary">Відкрити інтернет-аудіо, відео та RTSP-трансляції.</string>
     <string name="crash_report_no_share_target">Немає застосунку для надсилання звіту про збій. Звіт збережено на пристрої.</string>
     <string name="streams_import_choose_title">Імпорт списку</string>
-    <string name="streams_import_catalog">Оновити каталог</string>
+    <string name="streams_import_catalog">Імпорт каталогу</string>
     <string name="streams_import_from_url">Імпорт за URL</string>
     <string name="streams_catalog_updated">Каталог: +%1$d нових, %2$d оновлено, %3$d видалено</string>
     <string name="streams_catalog_empty">Каталог порожній або недоступний</string>
@@ -2335,7 +2335,7 @@
     <string name="streams_view_list">Списком</string>
     <string name="screenshot_gesture_action_crop_and_share">Обрізати скріншот і надіслати</string>
     <string name="share_to_pick_resource">Вибір ресурсу..</string>
-    <string name="draw_tool_crop">Обрізання</string>
+    <string name="draw_tool_crop">Обрізати</string>
     <string name="draw_crop_frame_desc">Рамка виділення обрізання</string>
     <string name="draw_crop_failed">Не вдалося обрізати зображення</string>
     <string name="stream_wait_buffering">Буферизація..</string>
@@ -2360,8 +2360,8 @@
     <string name="panel_remove_title">Прибрати з панелі?</string>
     <string name="panel_remove_program_message">%1$s буде прихований. Увімкнути знову можна в налаштуваннях.</string>
     <string name="panel_remove_channel_message">%1$s зникне з панелі. Канал залишиться у вашому списку.</string>
-    <string name="camera_control_send_to">Надіслати в..</string>
-    <string name="camera_settings_title">Налаштування камери</string>
+    <string name="camera_control_send_to">Надіслати до..</string>
+    <string name="camera_settings_title">Налаштувати камеру</string>
     <string name="camera_setting_timer">Таймер</string>
     <string name="camera_setting_grid">Сітка</string>
     <string name="camera_setting_aspect">Співвідношення сторін</string>
@@ -2454,7 +2454,7 @@
     <string name="companion_import_action">Імпортувати</string>
     <string name="companion_import_password_required">Введіть пароль для цього сервера.</string>
     <string name="companion_qr_scan_hint">Наведіть камеру на QR-код companion-застосунку</string>
-    <string name="companion_qr_scan_torch">Ліхтарик</string>
+    <string name="companion_qr_scan_torch">Спалах</string>
     <string name="vr_cinema_program_title">VR-кінотеатр</string>
     <string name="setting_gesture_zone_left_top_title">Лівий край - верхня смуга</string>
     <string name="setting_gesture_zone_left_bottom_title">Лівий край - нижня смуга</string>
@@ -2871,8 +2871,8 @@
     <string name="perm_title_activity_recognition">Фізична активність</string>
     <string name="perm_desc_activity_recognition">Лічильник кроків на робочому столі лаунчера</string>
     <string name="perm_rationale_activity_recognition">Гаджет кроків читає лічильник, який телефон веде сам. Нічого не записується, нікуди не надсилається і не зберігається після видалення гаджета.</string>
-    <string name="menu_edit_adjust">Корекція</string>
-    <string name="menu_edit_file_text">Текст файлу</string>
+    <string name="menu_edit_adjust">Редагувати</string>
+    <string name="menu_edit_file_text">Редагувати текст файлу</string>
     <string name="menu_autorotate_screen_title">Автоповорот екрана</string>
     <string name="rotate_content_ccw_title">Повернути на -90°</string>
     <string name="menu_edit_submenu_title">Редагування</string>
@@ -2880,7 +2880,7 @@
     <string name="launcher_settings_wallpaper_static_stripes">Шпалери в стилі смуг</string>
     <string name="launcher_all_apps_search_hint">Пошук застосунків</string>
     <string name="launcher_all_apps_empty">Жоден застосунок не збігається з «%1$s». Очистіть пошук, щоб побачити весь список.</string>
-    <string name="launcher_all_apps_sort">Порядок списку</string>
+    <string name="launcher_all_apps_sort">Сортування</string>
     <string name="launcher_all_apps_sort_label">За назвою</string>
     <string name="launcher_all_apps_sort_install_date">За датою встановлення</string>
     <string name="launcher_all_apps_sort_update_date">За датою оновлення</string>
@@ -2951,7 +2951,7 @@
     <string name="launcher_settings_group_top_bar">Верхня смуга</string>
     <string name="launcher_settings_group_desktop">Робочий стіл лаунчера</string>
     <string name="launcher_settings_group_system">Система</string>
-    <string name="stream_info_menu_title">Про канал</string>
+    <string name="stream_info_menu_title">Інформація про канал</string>
     <string name="stream_info_window_title">Про канал</string>
     <string name="stream_info_group_channel">Канал</string>
     <string name="stream_info_group_catalog">Запис у списку</string>
@@ -3245,7 +3245,7 @@
     <string name="launcher_gadget_translator">Перекладач</string>
     <string name="launcher_translator_hint">Текст для перекладу</string>
     <string name="launcher_translator_paste">Перекласти з буфера обміну</string>
-    <string name="launcher_translator_swap">Поміняти мови місцями</string>
+    <string name="launcher_translator_swap">Поміняти місцями мови</string>
     <string name="launcher_translator_model_missing">Мовний пакет ще завантажується. Переклад почнеться, щойно він буде готовий.</string>
     <string name="launcher_translator_empty">Введіть або вставте текст для перекладу.</string>
     <string name="launcher_translator_unavailable">Ця пара мов недоступна без мережі.</string>
@@ -3279,7 +3279,7 @@
     <string name="launcher_section_name_title">Назва розділу</string>
     <string name="launcher_section_name_hint">Наприклад: Робота</string>
     <string name="launcher_section_name_empty">Введіть назву, щоб розділ можна було відрізнити на столі.</string>
-    <string name="streams_clear_downloaded">Очистити всі завантажені</string>
+    <string name="streams_clear_downloaded">Видалити всі завантажені</string>
     <string name="streams_clear_downloaded_confirm_title">Очистити завантажені канали?</string>
     <string name="streams_clear_downloaded_confirm_message">Будуть вилучені всі канали з каталогу та імпортованих плейлистів. Канали, додані вручну, залишаться.</string>
     <string name="streams_clear_downloaded_done">Вилучено завантажених каналів: %1$d</string>
@@ -3361,7 +3361,7 @@
     <string name="settings_wear_paired_watch_not_connected">Годинник не на зв\'язку</string>
     <string name="launcher_menu_power_menu_action">Відкрити меню живлення</string>
     <string name="launcher_menu_power_menu_unavailable">Службу спеціальних можливостей вимкнено, тому системне меню живлення не відкриється. Увімкніть її, щоб користуватися цією дією.</string>
-    <string name="launcher_signal_dismiss">Зняти</string>
+    <string name="launcher_signal_dismiss">Закрити</string>
     <string name="launcher_signal_dismiss_all">Зняти всі</string>
     <string name="widget_stream_launch_label">Трансляція</string>
     <string name="widget_stream_launch_description">Відкриває збережений канал з робочого столу</string>
@@ -3680,7 +3680,7 @@
     <string name="mirror_settings_row_title">Дзеркало</string>
     <string name="mirror_settings_row_summary">Фронтальна камера зі світлим полем, що підсвічує обличчя</string>
     <string name="mirror_close_button">Закрити дзеркало</string>
-    <string name="mirror_backlight_button">Підсвітка</string>
+    <string name="mirror_backlight_button">Фронтальний ліхтарик</string>
     <string name="mirror_flip_button">Віддзеркалити зображення</string>
     <string name="mirror_photo_button">Зробити фото</string>
     <string name="mirror_video_button">Записати відео</string>
@@ -3689,7 +3689,7 @@
     <string name="launcher_settings_screen_timeout_subtitle_no_lock">Гасить екран до чорного під час простою на робочому столі. Ця редакція не може блокувати пристрій.</string>
     <string name="launcher_settings_tray_tethering_title">Роздача Wi-Fi</string>
     <string name="launcher_settings_tray_tethering_subtitle">Показувати стан роздачі в треї</string>
-    <string name="launcher_tray_tethering_on">Роздача Wi-Fi увімкнена</string>
+    <string name="launcher_tray_tethering_on">Точка доступу увімкнена</string>
     <string name="launcher_gadget_sun_dewpoint">Сонце і точка роси</string>
     <string name="launcher_gadget_sun_dewpoint_actions">Сонце і точка роси. Натисніть, щоб оновити, утримуйте, щоб змінити місце</string>
     <string name="launcher_gadget_sun_dewpoint_no_location">Утримуйте, щоб вибрати місце</string>
@@ -3744,7 +3744,7 @@
     <string name="stopwatch_result_note_hint">Нотатка</string>
     <string name="stopwatch_result_preview_label">Попередній перегляд</string>
     <string name="stopwatch_result_action_save">Зберегти у файл</string>
-    <string name="stopwatch_result_action_send">Надіслати</string>
+    <string name="stopwatch_result_action_send">Поділитися</string>
     <string name="stopwatch_result_share_title">Надіслати результат</string>
     <string name="stopwatch_result_saved">Збережено в «Завантаження»: %1$s</string>
     <string name="stopwatch_result_save_failed">Не вдалося зберегти результат</string>
@@ -4122,4 +4122,57 @@
     <string name="sftp_host_key_presented_format">Відбиток ключа сервера:\n%1$s</string>
     <string name="sftp_pin_host_key">Закріпити ключ</string>
     <string name="sftp_host_key_pinned_toast">Відбиток ключа сервера закріплено</string>
+    <string name="dim_clock_notifications_overflow">%1$d+</string>
+    <string name="dim_clock_notifications_overflow_cd">Ще сповіщень: %1$d</string>
+    <string name="previous_item">Попередній</string>
+    <string name="next_item">Наступний</string>
+    <string name="sftp_server_channel_name">SFTP-сервер</string>
+    <string name="sftp_server_notification_title">SFTP-сервер увімкнено</string>
+    <string name="sftp_server_notification_starting">Запуск..</string>
+    <string name="sftp_server_notification_address">Підключайтеся до %1$s</string>
+    <string name="sftp_server_notification_no_network">Підключіть телефон до Wi-Fi, щоб інші пристрої могли до нього підключитися</string>
+    <string name="sftp_server_action_stop">Зупинити</string>
+    <string name="settings_sftp_server_title">Доступ через SFTP</string>
+    <string name="settings_sftp_server_enable_title">SFTP-сервер</string>
+    <string name="settings_sftp_server_enable_subtitle">Інші пристрої у вашій мережі зможуть відкрити вибрані папки</string>
+    <string name="settings_sftp_server_status_off">Вимкнено</string>
+    <string name="settings_sftp_server_status_starting">Запуск..</string>
+    <string name="settings_sftp_server_status_running">Працює: %1$s</string>
+    <string name="settings_sftp_server_status_no_network">Працює, але телефон не підключено до Wi-Fi - інші пристрої поки його не бачать</string>
+    <string name="settings_sftp_server_failure_no_folders">Додайте хоча б одну папку і знову увімкніть сервер</string>
+    <string name="settings_sftp_server_failure_no_credential">Додайте відкритий ключ або увімкніть вхід за паролем, потім знову увімкніть сервер</string>
+    <string name="settings_sftp_server_failure_port">Порт %1$d зайнятий іншою програмою - виберіть інший</string>
+    <string name="settings_sftp_server_failure_generic">Сервер не запустився - спробуйте ще раз або змініть порт</string>
+    <string name="settings_sftp_server_failure_unavailable">SFTP-сервер недоступний на цьому пристрої</string>
+    <string name="settings_sftp_server_credentials_password">Логін: %1$s, пароль: %2$s</string>
+    <string name="settings_sftp_server_credentials_key">Логін: %1$s, вхід за SSH-ключем</string>
+    <string name="settings_sftp_server_roots_label">Спільні папки</string>
+    <string name="settings_sftp_server_roots_empty">Папок поки немає - додайте папку, щоб відкрити до неї доступ</string>
+    <string name="settings_sftp_server_add_root">Додати папку</string>
+    <string name="settings_sftp_server_remove_root">Прибрати %1$s</string>
+    <string name="settings_sftp_server_port_hint">Порт</string>
+    <string name="settings_sftp_server_port_invalid">Вкажіть порт від 1024 до 65535</string>
+    <string name="settings_sftp_server_auth_password">Пароль</string>
+    <string name="settings_sftp_server_auth_key">SSH-ключ</string>
+    <string name="settings_sftp_server_new_password">Новий пароль</string>
+    <string name="settings_sftp_server_keys_hint">Відкриті ключі, по одному в рядку</string>
+    <string name="settings_sftp_server_apply_hint">Вимкніть і знову увімкніть сервер, щоб застосувати зміну</string>
+    <string name="settings_sftp_server_show_qr">Показати код для підключення</string>
+    <string name="settings_sftp_server_hide_qr">Сховати код для підключення</string>
+    <string name="settings_sftp_server_qr_description">Код для підключення: відскануйте його у FastMediaSorter на іншому пристрої</string>
+    <string name="add_resource_sftp_pairing_invalid">Це не повний код підключення FastMediaSorter - покажіть його на телефоні-сервері ще раз і відскануйте</string>
+    <string name="add_resource_sftp_pairing_filled">Дані підключення заповнено з коду - перевірте їх і збережіть</string>
+    <string name="add_resource_sftp_pairing_name">Сервер пристрою %1$s</string>
+    <string name="filedo_password_remember_leak">Той, у кого цей телефон розблоковано, зможе без введення відкрити кожен файл .fd-sec, до якого підходить цей пароль.</string>
+    <string name="cd_help_audio_size_limits">Довідка: обмеження розміру аудіо</string>
+    <string name="cd_help_video_size_limits">Довідка: обмеження розміру відео</string>
+    <string name="cd_help_video_snapshot">Довідка: призначення для збереження кадру</string>
+    <string name="cd_help_destinations">Довідка: призначення</string>
+    <string name="cd_help_wear_companion">Довідка: Wear-супутник</string>
+    <string name="cd_help_backup_info">Довідка: резервна копія</string>
+    <string name="cd_help_default_credentials">Довідка: мережеві облікові дані за замовчуванням</string>
+    <string name="cd_help_grid_size">Довідка: розмір іконок сітки</string>
+    <string name="cd_choose_from_list">Вибрати зі списку</string>
+    <string name="cd_more_actions_section">Ще: дії із секцією</string>
+    <string name="cd_toggle_grid_list_view">Сітка / список</string>
 </resources>

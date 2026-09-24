@@ -62,7 +62,7 @@ class StreamLaunchWidgetProvider : AppWidgetProvider() {
         ) {
             val icon = StreamLaunchWidgetStore.readIcon(context, appWidgetId)
             if (icon == null) {
-                views.setImageViewResource(R.id.widget_stream_icon, R.drawable.ic_cast)
+                views.setImageViewIcon(R.id.widget_stream_icon, WidgetPlateGlyph.icon(context, R.drawable.ic_stream))
             } else {
                 views.setImageViewBitmap(R.id.widget_stream_icon, icon)
             }
@@ -85,7 +85,7 @@ class StreamLaunchWidgetProvider : AppWidgetProvider() {
          * Tapping reopens the picker rather than doing nothing.
          */
         private fun bindUnconfigured(context: Context, views: RemoteViews, appWidgetId: Int) {
-            views.setImageViewResource(R.id.widget_stream_icon, R.drawable.ic_cast)
+            views.setImageViewIcon(R.id.widget_stream_icon, WidgetPlateGlyph.icon(context, R.drawable.ic_stream))
             views.setTextViewText(R.id.widget_stream_label, context.getString(R.string.widget_stream_launch_label))
             views.setContentDescription(
                 R.id.widget_stream_container,

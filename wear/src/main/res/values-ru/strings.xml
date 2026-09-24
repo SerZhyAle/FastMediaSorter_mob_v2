@@ -295,7 +295,7 @@
     <string name="wear_streams_filter_language_all">Все языки</string>
     <string name="wear_streams_filter_topic_header">Тема</string>
     <string name="wear_streams_filter_language_header">Язык</string>
-    <string name="wear_close_app">Закрыть</string>
+    <string name="wear_close_app">Выйти</string>
     <string name="wear_player_favorite_add">Добавить в избранное</string>
     <string name="wear_player_favorite_remove">Убрать из избранного</string>
     <string name="wear_voice_recorder_channel_name">Запись голоса</string>
@@ -965,4 +965,5 @@
         <item quantity="many">%d в избранном</item>
         <item quantity="other">%d в избранном</item>
     </plurals>
+    <string name="wear_filedo_remember_leak">Тот, у кого эти часы разблокированы, сможет без ввода открыть каждый файл .fd-sec, к которому подходит этот пароль.</string>
 </resources>

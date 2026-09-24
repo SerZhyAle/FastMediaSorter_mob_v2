@@ -55,9 +55,9 @@ class StreamWindowGadget @Inject constructor(
     override val defaultSpanW: Int = StreamWindow.AUDIO_SPAN
     override val defaultSpanH: Int = StreamWindow.AUDIO_SPAN
     override val labelRes: Int = R.string.launcher_gadget_stream_window
-    override val iconRes: Int = R.drawable.ic_cast
+    override val iconRes: Int = R.drawable.ic_stream
 
-    // S2062: ic_cast fills white and is invisible on the picker's light surface without a tint.
+    // S2062: ic_stream fills white and is invisible on the picker's light surface without a tint.
     override val iconTintable: Boolean = true
     override val requiresResourceParam: Boolean = false
 
@@ -156,7 +156,7 @@ private class StreamWindowGadgetView(
         val tile = faviconTile(resolved)
         if (tile != null) {
             binding.streamWindowIcon.setImageBitmap(tile)
-            // A favicon must not be tinted; the fallback ic_cast fills white and would vanish without it.
+            // A favicon must not be tinted; the fallback ic_stream fills white and would vanish without it.
             binding.streamWindowIcon.imageTintList = null
         }
         if (StreamWindow.isVideoKind(resolved.mediaKind)) {

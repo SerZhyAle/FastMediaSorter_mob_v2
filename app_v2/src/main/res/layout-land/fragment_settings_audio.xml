@@ -79,7 +79,7 @@
 
         <TextView android:id="@+id/tvAudioSizeLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/audio_size_limit" android:textSize="@dimen/toggler_title_text_size" />
 
-        <ImageButton android:id="@+id/iconHelpAudioSizeLimits" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_audio_size_limits_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+        <ImageButton android:id="@+id/iconHelpAudioSizeLimits" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/cd_help_audio_size_limits" android:src="@drawable/ic_help_outline" app:tint="@color/text_color_secondary" />
     </LinearLayout>
 
     <LinearLayout android:id="@+id/layoutAudioSizeInputs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:layout_marginEnd="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/settings_margin_standard" android:gravity="start" android:orientation="horizontal">

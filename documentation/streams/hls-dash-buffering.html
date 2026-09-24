@@ -1,0 +1,686 @@
+---
+permalink: /documentation/streams/hls-dash-buffering.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>When the Connection Is Weak - Buffering, Reconnecting and Picture Quality - Fast Media Sorter</title>
+    <meta name="description" content="What FastMediaSorter does by itself when a stream slows down or drops - buffering, reconnecting, catching up with a live channel, lowering and raising the picture quality - and what the messages and dialogs mean when a channel really does not play.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html">
+    <meta property="og:title" content="When the Connection Is Weak - Buffering, Reconnecting and Picture Quality - Fast Media Sorter">
+    <meta property="og:description" content="What FastMediaSorter does by itself when a stream slows down or drops - buffering, reconnecting, catching up with a live channel, lowering and raising the picture quality - and what the messages and dialogs mean when a channel really does not play.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="When the Connection Is Weak - Buffering, Reconnecting and Picture Quality - Fast Media Sorter">
+    <meta name="twitter:description" content="What FastMediaSorter does by itself when a stream slows down or drops - buffering, reconnecting, catching up with a live channel, lowering and raising the picture quality - and what the messages and dialogs mean when a channel really does not play.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Documentation",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "When the Connection Is Weak - Buffering, Reconnecting and Picture Quality",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html"
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "name": "When the Connection Is Weak - Buffering, Reconnecting and Picture Quality",
+      "description": "What FastMediaSorter does by itself when a stream slows down or drops - buffering, reconnecting, catching up with a live channel, lowering and raising the picture quality - and what the messages and dialogs mean when a channel really does not play.",
+      "inLanguage": "en",
+      "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Read the caption under the spinner",
+          "text": "While a stream is loading, a spinner turns in the middle of the screen, and a short caption under it tells you which kind of wait it is: - Buffering.. - the connection works; the app is filling its reserve so the playback does not stutter. - Reconnecting.. - the connection dropped; the app is building it again. So a spinner is never a silent mystery: Buffering.. usually ends in a few seconds, Reconnecting.. means it is worth checking the Wi-Fi or mobile data.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html#wait-captions"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Make radio more patient on a shaky line",
+          "text": "The player measures how fast your connection really is and sizes its reserve to it: on a weak or unsteady line it keeps a deeper supply, so a short dip passes unnoticed, and on a good line it stays small so the channel starts quickly. For radio you can ask for even more patience: Settings, the Media tab, section Streams, switch Ultra-smart stream buffering. The station then waits a few seconds longer before it starts, to fill a bigger reserve, and after a short signal drop it reconnects quietly instead of stopping. Turn it off for plain standard playback.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html#smart-buffering"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Live TV that falls behind catches up by itself",
+          "text": "A live TV channel keeps only the last few minutes of its broadcast available. If a slow moment leaves the player too far behind, that part has already disappeared from the server. Instead of calling the channel dead, FastMediaSorter jumps back to the current moment of the broadcast and carries on. You may notice a small jump in the picture; there is no dialog and the channel keeps its green mark. Short network drops and busy servers are treated the same way: the player tries again a few times, waiting a little longer each time, before it gives up. The picture follows the broadcast closely, so a live channel stays live.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html#live-edge"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Picture quality follows your connection",
+          "text": "Many TV channels send the same picture in several qualities. If the picture stops to load again and again within two minutes, the player switches to a lower quality so it plays smoothly. A single pause now and then does not count, so a long evening in front of one channel does not slowly slide down to the lowest quality. Every few minutes the player also tries the next quality up. It keeps it only if the picture really gets there and plays well for a while; if your line cannot carry it, the player tries again less and less often, up to about once an hour. The app remembers for each channel the quality it settled on, for about a week. Next time you open that channel, it starts right there instead of stumbling through the same pauses again - even after you update the catalog. Channels with only one quality, and RTSP cameras, are left as they are.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html#adaptive-quality"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "When your phone itself is offline",
+          "text": "If the phone has neither Wi-Fi nor mobile data, tapping a channel does not start an endless spinner. You see the message No network. Connect to Wi-Fi or mobile data to play streams. right away. If the connection drops while a channel plays and does not come back, the dialog No connection appears: the channel stopped because your device is offline. The channel keeps its amber mark, because it was not the channel\u0027s fault, and the dialog does not offer to remove it.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html#offline"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
+          "name": "When a channel really does not answer",
+          "text": "If your connection works but the channel itself does not answer - the address has moved, the server refuses, the format is broken - the player does not wait long. The dialog Stream unavailable asks whether to remove the channel from your list, and the channel gets its red mark. Removing is up to you. A station that is only down for maintenance may be back tomorrow; if you keep it, tap it again later.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html#channel-gone"
+        }
+      ]
+    }
+  ]
+}
+    </script>
+
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            </div>
+
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Search...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
+                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
+                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../../index.html">Home</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="../index.html">Documentation</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span>Internet Streams</span>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">When the Connection Is Weak - Buffering, Reconnecting and Picture Quality</span>
+        </nav>
+
+        <div class="doc-grid">
+
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../index.html" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="../sample-recipe.html" class="doc-sidebar-link ">Audio Recipe</a></li>
+                        <li><a href="../sample-settings-recipe.html" class="doc-sidebar-link ">Settings Recipe</a></li>
+                        <li><a href="../sample-program-recipe.html" class="doc-sidebar-link ">Programs Recipe</a></li>
+                        <li><a href="../design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Media Categories</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="../index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="../index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Browsing & Sorting</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../browsing/grid-and-list-views.html" class="doc-sidebar-link">Grid and list views</a></li>
+                        <li><a href="../browsing/sorting-and-filtering.html" class="doc-sidebar-link">Sort, filter and search</a></li>
+                        <li><a href="../browsing/batch-selection.html" class="doc-sidebar-link">Select and batch actions</a></li>
+                        <li><a href="../browsing/media-indexing-and-caching.html" class="doc-sidebar-link">Thumbnail caching</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Camera & Screen Capture</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../capture/quick-photo-capture.html" class="doc-sidebar-link">Quick photos and video snaps</a></li>
+                        <li><a href="../capture/camera-lenses-zoom-and-profiles.html" class="doc-sidebar-link">Lenses, zoom and shooting profiles</a></li>
+                        <li><a href="../capture/screenshot-annotation.html" class="doc-sidebar-link">Taking screenshots</a></li>
+                        <li><a href="../capture/screen-recording-and-audio.html" class="doc-sidebar-link">Screen and voice recording</a></li>
+                        <li><a href="../capture/edge-gestures-and-quick-access-panel.html" class="doc-sidebar-link">Edge gestures & quick-access panel</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Documents & Text Editor</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../documents/pdf-epub-viewing.html" class="doc-sidebar-link">Reading PDF documents</a></li>
+                        <li><a href="../documents/office-docs-support.html" class="doc-sidebar-link">EPUB books and Office documents</a></li>
+                        <li><a href="../documents/text-code-editor.html" class="doc-sidebar-link">Text and Markdown editor</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Editions, Extensions & Languages</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../flavors/overview-and-comparison.html" class="doc-sidebar-link">The seven editions</a></li>
+                        <li><a href="../flavors/extensions-and-plugins.html" class="doc-sidebar-link">Downloadable extensions</a></li>
+                        <li><a href="../flavors/multilingual-support.html" class="doc-sidebar-link">Language and units</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">General, Keyboard & TV</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/backup-and-restore.html" class="doc-sidebar-link">Backing up and restoring settings</a></li>
+                        <li><a href="../general/keyboard-dpad-tv-navigation.html" class="doc-sidebar-link">Keyboard, D-pad and TV control</a></li>
+                        <li><a href="../general/multi-window-and-foldables.html" class="doc-sidebar-link">Split-screen and foldables</a></li>
+                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and assistant actions</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../getting-started/welcome-and-setup.html" class="doc-sidebar-link">First launch and setup</a></li>
+                        <li><a href="../getting-started/permissions-guide.html" class="doc-sidebar-link">App permissions explained</a></li>
+                        <li><a href="../getting-started/main-screen-overview.html" class="doc-sidebar-link">The main screen at a glance</a></li>
+                        <li><a href="../getting-started/quick-tour.html" class="doc-sidebar-link">Quick product tour</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Images, Audio & Slideshow</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../images/viewer-and-gestures.html" class="doc-sidebar-link">Viewing photos and GIFs</a></li>
+                        <li><a href="../images/editing-photos.html" class="doc-sidebar-link">Editing photos and GIFs</a></li>
+                        <li><a href="../images/slideshow-and-transitions.html" class="doc-sidebar-link">Photo slideshows</a></li>
+                        <li><a href="../audio/playing-and-organizing-music.html" class="doc-sidebar-link">Playing music</a></li>
+                        <li><a href="../audio/playlists-and-audio-queues.html" class="doc-sidebar-link">Order, sleep timer, background</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Internet Streams</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../streams/channel-catalog-browsing.html" class="doc-sidebar-link">Browse the channel catalog</a></li>
+                        <li><a href="../streams/channel-pictures-and-badges.html" class="doc-sidebar-link">Channel pictures and badges</a></li>
+                        <li><a href="../streams/custom-m3u-playlists.html" class="doc-sidebar-link">Add your own streams</a></li>
+                        <li><a href="../streams/favorites-and-epg.html" class="doc-sidebar-link">Pin and favorite channels</a></li>
+                        <li><a href="../streams/live-stream-playback.html" class="doc-sidebar-link">Play live streams and radio</a></li>
+                        <li><a href="../streams/hls-dash-buffering.html" class="doc-sidebar-link active">When the connection is weak</a></li>
+                        <li><a href="../streams/shortcuts-widget-and-panel.html" class="doc-sidebar-link">Shortcuts, widget and streams panel</a></li>
+                        <li><a href="../streams/tv-watch-vr-and-broadcast.html" class="doc-sidebar-link">TV, watch, VR and live broadcasts</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Desktop</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/desktop-grid-and-icons.html" class="doc-sidebar-link">Your launcher desktop</a></li>
+                        <li><a href="../launcher/wallpapers-and-live-backgrounds.html" class="doc-sidebar-link">Desktop wallpaper</a></li>
+                        <li><a href="../launcher/desktop-folders-and-pages.html" class="doc-sidebar-link">Arranging the desktop</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Gadgets and Widgets</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/built-in-gadgets.html" class="doc-sidebar-link">Desktop gadgets</a></li>
+                        <li><a href="../launcher/android-widgets-placement.html" class="doc-sidebar-link">Placing gadgets and widgets</a></li>
+                        <li><a href="../launcher/home-screen-widgets.html" class="doc-sidebar-link">Home screen widgets</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Taskbar, Menus and Gestures</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/taskbar-and-dock.html" class="doc-sidebar-link">Taskbar and dock</a></li>
+                        <li><a href="../launcher/start-menu-and-all-apps.html" class="doc-sidebar-link">Start menu and All apps</a></li>
+                        <li><a href="../launcher/status-area-and-notifications.html" class="doc-sidebar-link">Status area and notifications</a></li>
+                        <li><a href="../launcher/desktop-gestures-and-shortcuts.html" class="doc-sidebar-link">Navigation gestures and shortcuts</a></li>
+                        <li><a href="../launcher/context-menus-and-actions.html" class="doc-sidebar-link">Context menus and fast actions</a></li>
+                        <li><a href="../launcher/screen-dimming-and-timeout.html" class="doc-sidebar-link">Screen dimming and timeout</a></li>
+                        <li><a href="../launcher/launcher-settings-and-reset.html" class="doc-sidebar-link">Launcher settings and reset</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">OCR, Drawing & Sharing</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../tools/ocr-text-recognition.html" class="doc-sidebar-link">Text recognition (OCR)</a></li>
+                        <li><a href="../tools/inline-translation.html" class="doc-sidebar-link">Translating text on screen</a></li>
+                        <li><a href="../tools/drawing-and-image-markup.html" class="doc-sidebar-link">Drawing and image markup</a></li>
+                        <li><a href="../tools/fast-sharing-and-export.html" class="doc-sidebar-link">Sending files with Send to..</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Programs, Statistics and Diagnostics</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../programs/built-in-mini-apps.html" class="doc-sidebar-link">Built-in programs, lights, mirror and SOS</a></li>
+                        <li><a href="../programs/calculator-and-stopwatch.html" class="doc-sidebar-link">Calculator and stopwatch</a></li>
+                        <li><a href="../programs/mini-game.html" class="doc-sidebar-link">Mini-game</a></li>
+                        <li><a href="../programs/usage-statistics.html" class="doc-sidebar-link">Usage statistics</a></li>
+                        <li><a href="../programs/device-diagnostics-and-logs.html" class="doc-sidebar-link">System information and the debug log</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Settings & Navigation</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/settings-overview-and-search.html" class="doc-sidebar-link">Settings overview and search</a></li>
+                        <li><a href="../settings/display-and-appearance.html" class="doc-sidebar-link">Themes, colors, language and units</a></li>
+                        <li><a href="../settings/playback-and-sorting-preferences.html" class="doc-sidebar-link">Playback, power and everyday behavior</a></li>
+                        <li><a href="../settings/privacy-and-network-security.html" class="doc-sidebar-link">Privacy and error reports</a></li>
+                        <li><a href="../settings/backup-and-device-sync.html" class="doc-sidebar-link">Backing up and syncing your device</a></li>
+                        <li><a href="../settings/controls-and-key-remapping.html" class="doc-sidebar-link">Controls and key remapping</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Sources, Destinations & File Operations</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../storage/storage-sources-setup.html" class="doc-sidebar-link">Adding folders from this device</a></li>
+                        <li><a href="../storage/network-and-cloud-sources.html" class="doc-sidebar-link">Adding network folders and clouds</a></li>
+                        <li><a href="../storage/sharing-and-backing-up-resources.html" class="doc-sidebar-link">Sharing and backing up resources</a></li>
+                        <li><a href="../storage/destination-targets-setup.html" class="doc-sidebar-link">Quick Sort destinations</a></li>
+                        <li><a href="../storage/file-copy-move-delete.html" class="doc-sidebar-link">Copy, move and delete</a></li>
+                        <li><a href="../storage/background-transfers.html" class="doc-sidebar-link">Background transfers</a></li>
+                        <li><a href="../storage/batch-renaming.html" class="doc-sidebar-link">Renaming files and folders</a></li>
+                        <li><a href="../storage/cleaning-up-space.html" class="doc-sidebar-link">Duplicates, big files and ZIP archives</a></li>
+                        <li><a href="../storage/scheduled-operations.html" class="doc-sidebar-link">Scheduled file operations</a></li>
+                        <li><a href="../storage/capture-to-destination.html" class="doc-sidebar-link">Photos, videos and voice notes into a folder</a></li>
+                        <li><a href="../storage/file-encryption-and-security.html" class="doc-sidebar-link">PIN and encrypted containers</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Video & Media Player</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../player/video-playback-controls.html" class="doc-sidebar-link">Watching videos</a></li>
+                        <li><a href="../player/subtitles-and-audio-tracks.html" class="doc-sidebar-link">Subtitles, audio tracks and 3D</a></li>
+                        <li><a href="../player/pip-and-background-play.html" class="doc-sidebar-link">Picture-in-picture and background</a></li>
+                        <li><a href="../player/casting-and-broadcast.html" class="doc-sidebar-link">Chromecast and live broadcast</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">VR and OpenXR</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../vr/headset-setup-and-openxr.html" class="doc-sidebar-link">Headset setup and OpenXR</a></li>
+                        <li><a href="../vr/spatial-cinema-playback.html" class="doc-sidebar-link">Spatial cinema playback</a></li>
+                        <li><a href="../vr/passthrough-and-controllers.html" class="doc-sidebar-link">Headset controls</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Wear OS Watch</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../wear/installation-and-pairing.html" class="doc-sidebar-link">Installing and pairing the watch</a></li>
+                        <li><a href="../wear/companion-data-sync.html" class="doc-sidebar-link">Syncing the phone and the watch</a></li>
+                        <li><a href="../wear/tiles-and-complications.html" class="doc-sidebar-link">Tiles and complications</a></li>
+                        <li><a href="../wear/wrist-mini-apps-and-tools.html" class="doc-sidebar-link">Wrist programs and tools</a></li>
+                        <li><a href="../wear/health-and-activity-metrics.html" class="doc-sidebar-link">Health and sensor info</a></li>
+                        <li><a href="../wear/watch-home-and-appearance.html" class="doc-sidebar-link">Home screen and appearance</a></li>
+                        <li><a href="../wear/watch-players-and-viewers.html" class="doc-sidebar-link">Players and viewers</a></li>
+                        <li><a href="../wear/phone-and-network-folders-on-watch.html" class="doc-sidebar-link">Phone and network folders on the watch</a></li>
+                        <li><a href="../wear/watch-listening-and-broadcast.html" class="doc-sidebar-link">Listening and broadcasting</a></li>
+                        <li><a href="../wear/watch-file-manager.html" class="doc-sidebar-link">Browsing files on the watch</a></li>
+                        <li><a href="../wear/standalone-music-playback.html" class="doc-sidebar-link">Playing music on the watch</a></li>
+                        <li><a href="../wear/wrist-stream-player.html" class="doc-sidebar-link">Streaming radio on your wrist</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Recipe Content -->
+            <main class="doc-content" id="main-content">
+
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="doc-badge doc-badge-standard">Internet Streams</span>
+                    <span class="doc-badge doc-badge-standard">Standard, noLegal, Legacy and VR</span>
+                    <span class="doc-badge doc-badge-sm">Recipe #06</span>
+                </div>
+
+                <h1>When the Connection Is Weak - Buffering, Reconnecting and Picture Quality</h1>
+
+                <p class="doc-lead">
+                    A weak connection does not have to spoil a live <span class="doc-link-term" data-term="stream">stream</span>: FastMediaSorter buffers, reconnects, catches up with live TV and adjusts the picture quality on its own, and tells you plainly when it is your connection and when it is the channel.
+                </p>
+
+                <h2 id="why">Why You'll Love This</h2>
+                        <p>A train goes into a tunnel, the Wi-Fi at the cottage comes and goes, the hotel network is slow in the evening. A live <span class="doc-link-term" data-term="stream">stream</span> feels all of it, because it arrives piece by piece while you watch or listen.</p>
+                        <p>Most of the time you do not have to do anything: FastMediaSorter keeps a small supply of the stream in reserve, reconnects quietly, and chooses a picture quality your connection can carry. This recipe explains what you see on screen while that happens, which switch makes radio more patient, and how to tell a weak connection from a channel that has really gone.</p>
+
+                <!-- Prerequisite Card -->
+                <div class="doc-card-prereq">
+                    <div class="doc-card-prereq-title">
+                        <span class="doc-card-prereq-icon">✓</span>
+                        <span>Before You Begin: Ingredients &amp; Prerequisites</span>
+                    </div>
+                    <ul class="doc-prereq-list">
+                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter in the Standard, noLegal, Legacy or VR <span class="doc-link-term" data-term="edition">edition</span> with Streams turned on.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> A <span class="doc-link-term" data-term="channel">channel</span> you want to play. Everything on this page happens by itself; only step 2 has a switch.</li>
+                    </ul>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="doc-step" id="wait-captions">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">1</span>
+                        <h2 class="doc-step-title">Read the caption under the spinner</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>While a stream is loading, a spinner turns in the middle of the screen, and a short caption under it tells you which kind of wait it is:</p>
+                        <ul><li><strong>Buffering..</strong> - the connection works; the app is filling its reserve so the playback does not stutter.</li><li><strong>Reconnecting..</strong> - the connection dropped; the app is building it again.</li></ul>
+                        <p>So a spinner is never a silent mystery: <strong>Buffering..</strong> usually ends in a few seconds, <strong>Reconnecting..</strong> means it is worth checking the Wi-Fi or mobile data.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.wait-caption-buffering"
+                             data-device-profile="phone"
+                             data-screen-state="stream-player-buffering-caption"
+                             data-alt="The video player with a loading spinner and the caption Buffering.. under it"
+                             data-caption="The caption says which wait is happening.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Buffering caption</strong>
+                                <p class="doc-img-bookmark-desc">Full-screen player on a video channel during loading, spinner with the Buffering.. caption.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.wait-caption-buffering</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="doc-step" id="smart-buffering">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">2</span>
+                        <h2 class="doc-step-title">Make radio more patient on a shaky line</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>The player measures how fast your connection really is and sizes its reserve to it: on a weak or unsteady line it keeps a deeper supply, so a short dip passes unnoticed, and on a good line it stays small so the channel starts quickly.</p>
+                        <p>For radio you can ask for even more patience: <strong>Settings</strong>, the <strong>Media</strong> tab, section <strong>Streams</strong>, switch <strong>Ultra-smart stream buffering</strong>. The station then waits a few seconds longer before it starts, to fill a bigger reserve, and after a short signal drop it reconnects quietly instead of stopping. Turn it off for plain standard playback.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.settings-smart-buffering"
+                             data-device-profile="phone"
+                             data-screen-state="settings-media-streams-section"
+                             data-alt="The Streams section of the Media settings tab with the Ultra-smart stream buffering switch"
+                             data-caption="Ultra-smart stream buffering in the Streams settings.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Streams settings</strong>
+                                <p class="doc-img-bookmark-desc">Settings, Media tab, Streams section scrolled to Ultra-smart stream buffering and Visualize audio streams as music.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.settings-smart-buffering</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="doc-step" id="live-edge">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">3</span>
+                        <h2 class="doc-step-title">Live TV that falls behind catches up by itself</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>A live TV channel keeps only the last few minutes of its broadcast available. If a slow moment leaves the player too far behind, that part has already disappeared from the server. Instead of calling the channel dead, FastMediaSorter jumps back to the current moment of the broadcast and carries on. You may notice a small jump in the picture; there is no dialog and the channel keeps its green mark.</p>
+                        <p>Short network drops and busy servers are treated the same way: the player tries again a few times, waiting a little longer each time, before it gives up. The picture follows the broadcast closely, so a live channel stays live.</p>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="doc-step" id="adaptive-quality">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">4</span>
+                        <h2 class="doc-step-title">Picture quality follows your connection</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Many TV channels send the same picture in several qualities. If the picture stops to load again and again within two minutes, the player switches to a lower quality so it plays smoothly. A single pause now and then does not count, so a long evening in front of one channel does not slowly slide down to the lowest quality.</p>
+                        <p>Every few minutes the player also tries the next quality up. It keeps it only if the picture really gets there and plays well for a while; if your line cannot carry it, the player tries again less and less often, up to about once an hour.</p>
+                        <p>The app remembers for each channel the quality it settled on, for about a week. Next time you open that channel, it starts right there instead of stumbling through the same pauses again - even after you update the catalog. Channels with only one quality, and RTSP cameras, are left as they are.</p>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="doc-step" id="offline">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">5</span>
+                        <h2 class="doc-step-title">When your phone itself is offline</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>If the phone has neither Wi-Fi nor mobile data, tapping a channel does not start an endless spinner. You see the message <strong>No network. Connect to Wi-Fi or mobile data to play streams.</strong> right away.</p>
+                        <p>If the connection drops while a channel plays and does not come back, the dialog <strong>No connection</strong> appears: the channel stopped because your device is offline. The channel keeps its amber mark, because it was not the channel's fault, and the dialog does not offer to remove it.</p>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="doc-step" id="channel-gone">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">6</span>
+                        <h2 class="doc-step-title">When a channel really does not answer</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>If your connection works but the channel itself does not answer - the address has moved, the server refuses, the format is broken - the player does not wait long. The dialog <strong>Stream unavailable</strong> asks whether to remove the channel from your list, and the channel gets its red mark.</p>
+                        <p>Removing is up to you. A station that is only down for maintenance may be back tomorrow; if you keep it, tap it again later.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.unavailable-dialog"
+                             data-device-profile="phone"
+                             data-screen-state="stream-unavailable-dialog"
+                             data-alt="The Stream unavailable dialog asking whether to remove a channel that does not respond"
+                             data-caption="A channel that does not respond while your connection works.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Stream unavailable dialog</strong>
+                                <p class="doc-img-bookmark-desc">Stream unavailable dialog over the Streams list with the channel name and the remove and cancel buttons.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.unavailable-dialog</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 id="outcome">What You Get</h2>
+                <div class="doc-callout doc-callout-note">
+                        <p>Short drops pass without your help, live TV stays live, the picture quality suits your connection, and when something does go wrong the screen tells you whether it is your connection or the channel.</p>
+                </div>
+
+                <h2 id="tips">Tips and Troubleshooting</h2>
+                <div class="doc-callout doc-callout-tip">
+                    <ul>
+                        <li><strong>A stream that freezes silently recovers by itself.</strong> When a live stream stops moving with no error at all, the app shows <strong>Reconnecting..</strong>, tries up to three times to start it again, and only then offers the dialog that the channel is not available.</li>
+                        <li><strong>Radio keeps cutting out in the car or on the train?</strong> Turn on <strong>Ultra-smart stream buffering</strong>. The start takes a few seconds longer, and short gaps are bridged.</li>
+                        <li><strong>A channel is red but plays in a web browser?</strong> Some channels play only in certain countries or networks; they are marked in the list. See <a href="channel-pictures-and-badges.html" class="doc-link">channel pictures, logos and badges</a>.</li>
+                        <li><strong>The picture got blurry?</strong> The connection was slow for a while. The player tries a better quality again by itself; you do not need to reopen the channel.</li>
+                        <li><strong>Want to see the actual speed?</strong> Open the channel's menu and <strong>About this channel</strong> while it plays: the section <strong>This connection</strong> shows the incoming speed, the picture size and the codecs.</li>
+                        <li>Curious how live TV streams work? The two common formats are <a href="https://en.wikipedia.org/wiki/HTTP_Live_Streaming" target="_blank" rel="noopener" class="doc-link-external">HLS</a> and <a href="https://en.wikipedia.org/wiki/Dynamic_Adaptive_Streaming_over_HTTP" target="_blank" rel="noopener" class="doc-link-external">MPEG-DASH</a>; both send the picture in short pieces and in several qualities.</li>
+                    </ul>
+                </div>
+
+                <!-- What to Try Next Section -->
+                <div class="doc-next-section">
+                    <div class="doc-next-title">What to Try Next: Related Recipes</div>
+                    <div class="doc-next-grid">
+                        <a href="live-stream-playback.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Streams</span>
+                            <h4>Playing live streams and radio</h4>
+                            <p>Start, stop and control a channel.</p>
+                        </a>
+                        <a href="tv-watch-vr-and-broadcast.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Streams</span>
+                            <h4>Streams on a TV, a watch or a VR headset</h4>
+                            <p>Take a channel to a bigger screen or to your wrist.</p>
+                        </a>
+                        <a href="channel-catalog-browsing.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Streams</span>
+                            <h4>Browsing the channel catalog</h4>
+                            <p>Check channels in bulk and clean up the ones that no longer play.</p>
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">On this page</div>
+                    <ul class="doc-toc-list">
+                        <li><a href="#why" class="doc-toc-link">Why You'll Love This</a></li>
+                        <li><a href="#wait-captions" class="doc-toc-link">1. Read the caption under the spinner</a></li>
+                        <li><a href="#smart-buffering" class="doc-toc-link">2. Make radio more patient on a shaky line</a></li>
+                        <li><a href="#live-edge" class="doc-toc-link">3. Live TV that falls behind catches up by itself</a></li>
+                        <li><a href="#adaptive-quality" class="doc-toc-link">4. Picture quality follows your connection</a></li>
+                        <li><a href="#offline" class="doc-toc-link">5. When your phone itself is offline</a></li>
+                        <li><a href="#channel-gone" class="doc-toc-link">6. When a channel really does not answer</a></li>
+                        <li><a href="#outcome" class="doc-toc-link">What You Get</a></li>
+                        <li><a href="#tips" class="doc-toc-link">Tips and Troubleshooting</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
+            <div class="doc-footer-links">
+                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../design-system/index.html">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive scripts: Theme switcher & 13-Language selector -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+        }());
+    </script>
+
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
+    <script src="../assets/wave-particles.js"></script>
+
+    <!-- In-browser Search Modal Engine -->
+    <script src="../assets/search.js"></script>
+</body>
+</html>

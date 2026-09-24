@@ -26,7 +26,7 @@ object HomeSectionIconCatalog {
         HomeSectionId.LAST_USED_RESOURCE -> R.drawable.ic_history
         // S2499: the streams glyph rather than the history one - one entity wears one glyph, and the
         // history glyph is exactly what would make a recent channel indistinguishable from a folder.
-        HomeSectionId.LAST_USED_STREAM -> R.drawable.ic_cast
+        HomeSectionId.LAST_USED_STREAM -> R.drawable.ic_stream
         HomeSectionId.FAVOURITES -> R.drawable.ic_resource_favorites
         // ic_resource is the phone's canonical umbrella glyph for "a source registered in this app",
         // which is what this section lists. ic_wifi described the transport, not the entity (S1952).
@@ -35,9 +35,9 @@ object HomeSectionIconCatalog {
         // Local means the watch's own storage, so it takes the phone's glyph for the watch - the phone's
         // "local storage" icon is a smartphone and would have been indistinguishable from PHONE above.
         HomeSectionId.LOCAL -> R.drawable.ic_watch
-        HomeSectionId.STREAMS -> R.drawable.ic_cast
+        HomeSectionId.STREAMS -> R.drawable.ic_stream
         HomeSectionId.APPS -> R.drawable.ic_apps
-        // S2509: the share glyph, not ic_cast. Cast is already the channel glyph on two rows of this
+        // S2509: the share glyph, not ic_stream. The stream glyph already stands for a channel on two rows of
         // very screen, and a broadcast is the opposite direction - what this watch sends out.
         HomeSectionId.BROADCAST -> R.drawable.ic_share
         // S2551: the camera glyph, not ic_share. This row is the opposite direction of the one above -

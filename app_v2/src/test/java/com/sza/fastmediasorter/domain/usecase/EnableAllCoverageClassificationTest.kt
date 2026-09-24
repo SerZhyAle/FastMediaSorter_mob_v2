@@ -347,6 +347,8 @@ class EnableAllCoverageClassificationTest {
             ),
             Coverage.DESTRUCTIVE_OR_DATA_RISK to setOf(
                 "allowDelete",
+                // S3382: encrypting behind a credential the owner then forgets is unrecoverable.
+                "enableFileDoOperations",
                 "overwriteOnCopy",
                 "overwriteOnMove",
                 "useTrash",

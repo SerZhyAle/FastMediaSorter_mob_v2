@@ -61,7 +61,7 @@ class LauncherResourceModePickerDialogFragment : DialogFragment() {
     }
 
     private fun buildOptions(): List<Option> = listOf(
-        modeOption(LauncherResourceMode.BROWSE, R.string.launcher_edit_mode_browse, R.drawable.ic_open_in_browse),
+        modeOption(LauncherResourceMode.BROWSE, R.string.launcher_edit_mode_browse, R.drawable.ic_folder),
         modeOption(LauncherResourceMode.SLIDESHOW, R.string.launcher_edit_mode_slideshow, R.drawable.ic_slideshow),
         modeOption(LauncherResourceMode.PLAY, R.string.launcher_edit_mode_play, R.drawable.ic_play),
     )

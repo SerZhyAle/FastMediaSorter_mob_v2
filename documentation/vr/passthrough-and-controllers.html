@@ -1,0 +1,718 @@
+---
+permalink: /documentation/vr/passthrough-and-controllers.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controls in the Headset: the Floating Panel, Controllers and Hands - Fast Media Sorter</title>
+    <meta name="description" content="The head-locked status banner, the floating control panel and how it adapts to what is playing, the seek bar, the session settings panel, hiding and summoning the panel, thumbstick seeking with the grip modifier, controller haptics and hand tracking, and the FPS overlay.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html">
+    <meta property="og:title" content="Controls in the Headset: the Floating Panel, Controllers and Hands - Fast Media Sorter">
+    <meta property="og:description" content="The head-locked status banner, the floating control panel and how it adapts to what is playing, the seek bar, the session settings panel, hiding and summoning the panel, thumbstick seeking with the grip modifier, controller haptics and hand tracking, and the FPS overlay.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Controls in the Headset: the Floating Panel, Controllers and Hands - Fast Media Sorter">
+    <meta name="twitter:description" content="The head-locked status banner, the floating control panel and how it adapts to what is playing, the seek bar, the session settings panel, hiding and summoning the panel, thumbstick seeking with the grip modifier, controller haptics and hand tracking, and the FPS overlay.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Documentation",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Controls in the Headset: the Floating Panel, Controllers and Hands",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html"
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "name": "Controls in the Headset: the Floating Panel, Controllers and Hands",
+      "description": "The head-locked status banner, the floating control panel and how it adapts to what is playing, the seek bar, the session settings panel, hiding and summoning the panel, thumbstick seeking with the grip modifier, controller haptics and hand tracking, and the FPS overlay.",
+      "inLanguage": "en",
+      "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "The banner that always tells you what is playing",
+          "text": "A banner stays locked to your head rather than to the scene, so it is always readable no matter which way you turn: the current filename, the projection FastMediaSorter detected - 360°, 180°, cylinder or flat - and the stereo layout it is using. If something about the file goes wrong, the same banner turns red instead of silently vanishing, so you always know at a glance whether what you are looking at is actually working.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html#head-locked-banner"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "The floating control panel",
+          "text": "The main controls live on a world-locked panel that hangs in front of you rather than moving with your head: point the controller ray at a button to highlight it, and pull the trigger to click it, the same ray-and-trigger motion the immersive browser uses. Play/Pause, Previous, Next, and sliders for Volume and depth all sit here, and the panel\u0027s own PREV/NEXT buttons walk the whole resource list you arrived from, not just the one file.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html#floating-panel"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "It only shows what applies",
+          "text": "The panel does not show every control for every file. An audio-track picker appears only when a file actually has more than one track to choose from; a subtitle picker appears only when subtitles exist; the stereo depth slider appears only for stereo content. Whatever controls do not apply simply are not there, and the remaining ones spread out to use the width that frees up, so the panel never looks half-empty or crowded depending on what you happen to be watching.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html#adaptive-controls"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "A seek bar you can actually drag",
+          "text": "The panel carries a position bar with the elapsed and total time shown beside it - point the controller ray at it and drag to seek anywhere in the film, the same way you would drag a seek bar with a finger on a phone.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html#seek-bar"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "Session settings, without pausing anything",
+          "text": "The left controller\u0027s menu button opens Session settings - a second panel for everything you would otherwise have to leave the film to change: Layout (Mono, Side by side, Over-under), Projection (Mono, 180°, 360°, Cylinder - the same modes covered in the four screen shapes), Panel distance, Panel size, Subtitles (On/Off) and Resume position. Every change here applies to this session only, and playback never stops while you make it - close the panel with the menu button again and you are exactly where you left off.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html#session-settings-panel"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
+          "name": "Hide it, summon it, or let it hide itself",
+          "text": "The HUD strip carries HIDE and EXIT buttons at opposite ends, so a slip of the ray never triggers the wrong one. HIDE removes the whole strip from view, and a single trigger pull - pointed at nothing in particular - summons it straight back, no need to aim at where it used to be. Left alone, the strip does the same thing on its own: after 15 seconds with no ray hovering over it, it fades away so it does not sit between you and the film; any hover or click resets that countdown, and the same trigger-pull summon brings it back exactly as if you had pressed HIDE yourself.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html#hide-exit-and-idle"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 7,
+          "name": "Thumbstick seeking, and the grip modifier",
+          "text": "Push the thumbstick and the film seeks ten seconds a step - no need to aim at the seek bar for a quick nudge forward or back. Hold the grip button while you push the same stick and it steps between files instead, so you can flip through a folder with the same hand motion you already use to seek, without ever reaching for the panel\u0027s PREV/NEXT buttons.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html#thumbstick-and-grip"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 8,
+          "name": "Haptics, and playing hands-free",
+          "text": "Every click on the panel gives the controller a short vibration, and hovering the ray over a button gives it a lighter one - a bit of feedback that does not depend on looking at exactly the right pixel. Set the controllers aside and FastMediaSorter still works: hand tracking recognizes a pinch as a click, aiming the ray with your hand the same way you would with a controller, and it processes hand gestures for leaving the session too, so nothing here strictly requires holding anything.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html#haptics-and-hands"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 9,
+          "name": "Curious how smooth it is? Turn on the FPS overlay",
+          "text": "Show FPS overlay, in the same VR settings block covered in setting up your headset and OpenXR, draws a live, smoothed frame-rate counter over the immersive view - a diagnostic for the curious rather than something you need in everyday use, and it is off by default so it never gets in the way of the film.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html#fps-overlay"
+        }
+      ]
+    }
+  ]
+}
+    </script>
+
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            </div>
+
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Search...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
+                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
+                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../../index.html">Home</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="../index.html">Documentation</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span>VR and OpenXR</span>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Controls in the Headset: the Floating Panel, Controllers and Hands</span>
+        </nav>
+
+        <div class="doc-grid">
+
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../index.html" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="../sample-recipe.html" class="doc-sidebar-link ">Audio Recipe</a></li>
+                        <li><a href="../sample-settings-recipe.html" class="doc-sidebar-link ">Settings Recipe</a></li>
+                        <li><a href="../sample-program-recipe.html" class="doc-sidebar-link ">Programs Recipe</a></li>
+                        <li><a href="../design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Media Categories</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="../index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="../index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Browsing & Sorting</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../browsing/grid-and-list-views.html" class="doc-sidebar-link">Grid and list views</a></li>
+                        <li><a href="../browsing/sorting-and-filtering.html" class="doc-sidebar-link">Sort, filter and search</a></li>
+                        <li><a href="../browsing/batch-selection.html" class="doc-sidebar-link">Select and batch actions</a></li>
+                        <li><a href="../browsing/media-indexing-and-caching.html" class="doc-sidebar-link">Thumbnail caching</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Camera & Screen Capture</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../capture/quick-photo-capture.html" class="doc-sidebar-link">Quick photos and video snaps</a></li>
+                        <li><a href="../capture/camera-lenses-zoom-and-profiles.html" class="doc-sidebar-link">Lenses, zoom and shooting profiles</a></li>
+                        <li><a href="../capture/screenshot-annotation.html" class="doc-sidebar-link">Taking screenshots</a></li>
+                        <li><a href="../capture/screen-recording-and-audio.html" class="doc-sidebar-link">Screen and voice recording</a></li>
+                        <li><a href="../capture/edge-gestures-and-quick-access-panel.html" class="doc-sidebar-link">Edge gestures & quick-access panel</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Documents & Text Editor</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../documents/pdf-epub-viewing.html" class="doc-sidebar-link">Reading PDF documents</a></li>
+                        <li><a href="../documents/office-docs-support.html" class="doc-sidebar-link">EPUB books and Office documents</a></li>
+                        <li><a href="../documents/text-code-editor.html" class="doc-sidebar-link">Text and Markdown editor</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Editions, Extensions & Languages</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../flavors/overview-and-comparison.html" class="doc-sidebar-link">The seven editions</a></li>
+                        <li><a href="../flavors/extensions-and-plugins.html" class="doc-sidebar-link">Downloadable extensions</a></li>
+                        <li><a href="../flavors/multilingual-support.html" class="doc-sidebar-link">Language and units</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">General, Keyboard & TV</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/backup-and-restore.html" class="doc-sidebar-link">Backing up and restoring settings</a></li>
+                        <li><a href="../general/keyboard-dpad-tv-navigation.html" class="doc-sidebar-link">Keyboard, D-pad and TV control</a></li>
+                        <li><a href="../general/multi-window-and-foldables.html" class="doc-sidebar-link">Split-screen and foldables</a></li>
+                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and assistant actions</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../getting-started/welcome-and-setup.html" class="doc-sidebar-link">First launch and setup</a></li>
+                        <li><a href="../getting-started/permissions-guide.html" class="doc-sidebar-link">App permissions explained</a></li>
+                        <li><a href="../getting-started/main-screen-overview.html" class="doc-sidebar-link">The main screen at a glance</a></li>
+                        <li><a href="../getting-started/quick-tour.html" class="doc-sidebar-link">Quick product tour</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Images, Audio & Slideshow</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../images/viewer-and-gestures.html" class="doc-sidebar-link">Viewing photos and GIFs</a></li>
+                        <li><a href="../images/editing-photos.html" class="doc-sidebar-link">Editing photos and GIFs</a></li>
+                        <li><a href="../images/slideshow-and-transitions.html" class="doc-sidebar-link">Photo slideshows</a></li>
+                        <li><a href="../audio/playing-and-organizing-music.html" class="doc-sidebar-link">Playing music</a></li>
+                        <li><a href="../audio/playlists-and-audio-queues.html" class="doc-sidebar-link">Order, sleep timer, background</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Internet Streams</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../streams/channel-catalog-browsing.html" class="doc-sidebar-link">Browse the channel catalog</a></li>
+                        <li><a href="../streams/channel-pictures-and-badges.html" class="doc-sidebar-link">Channel pictures and badges</a></li>
+                        <li><a href="../streams/custom-m3u-playlists.html" class="doc-sidebar-link">Add your own streams</a></li>
+                        <li><a href="../streams/favorites-and-epg.html" class="doc-sidebar-link">Pin and favorite channels</a></li>
+                        <li><a href="../streams/live-stream-playback.html" class="doc-sidebar-link">Play live streams and radio</a></li>
+                        <li><a href="../streams/hls-dash-buffering.html" class="doc-sidebar-link">When the connection is weak</a></li>
+                        <li><a href="../streams/shortcuts-widget-and-panel.html" class="doc-sidebar-link">Shortcuts, widget and streams panel</a></li>
+                        <li><a href="../streams/tv-watch-vr-and-broadcast.html" class="doc-sidebar-link">TV, watch, VR and live broadcasts</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Desktop</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/desktop-grid-and-icons.html" class="doc-sidebar-link">Your launcher desktop</a></li>
+                        <li><a href="../launcher/wallpapers-and-live-backgrounds.html" class="doc-sidebar-link">Desktop wallpaper</a></li>
+                        <li><a href="../launcher/desktop-folders-and-pages.html" class="doc-sidebar-link">Arranging the desktop</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Gadgets and Widgets</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/built-in-gadgets.html" class="doc-sidebar-link">Desktop gadgets</a></li>
+                        <li><a href="../launcher/android-widgets-placement.html" class="doc-sidebar-link">Placing gadgets and widgets</a></li>
+                        <li><a href="../launcher/home-screen-widgets.html" class="doc-sidebar-link">Home screen widgets</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Taskbar, Menus and Gestures</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/taskbar-and-dock.html" class="doc-sidebar-link">Taskbar and dock</a></li>
+                        <li><a href="../launcher/start-menu-and-all-apps.html" class="doc-sidebar-link">Start menu and All apps</a></li>
+                        <li><a href="../launcher/status-area-and-notifications.html" class="doc-sidebar-link">Status area and notifications</a></li>
+                        <li><a href="../launcher/desktop-gestures-and-shortcuts.html" class="doc-sidebar-link">Navigation gestures and shortcuts</a></li>
+                        <li><a href="../launcher/context-menus-and-actions.html" class="doc-sidebar-link">Context menus and fast actions</a></li>
+                        <li><a href="../launcher/screen-dimming-and-timeout.html" class="doc-sidebar-link">Screen dimming and timeout</a></li>
+                        <li><a href="../launcher/launcher-settings-and-reset.html" class="doc-sidebar-link">Launcher settings and reset</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">OCR, Drawing & Sharing</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../tools/ocr-text-recognition.html" class="doc-sidebar-link">Text recognition (OCR)</a></li>
+                        <li><a href="../tools/inline-translation.html" class="doc-sidebar-link">Translating text on screen</a></li>
+                        <li><a href="../tools/drawing-and-image-markup.html" class="doc-sidebar-link">Drawing and image markup</a></li>
+                        <li><a href="../tools/fast-sharing-and-export.html" class="doc-sidebar-link">Sending files with Send to..</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Programs, Statistics and Diagnostics</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../programs/built-in-mini-apps.html" class="doc-sidebar-link">Built-in programs, lights, mirror and SOS</a></li>
+                        <li><a href="../programs/calculator-and-stopwatch.html" class="doc-sidebar-link">Calculator and stopwatch</a></li>
+                        <li><a href="../programs/mini-game.html" class="doc-sidebar-link">Mini-game</a></li>
+                        <li><a href="../programs/usage-statistics.html" class="doc-sidebar-link">Usage statistics</a></li>
+                        <li><a href="../programs/device-diagnostics-and-logs.html" class="doc-sidebar-link">System information and the debug log</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Settings & Navigation</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/settings-overview-and-search.html" class="doc-sidebar-link">Settings overview and search</a></li>
+                        <li><a href="../settings/display-and-appearance.html" class="doc-sidebar-link">Themes, colors, language and units</a></li>
+                        <li><a href="../settings/playback-and-sorting-preferences.html" class="doc-sidebar-link">Playback, power and everyday behavior</a></li>
+                        <li><a href="../settings/privacy-and-network-security.html" class="doc-sidebar-link">Privacy and error reports</a></li>
+                        <li><a href="../settings/backup-and-device-sync.html" class="doc-sidebar-link">Backing up and syncing your device</a></li>
+                        <li><a href="../settings/controls-and-key-remapping.html" class="doc-sidebar-link">Controls and key remapping</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Sources, Destinations & File Operations</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../storage/storage-sources-setup.html" class="doc-sidebar-link">Adding folders from this device</a></li>
+                        <li><a href="../storage/network-and-cloud-sources.html" class="doc-sidebar-link">Adding network folders and clouds</a></li>
+                        <li><a href="../storage/sharing-and-backing-up-resources.html" class="doc-sidebar-link">Sharing and backing up resources</a></li>
+                        <li><a href="../storage/destination-targets-setup.html" class="doc-sidebar-link">Quick Sort destinations</a></li>
+                        <li><a href="../storage/file-copy-move-delete.html" class="doc-sidebar-link">Copy, move and delete</a></li>
+                        <li><a href="../storage/background-transfers.html" class="doc-sidebar-link">Background transfers</a></li>
+                        <li><a href="../storage/batch-renaming.html" class="doc-sidebar-link">Renaming files and folders</a></li>
+                        <li><a href="../storage/cleaning-up-space.html" class="doc-sidebar-link">Duplicates, big files and ZIP archives</a></li>
+                        <li><a href="../storage/scheduled-operations.html" class="doc-sidebar-link">Scheduled file operations</a></li>
+                        <li><a href="../storage/capture-to-destination.html" class="doc-sidebar-link">Photos, videos and voice notes into a folder</a></li>
+                        <li><a href="../storage/file-encryption-and-security.html" class="doc-sidebar-link">PIN and encrypted containers</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Video & Media Player</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../player/video-playback-controls.html" class="doc-sidebar-link">Watching videos</a></li>
+                        <li><a href="../player/subtitles-and-audio-tracks.html" class="doc-sidebar-link">Subtitles, audio tracks and 3D</a></li>
+                        <li><a href="../player/pip-and-background-play.html" class="doc-sidebar-link">Picture-in-picture and background</a></li>
+                        <li><a href="../player/casting-and-broadcast.html" class="doc-sidebar-link">Chromecast and live broadcast</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">VR and OpenXR</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../vr/headset-setup-and-openxr.html" class="doc-sidebar-link">Headset setup and OpenXR</a></li>
+                        <li><a href="../vr/spatial-cinema-playback.html" class="doc-sidebar-link">Spatial cinema playback</a></li>
+                        <li><a href="../vr/passthrough-and-controllers.html" class="doc-sidebar-link active">Headset controls</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Wear OS Watch</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../wear/installation-and-pairing.html" class="doc-sidebar-link">Installing and pairing the watch</a></li>
+                        <li><a href="../wear/companion-data-sync.html" class="doc-sidebar-link">Syncing the phone and the watch</a></li>
+                        <li><a href="../wear/tiles-and-complications.html" class="doc-sidebar-link">Tiles and complications</a></li>
+                        <li><a href="../wear/wrist-mini-apps-and-tools.html" class="doc-sidebar-link">Wrist programs and tools</a></li>
+                        <li><a href="../wear/health-and-activity-metrics.html" class="doc-sidebar-link">Health and sensor info</a></li>
+                        <li><a href="../wear/watch-home-and-appearance.html" class="doc-sidebar-link">Home screen and appearance</a></li>
+                        <li><a href="../wear/watch-players-and-viewers.html" class="doc-sidebar-link">Players and viewers</a></li>
+                        <li><a href="../wear/phone-and-network-folders-on-watch.html" class="doc-sidebar-link">Phone and network folders on the watch</a></li>
+                        <li><a href="../wear/watch-listening-and-broadcast.html" class="doc-sidebar-link">Listening and broadcasting</a></li>
+                        <li><a href="../wear/watch-file-manager.html" class="doc-sidebar-link">Browsing files on the watch</a></li>
+                        <li><a href="../wear/standalone-music-playback.html" class="doc-sidebar-link">Playing music on the watch</a></li>
+                        <li><a href="../wear/wrist-stream-player.html" class="doc-sidebar-link">Streaming radio on your wrist</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Recipe Content -->
+            <main class="doc-content" id="main-content">
+
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="doc-badge doc-badge-standard">VR and OpenXR</span>
+                    <span class="doc-badge doc-badge-standard">noLegal and VR, on a compatible headset</span>
+                    <span class="doc-badge doc-badge-sm">Recipe #03</span>
+                </div>
+
+                <h1>Controls in the Headset: the Floating Panel, Controllers and Hands</h1>
+
+                <p class="doc-lead">
+                    The floating control panel, its head-locked banner, the session settings behind the menu button, hiding and summoning the strip, thumbstick seeking with the grip modifier, controller haptics, hand tracking, and the FPS overlay - every control VR Cinema puts within reach.
+                </p>
+
+                <h2 id="why">Why You'll Love This</h2>
+                        <p>There is no touchscreen inside a headset. Every button <span class="doc-link-term" data-term="vr-cinema">VR Cinema</span> offers - play, seek, subtitles, the depth of a 3D film - has to live somewhere you can see it without breaking the scene and reach it without a keyboard or a mouse. FastMediaSorter's answer is a <span class="doc-link-term" data-term="panel">panel</span> that floats in front of you, aimed at with a controller ray or a pinch of the fingers, that shows only the buttons that make sense for whatever is currently playing and gets out of the way the moment you stop looking at it.</p>
+                        <p>This page is the controls themselves, end to end: the banner that always tells you what you are watching, the floating panel and its buttons, the settings panel behind the menu button, and the controller, thumbstick, haptic and hand-tracking input that drives all of it. Getting into VR Cinema in the first place is covered in <a href="spatial-cinema-playback.html" class="doc-link">spatial 3D/360 cinema and video playback</a>.</p>
+
+                <!-- Prerequisite Card -->
+                <div class="doc-card-prereq">
+                    <div class="doc-card-prereq-title">
+                        <span class="doc-card-prereq-icon">✓</span>
+                        <span>Before You Begin: Ingredients &amp; Prerequisites</span>
+                    </div>
+                    <ul class="doc-prereq-list">
+                        <li><span class="doc-prereq-bullet">✓</span> Everything from <a href="headset-setup-and-openxr.html" class="doc-link">setting up your headset and OpenXR</a> and <a href="spatial-cinema-playback.html" class="doc-link">spatial 3D/360 cinema and video playback</a>: the headset, the edition, and something already playing in VR Cinema.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> A pair of touch controllers for the fullest set of controls; hand tracking and a Bluetooth keyboard or mouse work too, with a smaller set of gestures.</li>
+                    </ul>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="doc-step" id="head-locked-banner">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">1</span>
+                        <h2 class="doc-step-title">The banner that always tells you what is playing</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>A banner stays locked to your head rather than to the scene, so it is always readable no matter which way you turn: the current filename, the projection FastMediaSorter detected - 360°, 180°, cylinder or flat - and the stereo layout it is using. If something about the file goes wrong, the same banner turns red instead of silently vanishing, so you always know at a glance whether what you are looking at is actually working.</p>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="doc-step" id="floating-panel">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">2</span>
+                        <h2 class="doc-step-title">The floating control panel</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>The main controls live on a world-locked <span class="doc-link-term" data-term="panel">panel</span> that hangs in front of you rather than moving with your head: point the controller ray at a button to highlight it, and pull the trigger to click it, the same ray-and-trigger motion the <span class="doc-link-term" data-term="immersive-browser">immersive browser</span> uses. Play/Pause, Previous, Next, and sliders for Volume and depth all sit here, and the panel's own <strong>PREV</strong>/<strong>NEXT</strong> buttons walk the whole <span class="doc-link-term" data-term="resource-list">resource list</span> you arrived from, not just the one file.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="vr.floating-control-panel"
+                             data-device-profile="phone"
+                             data-screen-state="xr-immersive-hud-panel"
+                             data-alt="A mirrored capture of the floating control panel in the headset with play, previous, next, volume and depth controls"
+                             data-caption="The floating panel - play, seek, volume and depth, all one ray-cast away.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Floating control panel</strong>
+                                <p class="doc-img-bookmark-desc">Mirrored headset view, floating control panel with playback buttons and sliders, controller ray pointing at one button.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>vr.floating-control-panel</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="doc-step" id="adaptive-controls">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">3</span>
+                        <h2 class="doc-step-title">It only shows what applies</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>The panel does not show every control for every file. An audio-track picker appears only when a file actually has more than one track to choose from; a subtitle picker appears only when subtitles exist; the stereo depth slider appears only for stereo content. Whatever controls do not apply simply are not there, and the remaining ones spread out to use the width that frees up, so the panel never looks half-empty or crowded depending on what you happen to be watching.</p>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="doc-step" id="seek-bar">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">4</span>
+                        <h2 class="doc-step-title">A seek bar you can actually drag</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>The panel carries a position bar with the elapsed and total time shown beside it - point the controller ray at it and drag to seek anywhere in the film, the same way you would drag a seek bar with a finger on a phone.</p>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="doc-step" id="session-settings-panel">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">5</span>
+                        <h2 class="doc-step-title">Session settings, without pausing anything</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>The left controller's menu button opens <strong>Session settings</strong> - a second panel for everything you would otherwise have to leave the film to change: <strong>Layout</strong> (Mono, Side by side, Over-under), <strong>Projection</strong> (Mono, 180°, 360°, Cylinder - the same modes covered in <a href="spatial-cinema-playback.html" class="doc-link">the four screen shapes</a>), <strong>Panel distance</strong>, <strong>Panel size</strong>, <strong>Subtitles</strong> (On/Off) and <strong>Resume position</strong>. Every change here applies to this session only, and playback never stops while you make it - close the panel with the menu button again and you are exactly where you left off.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="vr.session-settings-panel"
+                             data-device-profile="phone"
+                             data-screen-state="xr-session-settings-panel"
+                             data-alt="A mirrored capture of the immersive session settings panel with layout, projection, panel distance and subtitle controls"
+                             data-caption="Session settings, open on the menu button, film still running behind it.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Session settings panel</strong>
+                                <p class="doc-img-bookmark-desc">Mirrored headset view, session settings panel open with layout/projection spinners and distance/size/subtitles/resume rows.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>vr.session-settings-panel</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="doc-step" id="hide-exit-and-idle">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">6</span>
+                        <h2 class="doc-step-title">Hide it, summon it, or let it hide itself</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>The HUD strip carries <strong>HIDE</strong> and <strong>EXIT</strong> buttons at opposite ends, so a slip of the ray never triggers the wrong one. <strong>HIDE</strong> removes the whole strip from view, and a single trigger pull - pointed at nothing in particular - summons it straight back, no need to aim at where it used to be.</p>
+                        <p>Left alone, the strip does the same thing on its own: after 15 seconds with no ray hovering over it, it fades away so it does not sit between you and the film; any hover or click resets that countdown, and the same trigger-pull summon brings it back exactly as if you had pressed HIDE yourself.</p>
+                    </div>
+                </div>
+
+                <!-- Step 7 -->
+                <div class="doc-step" id="thumbstick-and-grip">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">7</span>
+                        <h2 class="doc-step-title">Thumbstick seeking, and the grip modifier</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Push the thumbstick and the film seeks ten seconds a step - no need to aim at the seek bar for a quick nudge forward or back. Hold the grip button while you push the same stick and it steps between files instead, so you can flip through a folder with the same hand motion you already use to seek, without ever reaching for the panel's PREV/NEXT buttons.</p>
+                    </div>
+                </div>
+
+                <!-- Step 8 -->
+                <div class="doc-step" id="haptics-and-hands">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">8</span>
+                        <h2 class="doc-step-title">Haptics, and playing hands-free</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Every click on the panel gives the controller a short vibration, and hovering the ray over a button gives it a lighter one - a bit of feedback that does not depend on looking at exactly the right pixel. Set the controllers aside and FastMediaSorter still works: hand tracking recognizes a pinch as a click, aiming the ray with your hand the same way you would with a controller, and it processes hand gestures for leaving the session too, so nothing here strictly requires holding anything.</p>
+                    </div>
+                </div>
+
+                <!-- Step 9 -->
+                <div class="doc-step" id="fps-overlay">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">9</span>
+                        <h2 class="doc-step-title">Curious how smooth it is? Turn on the FPS overlay</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p><strong>Show FPS overlay</strong>, in the same VR settings block covered in <a href="headset-setup-and-openxr.html" class="doc-link">setting up your headset and OpenXR</a>, draws a live, smoothed frame-rate counter over the immersive view - a diagnostic for the curious rather than something you need in everyday use, and it is off by default so it never gets in the way of the film.</p>
+                    </div>
+                </div>
+
+                <h2 id="outcome">What You Get</h2>
+                <div class="doc-callout doc-callout-note">
+                        <p>Every control VR Cinema offers has a place on the floating panel or the session settings behind it, reachable with a controller ray, a hand-tracked pinch, or a thumbstick nudge, adapting itself to what is actually playing and staying out of your view until you ask for it.</p>
+                </div>
+
+                <h2 id="tips">Tips and Troubleshooting</h2>
+                <div class="doc-callout doc-callout-tip">
+                    <ul>
+                        <li><strong>Panel gone and you did not hide it?</strong> It auto-hides after 15 seconds of no interaction - a single trigger pull anywhere brings it straight back.</li>
+                        <li><strong>Session settings and Settings in the app are not the same thing.</strong> Session settings only affects the film playing right now; the app's own Settings screen is covered in <a href="headset-setup-and-openxr.html" class="doc-link">setting up your headset and OpenXR</a>.</li>
+                        <li><strong>No controllers on hand?</strong> Set them down - hand tracking clicks with a pinch and points with the same hand you would otherwise hold a controller in.</li>
+                        <li><strong>Need a refresher on which button does what?</strong> The controls legend is one long-press of Y (or F1 on a keyboard) away - see <a href="headset-setup-and-openxr.html" class="doc-link">setting up your headset and OpenXR</a>.</li>
+                    </ul>
+                </div>
+
+                <!-- What to Try Next Section -->
+                <div class="doc-next-section">
+                    <div class="doc-next-title">What to Try Next: Related Recipes</div>
+                    <div class="doc-next-grid">
+                        <a href="spatial-cinema-playback.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-video">VR</span>
+                            <h4>Spatial 3D/360 cinema and video playback</h4>
+                            <p>The screens, the stereo formats and the playlist this panel controls.</p>
+                        </a>
+                        <a href="headset-setup-and-openxr.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">VR</span>
+                            <h4>Setting up your headset and OpenXR</h4>
+                            <p>Editions, headsets, the master switch and the controls legend.</p>
+                        </a>
+                        <a href="../player/video-playback-controls.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-video">Video</span>
+                            <h4>Watching videos - controls, gestures and saving frames</h4>
+                            <p>The equivalent flat-screen controls, outside the headset.</p>
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">On this page</div>
+                    <ul class="doc-toc-list">
+                        <li><a href="#why" class="doc-toc-link">Why You'll Love This</a></li>
+                        <li><a href="#head-locked-banner" class="doc-toc-link">1. The banner that always tells you what is playing</a></li>
+                        <li><a href="#floating-panel" class="doc-toc-link">2. The floating control panel</a></li>
+                        <li><a href="#adaptive-controls" class="doc-toc-link">3. It only shows what applies</a></li>
+                        <li><a href="#seek-bar" class="doc-toc-link">4. A seek bar you can actually drag</a></li>
+                        <li><a href="#session-settings-panel" class="doc-toc-link">5. Session settings, without pausing anything</a></li>
+                        <li><a href="#hide-exit-and-idle" class="doc-toc-link">6. Hide it, summon it, or let it hide itself</a></li>
+                        <li><a href="#thumbstick-and-grip" class="doc-toc-link">7. Thumbstick seeking, and the grip modifier</a></li>
+                        <li><a href="#haptics-and-hands" class="doc-toc-link">8. Haptics, and playing hands-free</a></li>
+                        <li><a href="#fps-overlay" class="doc-toc-link">9. Curious how smooth it is? Turn on the FPS overlay</a></li>
+                        <li><a href="#outcome" class="doc-toc-link">What You Get</a></li>
+                        <li><a href="#tips" class="doc-toc-link">Tips and Troubleshooting</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
+            <div class="doc-footer-links">
+                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../design-system/index.html">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive scripts: Theme switcher & 13-Language selector -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+        }());
+    </script>
+
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
+    <script src="../assets/wave-particles.js"></script>
+
+    <!-- In-browser Search Modal Engine -->
+    <script src="../assets/search.js"></script>
+</body>
+</html>

@@ -12,9 +12,9 @@ import javax.inject.Singleton
 /**
  * Packs one file into a FileDO `.fd-sec` container beside it.
  *
- * The original is always kept. The contract allows removing it only after the container has been
- * written, reopened and read back to the payload digest, which is what [FdSecContainer.pack] proves
- * before it returns [FdSecOutcome.Packed] - so [deleteOriginal] refuses anything else.
+ * The original is always kept: of the FDSEC-BEHAVIOUR section 9 dispositions this product implements
+ * only the default. `del` leaves the bytes recoverable and `wipe` cannot promise erasure on flash
+ * storage, so either one arrives as its own user-facing feature with its caveat, never as a helper here.
  */
 @Singleton
 class SecureFileToFdSecUseCase @Inject constructor() {
@@ -26,13 +26,6 @@ class SecureFileToFdSecUseCase @Inject constructor() {
         }
 
     fun isContainer(path: String): Boolean = path.endsWith(FdSecFormat.CONTAINER_SUFFIX, ignoreCase = true)
-
-    /**
-     * A plain unlink after a proven pack. The bytes stay recoverable until the space is reused and
-     * the caller must say so - this is not erasure and must never be described as such.
-     */
-    fun deleteOriginal(packed: FdSecResult, original: File): Boolean =
-        packed is FdSecResult.Packed && original.isFile && original.delete()
 
     private fun refuse(source: File): FdSecResult? = when {
         !source.isFile -> FdSecResult.Failed("only a regular file can be encrypted")

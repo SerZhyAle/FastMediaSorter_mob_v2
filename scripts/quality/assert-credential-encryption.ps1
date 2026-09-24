@@ -138,8 +138,10 @@ if ($Gate -and $ChangedFiles -and (@(Expand-ChangedFiles -ChangedFiles $ChangedF
             Write-Host ("  {0}: +{1}" -f $f.Path, $f.New)
         }
         Write-Host 'FAIL: a persisted credential field in your changed files is a plain String. Store the value through CryptoHelper and name the column for what it holds (encryptedPassword), or mark the property derived if nothing is written at rest.'
+        Write-Host 'assert-credential-encryption: FAIL'
         exit 1
     }
+    Write-Host 'assert-credential-encryption: PASS'
     exit 0
 }
 
@@ -192,6 +194,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Update') {
 
 if (-not (Test-Path -LiteralPath $baselineFile)) {
     Write-Host "credential-encryption: NO BASELINE yet | actual $current - run -UpdateBaseline to seed."
+    Write-Host 'assert-credential-encryption: PASS (no baseline to compare against)'
     exit 0
 }
 $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
@@ -199,9 +202,12 @@ $delta = $current - $baseline
 Write-Host ("plaintext credential fields in persisted models: baseline {0} | actual {1} | delta {2:+#;-#;0}" -f $baseline, $current, $delta)
 if ($Gate -and $current -gt $baseline) {
     Write-Host 'FAIL: a persisted credential field is a plain String. Store the value through CryptoHelper and name the column for what it holds (encryptedPassword), or mark the property derived if nothing is written at rest.'
+    Write-Host 'assert-credential-encryption: FAIL'
     exit 1
 }
 if ($current -lt $baseline) {
     Write-Host 'Note: count is below baseline - run -UpdateBaseline to ratchet the cap down.'
 }
+# CHECK-VERDICT rule 5: the count line above is prose, so the run ends on a line a reader can match.
+Write-Host 'assert-credential-encryption: PASS'
 exit 0

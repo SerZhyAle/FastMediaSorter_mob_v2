@@ -42,6 +42,12 @@
     2026-09-10. This gate does not call that a defect - naming and counting it is what lets the
     next placement decision be made from a list instead of a guess (S2870 non-goal).
 
+    A record written `basis: seeded` is a placeholder, not a settled state (CHECK-PLACEMENT 0.10
+    rule 7): it names the open ticket that owns judging it, and this check refuses a seeded record
+    whose owner ticket closed (Verified / Archived) or is absent, grandfathering the records
+    seeded before the rule in gate-placement-seeded-baseline.txt - a shrink-only name set whose
+    stale lines are themselves findings. The report names every seeded record and its owner state.
+
 .PARAMETER Gate
     Exit non-zero on findings. Without it the script reports and exits 0.
 
@@ -65,6 +71,11 @@
     JSON object mapping placement class to an array of runner paths, replacing the built-in map.
     For the suite only.
 
+.PARAMETER Journal
+    Read this spec-catalog journal instead of <repo>/PLAN/spec-catalog.jsonl. The owner openness
+    of every seeded record is judged against it; exists so the regression suite can judge fixed
+    input rather than whatever the host tree currently carries.
+
 .PARAMETER Help
     Show help documentation and usage.
 
@@ -75,7 +86,8 @@
     Exit codes (CLAUDE.md Rule 7):
       0  registry and wiring agree (or findings exist but -Gate was not passed).
       1  at least one finding, under -Gate with a declared input in the changed set.
-      2  cannot verify - the registry is missing or a line is not valid JSON.
+      2  cannot verify - the registry is missing or a line is not valid JSON, or the spec-catalog
+         journal is missing or unreadable.
       3  advisory: findings exist but no declared input was in the changed set (S2824).
 #>
 [CmdletBinding()]
@@ -86,6 +98,7 @@ param(
     [string]$RepoRoot,
     [string]$Registry,
     [string]$SourceMap,
+    [string]$Journal,
     [switch]$Help
 )
 
@@ -126,6 +139,16 @@ try {
 }
 catch {
     Write-Error "assert-gate-placement: CANNOT VERIFY - $($_.Exception.Message)" -ErrorAction Continue
+    exit 2
+}
+
+# CHECK-PLACEMENT 0.10 rule 7: a seeded record names an owner ticket that is still open. Owner
+# openness comes from the spec-catalog journal; a missing or unreadable journal is a cannot-verify,
+# never a silent "every owner is open".
+$journalPath = if ($Journal) { $Journal } else { Join-Path $RepoRoot 'PLAN/spec-catalog.jsonl' }
+$statusMap = Get-GatePlacementJournalStatuses -Path $journalPath
+if (-not $statusMap) {
+    Write-Error "assert-gate-placement: CANNOT VERIFY - the spec-catalog journal is missing or unreadable: $journalPath" -ErrorAction Continue
     exit 2
 }
 
@@ -224,10 +247,61 @@ foreach ($r in $records) {
     }
 }
 
+# 5. A seeded record names an owner ticket that is still open (CHECK-PLACEMENT 0.10 rule 7, S3439).
+#    The baseline is the risk-1 ratchet: records seeded before the rule stay absorbed in a
+#    shrink-only name set, so the rule never reddens a closure on debt the registry has not
+#    re-judged, and a judged record can never be silently replaced by a new violation.
+#    It resolves against -RepoRoot, not $PSScriptRoot: the contract suite invokes this live gate
+#    against sandbox roots, and the baseline is part of the judged tree, like the registry.
+$baselinePath = Join-Path $RepoRoot 'scripts/quality/gate-placement-seeded-baseline.txt'
+$baseline = @()
+if (Test-Path -LiteralPath $baselinePath) {
+    $baseline = @(Get-Content -LiteralPath $baselinePath | Where-Object { $_.Trim() -and -not $_.StartsWith('#') })
+}
+
+foreach ($r in $records) {
+    if ($r.basis -ne 'seeded') { continue }
+    $owner = "$($r.ticket)".Trim()
+    if (-not $owner) {
+        $findings.Add("$($r.gate): basis is seeded but the record names no owner ticket. Judge the record (basis judged with a reason), re-point it to an open ticket with a dated reason, or - only for records seeded before this rule - add the gate name to gate-placement-seeded-baseline.txt.")
+        continue
+    }
+    if (Test-GatePlacementOwnerOpen -TicketId $owner -StatusMap $statusMap) { continue }
+    if ($baseline -contains $r.gate) { continue }
+    $findings.Add("$($r.gate): basis is seeded but its owner ticket $owner is closed. Judge the record (basis judged with a reason), re-point it to an open ticket with a dated reason, or - only for records seeded before this rule - add the gate name to gate-placement-seeded-baseline.txt.")
+}
+
+foreach ($name in $baseline) {
+    $rec = $byGate[$name]
+    if (-not $rec) {
+        $findings.Add("gate-placement-seeded-baseline.txt names $name, which names no registry record. The baseline is shrink-only - remove the stale line.")
+        continue
+    }
+    # A closure step lives in the registry but not on disk (block 1 exempts it for the same reason),
+    # so the on-disk test applies only to records that declare a file.
+    if ($rec.kind -ne 'closure-step' -and $onDisk -notcontains $name) {
+        $findings.Add("gate-placement-seeded-baseline.txt names $name, which is not on disk. The baseline is shrink-only - remove the stale line.")
+        continue
+    }
+    $owner = "$($rec.ticket)".Trim()
+    $stillViolating = $rec.basis -eq 'seeded' -and (-not $owner -or -not (Test-GatePlacementOwnerOpen -TicketId $owner -StatusMap $statusMap))
+    if (-not $stillViolating) {
+        $findings.Add("gate-placement-seeded-baseline.txt still carries $name, whose record is no longer a violating seeded record. The baseline is shrink-only - remove the stale line.")
+    }
+}
+
 if (-not $Quiet) {
     Write-Host ("assert-gate-placement: {0} records, {1} gates on disk." -f $records.Count, $onDisk.Count)
     $judged = @($records | Where-Object { $_.basis -eq 'judged' }).Count
     Write-Host ("  judged {0}, seeded {1}" -f $judged, ($records.Count - $judged))
+    foreach ($r in ($records | Where-Object { $_.basis -eq 'seeded' })) {
+        $owner = "$($r.ticket)".Trim()
+        $state = if (-not $owner) { 'no owner' }
+            elseif (Test-GatePlacementOwnerOpen -TicketId $owner -StatusMap $statusMap) { 'owner open' }
+            elseif ($baseline -contains $r.gate) { 'owner closed (absorbed)' }
+            else { 'owner closed (violating)' }
+        Write-Host ("    {0} {1} {2}" -f $r.gate, ($(if ($owner) { $owner } else { '-' })), $state)
+    }
     foreach ($class in ($knownScopes)) {
         $n = @($records | Where-Object { $_.scope -eq $class }).Count
         if ($n) { Write-Host ("  {0,-20} {1,3}" -f $class, $n) }

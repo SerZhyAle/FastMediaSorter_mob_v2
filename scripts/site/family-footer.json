@@ -1,0 +1,78 @@
+{
+  "_comment": "The footer tools grid of the six product pages (contract SITE-FAMILY-MAP). The one copy: edit here, then run scripts/site/render-family-footer.ps1. scripts/quality/assert-site-family-map.ps1 holds the pages to this file and this file to the catalog map.",
+  "self": "https://serzhyale.github.io/FastMediaSorter_mob_v2/",
+  "tools": [
+    {
+      "url": "https://serzhyale.github.io/FastMediaSorter_Lite/",
+      "name": "Fast Media Sorter for Windows",
+      "caption": {
+        "en": "PC media sorter &amp; folder share to Android",
+        "ru": "Сортировщик медиа для Windows и общий доступ к папкам для Android",
+        "uk": "Сортувальник медіа для Windows і спільний доступ до тек для Android"
+      }
+    },
+    {
+      "url": "https://serzhyale.github.io/doc-html-translate/",
+      "name": "doc-html-translate",
+      "caption": {
+        "en": "Windows ebook converter",
+        "ru": "Конвертер книг для Windows",
+        "uk": "Конвертер книг для Windows"
+      }
+    },
+    {
+      "url": "https://serzhyale.github.io/CyrFlip/",
+      "name": "CyrFlip",
+      "caption": {
+        "en": "Windows layout fixer",
+        "ru": "Исправление раскладки Windows",
+        "uk": "Виправлення розкладки Windows"
+      }
+    },
+    {
+      "url": "https://serzhyale.github.io/FileDO/",
+      "name": "FileDO",
+      "caption": {
+        "en": "Windows storage CLI",
+        "ru": "CLI для хранилищ Windows",
+        "uk": "CLI для сховищ Windows"
+      }
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/",
+      "name": "StreamsPlayer",
+      "caption": {
+        "en": "Windows stream player",
+        "ru": "Плеер потоков для Windows",
+        "uk": "Плеєр потоків для Windows"
+      }
+    },
+    {
+      "url": "https://serzhyale.github.io/OneClickRunner/",
+      "name": "OneClickRunner",
+      "caption": {
+        "en": "Windows tray launcher",
+        "ru": "Лаунчер в трее Windows",
+        "uk": "Лаунчер у треї Windows"
+      }
+    },
+    {
+      "url": "https://serzhyale.github.io/universal-agent-kit/",
+      "name": "Universal Agent Kit",
+      "caption": {
+        "en": "AI-dev methodology",
+        "ru": "Методология AI-разработки",
+        "uk": "Методологія AI-розробки"
+      }
+    },
+    {
+      "url": "https://sza.od.ua",
+      "name": "SZA",
+      "caption": {
+        "en": "Portfolio hub",
+        "ru": "Портфолио",
+        "uk": "Портфоліо"
+      }
+    }
+  ]
+}

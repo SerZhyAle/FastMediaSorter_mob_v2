@@ -130,7 +130,7 @@
                 android:layout_height="@dimen/button_height"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/settings_search_close"
-                android:src="@drawable/ic_cancel"
+                android:src="@drawable/ic_clear"
                 app:tint="?attr/colorOnSurface" />
         </LinearLayout>
 

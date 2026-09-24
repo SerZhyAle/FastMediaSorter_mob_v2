@@ -35,14 +35,20 @@ class LauncherDimChipActionRouter @Inject constructor(
 
     /**
      * The tray's own pairings (S2025/S2027): bluetooth to its settings, wifi to the wifi screen,
-     * every other transport and tethering to the screens the tray routes them to. An unknown id or
+     * every other transport, the SIM slots and the speed readout (S3475) to wireless settings, and
+     * tethering to the screen the tray routes it to. An unknown id or
      * an unresolvable target is a logged no-op, never a crash on a tap.
      */
     private fun openStatusChip(chip: DimStatusChip) {
         val intent = when (chip.id) {
             ConnectivityDimStatusSource.ID_BLUETOOTH -> Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
             ConnectivityDimStatusSource.ID_NETWORK_WIFI -> Intent(Settings.ACTION_WIFI_SETTINGS)
-            ConnectivityDimStatusSource.ID_NETWORK_OTHER -> Intent(Settings.ACTION_WIRELESS_SETTINGS)
+            ConnectivityDimStatusSource.ID_NETWORK_OTHER,
+            ConnectivityDimStatusSource.ID_SIM1,
+            ConnectivityDimStatusSource.ID_SIM2,
+            ConnectivityDimStatusSource.ID_SPEED_RX,
+            ConnectivityDimStatusSource.ID_SPEED_TX,
+            -> Intent(Settings.ACTION_WIRELESS_SETTINGS)
             ConnectivityDimStatusSource.ID_TETHERING ->
                 OsShortcutCatalog.byKey(OsShortcutCatalog.KEY_TETHERING)?.intent(context)
 

@@ -577,7 +577,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
-            popup.applyStandaloneOverflowIcons()
+            popup.applyStandaloneOverflowIcons(anchor.context)
             // S0393: this menu is shared with the image/audio hosts - hide their type-specific items here.
             // S0410 items (menu_image_text_settings / menu_draw_overlay) are image-host-only too: keep them
             // hidden here or they leak into the document overflow menu with no click handler (dead taps).

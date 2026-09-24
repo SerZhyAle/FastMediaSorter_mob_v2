@@ -1,18 +1,16 @@
-FastMediaSorter is an Android tool for organizing media files across local storage, network shares and cloud services in one place. It combines a file browser, image viewer, video and audio player, slideshow, PDF and EPUB reader, OCR and translation - without forcing you to install separate apps for each source.
+FastMediaSorter is a complete shell for an Android device: it takes over the home screen, plays your media, opens live streams, launches your apps, talks to your watch, keeps an eye on the device, and manages every file you own across local storage, network shares and cloud services.
 
 What it can do:
 
-• Connect local folders, SMB/CIFS shares, FTP, SFTP, Google Drive, OneDrive and Dropbox side by side.
-• Browse with thumbnails, advanced sort and filters, multi-select, drag-to-reorder, full keyboard and gamepad navigation.
-• Copy, move, rename and delete across protocols, including cross-cloud transfers with progress and ETA. Move to Trash with a 5-minute recovery window.
-• Image viewer with rotation, color filters, OCR and AR-style translation overlay, draw annotations, crop and compressed copy.
-• Video player on ExoPlayer (Media3) with Picture-in-Picture, sleep timer, per-file position memory, 3D/stereo and 360° detection.
-• Audio player with background playback, lyrics search, album art lookup, visualizers and Chromecast output.
-• Slideshow with background music, time interval per resource, video-to-end mode, configurable transitions.
-• PDF and EPUB readers with TTS, themes, search and in-place translation.
-• Text editor with charset detection, markdown rendering and syntax highlight.
-• Home-screen widgets: resource launch, continue reading, random music, camera photos. Quick Settings audio tile for background playback control.
-• Settings search across every entry. Comprehensive keyboard, TV remote and gamepad shortcuts.
+• Device shell - replace the launcher: a home screen with gadgets, widgets, clock, weather and a taskbar.
+• Media player - image viewer with filters, OCR and translation overlay; video on ExoPlayer (Media3) with Picture-in-Picture, 3D/stereo and 360°; audio with lyrics, visualizers and Chromecast; PDF and EPUB readers with TTS; slideshow with background music.
+• Live streams - thousands of internet TV and radio channels with search, topic filters and now-playing information.
+• App launching - every installed app on one screen, app shortcuts and a quick-launch panel.
+• A replacement for stock apps - a camera that shoots straight into your folder, OCR and offline translation, text editor with Markdown, calculator, stopwatch.
+• A companion on the watch - browse and play the phone's media on Wear OS, plus Calculator, Stopwatch and Mini-game.
+• Device monitoring - the app's network connections, system information and automatic power saving.
+• A full file manager - local folders, SMB/CIFS, FTP, SFTP, Google Drive, OneDrive and Dropbox side by side; copy, move, rename and delete across protocols with progress and ETA, Trash with a 5-minute recovery window, and sorting into the folders you choose.
+• Full keyboard, TV remote and gamepad navigation, home-screen widgets and search across every setting.
 
 Non-free dependencies in this build (declared via Anti-Features):
 
@@ -29,3 +27,4 @@ All of the above are optional inside the app - local, SMB, FTP, SFTP usage, the 
 Free components used by the app: Tesseract OCR, SMBJ, JSch (SFTP), Apache Commons Net (FTP), ExoPlayer / Media3, Glide, OkHttp, BouncyCastle, Markwon, EPUB4j. The application source code is published under Apache License 2.0.
 
 Source code and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2
+User guide: https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/

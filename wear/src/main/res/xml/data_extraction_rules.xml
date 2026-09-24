@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Data extraction rules for the watch - API 31 and newer.
+
+    From API 31 this file supersedes backup_rules.xml for both cloud backup and
+    device-to-device transfer, so every exclusion stated there is repeated in both
+    sections here. Enforced by scripts/quality/assert-backup-rules-consistent.ps1.
+
+    Device transfer excludes the same files as cloud backup: Keystore keys migrate in
+    neither direction, so a transferred EncryptedSharedPreferences file arrives
+    undecryptable.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="network_sources_encrypted.xml" />
+        <exclude domain="sharedpref" path="wear_favorites_encrypted.xml" />
+    </cloud-backup>
+
+    <device-transfer>
+        <exclude domain="sharedpref" path="network_sources_encrypted.xml" />
+        <exclude domain="sharedpref" path="wear_favorites_encrypted.xml" />
+    </device-transfer>
+</data-extraction-rules>

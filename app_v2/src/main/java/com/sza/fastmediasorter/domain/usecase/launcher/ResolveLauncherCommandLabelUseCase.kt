@@ -388,7 +388,7 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
         } else {
             LauncherCommandVisual(
                 label = label,
-                iconRes = R.drawable.ic_cast,
+                iconRes = R.drawable.ic_stream,
             )
         }
     }

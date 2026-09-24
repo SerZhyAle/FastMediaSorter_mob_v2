@@ -81,12 +81,14 @@ private val CHIP_ICON_SIZE = 10.dp
 // itself a const expression, so the wrapped val below carries no literal of its own to flag.
 private const val CHIP_BACKGROUND_ARGB = 0x33FFFFFF
 private const val BATTERY_LOW_ARGB = 0xFFFF5252.toInt()
-private const val PHONE_CONNECTED_ARGB = 0xFF81C784.toInt()
+private const val STATE_OK_ARGB = 0xFF81C784.toInt()
 private const val PHONE_DISCONNECTED_ARGB = 0xFFE57373.toInt()
 
 private val CHIP_BACKGROUND = Color(CHIP_BACKGROUND_ARGB)
 private val BATTERY_LOW_COLOR = Color(BATTERY_LOW_ARGB)
-private val PHONE_CONNECTED_COLOR = Color(PHONE_CONNECTED_ARGB)
+
+// The clock's positive state: a connected phone and a charging battery share it (ICON-RENDER rule 2).
+private val STATE_OK_COLOR = Color(STATE_OK_ARGB)
 private val PHONE_DISCONNECTED_COLOR = Color(PHONE_DISCONNECTED_ARGB)
 
 /** Battery charge as last read from the sticky/live [Intent.ACTION_BATTERY_CHANGED] broadcast. */
@@ -330,7 +332,7 @@ private fun BatteryChip(batteryState: DimClockBatteryState) {
             Icon(
                 imageVector = Icons.Default.Bolt,
                 contentDescription = null,
-                tint = Color.Yellow,
+                tint = STATE_OK_COLOR,
                 modifier = Modifier.size(STATUS_ICON_SIZE)
             )
         }
@@ -350,7 +352,7 @@ private fun BatteryChip(batteryState: DimClockBatteryState) {
 @Composable
 private fun PhoneConnectionChip(connected: Boolean) {
     val icon = if (connected) Icons.Default.PhoneAndroid else Icons.Default.PhoneDisabled
-    val tint = if (connected) PHONE_CONNECTED_COLOR else PHONE_DISCONNECTED_COLOR
+    val tint = if (connected) STATE_OK_COLOR else PHONE_DISCONNECTED_COLOR
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp),

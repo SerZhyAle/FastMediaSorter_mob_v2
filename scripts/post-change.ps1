@@ -332,8 +332,6 @@ $runsDocScriptReferences =
 # only at release scope. Keyed on the changed set like doc-script-references above: a closure
 # whose set carries a docs/*.md runs it, a Kotlin-only one never does.
 $runsDocHouseStyle = Test-AnyChangedFile '^docs/.*\.md$'
-# S2974: a changed termbase or corpus page is where a forbidden synonym enters the documentation.
-$runsDocsTermbase = Test-AnyChangedFile '^(docs/termbase\.jsonl|documentation/.*\.md)$'
 # Any agent-memory file, not just MEMORY.md: a second-level INDEX_*.md is where an over-budget
 # section is supposed to LAND, so a closure that only touches one of those is precisely the moment
 # to confirm the top-level index actually came down.
@@ -415,6 +413,8 @@ $runsWearWireVocabularyParityGate = Test-AnyChangedFile '(WearDataLayerPaths|Wea
 # (S1621), so this trigger only has to be a superset of it.
 # S3433 icon style gate (ICON-RENDER 0.10 section 10), fixed-input form (S2824).
 $runsIconStyleGate = Test-AnyChangedFile '(^|/)(app_v2|wear)/src/[^/]+/res/drawable/ic_[^/]+\.xml$|icon-style-exceptions\.txt$|^scripts/docs/lib/(icon-[a-z-]+\.ps1|measure_glyph_style\.py)$|^scripts/quality/assert-icon-style\.ps1$|^app_v2/src/main/res/(values[^/]*/dimens|layout[^/]*/[^/]+)\.xml$'
+# S3432 icon contract rungs 2/3/5, fixed-input form: a site pairs glyph and label in a layout, menu, manifest, strings or a Kotlin catalog.
+$runsIconContractGate = Test-AnyChangedFile '^(app_v2|wear)/src/[^/]+/(res/(layout|menu|drawable|xml|values(-ru|-uk)?)[^/]*/[^/]+\.xml|AndroidManifest\.xml|java/.+(Catalog|Planner|Module|Gadget|Provider|Presentation)\.kt)$|^docs/icons/(icon-contract-map|doc-icon-map)\.json$|^docs/termbase\.jsonl$|^scripts/quality/(assert-icon-contract\.ps1|icon-contract-baseline\.txt)$'
 $runsWearWireNullabilityGate = Test-AnyChangedFile '(WearSyncPayload|WearSourcesExportPayload|WearSendToReceiversPayload|WearPhoneResourcePayload|WearStreamPinsPayload|WearFavoritesPayload|WearSettingsPayload|WearPlaybackStatePayload|WearStreamTransferPayload|WearCameraSessionPayload|CameraSessionPayload|WearListenSessionPayload|ListenSessionPayload|WearLogReportPayload|WearEventEnvelope)\.kt$'
 
 # S0558/S0945 settings-path drift gate. Fires when a HOW_TO or narrative guide
@@ -706,8 +706,6 @@ $argvDocScriptRefs = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocScriptRefs += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvDocHouseStyle = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-doc-house-style.ps1"))
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocHouseStyle += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvDocsTermbase = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-docs-termbase.ps1"))
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocsTermbase += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvMemoryBudget = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-memory-budget.ps1"), '-Gate')
 $argvAlwaysLoadedBudget = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-always-loaded-budget.ps1"), '-Gate', '-Quiet')
 $argvBaselineAbsorption = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-detekt-baseline-absorption.ps1"), '-Gate')
@@ -727,7 +725,6 @@ if ($runsDocPinsSync) { Start-PooledGate @argvDocPinsSync }
 if ($runsDocPinDrift) { Start-PooledGate @argvDocPinDrift }
 if ($runsDocScriptReferences) { Start-PooledGate @argvDocScriptRefs }
 if ($runsDocHouseStyle) { Start-PooledGate @argvDocHouseStyle }
-if ($runsDocsTermbase) { Start-PooledGate @argvDocsTermbase }
 if ($runsMemoryBudgetGate) { Start-PooledGate @argvMemoryBudget }
 if ($runsAlwaysLoadedBudget) { Start-PooledGate @argvAlwaysLoadedBudget }
 if ($runsBaselineAbsorptionGate) { Start-PooledGate @argvBaselineAbsorption }
@@ -860,13 +857,9 @@ else {
     Skip-Step "doc-house-style" "not applicable - no changed docs/*.md file"
 }
 
-# S2974: fatal - passing it is the closure condition of every documentation topic ticket.
-if ($runsDocsTermbase) {
-    Invoke-Gate "docs-termbase" { Invoke-GateChild @argvDocsTermbase }
-}
-else {
-    Skip-Step "docs-termbase" "not applicable - no changed termbase or documentation/*.md page"
-}
+# S2974 + S3422: the documentation-corpus gates - termbase, links, images, search, generated pages.
+# Dot-sourced rather than inline only because the facade reached its Rule 2 ceiling.
+. (Join-Path $root 'scripts/quality/lib/post-change-docs-corpus-gates.ps1')
 
 # S2307 memory-index budget gate. MEMORY.md is injected into every turn of every session, so an
 # overshoot is billed continuously and to everyone - which is exactly why it must be caught by the
@@ -1161,6 +1154,7 @@ if ($runsOssNoticesGate) { Start-PooledGate @argvOssNotices }
 if ($runsRuleDigestGate) { Start-PooledGate @argvRuleDigest }
 if ($runsWearWireVocabularyParityGate) { Start-PooledGate @argvWearWireVocabularyParity }
 if ($runsIconStyleGate) { Start-PooledGate @argvIconStyle }
+if ($runsIconContractGate) { Start-PooledGate @argvIconContract }
 Start-PooledGate @argvLauncherReset
 
 try {
@@ -1388,6 +1382,8 @@ if ($runsIconStyleGate) {
 else {
     Skip-Step "icon-style-gate" "not applicable - no changed file is a product glyph, dimens, layout, the icon-style exceptions or a rule library"
 }
+if ($runsIconContractGate) { Invoke-FixedInputGate "icon-contract-gate" $argvIconContract 'assert-icon-contract.ps1' }
+else { Skip-Step "icon-contract-gate" "not applicable - no changed file pairs a glyph with a label, and no icon declaration or doc picture changed" }
 
 if ($runsWearWireNullabilityGate) {
     # S2885: same fixed-input form as the vocabulary gate above - fatal when an envelope it reads is

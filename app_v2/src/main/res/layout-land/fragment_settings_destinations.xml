@@ -364,8 +364,8 @@
                                 android:layout_height="@dimen/settings_help_icon_size"
                                 android:layout_marginStart="@dimen/settings_help_icon_margin"
                                 android:background="?attr/selectableItemBackgroundBorderless"
-                                android:contentDescription="@string/tooltip_destinations_title"
-                                android:src="@drawable/ic_help_outline_24"
+                                android:contentDescription="@string/cd_help_destinations"
+                                android:src="@drawable/ic_help_outline"
                                 app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
@@ -1013,7 +1013,7 @@
 
                             <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
 
-                            <ImageButton android:id="@+id/iconHelpWearCompanion" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_wear_companion_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                            <ImageButton android:id="@+id/iconHelpWearCompanion" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/cd_help_wear_companion" android:src="@drawable/ic_help_outline" app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
 

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     S0889 - export the docs/site icon assets (SVG + PNG) for every drawable named in
     docs/icons/doc-icon-map.json.
@@ -20,7 +20,8 @@
     map and sources are unchanged. Stale assets (a drawable dropped from the map) are pruned.
 
     Exit codes: 0 = complete asset set on disk; 1 = map or venv python absent, a mapped drawable
-    has no source XML, the rasterizer failed, or the set on disk is partial after the run;
+    has no source XML or cannot be converted, the rasterizer failed, or the set on disk is
+    partial after the run;
     4 = Code.Scripts is held by another session, so nothing was written or pruned - the place in
     the queue is held, wait for the turn and rerun.
 #>
@@ -48,10 +49,12 @@ $map = Get-Content -LiteralPath $mapPath -Raw | ConvertFrom-Json
 
 # Collect every distinct drawable named anywhere in the map.
 $names = New-Object System.Collections.Generic.HashSet[string]
-foreach ($c in $map.landing) { [void]$names.Add($c.drawable) }
-foreach ($c in $map.howto)   { [void]$names.Add($c.drawable) }
-foreach ($c in $map.docsMap) { [void]$names.Add($c.drawable) }
-foreach ($p in $map.settingsSections.PSObject.Properties) { [void]$names.Add($p.Value) }
+# Every section, not a named list (S3442): a section added to the map gets its assets without an edit here.
+foreach ($sec in $map.PSObject.Properties) {
+    if ($sec.Name -like '_*') { continue }
+    if ($sec.Value -is [System.Array]) { foreach ($c in $sec.Value) { [void]$names.Add($c.drawable) } }
+    else { foreach ($p in $sec.Value.PSObject.Properties) { [void]$names.Add($p.Value) } }
+}
 $distinct = @($names) | Sort-Object
 
 $utf8 = [System.Text.UTF8Encoding]::new($false)
@@ -96,6 +99,14 @@ try {
         Write-Host ''
         Write-Host ('ERROR: ' + $missing.Count + ' mapped drawable(s) missing under ' + $drawableDir + ':')
         foreach ($m in $missing) { Write-Host ('    - ' + $m) }
+        exit 1
+    }
+    # A mapped drawable the converter cannot translate would be pruned below and its pages left
+    # pointing at nothing (S3442: three glyphs S3433 wrapped in a <group> vanished this way).
+    if ($skipped.Count -gt 0) {
+        Write-Host ''
+        Write-Host ('ERROR: ' + $skipped.Count + ' mapped drawable(s) could not be converted; nothing was pruned:')
+        foreach ($s in $skipped) { Write-Host ('    - ' + $s) }
         exit 1
     }
 

@@ -8,7 +8,7 @@
     <LinearLayout android:id="@+id/topCommandPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="@dimen/player_cmd_padding_top" android:paddingBottom="@dimen/player_cmd_padding_vertical" android:paddingHorizontal="@dimen/player_cmd_padding_horizontal" android:background="@color/activity_player_unified_topCommandPanel_background" android:visibility="gone">
 
         <!-- LEFT GROUP: Back button -->
-        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/back" android:src="@drawable/ic_back" app:tint="@color/white" />
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/back" android:src="@drawable/ic_arrow_back" app:tint="@color/white" />
 
         <!-- CENTER GROUP: Action buttons - adaptive, centered, overflow-capable -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center">
@@ -28,7 +28,7 @@
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnBlackScreenCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/black_screen_button_title" android:src="@drawable/ic_black_screen" android:visibility="gone" />
 
             <!-- S0162: Rotation toggle - visible only when followSystemRotation=false and hasAccelerometer -->
-            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRotationToggleCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/rotation_toggle_sensor_on_desc" android:src="@drawable/ic_rotation_unlocked" android:visibility="gone" />
+            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRotationToggleCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/rotation_toggle_sensor_on_desc" android:src="@drawable/ic_screen_rotation" android:visibility="gone" />
 
             <!-- Text Viewer Actions - shown for TXT files -->
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/search" android:src="@drawable/ic_search" android:visibility="gone" />
@@ -39,7 +39,7 @@
 
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnCopyTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/copy" android:src="@drawable/ic_copy" android:visibility="gone" />
 
-            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEditTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/menu_edit_file_text" android:src="@drawable/ic_edit_20" android:visibility="gone" />
+            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEditTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/menu_edit_file_text" android:src="@drawable/ic_edit" android:visibility="gone" />
 
             <!-- PDF Actions - shown for PDF files -->
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchPdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/search" android:src="@drawable/ic_search" android:visibility="gone" />
@@ -62,7 +62,7 @@
 
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEpubTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_book" android:visibility="gone" />
 
-            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnOcrEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/activity_player_unified_btnOcrImage_text" android:src="@drawable/ic_ocr" android:visibility="gone" />
+            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnOcrEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/ocr_button_description" android:src="@drawable/ic_ocr" android:visibility="gone" />
 
             <!-- Image Actions - shown for Image/GIF files -->
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslateImageCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" android:visibility="gone" />
@@ -90,7 +90,7 @@
 
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRenameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/rename" android:src="@drawable/ic_rename" />
 
-            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEditCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/menu_edit_adjust" android:src="@drawable/ic_edit_20" android:visibility="gone" />
+            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEditCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/menu_edit_adjust" android:src="@drawable/ic_edit" android:visibility="gone" />
 
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSaveFrameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/menu_save_frame" android:src="@drawable/ic_save_frame" android:visibility="gone" />
 
@@ -115,14 +115,14 @@
         </LinearLayout>
 
         <!-- S0103: Slideshow - fixed anchor before nav block -->
-        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSlideshowCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/slideshow" android:src="@drawable/ic_play" android:visibility="gone" />
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSlideshowCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/slideshow" android:src="@drawable/ic_slideshow" android:visibility="gone" />
 
         <!-- RIGHT GROUP: Navigation - always visible when command panel is shown -->
-        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPreviousCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/previous" android:src="@drawable/ic_skip_previous" android:visibility="gone" />
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPreviousCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/previous_item" android:src="@drawable/ic_skip_previous" android:visibility="gone" />
 
         <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRandomCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/random_file_description" android:src="@drawable/ic_random_nav" android:visibility="gone" />
 
-        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnNextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/next" android:src="@drawable/ic_skip_next" android:visibility="gone" />
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnNextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/next_item" android:src="@drawable/ic_skip_next" android:visibility="gone" />
 
     </LinearLayout>
 
@@ -146,7 +146,7 @@
              For audio: bg=TRANSPARENT → layers above show through. Seekbar always on top. -->
         <!-- S1007: not D-pad/keyboard focusable - the video surface itself must never wear the app-wide
              TV focus decoration (core/ui/focus/FocusDecorationController); only real controls should. -->
-        <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:focusable="false" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_music_note" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="?attr/customPlayerControlsLayout" />
+        <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:focusable="false" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_audio" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="?attr/customPlayerControlsLayout" />
 
         <ViewStub android:id="@+id/altEngineViewStub" android:layout_width="match_parent" android:layout_height="match_parent" android:layout="@layout/view_alt_engine_surface" />
 
@@ -223,7 +223,7 @@
         <!-- Fullscreen controls overlay (visible only in fullscreen mode when showControls=true) -->
         <LinearLayout android:id="@+id/controlsOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@android:color/transparent" android:visibility="gone">
 
-            <com.sza.fastmediasorter.ui.common.widget.StandardToolbar android:id="@+id/toolbar" style="@style/Widget.FastMediaSorter.Toolbar.Primary" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" app:navigationIcon="@drawable/ic_back" />
+            <com.sza.fastmediasorter.ui.common.widget.StandardToolbar android:id="@+id/toolbar" style="@style/Widget.FastMediaSorter.Toolbar.Primary" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" app:navigationIcon="@drawable/ic_arrow_back" />
 
             <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
 
@@ -289,7 +289,7 @@
             android:layout_marginTop="@dimen/player_epub_button_margin_top"
             android:layout_marginEnd="@dimen/player_epub_button_margin_end"
             android:background="@drawable/bg_circle_dark"
-            android:src="@drawable/ic_help_outline_24"
+            android:src="@drawable/ic_help_outline"
             android:contentDescription="@string/touch_zones_help"
             android:scaleType="fitCenter"
             android:padding="@dimen/player_epub_button_padding"

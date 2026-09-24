@@ -86,6 +86,6 @@ private enum class BackgroundJob(
     @StringRes val labelRes: Int,
 ) {
     SCHEDULED_OPS("scheduled-ops", R.drawable.ic_schedule, R.string.launcher_signal_scheduled_ops),
-    DUPLICATE_SCAN("duplicate-scan", R.drawable.ic_find_replace, R.string.launcher_signal_duplicate_scan),
+    DUPLICATE_SCAN("duplicate-scan", R.drawable.ic_search, R.string.launcher_signal_duplicate_scan),
     NETWORK_SYNC("network-sync", R.drawable.ic_cloud, R.string.launcher_signal_network_sync),
 }

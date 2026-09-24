@@ -16,7 +16,7 @@
         android:layout_gravity="top|end"
         android:layout_margin="@dimen/player_close_button_margin"
         android:background="@drawable/bg_circle_light"
-        android:src="@drawable/ic_cancel"
+        android:src="@drawable/ic_clear"
         app:tint="@color/activity_player_unified_btnCloseTextViewer_tint"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_close_button_padding"
@@ -60,9 +60,9 @@
             android:id="@+id/btnTextPagePrev"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_arrow_back"
+            android:src="@drawable/ic_skip_previous"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/previous"
+            android:contentDescription="@string/previous_item"
             app:tint="@color/white" />
 
         <TextView
@@ -78,9 +78,9 @@
             android:id="@+id/btnTextPageNext"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_arrow_forward"
+            android:src="@drawable/ic_skip_next"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/next"
+            android:contentDescription="@string/next_item"
             app:tint="@color/white" />
 
         <View
@@ -149,8 +149,8 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/previous"
-                android:src="@drawable/ic_arrow_back"
+                android:contentDescription="@string/previous_item"
+                android:src="@drawable/ic_skip_previous"
                 app:tint="@color/white" />
 
             <ImageButton
@@ -158,8 +158,8 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/next"
-                android:src="@drawable/ic_arrow_forward"
+                android:contentDescription="@string/next_item"
+                android:src="@drawable/ic_skip_next"
                 app:tint="@color/white" />
 
             <ImageButton
@@ -168,7 +168,7 @@
                 android:layout_height="32dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/close"
-                android:src="@drawable/ic_cancel"
+                android:src="@drawable/ic_clear"
                 app:tint="@color/white" />
         </LinearLayout>
 
@@ -312,7 +312,7 @@
                 android:clickable="true"
                 android:visibility="gone"
                 android:contentDescription="@string/text_editor_action_save"
-                android:src="@drawable/ic_text_save"
+                android:src="@drawable/ic_save"
                 app:tint="@color/white" />
 
             <ImageButton
@@ -323,7 +323,7 @@
                 android:focusable="true"
                 android:clickable="true"
                 android:contentDescription="@string/text_editor_action_save_close"
-                android:src="@drawable/ic_text_save_close"
+                android:src="@drawable/ic_save"
                 app:tint="@color/white" />
 
             <ImageButton
@@ -335,7 +335,7 @@
                 android:clickable="true"
                 android:visibility="gone"
                 android:contentDescription="@string/text_editor_action_save_send"
-                android:src="@drawable/ic_text_save_send"
+                android:src="@drawable/ic_send_plane"
                 app:tint="@color/white" />
 
             <ImageButton
@@ -347,7 +347,7 @@
                 android:clickable="true"
                 android:visibility="gone"
                 android:contentDescription="@string/text_editor_action_send_keep"
-                android:src="@drawable/ic_text_send_keep"
+                android:src="@drawable/ic_create_text_file"
                 app:tint="@color/white" />
 
             <ImageButton
@@ -369,7 +369,7 @@
                 android:focusable="true"
                 android:clickable="true"
                 android:contentDescription="@string/text_editor_action_cancel"
-                android:src="@drawable/ic_text_cancel"
+                android:src="@drawable/ic_cancel"
                 app:tint="@color/white" />
         </LinearLayout>
 

@@ -43,3 +43,4 @@ Auf Ihrer Uhr:
 Frei, offen und privat - der Quellcode erscheint unter der Apache License 2.0, und lokales, SMB-, FTP- und SFTP-Browsen sowie die Betrachter für Bild, Video, Audio, PDF und EPUB funktionieren vollständig offline, ganz ohne Konto.
 
 Source and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2
+User guide: https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/

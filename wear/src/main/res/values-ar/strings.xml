@@ -912,7 +912,11 @@
     <string name="wear_complication_now_playing_a11y">قيد التشغيل: %1$s</string>
     <string name="wear_complication_last_played_a11y">آخر تشغيل: %1$s</string>
     <plurals name="wear_complication_favorites_count">
+        <item quantity="zero">%d مفضّلات</item>
         <item quantity="one">%d مفضّل</item>
+        <item quantity="two">%d مفضّلان</item>
+        <item quantity="few">%d مفضّلات</item>
+        <item quantity="many">%d مفضّلًا</item>
         <item quantity="other">%d مفضّلة</item>
     </plurals>
 </resources>

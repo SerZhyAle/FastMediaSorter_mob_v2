@@ -14,18 +14,19 @@ import javax.inject.Singleton
  * Resolves the icon for a [ShareTarget] in the unified «Send to..» menu (S0459 ADR-5; reversed by
  * S0478).
  *
- * Hybrid policy: a package-backed target still prefers the installed app's launcher icon (most
- * recognisable); this resolver returns null for a logical or not-installed target. S0478 reverses
- * the original ADR-5 stance of falling back to a single generic share glyph: the caller now uses
- * each receiver's own meaningful per-target [ShareTarget.iconRes] glyph (a neutral-named vector
- * analog for brands), so every menu row is visually distinguishable.
+ * Hybrid policy: a package-backed target prefers the installed app's launcher icon (most
+ * recognisable); this resolver returns null for a logical or not-installed target, and the caller
+ * falls back to [ShareTarget.iconRes]. S0478 gave each logical receiver its own meaningful glyph so
+ * every row is distinguishable; a package receiver's fallback is the apps glyph (content.apps), never
+ * a drawing that imitates the app's mark (ICON-EXTERNAL rule 2, S3430).
  */
 @Singleton
 class ShareTargetIconResolver @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) {
-    /** @return the installed receiver app's icon, or null to use the neutral glyph. */
+    /** @return the installed receiver app's icon, or null to use the target's own glyph. */
     fun resolveIcon(target: ShareTarget): Drawable? {
+        Timber.d("S3430: send-to icon resolved, fallback is the target glyph")
         val pm = context.packageManager
         val pkg = target.packages.firstOrNull { isInstalled(pm, it) } ?: return null
         return try {

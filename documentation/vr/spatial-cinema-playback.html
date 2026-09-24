@@ -1,0 +1,687 @@
+---
+permalink: /documentation/vr/spatial-cinema-playback.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spatial 3D/360 Cinema and Video Player - Fast Media Sorter</title>
+    <meta name="description" content="How to step from the flat video player into VR Cinema, the 360, 180, cylinder and flat virtual cinema screens, stereo SBS/OU playback and depth, the immersive playlist and PREV/NEXT, subtitles in the headset, and what happens when something goes wrong.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html">
+    <meta property="og:title" content="Spatial 3D/360 Cinema and Video Player - Fast Media Sorter">
+    <meta property="og:description" content="How to step from the flat video player into VR Cinema, the 360, 180, cylinder and flat virtual cinema screens, stereo SBS/OU playback and depth, the immersive playlist and PREV/NEXT, subtitles in the headset, and what happens when something goes wrong.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Spatial 3D/360 Cinema and Video Player - Fast Media Sorter">
+    <meta name="twitter:description" content="How to step from the flat video player into VR Cinema, the 360, 180, cylinder and flat virtual cinema screens, stereo SBS/OU playback and depth, the immersive playlist and PREV/NEXT, subtitles in the headset, and what happens when something goes wrong.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Documentation",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Spatial 3D/360 Cinema and Video Player",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html"
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "name": "Spatial 3D/360 Cinema and Video Player",
+      "description": "How to step from the flat video player into VR Cinema, the 360, 180, cylinder and flat virtual cinema screens, stereo SBS/OU playback and depth, the immersive playlist and PREV/NEXT, subtitles in the headset, and what happens when something goes wrong.",
+      "inLanguage": "en",
+      "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Step in from the flat player",
+          "text": "Open any video in the ordinary flat video player and, on a headset with immersive mode on, a VR badge sits right in the controls row alongside play, seek and volume - tap it and VR Cinema opens on the spot. The same jump is in the overflow menu as Open in VR, for when you would rather reach for a menu than a badge. For a file that is already stereo or panoramic, FastMediaSorter can skip the tap entirely: turn on auto-immersive entry and that kind of file launches straight into VR Cinema the moment you open it, no extra step. Either way, the flat player\u0027s state - where you were, what you had set - is captured before the handoff and handed back to you exactly as it was if you return to it, and a brief loading screen covers the transition while the first immersive frame decodes, so you are never staring at a half-built scene.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html#entering-from-the-player"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Four shapes for four kinds of file",
+          "text": "VR Cinema chooses the screen to match what you are watching: - 360° - a full sphere around you, for an equirectangular photo or video. - 180° - a hemisphere in front of you, for VR180 and other front-facing fisheye captures. - Cylinder - a wide, gently curved band for 180° content authored as a cylinder rather than a sphere, without the pole distortion a sphere would introduce. - Flat - an ordinary photo or video projected onto a virtual cinema screen in a dark room, styled as Cinema, Full SBS or Full OU in the VR settings block. Each one is a live OpenXR composition layer, not a flat texture stretched over a shape, so the picture stays sharp as you turn your head to look around it.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html#cinema-screen-shapes"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Video, playing for real",
+          "text": "Local videos, stereo 3D and 360° alike, play through the same immersive pipeline with the seek position picked up exactly where the flat player\u0027s snapshot left off, so switching between flat and immersive mid-film never costs you your place.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html#video-playback"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Stereo 3D - detected, or set by hand",
+          "text": "Side-by-side and over-under are the two stereo layouts FastMediaSorter understands, rendered per eye so each one actually sees its own half of the frame. It works out which one a file uses, and whether the file is stereo at all, from three places in order: a marker in the filename, the file\u0027s own embedded spatial metadata, and - optionally - an aspect-ratio guess for files that carry neither. A video whose name was changed after downloading no longer has to fall back to flat and mono just because the filename lost its marker - the metadata still carries the truth. Got it wrong, or just prefer a different layout for one particular file? Override it by hand in that file\u0027s own settings, and FastMediaSorter remembers your choice and uses it again next time, ahead of anything auto-detection would have picked. Once the picture is stereo, a slider on the floating panel - see the controls in the headset - adjusts how much depth the 3D effect has in real time, no need to leave the film to retune it.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html#stereo-and-depth"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "A playlist that keeps going",
+          "text": "VR Cinema does not play one file in isolation - it carries the whole ordered list of images and videos you came from, so PREV and NEXT on the panel walk the same folder or resource you were already browsing, in the same order, without a return trip to the flat screen. When you reach either end, FastMediaSorter tells you plainly - First file or Last file - instead of looping silently or doing nothing.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html#playlist-and-navigation"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
+          "name": "Subtitles, right in front of you",
+          "text": "Editions: noLegal. A video\u0027s subtitle track follows you into the headset: cues render right in the immersive scene, timed against the same playback clock as the picture and the sound, so you are not choosing between reading captions and staying immersed.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html#subtitles"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 7,
+          "name": "When something goes wrong",
+          "text": "A file VR Cinema cannot open at all says so honestly - This file type is not ready for VR yet - and a stereo or panoramic file that briefly fails to decode gets the same courtesy rather than a silent freeze. If immersive mode itself cannot start, FastMediaSorter stops playback outright instead of leaving audio running behind a black screen - Immersive mode failed to start. Playback was stopped to avoid background audio. A playback error mid-session tears down cleanly: the video surface switches off, the panel stops mirroring a player that is no longer running, and the next file you try does not trip over anything left behind by the last one. And if immersive mode is unavailable for a file that would otherwise qualify, you land in flat mode instead of nowhere - Immersive mode unavailable - playing in flat mode. You can change the 3D format in player settings.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html#when-things-go-wrong"
+        }
+      ]
+    }
+  ]
+}
+    </script>
+
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            </div>
+
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Search...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
+                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
+                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../../index.html">Home</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="../index.html">Documentation</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span>VR and OpenXR</span>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Spatial 3D/360 Cinema and Video Player</span>
+        </nav>
+
+        <div class="doc-grid">
+
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../index.html" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="../sample-recipe.html" class="doc-sidebar-link ">Audio Recipe</a></li>
+                        <li><a href="../sample-settings-recipe.html" class="doc-sidebar-link ">Settings Recipe</a></li>
+                        <li><a href="../sample-program-recipe.html" class="doc-sidebar-link ">Programs Recipe</a></li>
+                        <li><a href="../design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Media Categories</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="../index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="../index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Browsing & Sorting</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../browsing/grid-and-list-views.html" class="doc-sidebar-link">Grid and list views</a></li>
+                        <li><a href="../browsing/sorting-and-filtering.html" class="doc-sidebar-link">Sort, filter and search</a></li>
+                        <li><a href="../browsing/batch-selection.html" class="doc-sidebar-link">Select and batch actions</a></li>
+                        <li><a href="../browsing/media-indexing-and-caching.html" class="doc-sidebar-link">Thumbnail caching</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Camera & Screen Capture</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../capture/quick-photo-capture.html" class="doc-sidebar-link">Quick photos and video snaps</a></li>
+                        <li><a href="../capture/camera-lenses-zoom-and-profiles.html" class="doc-sidebar-link">Lenses, zoom and shooting profiles</a></li>
+                        <li><a href="../capture/screenshot-annotation.html" class="doc-sidebar-link">Taking screenshots</a></li>
+                        <li><a href="../capture/screen-recording-and-audio.html" class="doc-sidebar-link">Screen and voice recording</a></li>
+                        <li><a href="../capture/edge-gestures-and-quick-access-panel.html" class="doc-sidebar-link">Edge gestures & quick-access panel</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Documents & Text Editor</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../documents/pdf-epub-viewing.html" class="doc-sidebar-link">Reading PDF documents</a></li>
+                        <li><a href="../documents/office-docs-support.html" class="doc-sidebar-link">EPUB books and Office documents</a></li>
+                        <li><a href="../documents/text-code-editor.html" class="doc-sidebar-link">Text and Markdown editor</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Editions, Extensions & Languages</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../flavors/overview-and-comparison.html" class="doc-sidebar-link">The seven editions</a></li>
+                        <li><a href="../flavors/extensions-and-plugins.html" class="doc-sidebar-link">Downloadable extensions</a></li>
+                        <li><a href="../flavors/multilingual-support.html" class="doc-sidebar-link">Language and units</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">General, Keyboard & TV</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/backup-and-restore.html" class="doc-sidebar-link">Backing up and restoring settings</a></li>
+                        <li><a href="../general/keyboard-dpad-tv-navigation.html" class="doc-sidebar-link">Keyboard, D-pad and TV control</a></li>
+                        <li><a href="../general/multi-window-and-foldables.html" class="doc-sidebar-link">Split-screen and foldables</a></li>
+                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and assistant actions</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../getting-started/welcome-and-setup.html" class="doc-sidebar-link">First launch and setup</a></li>
+                        <li><a href="../getting-started/permissions-guide.html" class="doc-sidebar-link">App permissions explained</a></li>
+                        <li><a href="../getting-started/main-screen-overview.html" class="doc-sidebar-link">The main screen at a glance</a></li>
+                        <li><a href="../getting-started/quick-tour.html" class="doc-sidebar-link">Quick product tour</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Images, Audio & Slideshow</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../images/viewer-and-gestures.html" class="doc-sidebar-link">Viewing photos and GIFs</a></li>
+                        <li><a href="../images/editing-photos.html" class="doc-sidebar-link">Editing photos and GIFs</a></li>
+                        <li><a href="../images/slideshow-and-transitions.html" class="doc-sidebar-link">Photo slideshows</a></li>
+                        <li><a href="../audio/playing-and-organizing-music.html" class="doc-sidebar-link">Playing music</a></li>
+                        <li><a href="../audio/playlists-and-audio-queues.html" class="doc-sidebar-link">Order, sleep timer, background</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Internet Streams</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../streams/channel-catalog-browsing.html" class="doc-sidebar-link">Browse the channel catalog</a></li>
+                        <li><a href="../streams/channel-pictures-and-badges.html" class="doc-sidebar-link">Channel pictures and badges</a></li>
+                        <li><a href="../streams/custom-m3u-playlists.html" class="doc-sidebar-link">Add your own streams</a></li>
+                        <li><a href="../streams/favorites-and-epg.html" class="doc-sidebar-link">Pin and favorite channels</a></li>
+                        <li><a href="../streams/live-stream-playback.html" class="doc-sidebar-link">Play live streams and radio</a></li>
+                        <li><a href="../streams/hls-dash-buffering.html" class="doc-sidebar-link">When the connection is weak</a></li>
+                        <li><a href="../streams/shortcuts-widget-and-panel.html" class="doc-sidebar-link">Shortcuts, widget and streams panel</a></li>
+                        <li><a href="../streams/tv-watch-vr-and-broadcast.html" class="doc-sidebar-link">TV, watch, VR and live broadcasts</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Desktop</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/desktop-grid-and-icons.html" class="doc-sidebar-link">Your launcher desktop</a></li>
+                        <li><a href="../launcher/wallpapers-and-live-backgrounds.html" class="doc-sidebar-link">Desktop wallpaper</a></li>
+                        <li><a href="../launcher/desktop-folders-and-pages.html" class="doc-sidebar-link">Arranging the desktop</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Gadgets and Widgets</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/built-in-gadgets.html" class="doc-sidebar-link">Desktop gadgets</a></li>
+                        <li><a href="../launcher/android-widgets-placement.html" class="doc-sidebar-link">Placing gadgets and widgets</a></li>
+                        <li><a href="../launcher/home-screen-widgets.html" class="doc-sidebar-link">Home screen widgets</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Taskbar, Menus and Gestures</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/taskbar-and-dock.html" class="doc-sidebar-link">Taskbar and dock</a></li>
+                        <li><a href="../launcher/start-menu-and-all-apps.html" class="doc-sidebar-link">Start menu and All apps</a></li>
+                        <li><a href="../launcher/status-area-and-notifications.html" class="doc-sidebar-link">Status area and notifications</a></li>
+                        <li><a href="../launcher/desktop-gestures-and-shortcuts.html" class="doc-sidebar-link">Navigation gestures and shortcuts</a></li>
+                        <li><a href="../launcher/context-menus-and-actions.html" class="doc-sidebar-link">Context menus and fast actions</a></li>
+                        <li><a href="../launcher/screen-dimming-and-timeout.html" class="doc-sidebar-link">Screen dimming and timeout</a></li>
+                        <li><a href="../launcher/launcher-settings-and-reset.html" class="doc-sidebar-link">Launcher settings and reset</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">OCR, Drawing & Sharing</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../tools/ocr-text-recognition.html" class="doc-sidebar-link">Text recognition (OCR)</a></li>
+                        <li><a href="../tools/inline-translation.html" class="doc-sidebar-link">Translating text on screen</a></li>
+                        <li><a href="../tools/drawing-and-image-markup.html" class="doc-sidebar-link">Drawing and image markup</a></li>
+                        <li><a href="../tools/fast-sharing-and-export.html" class="doc-sidebar-link">Sending files with Send to..</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Programs, Statistics and Diagnostics</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../programs/built-in-mini-apps.html" class="doc-sidebar-link">Built-in programs, lights, mirror and SOS</a></li>
+                        <li><a href="../programs/calculator-and-stopwatch.html" class="doc-sidebar-link">Calculator and stopwatch</a></li>
+                        <li><a href="../programs/mini-game.html" class="doc-sidebar-link">Mini-game</a></li>
+                        <li><a href="../programs/usage-statistics.html" class="doc-sidebar-link">Usage statistics</a></li>
+                        <li><a href="../programs/device-diagnostics-and-logs.html" class="doc-sidebar-link">System information and the debug log</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Settings & Navigation</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/settings-overview-and-search.html" class="doc-sidebar-link">Settings overview and search</a></li>
+                        <li><a href="../settings/display-and-appearance.html" class="doc-sidebar-link">Themes, colors, language and units</a></li>
+                        <li><a href="../settings/playback-and-sorting-preferences.html" class="doc-sidebar-link">Playback, power and everyday behavior</a></li>
+                        <li><a href="../settings/privacy-and-network-security.html" class="doc-sidebar-link">Privacy and error reports</a></li>
+                        <li><a href="../settings/backup-and-device-sync.html" class="doc-sidebar-link">Backing up and syncing your device</a></li>
+                        <li><a href="../settings/controls-and-key-remapping.html" class="doc-sidebar-link">Controls and key remapping</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Sources, Destinations & File Operations</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../storage/storage-sources-setup.html" class="doc-sidebar-link">Adding folders from this device</a></li>
+                        <li><a href="../storage/network-and-cloud-sources.html" class="doc-sidebar-link">Adding network folders and clouds</a></li>
+                        <li><a href="../storage/sharing-and-backing-up-resources.html" class="doc-sidebar-link">Sharing and backing up resources</a></li>
+                        <li><a href="../storage/destination-targets-setup.html" class="doc-sidebar-link">Quick Sort destinations</a></li>
+                        <li><a href="../storage/file-copy-move-delete.html" class="doc-sidebar-link">Copy, move and delete</a></li>
+                        <li><a href="../storage/background-transfers.html" class="doc-sidebar-link">Background transfers</a></li>
+                        <li><a href="../storage/batch-renaming.html" class="doc-sidebar-link">Renaming files and folders</a></li>
+                        <li><a href="../storage/cleaning-up-space.html" class="doc-sidebar-link">Duplicates, big files and ZIP archives</a></li>
+                        <li><a href="../storage/scheduled-operations.html" class="doc-sidebar-link">Scheduled file operations</a></li>
+                        <li><a href="../storage/capture-to-destination.html" class="doc-sidebar-link">Photos, videos and voice notes into a folder</a></li>
+                        <li><a href="../storage/file-encryption-and-security.html" class="doc-sidebar-link">PIN and encrypted containers</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Video & Media Player</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../player/video-playback-controls.html" class="doc-sidebar-link">Watching videos</a></li>
+                        <li><a href="../player/subtitles-and-audio-tracks.html" class="doc-sidebar-link">Subtitles, audio tracks and 3D</a></li>
+                        <li><a href="../player/pip-and-background-play.html" class="doc-sidebar-link">Picture-in-picture and background</a></li>
+                        <li><a href="../player/casting-and-broadcast.html" class="doc-sidebar-link">Chromecast and live broadcast</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">VR and OpenXR</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../vr/headset-setup-and-openxr.html" class="doc-sidebar-link">Headset setup and OpenXR</a></li>
+                        <li><a href="../vr/spatial-cinema-playback.html" class="doc-sidebar-link active">Spatial cinema playback</a></li>
+                        <li><a href="../vr/passthrough-and-controllers.html" class="doc-sidebar-link">Headset controls</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Wear OS Watch</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../wear/installation-and-pairing.html" class="doc-sidebar-link">Installing and pairing the watch</a></li>
+                        <li><a href="../wear/companion-data-sync.html" class="doc-sidebar-link">Syncing the phone and the watch</a></li>
+                        <li><a href="../wear/tiles-and-complications.html" class="doc-sidebar-link">Tiles and complications</a></li>
+                        <li><a href="../wear/wrist-mini-apps-and-tools.html" class="doc-sidebar-link">Wrist programs and tools</a></li>
+                        <li><a href="../wear/health-and-activity-metrics.html" class="doc-sidebar-link">Health and sensor info</a></li>
+                        <li><a href="../wear/watch-home-and-appearance.html" class="doc-sidebar-link">Home screen and appearance</a></li>
+                        <li><a href="../wear/watch-players-and-viewers.html" class="doc-sidebar-link">Players and viewers</a></li>
+                        <li><a href="../wear/phone-and-network-folders-on-watch.html" class="doc-sidebar-link">Phone and network folders on the watch</a></li>
+                        <li><a href="../wear/watch-listening-and-broadcast.html" class="doc-sidebar-link">Listening and broadcasting</a></li>
+                        <li><a href="../wear/watch-file-manager.html" class="doc-sidebar-link">Browsing files on the watch</a></li>
+                        <li><a href="../wear/standalone-music-playback.html" class="doc-sidebar-link">Playing music on the watch</a></li>
+                        <li><a href="../wear/wrist-stream-player.html" class="doc-sidebar-link">Streaming radio on your wrist</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Recipe Content -->
+            <main class="doc-content" id="main-content">
+
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="doc-badge doc-badge-standard">VR and OpenXR</span>
+                    <span class="doc-badge doc-badge-standard">noLegal and VR, on a compatible headset</span>
+                    <span class="doc-badge doc-badge-sm">Recipe #02</span>
+                </div>
+
+                <h1>Spatial 3D/360 Cinema and Video Player</h1>
+
+                <p class="doc-lead">
+                    Step from the flat player into VR Cinema, meet the 360, 180, cylinder and flat virtual cinema screens, watch stereo 3D detected or set by hand, keep walking your playlist with PREV and NEXT, and see how FastMediaSorter handles it when something along the way does not work.
+                </p>
+
+                <h2 id="why">Why You'll Love This</h2>
+                        <p>A flat screen is honest about what a video is - a rectangle. <span class="doc-link-term" data-term="vr-cinema">VR Cinema</span> is FastMediaSorter's answer to what a video could be instead: a 360° trip wrapped all the way around you, a 3D film with real depth, or simply an ordinary video projected onto a virtual screen the size of a real cinema, floating in a dark room built just for it.</p>
+                        <p>This page is about what happens once you are actually inside - the screen shapes, the stereo formats, the playlist that keeps going without a return trip to the flat player, and the handful of things that can go wrong along the way and how FastMediaSorter tells you about them instead of just going dark. Headset and edition setup is its own recipe, linked below, and so is the floating control panel you use once you are in.</p>
+
+                <!-- Prerequisite Card -->
+                <div class="doc-card-prereq">
+                    <div class="doc-card-prereq-title">
+                        <span class="doc-card-prereq-icon">✓</span>
+                        <span>Before You Begin: Ingredients &amp; Prerequisites</span>
+                    </div>
+                    <ul class="doc-prereq-list">
+                        <li><span class="doc-prereq-bullet">✓</span> Everything from <a href="headset-setup-and-openxr.html" class="doc-link">setting up your headset and OpenXR</a>: a supported edition, a compatible headset, and the 3D-VR master switch turned on.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> A video - local files work everywhere; the immersive player only opens files it can reach directly, not ones still downloading from the network.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> For the full stereo and 360° effect: a video actually shot or authored that way. An ordinary flat video still plays, just on the virtual cinema screen instead of wrapped around you.</li>
+                    </ul>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="doc-step" id="entering-from-the-player">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">1</span>
+                        <h2 class="doc-step-title">Step in from the flat player</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Open any video in the ordinary flat <span class="doc-link-term" data-term="video-player">video player</span> and, on a headset with immersive mode on, a <strong>VR</strong> badge sits right in the controls row alongside play, seek and volume - tap it and VR Cinema opens on the spot. The same jump is in the overflow menu as <strong>Open in VR</strong>, for when you would rather reach for a menu than a badge.</p>
+                        <p>For a file that is already stereo or panoramic, FastMediaSorter can skip the tap entirely: turn on auto-immersive entry and that kind of file launches straight into VR Cinema the moment you open it, no extra step. Either way, the flat player's state - where you were, what you had set - is captured before the handoff and handed back to you exactly as it was if you return to it, and a brief loading screen covers the transition while the first immersive frame decodes, so you are never staring at a half-built scene.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="vr.player-vr-badge"
+                             data-device-profile="phone"
+                             data-screen-state="video-player-vr-badge"
+                             data-alt="The flat video player controls row with a VR badge next to the playback buttons"
+                             data-caption="The VR badge, right in the controls row.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: VR badge in the player</strong>
+                                <p class="doc-img-bookmark-desc">Flat video player, controls row visible, VR badge highlighted among play/seek/volume controls.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>vr.player-vr-badge</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="doc-step" id="cinema-screen-shapes">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">2</span>
+                        <h2 class="doc-step-title">Four shapes for four kinds of file</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>VR Cinema chooses the screen to match what you are watching:</p>
+                        <ul><li><strong>360°</strong> - a full sphere around you, for an equirectangular photo or video.</li><li><strong>180°</strong> - a hemisphere in front of you, for VR180 and other front-facing fisheye captures.</li><li><strong>Cylinder</strong> - a wide, gently curved band for 180° content authored as a cylinder rather than a sphere, without the pole distortion a sphere would introduce.</li><li><strong>Flat</strong> - an ordinary photo or video projected onto a virtual cinema screen in a dark room, styled as <strong>Cinema</strong>, <strong>Full SBS</strong> or <strong>Full OU</strong> in the VR settings block.</li></ul>
+                        <p>Each one is a live <a href="https://www.khronos.org/openxr/" target="_blank" rel="noopener" class="doc-link-external">OpenXR</a> composition layer, not a flat texture stretched over a shape, so the picture stays sharp as you turn your head to look around it.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="vr.spatial-cinema-3d"
+                             data-device-profile="phone"
+                             data-screen-state="vr-cinema-flat-screen"
+                             data-alt="A mirrored capture of the VR Cinema virtual screen showing a flat video framed like a curved cinema screen"
+                             data-caption="An ordinary video, projected onto the virtual cinema screen.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Virtual cinema screen</strong>
+                                <p class="doc-img-bookmark-desc">Mirrored headset view, flat video playing on a curved virtual cinema screen inside a dark environment.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>vr.spatial-cinema-3d</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="doc-step" id="video-playback">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">3</span>
+                        <h2 class="doc-step-title">Video, playing for real</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Local videos, stereo 3D and 360° alike, play through the same immersive pipeline with the seek position picked up exactly where the flat player's snapshot left off, so switching between flat and immersive mid-film never costs you your place.</p>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="doc-step" id="stereo-and-depth">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">4</span>
+                        <h2 class="doc-step-title">Stereo 3D - detected, or set by hand</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Side-by-side and over-under are the two stereo layouts FastMediaSorter understands, rendered per eye so each one actually sees its own half of the frame. It works out which one a file uses, and whether the file is stereo at all, from three places in order: a marker in the filename, the file's own embedded spatial metadata, and - optionally - an aspect-ratio guess for files that carry neither. A video whose name was changed after downloading no longer has to fall back to flat and mono just because the filename lost its marker - the metadata still carries the truth.</p>
+                        <p>Got it wrong, or just prefer a different layout for one particular file? Override it by hand in that file's own settings, and FastMediaSorter remembers your choice and uses it again next time, ahead of anything auto-detection would have picked.</p>
+                        <p>Once the picture is stereo, a slider on the floating panel - see <a href="passthrough-and-controllers.html" class="doc-link">the controls in the headset</a> - adjusts how much depth the 3D effect has in real time, no need to leave the film to retune it.</p>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="doc-step" id="playlist-and-navigation">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">5</span>
+                        <h2 class="doc-step-title">A playlist that keeps going</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>VR Cinema does not play one file in isolation - it carries the whole ordered list of images and videos you came from, so <strong>PREV</strong> and <strong>NEXT</strong> on the panel walk the same folder or resource you were already browsing, in the same order, without a return trip to the flat screen. When you reach either end, FastMediaSorter tells you plainly - <strong>First file</strong> or <strong>Last file</strong> - instead of looping silently or doing nothing.</p>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="doc-step" id="subtitles">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">6</span>
+                        <h2 class="doc-step-title">Subtitles, right in front of you</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p><strong>Editions:</strong> noLegal.</p>
+                        <p>A video's subtitle track follows you into the headset: cues render right in the immersive scene, timed against the same playback clock as the picture and the sound, so you are not choosing between reading captions and staying immersed.</p>
+                    </div>
+                </div>
+
+                <!-- Step 7 -->
+                <div class="doc-step" id="when-things-go-wrong">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">7</span>
+                        <h2 class="doc-step-title">When something goes wrong</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>A file VR Cinema cannot open at all says so honestly - <strong>This file type is not ready for VR yet</strong> - and a stereo or panoramic file that briefly fails to decode gets the same courtesy rather than a silent freeze. If immersive mode itself cannot start, FastMediaSorter stops playback outright instead of leaving audio running behind a black screen - <strong>Immersive mode failed to start. Playback was stopped to avoid background audio.</strong></p>
+                        <p>A playback error mid-session tears down cleanly: the video surface switches off, the panel stops mirroring a player that is no longer running, and the next file you try does not trip over anything left behind by the last one. And if immersive mode is unavailable for a file that would otherwise qualify, you land in flat mode instead of nowhere - <strong>Immersive mode unavailable - playing in flat mode. You can change the 3D format in player settings.</strong></p>
+                    </div>
+                </div>
+
+                <h2 id="outcome">What You Get</h2>
+                <div class="doc-callout doc-callout-note">
+                        <p>From a tap on the VR badge to a full 360° film with the depth tuned to your taste, VR Cinema plays what you already have - stereo, panoramic or perfectly ordinary - on the screen shape that suits it, keeps walking your playlist with PREV and NEXT, carries your subtitles with you, and tells you plainly on the rare occasion something does not work.</p>
+                </div>
+
+                <h2 id="tips">Tips and Troubleshooting</h2>
+                <div class="doc-callout doc-callout-tip">
+                    <ul>
+                        <li><strong>No VR badge in the player?</strong> Turn on the 3D-VR master switch in Settings, the Media tab - see <a href="headset-setup-and-openxr.html" class="doc-link">setting up your headset and OpenXR</a>.</li>
+                        <li><strong>Prefer VR Cinema to open by itself?</strong> Turn on auto-immersive entry so stereo and panoramic files skip the badge entirely.</li>
+                        <li><strong>Not sure the layout is right?</strong> Override the stereo format for that one file instead of waiting on auto-detection - see the controls panel's session settings in <a href="passthrough-and-controllers.html" class="doc-link">controls in the headset</a>.</li>
+                        <li><strong>Want the panel and its buttons explained end to end?</strong> See <a href="passthrough-and-controllers.html" class="doc-link">controls in the headset</a>.</li>
+                    </ul>
+                </div>
+
+                <!-- What to Try Next Section -->
+                <div class="doc-next-section">
+                    <div class="doc-next-title">What to Try Next: Related Recipes</div>
+                    <div class="doc-next-grid">
+                        <a href="passthrough-and-controllers.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">VR</span>
+                            <h4>Controls in the headset</h4>
+                            <p>The floating panel, the controllers, hand tracking and haptics.</p>
+                        </a>
+                        <a href="headset-setup-and-openxr.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">VR</span>
+                            <h4>Setting up your headset and OpenXR</h4>
+                            <p>Editions, headsets, the master switch and VR Cinema's entry points.</p>
+                        </a>
+                        <a href="../player/subtitles-and-audio-tracks.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-video">Video</span>
+                            <h4>Subtitles, audio tracks and 3D</h4>
+                            <p>How subtitles and stereo formats work in the flat player.</p>
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">On this page</div>
+                    <ul class="doc-toc-list">
+                        <li><a href="#why" class="doc-toc-link">Why You'll Love This</a></li>
+                        <li><a href="#entering-from-the-player" class="doc-toc-link">1. Step in from the flat player</a></li>
+                        <li><a href="#cinema-screen-shapes" class="doc-toc-link">2. Four shapes for four kinds of file</a></li>
+                        <li><a href="#video-playback" class="doc-toc-link">3. Video, playing for real</a></li>
+                        <li><a href="#stereo-and-depth" class="doc-toc-link">4. Stereo 3D - detected, or set by hand</a></li>
+                        <li><a href="#playlist-and-navigation" class="doc-toc-link">5. A playlist that keeps going</a></li>
+                        <li><a href="#subtitles" class="doc-toc-link">6. Subtitles, right in front of you</a></li>
+                        <li><a href="#when-things-go-wrong" class="doc-toc-link">7. When something goes wrong</a></li>
+                        <li><a href="#outcome" class="doc-toc-link">What You Get</a></li>
+                        <li><a href="#tips" class="doc-toc-link">Tips and Troubleshooting</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
+            <div class="doc-footer-links">
+                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../design-system/index.html">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive scripts: Theme switcher & 13-Language selector -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+        }());
+    </script>
+
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
+    <script src="../assets/wave-particles.js"></script>
+
+    <!-- In-browser Search Modal Engine -->
+    <script src="../assets/search.js"></script>
+</body>
+</html>

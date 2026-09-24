@@ -11,4 +11,4 @@
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:theme="@style/Widget.FastMediaSorter"
-    android:previewImage="@drawable/ic_display" />
+    android:previewImage="@drawable/ic_live_broadcast" />

@@ -165,7 +165,7 @@ class StreamAudioModeManager(
             setOnClickListener { anchor ->
                 val popup = PopupMenu(activity, anchor)
                 popup.inflate(R.menu.overflow_menu_standalone_player)
-                popup.applyStandaloneOverflowIcons()
+                popup.applyStandaloneOverflowIcons(anchor.context)
                 // S1143: stream mode overflow menu: show only About channel, Lyrics, Sleep timer, Share, Speed
                 listOf(
                     R.id.menu_open_in_fms,

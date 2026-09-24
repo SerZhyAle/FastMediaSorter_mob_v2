@@ -16,6 +16,7 @@ When referencing a topic planned in another thematic ticket that has not yet bee
 <span class="doc-bookmark" data-page-id="storage.batch-renaming" title="Covered in S2949">Batch Renaming Patterns [Planned]</span>
 ```
 - During documentation writing, `scripts/quality/assert-docs-crosslinks.ps1` treats valid bookmarks as non-fatal warnings.
+- The closure (`scripts/post-change.ps1`) runs it, fatal, whenever the changed set carries a file under `documentation/`, `docs/content/` or `docs/docs-pages-manifest.jsonl`.
 - In final release verification (S2975), `-Strict` mode treats remaining bookmarks as errors once all thematic tickets are complete.
 
 ## 3. Termbase References (S2974)

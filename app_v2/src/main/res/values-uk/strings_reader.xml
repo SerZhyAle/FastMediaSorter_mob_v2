@@ -51,7 +51,7 @@
     <string name="epub_reader_font_size">Розмір шрифту</string>
     <string name="epub_reader_line_height">Міжрядковий інтервал</string>
     <string name="epub_reader_margin">Горизонтальний відступ</string>
-    <string name="epub_reader_settings">Налаштування читання</string>
+    <string name="epub_reader_settings">Налаштування книги</string>
     <string name="epub_reader_theme">Тема</string>
     <string name="epub_search_all_chapters">Пошук по всіх главах</string>
     <string name="epub_search_hint">Пошук тексту..</string>
@@ -65,8 +65,8 @@
     <string name="text_editor_action_cancel">Скасувати</string>
     <string name="text_editor_action_save">Зберегти</string>
     <string name="text_editor_action_save_close">Зберегти й закрити</string>
-    <string name="text_editor_action_save_send">Зберегти й надіслати</string>
-    <string name="text_editor_action_send_keep">У Keep</string>
+    <string name="text_editor_action_save_send">Зберегти й надіслати до..</string>
+    <string name="text_editor_action_send_keep">Створити нотатку в Keep</string>
     <string name="text_editor_keep_unavailable">Google Keep не встановлено.</string>
     <string name="text_file_display_error">Не вдалося показати цей текстовий файл. Спробуйте ще раз.</string>
     <string name="text_file_load_failed">Не вдалося відкрити цей текстовий файл. Спробуйте ще раз.</string>

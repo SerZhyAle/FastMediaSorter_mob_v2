@@ -650,7 +650,7 @@ class MediaFileAdapter(
                     playbackAnimator.stopDownload()
                 }
                 state.status == PlaybackStatus.PLAYING -> {
-                    binding.btnPlayInline.setImageResource(R.drawable.ic_music_note)
+                    binding.btnPlayInline.setImageResource(R.drawable.ic_audio)
                     playbackAnimator.stopDownload()
                     playbackAnimator.startNote()
                 }

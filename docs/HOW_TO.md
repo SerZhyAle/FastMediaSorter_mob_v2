@@ -12,7 +12,7 @@ This guide now has two layers:
 - **Scenario Groups** for richer real-life workflows and combinations of features.
 - **Core Task Reference** for direct one-feature recipes further below.
 
-[Русский](HOW_TO-ru.md) | [Українська](HOW_TO-uk.md)
+{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="en" %}
 
 ---
 
@@ -364,7 +364,7 @@ These sections are intentionally more varied than the core reference blocks belo
 **Quick Path**
 
 1. Browse to any local folder, home NAS (SMB), FTP/SFTP server, or cloud drive (Google Drive).
-2. Tap the **New Note (📝)** button in the folder toolbar.
+2. Tap the **New Note <img src="icons/doc/ic_create_text_file.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button in the folder toolbar.
 3. Type your content inside the editor. The app highlights Markdown tags and code syntax.
 4. Tap **Save** (or let it auto-save) to write the changes directly to the remote source.
 
@@ -1017,7 +1017,7 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 **Features:**
 
 - **Chapter Navigation:** Swipe left/right or use command panel buttons
-- **Table of Contents:** Tap the list icon (📋) to jump to a specific chapter
+- **Table of Contents:** Tap the list icon <img src="icons/doc/ic_toc.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> to jump to a specific chapter
 - **Font Size:** adjustable (14px - 32px)
 - **Search:** Find text within the current book
 - **Themes:** Automatically adapts to Light/Dark mode
@@ -1029,8 +1029,8 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 3. **Use bottom controls:**
    - `Previous` / `next`: navigate chapters
    - `- A` / `+ A`: decrease/increase font size
-   - `Search` (🔍): search text
-   - `TOC` (📋): open table of contents
+   - `Search` <img src="icons/doc/ic_search.png" alt="" width="18" height="18" style="vertical-align:text-bottom">: search text
+   - `TOC` <img src="icons/doc/ic_toc.png" alt="" width="18" height="18" style="vertical-align:text-bottom">: open table of contents
 4. **Swipe gesture:** switch chapters naturally
 
 **Note:** Works seamlessly with local files and network streams (SMB/SFTP/Cloud). Large books (>50MB) over slow networks might take a few seconds to load initially.
@@ -1325,7 +1325,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 
 **Steps:**
 
-1. Open a folder in Browse, then open the **overflow menu** (⋮) in the toolbar.
+1. Open a folder in Browse, then open the **overflow menu** <img src="icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> in the toolbar.
 2. Tap **Find Duplicates** to review matches yourself, or **Find and Delete Duplicates** to remove them right away.
 3. For **Find Duplicates**, the app pre-selects every copy except the oldest one in each group - adjust the selection, then tap **Delete Selected** and confirm.
 4. **Find and Delete Duplicates** removes the same pre-selected copies right after the scan, with no confirmation step - use **Find Duplicates** first if you want to double-check before anything is deleted.

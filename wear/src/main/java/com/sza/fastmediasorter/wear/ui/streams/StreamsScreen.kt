@@ -1100,7 +1100,7 @@ private fun StreamTileRow(
         onClick = onClick,
         fallback = { glyphModifier ->
             Icon(
-                painter = painterResource(R.drawable.ic_cast),
+                painter = painterResource(R.drawable.ic_stream),
                 contentDescription = null,
                 modifier = glyphModifier
             )
@@ -1150,13 +1150,13 @@ private fun StreamCell(
         caption = channel.name,
         onClick = onClick,
         modifier = modifier,
-        // Every channel whose favicon has not resolved draws the same ic_cast, so the name is the
+        // Every channel whose favicon has not resolved draws the same ic_stream, so the name is the
         // only thing telling one tile from the next - the grid the 2026-08-27 audit found reading
         // six times as "S1945 Seed.." (S2177).
         captionLayout = CellCaption(overGroupIcon = true)
     ) { glyphModifier ->
         Icon(
-            painter = painterResource(R.drawable.ic_cast),
+            painter = painterResource(R.drawable.ic_stream),
             contentDescription = null,
             modifier = glyphModifier
         )

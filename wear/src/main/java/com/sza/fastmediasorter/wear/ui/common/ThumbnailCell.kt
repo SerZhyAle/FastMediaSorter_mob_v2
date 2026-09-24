@@ -47,7 +47,7 @@ private val CAPTION_MARGIN = 2.dp
  * reproduces the single-line behaviour every caller had before the parameter existed, so a screen
  * showing short category or source names keeps the cell height it had.
  * @param overGroupIcon the screen's own statement that its fallback glyph stands for a whole class -
- * one `ic_cast` for every channel, one glyph per source type - and therefore does not identify the
+ * one `ic_stream` for every channel, one glyph per source type - and therefore does not identify the
  * item. It is only half the condition: see [ThumbnailCell].
  * @param overReadyPicture the screen's statement that the picture itself does not identify the item
  * either, so the caption belongs on it. Audio cover art is the case it exists for (S3119): a cover

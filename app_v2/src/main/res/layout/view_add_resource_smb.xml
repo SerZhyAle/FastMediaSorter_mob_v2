@@ -36,7 +36,7 @@
         <!-- Test Connection + Scan Shares in one row to save vertical space -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="end" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/resource_field_margin_end" android:text="@string/smb_test_connection" app:icon="@drawable/ic_info" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/resource_field_margin_end" android:text="@string/smb_test_connection" app:icon="@drawable/ic_test_connection" />
 
             <!-- Scan Shares: discovers available shares for the currently entered server + credentials -->
             <com.google.android.material.button.MaterialButton android:id="@+id/btnScanShares" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:text="@string/smb_scan_shares" app:icon="@drawable/ic_resource_smb" />

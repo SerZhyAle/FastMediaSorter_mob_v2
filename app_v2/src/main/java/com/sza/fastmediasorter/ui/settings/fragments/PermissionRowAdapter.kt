@@ -127,24 +127,24 @@ class PermissionRowAdapter(
             val ctx = indicator.context
             val (iconRes, colorRes, descRes) = when (status) {
                 PermissionStatus.GRANTED -> Triple(
-                    R.drawable.ic_perm_state_granted,
+                    R.drawable.ic_check_circle,
                     R.color.perm_state_granted,
                     R.string.perm_state_granted,
                 )
                 PermissionStatus.PERMANENTLY_DENIED -> Triple(
-                    R.drawable.ic_perm_state_blocked,
+                    R.drawable.ic_lock,
                     R.color.perm_state_blocked,
                     R.string.perm_state_blocked,
                 )
                 PermissionStatus.ASKED_EACH_TIME -> Triple(
-                    R.drawable.ic_perm_state_missing,
+                    R.drawable.ic_stream_status_unknown,
                     R.color.perm_state_missing,
                     R.string.perm_state_asked_each_time,
                 )
                 PermissionStatus.NOT_YET_REQUESTED,
                 PermissionStatus.DENIED,
                 PermissionStatus.NOT_APPLICABLE -> Triple(
-                    R.drawable.ic_perm_state_missing,
+                    R.drawable.ic_stream_status_unknown,
                     R.color.perm_state_missing,
                     R.string.perm_state_missing,
                 )

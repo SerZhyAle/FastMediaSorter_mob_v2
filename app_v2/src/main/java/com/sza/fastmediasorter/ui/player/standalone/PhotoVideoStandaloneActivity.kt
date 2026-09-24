@@ -706,7 +706,7 @@ class PhotoVideoStandaloneActivity :
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
-            popup.applyStandaloneOverflowIcons()
+            popup.applyStandaloneOverflowIcons(anchor.context)
             // S0393: crop/compress/edit/Lens overwrite or share the source file, so they need a
             // resolved local writable image (editableImageFile). OCR/translate/print operate purely on
             // the displayed bitmap, so they only need a rendered image - gate those on the drawable,
@@ -1063,7 +1063,7 @@ class PhotoVideoStandaloneActivity :
                 )
             }
             binding.btnEditRotate.setImageResource(
-                if (enabled) R.drawable.ic_rotation_unlocked else R.drawable.ic_rotation_locked
+                if (enabled) R.drawable.ic_screen_rotation else R.drawable.ic_rotation_locked
             )
             binding.btnEditRotate.contentDescription = getString(
                 if (enabled) {

@@ -381,7 +381,7 @@ class LinkDownloadWorker @AssistedInject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         return NotificationCompat.Action(
-            android.R.drawable.ic_menu_view,
+            R.drawable.ic_open_in_browse,
             context.getString(R.string.action_open),
             pi,
         )

@@ -26,4 +26,6 @@
     <exclude domain="sharedpref" path="google_drive_credentials.xml" />
     <exclude domain="sharedpref" path="dropbox_credentials.xml" />
     <exclude domain="sharedpref" path="link_download_cookies.xml" />
+    <!-- S3450: the remembered FileDO credential never leaves the device, whatever the restore target -->
+    <exclude domain="sharedpref" path="fdsec_remembered_credential.xml" />
 </full-backup-content>

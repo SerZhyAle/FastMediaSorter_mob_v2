@@ -43,7 +43,7 @@ class LauncherFeatureActionManager(
         rows += action(R.string.launcher_app_action_pin_taskbar, R.drawable.ic_pin) {
             pinToTaskbar(command)
         }
-        rows += action(R.string.remove_action, R.drawable.ic_delete) {
+        rows += action(R.string.remove_action, R.drawable.ic_remove_circle_outline) {
             removeDesktopCell(cellId)
         }
         return rows

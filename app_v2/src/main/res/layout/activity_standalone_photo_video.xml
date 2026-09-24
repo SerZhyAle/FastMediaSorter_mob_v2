@@ -17,7 +17,7 @@
     <!-- Top command panel: Back + file-op actions -->
     <LinearLayout android:id="@+id/topCommandPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="@dimen/player_cmd_padding_top" android:paddingBottom="@dimen/player_cmd_padding_vertical" android:paddingHorizontal="@dimen/player_cmd_padding_horizontal" android:background="@color/activity_player_unified_topCommandPanel_background" android:visibility="gone">
 
-        <ImageButton android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/back" android:src="@drawable/ic_back" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:focusable="true" android:clickable="true" android:nextFocusRight="@id/btnDeleteCmd" />
+        <ImageButton android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/back" android:src="@drawable/ic_arrow_back" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:focusable="true" android:clickable="true" android:nextFocusRight="@id/btnDeleteCmd" />
 
         <!-- S0389/S0390: scrollable so the full action set stays reachable when it overflows a narrow
              phone width (otherwise the centred row clips btnPagePrev / btnOverflowMenu to a sliver).
@@ -69,7 +69,7 @@
              StandaloneVideoControlsManager finds btnPlaybackControl in the controller overlay. -->
         <!-- S1007: not D-pad/keyboard focusable - the video surface itself must never wear the app-wide
              TV focus decoration (core/ui/focus/FocusDecorationController); only real controls should. -->
-        <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:focusable="false" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_music_note" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="?attr/customPlayerControlsLayout" />
+        <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:focusable="false" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_audio" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="?attr/customPlayerControlsLayout" />
 
         <!-- Standard ImageView for non-zoomable mode (kept for id parity with the unified layout) -->
         <ImageView android:id="@+id/imageView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:scaleType="fitCenter" android:contentDescription="@null" />

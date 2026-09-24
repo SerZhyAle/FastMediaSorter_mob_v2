@@ -100,7 +100,7 @@ class MainExitButtonManager(
             exitButton.setIconResource(R.drawable.ic_double_arrow_down)
             exitButton.contentDescription = exitButton.context.getString(R.string.minimize_to_background)
         } else {
-            exitButton.setIconResource(R.drawable.ic_cancel)
+            exitButton.setIconResource(R.drawable.ic_exit_to_app)
             exitButton.contentDescription = exitButton.context.getString(R.string.exit)
         }
     }

@@ -23,7 +23,7 @@
             android:layout_width="@dimen/item_icon_size_small"
             android:layout_height="@dimen/item_icon_size_small"
             android:contentDescription="@string/folder_icon"
-            android:src="@drawable/ic_folder_24" />
+            android:src="@drawable/ic_folder" />
 
         <TextView
             android:id="@+id/tvFolderName"

@@ -898,6 +898,7 @@ class SmbConnectionManager @Inject constructor(
         SmbErrorClassifier.getUserFriendlyMessage(e)
 
     /** Get connection for ExoPlayer (synchronous blocking call). Used by SmbDataSource which runs in ExoPlayer's thread pool. Attempts to reuse pooled connection, creates new if needed. IMPORTANT: Caller must NOT close the returned objects - they are managed by the pool. ExoPlayer should only use the DiskShare for file operations. */
+    @WorkerThread
     fun getConnectionForExoPlayer(connectionInfo: SmbConnectionInfo): PooledConnection {
         // S0195: trigger network lifecycle bootstrap on first SMB use.
         lifecycleBootstrapper.get().ensureInitialized()

@@ -1,1 +1,1 @@
-File organizer: sort photos, video, music and docs - local, network, cloud.
+Android device shell: home screen, media player, live TV, full file manager

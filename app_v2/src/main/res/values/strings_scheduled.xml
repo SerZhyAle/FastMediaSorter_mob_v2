@@ -24,7 +24,7 @@
     <string name="scheduled_ops_battery_dialog_title">Allow background activity</string>
     <string name="scheduled_ops_btn_add">Add</string>
     <string name="scheduled_ops_btn_clear_all">Clear all</string>
-    <string name="scheduled_ops_btn_log">Log</string>
+    <string name="scheduled_ops_btn_log">History</string>
     <string name="scheduled_ops_btn_run_now">Run now</string>
     <string name="scheduled_ops_col_condition">Conditions</string>
     <string name="scheduled_ops_col_operation">Operation</string>

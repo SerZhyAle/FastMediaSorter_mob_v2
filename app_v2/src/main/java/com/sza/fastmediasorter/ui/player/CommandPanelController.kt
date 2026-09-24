@@ -2,13 +2,18 @@ package com.sza.fastmediasorter.ui.player
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.res.ColorStateList
 import android.content.res.Configuration
+import android.graphics.Color
 import android.graphics.Rect
 import android.net.Uri
 import android.view.View
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.cast.CastController
@@ -19,6 +24,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.popupIconColor
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
 import com.sza.fastmediasorter.ui.player.helpers.LanguageBadgeDrawable
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBigButtonsModeManager
@@ -36,6 +42,8 @@ import kotlin.math.roundToInt
 // S0238: VR-entry button visibility - open for video and pixel-media (image, gif).
 // Audio / docs / text / pdf / epub do not benefit from VR.
 private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, MediaType.GIF)
+
+private const val ACTIVE_TOGGLE_BACKGROUND_ALPHA = 0x33
 
 /** PlayerActivity command panel: button setup, availability/state updates, small-controls layout, original-height tracking, landscape/portrait adaptation. */
 class CommandPanelController(
@@ -374,14 +382,20 @@ class CommandPanelController(
 
     /** Update slideshow button visual state (color/alpha) based on active state */
     fun updateSlideshowButtonColor(isActive: Boolean) {
-        binding.btnSlideshowCmd.alpha = if (isActive) 1.0f else 0.5f
-        // ImageButton uses imageTintList instead of setTextColor
+        Timber.d("S3430: slideshow toggle tint from overlay and error roles")
+        val button = binding.btnSlideshowCmd
+        button.alpha = if (isActive) 1.0f else 0.5f
+        // The command bar is a fixed dark overlay: idle takes the overlay's content colour, active the
+        // theme's error role (ICON-RENDER rule 2), so no theme can turn the toggle invisible.
         if (isActive) {
-            binding.btnSlideshowCmd.imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.RED)
-            binding.btnSlideshowCmd.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#33FF0000"))
+            val active = MaterialColors.getColor(button, androidx.appcompat.R.attr.colorError)
+            button.imageTintList = ColorStateList.valueOf(active)
+            button.backgroundTintList =
+                ColorStateList.valueOf(ColorUtils.setAlphaComponent(active, ACTIVE_TOGGLE_BACKGROUND_ALPHA))
         } else {
-            binding.btnSlideshowCmd.imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE)
-            binding.btnSlideshowCmd.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
+            button.imageTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(button.context, R.color.player_overlay_on_primary))
+            button.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
         }
     }
 
@@ -612,7 +626,7 @@ class CommandPanelController(
         val popup = PopupMenu(context, anchor)
         popup.setForceShowIcon(true)
 
-        val iconColor = android.graphics.Color.DKGRAY
+        val iconColor = context.popupIconColor()
 
         // S1364: count the section's members before creating it - Android does not hide an empty
         // submenu, and on a video or text file none of these commands is emitted at all. Same
@@ -908,8 +922,8 @@ class CommandPanelController(
     }
 
     fun updateRotationToggleIcon(sensorEnabled: Boolean) {
-        val iconRes = if (sensorEnabled) R.drawable.ic_rotation_unlocked
-                      else R.drawable.ic_rotation_locked
+        Timber.d("S3429: rotation toggle icon, sensorEnabled=%s", sensorEnabled)
+        val iconRes = if (sensorEnabled) R.drawable.ic_screen_rotation else R.drawable.ic_rotation_locked
         safeViews.btnRotationToggleCmd.setImageResource(iconRes)
         safeViews.btnRotationToggleCmd.contentDescription =
             binding.root.context.getString(
@@ -956,8 +970,8 @@ class CommandPanelController(
     private fun updateBigButtonsTopPanelContentDescriptions(editLabelRes: Int) {
         val context = binding.root.context
         binding.btnBack.contentDescription = context.getString(R.string.back)
-        binding.btnPreviousCmd.contentDescription = context.getString(R.string.previous)
-        binding.btnNextCmd.contentDescription = context.getString(R.string.next)
+        binding.btnPreviousCmd.contentDescription = context.getString(R.string.previous_item)
+        binding.btnNextCmd.contentDescription = context.getString(R.string.next_item)
         binding.btnSlideshowCmd.contentDescription = context.getString(R.string.slideshow)
         safeViews.btnOverflowMenu.contentDescription = context.getString(R.string.more_actions)
 

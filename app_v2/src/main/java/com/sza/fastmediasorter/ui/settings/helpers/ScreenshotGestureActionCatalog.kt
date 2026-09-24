@@ -96,13 +96,13 @@ object ScreenshotGestureActionCatalog {
             GestureActionGroup.CAMERA,
             R.string.screenshot_gesture_action_take_photo_send_to,
             R.string.gesture_action_explain_take_photo_send_to,
-            R.drawable.ic_camera_send_to,
+            R.drawable.ic_send_plane,
         )
         ScreenshotGestureAction.TAKE_PHOTO_EDIT -> GestureActionMeta(
             GestureActionGroup.CAMERA,
             R.string.screenshot_gesture_action_take_photo_edit,
             R.string.gesture_action_explain_take_photo_edit,
-            R.drawable.ic_edit_20,
+            R.drawable.ic_edit,
         )
         ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE -> GestureActionMeta(
             GestureActionGroup.CAMERA,
@@ -132,7 +132,7 @@ object ScreenshotGestureActionCatalog {
             GestureActionGroup.UTILITY,
             R.string.broadcast_menu_label,
             R.string.broadcast_menu_label,
-            R.drawable.ic_cast,
+            R.drawable.ic_live_broadcast,
         )
         ScreenshotGestureAction.OPEN_TOURIST_INFO -> GestureActionMeta(
             GestureActionGroup.UTILITY,
@@ -186,7 +186,7 @@ object ScreenshotGestureActionCatalog {
             GestureActionGroup.LAUNCH,
             R.string.screenshot_gesture_action_create_keep_note,
             R.string.gesture_action_explain_create_keep_note,
-            R.drawable.ic_text_send_keep,
+            R.drawable.ic_create_text_file,
         )
         ScreenshotGestureAction.OPEN_URL -> GestureActionMeta(
             GestureActionGroup.LAUNCH,

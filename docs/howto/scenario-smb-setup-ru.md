@@ -7,7 +7,7 @@ permalink: /docs/howto/scenario-smb-setup-ru.html
 
 > **Уровень:** Начинающий &bull; **Версия:** Standard, Photos, Legacy, VR, noLegal (в Lite сетевых источников нет)
 
-[English](scenario-smb-setup.md) | [Українська](scenario-smb-setup-uk.md)
+{% include lang-switcher.html doc="scenario-smb-setup" dir="/docs/howto/" current="ru" %}
 
 SMB (также Windows File Sharing или CIFS) позволяет просматривать файлы на домашнем ПК, ноутбуке или NAS прямо с телефона - без кабелей и USB, только по Wi-Fi.
 
@@ -68,9 +68,9 @@ IP-адрес - это «домашний адрес» вашего ПК в Wi-F
 ## Шаг 3 - Откройте FastMediaSorter и нажмите "+"
 
 1. Откройте приложение
-2. На **главном экране** нажмите кнопку **Добавить (⊕)** на панели инструментов
+2. На **главном экране** нажмите кнопку **Добавить <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** на панели инструментов
 
-![FastMediaSorter main screen - Add (⊕) button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
+![FastMediaSorter main screen - Add button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
 
 ---
 

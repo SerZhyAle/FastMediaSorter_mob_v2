@@ -17,9 +17,13 @@
     scripts/docs/lib/measure_glyph_style.py and judges it with scripts/docs/lib/icon-style-rules.ps1,
     so the gate and the contract's style report can never disagree about a picture.
 
+    S3430 adds rule `tint` (ICON-RENDER rule 2), phone glyphs only: a <vector> that paints a literal
+    colour must declare android:tint, so a call site that sets no tint still gets the theme's colour
+    (scripts/quality/lib/icon-tint-rule.ps1).
+
     The only way past a rule is a line in scripts/quality/icon-style-exceptions.txt -
     `name | rule | reason`, `name` being a drawable name (both modules) or `wear:name` (watch only),
-    `rule` one of grid, paint, stroke, margin, centre, weight or `*`. A full run also fails a STALE
+    `rule` one of grid, paint, stroke, margin, centre, weight, tint or `*`. A full run also fails a STALE
     exception: a name that no longer exists, or whose excused rules it now passes - a list that only
     grows ends up hiding the defects it was written to explain.
 
@@ -30,7 +34,7 @@
 
     Fixed-input shape (S2824): with -ChangedFiles, only the product glyphs in the set are judged; the
     exceptions file or one of the shared libraries that define the rules (scripts/docs/lib/icon-*.ps1,
-    measure_glyph_style.py) in the set widens the run to every glyph; a dimens.xml or a layout file in the
+    measure_glyph_style.py, scripts/quality/lib/icon-tint-rule.ps1) in the set widens the run to every glyph; a dimens.xml or a layout file in the
     set runs the size check; a set with none of them is advisory.
 
     Exit codes:
@@ -51,6 +55,7 @@ param(
 $ErrorActionPreference = 'Stop'
 . (Join-Path $RepoRoot 'scripts/docs/lib/icon-contract-svg.ps1')
 . (Join-Path $RepoRoot 'scripts/docs/lib/icon-style-rules.ps1')
+. (Join-Path $RepoRoot 'scripts/quality/lib/icon-tint-rule.ps1')
 Initialize-IconColourMaps $RepoRoot
 
 $exceptionsRel = 'scripts/quality/icon-style-exceptions.txt'
@@ -79,7 +84,7 @@ $full = [string]::IsNullOrWhiteSpace($ChangedFiles)
 $targets = $all
 if (-not $full) {
     $set = @($ChangedFiles -split '[,;]' | ForEach-Object { $_.Trim().Replace('\', '/') } | Where-Object { $_ })
-    if ($set | Where-Object { $_.EndsWith($exceptionsRel) -or $_ -match 'scripts/docs/lib/(icon-[a-z-]+\.ps1|measure_glyph_style\.py)$' }) { $full = $true }
+    if ($set | Where-Object { $_.EndsWith($exceptionsRel) -or $_ -match 'scripts/(docs/lib/(icon-[a-z-]+\.ps1|measure_glyph_style\.py)|quality/lib/icon-tint-rule\.ps1)$' }) { $full = $true }
     else {
         $targets = @($all | Where-Object { $rel = $_.Rel; $set | Where-Object { $_.EndsWith($rel) } })
         $sizeRun = [bool]($set | Where-Object { $_ -match 'app_v2/src/main/res/(values[^/]*/dimens|layout[^/]*/[^/]+)\.xml$' })
@@ -183,6 +188,15 @@ foreach ($t in $targets) {
         if ($by) { $used["$by|$($v.Rule)"] = $true; $used["$by|*"] = $true; continue }
         $failures.Add("$($t.Rel): $($v.Rule) - $($v.Value)")
     }
+}
+# Rule `tint` is the phone's alone: the watch draws every glyph through Compose, which tints it itself.
+foreach ($t in $targets) {
+    if ($t.Key.StartsWith('wear:')) { continue }
+    $baked = Test-GlyphTint $t.Path
+    if (-not $baked) { continue }
+    $by = Get-Excuse $t.Key $t.Name 'tint'
+    if ($by) { $used["$by|tint"] = $true; $used["$by|*"] = $true; continue }
+    $failures.Add("$($t.Rel): tint - $baked")
 }
 
 if ($full) {

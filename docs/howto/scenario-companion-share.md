@@ -3,11 +3,11 @@ layout: default
 title: "Open Your PC's Folders by Scanning One Code - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share.html
 ---
-# <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Open Your PC's Folders by Scanning One Code
+# <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Open Your PC's Folders by Scanning One Code
 
 > **Level:** Beginner &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (Lite has no network sources; scanning needs a camera, the file method works everywhere)
 
-[Русский](scenario-companion-share-ru.md) | [Українська](scenario-companion-share-uk.md)
+{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="en" %}
 
 You run a small helper program on your Windows PC, pick the folders with your videos, music, documents, or photos, and it puts a code on the screen. On the phone you tap **Add**, hold the camera up to that code, and the PC folders are instantly connected - no typing an address, no port, no password, no cables.
 
@@ -54,7 +54,7 @@ The "companion" is a built-in feature of **[Fast Media Sorter for Windows](https
 
 ## Step 2, Method A - Scan the Code (fastest)
 
-1. Open FastMediaSorter and tap the **Add (⊕)** button on the main screen.
+1. Open FastMediaSorter and tap the **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button on the main screen.
 2. Tap **"Import by barcode"** - it sits next to the four resource-type cards (Local, SMB, SFTP/FTP, Cloud) and in the SFTP form header.
 3. The camera opens with the hint *"Point the camera at the companion QR code"*. Hold the phone up to the QR on your PC. In a dark room, tap **Torch**.
 4. A confirmation appears - *"Import access - Add the SFTP resource .. with N folder(s)?"*. Tap **Import**.
@@ -73,7 +73,7 @@ The "companion" is a built-in feature of **[Fast Media Sorter for Windows](https
 Use this when the phone has no camera, or when the PC and phone are not side by side.
 
 1. On the PC, use **Save .fmscfg** and get the file to the phone (email, Telegram, cloud, or a shared folder).
-2. **If the file is already on the phone:** tap **Add (⊕)** -> **"SFTP / FTP"** -> **"Import from file"**, then pick the `.fmscfg` file.
+2. **If the file is already on the phone:** tap **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** -> **"SFTP / FTP"** -> **"Import from file"**, then pick the `.fmscfg` file.
 3. **If you received it as an attachment** (Telegram or email): just tap the `.fmscfg` attachment - the app opens a confirm dialog directly.
 4. Confirm the same *"Import access"* dialog and tap **Import**. The read-only resources appear.
 

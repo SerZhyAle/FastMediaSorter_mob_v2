@@ -108,9 +108,9 @@ class FlashlightShortcutNotifier @Inject constructor(
             R.string.flashlight_shortcut_state_off
         }
         val iconRes = if (lit) {
-            R.drawable.ic_flashlight_shortcut_on
+            R.drawable.ic_camera_flash_on
         } else {
-            R.drawable.ic_flashlight_shortcut_off
+            R.drawable.ic_camera_flash_off
         }
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)
@@ -121,7 +121,10 @@ class FlashlightShortcutNotifier @Inject constructor(
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
             .setContentIntent(tapIntent())
-        ContextCompat.getDrawable(context, iconRes)?.let {
+        // The large icon is drawn in-process into a bitmap, so it keeps the flashlight's amber accent
+        // that the shared camera.flash glyph leaves to the call site.
+        ContextCompat.getDrawable(context, iconRes)?.mutate()?.let {
+            it.setTint(ContextCompat.getColor(context, R.color.color_program_accent_amber))
             builder.setLargeIcon(it.toBitmap(LARGE_ICON_PX, LARGE_ICON_PX))
         }
         try {

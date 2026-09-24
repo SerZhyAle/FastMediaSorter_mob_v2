@@ -48,7 +48,7 @@
                 android:paddingStart="0dp"
                 android:paddingEnd="@dimen/main_panel_item_spacing"
                 android:text=""
-                app:icon="@drawable/ic_cancel"
+                app:icon="@drawable/ic_exit_to_app"
                 app:iconGravity="start"
                 app:iconPadding="@dimen/main_top_panel_leading_icon_spacing"
                 app:iconSize="@dimen/icon_size_normal"
@@ -104,7 +104,7 @@
                 android:minHeight="0dp"
                 android:paddingHorizontal="@dimen/main_panel_item_spacing"
                 android:text=""
-                app:icon="@drawable/ic_search"
+                app:icon="@drawable/ic_filter"
                 app:iconGravity="textStart"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 app:iconSize="@dimen/icon_size_normal"
@@ -222,7 +222,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/toggle_view"
+                android:contentDescription="@string/cd_toggle_grid_list_view"
                 android:insetLeft="0dp"
                 android:insetTop="0dp"
                 android:insetRight="0dp"
@@ -324,7 +324,7 @@
                 android:textColor="@color/main_panel_accent_foreground"
                 android:textSize="@dimen/text_size_small"
                 android:visibility="gone"
-                app:drawableEndCompat="@drawable/ic_double_arrow_down"
+                app:drawableEndCompat="@drawable/ic_expand_more"
                 app:drawableStartCompat="@drawable/ic_apps"
                 app:drawableTint="@color/main_panel_accent_foreground" />
 
@@ -346,8 +346,8 @@
                 android:textColor="@color/main_panel_accent_foreground"
                 android:textSize="@dimen/text_size_small"
                 android:visibility="gone"
-                app:drawableEndCompat="@drawable/ic_double_arrow_down"
-                app:drawableStartCompat="@drawable/ic_cast"
+                app:drawableEndCompat="@drawable/ic_expand_more"
+                app:drawableStartCompat="@drawable/ic_stream"
                 app:drawableTint="@color/main_panel_accent_foreground" />
 
             <!-- S0914-R1: filter chip stays on the form's own colorSurface (no accent) - owner decision
@@ -370,8 +370,8 @@
                 android:textColor="?attr/colorControlNormal"
                 android:textSize="@dimen/text_size_small"
                 android:visibility="gone"
-                app:drawableEndCompat="@drawable/ic_double_arrow_down"
-                app:drawableStartCompat="@drawable/ic_tune"
+                app:drawableEndCompat="@drawable/ic_expand_more"
+                app:drawableStartCompat="@drawable/ic_filter"
                 app:drawableTint="?attr/colorControlNormal" />
 
         </LinearLayout>

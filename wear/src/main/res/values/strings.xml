@@ -295,7 +295,7 @@
     <string name="wear_streams_filter_language_all">All languages</string>
     <string name="wear_streams_filter_topic_header">Topic</string>
     <string name="wear_streams_filter_language_header">Language</string>
-    <string name="wear_close_app">Close app</string>
+    <string name="wear_close_app">Exit app</string>
     <string name="wear_player_favorite_add">Add to favorites</string>
     <string name="wear_player_favorite_remove">Remove from favorites</string>
     <string name="wear_voice_recorder_channel_name">Voice recording</string>
@@ -963,4 +963,5 @@
         <item quantity="one">%d favorite</item>
         <item quantity="other">%d favorites</item>
     </plurals>
+    <string name="wear_filedo_remember_leak">Anyone holding this watch unlocked can open, without typing it, every .fd-sec file this password fits.</string>
 </resources>

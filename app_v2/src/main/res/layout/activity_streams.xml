@@ -125,7 +125,7 @@
                 android:id="@+id/btnMediaKindOwn"
                 android:layout_width="@dimen/streams_media_filter_button_size"
                 android:layout_height="@dimen/streams_media_filter_button_size"
-                android:src="@drawable/ic_edit_20"
+                android:src="@drawable/ic_edit"
                 app:tint="?attr/colorControlNormal"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
@@ -140,7 +140,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_marginStart="4dp"
-                android:src="@drawable/ic_tune"
+                android:src="@drawable/ic_filter"
                 app:tint="?attr/colorControlNormal"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
@@ -342,7 +342,7 @@
                 <ImageView
                     android:layout_width="@dimen/empty_state_icon_size"
                     android:layout_height="@dimen/empty_state_icon_size"
-                    android:src="@drawable/ic_cast"
+                    android:src="@drawable/ic_stream"
                     android:importantForAccessibility="no"
                     app:tint="?attr/colorOnSurfaceVariant" />
 
@@ -398,7 +398,7 @@
                     android:focusable="true"
                     android:padding="@dimen/browse_scroll_button_padding"
                     android:scaleType="centerInside"
-                    android:src="@drawable/ic_arrow_upward"
+                    android:src="@drawable/ic_vertical_align_top"
                     android:visibility="gone"
                     app:tint="@color/selector_player_button_tint" />
 
@@ -448,7 +448,7 @@
                     android:focusable="true"
                     android:padding="@dimen/browse_scroll_button_padding"
                     android:scaleType="centerInside"
-                    android:src="@drawable/ic_arrow_downward"
+                    android:src="@drawable/ic_vertical_align_bottom"
                     android:visibility="gone"
                     app:tint="@color/selector_player_button_tint" />
             </LinearLayout>

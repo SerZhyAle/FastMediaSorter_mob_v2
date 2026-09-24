@@ -27,8 +27,8 @@
     "surface": "player-command",
     "key": "COPY_TEXT",
     "feature": "copy_to_clipboard",
-    "drawable": "ic_menu_save",
-    "assetFormat": "framework",
+    "drawable": "ic_copy",
+    "assetFormat": "vector",
     "public": true
   },
   {
@@ -67,16 +67,16 @@
     "surface": "player-command",
     "key": "EDIT",
     "feature": "menu_edit_adjust",
-    "drawable": "ic_menu_edit",
-    "assetFormat": "framework",
+    "drawable": "ic_edit",
+    "assetFormat": "vector",
     "public": true
   },
   {
     "surface": "player-command",
     "key": "EDIT_TEXT",
     "feature": "menu_edit_file_text",
-    "drawable": "ic_menu_edit",
-    "assetFormat": "framework",
+    "drawable": "ic_edit",
+    "assetFormat": "vector",
     "public": true
   },
   {
@@ -91,8 +91,8 @@
     "surface": "player-command",
     "key": "EPUB_SEARCH_ALL",
     "feature": "epub_search_all_chapters",
-    "drawable": "ic_menu_search",
-    "assetFormat": "framework",
+    "drawable": "ic_search",
+    "assetFormat": "vector",
     "public": true
   },
   {
@@ -267,16 +267,16 @@
     "surface": "player-command",
     "key": "READER_SETTINGS",
     "feature": "reader_settings",
-    "drawable": "ic_menu_preferences",
-    "assetFormat": "framework",
+    "drawable": "ic_settings",
+    "assetFormat": "vector",
     "public": true
   },
   {
     "surface": "player-command",
     "key": "READ_ALOUD",
     "feature": "read_aloud",
-    "drawable": "ic_lock_silent_mode_off",
-    "assetFormat": "framework",
+    "drawable": "ic_read_aloud",
+    "assetFormat": "vector",
     "public": true
   },
   {
@@ -291,8 +291,8 @@
     "surface": "player-command",
     "key": "REOPEN_ENCODING",
     "feature": "reopen_with_encoding",
-    "drawable": "ic_menu_sort_alphabetically",
-    "assetFormat": "framework",
+    "drawable": "ic_refresh",
+    "assetFormat": "vector",
     "public": true
   },
   {
@@ -315,7 +315,7 @@
     "surface": "player-command",
     "key": "ROTATION_TOGGLE",
     "feature": "menu_autorotate_screen_title",
-    "drawable": "ic_rotation_unlocked",
+    "drawable": "ic_screen_rotation",
     "assetFormat": "vector",
     "public": true
   },
@@ -331,24 +331,24 @@
     "surface": "player-command",
     "key": "SEARCH_EPUB",
     "feature": "search",
-    "drawable": "ic_menu_search",
-    "assetFormat": "framework",
+    "drawable": "ic_search",
+    "assetFormat": "vector",
     "public": true
   },
   {
     "surface": "player-command",
     "key": "SEARCH_PDF",
     "feature": "search",
-    "drawable": "ic_menu_search",
-    "assetFormat": "framework",
+    "drawable": "ic_search",
+    "assetFormat": "vector",
     "public": true
   },
   {
     "surface": "player-command",
     "key": "SEARCH_TEXT",
     "feature": "search",
-    "drawable": "ic_menu_search",
-    "assetFormat": "framework",
+    "drawable": "ic_search",
+    "assetFormat": "vector",
     "public": true
   },
   {
@@ -363,7 +363,7 @@
     "surface": "player-command",
     "key": "SEND_TO",
     "feature": "share_to_menu_title",
-    "drawable": "ic_share",
+    "drawable": "ic_send_plane",
     "assetFormat": "vector",
     "public": true
   },
@@ -387,7 +387,7 @@
     "surface": "player-command",
     "key": "SLIDESHOW",
     "feature": "slideshow",
-    "drawable": "ic_play",
+    "drawable": "ic_slideshow",
     "assetFormat": "vector",
     "public": true
   },
@@ -411,8 +411,8 @@
     "surface": "player-command",
     "key": "TOGGLE_MARKDOWN",
     "feature": "toggle_markdown",
-    "drawable": "ic_menu_view",
-    "assetFormat": "framework",
+    "drawable": "ic_document",
+    "assetFormat": "vector",
     "public": true
   },
   {
@@ -459,8 +459,8 @@
     "surface": "player-command",
     "key": "UNDO",
     "feature": "undo",
-    "drawable": "ic_menu_revert",
-    "assetFormat": "framework",
+    "drawable": "ic_undo",
+    "assetFormat": "vector",
     "public": true
   },
   {
@@ -483,7 +483,7 @@
     "surface": "program-nav",
     "key": "HTTP_STREAM",
     "feature": "HTTP_STREAM",
-    "drawable": "ic_cast",
+    "drawable": "ic_stream",
     "assetFormat": "vector",
     "public": true
   },
@@ -499,7 +499,7 @@
     "surface": "program-nav",
     "key": "RTSP_STREAM",
     "feature": "RTSP_STREAM",
-    "drawable": "ic_cast",
+    "drawable": "ic_stream",
     "assetFormat": "vector",
     "public": true
   },
@@ -595,7 +595,7 @@
     "surface": "program-nav",
     "key": "broadcast",
     "feature": "broadcast_menu_label",
-    "drawable": "ic_cast",
+    "drawable": "ic_live_broadcast",
     "assetFormat": "vector",
     "public": true
   },
@@ -835,7 +835,7 @@
     "surface": "program-nav",
     "key": "streams",
     "feature": "app_launch_panel_route_streams",
-    "drawable": "ic_cast",
+    "drawable": "ic_stream",
     "assetFormat": "vector",
     "public": true
   },
@@ -851,7 +851,7 @@
     "surface": "program-nav",
     "key": "take_photo_edit",
     "feature": "screenshot_gesture_action_take_photo_edit",
-    "drawable": "ic_edit_20",
+    "drawable": "ic_edit",
     "assetFormat": "vector",
     "public": true
   },
@@ -867,7 +867,7 @@
     "surface": "program-nav",
     "key": "take_photo_send_to",
     "feature": "screenshot_gesture_action_take_photo_send_to",
-    "drawable": "ic_camera_send_to",
+    "drawable": "ic_send_plane",
     "assetFormat": "vector",
     "public": true
   },
@@ -955,7 +955,7 @@
     "surface": "send-to",
     "key": "instagram",
     "feature": "share_target_title_app",
-    "drawable": "ic_send_camera",
+    "drawable": "ic_apps",
     "assetFormat": "vector",
     "public": true
   },
@@ -987,7 +987,7 @@
     "surface": "send-to",
     "key": "messenger",
     "feature": "share_target_title_app",
-    "drawable": "ic_send_bolt_chat",
+    "drawable": "ic_apps",
     "assetFormat": "vector",
     "public": true
   },
@@ -1019,7 +1019,7 @@
     "surface": "send-to",
     "key": "telegram",
     "feature": "share_target_title_app",
-    "drawable": "ic_send_plane",
+    "drawable": "ic_apps",
     "assetFormat": "vector",
     "public": true
   },
@@ -1027,7 +1027,7 @@
     "surface": "send-to",
     "key": "tiktok",
     "feature": "share_target_title_app",
-    "drawable": "ic_send_music_note",
+    "drawable": "ic_apps",
     "assetFormat": "vector",
     "public": true
   },
@@ -1035,7 +1035,7 @@
     "surface": "send-to",
     "key": "viber",
     "feature": "share_target_title_app",
-    "drawable": "ic_send_phone_chat",
+    "drawable": "ic_apps",
     "assetFormat": "vector",
     "public": true
   },
@@ -1051,7 +1051,7 @@
     "surface": "send-to",
     "key": "whatsapp",
     "feature": "share_target_title_app",
-    "drawable": "ic_send_chat",
+    "drawable": "ic_apps",
     "assetFormat": "vector",
     "public": true
   },
@@ -1083,7 +1083,7 @@
     "surface": "settings-header",
     "key": "headerAuthorization",
     "feature": "settings_category_authorization",
-    "drawable": "ic_google_account",
+    "drawable": "ic_contact",
     "assetFormat": "vector",
     "public": true
   },
@@ -1211,7 +1211,7 @@
     "surface": "settings-header",
     "key": "headerStreams",
     "feature": "settings_streams_section",
-    "drawable": "ic_cast",
+    "drawable": "ic_stream",
     "assetFormat": "vector",
     "public": true
   },
@@ -1371,7 +1371,7 @@
     "surface": "settings-row",
     "key": "rowEnableStreams",
     "feature": "settings_streams_toggle",
-    "drawable": "ic_cast",
+    "drawable": "ic_stream",
     "assetFormat": "vector",
     "public": true
   },

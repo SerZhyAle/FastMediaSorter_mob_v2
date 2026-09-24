@@ -56,7 +56,7 @@
             android:focusable="true"
             android:nextFocusRight="@+id/btnHistoryClear"
             android:text="@string/network_monitor_history_export"
-            app:icon="@drawable/ic_share" />
+            app:icon="@drawable/ic_export" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnHistoryClear"

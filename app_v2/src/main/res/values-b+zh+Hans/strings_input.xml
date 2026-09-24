@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">主要操作（确定/应用）</string>
     <string name="kbm_help_dialog_toggle">切换选项</string>
     <string name="kbm_help_empty">此屏幕尚未注册任何快捷方式。</string>
-    <string name="kbm_help_full_docs_link">打开完整的键盘/鼠标参考手册..</string>
     <string name="kbm_help_global_escape">取消、清除选择、关闭对话框</string>
     <string name="kbm_help_global_exit">退出当前屏幕</string>
     <string name="kbm_help_global_f1">显示此帮助</string>

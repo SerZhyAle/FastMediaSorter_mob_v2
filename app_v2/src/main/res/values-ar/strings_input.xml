@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">الإجراء الأساسي (موافق / تطبيق)</string>
     <string name="kbm_help_dialog_toggle">خيار التبديل</string>
     <string name="kbm_help_empty">لم يتم تسجيل أي اختصارات لهذه الشاشة حتى الآن.</string>
-    <string name="kbm_help_full_docs_link">افتح مرجع لوحة المفاتيح / الماوس الكامل ..</string>
     <string name="kbm_help_global_escape">إلغاء، مسح التحديد، إغلاق مربع الحوار</string>
     <string name="kbm_help_global_exit">الخروج من الشاشة الحالية</string>
     <string name="kbm_help_global_f1">إظهار هذه المساعدة</string>

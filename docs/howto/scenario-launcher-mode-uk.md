@@ -7,7 +7,7 @@ permalink: /docs/howto/scenario-launcher-mode-uk.html
 
 > **Рівень:** початківець &bull; **Збірка:** Standard / noLegal
 
-[English](scenario-launcher-mode.md) | [Русский](scenario-launcher-mode-ru.md)
+{% include lang-switcher.html doc="scenario-launcher-mode" dir="/docs/howto/" current="uk" %}
 
 FastMediaSorter вміє замінити домашній екран пристрою власним робочим столом - вашими папками, годинником, погодою, вашими застосунками та панеллю задач уздовж одного краю. Якщо ви колись працювали за робочим столом Windows, усе видасться знайомим: речі лишаються там, куди ви їх поклали, а кнопка «Пуск» відкриває меню. Це називається **режим лаунчера**.
 

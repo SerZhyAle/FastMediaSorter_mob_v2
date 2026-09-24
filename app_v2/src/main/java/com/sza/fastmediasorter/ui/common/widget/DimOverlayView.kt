@@ -10,12 +10,14 @@ import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.Surface
 import android.view.View
 import android.view.animation.PathInterpolator
 import androidx.annotation.VisibleForTesting
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.sensors.CompassReading
 import com.sza.fastmediasorter.domain.model.sensors.SensorAccuracy
+import timber.log.Timber
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -24,8 +26,9 @@ import kotlin.random.Random
 /**
  * Fullscreen black overlay view with Wear-dimming inspired wake gestures (S3203, S3097, S3200).
  *
- * Single tap does not exit; it draws the shared tap response (S3370): an expanding ring plus a pair
- * of tapered compass sparks that fly out of the tap point and fade long before the ring does.
+ * Single tap does not exit; it draws the shared tap response (S3370, sized up by S3475): an expanding
+ * ring plus four tapered sparks on the cardinal points that fly out of the tap point and fade long
+ * before the ring does.
  * Double tap or long press wakes / exits the dim mode, invoking [onExit].
  * Hardware Back or Escape key also exits.
  */
@@ -115,14 +118,26 @@ class DimOverlayView @JvmOverloads constructor(
         postInvalidateOnAnimation()
     }
 
-    /** S3370 ADR-2: azimuth and color are decided once, at the tap that starts the animation. */
+    /**
+     * S3370 ADR-2: azimuth and color are decided once, at the tap that starts the animation.
+     * S3475: the compass reports the heading of the device's natural top edge, so a turned display
+     * adds its own rotation - without it the landscape sparks pointed a quarter turn off north.
+     */
     private fun captureSparkAzimuth() {
         val reading = headingLookup?.invoke()
         sparkAzimuthDegrees = if (reading != null && reading.accuracy != SensorAccuracy.UNRELIABLE) {
-            reading.azimuthDegrees
+            screenAzimuth(reading.azimuthDegrees, displayRotationDegrees())
         } else {
             Random.nextFloat() * FULL_CIRCLE_DEGREES
         }
+        Timber.d("S3475: spark azimuth=$sparkAzimuthDegrees heading=${reading?.azimuthDegrees}")
+    }
+
+    private fun displayRotationDegrees(): Int = when (display?.rotation) {
+        Surface.ROTATION_90 -> QUARTER_TURN_DEGREES
+        Surface.ROTATION_180 -> HALF_TURN_DEGREES
+        Surface.ROTATION_270 -> THREE_QUARTER_TURN_DEGREES
+        else -> 0
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -169,9 +184,12 @@ class DimOverlayView @JvmOverloads constructor(
         val fraction = elapsedMillis.toFloat() / SPARK_DURATION_MS
         val progress = TAP_MARK_INTERPOLATOR.getInterpolation(fraction)
         val alpha = ((1f - progress) * MAX_ALPHA_FLOAT).toInt().coerceIn(0, MAX_ALPHA_INT)
-        drawSparkStripe(canvas, sparkAzimuthDegrees, progress, density, alpha, SPARK_NORTH_COLOR)
-        val opposite = (sparkAzimuthDegrees + SPARK_PAIR_ANGLE_DEG) % FULL_CIRCLE_DEGREES
-        drawSparkStripe(canvas, opposite, progress, density, alpha, SPARK_SOUTH_COLOR)
+        // S3475: one spark per cardinal point - north red, south blue, east and west white - so the
+        // burst reads as the compass rose itself rather than a single needle.
+        SPARK_CARDINAL_COLORS.forEachIndexed { index, color ->
+            val azimuth = (sparkAzimuthDegrees + index * QUARTER_TURN_DEGREES) % FULL_CIRCLE_DEGREES
+            drawSparkStripe(canvas, azimuth, progress, density, alpha, color)
+        }
     }
 
     private fun drawSparkStripe(
@@ -233,22 +251,31 @@ class DimOverlayView @JvmOverloads constructor(
         /** S3370: width along a spark stripe, 0 at both ends and peaking mid-stroke. */
         internal fun sparkWidthProfile(t: Float): Float = sin(PI * t).toFloat()
 
+        /** S3475: the device heading as seen on a display turned by [displayRotationDegrees]. */
+        internal fun screenAzimuth(deviceAzimuthDegrees: Float, displayRotationDegrees: Int): Float =
+            (deviceAzimuthDegrees + displayRotationDegrees) % FULL_CIRCLE_DEGREES
+
         private const val MAX_ALPHA_FLOAT = 255f
         private const val MAX_ALPHA_INT = 255
         private const val TAP_MARK_DURATION_MS = 2800L
         private const val TAP_MARK_START_RADIUS_DP = 6f
-        private const val TAP_MARK_END_RADIUS_DP = 96f
+        private const val TAP_MARK_END_RADIUS_DP = 192f
         private const val TAP_MARK_STROKE_DP = 2f
         private const val SPARK_DURATION_MS = 700L
-        private const val SPARK_LENGTH_DP = 40f
+        private const val SPARK_LENGTH_DP = 120f
         private const val SPARK_PEAK_WIDTH_DP = 6f
         private const val SPARK_TRAVEL_DP = 40f
         private const val SPARK_PROFILE_STEPS = 12
-        private const val SPARK_PAIR_ANGLE_DEG = 180f
         private const val FULL_CIRCLE_DEGREES = 360f
+        private const val QUARTER_TURN_DEGREES = 90
+        private const val HALF_TURN_DEGREES = 180
+        private const val THREE_QUARTER_TURN_DEGREES = 270
         private const val HALF = 0.5f
         private const val SPARK_NORTH_COLOR = 0xFFE53935.toInt()
         private const val SPARK_SOUTH_COLOR = 0xFF448AFF.toInt()
+
+        /** Clockwise-by-index offsets of 90 degrees from north: north, west, south, east. */
+        private val SPARK_CARDINAL_COLORS = listOf(SPARK_NORTH_COLOR, Color.WHITE, SPARK_SOUTH_COLOR, Color.WHITE)
         private val TAP_MARK_INTERPOLATOR = PathInterpolator(0.4f, 0f, 0.2f, 1f)
     }
 }

@@ -1,0 +1,760 @@
+---
+permalink: /documentation/wear/companion-data-sync.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keeping the Phone and the Watch in Step - Network Folders and Watch Settings - Fast Media Sorter</title>
+    <meta name="description" content="How to choose which network resources travel from the phone to the watch, push them, read what the sync reports, and set up the watch - media types, slideshow, screen, color scheme, background and power saving - from the phone's Wear Companion window.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html">
+    <meta property="og:title" content="Keeping the Phone and the Watch in Step - Network Folders and Watch Settings - Fast Media Sorter">
+    <meta property="og:description" content="How to choose which network resources travel from the phone to the watch, push them, read what the sync reports, and set up the watch - media types, slideshow, screen, color scheme, background and power saving - from the phone&#39;s Wear Companion window.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Keeping the Phone and the Watch in Step - Network Folders and Watch Settings - Fast Media Sorter">
+    <meta name="twitter:description" content="How to choose which network resources travel from the phone to the watch, push them, read what the sync reports, and set up the watch - media types, slideshow, screen, color scheme, background and power saving - from the phone&#39;s Wear Companion window.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Documentation",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Keeping the Phone and the Watch in Step - Network Folders and Watch Settings",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html"
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "name": "Keeping the Phone and the Watch in Step - Network Folders and Watch Settings",
+      "description": "How to choose which network resources travel from the phone to the watch, push them, read what the sync reports, and set up the watch - media types, slideshow, screen, color scheme, background and power saving - from the phone\u0027s Wear Companion window.",
+      "inLanguage": "en",
+      "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Choose the resources for the watch",
+          "text": "Open the Wear Companion window and, in Watch operations, tap Resources for the watch. Only network resources can be sent - \u0022Only network resources (SMB, FTP, SFTP) can be sent to the watch, so only those are listed. Tick the ones to send.\u0022 Folders on the phone itself stay on the phone; the watch reaches those through its Phone section instead, and cloud storage never goes to the watch. Tick the ones you want, or tap Select all. Nothing is ticked on your first visit: the phone never pushes your whole library by surprise. Your choice is remembered for the next sync. No network resources yet? The list says so and points you back to the main screen to add one.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html#pick-resources"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Push them to the watch",
+          "text": "Back in Watch operations, tap Push to Watch. A short animation shows the resources flying over, and the result names what happened: - Sent 3 resource(s) to the watch - they are now in the watch\u0027s Resources section, ready to open without the phone. - Removed 1 resource(s) from the watch - you deleted a resource on the phone since the last push, and the watch let it go too. If you edited that resource on the watch after the phone deleted it, the watch keeps it and it is not counted. - Watch did not confirm. It may be off or out of range. - wake the watch, bring it closer and push again. - No resources are marked for the watch yet. - go back to step 1 and tick something. The password travels with the resource, so the watch connects on its own the first time you open it.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html#push-resources"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Or ask for them from the watch",
+          "text": "*Sideload version only.* You can start the same exchange from your wrist. On the watch, open Resources and tap Sync from Phone. The watch waits up to ten seconds for the phone to answer; the back gesture works the whole time, so you are never stuck on a waiting screen. If it cannot reach the phone, the watch tells you why: \u0022No phone is connected. Pair your phone and install FastMediaSorter on it.\u0022 or \u0022Could not ask the phone. Try again.\u0022 If the phone\u0027s Wear Companion switch is off, the watch names that switch instead of blaming a missing phone. Resources you add on the watch travel the other way too. When they reach the phone, the Wear Companion window shows Watch resources received - for example \u00222 resources from Galaxy Watch\u0022 - with Import and Dismiss.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html#sync-from-watch"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Edit on either side - the later edit wins",
+          "text": "Changed the password of a resource on the watch, and the port of another on the phone? Both edits survive the next sync. Each device remembers when it last changed each resource, the sync allows for the two clocks not showing quite the same time, and the device that edited later wins. A resource that exists on only one side is added to the other, never deleted. Your home server moved to another address? The phone sends every address it knows for a resource and marks the one that answers now, and the watch tries them in turn, so an SFTP share made on the phone keeps working on the watch. Updated only one of the two apps? A sync between an older phone app and a newer watch app, or the other way round, still goes through: anything the older side does not know about is simply treated as not set, and every resource in the batch arrives.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html#edits-both-sides"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "Set up the watch from the phone",
+          "text": "Below Watch operations, the window holds the watch\u0027s own settings, in the same four groups and the same order as the watch\u0027s Settings screen. Each switch row has the switch on the left, a title and a line that says what it changes on the watch; a ? button next to some of them explains more. - Media types - Audio, Video, Images, Documents and Show streams. Turn a type off, and the watch neither shows nor syncs files of that kind. Folded, the group lists the types that are on. - Slideshow - whether photos move on by themselves, and the Slideshow interval (seconds): 3, 5, 10, 15, 30, 60 or 120, or Enter custom value. Folded, it reads, for example, \u0022On, every 5 s\u0022. - Screen - Home and Resources view and Files view (List, Grid 2 or Grid 3), Watch background, Watch color scheme and Keep watch screen on. - Other - Album art (a cover picture for every synced song, which costs some watch storage), Disable animations, Watch power saving, Keep playing in background and Player panel auto-hide duration (s). Watch power saving offers Off, Always on and thresholds of 10, 15, 20 and 30 percent in one line you scroll sideways. The watch decides by its own battery, not the phone\u0027s.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html#watch-settings-groups"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
+          "name": "Give the watch a color scheme and a background",
+          "text": "In Screen, Watch color scheme offers eight schemes: Dark, Light, Dark green, Dark blue, Dark red, Light green, Light blue and Light red. They are the same families the phone app uses, so you can dress both devices alike. Dark is the starting scheme. Watch background sets what is behind the lists on the watch: Branded animation (the moving waves), Branded still, Your image or Empty (black screen). For Your image, tap Choose image, pick a photo, and the phone sends it over - \u0022Sending the image to the watch..\u0022, then \u0022Image is on the watch.\u0022 A preview shows how it will look. The watch\u0027s settings screens always stay on a plain background, and a light scheme lightens the background too, so text stays readable. You can pick both on the watch as well, in its Settings, Screen. A change on either device reaches the other.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html#colors-and-background"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 7,
+          "name": "Send the settings and check the sync",
+          "text": "Tap Sync settings in the title bar. The phone sends the settings and waits up to fifteen seconds for the watch to report back what it applied. The line under the button - Last synced: with the date and time - moves only when the watch really answers, so a tap that reached nothing leaves the old time standing. If the watch stays silent, a message says: \u0022The watch did not confirm the settings. It may be off or out of range.\u0022 After the first sync, Watch operations also names the watch app that answered, such as Watch app: 2.62.0920.1415. When the watch app and the phone app come from different days, the line reads Watch app: followed by both versions, the watch\u0027s and the phone\u0027s, in a warning color - a hint to update the older one. A watch app too old to report its version shows Watch app: version unknown. On the watch, Settings shows the same sync line. When it has never synced, or the last sync is several days old, the line turns into the warning color and you can tap it to sync right there.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html#sync-settings"
+        }
+      ]
+    }
+  ]
+}
+    </script>
+
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            </div>
+
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Search...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
+                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
+                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../../index.html">Home</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="../index.html">Documentation</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span>Wear OS Watch</span>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Keeping the Phone and the Watch in Step - Network Folders and Watch Settings</span>
+        </nav>
+
+        <div class="doc-grid">
+
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../index.html" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="../sample-recipe.html" class="doc-sidebar-link ">Audio Recipe</a></li>
+                        <li><a href="../sample-settings-recipe.html" class="doc-sidebar-link ">Settings Recipe</a></li>
+                        <li><a href="../sample-program-recipe.html" class="doc-sidebar-link ">Programs Recipe</a></li>
+                        <li><a href="../design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Media Categories</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="../index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="../index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Browsing & Sorting</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../browsing/grid-and-list-views.html" class="doc-sidebar-link">Grid and list views</a></li>
+                        <li><a href="../browsing/sorting-and-filtering.html" class="doc-sidebar-link">Sort, filter and search</a></li>
+                        <li><a href="../browsing/batch-selection.html" class="doc-sidebar-link">Select and batch actions</a></li>
+                        <li><a href="../browsing/media-indexing-and-caching.html" class="doc-sidebar-link">Thumbnail caching</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Camera & Screen Capture</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../capture/quick-photo-capture.html" class="doc-sidebar-link">Quick photos and video snaps</a></li>
+                        <li><a href="../capture/camera-lenses-zoom-and-profiles.html" class="doc-sidebar-link">Lenses, zoom and shooting profiles</a></li>
+                        <li><a href="../capture/screenshot-annotation.html" class="doc-sidebar-link">Taking screenshots</a></li>
+                        <li><a href="../capture/screen-recording-and-audio.html" class="doc-sidebar-link">Screen and voice recording</a></li>
+                        <li><a href="../capture/edge-gestures-and-quick-access-panel.html" class="doc-sidebar-link">Edge gestures & quick-access panel</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Documents & Text Editor</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../documents/pdf-epub-viewing.html" class="doc-sidebar-link">Reading PDF documents</a></li>
+                        <li><a href="../documents/office-docs-support.html" class="doc-sidebar-link">EPUB books and Office documents</a></li>
+                        <li><a href="../documents/text-code-editor.html" class="doc-sidebar-link">Text and Markdown editor</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Editions, Extensions & Languages</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../flavors/overview-and-comparison.html" class="doc-sidebar-link">The seven editions</a></li>
+                        <li><a href="../flavors/extensions-and-plugins.html" class="doc-sidebar-link">Downloadable extensions</a></li>
+                        <li><a href="../flavors/multilingual-support.html" class="doc-sidebar-link">Language and units</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">General, Keyboard & TV</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/backup-and-restore.html" class="doc-sidebar-link">Backing up and restoring settings</a></li>
+                        <li><a href="../general/keyboard-dpad-tv-navigation.html" class="doc-sidebar-link">Keyboard, D-pad and TV control</a></li>
+                        <li><a href="../general/multi-window-and-foldables.html" class="doc-sidebar-link">Split-screen and foldables</a></li>
+                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and assistant actions</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../getting-started/welcome-and-setup.html" class="doc-sidebar-link">First launch and setup</a></li>
+                        <li><a href="../getting-started/permissions-guide.html" class="doc-sidebar-link">App permissions explained</a></li>
+                        <li><a href="../getting-started/main-screen-overview.html" class="doc-sidebar-link">The main screen at a glance</a></li>
+                        <li><a href="../getting-started/quick-tour.html" class="doc-sidebar-link">Quick product tour</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Images, Audio & Slideshow</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../images/viewer-and-gestures.html" class="doc-sidebar-link">Viewing photos and GIFs</a></li>
+                        <li><a href="../images/editing-photos.html" class="doc-sidebar-link">Editing photos and GIFs</a></li>
+                        <li><a href="../images/slideshow-and-transitions.html" class="doc-sidebar-link">Photo slideshows</a></li>
+                        <li><a href="../audio/playing-and-organizing-music.html" class="doc-sidebar-link">Playing music</a></li>
+                        <li><a href="../audio/playlists-and-audio-queues.html" class="doc-sidebar-link">Order, sleep timer, background</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Internet Streams</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../streams/channel-catalog-browsing.html" class="doc-sidebar-link">Browse the channel catalog</a></li>
+                        <li><a href="../streams/channel-pictures-and-badges.html" class="doc-sidebar-link">Channel pictures and badges</a></li>
+                        <li><a href="../streams/custom-m3u-playlists.html" class="doc-sidebar-link">Add your own streams</a></li>
+                        <li><a href="../streams/favorites-and-epg.html" class="doc-sidebar-link">Pin and favorite channels</a></li>
+                        <li><a href="../streams/live-stream-playback.html" class="doc-sidebar-link">Play live streams and radio</a></li>
+                        <li><a href="../streams/hls-dash-buffering.html" class="doc-sidebar-link">When the connection is weak</a></li>
+                        <li><a href="../streams/shortcuts-widget-and-panel.html" class="doc-sidebar-link">Shortcuts, widget and streams panel</a></li>
+                        <li><a href="../streams/tv-watch-vr-and-broadcast.html" class="doc-sidebar-link">TV, watch, VR and live broadcasts</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Desktop</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/desktop-grid-and-icons.html" class="doc-sidebar-link">Your launcher desktop</a></li>
+                        <li><a href="../launcher/wallpapers-and-live-backgrounds.html" class="doc-sidebar-link">Desktop wallpaper</a></li>
+                        <li><a href="../launcher/desktop-folders-and-pages.html" class="doc-sidebar-link">Arranging the desktop</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Gadgets and Widgets</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/built-in-gadgets.html" class="doc-sidebar-link">Desktop gadgets</a></li>
+                        <li><a href="../launcher/android-widgets-placement.html" class="doc-sidebar-link">Placing gadgets and widgets</a></li>
+                        <li><a href="../launcher/home-screen-widgets.html" class="doc-sidebar-link">Home screen widgets</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Taskbar, Menus and Gestures</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/taskbar-and-dock.html" class="doc-sidebar-link">Taskbar and dock</a></li>
+                        <li><a href="../launcher/start-menu-and-all-apps.html" class="doc-sidebar-link">Start menu and All apps</a></li>
+                        <li><a href="../launcher/status-area-and-notifications.html" class="doc-sidebar-link">Status area and notifications</a></li>
+                        <li><a href="../launcher/desktop-gestures-and-shortcuts.html" class="doc-sidebar-link">Navigation gestures and shortcuts</a></li>
+                        <li><a href="../launcher/context-menus-and-actions.html" class="doc-sidebar-link">Context menus and fast actions</a></li>
+                        <li><a href="../launcher/screen-dimming-and-timeout.html" class="doc-sidebar-link">Screen dimming and timeout</a></li>
+                        <li><a href="../launcher/launcher-settings-and-reset.html" class="doc-sidebar-link">Launcher settings and reset</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">OCR, Drawing & Sharing</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../tools/ocr-text-recognition.html" class="doc-sidebar-link">Text recognition (OCR)</a></li>
+                        <li><a href="../tools/inline-translation.html" class="doc-sidebar-link">Translating text on screen</a></li>
+                        <li><a href="../tools/drawing-and-image-markup.html" class="doc-sidebar-link">Drawing and image markup</a></li>
+                        <li><a href="../tools/fast-sharing-and-export.html" class="doc-sidebar-link">Sending files with Send to..</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Programs, Statistics and Diagnostics</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../programs/built-in-mini-apps.html" class="doc-sidebar-link">Built-in programs, lights, mirror and SOS</a></li>
+                        <li><a href="../programs/calculator-and-stopwatch.html" class="doc-sidebar-link">Calculator and stopwatch</a></li>
+                        <li><a href="../programs/mini-game.html" class="doc-sidebar-link">Mini-game</a></li>
+                        <li><a href="../programs/usage-statistics.html" class="doc-sidebar-link">Usage statistics</a></li>
+                        <li><a href="../programs/device-diagnostics-and-logs.html" class="doc-sidebar-link">System information and the debug log</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Settings & Navigation</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/settings-overview-and-search.html" class="doc-sidebar-link">Settings overview and search</a></li>
+                        <li><a href="../settings/display-and-appearance.html" class="doc-sidebar-link">Themes, colors, language and units</a></li>
+                        <li><a href="../settings/playback-and-sorting-preferences.html" class="doc-sidebar-link">Playback, power and everyday behavior</a></li>
+                        <li><a href="../settings/privacy-and-network-security.html" class="doc-sidebar-link">Privacy and error reports</a></li>
+                        <li><a href="../settings/backup-and-device-sync.html" class="doc-sidebar-link">Backing up and syncing your device</a></li>
+                        <li><a href="../settings/controls-and-key-remapping.html" class="doc-sidebar-link">Controls and key remapping</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Sources, Destinations & File Operations</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../storage/storage-sources-setup.html" class="doc-sidebar-link">Adding folders from this device</a></li>
+                        <li><a href="../storage/network-and-cloud-sources.html" class="doc-sidebar-link">Adding network folders and clouds</a></li>
+                        <li><a href="../storage/sharing-and-backing-up-resources.html" class="doc-sidebar-link">Sharing and backing up resources</a></li>
+                        <li><a href="../storage/destination-targets-setup.html" class="doc-sidebar-link">Quick Sort destinations</a></li>
+                        <li><a href="../storage/file-copy-move-delete.html" class="doc-sidebar-link">Copy, move and delete</a></li>
+                        <li><a href="../storage/background-transfers.html" class="doc-sidebar-link">Background transfers</a></li>
+                        <li><a href="../storage/batch-renaming.html" class="doc-sidebar-link">Renaming files and folders</a></li>
+                        <li><a href="../storage/cleaning-up-space.html" class="doc-sidebar-link">Duplicates, big files and ZIP archives</a></li>
+                        <li><a href="../storage/scheduled-operations.html" class="doc-sidebar-link">Scheduled file operations</a></li>
+                        <li><a href="../storage/capture-to-destination.html" class="doc-sidebar-link">Photos, videos and voice notes into a folder</a></li>
+                        <li><a href="../storage/file-encryption-and-security.html" class="doc-sidebar-link">PIN and encrypted containers</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Video & Media Player</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../player/video-playback-controls.html" class="doc-sidebar-link">Watching videos</a></li>
+                        <li><a href="../player/subtitles-and-audio-tracks.html" class="doc-sidebar-link">Subtitles, audio tracks and 3D</a></li>
+                        <li><a href="../player/pip-and-background-play.html" class="doc-sidebar-link">Picture-in-picture and background</a></li>
+                        <li><a href="../player/casting-and-broadcast.html" class="doc-sidebar-link">Chromecast and live broadcast</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">VR and OpenXR</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../vr/headset-setup-and-openxr.html" class="doc-sidebar-link">Headset setup and OpenXR</a></li>
+                        <li><a href="../vr/spatial-cinema-playback.html" class="doc-sidebar-link">Spatial cinema playback</a></li>
+                        <li><a href="../vr/passthrough-and-controllers.html" class="doc-sidebar-link">Headset controls</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Wear OS Watch</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../wear/installation-and-pairing.html" class="doc-sidebar-link">Installing and pairing the watch</a></li>
+                        <li><a href="../wear/companion-data-sync.html" class="doc-sidebar-link active">Syncing the phone and the watch</a></li>
+                        <li><a href="../wear/tiles-and-complications.html" class="doc-sidebar-link">Tiles and complications</a></li>
+                        <li><a href="../wear/wrist-mini-apps-and-tools.html" class="doc-sidebar-link">Wrist programs and tools</a></li>
+                        <li><a href="../wear/health-and-activity-metrics.html" class="doc-sidebar-link">Health and sensor info</a></li>
+                        <li><a href="../wear/watch-home-and-appearance.html" class="doc-sidebar-link">Home screen and appearance</a></li>
+                        <li><a href="../wear/watch-players-and-viewers.html" class="doc-sidebar-link">Players and viewers</a></li>
+                        <li><a href="../wear/phone-and-network-folders-on-watch.html" class="doc-sidebar-link">Phone and network folders on the watch</a></li>
+                        <li><a href="../wear/watch-listening-and-broadcast.html" class="doc-sidebar-link">Listening and broadcasting</a></li>
+                        <li><a href="../wear/watch-file-manager.html" class="doc-sidebar-link">Browsing files on the watch</a></li>
+                        <li><a href="../wear/standalone-music-playback.html" class="doc-sidebar-link">Playing music on the watch</a></li>
+                        <li><a href="../wear/wrist-stream-player.html" class="doc-sidebar-link">Streaming radio on your wrist</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Recipe Content -->
+            <main class="doc-content" id="main-content">
+
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="doc-badge doc-badge-standard">Wear OS Watch</span>
+                    <span class="doc-badge doc-badge-standard">Phone side - Standard and noLegal; sending network resources and syncing from the watch - the full watch version (sideload only)</span>
+                    <span class="doc-badge doc-badge-sm">Recipe #02</span>
+                </div>
+
+                <h1>Keeping the Phone and the Watch in Step - Network Folders and Watch Settings</h1>
+
+                <p class="doc-lead">
+                    Choose which <span class="doc-link-term" data-term="network-resource">network resources</span> the <span class="doc-link-term" data-term="watch">watch</span> gets, push them, read what the sync reports, and set the watch up from the phone's <span class="doc-link-term" data-term="wear-companion">Wear Companion</span> window - media types, slideshow, screen, color scheme, background and power saving.
+                </p>
+
+                <h2 id="why">Why You'll Love This</h2>
+                        <p>You already set up your NAS, your PC share or your home server on the phone - the address, the user name, the password. Typing all of that again on a screen the size of a coin is nobody's idea of fun.</p>
+                        <p><span class="doc-link-term" data-term="wear-companion">Wear Companion</span> sends those <span class="doc-link-term" data-term="network-resource">network resources</span> to the <span class="doc-link-term" data-term="watch">watch</span> for you, and it is also the comfortable place to set the watch up: which kinds of files it shows, how the screen looks, when it saves battery. Change something on either device, and the other one catches up.</p>
+
+                <!-- Prerequisite Card -->
+                <div class="doc-card-prereq">
+                    <div class="doc-card-prereq-title">
+                        <span class="doc-card-prereq-icon">✓</span>
+                        <span>Before You Begin: Ingredients &amp; Prerequisites</span>
+                    </div>
+                    <ul class="doc-prereq-list">
+                        <li><span class="doc-prereq-bullet">✓</span> The watch app installed and Wear Companion switched on - see <a href="installation-and-pairing.html" class="doc-link">installing and pairing the watch</a>.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> At least one <span class="doc-link-term" data-term="network-resource">network resource</span> on the phone: an <span class="doc-link-term" data-term="smb">SMB</span>, <span class="doc-link-term" data-term="ftp">FTP</span> or <span class="doc-link-term" data-term="sftp">SFTP</span> folder. How to add one is in <a href="../storage/network-and-cloud-sources.html" class="doc-link">network and cloud sources</a>.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> For sending resources: the full version of the watch app. *Sideload version only* - see the <span class="doc-link-term" data-term="nolegal-edition">noLegal edition</span>.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> The watch and the phone near each other, with the watch awake.</li>
+                    </ul>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="doc-step" id="pick-resources">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">1</span>
+                        <h2 class="doc-step-title">Choose the resources for the watch</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Open the Wear Companion window and, in <strong>Watch operations</strong>, tap <strong>Resources for the watch</strong>.</p>
+                        <p>Only network resources can be sent - "Only network resources (SMB, FTP, SFTP) can be sent to the watch, so only those are listed. Tick the ones to send." Folders on the phone itself stay on the phone; the watch reaches those through its <strong>Phone</strong> section instead, and <span class="doc-link-term" data-term="cloud-storage">cloud storage</span> never goes to the watch.</p>
+                        <p>Tick the ones you want, or tap <strong>Select all</strong>. Nothing is ticked on your first visit: the phone never pushes your whole library by surprise. Your choice is remembered for the next sync.</p>
+                        <p>No network resources yet? The list says so and points you back to the main screen to add one.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="wear.resource-selection"
+                             data-device-profile="phone"
+                             data-screen-state="wear-resource-selection-two-ticked"
+                             data-alt="The Resources for the watch screen listing SMB, FTP and SFTP resources with tick boxes and a Select all button"
+                             data-caption="Tick the network resources the watch should get.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Resources for the watch</strong>
+                                <p class="doc-img-bookmark-desc">Phone, Resources for the watch screen, three network resources, two ticked, Select all button visible.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>wear.resource-selection</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="doc-step" id="push-resources">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">2</span>
+                        <h2 class="doc-step-title">Push them to the watch</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Back in <strong>Watch operations</strong>, tap <strong>Push to Watch</strong>. A short animation shows the resources flying over, and the result names what happened:</p>
+                        <ul><li><strong>Sent 3 resource(s) to the watch</strong> - they are now in the watch's <strong>Resources</strong> section, ready to open without the phone.</li><li><strong>Removed 1 resource(s) from the watch</strong> - you deleted a resource on the phone since the last push, and the watch let it go too. If you edited that resource on the watch after the phone deleted it, the watch keeps it and it is not counted.</li><li><strong>Watch did not confirm. It may be off or out of range.</strong> - wake the watch, bring it closer and push again.</li><li><strong>No resources are marked for the watch yet.</strong> - go back to step 1 and tick something.</li></ul>
+                        <p>The password travels with the resource, so the watch connects on its own the first time you open it.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="wear.push-result"
+                             data-device-profile="phone"
+                             data-screen-state="wear-push-result-sent-and-removed"
+                             data-alt="The Wear Companion window after a push, with the lines Sent 3 resource(s) to the watch and Removed 1 resource(s) from the watch"
+                             data-caption="The push says what arrived and what left.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Push result</strong>
+                                <p class="doc-img-bookmark-desc">Phone, Wear Companion, push finished, dialog shows sent and removed counts.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>wear.push-result</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="doc-step" id="sync-from-watch">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">3</span>
+                        <h2 class="doc-step-title">Or ask for them from the watch</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>*Sideload version only.* You can start the same exchange from your wrist. On the watch, open <strong>Resources</strong> and tap <strong>Sync from Phone</strong>. The watch waits up to ten seconds for the phone to answer; the back gesture works the whole time, so you are never stuck on a waiting screen.</p>
+                        <p>If it cannot reach the phone, the watch tells you why: "No phone is connected. Pair your phone and install FastMediaSorter on it." or "Could not ask the phone. Try again." If the phone's Wear Companion switch is off, the watch names that switch instead of blaming a missing phone.</p>
+                        <p>Resources you add on the watch travel the other way too. When they reach the phone, the Wear Companion window shows <strong>Watch resources received</strong> - for example "2 resources from Galaxy Watch" - with <strong>Import</strong> and <strong>Dismiss</strong>.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="wear.sync-from-phone"
+                             data-device-profile="watch"
+                             data-screen-state="wear-resources-sync-from-phone"
+                             data-alt="The Resources section of the watch app with the Sync from Phone button above the list of network resources"
+                             data-caption="Sync from Phone on the watch.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Sync from Phone</strong>
+                                <p class="doc-img-bookmark-desc">Round watch, Resources section, Sync from Phone chip at the top, synced SMB and SFTP resources listed.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>watch</code></span>
+                                    <span>ID: <code>wear.sync-from-phone</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="doc-step" id="edits-both-sides">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">4</span>
+                        <h2 class="doc-step-title">Edit on either side - the later edit wins</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Changed the password of a resource on the watch, and the port of another on the phone? Both edits survive the next sync. Each device remembers when it last changed each resource, the sync allows for the two clocks not showing quite the same time, and the device that edited later wins. A resource that exists on only one side is added to the other, never deleted.</p>
+                        <p>Your home server moved to another address? The phone sends every address it knows for a resource and marks the one that answers now, and the watch tries them in turn, so an <span class="doc-link-term" data-term="sftp">SFTP</span> share made on the phone keeps working on the watch.</p>
+                        <p>Updated only one of the two apps? A sync between an older phone app and a newer watch app, or the other way round, still goes through: anything the older side does not know about is simply treated as not set, and every resource in the batch arrives.</p>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="doc-step" id="watch-settings-groups">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">5</span>
+                        <h2 class="doc-step-title">Set up the watch from the phone</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Below <strong>Watch operations</strong>, the window holds the watch's own settings, in the same four groups and the same order as the watch's <strong>Settings</strong> screen. Each switch row has the switch on the left, a title and a line that says what it changes on the watch; a <strong>?</strong> button next to some of them explains more.</p>
+                        <ul><li><strong>Media types</strong> - <strong>Audio</strong>, <strong>Video</strong>, <strong>Images</strong>, <strong>Documents</strong> and <strong>Show streams</strong>. Turn a type off, and the watch neither shows nor syncs files of that kind. Folded, the group lists the types that are on.</li><li><strong>Slideshow</strong> - whether photos move on by themselves, and the <strong>Slideshow interval (seconds)</strong>: 3, 5, 10, 15, 30, 60 or 120, or <strong>Enter custom value</strong>. Folded, it reads, for example, "On, every 5 s".</li><li><strong>Screen</strong> - <strong>Home and Resources view</strong> and <strong>Files view</strong> (<strong>List</strong>, <strong>Grid 2</strong> or <strong>Grid 3</strong>), <strong>Watch background</strong>, <strong>Watch color scheme</strong> and <strong>Keep watch screen on</strong>.</li><li><strong>Other</strong> - <strong>Album art</strong> (a cover picture for every synced song, which costs some watch storage), <strong>Disable animations</strong>, <strong>Watch power saving</strong>, <strong>Keep playing in background</strong> and <strong>Player panel auto-hide duration (s)</strong>.</li></ul>
+                        <p><strong>Watch power saving</strong> offers <strong>Off</strong>, <strong>Always on</strong> and thresholds of 10, 15, 20 and 30 percent in one line you scroll sideways. The watch decides by its own battery, not the phone's.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="wear.companion-settings-groups"
+                             data-device-profile="phone"
+                             data-screen-state="wear-companion-settings-groups-expanded"
+                             data-alt="The Wear Companion window with the Media types group expanded, showing switches for Audio, Video, Images, Documents and Show streams, each with a description"
+                             data-caption="The watch settings, set from the phone.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Watch settings on the phone</strong>
+                                <p class="doc-img-bookmark-desc">Phone, Wear Companion, Media types expanded, five switch rows with descriptions, Slideshow and Screen folded with summaries.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>wear.companion-settings-groups</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="doc-step" id="colors-and-background">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">6</span>
+                        <h2 class="doc-step-title">Give the watch a color scheme and a background</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>In <strong>Screen</strong>, <strong>Watch color scheme</strong> offers eight schemes: <strong>Dark</strong>, <strong>Light</strong>, <strong>Dark green</strong>, <strong>Dark blue</strong>, <strong>Dark red</strong>, <strong>Light green</strong>, <strong>Light blue</strong> and <strong>Light red</strong>. They are the same families the phone app uses, so you can dress both devices alike. <strong>Dark</strong> is the starting scheme.</p>
+                        <p><strong>Watch background</strong> sets what is behind the lists on the watch: <strong>Branded animation</strong> (the moving waves), <strong>Branded still</strong>, <strong>Your image</strong> or <strong>Empty (black screen)</strong>. For <strong>Your image</strong>, tap <strong>Choose image</strong>, pick a photo, and the phone sends it over - "Sending the image to the watch..", then "Image is on the watch." A preview shows how it will look. The watch's settings screens always stay on a plain background, and a light scheme lightens the background too, so text stays readable.</p>
+                        <p>You can pick both on the watch as well, in its <strong>Settings</strong>, <strong>Screen</strong>. A change on either device reaches the other.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="wear.color-scheme-light-blue"
+                             data-device-profile="watch"
+                             data-screen-state="wear-home-light-blue-scheme-branded-still"
+                             data-alt="The watch app home screen in the Light blue color scheme over the branded still background"
+                             data-caption="The Light blue scheme on the watch.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Watch color scheme</strong>
+                                <p class="doc-img-bookmark-desc">Round watch, home screen, Light blue color scheme, Branded still background.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>watch</code></span>
+                                    <span>ID: <code>wear.color-scheme-light-blue</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 7 -->
+                <div class="doc-step" id="sync-settings">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">7</span>
+                        <h2 class="doc-step-title">Send the settings and check the sync</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Tap <strong>Sync settings</strong> in the title bar. The phone sends the settings and waits up to fifteen seconds for the watch to report back what it applied. The line under the button - <strong>Last synced:</strong> with the date and time - moves only when the watch really answers, so a tap that reached nothing leaves the old time standing. If the watch stays silent, a message says: "The watch did not confirm the settings. It may be off or out of range."</p>
+                        <p>After the first sync, <strong>Watch operations</strong> also names the watch app that answered, such as <strong>Watch app: 2.62.0920.1415</strong>. When the watch app and the phone app come from different days, the line reads <strong>Watch app:</strong> followed by both versions, the watch's and the phone's, in a warning color - a hint to update the older one. A watch app too old to report its version shows <strong>Watch app: version unknown</strong>.</p>
+                        <p>On the watch, <strong>Settings</strong> shows the same sync line. When it has never synced, or the last sync is several days old, the line turns into the warning color and you can tap it to sync right there.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="wear.watch-settings-stale-sync"
+                             data-device-profile="watch"
+                             data-screen-state="wear-settings-root-stale-sync-caption"
+                             data-alt="The Settings screen of the watch app with the Sync settings button and a Last synced line in the warning color"
+                             data-caption="An old sync is shown in the warning color and can be tapped.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: Stale sync on the watch</strong>
+                                <p class="doc-img-bookmark-desc">Round watch, Settings root, Sync settings button, Last synced caption several days old in error color.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>watch</code></span>
+                                    <span>ID: <code>wear.watch-settings-stale-sync</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 id="outcome">What You Get</h2>
+                <div class="doc-callout doc-callout-note">
+                        <p>The watch holds exactly the network folders you picked, opens them without the phone, and looks and behaves the way you set it up - whichever device you set it up on.</p>
+                </div>
+
+                <h2 id="tips">Tips and Troubleshooting</h2>
+                <div class="doc-callout doc-callout-tip">
+                    <ul>
+                        <li><strong>The watch lists a folder you deleted on the phone?</strong> Push again: the result line tells you how many resources the watch removed.</li>
+                        <li><strong>Settings do not seem to arrive?</strong> Look at the Last synced line - if it did not move, the watch did not answer. Open the watch app and tap Sync settings again.</li>
+                        <li><strong>Watch storage filling up?</strong> Switch off Album art in the Other group; cover pictures are downloaded for every synced song.</li>
+                        <li><strong>Want one photo on the watch, not a whole folder?</strong> Open it on the phone and send it with <strong>Send to..</strong> - see <a href="watch-file-manager.html" class="doc-link">putting files on the watch</a>.</li>
+                    </ul>
+                </div>
+
+                <!-- What to Try Next Section -->
+                <div class="doc-next-section">
+                    <div class="doc-next-title">What to Try Next: Related Recipes</div>
+                    <div class="doc-next-grid">
+                        <a href="watch-file-manager.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Watch</span>
+                            <h4>Browsing files on the watch</h4>
+                            <p>Open the network folders you just sent, and the files of your phone.</p>
+                        </a>
+                        <a href="tiles-and-complications.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Watch</span>
+                            <h4>Tiles and complications</h4>
+                            <p>Pin a synced resource to a tile one swipe from the watch face.</p>
+                        </a>
+                        <a href="installation-and-pairing.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Watch</span>
+                            <h4>Installing and pairing the watch</h4>
+                            <p>The first steps, if the watch and phone do not see each other yet.</p>
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">On this page</div>
+                    <ul class="doc-toc-list">
+                        <li><a href="#why" class="doc-toc-link">Why You'll Love This</a></li>
+                        <li><a href="#pick-resources" class="doc-toc-link">1. Choose the resources for the watch</a></li>
+                        <li><a href="#push-resources" class="doc-toc-link">2. Push them to the watch</a></li>
+                        <li><a href="#sync-from-watch" class="doc-toc-link">3. Or ask for them from the watch</a></li>
+                        <li><a href="#edits-both-sides" class="doc-toc-link">4. Edit on either side - the later edit wins</a></li>
+                        <li><a href="#watch-settings-groups" class="doc-toc-link">5. Set up the watch from the phone</a></li>
+                        <li><a href="#colors-and-background" class="doc-toc-link">6. Give the watch a color scheme and a background</a></li>
+                        <li><a href="#sync-settings" class="doc-toc-link">7. Send the settings and check the sync</a></li>
+                        <li><a href="#outcome" class="doc-toc-link">What You Get</a></li>
+                        <li><a href="#tips" class="doc-toc-link">Tips and Troubleshooting</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
+            <div class="doc-footer-links">
+                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../design-system/index.html">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive scripts: Theme switcher & 13-Language selector -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+        }());
+    </script>
+
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
+    <script src="../assets/wave-particles.js"></script>
+
+    <!-- In-browser Search Modal Engine -->
+    <script src="../assets/search.js"></script>
+</body>
+</html>

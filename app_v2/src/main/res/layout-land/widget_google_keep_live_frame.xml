@@ -28,7 +28,7 @@
         android:layout_gravity="top|end"
         android:layout_margin="@dimen/padding_small"
         android:background="@drawable/widget_background"
-        android:contentDescription="@string/launcher_gadget_google_keep_live"
+        android:contentDescription="@string/refresh"
         android:padding="@dimen/padding_small"
         android:src="@drawable/ic_refresh"
         android:tint="@color/blue_500" />

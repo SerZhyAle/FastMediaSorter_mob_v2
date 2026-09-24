@@ -73,7 +73,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         // is a no-op on null) and landscape (the overflow filter `!barCapable` drops it). Priority 25
         // keeps it at the top of the overflow list.
         // Replaces the player's ad-hoc SHARE/Telegram/Lens/Keep-text commands (consolidated in Phase 05).
-        SEND_TO(25, R.id.menu_send_to, false, R.string.share_to_menu_title, R.drawable.ic_share),
+        SEND_TO(25, R.id.menu_send_to, false, R.string.share_to_menu_title, R.drawable.ic_send_plane),
         // S0459: SHARE / GOOGLE_LENS_IMAGE are no longer emitted on the player panel (the unified
         // SEND_TO covers Share), but the enum entries stay because CommandPanelController.barViewForCommand
         // still maps them to the live btnShareCmd / btnGoogleLensImageCmd standalone-host views (the in-app
@@ -82,7 +82,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         // consumers now route through the unified menu.
         SHARE(30, R.id.menu_share, true, R.string.share, R.drawable.ic_share),
         FULLSCREEN(50, R.id.menu_fullscreen, true, R.string.fullscreen_mode, R.drawable.ic_fullscreen),
-        SLIDESHOW(60, R.id.menu_slideshow, true, R.string.slideshow, R.drawable.ic_play),
+        SLIDESHOW(60, R.id.menu_slideshow, true, R.string.slideshow, R.drawable.ic_slideshow),
         RANDOM(70, R.id.menu_random, true, R.string.random_file_description, R.drawable.ic_random_nav),
 
         // ── Group 2 : current command-bar commands (priorities 200-499) ──────────────
@@ -94,9 +94,9 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_edit,
             true,
             R.string.menu_edit_adjust,
-            android.R.drawable.ic_menu_edit
+            R.drawable.ic_edit
         ),
-        UNDO(220, R.id.menu_undo, true, R.string.undo, android.R.drawable.ic_menu_revert),
+        UNDO(220, R.id.menu_undo, true, R.string.undo, R.drawable.ic_undo),
         CAST(230, R.id.menu_cast, true, R.string.cast_to_chromecast, R.drawable.ic_cast),
         // Low-priority direct video action: show on command bar when space permits,
         // otherwise let adaptive portrait layout spill it to overflow.
@@ -121,7 +121,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_rotation_toggle,
             true,
             R.string.menu_autorotate_screen_title,
-            R.drawable.ic_rotation_unlocked
+            R.drawable.ic_screen_rotation
         ),
         // File details are useful but rarely urgent; keep them bar-capable only after
         // primary playback, navigation, and media actions have taken their slots.
@@ -138,7 +138,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         ),
 
         // PDF
-        SEARCH_PDF(260, R.id.menu_search, true, R.string.search, android.R.drawable.ic_menu_search),
+        SEARCH_PDF(260, R.id.menu_search, true, R.string.search, R.drawable.ic_search),
 
         // icon replaced asynchronously by LanguageBadgeDrawable
         TRANSLATE_PDF(270, R.id.menu_translate, true, R.string.translate, R.drawable.ic_translate),
@@ -147,7 +147,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         GOOGLE_LENS_PDF(300, R.id.menu_google_lens, true, R.string.google_lens, R.drawable.ic_google_lens),
 
         // TEXT
-        SEARCH_TEXT(310, R.id.menu_search, true, R.string.search, android.R.drawable.ic_menu_search),
+        SEARCH_TEXT(310, R.id.menu_search, true, R.string.search, R.drawable.ic_search),
         // Edit is the primary text action - rank it ahead of RENAME(200) so it reaches
         // the command bar before the less-frequent rename.
         EDIT_TEXT(
@@ -155,7 +155,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_edit_text,
             true,
             R.string.menu_edit_file_text,
-            android.R.drawable.ic_menu_edit
+            R.drawable.ic_edit
         ),
 
         // icon replaced asynchronously
@@ -169,11 +169,11 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_copy_text,
             true,
             R.string.copy_to_clipboard,
-            android.R.drawable.ic_menu_save
+            R.drawable.ic_copy
         ),
 
         // EPUB
-        SEARCH_EPUB(360, R.id.menu_search, true, R.string.search, android.R.drawable.ic_menu_search),
+        SEARCH_EPUB(360, R.id.menu_search, true, R.string.search, R.drawable.ic_search),
 
         // icon replaced asynchronously
         TRANSLATE_EPUB(370, R.id.menu_translate, true, R.string.translate, R.drawable.ic_translate),
@@ -211,23 +211,23 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_reopen_encoding,
             false,
             R.string.reopen_with_encoding,
-            android.R.drawable.ic_menu_sort_alphabetically
+            R.drawable.ic_refresh
         ),
         TOGGLE_MARKDOWN(
             520,
             R.id.menu_toggle_markdown,
             false,
             R.string.toggle_markdown,
-            android.R.drawable.ic_menu_view
+            R.drawable.ic_document
         ),
         READER_SETTINGS(
             530,
             R.id.menu_reader_settings,
             false,
             R.string.reader_settings,
-            android.R.drawable.ic_menu_preferences
+            R.drawable.ic_settings
         ),
-        READ_ALOUD(540, R.id.menu_read_aloud, false, R.string.read_aloud, android.R.drawable.ic_lock_silent_mode_off),
+        READ_ALOUD(540, R.id.menu_read_aloud, false, R.string.read_aloud, R.drawable.ic_read_aloud),
         PDF_SCROLL_MODE(550, R.id.menu_pdf_scroll_mode, false, R.string.pdf_scroll_mode, R.drawable.ic_view_list),
         PDF_COLOR_MODE(560, R.id.menu_pdf_color_mode, false, R.string.pdf_night_mode, R.drawable.ic_night_mode),
         PDF_THUMBNAILS(570, R.id.menu_pdf_thumbnails, false, R.string.pdf_thumbnails, R.drawable.ic_view_list),
@@ -243,7 +243,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_epub_search_all,
             false,
             R.string.epub_search_all_chapters,
-            android.R.drawable.ic_menu_search
+            R.drawable.ic_search
         ),
         // Low-priority bar-capable command: appears on bar only when all higher-priority
         // commands fit and space remains; otherwise spills to overflow (⋯ menu).

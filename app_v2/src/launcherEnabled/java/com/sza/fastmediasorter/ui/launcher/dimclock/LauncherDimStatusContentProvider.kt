@@ -1,9 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.dimclock
 
 import com.sza.fastmediasorter.domain.model.devicestatus.MetricValue
-import com.sza.fastmediasorter.domain.model.network.HotspotState
 import com.sza.fastmediasorter.domain.usecase.devicestatus.GetBatteryStatusUseCase
-import com.sza.fastmediasorter.domain.usecase.devicestatus.GetNetworkStatusUseCase
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimStatusChip
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimStatusContentProvider
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimStatusSnapshot
@@ -29,7 +27,6 @@ import javax.inject.Singleton
 @Singleton
 class LauncherDimStatusContentProvider @Inject constructor(
     private val getBatteryStatusUseCase: GetBatteryStatusUseCase,
-    private val getNetworkStatusUseCase: GetNetworkStatusUseCase,
     private val launcherSignalRegistry: LauncherSignalRegistry,
     private val foreignNotificationCounts: ForeignNotificationCounts,
     private val connectivitySource: ConnectivityDimStatusSource,
@@ -51,14 +48,13 @@ class LauncherDimStatusContentProvider @Inject constructor(
         batteryFlow(),
         launcherSignalRegistry.observe(),
         foreignNotificationCounts.counts,
-        connectivitySource.bluetoothState(),
-        connectivitySource.hotspotState(),
-    ) { (percent, isCharging), signals, notifCounts, bluetoothOn, hotspotState ->
-        // S3366: the transport read rides the same poll tick as the battery, so the dim screen
-        // never wakes to ask the network a question it did not already pay to ask the battery.
-        val transport = getNetworkStatusUseCase.read().transport
+        connectivitySource.inputs(),
+    ) { (percent, isCharging), signals, notifCounts, connectivity ->
+        // S3366 / S3475: the network read rides whichever tick produced this snapshot, so the dim
+        // screen never wakes to ask the network a question on a timer of its own.
         val chips = mapSignalsToChips(signals, notifCounts) +
-            connectivitySource.chips(bluetoothOn, hotspotState == HotspotState.ENABLED, transport)
+            connectivitySource.chips(connectivity, connectivitySource.readNetwork())
+        Timber.d("S3475: dim status chips=${chips.filterNot { it.isNotification }.map { it.id }}")
         DimStatusSnapshot(
             batteryPercent = percent,
             isCharging = isCharging,

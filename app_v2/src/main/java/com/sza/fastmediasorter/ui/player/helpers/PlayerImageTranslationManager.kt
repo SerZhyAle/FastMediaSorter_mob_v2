@@ -7,9 +7,11 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.load.resource.gif.GifDrawable
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -46,8 +48,7 @@ class PlayerImageTranslationManager(
             binding.photoView.setOnMatrixChangeListener(null)
         }
 
-        safeViews.btnTranslateImage.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
-        binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
+        tintTranslateButtons(active = false)
         safeViews.btnTranslationFontDecrease?.visibility = View.GONE
         safeViews.btnTranslationFontIncrease?.visibility = View.GONE
         Timber.d("Translation stopped and overlays hidden")
@@ -95,8 +96,7 @@ class PlayerImageTranslationManager(
             return
         }
 
-        safeViews.btnTranslateImage.imageTintList = ColorStateList.valueOf(0xFFF44336.toInt())
-        binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFF44336.toInt())
+        tintTranslateButtons(active = true)
         activity.loadingIndicatorCoordinator.show(LoadingSource.TRANSLATION)
 
         val viewWidth = if (binding.photoView.isVisible) binding.photoView.width else binding.imageView.width
@@ -154,8 +154,7 @@ class PlayerImageTranslationManager(
                         },
                         onEmpty = {
                             activity.loadingIndicatorCoordinator.hide(LoadingSource.TRANSLATION)
-                            safeViews.btnTranslateImage.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
-                            binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
+                            tintTranslateButtons(active = false)
                             safeViews.btnTranslationFontDecrease?.visibility = View.GONE
                             safeViews.btnTranslationFontIncrease?.visibility = View.GONE
                             // The rule 10 refusal already told the user why and what to change.
@@ -165,8 +164,7 @@ class PlayerImageTranslationManager(
                         },
                         onError = { message ->
                             activity.loadingIndicatorCoordinator.hide(LoadingSource.TRANSLATION)
-                            safeViews.btnTranslateImage.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
-                            binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
+                            tintTranslateButtons(active = false)
                             Timber.w("PlayerImageTranslationManager: Lens translation failed: $message")
                             activity.showError(activity.getString(R.string.translation_error))
                         }
@@ -189,8 +187,7 @@ class PlayerImageTranslationManager(
                             safeViews.btnTranslationFontDecrease?.visibility = View.GONE
                             safeViews.btnTranslationFontIncrease?.visibility = View.GONE
                         } else {
-                            safeViews.btnTranslateImage.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
-                            binding.btnTranslateImageCmd.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
+                            tintTranslateButtons(active = false)
                             safeViews.btnTranslationFontDecrease?.visibility = View.GONE
                             safeViews.btnTranslationFontIncrease?.visibility = View.GONE
                             activity.showError(activity.getString(R.string.translation_no_text_found))
@@ -249,5 +246,21 @@ class PlayerImageTranslationManager(
                 bitmap
             }
         }
+    }
+
+    /**
+     * Both translate buttons sit on the player's fixed dark overlay: idle takes the overlay's content
+     * colour, a running translation the theme's error role (ICON-RENDER rule 2).
+     */
+    private fun tintTranslateButtons(active: Boolean) {
+        val button = activity.safeViews.btnTranslateImage
+        val color = if (active) {
+            MaterialColors.getColor(button, androidx.appcompat.R.attr.colorError)
+        } else {
+            ContextCompat.getColor(button.context, R.color.player_overlay_on_primary)
+        }
+        val tint = ColorStateList.valueOf(color)
+        button.imageTintList = tint
+        activity.activityBinding.btnTranslateImageCmd.imageTintList = tint
     }
 }

@@ -81,3 +81,28 @@ S3311  Locale resource values (app_v2/src/main/res/values-* and src/vr/res/value
 S3314  Locale resource values (app_v2/src/main/res/values-de|es|fr|it|pt and src/vr/res/values-it), one allow-list JSON and one repo script; no .kt touched. Same class as S3305 and S3311 - the evidence is a localized screen on a device set to de, es, fr, it or pt, and a Timber probe cannot observe a string resource rendering.
 
 S3316  Locale resource values only (app_v2/src/main/res/values-* strings*.xml across twelve locales); no .kt touched. Same class as S3305, S3311 and S3314 - the evidence is a localized screen on a device set to ar, bn, de, es, fr, hi, it, pt, ru, uk, ur or zh-Hans, and a Timber probe cannot observe a string resource rendering.
+
+S3474  Maestro flow YAML only (maestro/features/player/player_video.yaml, player_resume.yaml, maestro/features/edge/edge_cases.yaml); no .kt touched. The evidence is the three flows passing on an emulator seeded with the full test corpus, which a Timber probe cannot observe.
+
+S3428  Glyph repointing only: drawable resources, layout/menu icon attributes and R.drawable ids in eight Kotlin catalogs; no behaviour or flow changed. The evidence is the glyph a screen draws, which a Timber probe cannot observe.
+S3431  launcher icon resources only (XML + PNG), no Kotlin flow to probe; verification is the owner looking at the home screen
+S2952  Documentation pages and the docs generator only (docs/content, documentation/, scripts/docs); no .kt touched - the owner reviewing the published pages and a plain-reader walk on an emulator are the evidence.
+S2947  Documentation pages and manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of the three pages on an emulator is the evidence.
+S2946  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of each instruction on an emulator is the evidence.
+S2948  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of each instruction of the four browsing pages on an emulator is the evidence.
+S2951  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of the four video player pages on an emulator is the evidence.
+S2955  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of the four streams playback pages on an emulator is the evidence.
+S2949  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of the eleven storage pages on an emulator is the evidence.
+S2953  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of each instruction of the three documents and text editor pages on an emulator is the evidence.
+S2958  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of each instruction of the three launcher desktop pages on an emulator is the evidence.
+S2959  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of each instruction of the three launcher gadget and widget pages on an emulator is the evidence.
+S2957  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of each instruction of the four OCR, translation, drawing and sharing pages on an emulator is the evidence.
+S2956  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of the five camera and screen-capture pages on an emulator and the owner review are the evidence.
+S2960  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of each instruction of the seven launcher taskbar, menus and gestures pages on an emulator is the evidence.
+S2961  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of each instruction of the five programs, statistics and diagnostics pages on an emulator is the evidence.
+S2962  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of each instruction of the six settings pages on an emulator is the evidence.
+S2964  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of the three watch setup pages on a phone and a watch emulator is the evidence.
+S2963  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of each instruction of the four General, Keyboard & TV pages on an emulator is the evidence.
+S2965  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of the three watch media pages on a phone and a watch emulator is the evidence.
+S2966  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of the six watch everyday-use pages on a phone and a watch emulator is the evidence.
+S3480  Backup rules XML, manifest attributes and a gate script only; no .kt touched - bmgr backup/restore on the watch showing the two encrypted prefs files are left out is the evidence.

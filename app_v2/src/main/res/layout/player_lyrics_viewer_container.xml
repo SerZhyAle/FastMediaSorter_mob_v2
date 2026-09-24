@@ -33,7 +33,7 @@
         android:layout_gravity="top|end"
         android:layout_margin="@dimen/player_close_button_margin"
         android:background="@drawable/bg_circle_themed"
-        android:src="@drawable/ic_cancel"
+        android:src="@drawable/ic_clear"
         app:tint="@color/selector_themed_button_tint"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_close_button_padding"

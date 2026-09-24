@@ -66,7 +66,7 @@
                     android:layout_height="@dimen/control_button_size_compact"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/tourist_action_reset_tile"
-                    android:src="@drawable/ic_refresh"
+                    android:src="@drawable/ic_restore_defaults"
                     android:visibility="gone"
                     app:tint="?attr/colorPrimary"
                     tools:visibility="visible" />
@@ -212,7 +212,7 @@
             style="@style/Widget.FastMediaSorter.Button.Outlined.Compact"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:icon="@drawable/ic_refresh"
+            app:icon="@drawable/ic_restore_defaults"
             android:text="@string/tourist_action_reset_trip" />
 
         <!-- S3216: the distress signal, last in the column and the only filled button among the four -

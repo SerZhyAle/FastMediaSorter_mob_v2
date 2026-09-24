@@ -68,9 +68,9 @@ FastMedia Launcher перетворює будь-який Android-пристрі
 Застосунок FastMediaSorter із режимом Лаунчера доступний в офіційних магазинах:
 
 ### Завантаження та збірки
-- [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) - Завантаження з офіційного магазину Google Play.
-- [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) - Збірки з відкритим вихідним кодом.
-- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Пряме завантаження APK**](../DOWNLOADS-uk.md) - Прямі APK-файли для встановлення на магнітолу або планшет.
+- [**Google Play Store**](https://play.google.com/store/apps) - Завантаження з офіційного магазину Google Play.
+- [**F-Droid Open Source**](https://f-droid.org) - Збірки з відкритим вихідним кодом.
+- [**Пряме завантаження APK**](../DOWNLOADS-uk.md) - Прямі APK-файли для встановлення на магнітолу або планшет.
 
 ---
 

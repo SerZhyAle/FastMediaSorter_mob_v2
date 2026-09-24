@@ -330,7 +330,7 @@
 
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <ImageButton android:id="@+id/iconHelpGridSize" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_grid_size_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                        <ImageButton android:id="@+id/iconHelpGridSize" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/cd_help_grid_size" android:src="@drawable/ic_help_outline" app:tint="@color/text_color_secondary" />
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowDefaultGridMode"
@@ -473,6 +473,185 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- S3041: EMBEDDED SFTP SERVER SECTION - shares picked folders with other devices; the panel
+             manager hides the whole card where the build or the Android version cannot run the server. -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpServer" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerSftpServer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_resource_sftp"
+                    app:csh_title="@string/settings_sftp_server_title" />
+
+                <LinearLayout android:id="@+id/containerSftpServer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowSftpServerEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/resource_field_margin_top"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusDown="@id/btnSftpServerAddRoot"
+                        app:str_icon="@drawable/ic_resource_sftp"
+                        app:str_title="@string/settings_sftp_server_enable_title"
+                        app:str_subtitle="@string/settings_sftp_server_enable_subtitle" />
+
+                    <TextView
+                        android:id="@+id/textSftpServerStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:textColor="@color/text_color_secondary"
+                        android:textIsSelectable="true"
+                        android:text="@string/settings_sftp_server_status_off" />
+
+                    <TextView
+                        android:id="@+id/textSftpServerCredentials"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:textColor="@color/text_color_secondary"
+                        android:textIsSelectable="true"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/labelSftpServerRoots"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:text="@string/settings_sftp_server_roots_label" />
+
+                    <LinearLayout
+                        android:id="@+id/containerSftpServerRoots"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSftpServerAddRoot"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusUp="@id/rowSftpServerEnabled"
+                        android:nextFocusDown="@id/etSftpServerPort"
+                        android:text="@string/settings_sftp_server_add_root"
+                        app:icon="@drawable/ic_add" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilSftpServerPort"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:hint="@string/settings_sftp_server_port_hint">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSftpServerPort"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:nextFocusUp="@id/btnSftpServerAddRoot"
+                            android:nextFocusDown="@id/radioSftpServerAuthPassword"
+                            android:imeOptions="actionDone"
+                            android:inputType="number"
+                            android:maxLength="5" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <RadioGroup
+                        android:id="@+id/radioSftpServerAuth"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/radioSftpServerAuthPassword"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:nextFocusUp="@id/etSftpServerPort"
+                            android:nextFocusRight="@id/radioSftpServerAuthKey"
+                            android:nextFocusDown="@id/btnSftpServerNewPassword"
+                            android:text="@string/settings_sftp_server_auth_password" />
+
+                        <RadioButton
+                            android:id="@+id/radioSftpServerAuthKey"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/margin_small"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:nextFocusUp="@id/etSftpServerPort"
+                            android:nextFocusLeft="@id/radioSftpServerAuthPassword"
+                            android:nextFocusDown="@id/etSftpServerAuthorizedKeys"
+                            android:text="@string/settings_sftp_server_auth_key" />
+                    </RadioGroup>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSftpServerNewPassword"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusUp="@id/radioSftpServerAuthPassword"
+                        android:nextFocusDown="@id/btnSftpServerShowQr"
+                        android:text="@string/settings_sftp_server_new_password" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilSftpServerAuthorizedKeys"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:hint="@string/settings_sftp_server_keys_hint"
+                        android:visibility="gone">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSftpServerAuthorizedKeys"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:nextFocusUp="@id/radioSftpServerAuthKey"
+                            android:nextFocusDown="@id/btnSftpServerShowQr"
+                            android:inputType="textMultiLine|textNoSuggestions"
+                            android:minLines="2" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSftpServerShowQr"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:nextFocusUp="@id/btnSftpServerNewPassword"
+                        android:text="@string/settings_sftp_server_show_qr"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/imageSftpServerQr"
+                        android:layout_width="@dimen/sftp_server_qr_size"
+                        android:layout_height="@dimen/sftp_server_qr_size"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:contentDescription="@string/settings_sftp_server_qr_description"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- S0255: AUTHORIZATION SECTION - groups GSM banner, Google account card and saved authorizations entry. -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
@@ -482,7 +661,7 @@
                     android:id="@+id/headerAuthorization"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:csh_icon="@drawable/ic_google_account"
+                    app:csh_icon="@drawable/ic_contact"
                     app:csh_title="@string/settings_category_authorization" />
 
                 <LinearLayout android:id="@+id/containerAuthorization" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
@@ -538,7 +717,7 @@
 
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <ImageButton android:id="@+id/iconHelpDefaultCredentials" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_default_credentials_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/tilDefaultPassword" app:layout_constraintTop_toTopOf="@+id/tilDefaultPassword" app:layout_constraintBottom_toBottomOf="@+id/tilDefaultPassword" />
+                        <ImageButton android:id="@+id/iconHelpDefaultCredentials" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/cd_help_default_credentials" android:src="@drawable/ic_help_outline" app:tint="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/tilDefaultPassword" app:layout_constraintTop_toTopOf="@+id/tilDefaultPassword" app:layout_constraintBottom_toBottomOf="@+id/tilDefaultPassword" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -573,7 +752,7 @@
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnShareLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/share_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/save_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_copy" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveLogs" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/save_debug_logs" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_save" />
 
                     </LinearLayout>
 
@@ -585,11 +764,11 @@
 
                         <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowSettingsFile" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnExportSettings,btnImportSettings,btnHelpExportImport" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/export_settings" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_cloud_upload" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/export_settings" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_export" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/import_settings" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_cloud_download" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportSettings" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/import_settings" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_import" />
 
-                        <ImageButton android:id="@+id/btnHelpExportImport" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/export_import_file_info" android:tooltipText="@string/export_import_file_info" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                        <ImageButton android:id="@+id/btnHelpExportImport" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/export_import_file_info" android:tooltipText="@string/export_import_file_info" android:src="@drawable/ic_help_outline" app:tint="@color/text_color_secondary" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -602,7 +781,7 @@
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
 
-                        <ImageButton android:id="@+id/iconHelpBackupInfo" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_backup_info_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                        <ImageButton android:id="@+id/iconHelpBackupInfo" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/cd_help_backup_info" android:src="@drawable/ic_help_outline" app:tint="@color/text_color_secondary" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -649,9 +828,9 @@
 
                         <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowSettingsResources" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnExportResources,btnImportResources" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resource_share_export_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_share" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnExportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resource_share_export_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_export" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resource_share_import_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_open_in_browse" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportResources" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resource_share_import_title" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_import" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -690,7 +869,7 @@
                     <!-- Reset All Settings - destructive action, placed at the very end of the Backup & Export section. -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
-                    <com.google.android.material.button.MaterialButton android:id="@+id/btnResetSettings" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/reset_settings_to_defaults" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btnResetSettings" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/reset_settings_to_defaults" app:icon="@drawable/ic_restore_defaults" app:iconSize="@dimen/settings_icon_size" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -825,7 +1004,7 @@
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnClearCache" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/clear_cache" app:icon="@drawable/ic_delete" app:layout_constraintStart_toEndOf="@+id/btnAutoCalculateCache" app:layout_constraintTop_toTopOf="@+id/actvCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/actvCacheSizeLimit" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetSmbConnections" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/reset_smb_connections" app:icon="@drawable/ic_refresh" app:layout_constraintStart_toEndOf="@+id/btnClearCache" app:layout_constraintTop_toTopOf="@+id/actvCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/actvCacheSizeLimit" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetSmbConnections" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:text="@string/reset_smb_connections" app:icon="@drawable/ic_restore_defaults" app:layout_constraintStart_toEndOf="@+id/btnClearCache" app:layout_constraintTop_toTopOf="@+id/actvCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/actvCacheSizeLimit" />
 
                         <TextView android:id="@+id/tvCacheSize" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:text="@string/cache_size_calculating" android:textSize="@dimen/toggler_title_text_size" android:textColor="@color/text_color_secondary" app:layout_constraintStart_toEndOf="@+id/btnResetSmbConnections" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
 
@@ -861,7 +1040,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Reset General Section button (moved out of the System collapsible group; sits between System and Debug sections). -->
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetGeneralSection" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny" android:text="@string/reset_general_section" app:icon="@drawable/ic_refresh" app:iconSize="@dimen/settings_icon_size" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetGeneralSection" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny" android:text="@string/reset_general_section" app:icon="@drawable/ic_restore_defaults" app:iconSize="@dimen/settings_icon_size" />
 
         <!-- DEBUG SECTION -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
@@ -898,14 +1077,14 @@
                         android:focusable="true"
                         android:text="@string/released_tickets_button"
                         android:textSize="@dimen/toggler_title_text_size"
-                        app:icon="@drawable/ic_help_outline_24" />
+                        app:icon="@drawable/ic_help_outline" />
 
                     <!-- Integration Tests + Import Test Credentials -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/containerIntegrationTests" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny">
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnIntegrationTests" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" app:layout_constraintHorizontal_chainStyle="packed" app:layout_constraintHorizontal_bias="0" android:layout_height="wrap_content" android:text="@string/run_integration_tests" android:visibility="gone" app:icon="@drawable/ic_settings" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/btnImportTestCredentials" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintWidth_max="600dp" />
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportTestCredentials" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/import_test_credentials" android:visibility="gone" app:icon="@drawable/ic_cloud_upload" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toEndOf="@+id/btnIntegrationTests" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintWidth_max="600dp" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnImportTestCredentials" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/import_test_credentials" android:visibility="gone" app:icon="@drawable/ic_import" app:iconSize="@dimen/settings_icon_size" app:layout_constraintStart_toEndOf="@+id/btnIntegrationTests" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintWidth_max="600dp" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -1004,7 +1183,7 @@
                     <!-- Documentation Links - wraps to multiple lines on narrow landscape screens (S0609 Phase 02). -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/containerDocLinks" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny">
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnUserGuide" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/user_guide" app:icon="@drawable/ic_help_outline_24" app:iconSize="@dimen/settings_icon_size" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnUserGuide" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/user_guide" app:icon="@drawable/ic_help_outline" app:iconSize="@dimen/settings_icon_size" />
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnHowToGuides" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/how_to_guides" app:icon="@drawable/ic_book" app:iconSize="@dimen/settings_icon_size" />
 

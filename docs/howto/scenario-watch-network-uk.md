@@ -9,7 +9,7 @@ permalink: /docs/howto/scenario-watch-network-uk.html
 
 > **Лише в повній версії** - цей посібник не реалізовано у версії, що розповсюджується через Google Play. Він стосується повної версії - APK для прямого завантаження зі сторінки [Завантаження](../DOWNLOADS.md).
 
-[English](scenario-watch-network.md) | [Русский](scenario-watch-network-ru.md)
+{% include lang-switcher.html doc="scenario-watch-network" dir="/docs/howto/" current="uk" %}
 
 FastMediaSorter на Wear OS може підключатися напряму до ваших домашніх мережевих дисків (NAS, спільних папок ПК, FTP або SFTP-серверів) через Wi-Fi. Ви можете переглядати віддалені файли, слухати музику в Bluetooth-навушниках та синхронізувати обрані папки без участі телефона.
 

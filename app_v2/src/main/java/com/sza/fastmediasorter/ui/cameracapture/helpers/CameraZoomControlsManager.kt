@@ -175,7 +175,7 @@ class CameraZoomControlsManager(
         }
         val iconRes = when {
             capabilities.isFront -> R.drawable.ic_camera_lens_front
-            capabilities.activeLensIsMacro -> R.drawable.ic_camera_lens_macro
+            capabilities.activeLensIsMacro -> R.drawable.ic_camera_macro_on
             capabilities.activeLensIsWidest -> R.drawable.ic_camera_lens_ultrawide
             capabilities.zoomMultiplier > CameraRuntimeCapabilities.TELE_MIN_MULTIPLIER ->
                 R.drawable.ic_camera_lens_tele

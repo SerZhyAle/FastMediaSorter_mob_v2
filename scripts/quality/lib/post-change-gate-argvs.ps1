@@ -35,6 +35,9 @@ if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvWearWireVocabularyParity
 # scoped - an unscoped closure over one drawable must not re-judge three hundred others.
 $argvIconStyle = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-icon-style.ps1"), '-Gate', '-Quiet')
 if ($changedFiles.Count -gt 0) { $argvIconStyle += @('-ChangedFiles', ($changedFiles -join ',')) }
+# S3432: judges the whole tree against its baseline, and the changed set decides which keys are charged here.
+$argvIconContract = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-icon-contract.ps1"), '-Gate', '-Quiet')
+if ($changedFiles.Count -gt 0) { $argvIconContract += @('-ChangedFiles', ($changedFiles -join ',')) }
 
 # S3371 security-profile, manifest-risk, journal-pairing and no-retry gates. Extracted here for
 # the same reason as the family above: the facade crossed the Rule 2 ceiling at 2003 lines when

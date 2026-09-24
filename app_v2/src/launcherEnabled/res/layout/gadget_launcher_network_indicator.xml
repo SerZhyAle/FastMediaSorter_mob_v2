@@ -27,7 +27,7 @@
             android:adjustViewBounds="true"
             android:background="@drawable/focus_button_background"
             android:clickable="true"
-            android:contentDescription="@string/launcher_gadget_network_indicator"
+            android:contentDescription="@string/network_monitor_title"
             android:focusable="true"
             android:maxWidth="48dp"
             android:tint="?attr/launcherDesktopText"

@@ -244,7 +244,7 @@ class SettingsInputRow @JvmOverloads constructor(
         }
         inputLayout.endIconMode = TextInputLayout.END_ICON_CUSTOM
         inputLayout.setEndIconDrawable(R.drawable.ic_arrow_drop_down)
-        inputLayout.endIconContentDescription = context.getText(R.string.select)
+        inputLayout.endIconContentDescription = context.getText(R.string.cd_choose_from_list)
         inputLayout.setEndIconOnClickListener { showOptions() }
         editText.setOnKeyListener { _, keyCode, event ->
             if (keyCode != KeyEvent.KEYCODE_DPAD_CENTER) return@setOnKeyListener false

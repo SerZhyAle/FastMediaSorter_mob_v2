@@ -15,7 +15,7 @@
     <!-- Top command panel: Back + file-op actions + text-viewer actions -->
     <LinearLayout android:id="@+id/topCommandPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="@dimen/player_cmd_padding_top" android:paddingBottom="@dimen/player_cmd_padding_vertical" android:paddingHorizontal="@dimen/player_cmd_padding_horizontal" android:background="@color/activity_player_unified_topCommandPanel_background" android:visibility="gone">
 
-        <ImageButton android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/back" android:src="@drawable/ic_back" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
+        <ImageButton android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/back" android:src="@drawable/ic_arrow_back" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
         <!-- S0393: scrollable so the row stays reachable when it overflows a narrow width. -->
         <HorizontalScrollView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:scrollbars="none" android:fillViewport="true">
@@ -50,7 +50,7 @@
 
             <ImageButton android:id="@+id/btnCopyTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/copy" android:src="@drawable/ic_copy" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-            <ImageButton android:id="@+id/btnEditTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/menu_edit_file_text" android:src="@drawable/ic_edit_20" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnEditTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/menu_edit_file_text" android:src="@drawable/ic_edit" android:visibility="gone" app:tint="@color/selector_player_button_tint" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
         </LinearLayout>
 

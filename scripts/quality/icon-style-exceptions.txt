@@ -1,7 +1,7 @@
 # Declared departures from the measured icon style (ICON-RENDER 0.10 section 10 item A), read by
 # scripts/quality/assert-icon-style.ps1 and by the contract exporter's style report.
 # One line per glyph and rule: name | rule | reason. name = a drawable name (both modules) or
-# wear:name (watch only); rule = grid, paint, stroke, margin, centre, weight or * (every rule).
+# wear:name (watch only); rule = grid, paint, stroke, margin, centre, weight, tint (phone only) or * (every rule).
 # A line whose glyph now passes, or no longer exists, fails the gate: remove it with the fix.
 
 # Illustrations at glyph size (section 10 item G) - pictures, not glyphs of the vocabulary.
@@ -27,18 +27,34 @@ ic_signal_cellular_bar_4 | centre | one level of the signal meter; every level s
 # Colours that carry meaning, until the vocabulary owner decides a one-paint drawing.
 ic_compass | paint | the needle's red and blue halves are north and south; a one-paint redraw is a vocabulary decision
 ic_prank_system_alert | paint | imitates a system alert on purpose; its red and white are the imitation
-ic_vr_formats | stroke | the 0.8 strokes are the lettering inside the VR-format badge; at 2 they fill it
+ic_compass | tint | the needle's red and blue halves are north and south; a theme tint would erase which end points north
+ic_prank_system_alert | tint | imitates a system alert on purpose; a theme tint would repaint the imitation
+ic_star_filled | tint | the favourite star is gold on every surface it marks; the gold is the favourite accent, not a theme role
+ic_star_outline | tint | the not-yet-favourite star keeps the same gold outline as the filled star it toggles to
+ic_virtual_docs | tint | category role: the documents hue of the virtual resource tile, fixed per content category
+ic_virtual_music | tint | category role: the music hue of the virtual resource tile, fixed per content category
+ic_virtual_recent | tint | category role: the recent hue of the virtual resource tile; S3429 retires this file
+ic_virtual_video | tint | category role: the video hue of the virtual resource tile; S3429 retires this file
+ic_sos | stroke | the 1.5 strokes are the SOS lettering inside the frame (feature.sos); at 2 the three letters close up
+
+# Fixed colour for a surface the app cannot tint (S2889): the OS widget picker draws previewImage and the
+# receiver icon in the launcher's process, so the widget's accent has to live in the file.
+ic_widget_calculator_accent | tint | fixed: the widget's accent in the OS widget picker preview, which no call-site tint reaches
+ic_widget_camera_launch_accent | tint | fixed: the widget's accent in the OS widget picker preview, which no call-site tint reaches
+ic_widget_camera_ocr_translate_accent | tint | fixed: the widget's accent in the OS widget picker preview, which no call-site tint reaches
+ic_widget_camera_photos_accent | tint | fixed: the widget's accent in the OS widget picker preview, which no call-site tint reaches
+ic_widget_camera_quick_capture_accent | tint | fixed: the widget's accent in the OS widget picker preview, which no call-site tint reaches
+ic_widget_continue_reading_accent | tint | fixed: the widget's accent in the OS widget picker preview, which no call-site tint reaches
+ic_widget_front_flashlight_accent | tint | fixed: the widget's accent in the OS widget picker preview, which no call-site tint reaches
+ic_widget_game_launch_accent | tint | fixed: the widget's accent in the OS widget picker preview, which no call-site tint reaches
+ic_widget_quick_audio_recorder_idle_accent | tint | fixed: the widget's accent in the OS widget picker preview, which no call-site tint reaches
+ic_widget_stopwatch_accent | tint | fixed: the widget's accent in the OS widget picker preview, which no call-site tint reaches
+ic_widget_water_flashlight_accent | tint | fixed: the widget's accent in the OS widget picker preview, which no call-site tint reaches
+ic_widget_quick_audio_recorder_recording | tint | fixed: the recording state's red on the widget, swapped in by the provider
 
 # Owned by another ticket, which replaces the drawing.
-ic_edit_20 | grid | S3430: a 20-unit size copy of the Edit pencil, retired there (ICON-RENDER rule 5)
-ic_music_note | * | S3430: the three-dimensional gold note, replaced there by the audio meaning's looks
-ic_youtube | paint | S3430: a hand-drawn YouTube mark, replaced there by the owner's asset (ICON-EXTERNAL rule 1)
-ic_send_bolt_chat | margin | S3430: a hand-made messenger look-alike, replaced there by the installed app's icon
-ic_send_music_note | margin | S3430: a hand-made messenger look-alike, replaced there by the installed app's icon
-ic_send_phone_chat | margin | S3430: a hand-made messenger look-alike, replaced there by the installed app's icon
-ic_next_circle_red | paint | S3427: "Next file" drawn as a red dot, replaced there by the media.next glyph
-ic_next_circle_red_pressed | paint | S3427: "Next file" drawn as a red dot, replaced there by the media.next glyph
-ic_launcher_all_apps | paint | S3429: one of the two all-apps glyphs; S3429 decides content.apps' one drawing
+ic_youtube | paint | S3477: a hand-drawn YouTube mark, replaced there by the owner's asset (ICON-EXTERNAL rule 1)
+ic_youtube | tint | S3477: a brand mark keeps its owner's colours; S3477 replaces the drawing with the owner's asset
 
 # Sizes off the tiers 16/20/24/32/40/48 (section 10 item E). Keys: dimen:<name>, dimen:<name>@<values-qualifier>,
 # layout:<file>:<N>dp.

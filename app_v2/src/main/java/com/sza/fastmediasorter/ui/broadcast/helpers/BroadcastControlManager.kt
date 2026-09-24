@@ -617,10 +617,11 @@ class BroadcastControlManager @Inject constructor(
     }
 
     private fun renderToggles(binding: ActivityBroadcastControlBinding, state: BroadcastState.Live) {
+        Timber.d("S3429: broadcast toggles render, camera toggle draws ic_camera_capture")
         binding.btnToggleCamera.setText(
             if (state.cameraEnabled) R.string.broadcast_control_camera_on else R.string.broadcast_control_camera_off
         )
-        binding.btnToggleCamera.setIconResource(R.drawable.ic_display)
+        binding.btnToggleCamera.setIconResource(R.drawable.ic_camera_capture)
         if (state.microphoneEnabled) {
             binding.btnToggleMic.setText(R.string.broadcast_control_mic_on)
             binding.btnToggleMic.setIconResource(R.drawable.ic_microphone)

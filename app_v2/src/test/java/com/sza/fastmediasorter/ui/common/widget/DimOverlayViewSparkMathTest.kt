@@ -36,6 +36,21 @@ class DimOverlayViewSparkMathTest {
     }
 
     @Test
+    fun `a turned display adds its rotation to the device heading`() {
+        assertEquals(30f, DimOverlayView.screenAzimuth(30f, 0), DELTA)
+        assertEquals(120f, DimOverlayView.screenAzimuth(30f, 90), DELTA)
+        assertEquals(20f, DimOverlayView.screenAzimuth(290f, 90), DELTA)
+    }
+
+    @Test
+    fun `landscape north points left when the device top faces north`() {
+        // Device top toward north, display turned a quarter: the natural top edge is now on the left.
+        val (x, y) = DimOverlayView.sparkNorthDirectionComponents(DimOverlayView.screenAzimuth(0f, 90))
+        assertEquals(-1f, x, DELTA)
+        assertEquals(0f, y, DELTA)
+    }
+
+    @Test
     fun `width profile peaks mid stroke and tapers to both ends`() {
         assertTrue(DimOverlayView.sparkWidthProfile(0.5f) > DimOverlayView.sparkWidthProfile(0.25f))
         assertTrue(DimOverlayView.sparkWidthProfile(0.25f) > DimOverlayView.sparkWidthProfile(0.05f))

@@ -14,7 +14,9 @@ catalog's `_meta/REGISTRY.md`; none are repeated here.
 
 The one-page summary of the same set, with the one obligation each contract puts on this product, is
 [`../CROSS_PROJECT_CONTRACTS.md`](../CROSS_PROJECT_CONTRACTS.md). The two must name the same ids and
-versions; a version bump in the catalog updates both.
+versions; a version bump in the catalog updates both, and
+`scripts/quality/assert-contract-pointers.ps1` (in `.\a.ps1 fg`) holds the pointers, this index, the summary and the
+catalog registry to one set of ids and versions.
 
 | Pointer | Id | This product's role |
 | --- | --- | --- |
@@ -27,7 +29,17 @@ versions; a version bump in the catalog updates both.
 | [`FDSEC.md`](FDSEC.md) | `FDSEC-FORMAT`, `FDSEC-BEHAVIOUR` | a port: writer and reader of `.fd-sec` containers, phone and watch |
 | [`INSTALL-TRUST.md`](INSTALL-TRUST.md) | `INSTALL-TRUST` | producer - the sideload trust page |
 | [`WAVE-PARTICLES.md`](WAVE-PARTICLES.md) | `WAVE-PARTICLES` | owner; producer on phone, launcher, watch and the website |
+| [`ICON-SET.md`](ICON-SET.md) | `ICON-SET` | owner and reference implementation; phone, launcher, watch, docs and site |
+| [`ICON-EXTERNAL.md`](ICON-EXTERNAL.md) | `ICON-EXTERNAL` | owner; phone, launcher and watch |
 | [`CHECK-VERDICT.md`](CHECK-VERDICT.md) | `CHECK-VERDICT` | owner and reference implementation |
 | [`CHECK-BASELINE.md`](CHECK-BASELINE.md) | `CHECK-BASELINE` | owner |
 | [`CHECK-PLACEMENT.md`](CHECK-PLACEMENT.md) | `CHECK-PLACEMENT` | owner |
 | [`BUILD-EVIDENCE.md`](BUILD-EVIDENCE.md) | `BUILD-EVIDENCE` | owner |
+| [`ICON-RENDER.md`](ICON-RENDER.md) | `ICON-RENDER` | owner and reference implementation; phone, launcher, watch, docs and site |
+| [`PAGE-CONTENT.md`](PAGE-CONTENT.md) | `PAGE-CONTENT` | consumer - the product site |
+| [`PAGE-STYLE.md`](PAGE-STYLE.md) | `PAGE-STYLE` | consumer - the product site |
+| [`SITE-FAMILY-MAP.md`](SITE-FAMILY-MAP.md) | `SITE-FAMILY-MAP` | consumer - the product site's footer |
+| [`REPO-STAMP.md`](REPO-STAMP.md) | `REPO-STAMP` | adopter - `.sza-canon.json` |
+| [`HARNESS-PROFILE.md`](HARNESS-PROFILE.md) | `HARNESS-PROFILE` | adopter - `.sza-profile.json` |
+| [`REPO-LAYOUT.md`](REPO-LAYOUT.md) | `REPO-LAYOUT` | adopter - the names tools address by |
+| [`RULE-DELIVERY.md`](RULE-DELIVERY.md) | `RULE-DELIVERY` | adopter - the `sza` plugin |

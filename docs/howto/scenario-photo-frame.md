@@ -7,7 +7,7 @@ permalink: /docs/howto/scenario-photo-frame.html
 
 > **Level:** Beginner &bull; **Time:** ~15 minutes &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (for NAS/cloud photos) or any flavor (for local photos)
 
-[Русский](scenario-photo-frame-ru.md) | [Українська](scenario-photo-frame-uk.md)
+{% include lang-switcher.html doc="scenario-photo-frame" dir="/docs/howto/" current="en" %}
 
 Turn any Android tablet into a beautiful always-on digital photo frame - streaming your memories from a home NAS or cloud, with optional background music. Zero local storage used.
 
@@ -30,10 +30,10 @@ Turn any Android tablet into a beautiful always-on digital photo frame - streami
 Choose where your photos live:
 
 **Option A - Local photos (on the tablet itself):**
-1. Tap **Add (⊕)** → **Local Folder** → navigate to your photos folder → **Select**
+1. Tap **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **Local Folder** → navigate to your photos folder → **Select**
 
 **Option B - Home NAS / Windows PC (SMB):**
-1. Tap **Add (⊕)** → **Network folder (SMB)**
+1. Tap **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **Network folder (SMB)**
 2. Tap **"Scan Network"** → select your PC/NAS from the list
 3. Fill in share name + username + password
 4. Tap **Test Connection** → **Save**
@@ -41,7 +41,7 @@ Choose where your photos live:
 > Full SMB setup: [Connect to NAS (SMB)](scenario-smb-setup.md). This takes ~5 minutes to set up once, then works forever.
 
 **Option C - Google Drive / Dropbox:**
-1. Tap **Add (⊕)** → **Cloud Storage** → choose provider
+1. Tap **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **Cloud Storage** → choose provider
 2. Tap **Sign in** → complete authentication in browser
 3. Select the folder with your photos → **Done**
 
@@ -72,12 +72,12 @@ Tap **Save**.
 
 Want soft music playing while viewing photos? Here's how (needs a flavor with audio - the Photos flavor has none):
 
-1. First, add a music source: tap **Add (⊕)** → Local Folder → navigate to your music folder
-2. Go to **Settings → Media tab → scroll to Audio section**
-3. Enable **"Show random photo while playing audio"**
+1. First, add a music source: tap **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → Local Folder → navigate to your music folder
+2. Go to **Settings → Media tab → Audio playback, covers and visuals**
+3. Enable **"Show random photos during audio playback"**
 
-Then go to **Settings → Playback tab → Slideshow**:
-4. Enable **"Enable Background Music for Slideshows"**
+Then go to **Settings → Media tab → Images, GIFs and slideshow**:
+4. Enable **"Play music during slideshow"**
 5. Tap **"Select Music Source"** → choose your music resource
 
 > **Tip:** If music stutters when photos come from a NAS, use a local music folder for audio and let only photos stream from the network - you can freely mix sources this way.
@@ -89,7 +89,7 @@ Then go to **Settings → Playback tab → Slideshow**:
 
 1. Tap your **photo folder** on the main screen to open it
 2. Tap **any photo** to open the full-screen viewer
-3. Tap **"Slideshow" (▶)** in the top toolbar
+3. Tap **"Slideshow" <img src="../icons/doc/ic_slideshow.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** in the top toolbar
 
 That's it - the slideshow runs. Photos advance automatically at the interval you set.
 
@@ -141,7 +141,7 @@ This step is for convenience: want to launch the photo frame instantly when you 
 
 ## Tips
 
-> **NAS photos not updating after you added new ones?** The app caches the file list for speed. To refresh: go back to the folder → tap the **Refresh (↻)** button in the toolbar. New photos appear immediately.
+> **NAS photos not updating after you added new ones?** The app caches the file list for speed. To refresh: go back to the folder → tap the **Refresh <img src="../icons/doc/ic_refresh.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button in the toolbar. New photos appear immediately.
 
 > **Photos look zoomed in or cut off?** Open Settings → Media → Images → try toggling **"Crop images to fill screen"** - OFF keeps the full photo visible, ON fills the screen edge-to-edge (slight cropping around the sides).
 
@@ -155,7 +155,7 @@ This step is for convenience: want to launch the photo frame instantly when you 
 |---------|------------|
 | Screen goes dark after a few minutes | Enable "Prevent Sleep" in Settings → General (Step 5) **and** plug in USB charger |
 | Photos not showing | Check Settings → Media → ensure "Images" type is enabled for this resource |
-| Music doesn't play | Verify the music folder contains at least one audio file; check Settings → Playback → Background Music is enabled |
+| Music doesn't play | Verify the music folder contains at least one audio file; check that **Play music during slideshow** is on in Settings → Media → Images, GIFs and slideshow |
 | Slideshow pauses on video files | Expected - videos play, then slideshow resumes. Set "Supported Types → Images only" in folder settings (Step 2) to prevent this |
 | SMB photos load slowly | Edit folder → disable "Load thumbnails" to reduce network load. Or reduce slideshow interval to give more loading time |
 | Photos repeat too quickly | Increase slideshow interval in folder settings (Step 2) |

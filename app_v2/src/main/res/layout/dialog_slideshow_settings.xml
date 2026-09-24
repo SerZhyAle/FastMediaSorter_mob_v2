@@ -91,7 +91,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
             android:text="@string/select_music_file"
-            icon="@drawable/ic_music_note"
+            icon="@drawable/ic_audio"
             style="@style/Widget.Material3.Button.OutlinedButton"
             app:layout_constraintEnd_toStartOf="@id/btnClearMusic"
             app:layout_constraintStart_toStartOf="parent"

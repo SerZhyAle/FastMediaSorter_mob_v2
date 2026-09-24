@@ -22,7 +22,7 @@
         android:layout_height="24dp"
         android:layout_marginEnd="12dp"
         android:contentDescription="@string/perm_state_missing"
-        android:src="@drawable/ic_perm_state_missing" />
+        android:src="@drawable/ic_stream_status_unknown" />
 
     <LinearLayout
         android:layout_width="0dp"

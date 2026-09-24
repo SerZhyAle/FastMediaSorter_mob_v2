@@ -34,7 +34,7 @@
 
     <item
         android:id="@+id/action_stream_import_broadcast"
-        android:icon="@drawable/ic_cast"
+        android:icon="@drawable/ic_stream"
         android:title="@string/broadcast_import_menu_label"
         app:showAsAction="never" />
 

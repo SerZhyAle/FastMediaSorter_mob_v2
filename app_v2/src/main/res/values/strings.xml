@@ -5,7 +5,7 @@
     <!-- S0063: content description for video placeholder when format is blocked on network streams -->
     <string name="thumbnail_unavailable_network_format">%1$s video file, thumbnail unavailable on network</string>
     <string name="add_new_account">Add New Account</string>
-    <string name="start_player">Start Player</string>
+    <string name="start_player">Run player</string>
     <string name="add">Add</string>
     <!-- S0249 Stage 1A: VR controls block inside Settings Media (vr/noLegal flavors only) -->
     <string name="copy">Copy</string>
@@ -18,7 +18,7 @@
     <string name="error_queued_operation_delete">Couldn\'t delete \"%1$s\". Try again.</string>
     <string name="error_queued_operation_rename">Couldn\'t rename \"%1$s\". Try again.</string>
     <string name="error_queued_move_permission_denied">\"%1$s\" was copied to the destination, but the local copy couldn\'t be deleted - permission was denied.</string>
-    <string name="control">Control</string>
+    <string name="control">Playback settings</string>
     <string name="save">Save</string>
     <string name="undo">Undo</string>
     <string name="cancel">Cancel</string>
@@ -75,7 +75,7 @@
     <string name="camera_ocr_camera_error">Camera failed to launch or capture photo</string>
     <string name="camera_ocr_engine_error">Translation engine is currently unavailable</string>
     <string name="camera_ocr_crop_retry">Retry</string>
-    <string name="camera_ocr_crop_confirm">OK</string>
+    <string name="camera_ocr_crop_confirm">Apply</string>
     <string name="camera_ocr_crop_frame_desc">Crop selection frame</string>
 
     <!-- Copy Dialog -->
@@ -124,7 +124,7 @@
     <string name="clear_all">Clear All</string>
     <string name="filter">Filter</string>
     <string name="refresh">Refresh</string>
-    <string name="copy_resource">Duplicate Resource Settings</string>
+    <string name="copy_resource">Copy resource settings</string>
     <string name="exit">Exit</string>
     <string name="sort">Sort</string>
     <string name="toggle_view">View</string>
@@ -203,7 +203,7 @@
     <string name="media_type_pdf">PDF</string>
     <string name="media_type_epub">EPUB</string>
     <string name="media_type_office_documents">Office documents</string>
-    <string name="filter_check_all_types">Check all types</string>
+    <string name="filter_check_all_types">Select all types</string>
 
     <!-- Media Type Checkboxes (for Resource Registration) -->
     <string name="office_doc_d">DOC (D)</string>
@@ -475,7 +475,7 @@
     <string name="favorites_empty_hint">Star a few files to gather them here. No pressure.</string>
 
     <string name="counting">counting..</string>
-    <string name="clear_trash">Clear Trash</string>
+    <string name="clear_trash">Delete all in trash</string>
     <string name="trash_cleared">Trash folders removed: %d</string>
     <string name="add_to_destinations">Add to Quick Sort</string>
     <string name="back">Back</string>
@@ -509,7 +509,7 @@
     <string name="searching_lyrics">Searching lyrics..</string>
     <string name="lyrics_not_found">Lyrics not found</string>
     <string name="error_timeout_lyrics">Request timed out. Please check your internet connection and try again.</string>
-    <string name="search_in_youtube_music">In YouMusic</string>
+    <string name="search_in_youtube_music">In YouTube Music</string>
     <string name="search_in_youtube_music_no_app">No app found to open YouTube Music</string>
     <!-- Print -->
     <string name="menu_print">Print</string>
@@ -664,7 +664,7 @@
     <string name="tooltip_audio_size_limits_message">Filter audio files by size (in MB). Set minimum and maximum values to show only audio files within the specified size range.</string>
     <string name="enable_slideshow_background_music">Play music during slideshow</string>
     <string name="music_resource_label">Background music resource</string>
-    <string name="select_music_source">Select Music Source</string>
+    <string name="select_music_source">Select music resource</string>
     <string name="no_music_source_selected">No music source selected</string>
     <string name="tooltip_slideshow_music_title">Slideshow Background Music</string>
     <string name="tooltip_slideshow_music_message">When enabled, music files from the selected resource will play in random order during image/GIF slideshows. Choose a resource that contains your music collection.</string>
@@ -942,7 +942,7 @@
 
     <!-- Player Controls -->
     <string name="rewind_10_seconds">Rewind 10 seconds</string>
-    <string name="forward_10_seconds">Forward 10 seconds</string>
+    <string name="forward_10_seconds">Fast forward 10 seconds</string>
 
     <!-- Language Options -->
     <string name="language_default">Default</string>
@@ -1027,7 +1027,7 @@
     <string name="or_use_system_picker">OR Use System Picker</string>
     <string name="browse_with_system_picker">Browse with System Picker</string>
     <string name="browse_folders">Browse Folders</string>
-    <string name="current_path">Current Path</string>
+    <string name="current_path">Current folder</string>
     <string name="select_current_folder">Select This Folder</string>
     <string name="folder">Folder</string>
     <string name="folder_not_found">Folder not found</string>
@@ -1144,7 +1144,7 @@
     <string name="heic_not_supported_on_device">%1$s requires %2$s or newer to display on this device.</string>
     <string name="panel_copy_to">Copy to..</string>
     <string name="panel_move_to">Move to..</string>
-    <string name="more_options">More options</string>
+    <string name="more_options">More actions</string>
     <string name="move_up">Move up</string>
     <string name="move_down">Move down</string>
     <string name="drag_handle_description">Drag to reorder</string>
@@ -1227,7 +1227,7 @@
 
 
     <!-- Text pager / encoding -->
-    <string name="reopen_with_encoding">Re-open with Encoding..</string>
+    <string name="reopen_with_encoding">Refresh with encoding..</string>
     <string name="select_encoding">Select Encoding</string>
 
     <!-- Text reader settings -->
@@ -1399,19 +1399,19 @@
     <string name="close_search">Close search</string>
     <string name="previous_page">Previous page</string>
     <string name="next_page">Next page</string>
-    <string name="to_begin">To begin</string>
+    <string name="to_begin">To the beginning</string>
     <string name="to_end">To end</string>
     <string name="zoom_out">Zoom out</string>
     <string name="zoom_in">Zoom in</string>
     <string name="translate_page">Translate page</string>
-    <string name="decrease_translation_font">Decrease translation font</string>
-    <string name="increase_translation_font">Increase translation font</string>
+    <string name="decrease_translation_font">Zoom out translation</string>
+    <string name="increase_translation_font">Zoom in translation</string>
     <string name="search_in_pdf">Search in PDF</string>
     <string name="previous_chapter">Previous chapter</string>
     <string name="next_chapter">Next chapter</string>
     <string name="table_of_contents">Table of contents</string>
-    <string name="decrease_font_size">Decrease font size</string>
-    <string name="increase_font_size">Increase font size</string>
+    <string name="decrease_font_size">Zoom out text</string>
+    <string name="increase_font_size">Zoom in text</string>
     <string name="previous_file">Previous file</string>
     <string name="play_pause">Play/Pause</string>
     <string name="next_file">Next file</string>
@@ -1630,7 +1630,7 @@
     <string name="now_playing_queue_label">Queue</string>
     <string name="now_playing_queue_title">Queue</string>
     <string name="now_playing_track_count">Queue (%d)</string>
-    <string name="now_playing_back_to_player">← Now Playing</string>
+    <string name="now_playing_back_to_player">Now Playing</string>
     <string name="now_playing_play_pause_desc">Play / Pause</string>
     <string name="now_playing_play_desc">Play</string>
     <string name="now_playing_pause_desc">Pause</string>
@@ -1642,8 +1642,8 @@
     <string name="action_find_duplicates">Find Duplicates</string>
     <string name="action_delete_duplicates">Find and Delete Duplicates</string>
     <string name="action_delete_by_size">Delete by Size..</string>
-    <string name="cd_resource_ops_menu">Resource Operations Menu</string>
-    <string name="cmd_camera_capture">Capture with camera</string>
+    <string name="cd_resource_ops_menu">More actions: resource</string>
+    <string name="cmd_camera_capture">Take photo</string>
     <string name="camera_capture_filename_title">Save as</string>
     <string name="camera_capture_saved">Saved: %s</string>
     <string name="camera_capture_error_save_generic">Failed to save captured file</string>
@@ -1813,7 +1813,7 @@
     <!-- VR immersive controls - cheatsheet content -->
 
     <!-- S0100 Microphone recording -->
-    <string name="mic_recording_button_content_desc">Record audio</string>
+    <string name="mic_recording_button_content_desc">Microphone: record audio</string>
     <string name="mic_recording_hold_hint">Hold to record</string>
     <string name="mic_recording_filename_title">Save Recording</string>
     <string name="mic_recording_saved">Recording saved: %s</string>
@@ -1953,8 +1953,8 @@
     <string name="link_download_notif_text_downloading_pct">Downloading %1$d%%</string>
     <string name="link_download_notif_action_cancel">Cancel</string>
     <string name="auth_sessions_info_text">This screen shows authorizations captured via the in-app sign-in browser. Each entry stores cookies for one account on one site. Entries marked \"Sign-in declined\" were created when you chose \"Do not ask\" - they prevent the sign-in prompt from appearing again for that site. To add a second account for the same site, use \"Add authorization\" in the top menu.</string>
-    <string name="rotation_toggle_sensor_on_desc">Screen rotation: unlocked</string>
-    <string name="rotation_toggle_sensor_off_desc">Screen rotation: locked</string>
+    <string name="rotation_toggle_sensor_on_desc">Auto-rotate: on</string>
+    <string name="rotation_toggle_sensor_off_desc">Rotation locked</string>
     <string name="link_download_notif_text_preview_only_signed_in">Couldn\'t extract page content. No sign-in needed.</string>
     <string name="error_reason_local_destination_permission_denied">Couldn\'t save here - Android restricts writing to this folder. Try saving to Music, Movies, Pictures, or Downloads.</string>
     <string name="s0266_apk_download_preparing">Preparing install..</string>
@@ -2013,7 +2013,7 @@
     <string name="setting_video_capture_open_in_player_title">Open recorded video in player</string>
     <string name="setting_video_capture_open_in_player_desc">After a recording is saved, open it in the player. Off by default.</string>
     <string name="resource_menu_open">Open</string>
-    <string name="resource_menu_launch">Launch</string>
+    <string name="resource_menu_launch">Run</string>
     <string name="resource_menu_move_to_top">Move to very top</string>
     <string name="resource_menu_move_to_bottom">Move to very bottom</string>
     <string name="delivery_offer_message">This feature needs an extra download (about %1$s). Get it now?</string>
@@ -2283,7 +2283,7 @@
     <string name="streams_title">Streams</string>
     <string name="streams_add">Add stream</string>
     <string name="streams_import">Import list</string>
-    <string name="streams_refresh">Check channels</string>
+    <string name="streams_refresh">Refresh channel status</string>
     <string name="streams_pin_to_top">Pin to top</string>
     <string name="streams_remove">Remove</string>
     <string name="streams_add_url_hint">Stream URL (http, https, rtsp)</string>
@@ -2298,7 +2298,7 @@
     <string name="settings_streams_summary">Open internet audio, video and RTSP streams.</string>
     <string name="crash_report_no_share_target">No app available to send the crash report. The report stays saved on this device.</string>
     <string name="streams_import_choose_title">Import list</string>
-    <string name="streams_import_catalog">Update catalog</string>
+    <string name="streams_import_catalog">Import catalog</string>
     <string name="streams_import_from_url">Import from URL</string>
     <string name="streams_catalog_updated">Catalog: +%1$d new, %2$d updated, %3$d removed</string>
     <string name="streams_catalog_empty">Catalog is empty or unavailable</string>
@@ -2447,7 +2447,7 @@
     <string name="panel_remove_program_message">%1$s will be hidden. You can turn it back on in Settings.</string>
     <string name="panel_remove_channel_message">%1$s will be removed from the panel. The channel stays in your list.</string>
     <string name="camera_control_send_to">Send to..</string>
-    <string name="camera_settings_title">Camera settings</string>
+    <string name="camera_settings_title">Adjust camera</string>
     <string name="camera_setting_timer">Self-timer</string>
     <string name="camera_setting_grid">Grid</string>
     <string name="camera_setting_aspect">Aspect ratio</string>
@@ -2538,7 +2538,7 @@
     <string name="companion_import_action">Import</string>
     <string name="companion_import_password_required">Enter the password for this server.</string>
     <string name="companion_qr_scan_hint">Point the camera at the companion QR code</string>
-    <string name="companion_qr_scan_torch">Torch</string>
+    <string name="companion_qr_scan_torch">Flash</string>
     <string name="vr_cinema_program_title">VR Cinema</string>
     <string name="setting_gesture_zone_left_top_title">Left edge - upper band</string>
     <string name="setting_gesture_zone_left_bottom_title">Left edge - lower band</string>
@@ -2941,9 +2941,9 @@
     <string name="perm_title_activity_recognition">Physical activity</string>
     <string name="perm_desc_activity_recognition">Step count on the launcher desktop</string>
     <string name="perm_rationale_activity_recognition">The steps gadget reads the counter your phone already keeps. Nothing is recorded, sent anywhere, or kept after you remove the gadget.</string>
-    <string name="menu_edit_adjust">Adjust</string>
-    <string name="menu_edit_file_text">File text</string>
-    <string name="menu_autorotate_screen_title">Screen autorotate</string>
+    <string name="menu_edit_adjust">Edit</string>
+    <string name="menu_edit_file_text">Edit file text</string>
+    <string name="menu_autorotate_screen_title">Auto-rotate screen</string>
     <string name="rotate_content_ccw_title">Rotate -90°</string>
     <string name="menu_edit_submenu_title">Editing</string>
     <string name="rotate_content_ccw_desc">Rotate the image 90 degrees counter-clockwise</string>
@@ -3021,7 +3021,7 @@
     <string name="launcher_settings_group_top_bar">Top bar</string>
     <string name="launcher_settings_group_desktop">Desktop</string>
     <string name="launcher_settings_group_system">System</string>
-    <string name="stream_info_menu_title">About this channel</string>
+    <string name="stream_info_menu_title">Channel information</string>
     <string name="stream_info_window_title">About this channel</string>
     <string name="stream_info_group_channel">Channel</string>
     <string name="stream_info_group_catalog">Catalog record</string>
@@ -3352,7 +3352,7 @@
     <string name="launcher_section_name_title">Section name</string>
     <string name="launcher_section_name_hint">For example: Work</string>
     <string name="launcher_section_name_empty">Type a name so the section can be told apart on the desktop.</string>
-    <string name="streams_clear_downloaded">Clear all downloaded</string>
+    <string name="streams_clear_downloaded">Delete all downloaded</string>
     <string name="streams_clear_downloaded_confirm_title">Clear downloaded channels?</string>
     <string name="streams_clear_downloaded_confirm_message">Every channel that came from the catalog or an imported playlist will be removed. Channels you added by hand stay.</string>
     <string name="streams_clear_downloaded_done">Removed %1$d downloaded channel(s)</string>
@@ -3434,7 +3434,7 @@
     <string name="settings_wear_paired_watch_not_connected">No watch on the link</string>
     <string name="launcher_menu_power_menu_action">Open power menu</string>
     <string name="launcher_menu_power_menu_unavailable">The accessibility service is off, so the system power menu cannot open. Turn it on to use this action.</string>
-    <string name="launcher_signal_dismiss">Dismiss</string>
+    <string name="launcher_signal_dismiss">Close</string>
     <string name="launcher_signal_dismiss_all">Dismiss all</string>
     <string name="widget_stream_launch_label">Stream</string>
     <string name="widget_stream_launch_description">Open a saved channel from the home screen</string>
@@ -3752,7 +3752,7 @@
     <string name="mirror_settings_row_title">Mirror</string>
     <string name="mirror_settings_row_summary">Front camera with a bright field to light your face</string>
     <string name="mirror_close_button">Close mirror</string>
-    <string name="mirror_backlight_button">Backlight</string>
+    <string name="mirror_backlight_button">Front flashlight</string>
     <string name="mirror_flip_button">Flip image</string>
     <string name="mirror_photo_button">Take photo</string>
     <string name="mirror_video_button">Record video</string>
@@ -3816,7 +3816,7 @@
     <string name="stopwatch_result_note_hint">Note</string>
     <string name="stopwatch_result_preview_label">Preview</string>
     <string name="stopwatch_result_action_save">Save to file</string>
-    <string name="stopwatch_result_action_send">Send</string>
+    <string name="stopwatch_result_action_send">Share</string>
     <string name="stopwatch_result_share_title">Send the result</string>
     <string name="stopwatch_result_saved">Saved to Downloads: %1$s</string>
     <string name="stopwatch_result_save_failed">Could not save the result</string>
@@ -3840,7 +3840,7 @@
     <string name="broadcast_share_export_file">Export File</string>
     <string name="broadcast_share_saved">File saved</string>
     <string name="broadcast_share_qr_cd">Broadcast Descriptor QR Code</string>
-    <string name="broadcast_import_menu_label">Import Broadcast (QR / File)</string>
+    <string name="broadcast_import_menu_label">Import stream (QR / file)</string>
     <string name="broadcast_import_dialog_title">Import Live Broadcast</string>
     <string name="broadcast_import_option_qr">Scan QR Code</string>
     <string name="broadcast_import_malformed">Invalid broadcast descriptor format</string>
@@ -4200,4 +4200,57 @@
     <string name="sftp_host_key_presented_format">Server host key fingerprint:\n%1$s</string>
     <string name="sftp_pin_host_key">Pin Host Key</string>
     <string name="sftp_host_key_pinned_toast">Server host key fingerprint pinned</string>
+    <string name="dim_clock_notifications_overflow">%1$d+</string>
+    <string name="dim_clock_notifications_overflow_cd">More notifications: %1$d</string>
+    <string name="previous_item">Previous</string>
+    <string name="next_item">Next</string>
+    <string name="sftp_server_channel_name">SFTP server</string>
+    <string name="sftp_server_notification_title">SFTP server is on</string>
+    <string name="sftp_server_notification_starting">Starting..</string>
+    <string name="sftp_server_notification_address">Connect to %1$s</string>
+    <string name="sftp_server_notification_no_network">Connect the phone to Wi-Fi so other devices can reach it</string>
+    <string name="sftp_server_action_stop">Stop</string>
+    <string name="settings_sftp_server_title">Share over SFTP</string>
+    <string name="settings_sftp_server_enable_title">SFTP server</string>
+    <string name="settings_sftp_server_enable_subtitle">Other devices on your network can open the folders you pick</string>
+    <string name="settings_sftp_server_status_off">Off</string>
+    <string name="settings_sftp_server_status_starting">Starting..</string>
+    <string name="settings_sftp_server_status_running">Running at %1$s</string>
+    <string name="settings_sftp_server_status_no_network">Running, but the phone is not on Wi-Fi - other devices cannot reach it yet</string>
+    <string name="settings_sftp_server_failure_no_folders">Add at least one folder to share, then turn the server on</string>
+    <string name="settings_sftp_server_failure_no_credential">Add a public key or switch to password login, then turn the server on</string>
+    <string name="settings_sftp_server_failure_port">Port %1$d is taken by another app - choose another port</string>
+    <string name="settings_sftp_server_failure_generic">The server could not start - try again or change the port</string>
+    <string name="settings_sftp_server_failure_unavailable">The SFTP server is not available on this device</string>
+    <string name="settings_sftp_server_credentials_password">Login: %1$s, password: %2$s</string>
+    <string name="settings_sftp_server_credentials_key">Login: %1$s, sign in with your SSH key</string>
+    <string name="settings_sftp_server_roots_label">Shared folders</string>
+    <string name="settings_sftp_server_roots_empty">No folders yet - add one to share it</string>
+    <string name="settings_sftp_server_add_root">Add folder</string>
+    <string name="settings_sftp_server_remove_root">Remove %1$s</string>
+    <string name="settings_sftp_server_port_hint">Port</string>
+    <string name="settings_sftp_server_port_invalid">Use a port from 1024 to 65535</string>
+    <string name="settings_sftp_server_auth_password">Password</string>
+    <string name="settings_sftp_server_auth_key">SSH key</string>
+    <string name="settings_sftp_server_new_password">New password</string>
+    <string name="settings_sftp_server_keys_hint">Public keys, one per line</string>
+    <string name="settings_sftp_server_apply_hint">Turn the server off and on again to apply the change</string>
+    <string name="settings_sftp_server_show_qr">Show pairing code</string>
+    <string name="settings_sftp_server_hide_qr">Hide pairing code</string>
+    <string name="settings_sftp_server_qr_description">Pairing code: scan it in FastMediaSorter on another device</string>
+    <string name="add_resource_sftp_pairing_invalid">This code is not a complete FastMediaSorter pairing code - show it again on the server phone and rescan</string>
+    <string name="add_resource_sftp_pairing_filled">Connection details filled in from the pairing code - check them and save</string>
+    <string name="add_resource_sftp_pairing_name">Device server %1$s</string>
+    <string name="filedo_password_remember_leak">Anyone holding this phone unlocked can open, without typing it, every .fd-sec file this password fits.</string>
+    <string name="cd_help_audio_size_limits">Help: audio file size limits</string>
+    <string name="cd_help_video_size_limits">Help: video file size limits</string>
+    <string name="cd_help_video_snapshot">Help: save frame destination</string>
+    <string name="cd_help_destinations">Help: destinations</string>
+    <string name="cd_help_wear_companion">Help: Wear companion</string>
+    <string name="cd_help_backup_info">Help: backup</string>
+    <string name="cd_help_default_credentials">Help: default network credentials</string>
+    <string name="cd_help_grid_size">Help: grid icon size</string>
+    <string name="cd_choose_from_list">Choose from list</string>
+    <string name="cd_more_actions_section">More actions: section</string>
+    <string name="cd_toggle_grid_list_view">Grid view / list view</string>
 </resources>

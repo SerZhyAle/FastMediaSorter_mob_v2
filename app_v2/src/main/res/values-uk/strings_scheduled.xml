@@ -24,7 +24,7 @@
     <string name="scheduled_ops_battery_dialog_title">Дозволити роботу у фоні</string>
     <string name="scheduled_ops_btn_add">Додати</string>
     <string name="scheduled_ops_btn_clear_all">Очистити все</string>
-    <string name="scheduled_ops_btn_log">Журнал</string>
+    <string name="scheduled_ops_btn_log">Історія</string>
     <string name="scheduled_ops_btn_run_now">Запустити зараз</string>
     <string name="scheduled_ops_col_condition">Умови</string>
     <string name="scheduled_ops_col_operation">Операція</string>

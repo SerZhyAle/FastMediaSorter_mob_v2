@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.ui.addresource.helpers.AddResourceSftpQrCoordinator
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePinManager
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePlacementManager
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
@@ -114,6 +115,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         uri?.let { viewModel.importCompanionConfig(it) }
     }
 
+    private val sftpQrCoordinator by lazy { AddResourceSftpQrCoordinator(this) }
+
     // S0988: camera QR scan returns the raw companion payload; the parser/import path is shared.
     private val companionQrScanLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -121,7 +124,10 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         if (result.resultCode == RESULT_OK) {
             result.data?.getStringExtra(
                 com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity.EXTRA_PAYLOAD
-            )?.let { payload -> viewModel.importCompanionConfigFromQr(payload) }
+            )?.let { payload ->
+                // S3041: the same scan reads an embedded-server pairing code; anything else is a companion config.
+                if (!sftpQrCoordinator.handle(payload)) viewModel.importCompanionConfigFromQr(payload)
+            }
         }
     }
 

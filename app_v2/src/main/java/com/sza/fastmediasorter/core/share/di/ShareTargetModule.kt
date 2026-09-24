@@ -194,8 +194,8 @@ abstract class ShareTargetModule {
             // Package receiver: the menu shows the installed app's own label (S0459 ADR-5/owner
             // 2026-06-16); this neutral string is only a fallback. No brand literal is hardcoded.
             titleRes = R.string.share_target_title_app,
-            iconRes = R.drawable.ic_send_plane,
-            wearIconName = "Send",
+            iconRes = R.drawable.ic_apps,
+            wearIconName = "Apps",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = TELEGRAM_PACKAGES,
@@ -208,8 +208,8 @@ abstract class ShareTargetModule {
         fun whatsAppTarget(): ShareTarget = ShareTarget(
             id = "whatsapp",
             titleRes = R.string.share_target_title_app,
-            iconRes = R.drawable.ic_send_chat,
-            wearIconName = "Chat",
+            iconRes = R.drawable.ic_apps,
+            wearIconName = "Apps",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = listOf("com.whatsapp", "com.whatsapp.w4b"),
@@ -222,8 +222,8 @@ abstract class ShareTargetModule {
         fun viberTarget(): ShareTarget = ShareTarget(
             id = "viber",
             titleRes = R.string.share_target_title_app,
-            iconRes = R.drawable.ic_send_phone_chat,
-            wearIconName = "PhoneInTalk",
+            iconRes = R.drawable.ic_apps,
+            wearIconName = "Apps",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = VIBER_PACKAGES,
@@ -235,8 +235,8 @@ abstract class ShareTargetModule {
         fun messengerTarget(): ShareTarget = ShareTarget(
             id = "messenger",
             titleRes = R.string.share_target_title_app,
-            iconRes = R.drawable.ic_send_bolt_chat,
-            wearIconName = "Bolt",
+            iconRes = R.drawable.ic_apps,
+            wearIconName = "Apps",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = MESSENGER_PACKAGES,
@@ -248,8 +248,8 @@ abstract class ShareTargetModule {
         fun instagramTarget(): ShareTarget = ShareTarget(
             id = "instagram",
             titleRes = R.string.share_target_title_app,
-            iconRes = R.drawable.ic_send_camera,
-            wearIconName = "PhotoCamera",
+            iconRes = R.drawable.ic_apps,
+            wearIconName = "Apps",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = listOf("com.instagram.android"),
@@ -265,8 +265,8 @@ abstract class ShareTargetModule {
         fun tiktokTarget(): ShareTarget = ShareTarget(
             id = "tiktok",
             titleRes = R.string.share_target_title_app,
-            iconRes = R.drawable.ic_send_music_note,
-            wearIconName = "MusicNote",
+            iconRes = R.drawable.ic_apps,
+            wearIconName = "Apps",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = TIKTOK_PACKAGES,

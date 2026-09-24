@@ -2,11 +2,11 @@
   "_comment": "Ordered store-screenshot slots. Each slot has a stable id and a localized caption per Play language folder. Raw shots are captured per locale into temp/play-shots/<locale>/<id>.png (compose falls back to temp/play-shots/<id>.png when a locale has no own shot). Composed output lands in play/listing/<locale>/images/phoneScreenshots/<NN>.png in slot order. Captions are short marketing lines (<=2 lines via \\n). Play caps phone screenshots at 8 slots.",
   "slots": [
     {
-      "id": "browse",
+      "id": "launcher",
       "captions": {
-        "en-US": "All your media,\none tap away",
-        "ru-RU": "Вся медиатека -\nв пару касаний",
-        "uk-UA": "Уся медіатека -\nза кілька дотиків"
+        "en-US": "Use the app as\nyour home screen",
+        "ru-RU": "Приложение вместо\nдомашнего экрана",
+        "uk-UA": "Застосунок замість\nдомашнього екрана"
       }
     },
     {
@@ -26,27 +26,11 @@
       }
     },
     {
-      "id": "streams",
-      "captions": {
-        "en-US": "Live TV & radio\nchannels built in",
-        "ru-RU": "Живое ТВ и радио -\nвстроенные каналы",
-        "uk-UA": "Живе ТБ і радіо -\nвбудовані канали"
-      }
-    },
-    {
       "id": "music-player",
       "captions": {
         "en-US": "Audio with live\nvisualizers",
         "ru-RU": "Аудио с живыми\nвизуализаторами",
         "uk-UA": "Аудіо з живими\nвізуалізаторами"
-      }
-    },
-    {
-      "id": "cloud-connect",
-      "captions": {
-        "en-US": "Your NAS and cloud,\nside by side",
-        "ru-RU": "NAS и облако -\nрядом друг с другом",
-        "uk-UA": "NAS і хмара -\nпоруч одне з одним"
       }
     },
     {
@@ -58,11 +42,27 @@
       }
     },
     {
-      "id": "launcher",
+      "id": "streams",
       "captions": {
-        "en-US": "Use the app as\nyour home screen",
-        "ru-RU": "Приложение вместо\nдомашнего экрана",
-        "uk-UA": "Застосунок замість\nдомашнього екрана"
+        "en-US": "Live TV & radio\nchannels built in",
+        "ru-RU": "Живое ТВ и радио -\nвстроенные каналы",
+        "uk-UA": "Живе ТБ і радіо -\nвбудовані канали"
+      }
+    },
+    {
+      "id": "browse",
+      "captions": {
+        "en-US": "A full file manager\nfor every file",
+        "ru-RU": "Полный файловый\nменеджер",
+        "uk-UA": "Повний файловий\nменеджер"
+      }
+    },
+    {
+      "id": "cloud-connect",
+      "captions": {
+        "en-US": "Your NAS and cloud,\nside by side",
+        "ru-RU": "NAS и облако -\nрядом друг с другом",
+        "uk-UA": "NAS і хмара -\nпоруч одне з одним"
       }
     }
   ]

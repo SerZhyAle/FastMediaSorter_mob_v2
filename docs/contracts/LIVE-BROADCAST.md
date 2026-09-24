@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `LIVE-BROADCAST` |
-| **Version** | 0.9, draft. Owner: this product |
+| **Version** | 0.12, draft. Owner: this product |
 | **Home** | `live-broadcast/README.md` in the shared contracts catalog |
 | **Role here** | producer - the phone and watch audio broadcast; also reads its own descriptor on import |
 

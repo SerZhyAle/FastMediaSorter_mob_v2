@@ -12,13 +12,18 @@ Installing the APK directly? Android warns about a package it has not seen befor
 
 ## About the Project
 
-**FastMediaSorter v2** is a powerful Android application for quick and convenient sorting of media files (images, videos, GIFs, audio, documents). It is designed as a single center for managing files from various sources: local device folders, network drives (SMB, SFTP, FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
+**FastMediaSorter v2** is a complete shell for an Android device. It takes over the home screen, plays your media, opens live streams, launches your apps, talks to your watch, keeps an eye on the device, and manages every file you own - in local folders, on network drives (SMB, SFTP, FTP) and in cloud storage (Google Drive, OneDrive, Dropbox).
 
-The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version. We are not going to pretend v1 was flawless - that is precisely why v2 exists.
+It is built on eight pillars: device shell, media player, live streams, app launching, a replacement for stock apps, a companion on the watch, device monitoring and a full file manager. Sorting files across all of those sources is where the app started, and it is still the foundation the rest is built on - but it is no longer the whole of it.
 
 ## What FastMediaSorter Replaces 🧩
 
-FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. One app covers what normally takes a dozen separate tools. The well-known apps below are listed only as recognizable references for each capability, not as comparisons.
+FastMediaSorter is a complete shell for an Android device - home screen, media player, live streams, app launching, a companion on the watch, device monitoring and a full file manager in one app. That one app covers what normally takes a dozen separate tools. The well-known apps below are listed only as recognizable references for each capability, not as comparisons.
+
+**Home Screen & Apps**
+
+- **Launcher** (Nova Launcher, stock launcher) - the app becomes the home screen: a desktop of gadgets and widgets, a taskbar along the edge you prefer, weather, clock and sensor cells, and a desktop that locks itself. *(Standard / noLegal)*
+- **App drawer & quick launch** - every installed app on one screen, app shortcuts on a long press, and a quick-launch panel that mixes apps, tools, streams and resources. *(Standard / noLegal)*
 
 **Viewing & Playback**
 
@@ -38,6 +43,20 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 - **Drawing editor** - canvas, brushes, shapes, text, custom brush color and size.
 - **Document / text scanner** (Google Lens, CamScanner) - on-device OCR from the camera with area crop.
 
+**Text & Utilities**
+
+- **Text / Markdown editor** - edit `.txt`/`.md` with syntax highlighting and auto-save.
+- **Translator** (Google Translate offline) - fully offline translation.
+- **Calculator** - built-in evaluation of expressions from selected text. *(basic)*
+- **Cast to TV** (Google Home) - Chromecast for both video and audio.
+- **Home-screen widget pack** - quick-launch and status widgets for recorder, camera OCR, scheduled tasks, now playing, and photo frame.
+- **Settings backup tool** - export and restore app setup, sources, favorites, schedules, passwords, and sign-ins. *(app setup only)*
+
+**Watch & Device**
+
+- **Watch media app** - the Wear OS companion browses the phone's folders, plays audio, video and live streams on the wrist, and receives files from the phone. *(Standard / noLegal with a paired Wear OS watch)*
+- **Device monitor** - the app's own network connections, a full system-information report and automatic power saving, without leaving the shell. *(network monitor: Standard / noLegal)*
+
 **File Management**
 
 - **File manager** (Total Commander, ES File Explorer, Files by Google) - local, network, and cloud files in one place.
@@ -48,15 +67,6 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 - **Archive extractor** (ZArchiver) - ZIP extraction, including password-protected. *(basic)*
 - **Download manager** (1DM, ADM) - paste a link and save directly to a chosen folder.
 - **Task scheduler** - scheduled file operations.
-
-**Text & Utilities**
-
-- **Text / Markdown editor** - edit `.txt`/`.md` with syntax highlighting and auto-save.
-- **Translator** (Google Translate offline) - fully offline translation.
-- **Calculator** - built-in evaluation of expressions from selected text. *(basic)*
-- **Cast to TV** (Google Home) - Chromecast for both video and audio.
-- **Home-screen widget pack** - quick-launch and status widgets for recorder, camera OCR, scheduled tasks, now playing, and photo frame.
-- **Settings backup tool** - export and restore app setup, sources, favorites, schedules, passwords, and sign-ins. *(app setup only)*
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
@@ -297,6 +307,8 @@ Install FastMediaSorter on any Android TV box (Xiaomi Mi Box, Nvidia Shield, Ama
 **🗺️ Documentation Map / Карта документации:** [View all docs / Все документы](docs/DOCS_MAP.md)
 
 **🌐 Official Website:** [https://serzhyale.github.io/FastMediaSorter_mob_v2/](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
+
+**📘 User Documentation:** [step-by-step guides for every feature, with search](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/)
 
 ### Canonical Sources (Single Source of Truth)
 

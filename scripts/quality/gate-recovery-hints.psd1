@@ -106,6 +106,31 @@
         Fix   = 'A documentation page uses a forbidden synonym, or a docs/termbase.jsonl record is malformed. Write the word each FAIL line suggests, or repair the named record; a concept missing from the termbase gets a complete record first (docs/COMMUNICATION_POLICY.md section 7.2). A deliberate quote is excused with <!-- termbase-ignore: <word or term id> --> on its line or the line above.'
     }
 
+    'check-subject-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-check-subject.ps1 -Gate'
+        Fix   = 'A check script prints no subject: line (contract BUILD-EVIDENCE rule 1), or scripts/quality/check-subject-baseline.txt lists a check that now prints one or no longer exists. Call Write-CheckSubject from scripts/quality/lib/check-subject.ps1 in the new check; delete the stale baseline row. Never add a row to the baseline.'
+    }
+
+    'docs-crosslinks' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-docs-crosslinks.ps1'
+        Fix   = 'A documentation page links to a page that is neither on disk nor a planned page_id in docs/docs-pages-manifest.jsonl. Fix the href, or register the target page in the manifest; a link to a page not written yet is a bookmark (docs/DOCUMENTATION_LINKING_RULES.md).'
+    }
+
+    'docs-screenshots' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-docs-screenshots.ps1'
+        Fix   = 'A documentation page references an image file that does not exist, or an <img> has empty alt text. Add the image under documentation/assets/images/ or fix its path, and write the alt text; an image not captured yet is an image bookmark (docs/DOCUMENTATION_IMAGE_BOOKMARKS.md).'
+    }
+
+    'docs-search' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-docs-search.ps1'
+        Fix   = 'The documentation search index, its client script or the responsive stylesheet is broken. Regenerate the index with pwsh -NoProfile -File scripts/docs/generate-docs-search-index.ps1, then repair whatever asset the FAIL line names.'
+    }
+
+    'docs-external-content' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-docs-external-content.ps1'
+        Fix   = 'A Markdown recipe under docs/content/recipes/ has malformed frontmatter or a missing snippet, or a generated documentation page is stale against its source. Repair the recipe the FAIL line names, then regenerate the pages with pwsh -NoProfile -File scripts/docs/generate-docs-pages.ps1.'
+    }
+
     'memory-budget-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-memory-budget.ps1 -Gate'
         Fix   = 'The always-loaded agent-memory index is over its ceiling, and every turn of every session pays for the overshoot. Split the biggest SECTION into a second-level .claude/agent-memory/android-rd-specialist/INDEX_<topic>.md and leave one pointer line behind - measure first (bytes per section), never trim a hook mid-sentence, because a squeezed pointer costs its bytes while saying nothing. Raising the ceiling is refused by the gate itself.'

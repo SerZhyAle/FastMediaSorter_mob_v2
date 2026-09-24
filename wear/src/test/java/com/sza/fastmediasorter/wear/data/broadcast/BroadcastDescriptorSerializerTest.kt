@@ -113,6 +113,30 @@ class BroadcastDescriptorSerializerTest {
         assertEquals(64000, endpoint.get("bitrate").asInt)
     }
 
+    /**
+     * S3057: a watch reachable through the exchange server lists P2P and RELAY after its LAN address.
+     * The phone reads the order as the fallback order, so the barcode form must keep it and the keys.
+     */
+    @Test
+    fun v2DescriptorWithRelayAndP2pEndpoints() {
+        val dto = BroadcastDescriptorDto(
+            url = URL,
+            title = TITLE,
+            endpoints = listOf(
+                BroadcastEndpointDto(url = URL, transport = "HTTP", isLive = true, targetLatencyMs = 1000L),
+                BroadcastEndpointDto(url = P2P_URL, transport = "P2P", isLive = true, targetLatencyMs = 1000L),
+                BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY", isLive = true, targetLatencyMs = 2000L)
+            )
+        )
+        val payload = serializer.serializeCompressed(dto)
+        val json = parse(inflate(payload.removePrefix(BroadcastDescriptorSerializer.COMPRESSED_PREFIX)))
+
+        val endpoints = json.getAsJsonArray("endpoints").map { it.asJsonObject }
+        assertEquals(listOf("HTTP", "P2P", "RELAY"), endpoints.map { it.get("transport").asString })
+        assertEquals(listOf(URL, P2P_URL, RELAY_URL), endpoints.map { it.get("url").asString })
+        assertEquals(2000L, endpoints[2].get("targetLatencyMs").asLong)
+    }
+
     @Test
     fun compressedPrefixMatchesPhoneBarcodePrefixConstant() {
         assertEquals("FMSBCAST1:", BroadcastDescriptorSerializer.COMPRESSED_PREFIX)
@@ -136,5 +160,7 @@ class BroadcastDescriptorSerializerTest {
         const val URL = "http://192.168.1.42:41234/listen"
         const val TITLE = "Galaxy Watch"
         const val LONG_TITLE_REPEATS = 20
+        const val P2P_URL = "wss://exchange.example/v1/signal/q3Zp0v8kR2mX7yT1bN5cWg"
+        const val RELAY_URL = "https://exchange.example/v1/s/q3Zp0v8kR2mX7yT1bN5cWg/live-audio.aac"
     }
 }

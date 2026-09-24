@@ -28,7 +28,7 @@ object ContentTypeCatalog {
         WearContentType.FOLDER -> R.drawable.ic_folder
         // Streams share the cast glyph exactly as the phone's ResourceTypeIconMap does for both
         // HTTP and RTSP - a second glyph would claim a distinction the app does not make.
-        WearContentType.STREAM -> R.drawable.ic_cast
+        WearContentType.STREAM -> R.drawable.ic_stream
         // The phone's umbrella glyph for "a source registered in this app", already the fallback
         // the home screen gives its Resources section.
         WearContentType.OTHER -> R.drawable.ic_resource
@@ -49,7 +49,7 @@ object ContentTypeCatalog {
      * Whether [iconFor] returns a single-tone glyph that [tintFor] may colour.
      *
      * All seven are true today because the seven glyphs were picked single-tone precisely so the
-     * tone could be applied - the phone's gold `ic_music_note` and its fixed-colour `ic_virtual_*`
+     * tone could be applied - the phone's former gold audio note and its fixed-colour `ic_virtual_*`
      * trio were rejected for this set for that reason.
      *
      * A caller consults this rather than tinting unconditionally, because an already-coloured

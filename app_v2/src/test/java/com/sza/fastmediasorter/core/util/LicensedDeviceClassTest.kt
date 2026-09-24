@@ -141,6 +141,13 @@ class LicensedDeviceClassTest {
         assertTrue(allowed())
     }
 
+    @Test
+    fun `phone in a desk dock is licensed`() {
+        every { DetectionHelper.getUiModeType(any()) } returns Configuration.UI_MODE_TYPE_DESK
+        assertEquals(DeviceClass.HANDHELD, resolve())
+        assertTrue(allowed())
+    }
+
     // ===== Precedence and caching =====
 
     @Test

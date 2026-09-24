@@ -12,6 +12,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.security.MessageDigest
 import java.time.Instant
 
 /**
@@ -67,6 +68,27 @@ class FdSecVectorsTest {
         assertContainerUnpacks("empty", "container-empty.fd-sec")
         assertContainerUnpacks("onebyte", "container-onebyte.fd-sec")
     }
+
+    @Test
+    fun `the vendored vectors match their provenance record`() {
+        val recorded = provenanceHashes()
+
+        assertEquals(VENDORED_RESOURCES, recorded.keys)
+        for ((name, expected) in recorded) {
+            val actual = toHex(MessageDigest.getInstance("SHA-256").digest(resourceBytes(name)))
+            assertEquals(
+                "$name differs from PROVENANCE.txt - re-vendor it from the contracts catalog",
+                expected,
+                actual
+            )
+        }
+    }
+
+    private fun provenanceHashes(): Map<String, String> =
+        String(resourceBytes("PROVENANCE.txt"), Charsets.UTF_8).lineSequence()
+            .map { it.trim().split(WHITESPACE) }
+            .filter { it.size == PROVENANCE_ROW_FIELDS && it[0] == "sha256" }
+            .associate { it[1] to it[2].lowercase() }
 
     private fun assertContainerReproduced(key: String, resource: String) {
         val vector = root.getAsJsonObject("containers").getAsJsonObject(key)
@@ -130,4 +152,10 @@ class FdSecVectorsTest {
     )
 
     private fun fileTime(iso: String): Long = FdSecMetadata.millisToFileTime(Instant.parse(iso).toEpochMilli())
+
+    private companion object {
+        const val PROVENANCE_ROW_FIELDS = 3
+        val WHITESPACE = Regex("\\s+")
+        val VENDORED_RESOURCES = setOf("vectors.json", "container-empty.fd-sec", "container-onebyte.fd-sec")
+    }
 }

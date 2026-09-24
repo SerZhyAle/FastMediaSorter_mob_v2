@@ -15,7 +15,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.core.util.warnUnlessCancellation
@@ -27,6 +26,7 @@ import com.sza.fastmediasorter.domain.model.AudioMetadata
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
+import com.sza.fastmediasorter.ui.player.helpers.AudioArtworkPlaceholder
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -77,6 +77,8 @@ class AudioCoverArtLoader(
         audioEmptyStateController?.hide()
     }
 
+    private fun artworkPlaceholder() = AudioArtworkPlaceholder.onDarkSurface(binding.audioCoverArtView.context)
+
     /**
      * Keep a visible fallback in the ImageView while an async cover request is in flight.
      * Without this, the empty-state animation may hide first and leave the player visually blank
@@ -84,7 +86,7 @@ class AudioCoverArtLoader(
      */
     private fun prepareCoverTarget(reason: String) {
         audioEmptyStateController?.hide()
-        binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
+        binding.audioCoverArtView.setImageDrawable(artworkPlaceholder())
         binding.audioCoverArtView.isVisible = true
         Timber.d(
             "AudioCoverArtLoader.prepareCoverTarget: reason=%s visible=%s drawable=%s",
@@ -243,7 +245,7 @@ class AudioCoverArtLoader(
                             if (cached.coverFile != null) {
                                 prepareCoverTarget("local-cache-file")
                                 Glide.with(binding.audioCoverArtView.context).load(cached.coverFile)
-                                    .error(R.drawable.ic_music_note)
+                                    .error(artworkPlaceholder())
                                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                                     .into(binding.audioCoverArtView)
                                 coverArtDisplayedForPath = file.path
@@ -261,7 +263,7 @@ class AudioCoverArtLoader(
                                 }
                                 prepareCoverTarget("local-cache-url")
                                 Glide.with(binding.audioCoverArtView.context).load(cached.coverArtUrl)
-                                    .error(R.drawable.ic_music_note)
+                                    .error(artworkPlaceholder())
                                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                                     .into(binding.audioCoverArtView)
                                 coverArtDisplayedForPath = file.path
@@ -290,7 +292,7 @@ class AudioCoverArtLoader(
                             val capturedMode = settings.audioEmptyStateMode
                             val capturedPalette = settings.launcherAnimationPalette
                             val request = Glide.with(binding.audioCoverArtView.context).load(coverUrl)
-                                .error(R.drawable.ic_music_note)
+                                .error(artworkPlaceholder())
                                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                                 .format(decodeFormatResolver.decodeFormat())
                             if (memoryTier == MemoryTier.LOW) request.dontAnimate().override(512, 512)
@@ -363,7 +365,9 @@ class AudioCoverArtLoader(
                         if (cached.coverFile != null) {
                             prepareCoverTarget("network-cache-file")
                             Glide.with(binding.audioCoverArtView.context).load(cached.coverFile)
-                                .error(R.drawable.ic_music_note).diskCacheStrategy(DiskCacheStrategy.NONE).into(binding.audioCoverArtView)
+                                .error(artworkPlaceholder())
+                                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                                .into(binding.audioCoverArtView)
                             coverArtDisplayedForPath = file.path
                             callback.onAudioMetadataLoaded(AudioMetadata(cached.trackName, cached.artistName, cached.albumName, cached.releaseYear, cached.coverArtUrl), file.path)
                             return@withContext
@@ -371,7 +375,9 @@ class AudioCoverArtLoader(
                         if (cached.coverArtUrl != null) {
                             prepareCoverTarget("network-cache-url")
                             Glide.with(binding.audioCoverArtView.context).load(cached.coverArtUrl)
-                                .error(R.drawable.ic_music_note).diskCacheStrategy(DiskCacheStrategy.ALL).into(binding.audioCoverArtView)
+                                .error(artworkPlaceholder())
+                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .into(binding.audioCoverArtView)
                             coverArtDisplayedForPath = file.path
                             return@withContext
                         }
@@ -395,7 +401,7 @@ class AudioCoverArtLoader(
                         Timber.d("searchOnlineAndDisplayCover[$callId]: Found URL: $coverUrl")
                         prepareCoverTarget("network-online-url")
                         val request = Glide.with(binding.audioCoverArtView.context).load(coverUrl)
-                            .error(R.drawable.ic_music_note)
+                            .error(artworkPlaceholder())
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .format(decodeFormatResolver.decodeFormat())
                         if (memoryTier == MemoryTier.LOW) request.dontAnimate().override(512, 512)
@@ -444,14 +450,14 @@ class AudioCoverArtLoader(
 
     private fun showEmptyStateOrVisibleNote(mode: String, palette: String?) {
         audioEmptyStateController?.show(mode, palette) ?: run {
-            binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
+            binding.audioCoverArtView.setImageDrawable(artworkPlaceholder())
             binding.audioCoverArtView.isVisible = true
         }
     }
 
     private fun showEmptyStateOrNote(mode: String, palette: String?) {
         audioEmptyStateController?.show(mode, palette)
-            ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
+            ?: binding.audioCoverArtView.setImageDrawable(artworkPlaceholder())
     }
 
     private fun cacheMetadataInBackground(file: MediaFile, metadata: AudioMetadata, coverUrl: String) {

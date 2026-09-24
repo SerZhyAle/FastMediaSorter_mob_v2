@@ -7,7 +7,7 @@ permalink: /docs/howto/scenario-home-cinema.html
 
 > **Level:** Beginner &bull; **Time:** ~15 minutes &bull; **Flavor:** Standard, Legacy, VR, noLegal (Lite has no network sources, Photos has no video)
 
-[Русский](scenario-home-cinema-ru.md) | [Українська](scenario-home-cinema-uk.md)
+{% include lang-switcher.html doc="scenario-home-cinema" dir="/docs/howto/" current="en" %}
 
 Watch your series collection directly from your home PC - on your phone, tablet, or Android-based VR headset (Meta Quest, Pico). No copying files. No USB cables. Just press play.
 
@@ -39,7 +39,7 @@ On **Windows:**
 
 ## Step 2 - Add the Video Folder in FastMediaSorter
 
-1. Open the app → tap **Add (⊕)** → **"Network folder (SMB)"**
+1. Open the app → tap **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **"Network folder (SMB)"**
 2. Tap **"Scan Network"** - the app scans your home network for available PCs
 3. When your PC appears in the list, tap it - the address fills in automatically
 4. Enter the share name (the video folder name), username and Windows password
@@ -120,7 +120,7 @@ Once installed, the video player works exactly the same:
 ## Done! What to Try Next
 
 - Add a **Google Drive** or **Dropbox** resource for movies stored in the cloud - works the same way
-- Use **Favorites** (tap the ★ star button while watching) to bookmark your "currently watching" series - jump back to it any time
+- Use **Favorites** (tap the star button <img src="../icons/doc/ic_star_filled.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> while watching) to bookmark your "currently watching" series - jump back to it any time
 - **Subtitles:** if your video folder has matching `.srt` subtitle files next to the video files, tap the **CC / subtitle button** in the player toolbar to enable them
 - **Internet radio or live streams:** if you also want to add internet radio stations or RTSP/HLS sources, see the [Internet Radio & Streams](scenario-internet-radio.md) guide - no NAS or PC required, just a network connection.
 
@@ -131,7 +131,7 @@ Once installed, the video player works exactly the same:
 | Problem | What to try |
 |---------|------------|
 | Video stutters or buffers | Run a **Speed Test**: long-press the resource → Edit → Speed Test. If speed is below 5 Mbps, try switching your phone to the **5 GHz Wi-Fi band** (faster, but shorter range) |
-| Video won't play (format error) | In the player, tap **Options (⋮)** → switch **Decoder** from Hardware to Software (slower but more compatible) |
+| Video won't play (format error) | In the player, tap **Options <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → switch **Decoder** from Hardware to Software (slower but more compatible) |
 | Episodes play in wrong order | Make sure Sort mode is set to **Name (A→Z)** in folder Edit settings |
 | Auto-next doesn't start | Check Settings → Operations → confirm "Go to next file after playback" is enabled |
 | VR headset can't install the APK | Go to headset Settings → Developer → enable "Allow installs from unknown sources" |

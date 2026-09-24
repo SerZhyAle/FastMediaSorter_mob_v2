@@ -1,0 +1,30 @@
+{%- comment -%}
+  S1211 page language switcher. Every localized sibling of one document, labelled by its endonym.
+  Parameters:
+    doc      base name without a locale suffix, e.g. scenario-car-music
+    dir      directory the siblings live in, with both slashes, e.g. /docs/howto/
+    current  the current page's language code as declared in locales_config.xml, e.g. zh-Hans
+  English carries no suffix (doc.md); every other language is doc-<slug>.md. A language whose
+  file does not exist is skipped, so a partially translated tranche still publishes cleanly.
+{%- endcomment -%}
+<nav class="lang-switcher" aria-label="Language">
+{%- assign lang_shown = 0 -%}
+{%- for lang in site.data.languages -%}
+  {%- if lang.code == "en" -%}
+    {%- assign lang_path = include.dir | append: include.doc | append: ".md" -%}
+  {%- else -%}
+    {%- assign lang_path = include.dir | append: include.doc | append: "-" | append: lang.slug | append: ".md" -%}
+  {%- endif -%}
+  {%- assign lang_path = lang_path | remove_first: "/" -%}
+  {%- assign lang_page = site.pages | where: "path", lang_path | first -%}
+  {%- if lang_page -%}
+    {%- if lang_shown > 0 %} | {% endif -%}
+    {%- assign lang_shown = lang_shown | plus: 1 -%}
+    {%- if lang.code == include.current -%}
+      <span lang="{{ lang.code }}" dir="{{ lang.dir }}" aria-current="page">{{ lang.endonym }}</span>
+    {%- else -%}
+      <a href="{{ lang_page.url | relative_url }}" hreflang="{{ lang.code }}" lang="{{ lang.code }}" dir="{{ lang.dir }}">{{ lang.endonym }}</a>
+    {%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
+</nav>
