@@ -6,6 +6,8 @@
 .DESCRIPTION
     Subject: scripts/quality/run-script-suites.ps1
 
+    S3515 adds the pass-cache cases (C1-C5).
+
     This ticket exists because 37 suites sat in the tree with no run site, and shipping the run site
     without a suite of its own would leave exactly one script in the repository whose correctness
     nothing checks - the same defect in a new place. So the runner is asserted on the four things it
@@ -46,6 +48,8 @@ if (-not (Test-Path -LiteralPath $runner)) {
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
 $inheritedGuard = $env:FMS_SCRIPT_SUITE_RUNNER
 $env:FMS_SCRIPT_SUITE_RUNNER = $null
+# Every case records into a fixture store, never into the closure's real pass cache.
+$inheritedCache = $env:FMS_SCRIPT_SUITE_CACHE
 
 $script:pass = 0
 $script:fail = 0
@@ -83,6 +87,7 @@ function Invoke-Runner([string[]]$RunnerArgs) {
 
 try {
     New-Item -ItemType Directory -Path $fixtureRoot -Force | Out-Null
+    $env:FMS_SCRIPT_SUITE_CACHE = Join-Path $fixtureRoot 'pass-cache.json'
     New-FixtureSuite -Name 'alpha' -ExitCode 0
     New-FixtureSuite -Name 'beta' -ExitCode 1
     New-FixtureSuite -Name 'gamma' -ExitCode 2
@@ -156,9 +161,52 @@ try {
     Assert-That 'V5 the output of a failing suite is echoed so the caller need not re-run it' `
         ($betaRun.Text -match 'fixture suite beta reporting') `
         "output of the failing suite was not echoed: $($betaRun.Text)"
+
+    Write-Host 'Pass cache (S3515)' -ForegroundColor Yellow
+
+    Remove-Item -LiteralPath $env:FMS_SCRIPT_SUITE_CACHE -Force -ErrorAction SilentlyContinue
+    $first = Invoke-Runner @('-Root', $fixtureRoot, '-ChangedFiles', "$fixtureRel/alpha.ps1")
+    $second = Invoke-Runner @('-Root', $fixtureRoot, '-ChangedFiles', "$fixtureRel/alpha.ps1")
+    Assert-That 'C1 a repeat run over unchanged files reports a cached PASS without executing' `
+        ($first.Text -match 'fixture suite alpha reporting' -and $second.Code -eq 0 -and
+        $second.Text -match 'cached PASS' -and $second.Text -notmatch 'fixture suite alpha reporting') `
+        "first: $($first.Text) | second: exit $($second.Code); $($second.Text)"
+
+    Add-Content -LiteralPath (Join-Path $fixtureRoot 'alpha.ps1') -Value '# edited' -Encoding utf8NoBOM
+    $edited = Invoke-Runner @('-Root', $fixtureRoot, '-ChangedFiles', "$fixtureRel/alpha.ps1")
+    Assert-That 'C2 a changed subject executes the suite again' `
+        ($edited.Code -eq 0 -and $edited.Text -match 'fixture suite alpha reporting' -and $edited.Text -notmatch 'cached PASS') `
+        "exit $($edited.Code); text: $($edited.Text)"
+
+    $betaAgain = Invoke-Runner @('-Root', $fixtureRoot, '-ChangedFiles', "$fixtureRel/beta.ps1")
+    Assert-That 'C3 a failing suite is never recorded and fails again' `
+        ($betaAgain.Code -eq 1 -and $betaAgain.Text -notmatch 'cached PASS') `
+        "exit $($betaAgain.Code); text: $($betaAgain.Text)"
+
+    $noCache = Invoke-Runner @('-Root', $fixtureRoot, '-ChangedFiles', "$fixtureRel/alpha.ps1", '-NoCache')
+    $releaseShape = Invoke-Runner @('-Root', $fixtureRoot)
+    Assert-That 'C4 -NoCache and the release-scope sweep both execute the suite' `
+        ($noCache.Text -match 'fixture suite alpha reporting' -and $noCache.Text -notmatch 'cached PASS' -and
+        $releaseShape.Text -notmatch 'cached PASS') `
+        "no-cache: $($noCache.Text) | release: $($releaseShape.Text)"
+
+    # Created after D1 so the discovery count there stays four.
+    Set-Content -LiteralPath (Join-Path $fixtureRoot 'lib/epsilon-helper.ps1') -Value '# fixture library' -Encoding utf8NoBOM
+    Set-Content -LiteralPath (Join-Path $fixtureRoot 'epsilon.ps1') -Encoding utf8NoBOM `
+        -Value ". (Join-Path `$PSScriptRoot 'lib/epsilon-helper.ps1')"
+    New-Item -ItemType Directory -Path (Join-Path $fixtureRoot 'epsilon.tests') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $fixtureRoot 'epsilon.tests/Run-Tests.ps1') -Encoding utf8NoBOM `
+        -Value @("Write-Host 'fixture suite epsilon reporting'", 'exit 0')
+    $null = Invoke-Runner @('-Root', $fixtureRoot, '-ChangedFiles', "$fixtureRel/epsilon.ps1")
+    Add-Content -LiteralPath (Join-Path $fixtureRoot 'lib/epsilon-helper.ps1') -Value '# edited' -Encoding utf8NoBOM
+    $libEdited = Invoke-Runner @('-Root', $fixtureRoot, '-ChangedFiles', "$fixtureRel/epsilon.ps1")
+    Assert-That 'C5 an edited library the subject dot-sources executes the suite again' `
+        ($libEdited.Code -eq 0 -and $libEdited.Text -match 'fixture suite epsilon reporting' -and $libEdited.Text -notmatch 'cached PASS') `
+        "exit $($libEdited.Code); text: $($libEdited.Text)"
 }
 finally {
     $env:FMS_SCRIPT_SUITE_RUNNER = $inheritedGuard
+    $env:FMS_SCRIPT_SUITE_CACHE = $inheritedCache
     if (Test-Path -LiteralPath $fixtureRoot) {
         Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
     }

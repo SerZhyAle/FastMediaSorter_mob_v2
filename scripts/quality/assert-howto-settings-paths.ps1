@@ -26,6 +26,10 @@
     lives in docs/settings/howto-path-vocab.json and is self-checked for
     completeness against the manifest destination enum.
 
+    Scope: HOW_TO (parity), the narrative guides, and every docs/howto guide that
+    has both -ru and -uk siblings (resolve-only). A markdown table row is split
+    into cells, one recipe per cell.
+
     Pure text analysis - no JVM/gradle. Exit 0 only when everything resolves and
     the locales are in parity. Run with -Gate from post-change.ps1; the switch is
     cosmetic so the call site reads intentionally.
@@ -137,7 +141,13 @@ function Test-SystemPath([object[]] $segs, [string] $loc) {
         if ($prod -and ((Clean-Seg $s $loc) -eq $prod)) { return $true }
     }
     $first = Clean-Seg $segs[0] $loc
-    foreach ($n in $sys.$loc) { if ($first -eq [string]$n) { return $true } }
+    # S3521: prose after a system node ("Accessibility and look for ..") or a
+    # table-cell pipe still names that node, so a word-boundary prefix counts.
+    foreach ($n in $sys.$loc) {
+        $node = [string]$n
+        if ($first -eq $node) { return $true }
+        if ($first.StartsWith($node, [System.StringComparison]::Ordinal) -and (Test-Boundary $first $node.Length)) { return $true }
+    }
     return $false
 }
 
@@ -193,48 +203,57 @@ function Scan-File([string] $relPath, [string] $loc) {
         if ($line.IndexOf($arrow) -lt 0) { continue }
         if ($line.IndexOf($anchor, [System.StringComparison]::Ordinal) -lt 0) { continue }
 
-        $clean  = $line -replace '\*\*', ''
-        $pieces = $clean.Split($arrow)
-        $trim   = @($pieces | ForEach-Object { $_.Trim() })
+        # S3521: a table row holds one recipe per cell ("missing from Settings ->
+        # General | .. check Settings -> General -> About system"); scanned whole,
+        # the second chain's anchor became the first chain's tab.
+        $fragments = @($line)
+        if ($line.TrimStart().StartsWith('|')) { $fragments = @($line.Split('|')) }
 
-        $aIdx = -1
-        for ($i = 0; $i -lt $trim.Count; $i++) {
-            $p = $trim[$i]
-            if ($p -ceq $anchor -or $p.EndsWith(" $anchor", [System.StringComparison]::Ordinal)) { $aIdx = $i; break }
-        }
-        if ($aIdx -lt 0 -or $aIdx -ge ($trim.Count - 1)) { continue }
+        foreach ($fragment in $fragments) {
+            if ($fragment.IndexOf($arrow) -lt 0) { continue }
+            $clean  = $fragment -replace '\*\*', ''
+            $pieces = $clean.Split($arrow)
+            $trim   = @($pieces | ForEach-Object { $_.Trim() })
 
-        $segs   = @($trim[($aIdx + 1)..($trim.Count - 1)])
-        $lineNo = $ln + 1
-
-        # S0945: Android system-Settings path (Apps / Permissions / product name) -> out of app scope.
-        if (Test-SystemPath $segs $loc) { continue }
-
-        $tabSeg = Clean-Seg $segs[0] $loc
-        $dest   = $tabByName[$loc][$tabSeg]
-        if (-not $dest) { $dest = Resolve-TabPrefix $tabSeg $loc }  # S0945: bare-tab prose reference
-        if (-not $dest) {
-            [void]$localFail.Add("${relPath}:$lineNo - unknown settings tab '$tabSeg' | $($segs -join ' > ')")
-            continue
-        }
-
-        $rest = @()
-        if ($segs.Count -gt 1) { $rest = @($segs[1..($segs.Count - 1)]) }
-        $tokens = New-Object System.Collections.ArrayList
-        $ok = $true
-        for ($k = 0; $k -lt $rest.Count; $k++) {
-            $isLast = ($k -eq ($rest.Count - 1))
-            $sc  = Clean-Seg $rest[$k] $loc
-            $tok = Resolve-Seg $sc $dest $loc $isLast
-            if (-not $tok) {
-                [void]$localFail.Add("${relPath}:$lineNo - segment '$sc' has no matching setting/header/sub-section under the '$tabSeg' tab | $($segs -join ' > ')")
-                $ok = $false; break
+            $aIdx = -1
+            for ($i = 0; $i -lt $trim.Count; $i++) {
+                $p = $trim[$i]
+                if ($p -ceq $anchor -or $p.EndsWith(" $anchor", [System.StringComparison]::Ordinal)) { $aIdx = $i; break }
             }
-            [void]$tokens.Add($tok)
-        }
-        if (-not $ok) { continue }
+            if ($aIdx -lt 0 -or $aIdx -ge ($trim.Count - 1)) { continue }
 
-        [void]$recs.Add(@{ line = $lineNo; sig = "$dest|" + ($tokens -join '>'); path = ($segs -join ' > ') })
+            $segs   = @($trim[($aIdx + 1)..($trim.Count - 1)])
+            $lineNo = $ln + 1
+
+            # S0945: Android system-Settings path (Apps / Permissions / product name) -> out of app scope.
+            if (Test-SystemPath $segs $loc) { continue }
+
+            $tabSeg = Clean-Seg $segs[0] $loc
+            $dest   = $tabByName[$loc][$tabSeg]
+            if (-not $dest) { $dest = Resolve-TabPrefix $tabSeg $loc }  # S0945: bare-tab prose reference
+            if (-not $dest) {
+                [void]$localFail.Add("${relPath}:$lineNo - unknown settings tab '$tabSeg' | $($segs -join ' > ')")
+                continue
+            }
+
+            $rest = @()
+            if ($segs.Count -gt 1) { $rest = @($segs[1..($segs.Count - 1)]) }
+            $tokens = New-Object System.Collections.ArrayList
+            $ok = $true
+            for ($k = 0; $k -lt $rest.Count; $k++) {
+                $isLast = ($k -eq ($rest.Count - 1))
+                $sc  = Clean-Seg $rest[$k] $loc
+                $tok = Resolve-Seg $sc $dest $loc $isLast
+                if (-not $tok) {
+                    [void]$localFail.Add("${relPath}:$lineNo - segment '$sc' has no matching setting/header/sub-section under the '$tabSeg' tab | $($segs -join ' > ')")
+                    $ok = $false; break
+                }
+                [void]$tokens.Add($tok)
+            }
+            if (-not $ok) { continue }
+
+            [void]$recs.Add(@{ line = $lineNo; sig = "$dest|" + ($tokens -join '>'); path = ($segs -join ' > ') })
+        }
     }
     return @{ recs = $recs; failures = $localFail }
 }
@@ -254,6 +273,20 @@ $fileGroups = [System.Collections.ArrayList]@(
     @{ name = 'FAQ';             parity = $false; files = @{ en = 'docs/FAQ.md';              ru = 'docs/FAQ-ru.md';              uk = 'docs/FAQ-uk.md' } }
     @{ name = 'TROUBLESHOOTING'; parity = $false; files = @{ en = 'docs/TROUBLESHOOTING.md';  ru = 'docs/TROUBLESHOOTING-ru.md';  uk = 'docs/TROUBLESHOOTING-uk.md' } }
 )
+
+# S3517/S3521: the docs/howto guides drifted unseen while outside every group, so
+# every trilingual guide is enumerated rather than listed - a new guide is judged
+# the day it lands. A base without both -ru and -uk siblings (SCREENSHOTS) has no
+# settings recipes to hold in step. Resolve-only, because a translated scenario may
+# split or merge a step.
+$howtoDir    = Join-Path $RepoRoot 'docs/howto'
+$howtoGuides = @(Get-ChildItem -LiteralPath $howtoDir -Filter '*.md' -File |
+    Where-Object { $_.BaseName -notmatch '-(ar|bn|de|es|fr|hi|it|pt|ru|uk|ur|zh-hans)$' } |
+    Where-Object { (Test-Path (Join-Path $howtoDir "$($_.BaseName)-ru.md")) -and (Test-Path (Join-Path $howtoDir "$($_.BaseName)-uk.md")) } |
+    Sort-Object Name | ForEach-Object { $_.BaseName })
+foreach ($b in $howtoGuides) {
+    [void]$fileGroups.Add(@{ name = "howto/$b"; parity = $false; files = @{ en = "docs/howto/$b.md"; ru = "docs/howto/$b-ru.md"; uk = "docs/howto/$b-uk.md" } })
+}
 
 # --- scan every group ---------------------------------------------------------
 $totalRecipes = 0

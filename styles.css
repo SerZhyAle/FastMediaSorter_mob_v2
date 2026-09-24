@@ -2137,6 +2137,71 @@ html[data-theme="light"] .btn-ghost {
     }
 }
 
+/* Every landing language by its endonym; the header switcher stays RU / EN / UA per PAGE-STYLE 4.2. */
+.lang-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem 0.9rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+}
+
+.lang-list a {
+    color: var(--acc-strong);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+}
+
+.lang-list a:hover,
+.lang-list a:focus-visible {
+    color: var(--acc);
+    text-decoration: underline;
+}
+
+.lang-list [aria-current="page"] {
+    color: var(--text);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+}
+
+/* ---------- RIGHT-TO-LEFT ---------- */
+/* Mirrors only what is physically sided; flex and grid rows already follow dir. */
+[dir="rtl"] body {
+    text-align: right;
+}
+
+[dir="rtl"] ul,
+[dir="rtl"] ol {
+    padding-left: 0;
+    padding-right: 1.4rem;
+}
+
+[dir="rtl"] .github-corner {
+    display: none;
+}
+
+[dir="rtl"] code,
+[dir="rtl"] pre,
+[dir="rtl"] .lang-list,
+[dir="rtl"] .seg {
+    direction: ltr;
+}
+
+[dir="rtl"] .lang-list [dir="rtl"] {
+    direction: rtl;
+}
+
+@media (min-width: 640px) {
+    [dir="rtl"] .footer-bottom {
+        text-align: right;
+    }
+}
+
 /* ---------- RESPONSIVE / A11Y ---------- */
 @media (max-width: 480px) {
     .site-header .btn {

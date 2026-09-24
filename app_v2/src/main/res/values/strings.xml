@@ -250,13 +250,13 @@
     <string name="backup_to_google_drive">Backup settings to Google Drive</string>
     <string name="restore_from_google_drive">Restore settings from Google Drive</string>
     <string name="tooltip_backup_info_title">Backup Information</string>
-    <string name="tooltip_backup_info_message">Backup includes all settings and resource list. Credentials are not backed up - you\'ll need to re-authenticate network/cloud resources after restore.</string>
+    <string name="tooltip_backup_info_message">Backup includes all settings, the resource list, network passwords and saved site sign-ins - keep the backup file private. Cloud sign-ins (Google Drive, OneDrive, Dropbox) are not included - you may need to sign in to them again after restore.</string>
     <string name="backup_success">Backed up %1$d resources, %2$d favorites and all settings to %3$s</string>
     <string name="backup_failed">Couldn\'t back up your settings and resources. Try again.</string>
     <string name="restore_confirm_title">Restore from Backup?</string>
     <string name="restore_confirm_message">Backup from: %1$s\nDevice: %2$s\nResources: %3$d\nFavorites: %4$d\n\n• Settings will be REPLACED\n• Resources will be APPENDED (duplicates skipped)\n• Favorites will be APPENDED (duplicates skipped)</string>
     <string name="restore_success">Restored all settings. Added %1$d resources (%2$d existed). Added %3$d favorites (%4$d existed).</string>
-    <string name="restore_needs_auth">Some resources use network or cloud accounts. You\'ll need to re-authenticate them.</string>
+    <string name="restore_needs_auth">Some restored resources use cloud accounts (Google Drive, OneDrive, Dropbox). Sign in to them again.</string>
     <string name="restore_no_backup">No backup found for this account.</string>
     <string name="restore_failed">Couldn\'t restore your settings and resources. Try again.</string>
     <string name="backup_account">Account: %s</string>
@@ -509,7 +509,7 @@
     <string name="searching_lyrics">Searching lyrics..</string>
     <string name="lyrics_not_found">Lyrics not found</string>
     <string name="error_timeout_lyrics">Request timed out. Please check your internet connection and try again.</string>
-    <string name="search_in_youtube_music">In YouTube Music</string>
+    <string name="search_in_youtube_music">Search in YouTube Music</string>
     <string name="search_in_youtube_music_no_app">No app found to open YouTube Music</string>
     <!-- Print -->
     <string name="menu_print">Print</string>
@@ -4253,4 +4253,10 @@
     <string name="cd_choose_from_list">Choose from list</string>
     <string name="cd_more_actions_section">More actions: section</string>
     <string name="cd_toggle_grid_list_view">Grid view / list view</string>
+    <string name="search_google_lens">Search with Google Lens</string>
+    <string name="font_family_sans_serif">Sans-Serif</string>
+    <string name="theme_oled">OLED</string>
+    <string name="reader_theme_system">System</string>
+    <string name="broadcast_control_mode_switching">Switching the broadcast mode. Viewers reopen the stream by the updated link or QR code.</string>
+    <string name="broadcast_share_qr_fullscreen_cd">Broadcast QR code, full screen. Tap to return.</string>
 </resources>

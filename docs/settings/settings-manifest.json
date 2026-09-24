@@ -2446,9 +2446,9 @@
       "destination": "MEDIA",
       "layout": "fragment_settings_images",
       "kind": "BUTTON",
-      "titleEn": "Select Music Source",
-      "titleRu": "Выбрать источник музыки",
-      "titleUk": "Вибрати джерело музики"
+      "titleEn": "Select music resource",
+      "titleRu": "Выбрать ресурс с музыкой",
+      "titleUk": "Вибрати ресурс з музикою"
     },
     {
       "key": "btnSetDefaultImageViewer",

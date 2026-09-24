@@ -1214,7 +1214,7 @@ function Get-SourceRules {
                 -Pattern ([regex]'\bTODO\s*\(|\bNotImplementedError\b') `
                 -FailMessage 'new runtime stub introduced. A shipped TODO() throws at runtime - implement it or remove the path.'),
         (New-RegexRule -Name 'em-dash' `
-                -Pattern ([regex]'[–—―]') `
+                -Pattern ([regex]'[–-―]') `
                 -FailMessage "new long dash introduced. Use a plain hyphen '-' instead."),
         (New-RegexRule -Name 'non-null-assertion' `
                 -Pattern ([regex]'!!') `

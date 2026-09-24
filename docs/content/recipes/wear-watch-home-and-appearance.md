@@ -186,7 +186,7 @@ steps:
     id: about-and-portal
     title: "About: your web portal, two ways"
     text: |
-      **About** carries the app's version and build number, plus two links to the web portal - the same site this guide lives on. One opens the watch's own browser directly; the other, "Open on phone", hands the address to your paired phone instead, since not every watch has a browser worth using. Either way, the watch tells you what happened - opened, sent to the phone, or "No browser on this watch. Use \"Open on phone\"" if the first one has nowhere to go.
+      **About** carries the app's version and build number, plus two links to the web portal - the same site this guide lives on. One opens the watch's own browser directly; the other, "Open on phone", hands the address to your paired phone instead, since not every watch has a browser worth using. Either way, the watch tells you what happened - opened, sent to the phone, or the message **No browser on this watch. Use "Open on phone"** if the first one has nowhere to go.
 
       This whole watch guide - the one you are reading - lives on that same portal, in three languages, screenshots included; open it from **About** whenever you would rather read it on a bigger screen.
     image_bookmark:

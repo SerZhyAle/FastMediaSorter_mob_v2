@@ -52,7 +52,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="OLED" />
+                android:text="@string/theme_oled" />
 
         </com.google.android.material.chip.ChipGroup>
 
@@ -78,21 +78,21 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Serif" />
+                android:text="@string/font_family_serif" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipSansSerif"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sans-Serif" />
+                android:text="@string/font_family_sans_serif" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipMonospace"
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Monospace" />
+                android:text="@string/font_family_monospace" />
 
         </com.google.android.material.chip.ChipGroup>
 

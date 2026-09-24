@@ -8,6 +8,7 @@ sealed class PlayerFileOperationEvent {
     data class Succeeded(
         val op: PlayerFileOperation,
         val processedCount: Int,
+        val skippedCount: Int = 0,
     ) : PlayerFileOperationEvent()
 
     data class Failed(

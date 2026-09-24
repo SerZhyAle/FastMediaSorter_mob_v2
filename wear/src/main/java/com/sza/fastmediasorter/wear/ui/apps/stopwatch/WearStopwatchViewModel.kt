@@ -36,7 +36,8 @@ private const val TICK_INTERVAL_MILLIS = 50L
  */
 @HiltViewModel
 class WearStopwatchViewModel @Inject constructor(
-    private val preferencesRepository: WearPreferencesRepository
+    private val preferencesRepository: WearPreferencesRepository,
+    private val ongoingNotificationManager: WearStopwatchOngoingNotificationManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WearStopwatchUiState())
@@ -99,11 +100,18 @@ class WearStopwatchViewModel @Inject constructor(
     }
 
     private fun refreshTicker() {
-        if (!_uiState.value.anyRunning) {
+        val state = _uiState.value
+        if (!state.anyRunning) {
             ticker?.cancel()
             ticker = null
+            ongoingNotificationManager.hideOngoing()
             return
         }
+        val firstRunning = state.state.participants.firstOrNull { it.isRunning }
+        val elapsed = firstRunning?.elapsedAt(state.nowMillis) ?: 0L
+        val baseTimeUtc = System.currentTimeMillis() - elapsed
+        ongoingNotificationManager.showOngoing(baseTimeUtc)
+
         if (ticker?.isActive == true) return
         ticker = viewModelScope.launch {
             while (isActive) {
@@ -115,6 +123,9 @@ class WearStopwatchViewModel @Inject constructor(
 
     override fun onCleared() {
         ticker?.cancel()
+        if (!_uiState.value.anyRunning) {
+            ongoingNotificationManager.hideOngoing()
+        }
         super.onCleared()
     }
 }

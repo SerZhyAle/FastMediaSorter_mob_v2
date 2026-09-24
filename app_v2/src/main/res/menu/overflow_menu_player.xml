@@ -93,8 +93,8 @@
     <!-- Google Lens (PDF) -->
     <item
         android:id="@+id/menu_google_lens"
-        android:icon="@drawable/ic_google_lens"
-        android:title="@string/google_lens"
+        android:icon="@drawable/ic_search"
+        android:title="@string/search_google_lens"
         app:showAsAction="never" />
 
     <!-- OCR (PDF / EPUB / Office / image - see CommandPanelLayoutPlanner OCR_* entries) -->
@@ -130,9 +130,10 @@
     <!-- Search in YouTube Music (Audio files) -->
     <item
         android:id="@+id/menu_search_youtube_music"
-        android:icon="@drawable/ic_youtube_music"
+        android:icon="@drawable/ic_search"
         android:title="@string/search_in_youtube_music"
         app:showAsAction="never" />
+
 
     <!-- Cast to Chromecast (IMAGE/GIF/AUDIO/VIDEO, Wi-Fi only) -->
     <item
@@ -294,10 +295,18 @@
         app:showAsAction="never" />
 
     <!-- S0995: manual 90° visual frame rotation (image/video) - id pool for the dynamic overflow -->
+    <!-- S0995: manual 90° visual frame rotation (image/video) - id pool for the dynamic overflow -->
     <item
         android:id="@+id/menu_rotate_content"
         android:icon="@drawable/ic_rotate_90"
         android:title="@string/rotate_content_90_title"
+        app:showAsAction="never" />
+
+    <!-- S3506: visible help item opening documentation page for Player screen. -->
+    <item
+        android:id="@+id/menu_help"
+        android:icon="@drawable/ic_help_outline"
+        android:title="@string/help"
         app:showAsAction="never" />
 
 </menu>

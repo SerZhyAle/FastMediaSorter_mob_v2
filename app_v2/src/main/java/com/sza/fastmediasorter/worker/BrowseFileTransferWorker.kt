@@ -37,6 +37,7 @@ import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequestStore
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferTerminalEvent
+import com.sza.fastmediasorter.ui.browse.transfer.TransferSkipSummary
 import com.sza.fastmediasorter.ui.browse.transfer.toPayload
 import com.sza.fastmediasorter.ui.browse.transfer.transferBytePercentOrNull
 import com.sza.fastmediasorter.ui.main.MainActivity
@@ -287,6 +288,8 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                         failedCount = dirOutcome.failedCount,
                         details = mergeErrorDetails(dirOutcome.errors),
                         undoOperation = buildUndoOperation(request, fileResult.copiedFilePaths, dirOutcome),
+                        skippedCount = fileResult.skippedCount,
+                        skippedNames = TransferSkipSummary.displayNames(fileResult.skippedPaths),
                     )
                 } else {
                     BrowseFileTransferTerminalEvent.Success(
@@ -294,6 +297,8 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                         operationType = request.operationType,
                         processedCount = fileResult.processedCount + dirOutcome.succeededCount,
                         undoOperation = buildUndoOperation(request, fileResult.copiedFilePaths, dirOutcome),
+                        skippedCount = fileResult.skippedCount,
+                        skippedNames = TransferSkipSummary.displayNames(fileResult.skippedPaths),
                     )
                 }
             }
@@ -312,6 +317,8 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                     // file half has nothing to reverse; undoing the folders alone would be the partial undo
                     // S1326 refuses to build.
                     undoOperation = null,
+                    skippedCount = fileResult.skippedCount,
+                    skippedNames = TransferSkipSummary.displayNames(fileResult.skippedPaths),
                 )
             }
             is FileOperationResult.Failure -> BrowseFileTransferTerminalEvent.Failure(
@@ -596,11 +603,19 @@ class BrowseFileTransferWorker @AssistedInject constructor(
      * reasons) so the user learns which entry failed without reopening the app - matching the Failure
      * branch, which already puts its reason in BigTextStyle.
      */
-    private fun applyResultText(builder: NotificationCompat.Builder, fileText: String, errorDetails: String? = null) {
+    private fun applyResultText(
+        builder: NotificationCompat.Builder,
+        fileText: String,
+        errorDetails: String? = null,
+        skipText: String? = null,
+    ) {
         val folders = directoryOutcome.succeededCount
         val parts = mutableListOf(fileText)
         if (folders > 0) {
             parts += context.getString(R.string.browse_transfer_notif_text_folders_done, folders)
+        }
+        if (skipText != null) {
+            parts += skipText
         }
         if (!errorDetails.isNullOrBlank()) {
             parts += errorDetails
@@ -629,6 +644,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                 applyResultText(
                     builder,
                     context.getString(doneMessageRes(event.operationType), event.processedCount),
+                    skipText = TransferSkipSummary.format(context, event.skippedCount, event.skippedNames),
                 )
             }
             is BrowseFileTransferTerminalEvent.PartialSuccess -> {
@@ -641,6 +657,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                         event.processedCount + event.failedCount,
                     ),
                     event.details,
+                    TransferSkipSummary.format(context, event.skippedCount, event.skippedNames),
                 )
             }
             is BrowseFileTransferTerminalEvent.AuthenticationRequired -> {

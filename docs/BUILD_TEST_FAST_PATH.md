@@ -399,6 +399,14 @@ Use the fast reusable debug path.
 .\a.ps1 d
 ```
 
+When the same loop also runs unit tests, package the APK in the test's own gradle invocation instead of a second call - configuration and daemon warm-up are paid once (S3514):
+
+```powershell
+pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "*YourThingTest" -AlsoAssemble
+```
+
+`-AlsoAssemble` is accepted only with `-Mode Unit` on a debug build type and keeps the checked-in version (`-Pfms.stableVersion=true`, S3513). The launcher form works too: `.\a.ps1 fu -Tests "*YourThingTest" -AlsoAssemble`. Repeating a preset on a launcher target (`.\a.ps1 fu -Mode Unit`) is dropped as a no-op; a contradicting value (`.\a.ps1 fu -Mode Code`) exits 2 and names the target that presets it (`fk`).
+
 If ZIP output is not needed, prefer:
 
 ```powershell

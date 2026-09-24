@@ -104,7 +104,7 @@ Your desktop layout is kept either way, so switching launcher mode back on bring
 
 ## Tips
 
-> **Wall tablet or car head unit?** Pair launcher mode with **Prevent Sleep** in **Settings → General** so the desktop stays visible while the device is on a charger.
+> **Wall tablet or car head unit?** Pair launcher mode with **Prevent sleep** in **Settings → Management** so the desktop stays visible while the device is on a charger.
 
 > **Left on all day?** **Settings → General → System launcher settings → Desktop → Screen timeout** sets how long the desktop waits while nobody touches it. It does not go dark at once: first comes a slow dimming, then the blackout - an app-private black overlay rather than the device switching itself off, so any touch brings the desktop straight back. Set it to **Off (never)** to keep the desktop lit.
 
@@ -120,7 +120,7 @@ Your desktop layout is kept either way, so switching launcher mode back on bring
 
 | Problem | What to try |
 |---------|------------|
-| **Make this app the home screen** is missing from Settings → General | Your build does not include launcher mode. It ships in **Standard** and **noLegal** only - check **Settings → About** for the edition you have |
+| **Make this app the home screen** is missing from Settings → General | Your build does not include launcher mode. It ships in **Standard** and **noLegal** only - check **Settings → General → About system** for the edition you have |
 | The device goes back to its own home screen after a restart | Some aftermarket car radios and built-in Android boxes force their factory home screen back on every start. That is the device's firmware overriding you, and no app can work around it - pick FastMediaSorter again after the restart, and if it still will not stick, that device does not allow it |
 | Android never asked which home app to use | Press **Home** once - on older Android versions the chooser appears then, not at the moment you flip the switch |
 | The desktop looks empty after turning it on | Press **Home** rather than staying inside the app - the pre-filled desktop is what Android shows as the home screen |

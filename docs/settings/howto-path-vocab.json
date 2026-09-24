@@ -3,11 +3,13 @@
   "tabs": [
     { "destination": "GENERAL",    "en": "General",     "ru": "Общие",            "uk": "Загальні" },
     { "destination": "MEDIA",      "en": "Media",       "ru": "Медиа",            "uk": "Медіа" },
-    { "destination": "OPERATIONS", "en": "Operations",  "ru": "Операции",         "uk": "Операції" },
-    { "destination": "PLAYBACK",   "en": "Playback",    "ru": "Воспроизведение",  "uk": "Відтворення" }
+    { "destination": "OPERATIONS", "en": "Management",  "ru": "Управление",       "uk": "Управління" },
+    { "destination": "PLAYBACK",   "en": "Player",      "ru": "Плеер",            "uk": "Плеєр" }
   ],
   "mediaSubsections": [
     { "sectionId": "images",    "en": "Images",    "ru": "Изображения", "uk": "Зображення" },
+    { "sectionId": "images",    "en": "Images, GIFs and slideshow", "ru": "Изображения, GIF и слайд-шоу", "uk": "Зображення, GIF і слайд-шоу" },
+    { "sectionId": "audio",     "en": "Audio playback, covers and visuals", "ru": "Аудио, обложки и фоновые визуализации", "uk": "Аудіо, обкладинки й фонові візуалізації" },
     { "sectionId": "documents", "en": "Documents", "ru": "Документы",   "uk": "Документи" },
     { "sectionId": "other",     "en": "Other",     "ru": "Другое",      "uk": "Інше" }
   ],
@@ -15,10 +17,10 @@
     { "id": "controls-keybindings", "destination": "OPERATIONS", "en": "Controls & Keybindings", "ru": "Управление и клавиши", "uk": "Керування та клавіші" }
   ],
   "systemSettingsNodes": {
-    "_comment": "S0945 - Android OS Settings-app nodes. A 'Settings -> ..' chain whose first segment is one of these, or any chain naming the app's own product, is a path into the Android *system* Settings app (not the in-app settings screen) and is out of scope for the manifest gate - the narrative-guide scan skips it silently.",
+    "_comment": "S0945 - Android OS Settings-app nodes. A 'Settings -> ..' chain whose first segment is one of these (or starts with one at a word boundary, so trailing prose is tolerated), or any chain naming the app's own product, is a path into the Android *system* Settings app (not the in-app settings screen) and is out of scope for the manifest gate - the narrative-guide scan skips it silently.",
     "productName": "FastMediaSorter",
-    "en": ["Apps", "Permissions", "Storage", "Notifications", "Display", "Security"],
-    "ru": ["Приложения", "Разрешения", "Хранилище", "Уведомления", "Экран", "Безопасность"],
-    "uk": ["Застосунки", "Додатки", "Дозволи", "Сховище", "Сповіщення", "Екран", "Безпека"]
+    "en": ["Apps", "Permissions", "Storage", "Notifications", "Display", "Security", "Accessibility", "Developer options", "About watch"],
+    "ru": ["Приложения", "Разрешения", "Хранилище", "Уведомления", "Экран", "Безопасность", "Специальные возможности", "Для разработчиков", "О часах"],
+    "uk": ["Застосунки", "Додатки", "Дозволи", "Сховище", "Сповіщення", "Екран", "Безпека", "Спеціальні можливості", "Для розробників", "Про годинник"]
   }
 }

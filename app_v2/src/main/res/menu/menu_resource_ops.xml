@@ -83,6 +83,11 @@
     <item
         android:id="@+id/action_open_in_separate_window"
         android:title="@string/action_open_in_separate_window" />
+    <!-- S3506: visible help item opening documentation page for Browse screen. -->
+    <item
+        android:id="@+id/action_help"
+        android:icon="@drawable/ic_help_outline"
+        android:title="@string/help" />
     <!-- S0806: lowest-priority entry - opens the main app settings window. Always available, pinned last. -->
     <item
         android:id="@+id/action_open_app_settings"

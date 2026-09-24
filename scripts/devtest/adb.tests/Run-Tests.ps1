@@ -113,6 +113,7 @@ $stubDefaults = @{
     FMS_STUB_RADIUS   = '0'
     FMS_STUB_SECURE   = '0'
     FMS_STUB_WATCH    = '0'
+    FMS_STUB_HANG     = ''
     FMS_STUB_FONT_SCALE = ''
     # S2855: the install verb's recording hook reads the version back through dumpsys. A case that
     # names a body here makes the stub answer it verbatim; the empty default keeps the passthrough.
@@ -213,6 +214,16 @@ $r = Invoke-Verb @('devices') -Stub @{ FMS_STUB_DEVICES = $spacedId } -NoOutDir
 if (Assert-Envelope $r 'devices' $true 0) {
     Assert-Equal 1          $r.json.data.Count 'devices -Json: an id containing a space is not dropped'
     Assert-Equal $spacedId  $r.json.data[0].id 'devices -Json: the spaced id survives whole'
+}
+
+# S3486: a device listed as `device` whose adbd never answers hung the verb forever. The probe is
+# bounded now; the stuck device is reported and the healthy one is still listed.
+$r = Invoke-Verb @('devices') -Stub @{ FMS_STUB_DEVICES = 'emulator-5554,emulator-5556'; FMS_STUB_HANG = 'emulator-5554' } -NoOutDir
+if (Assert-Envelope $r 'devices' $true 0) {
+    Assert-Equal 2              $r.json.data.Count 'devices -Json: an unresponsive device is still listed'
+    Assert-Equal 'unresponsive' $r.json.data[0].state 'devices -Json: the hung device is marked unresponsive'
+    Assert-Equal 'ok'           $r.json.data[1].state 'devices -Json: the healthy device is probed'
+    Assert-Equal 'Pixel 7'      $r.json.data[1].model 'devices -Json: the healthy device keeps its model'
 }
 
 $r = Invoke-Verb @('props')
@@ -316,6 +327,16 @@ if (Assert-Envelope $r 'tap-id' $true 0) {
     # The full package-qualified value, not the short name the call passed: a caller that pins the
     # short form still learns which node was actually hit.
     Assert-Equal 'android:id/content' $r.json.data.resourceId 'tap-id -Json: data.resourceId is the full value'
+}
+
+# S3512: the stub tree is fixed, so the readback matches only when -Text equals what the node already
+# shows - that is the success case; any other value is the mismatch case among the failures.
+$treeIds = Join-Path $repoRoot 'scripts/devtest/adb-tap-id.tests/fixtures/phone_settings_ids.xml'
+$r = Invoke-Verb @('set-text', '-ResourceId', 'rowExport', '-Exact', '-Text', 'Export') -Stub @{ FMS_STUB_TREE = $treeIds }
+if (Assert-Envelope $r 'set-text' $true 0) {
+    Assert-DataFields $r 'set-text' @('id', 'resourceId', 'text', 'readBack', 'erased', 'x', 'y', 'matches', 'file')
+    Assert-Equal 'Export' $r.json.data.readBack 'set-text -Json: data.readBack is the value the re-read tree shows'
+    Assert-Equal 6 $r.json.data.erased 'set-text -Json: data.erased is the length of the value it replaced'
 }
 
 $r = Invoke-Verb @('shot') -Stub @{ FMS_STUB_SECURE = '1' }
@@ -546,6 +567,9 @@ if ($null -ne $r.json) {
 }
 Assert-Failure (Invoke-Verb @('tap-id', '-ResourceId', 'nothingMatchesThis', '-Exact')) 'tap-id' 8 'tap-id with no matching node'
 Assert-Failure (Invoke-Verb @('tap-label', '-Label', 'nothingMatchesThis', '-Exact')) 'tap-label' 8 'tap-label with no matching node'
+Assert-Failure (Invoke-Verb @('set-text', '-ResourceId', 'nothingMatchesThis', '-Exact', '-Text', 'x')) 'set-text' 8 'set-text with no matching node'
+Assert-Failure (Invoke-Verb @('set-text', '-ResourceId', 'rowExport', '-Exact', '-Text', 'Other value') -Stub @{ FMS_STUB_TREE = $treeIds }) 'set-text' 14 'set-text whose field reads back another value'
+Assert-Failure (Invoke-Verb @('set-text', '-ResourceId', 'rowExport', '-Text', "$([char]0x042F)")) 'set-text' 1 'set-text with a non-ASCII value'
 
 # ---- launch refuses an EXPLICIT -Module that conflicts with the device (S2992) ----
 # Mirrors install's own guard (S1681/S2043): a NAMED -Module that disagrees with the device is

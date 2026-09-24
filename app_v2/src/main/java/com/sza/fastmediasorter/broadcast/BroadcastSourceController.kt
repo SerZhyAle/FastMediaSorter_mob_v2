@@ -69,6 +69,13 @@ interface BroadcastSourceController {
     fun selectLens(lensId: String)
 
     /**
+     * Re-opens a live session in [mode] without the user stopping it. The transport or the SDP changes
+     * with the mode, so every viewer reopens the stream by the new descriptor. No-op when idle or when
+     * [mode] is already on air, and in every build that has no capture to re-open.
+     */
+    fun switchMode(mode: BroadcastMode, lensId: String?) = Unit
+
+    /**
      * Returns a failed session to idle once the UI has reported it, so a rotation or a return to the
      * screen does not replay a message the user already saw and the next start begins from a clean state.
      */

@@ -118,6 +118,22 @@ class ResourceEditorUseCaseTest {
     }
 
     @Test
+    fun `buildPersistenceModel clamps slideshow interval to 1-3600 seconds`() {
+        fun intervalFor(seconds: Int) = useCase.buildPersistenceModel(
+            ResourceFormData(
+                type = ResourceType.LOCAL,
+                name = "Pics",
+                path = "/storage/Pics",
+                slideshowInterval = seconds,
+            )
+        ).slideshowInterval
+
+        assertEquals(1, intervalFor(0))
+        assertEquals(3600, intervalFor(5000))
+        assertEquals(30, intervalFor(30))
+    }
+
+    @Test
     fun `generateUniqueCopyName appends Copy then numbered variants`() {
         assertEquals("Album (Copy)", useCase.generateUniqueCopyName("Album", emptySet()))
         assertEquals(

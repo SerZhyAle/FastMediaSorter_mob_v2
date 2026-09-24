@@ -107,11 +107,11 @@ _Generated from the app. Do not edit by hand._
 
 ## <img src="icons/doc/ic_image.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Images
 
-_Available in: Standard, Lite, Photos, Legacy, VR_
+_Available in: Standard, Lite, Photos, Legacy, VR, FOSS_
 
 | Setting | What it does |
 |---|---|
-| Select Music Source | Selects the folder or resource used as the music source during slideshow playback. |
+| Select music resource | Selects the folder or resource used as the music source during slideshow playback. |
 | Set as default image viewer | Registers this app as the default handler for image files on the device. |
 | Crop images to fill screen | Crops images to fill the entire screen when viewing in fullscreen, removing letterboxing. |
 | Dynamic Background Extension | Extends the image edges into a blurred background to fill the screen without cropping. |
@@ -122,7 +122,7 @@ _Available in: Standard, Lite, Photos, Legacy, VR_
 
 ## <img src="icons/doc/ic_video.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Video
 
-_Available in: Standard, Lite, Legacy, VR_
+_Available in: Standard, Lite, Legacy, VR, FOSS_
 
 | Setting | What it does |
 |---|---|
@@ -136,7 +136,7 @@ _Available in: Standard, Lite, Legacy, VR_
 
 ## <img src="icons/doc/ic_audio.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Audio
 
-_Available in: Standard, Legacy, VR_
+_Available in: Standard, Legacy, VR, FOSS_
 
 | Setting | What it does |
 |---|---|
@@ -151,7 +151,7 @@ _Available in: Standard, Legacy, VR_
 
 ## <img src="icons/doc/ic_book.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Documents
 
-_Available in: Standard, Legacy, VR_
+_Available in: Standard, Legacy, VR, FOSS_
 
 | Setting | What it does |
 |---|---|
@@ -274,9 +274,9 @@ _Available in: Standard, Legacy, VR_
 | Show detailed errors | Shows technical error details (codes and context) alongside the human-readable message. |
 | Mini-game | Enables the hidden mini-game built into the app. |
 | Calculator | Enables a quick-access calculator within the app. |
-| Allow copying | Allows files to be copied to Quick Sort destinations. |
+| Allow copying | Shows Copy everywhere it appears - the bottom bar after a selection, the buttons and three-dots menu of a file, swipe actions, keyboard shortcuts and the player's copy panel. Off hides Copy in all of them. |
 | FileDO encryption operations | Shows "Encrypt with FileDO" and "Decrypt with FileDO" in the operations menu of every file. Opening an .fd-sec file works whether this is on or off. |
-| Allow moving | Allows files to be moved to Quick Sort destinations. |
+| Allow moving | Shows Move everywhere it appears - the bottom bar after a selection, the buttons and three-dots menu of a file, swipe actions, keyboard shortcuts and the player's move panel. Off hides Move in all of them. |
 | Network Monitor | Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
 | SOS emergency signal | Adds the SOS distress signal to the programs list: a loud Morse siren on the alarm channel, the rear flash and the screen strobing with it, and the same signal on the paired watch. |

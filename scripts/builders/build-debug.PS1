@@ -1,14 +1,14 @@
-# Quick debug build script with auto-versioning
+# Quick debug build script; -AutoVersion (a.ps1 dav) stamps the build time into the version.
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
 
 param(
     [switch]$SkipZip,
     [string]$Task = ":app_v2:assembleStandardDebug",
-    # A packaged debug APK is a distribution artifact - it is copied to DOWNLOADS and installed
-    # by hand - so it carries its own build timestamp by default (S1873). Frozen versions belong
-    # to the compile-only fast checks (fk/fc/fr/fw) that produce no APK. Pass -AutoVersion:$false
-    # to opt back in when configuration-cache reuse matters more than a truthful version.
-    [switch]$AutoVersion = $true,
+    # S3513: a debug build for device testing keeps the checked-in version, passed as
+    # -Pfms.stableVersion=true, so its configuration-cache entry and its BuildConfig survive the next
+    # run. A per-minute stamp here cost a reconfiguration and a recompile of every version reader on
+    # each build. Only `dav` and release carry a unique number; `dav` passes -AutoVersion.
+    [switch]$AutoVersion,
     # S0190 Phase 01 tooling: explicit opt-in for Chaquopy on tasks that don't auto-detect.
     # Auto-enabled when -Task contains "noLegal" (case-insensitive), since the noLegal source
     # set imports com.chaquo.python.* and won't compile without the plugin.
@@ -143,6 +143,9 @@ function Invoke-DebugBuild {
             "-Pfms.versionName=$versionName"
         )
         Write-Host "Version override: $versionName (code: $versionCodeInt)" -ForegroundColor Green
+    }
+    else {
+        $versionOverrideArgs = @("-Pfms.stableVersion=true")
     }
 
     # S0190 Phase 01: enable Chaquopy when -Chaquopy switch is set OR when the task name

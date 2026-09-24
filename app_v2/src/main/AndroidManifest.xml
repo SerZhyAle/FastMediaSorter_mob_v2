@@ -468,44 +468,33 @@
         </activity>
 
         <!-- MSAL Browser Tab Activity for OneDrive. All cloud-enabled flavors reuse the
-             standard msauth host (com.sza.fastmediasorter), so every signing-hash that may
-             produce an installable cloud-enabled build MUST be listed below as a separate
-             <data android:path="…"/> entry. Origin: S0232.
+             standard msauth host (com.sza.fastmediasorter). Origin: S0232.
+
+             S3519: each build type answers ONLY the signature hashes it can be signed with - the
+             two paths are manifest placeholders set in app_v2/build.gradle.kts (defaultConfig =
+             release keys, debug = debug keys). MSAL resolves its exact redirect URI and throws
+             "More than one app is listening for the URL scheme" when another installed package
+             resolves it too, so a release build that also declared the debug hashes broke
+             OneDrive sign-in in a debug build installed beside it, and vice versa.
 
              Adding a new signing keystore requires BOTH steps - neither alone is enough:
-               (a) add a new <intent-filter> + <data android:path="<hash>"/> here, AND
+               (a) set its hash in the build type's msalSignaturePath* placeholder, AND
                (b) register the matching redirect URI in the Azure App, Google Cloud OAuth
                    console (S0233), and Dropbox app console (S0235).
              Forgetting (a) -> MsalClientException "Intent filter for BrowserTabActivity is
              missing"; forgetting (b) -> provider rejects the redirect at the OAuth step. -->
         <activity android:name="com.microsoft.identity.client.BrowserTabActivity" android:exported="true" android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout" tools:replace="android:configChanges">
-            <!-- Release keystore signature hash -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msauth" android:host="com.sza.fastmediasorter" android:path="/FYsxzaNPAAPFK3rigkV29z+r0es=" />
+                <data android:scheme="msauth" android:host="com.sza.fastmediasorter" android:path="${msalSignaturePathPrimary}" />
             </intent-filter>
-            <!-- Debug keystore signature hash -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msauth" android:host="com.sza.fastmediasorter" android:path="/WdRIvjP3wXJ5jte7TPUOqtT59es=" />
-            </intent-filter>
-            <!-- Custom debug keystore signature hash (debug.keystore.properties -> debugCustom) -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msauth" android:host="com.sza.fastmediasorter" android:path="/iRMe/7fhUe3Plj8y2z5NIOOXsZ8=" />
-            </intent-filter>
-            <!-- Release keystore (fastmediasorter.keystore) signature hash -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msauth" android:host="com.sza.fastmediasorter" android:path="/rk9B49kRMWq5OZ+1ZF76MAavAIg=" />
+                <data android:scheme="msauth" android:host="com.sza.fastmediasorter" android:path="${msalSignaturePathSecondary}" />
             </intent-filter>
         </activity>
 

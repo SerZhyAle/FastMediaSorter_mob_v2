@@ -71,11 +71,6 @@
     <string name="cloud_upload_failed">Couldn\'t upload the file to the cloud. Try again.</string>
     <string name="dropbox">Dropbox</string>
     <string name="dropbox_authentication_failed">Dropbox authentication failed</string>
-    <string name="dropbox_beta_email_body">Hello,\n\nPlease add my Dropbox account to the FastMediaSorter beta tester list.\n\nMy Dropbox email: </string>
-    <string name="dropbox_beta_email_subject">FastMediaSorter - Dropbox Beta Access Request</string>
-    <string name="dropbox_beta_message">Dropbox integration is currently in limited beta.\n\n⚠️ Why do I need to contact you?\nDropbox requires app developers to manually register testers during the review period. This is a one-time technical formality on Dropbox\u2019s side \u2014 your email is only used to add your Dropbox account to the allowed list.\n\n🔒 Your privacy is fully respected:\n\u2022 We do NOT collect, store, or share your email\n\u2022 We do NOT access any of your files or data\n\u2022 Your email is used solely to grant you Dropbox access in this app\n\nTo get access, email us:\nsza@ukr.net</string>
-    <string name="dropbox_beta_send_email">Send Email</string>
-    <string name="dropbox_beta_title">Dropbox Beta Access</string>
     <string name="dropbox_connection_test_failed">Connection failed: %1$s</string>
     <string name="dropbox_connection_test_success">Connected successfully!</string>
     <string name="dropbox_select_folder">Select Folder</string>

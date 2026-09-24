@@ -19,7 +19,7 @@ steps:
     id: groups
     title: Find your way through collapsible groups
     text: |
-      **Settings** is laid out as named groups - **General**, **Images**, **Video**, **Audio**, **Documents**, **Streams**, **Playback**, **Destinations** and more, plus a **Launcher** and **Wear OS** section on builds that carry them. Each group header is one animated chevron row with an optional summary of what is collapsed inside it, and whichever groups you leave open stay open the next time you visit. A screen reader announces a group as expanded or collapsed, the same way, everywhere it appears - in Settings, in source editors, in player panels and in dialogs.
+      **Settings** is laid out as named groups - **General**, **Images**, **Video**, **Audio**, **Documents**, **Streams**, **Player**, **Destinations** and more, plus a **Launcher** and **Wear OS** section on builds that carry them. Each group header is one animated chevron row with an optional summary of what is collapsed inside it, and whichever groups you leave open stay open the next time you visit. A screen reader announces a group as expanded or collapsed, the same way, everywhere it appears - in Settings, in source editors, in player panels and in dialogs.
 
       On a wide screen or a tablet held sideways, collapsed groups lay out in two columns instead of one long column; open a group and it spans the full width again while you read it. Every group header and every feature toggle also carries a small monochrome icon of what it controls - images, video, audio, documents, streams, network sources, gestures, scheduled operations and more - so a group is recognizable at a glance even when its label is short.
     image_bookmark:

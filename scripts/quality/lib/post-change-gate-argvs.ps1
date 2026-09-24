@@ -18,7 +18,7 @@
 
 $argvAllFeatures = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1"), '-Gate', '-Quiet')
 $argvHowToPaths = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-howto-settings-paths.ps1"), '-Gate')
-$argvScriptCheatsheet = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-script-cheatsheet-sync.ps1"), '-Gate', '-Quiet')
+$argvScriptCheatsheet = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-script-cheatsheet-sync.ps1"), '-Gate', '-Quiet', '-Repair')
 $argvCodeDomainWriters = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-code-domain-writers.ps1"), '-Gate', '-Quiet')
 $argvFlavorMatrixDoc = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-flavor-matrix-docs.ps1"), '-Gate', '-Quiet')
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvFlavorMatrixDoc += @('-ChangedFiles', ($changedFiles -join ',')) }

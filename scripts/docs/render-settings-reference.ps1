@@ -67,13 +67,15 @@ function Get-FlavorSections([string] $flavor) {
 }
 
 $flavorMedia = [ordered]@{}
-foreach ($f in @('standard','lite','photos','legacy','vr','noLegal')) {
+foreach ($f in @('standard','lite','photos','legacy','vr','foss','noLegal')) {
     $flavorMedia[$f] = @(Get-FlavorSections $f)
 }
 $mediaSections = @('images','video','audio','documents')
 # S1392: `vr` is a published Store build, so it belongs in the family the public reference
 # enumerates - leaving it out made every "Available in:" line silently four-flavor.
-$publishedFlavors = @('standard','lite','photos','legacy','vr')
+# S3499: `foss` is a published build for the same reason, and without it here every line
+# omitted the one flavor that ships documents, EPUB and audio to F-Droid users.
+$publishedFlavors = @('standard','lite','photos','legacy','vr','foss')
 
 # --- Localized labels ----------------------------------------------------------
 $locales = @('en','ru','uk')
@@ -103,7 +105,7 @@ $genNote   = @{ en='_Generated from the app. Do not edit by hand._'; ru='_Сге
 $colSetting= @{ en='Setting'; ru='Настройка'; uk='Налаштування' }
 $colDoes   = @{ en='What it does'; ru='Что делает'; uk='Що робить' }
 $availLead = @{ en='Available in:'; ru='Доступно в:'; uk='Доступно у:' }
-$flavorName= @{ standard='Standard'; lite='Lite'; photos='Photos'; legacy='Legacy'; vr='VR'; noLegal='noLegal' }
+$flavorName= @{ standard='Standard'; lite='Lite'; photos='Photos'; legacy='Legacy'; vr='VR'; foss='FOSS'; noLegal='noLegal' }
 
 # S1313: "where to find it" line for each documentation-only section - a settings-screen path
 # for a surface with a real entry point (SettingsDocScopeCatalog.hostKey non-empty), or a plain

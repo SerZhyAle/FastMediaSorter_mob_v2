@@ -184,57 +184,78 @@ public class ContextCompat {
         // Not publicly instantiable, but may be extended.
     }
 
-    private static final String DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION_SUFFIX =
-            ".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION";
-
+    private static final String DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION_SUFFIX = ".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION";
 
     @RestrictTo(RestrictTo.Scope.LIBRARY)
     @IntDef(flag = true, value = {
             RECEIVER_VISIBLE_TO_INSTANT_APPS, RECEIVER_EXPORTED, RECEIVER_NOT_EXPORTED,
     })
     @Retention(RetentionPolicy.SOURCE)
-    public @interface RegisterReceiverFlags {}
+    public @interface RegisterReceiverFlags {
+    }
+
     /**
-     * Flag for {@link #registerReceiver}: The receiver can receive broadcasts from Instant Apps.
+     * Flag for {@link #registerReceiver}: The receiver can receive broadcasts from
+     * Instant Apps.
      */
     public static final int RECEIVER_VISIBLE_TO_INSTANT_APPS = 0x1;
 
     /**
-     * Flag for {@link #registerReceiver}: The receiver can receive broadcasts from other Apps.
-     * Has the same behavior as marking a statically registered receiver with "exported=true"
+     * Flag for {@link #registerReceiver}: The receiver can receive broadcasts from
+     * other Apps.
+     * Has the same behavior as marking a statically registered receiver with
+     * "exported=true"
      */
     public static final int RECEIVER_EXPORTED = 0x2;
 
     /**
-     * Flag for {@link #registerReceiver}: The receiver cannot receive broadcasts from other Apps.
-     * Has the same behavior as marking a statically registered receiver with "exported=false"
+     * Flag for {@link #registerReceiver}: The receiver cannot receive broadcasts
+     * from other Apps.
+     * Has the same behavior as marking a statically registered receiver with
+     * "exported=false"
      */
     public static final int RECEIVER_NOT_EXPORTED = 0x4;
 
     /**
      * Start a set of activities as a synthesized task stack, if able.
      *
-     * <p>In API level 11 (Android 3.0/Honeycomb) the recommended conventions for
+     * <p>
+     * In API level 11 (Android 3.0/Honeycomb) the recommended conventions for
      * app navigation using the back key changed. The back key's behavior is local
      * to the current task and does not capture navigation across different tasks.
      * Navigating across tasks and easily reaching the previous task is accomplished
-     * through the "recents" UI, accessible through the software-provided Recents key
-     * on the navigation or system bar. On devices with the older hardware button configuration
-     * the recents UI can be accessed with a long press on the Home key.</p>
+     * through the "recents" UI, accessible through the software-provided Recents
+     * key
+     * on the navigation or system bar. On devices with the older hardware button
+     * configuration
+     * the recents UI can be accessed with a long press on the Home key.
+     * </p>
      *
-     * <p>When crossing from one task stack to another post-Android 3.0,
-     * the application should synthesize a back stack/history for the new task so that
-     * the user may navigate out of the new task and back to the Launcher by repeated
-     * presses of the back key. Back key presses should not navigate across task stacks.</p>
+     * <p>
+     * When crossing from one task stack to another post-Android 3.0,
+     * the application should synthesize a back stack/history for the new task so
+     * that
+     * the user may navigate out of the new task and back to the Launcher by
+     * repeated
+     * presses of the back key. Back key presses should not navigate across task
+     * stacks.
+     * </p>
      *
-     * <p>startActivities provides a mechanism for constructing a synthetic task stack of
-     * multiple activities. If the underlying API is not available on the system this method
-     * will return false.</p>
+     * <p>
+     * startActivities provides a mechanism for constructing a synthetic task stack
+     * of
+     * multiple activities. If the underlying API is not available on the system
+     * this method
+     * will return false.
+     * </p>
      *
      * @param context Start activities using this activity as the starting context
-     * @param intents Array of intents defining the activities that will be started. The element
-     *                length-1 will correspond to the top activity on the resulting task stack.
-     * @return true if the underlying API was available and the call was successful, false otherwise
+     * @param intents Array of intents defining the activities that will be started.
+     *                The element
+     *                length-1 will correspond to the top activity on the resulting
+     *                task stack.
+     * @return true if the underlying API was available and the call was successful,
+     *         false otherwise
      */
     public static boolean startActivities(@NonNull Context context, Intent @NonNull [] intents) {
         return startActivities(context, intents, null);
@@ -243,29 +264,45 @@ public class ContextCompat {
     /**
      * Start a set of activities as a synthesized task stack, if able.
      *
-     * <p>In API level 11 (Android 3.0/Honeycomb) the recommended conventions for
+     * <p>
+     * In API level 11 (Android 3.0/Honeycomb) the recommended conventions for
      * app navigation using the back key changed. The back key's behavior is local
      * to the current task and does not capture navigation across different tasks.
      * Navigating across tasks and easily reaching the previous task is accomplished
-     * through the "recents" UI, accessible through the software-provided Recents key
-     * on the navigation or system bar. On devices with the older hardware button configuration
-     * the recents UI can be accessed with a long press on the Home key.</p>
+     * through the "recents" UI, accessible through the software-provided Recents
+     * key
+     * on the navigation or system bar. On devices with the older hardware button
+     * configuration
+     * the recents UI can be accessed with a long press on the Home key.
+     * </p>
      *
-     * <p>When crossing from one task stack to another post-Android 3.0,
-     * the application should synthesize a back stack/history for the new task so that
-     * the user may navigate out of the new task and back to the Launcher by repeated
-     * presses of the back key. Back key presses should not navigate across task stacks.</p>
+     * <p>
+     * When crossing from one task stack to another post-Android 3.0,
+     * the application should synthesize a back stack/history for the new task so
+     * that
+     * the user may navigate out of the new task and back to the Launcher by
+     * repeated
+     * presses of the back key. Back key presses should not navigate across task
+     * stacks.
+     * </p>
      *
-     * <p>startActivities provides a mechanism for constructing a synthetic task stack of
-     * multiple activities. If the underlying API is not available on the system this method
-     * will return false.</p>
+     * <p>
+     * startActivities provides a mechanism for constructing a synthetic task stack
+     * of
+     * multiple activities. If the underlying API is not available on the system
+     * this method
+     * will return false.
+     * </p>
      *
      * @param context Start activities using this activity as the starting context
-     * @param intents Array of intents defining the activities that will be started. The element
-     *                length-1 will correspond to the top activity on the resulting task stack.
+     * @param intents Array of intents defining the activities that will be started.
+     *                The element
+     *                length-1 will correspond to the top activity on the resulting
+     *                task stack.
      * @param options Additional options for how the Activity should be started.
      *                See {@link Context#startActivity(Intent, Bundle)}
-     * @return true if the underlying API was available and the call was successful, false otherwise
+     * @return true if the underlying API was available and the call was successful,
+     *         false otherwise
      */
     public static boolean startActivities(@NonNull Context context, Intent @NonNull [] intents,
             @Nullable Bundle options) {
@@ -276,11 +313,13 @@ public class ContextCompat {
     /**
      * Start an activity with additional launch information, if able.
      *
-     * <p>In Android 4.1+ additional options were introduced to allow for more
+     * <p>
+     * In Android 4.1+ additional options were introduced to allow for more
      * control on activity launch animations. Applications can use this method
      * along with {@link ActivityOptionsCompat} to use these animations when
      * available. When run on versions of the platform where this feature does
-     * not exist the activity will be launched normally.</p>
+     * not exist the activity will be launched normally.
+     * </p>
      *
      * @param context Context to launch activity from.
      * @param intent  The description of the activity to start.
@@ -355,9 +394,11 @@ public class ContextCompat {
      * backwards compatible way, consider using {@code android:maxSdkVersion}
      * like this:
      *
-     * <pre class="prettyprint">&lt;uses-permission
+     * <pre class="prettyprint">
+     * &lt;uses-permission
      *     android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-     *     android:maxSdkVersion="18" /&gt;</pre>
+     *     android:maxSdkVersion="18" /&gt;
+     * </pre>
      * <p>
      * The first path returned is the same as {@link Context#getObbDir()}.
      * Returned paths may be {@code null} if a storage device is unavailable.
@@ -405,9 +446,11 @@ public class ContextCompat {
      * backwards compatible way, consider using {@code android:maxSdkVersion}
      * like this:
      *
-     * <pre class="prettyprint">&lt;uses-permission
+     * <pre class="prettyprint">
+     * &lt;uses-permission
      *     android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-     *     android:maxSdkVersion="18" /&gt;</pre>
+     *     android:maxSdkVersion="18" /&gt;
+     * </pre>
      * <p>
      * The first path returned is the same as
      * {@link Context#getExternalFilesDir(String)}. Returned paths may be
@@ -457,9 +500,11 @@ public class ContextCompat {
      * backwards compatible way, consider using {@code android:maxSdkVersion}
      * like this:
      *
-     * <pre class="prettyprint">&lt;uses-permission
+     * <pre class="prettyprint">
+     * &lt;uses-permission
      *     android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-     *     android:maxSdkVersion="18" /&gt;</pre>
+     *     android:maxSdkVersion="18" /&gt;
+     * </pre>
      * <p>
      * The first path returned is the same as
      * {@link Context#getExternalCacheDir()}. Returned paths may be {@code null}
@@ -482,9 +527,10 @@ public class ContextCompat {
      * returned drawable will be styled for the specified Context's theme.
      *
      * @param context context to use for getting the drawable.
-     * @param id The desired resource identifier, as generated by the aapt tool.
-     *           This integer encodes the package, type, and resource entry.
-     *           The value 0 is an invalid identifier.
+     * @param id      The desired resource identifier, as generated by the aapt
+     *                tool.
+     *                This integer encodes the package, type, and resource entry.
+     *                The value 0 is an invalid identifier.
      * @return Drawable An object that can be used to draw this resource.
      */
     @SuppressWarnings("deprecation")
@@ -503,13 +549,13 @@ public class ContextCompat {
      * color state list will be styled for the specified Context's theme.
      *
      * @param context context to use for getting the color state list.
-     * @param id The desired resource identifier, as generated by the aapt
-     *           tool. This integer encodes the package, type, and resource
-     *           entry. The value 0 is an invalid identifier.
+     * @param id      The desired resource identifier, as generated by the aapt
+     *                tool. This integer encodes the package, type, and resource
+     *                entry. The value 0 is an invalid identifier.
      * @return A color state list, or {@code null} if the resource could not be
-     * resolved.
+     *         resolved.
      * @throws android.content.res.Resources.NotFoundException if the given ID
-     *         does not exist.
+     *                                                         does not exist.
      */
     public static @Nullable ColorStateList getColorStateList(@NonNull Context context,
             @ColorRes int id) {
@@ -523,12 +569,12 @@ public class ContextCompat {
      * color will be styled for the specified Context's theme.
      *
      * @param context context to use for getting the color.
-     * @param id The desired resource identifier, as generated by the aapt
-     *           tool. This integer encodes the package, type, and resource
-     *           entry. The value 0 is an invalid identifier.
+     * @param id      The desired resource identifier, as generated by the aapt
+     *                tool. This integer encodes the package, type, and resource
+     *                entry. The value 0 is an invalid identifier.
      * @return A single color value in the form 0xAARRGGBB.
      * @throws android.content.res.Resources.NotFoundException if the given ID
-     *         does not exist.
+     *                                                         does not exist.
      */
     @SuppressWarnings("deprecation")
     @ColorInt
@@ -543,10 +589,10 @@ public class ContextCompat {
     /**
      * Determine whether <em>you</em> have been granted a particular permission.
      *
-     * @param context context for which to check the permission.
+     * @param context    context for which to check the permission.
      * @param permission The name of the permission being checked.
      * @return {@link PackageManager#PERMISSION_GRANTED} if you have the
-     * permission, or {@link PackageManager#PERMISSION_DENIED} if not.
+     *         permission, or {@link PackageManager#PERMISSION_DENIED} if not.
      * @see PackageManager#checkPermission(String, String)
      */
     public static int checkSelfPermission(@NonNull Context context, @NonNull String permission) {
@@ -562,15 +608,16 @@ public class ContextCompat {
 
     /**
      * Returns the absolute path to the directory on the filesystem similar to
-     * {@link Context#getFilesDir()}.  The difference is that files placed under this
+     * {@link Context#getFilesDir()}. The difference is that files placed under this
      * directory will be excluded from automatic backup to remote storage on
      * devices running {@link Build.VERSION_CODES#LOLLIPOP} or later.
      *
-     * <p>No permissions are required to read or write to the returned path, since this
+     * <p>
+     * No permissions are required to read or write to the returned path, since this
      * path is internal storage.
      *
      * @return The path of the directory holding application files that will not be
-     * automatically backed up to remote storage.
+     *         automatically backed up to remote storage.
      * @see Context#getFilesDir()
      */
     public static @Nullable File getNoBackupFilesDir(@NonNull Context context) {
@@ -607,9 +654,12 @@ public class ContextCompat {
     }
 
     private static File createFilesDir(File file) {
-        // In the platform, all operations on Context that involve creating files (codeCacheDir,
-        // noBackupFilesDir, etc.) are synchronized on a single lock owned by the Context. So, if
-        // we lock on a single static lock owned by ContextCompat then we're a bit too broad but
+        // In the platform, all operations on Context that involve creating files
+        // (codeCacheDir,
+        // noBackupFilesDir, etc.) are synchronized on a single lock owned by the
+        // Context. So, if
+        // we lock on a single static lock owned by ContextCompat then we're a bit too
+        // broad but
         // at least we'll provide similar guarantees.
         synchronized (sSync) {
             if (!file.exists()) {
@@ -710,24 +760,28 @@ public class ContextCompat {
 
     /**
      * Get the display this context is associated with or the
-     * {@link Display#DEFAULT_DISPLAY default display} as the fallback if the context is not
+     * {@link Display#DEFAULT_DISPLAY default display} as the fallback if the
+     * context is not
      * associated with any {@link Display}.
      * <p>
-     * Applications must use this method with {@link Activity} or a context associated with a
+     * Applications must use this method with {@link Activity} or a context
+     * associated with a
      * {@link Display} via {@link Context#createDisplayContext(Display)} or
-     * {@link Context#createWindowContext(Display, int, Bundle)}, or the reported {@link Display}
-     * instance is not reliable. </p>
+     * {@link Context#createWindowContext(Display, int, Bundle)}, or the reported
+     * {@link Display}
+     * instance is not reliable.
+     * </p>
      *
      * @param context Context to obtain the associated display
-     * @return The display associated with the Context or the default display if the context
-     * doesn't associated with any display.
+     * @return The display associated with the Context or the default display if the
+     *         context
+     *         doesn't associated with any display.
      */
     public static @NonNull Display getDisplayOrDefault(@DisplayContext @NonNull Context context) {
         if (Build.VERSION.SDK_INT >= 30) {
             return Api30Impl.getDisplayOrDefault(context);
         } else {
-            final WindowManager windowManager =
-                    (WindowManager) context.getSystemService(WINDOW_SERVICE);
+            final WindowManager windowManager = (WindowManager) context.getSystemService(WINDOW_SERVICE);
             return windowManager.getDefaultDisplay();
         }
     }
@@ -757,12 +811,15 @@ public class ContextCompat {
      * @param context  Context to retrieve service from.
      * @param receiver The BroadcastReceiver to handle the broadcast.
      * @param filter   Selects the Intent broadcasts to be received.
-     * @param flags    If this receiver is listening for broadcasts sent from other apps—even other
-     *                 apps that you own—use the {@link #RECEIVER_EXPORTED} flag. If instead this 
+     * @param flags    If this receiver is listening for broadcasts sent from other
+     *                 apps-even other
+     *                 apps that you own-use the {@link #RECEIVER_EXPORTED} flag. If
+     *                 instead this
      *                 receiver is listening only for broadcasts sent by your
-     *                 app, or from the system UID, use the {@link #RECEIVER_NOT_EXPORTED} flag.
+     *                 app, or from the system UID, use the
+     *                 {@link #RECEIVER_NOT_EXPORTED} flag.
      * @return The first sticky intent found that matches <var>filter</var>,
-     * or null if there are none.
+     *         or null if there are none.
      * @see Context#registerReceiver(BroadcastReceiver, IntentFilter, int)
      * @see https://developer.android.com/develop/background-work/background-tasks/broadcasts#context-registered-receivers
      */
@@ -778,27 +835,34 @@ public class ContextCompat {
      * @param context             Context to retrieve service from.
      * @param receiver            The BroadcastReceiver to handle the broadcast.
      * @param filter              Selects the Intent broadcasts to be received.
-     * @param broadcastPermission String naming a permission that a broadcaster must hold in
-     *                            order to send and Intent to you. If null, no permission is
+     * @param broadcastPermission String naming a permission that a broadcaster must
+     *                            hold in
+     *                            order to send and Intent to you. If null, no
+     *                            permission is
      *                            required.
-     * @param scheduler           Handler identifying the thread will receive the Intent. If
+     * @param scheduler           Handler identifying the thread will receive the
+     *                            Intent. If
      *                            null, the main thread of the process will be used.
-     * @param flags               If this receiver is listening for broadcasts sent from other
-     *                            apps—even other apps that you own—use the
-     *                            {@link #RECEIVER_EXPORTED} flag. If instead this receiver is
-     *                            listening only for broadcasts sent by your app, or from the
-     *                            system UID, use the {@link #RECEIVER_NOT_EXPORTED} flag.
+     * @param flags               If this receiver is listening for broadcasts sent
+     *                            from other
+     *                            apps-even other apps that you own-use the
+     *                            {@link #RECEIVER_EXPORTED} flag. If instead this
+     *                            receiver is
+     *                            listening only for broadcasts sent by your app, or
+     *                            from the
+     *                            system UID, use the {@link #RECEIVER_NOT_EXPORTED}
+     *                            flag.
      * @return The first sticky intent found that matches <var>filter</var>,
-     * or null if there are none.
-     * @see Context#registerReceiver(BroadcastReceiver, IntentFilter, String, Handler, int)
+     *         or null if there are none.
+     * @see Context#registerReceiver(BroadcastReceiver, IntentFilter, String,
+     *      Handler, int)
      * @see https://developer.android.com/develop/background-work/background-tasks/broadcasts#context-registered-receivers
      */
     public static @Nullable Intent registerReceiver(@NonNull Context context,
             @Nullable BroadcastReceiver receiver, @NonNull IntentFilter filter,
             @Nullable String broadcastPermission,
             @Nullable Handler scheduler, @RegisterReceiverFlags int flags) {
-        if (((flags & RECEIVER_VISIBLE_TO_INSTANT_APPS) != 0) && ((flags & RECEIVER_NOT_EXPORTED)
-                != 0)) {
+        if (((flags & RECEIVER_VISIBLE_TO_INSTANT_APPS) != 0) && ((flags & RECEIVER_NOT_EXPORTED) != 0)) {
             throw new IllegalArgumentException("Cannot specify both "
                     + "RECEIVER_VISIBLE_TO_INSTANT_APPS and RECEIVER_NOT_EXPORTED");
         }
@@ -834,11 +898,13 @@ public class ContextCompat {
     }
 
     /**
-     * Gets the name of the system-level service that is represented by the specified class.
+     * Gets the name of the system-level service that is represented by the
+     * specified class.
      *
      * @param context      Context to retrieve service name from.
      * @param serviceClass The class of the desired service.
-     * @return The service name or null if the class is not a supported system service.
+     * @return The service name or null if the class is not a supported system
+     *         service.
      * @see Context#getSystemServiceName(Class)
      */
     public static @Nullable String getSystemServiceName(@NonNull Context context,
@@ -850,7 +916,8 @@ public class ContextCompat {
     }
 
     /**
-     * Gets the resource string that also respects the per-app locales. If developers set the
+     * Gets the resource string that also respects the per-app locales. If
+     * developers set the
      * per-app locales via
      * {@link androidx.appcompat.app.AppCompatDelegate#setApplicationLocales(LocaleListCompat)},
      * this API returns localized strings even if the context is not
@@ -859,10 +926,11 @@ public class ContextCompat {
      * <p>
      * Compatibility behavior:
      * <ul>
-     *     <li>API 17 and above, this method return the localized string that respects per-app
-     *     locales.</li>
-     *     <li>API 16 and earlier, this method directly return the result of
-     *     {@link Context#getString(int)}</li>
+     * <li>API 17 and above, this method return the localized string that respects
+     * per-app
+     * locales.</li>
+     * <li>API 16 and earlier, this method directly return the result of
+     * {@link Context#getString(int)}</li>
      * </ul>
      * </p>
      */
@@ -871,22 +939,28 @@ public class ContextCompat {
     }
 
     /**
-     * Gets the context which respects the per-app locales locale. This API is specifically for
+     * Gets the context which respects the per-app locales locale. This API is
+     * specifically for
      * developers who set the per-app locales via
      * {@link androidx.appcompat.app.AppCompatDelegate#setApplicationLocales(LocaleListCompat)},
-     * but who needs to use the context out of {@link androidx.appcompat.app.AppCompatActivity}
+     * but who needs to use the context out of
+     * {@link androidx.appcompat.app.AppCompatActivity}
      * scope.
      *
-     * <p>The developers can override the returned context in Application's
-     * {@link android.content.ContextWrapper#attachBaseContext(Context)}, so that developers can
-     * get the localized string via application's context.</p>
+     * <p>
+     * The developers can override the returned context in Application's
+     * {@link android.content.ContextWrapper#attachBaseContext(Context)}, so that
+     * developers can
+     * get the localized string via application's context.
+     * </p>
      *
      * <p>
      * Compatibility behavior:
      * <ul>
-     *     <li>API 17 and above, the locale in the context returned by this method will respect the
-     *     the per-app locale.</li>
-     *     <li>API 16 and earlier, this method directly return the {@link Context}</li>
+     * <li>API 17 and above, the locale in the context returned by this method will
+     * respect the
+     * the per-app locale.</li>
+     * <li>API 16 and earlier, this method directly return the {@link Context}</li>
      * </ul>
      * </p>
      */
@@ -907,17 +981,20 @@ public class ContextCompat {
     }
 
     /**
-     * Attribution can be used in complex apps to logically separate parts of the app. E.g. a
-     * blogging app might also have a instant messaging app built in. In this case two separate tags
+     * Attribution can be used in complex apps to logically separate parts of the
+     * app. E.g. a
+     * blogging app might also have a instant messaging app built in. In this case
+     * two separate tags
      * can for used each sub-feature.
      * <p>
      * Compatibility behavior:
      * <ul>
-     *     <li>API 30 and above, returns the attribution tag or {@code null}
-     *     <li>API 29 and earlier, returns {@code null}
+     * <li>API 30 and above, returns the attribution tag or {@code null}
+     * <li>API 29 and earlier, returns {@code null}
      * </ul>
      *
-     * @return the attribution tag this context is for or {@code null} if this is the default.
+     * @return the attribution tag this context is for or {@code null} if this is
+     *         the default.
      */
     public static @Nullable String getAttributionTag(@NonNull Context context) {
         if (Build.VERSION.SDK_INT >= 30) {
@@ -928,18 +1005,23 @@ public class ContextCompat {
     }
 
     /**
-     * Return a new Context object for the current Context but attribute to a different tag.
-     * In complex apps attribution tagging can be used to distinguish between separate logical
+     * Return a new Context object for the current Context but attribute to a
+     * different tag.
+     * In complex apps attribution tagging can be used to distinguish between
+     * separate logical
      * parts.
      * <p>
      * Compatibility behavior:
      * <ul>
-     *     <li>API 30 and above, returns a new Context object with the specified attribution tag
-     *     <li>API 29 and earlier, returns the original {@code context} with no attribution tag
+     * <li>API 30 and above, returns a new Context object with the specified
+     * attribution tag
+     * <li>API 29 and earlier, returns the original {@code context} with no
+     * attribution tag
      * </ul>
      *
-     * @param context The current context.
-     * @param attributionTag The tag or {@code null} to create a context for the default.
+     * @param context        The current context.
+     * @param attributionTag The tag or {@code null} to create a context for the
+     *                       default.
      * @return A {@link Context} that is tagged for the new attribution
      * @see #getAttributionTag(Context)
      */
@@ -953,8 +1035,10 @@ public class ContextCompat {
     }
 
     /**
-     * Gets the name of the permission required to unexport receivers on pre Tiramisu versions of
-     * Android, and then asserts that the app registering the receiver also has that permission
+     * Gets the name of the permission required to unexport receivers on pre
+     * Tiramisu versions of
+     * Android, and then asserts that the app registering the receiver also has that
+     * permission
      * so it can receiver its own broadcasts.
      *
      * @param obj Context to check the permission in.
@@ -964,13 +1048,10 @@ public class ContextCompat {
         String permission = obj.getApplicationContext().getPackageName()
                 + DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION_SUFFIX;
 
-        if (PermissionChecker.checkSelfPermission(obj, permission)
-                != PermissionChecker.PERMISSION_GRANTED) {
+        if (PermissionChecker.checkSelfPermission(obj, permission) != PermissionChecker.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= 29) {
-                permission =
-                        obj.getOpPackageName() + DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION_SUFFIX;
-                if (PermissionChecker.checkSelfPermission(obj, permission)
-                        == PermissionChecker.PERMISSION_GRANTED) {
+                permission = obj.getOpPackageName() + DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION_SUFFIX;
+                if (PermissionChecker.checkSelfPermission(obj, permission) == PermissionChecker.PERMISSION_GRANTED) {
                     return permission;
                 }
             }

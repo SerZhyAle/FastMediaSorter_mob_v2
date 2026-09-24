@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferProgressSnap
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferTerminalEvent
+import com.sza.fastmediasorter.ui.browse.transfer.TransferSkipSummary
 import com.sza.fastmediasorter.ui.browse.transfer.transferOverallPercent
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog
@@ -66,7 +67,6 @@ class BrowseFileOperationsManager(
         showUnexpectedError = ::showUnexpectedError
     )
 
-    
     private var pendingMoveOperation: PendingMoveOperation? = null
     private var activeTransferDialog: FileOperationProgressDialog? = null
     private var modalDetachedByUser: Boolean = false
@@ -77,7 +77,7 @@ class BrowseFileOperationsManager(
     private var activeOperationType: FileOperationType? = null
     private var lastProgressSnapshot: BrowseFileTransferProgressSnapshot? = null
     private var lastIndicatorLabel: String? = null
-    
+
     interface FileOperationCallbacks {
         fun onOperationCompleted()
         fun saveUndoOperation(undoOp: UndoOperation)
@@ -91,6 +91,7 @@ class BrowseFileOperationsManager(
         fun getCurrentResource(): MediaResource?
         fun getCurrentBrowsePath(): String?
         fun navigateToFolder(path: String)
+
         /** Called after a successful Move or Copy operation. [count] = number of processed files. */
         fun onSortOperationSuccess(count: Int) {}
 
@@ -308,7 +309,12 @@ class BrowseFileOperationsManager(
                 callbacks.clearSelection()
                 callbacks.onOperationCompleted()
                 callbacks.onSortOperationSuccess(event.processedCount)
-                callbacks.onShowMessage(context.getString(doneMessageRes(event.operationType), event.processedCount))
+                showTerminalDoneMessage(
+                    event.operationType,
+                    event.processedCount,
+                    event.skippedCount,
+                    event.skippedNames,
+                )
             }
             is BrowseFileTransferTerminalEvent.PartialSuccess -> {
                 event.undoOperation?.let(callbacks::saveUndoOperation)
@@ -317,11 +323,20 @@ class BrowseFileOperationsManager(
                 if (event.undoOperation != null) {
                     callbacks.onSortOperationSuccess(event.processedCount)
                 }
-                if (event.processedCount > 0) {
-                    callbacks.onShowMessage(context.getString(doneMessageRes(event.operationType), event.processedCount))
+                if (event.processedCount > 0 || event.skippedCount > 0) {
+                    showTerminalDoneMessage(
+                        event.operationType,
+                        event.processedCount,
+                        event.skippedCount,
+                        event.skippedNames,
+                    )
                 }
                 callbacks.onShowError(
-                    context.getString(R.string.error_some_operations_failed, event.failedCount, event.processedCount + event.failedCount),
+                    context.getString(
+                        R.string.error_some_operations_failed,
+                        event.failedCount,
+                        event.processedCount + event.failedCount
+                    ),
                     event.details,
                 )
             }
@@ -351,6 +366,30 @@ class BrowseFileOperationsManager(
         }
     }
 
+    // The host's onShowMessage is a short toast, too brief to read a list of skipped names.
+    private fun showTerminalDoneMessage(
+        operationType: FileOperationType,
+        processedCount: Int,
+        skippedCount: Int,
+        skippedNames: List<String>,
+    ) {
+        val base = context.getString(doneMessageRes(operationType), processedCount)
+        if (skippedCount > 0) {
+            val text = TransferSkipSummary.append(context, base, skippedCount, skippedNames)
+            Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+        } else {
+            callbacks.onShowMessage(base)
+        }
+    }
+
+    private fun showDoneToast(base: String, result: FileOperationResult) {
+        Toast.makeText(
+            context,
+            TransferSkipSummary.append(context, base, result),
+            TransferSkipSummary.toastLength(result)
+        ).show()
+    }
+
     private fun progressTitleRes(operationType: FileOperationType): Int = when (operationType) {
         FileOperationType.MOVE -> R.string.moving_files
         FileOperationType.DELETE -> R.string.deleting_files
@@ -374,7 +413,7 @@ class BrowseFileOperationsManager(
         FileOperationType.DELETE -> R.string.toast_delete_cancelled
         else -> R.string.toast_copy_cancelled
     }
-    
+
     fun hasPendingMoveOperation(): Boolean = pendingMoveOperation != null
 
     fun retryPendingMoveOperation() {
@@ -404,7 +443,11 @@ class BrowseFileOperationsManager(
             }
         }
 
-        Toast.makeText(context, context.getString(R.string.msg_move_started, pending.destinationResource.name), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            context,
+            context.getString(R.string.msg_move_started, pending.destinationResource.name),
+            Toast.LENGTH_SHORT
+        ).show()
 
         coroutineScope.launch {
             try {
@@ -417,16 +460,20 @@ class BrowseFileOperationsManager(
                     )
                     when (val result = fileOperationUseCase.execute(operation)) {
                         is FileOperationResult.Success -> {
-                            Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
+                            showDoneToast(context.getString(R.string.moved_n_files, result.processedCount), result)
                             callbacks.onSortOperationSuccess(result.processedCount)
                         }
                         is FileOperationResult.PartialSuccess -> {
-                            Toast.makeText(context, context.getString(R.string.moved_n_files, result.processedCount), Toast.LENGTH_SHORT).show()
+                            showDoneToast(context.getString(R.string.moved_n_files, result.processedCount), result)
                             // Surface the first error so access-denied / partial failures are not silently hidden
                             if (result.errors.isNotEmpty()) callbacks.onShowError(result.errors.first())
                         }
                         is FileOperationResult.Failure -> showFailureError(R.string.move_failed, result)
-                        is FileOperationResult.PermissionRequired -> Toast.makeText(context, R.string.permission_error_retry, Toast.LENGTH_LONG).show()
+                        is FileOperationResult.PermissionRequired -> Toast.makeText(
+                            context,
+                            R.string.permission_error_retry,
+                            Toast.LENGTH_LONG
+                        ).show()
                         is FileOperationResult.AuthenticationRequired -> callbacks.onAuthRequest(result.provider)
                     }
                 }
@@ -444,7 +491,7 @@ class BrowseFileOperationsManager(
             }
         }
     }
-    
+
     /**
      * Clear any pending move operation (e.g., when permission is denied).
      */
@@ -525,7 +572,7 @@ class BrowseFileOperationsManager(
                             FileOperationType.MOVE -> R.string.moved_n_files
                             else -> R.string.copied_n_files
                         }
-                        Toast.makeText(context, context.getString(msgRes, result.processedCount), Toast.LENGTH_SHORT).show()
+                        showDoneToast(context.getString(msgRes, result.processedCount), result)
                         val undoOp = UndoOperation(
                             type = operationType,
                             sourceFiles = sourceFiles.map { it.absolutePath },
@@ -540,13 +587,13 @@ class BrowseFileOperationsManager(
                         callbacks.onSortOperationSuccess(result.processedCount)
                     }
                     is FileOperationResult.PartialSuccess -> {
-                        Timber.w("executeOperationToPath: PARTIAL - ${result.processedCount} of ${result.processedCount + result.failedCount}")
+                        Timber.w("executeOperationToPath: PARTIAL - ${result.processedCount}/${result.failedCount}")
                         val msgRes = when (operationType) {
                             FileOperationType.COPY -> R.string.copied_n_files
                             FileOperationType.MOVE -> R.string.moved_n_files
                             else -> R.string.copied_n_files
                         }
-                        Toast.makeText(context, context.getString(msgRes, result.processedCount), Toast.LENGTH_SHORT).show()
+                        showDoneToast(context.getString(msgRes, result.processedCount), result)
                         callbacks.clearSelection()
                         callbacks.onOperationCompleted()
                         // Surface SFTP partial failure details (access-denied, copied-source-remains, etc.)
@@ -786,7 +833,7 @@ class BrowseFileOperationsManager(
             dialog.show()
         }
     }
-    
+
     fun showMoveDialog(
         selectedPaths: List<String>,
         mediaFiles: List<MediaFile>,
@@ -821,7 +868,7 @@ class BrowseFileOperationsManager(
             }
         }
     }
-    
+
     private fun showMoveDialogInternal(
         selectedPaths: List<String>,
         mediaFiles: List<MediaFile>,
@@ -887,7 +934,7 @@ class BrowseFileOperationsManager(
         dialog.directoryCount = dirItems.size
         dialog.show()
     }
-    
+
     // S0459 Phase 07: single outbound path - stages Uris then routes through the unified «Send to..» menu.
     fun sendFilesToMenu(
         selectedFiles: List<MediaFile>,

@@ -55,6 +55,7 @@ import com.sza.fastmediasorter.ui.common.AppUpdateNoticeManager
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainBroadcastManager
@@ -864,10 +865,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // are appended after it and sort above it on their own order.
         val programsCount = if (isProgramsPanelEnabled) 0 else populateMainWindowDropdownMenu(popup)
         val itemCount = programsCount + commandOverflowMenuManager.populate(popup)
-        if (itemCount <= 0) {
-            refreshMainWindowDropdownMenuVisibility()
-            return
-        }
+        popup.menu.add(0, R.id.action_help, MENU_ORDER_HELP, R.string.help).setIcon(R.drawable.ic_help_outline)
 
         val items = (0 until popup.menu.size()).map { popup.menu.getItem(it) }
         dropdownMenuPopupManager.show(
@@ -880,7 +878,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     /** S0755: shared click routing for both the dropdown popup and the programs panel buttons. */
     private fun handleMainWindowMenuItem(itemId: Int): Boolean =
-        commandOverflowMenuManager.handleMenuItem(itemId) || programsMenuCoordinator.handleMenuItem(itemId)
+        if (itemId == R.id.action_help) {
+            DocsPageOpenManager.open(this, UiSurface.MAIN)
+            true
+        } else {
+            commandOverflowMenuManager.handleMenuItem(itemId) || programsMenuCoordinator.handleMenuItem(itemId)
+        }
 
     // S0756: excludeStreams drops the "Streams" item (the programs panel hides it when the streams
     // panel is visible, to avoid duplicating that entry point). The dropdown menu always passes false.
@@ -1601,6 +1604,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val EXTRA_SHORTCUT_RESOURCE_ID = "shortcut_resource_id"
         const val EXTRA_RETURN_TO_SETTINGS = "extra_return_to_settings"
         const val EXTRA_RETURN_TO_SETTINGS_TAB = "extra_return_to_settings_tab"
+
+        private const val MENU_ORDER_HELP = 99
 
         /** S0289: saved-state key for the resource id last opened in PlayerActivity. */
         const val KEY_LAST_PLAYED_RESOURCE_ID = "s0289_last_played_resource_id"

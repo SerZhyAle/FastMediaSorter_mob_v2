@@ -168,6 +168,8 @@ internal class PlayerFileOpsInitializer(
             if (wasSourceRemoved(event)) {
                 recordQueuedOperationMutation(event.op)
                 showSuccessToast(event.op)
+            } else if (event.skippedCount > 0) {
+                showSkippedToast(event.op)
             }
             Unit
         }
@@ -267,6 +269,21 @@ internal class PlayerFileOpsInitializer(
             is PlayerFileOperation.Rename ->
                 Toast.makeText(activity, activity.getString(R.string.renamed_n_files, 1), Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /** Overwrite off and the destination already holds this name: the move left the file where it was. */
+    private fun showSkippedToast(operation: PlayerFileOperation) {
+        if (activity.isFinishing || activity.isDestroyed) return
+        val destination = when (operation) {
+            is PlayerFileOperation.MoveToResource -> operation.destination.name
+            is PlayerFileOperation.MoveToPath -> destinationLabel(operation.destinationPath)
+            else -> return
+        }
+        Toast.makeText(
+            activity,
+            activity.getString(R.string.file_already_exists_in_folder, operation.displayName, destination),
+            Toast.LENGTH_LONG,
+        ).show()
     }
 
     private fun queuedFailureMessage(operation: PlayerFileOperation): String = when (operation) {

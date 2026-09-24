@@ -72,11 +72,6 @@
     <string name="cloud_upload_failed">فائل کو کلاؤڈ پر اپ لوڈ نہیں کیا جا سکا۔ دوبارہ کوشش کریں۔</string>
     <string name="dropbox">ڈراپ باکس</string>
     <string name="dropbox_authentication_failed">ڈراپ باکس کی توثیق ناکام ہوگئی</string>
-    <string name="dropbox_beta_email_body">ہیلو،\n\nبراہ کرم میرے ڈراپ باکس اکاؤنٹ کو FastMediaSorter بیٹا ٹیسٹر کی فہرست میں شامل کریں۔\n\nمیرا ڈراپ باکس ای میل:</string>
-    <string name="dropbox_beta_email_subject">FastMediaSorter - ڈراپ باکس بیٹا رسائی کی درخواست</string>
-    <string name="dropbox_beta_message">Dropbox انضمام فی الحال محدود بیٹا میں ہے۔\n\n⚠️ مجھے آپ سے رابطہ کیوں کرنا ہے؟\nریویو کی مدت کے دوران Dropbox کو ایپ ڈویلپرز سے ٹیسٹرز کو دستی طور پر رجسٹر کروانے کی ضرورت ہوتی ہے۔ یہ Dropbox کی جانب سے ایک بار کی تکنیکی رسمی کارروائی ہے - آپ کا ای میل صرف آپ کے Dropbox اکاؤنٹ کو اجازت شدہ فہرست میں شامل کرنے کے لیے استعمال ہوتا ہے۔\n\n🔒 آپ کی رازداری کا مکمل خیال رکھا جاتا ہے:\n• ہم آپ کا ای میل جمع، محفوظ یا شیئر نہیں کرتے\n• ہم آپ کی کسی فائل یا ڈیٹا تک رسائی حاصل نہیں کرتے\n• آپ کا ای میل صرف اس ایپ میں آپ کو Dropbox رسائی دینے کے لیے استعمال ہوتا ہے\n\nرسائی حاصل کرنے کے لیے ہمیں ای میل کریں:\nsza@ukr.net</string>
-    <string name="dropbox_beta_send_email">ای میل بھیجیں۔</string>
-    <string name="dropbox_beta_title">ڈراپ باکس بیٹا رسائی</string>
     <string name="dropbox_connection_test_failed">کنکشن ناکام ہو گیا: %1$s</string>
     <string name="dropbox_connection_test_success">کامیابی سے جڑ گیا!</string>
     <string name="dropbox_select_folder">فولڈر منتخب کریں۔</string>

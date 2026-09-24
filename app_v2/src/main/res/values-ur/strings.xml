@@ -201,13 +201,13 @@
     <string name="backup_to_google_drive">ترتیبات کا بیک اپ گوگل ڈرائیو پر لیں</string>
     <string name="restore_from_google_drive">گوگل ڈرائیو سے ترتیبات بحال کریں</string>
     <string name="tooltip_backup_info_title">بیک اپ کی معلومات</string>
-    <string name="tooltip_backup_info_message">بیک اپ میں تمام ترتیبات اور وسائل کی فہرست شامل ہوتی ہے۔ اسناد کا بیک اپ نہیں لیا جاتا - بحالی کے بعد آپ کو نیٹ ورک/کلاؤڈ وسائل کی دوبارہ تصدیق کرنی ہوگی۔</string>
+    <string name="tooltip_backup_info_message">بیک اپ میں تمام ترتیبات، وسائل کی فہرست، نیٹ ورک پاس ورڈز اور ویب سائٹس کے محفوظ کردہ لاگ ان شامل ہوتے ہیں - بیک اپ فائل کسی کے ساتھ شیئر نہ کریں۔ کلاؤڈ لاگ ان (Google Drive، OneDrive، Dropbox) شامل نہیں ہوتے - بحالی کے بعد آپ کو ان میں دوبارہ سائن ان کرنا پڑ سکتا ہے۔</string>
     <string name="backup_success">%1$d وسائل، %2$d پسندیدہ اور تمام ترتیبات کا بیک اپ %3$s پر لیا گیا</string>
     <string name="backup_failed">آپ کی ترتیبات اور وسائل کا بیک اپ نہیں لیا جا سکا۔ دوبارہ کوشش کریں۔</string>
     <string name="restore_confirm_title">بیک اپ سے بحال کریں؟</string>
     <string name="restore_confirm_message">بیک اپ ماخذ: %1$s\nڈیوائس: %2$s\nوسائل: %3$d\nپسندیدہ: %4$d\n\n• ترتیبات کو تبدیل کر دیا جائے گا\n• وسائل کو شامل کیا جائے گا (نقول چھوڑ دی جائیں گی)\n• پسندیدہ کو شامل کیا جائے گا (نقول چھوڑ دی جائیں گی)</string>
     <string name="restore_success">تمام ترتیبات بحال ہو گئیں۔ %1$d وسائل شامل کیے گئے (%2$d پہلے سے موجود تھے)۔ %3$d پسندیدہ شامل کیے گئے (%4$d پہلے سے موجود تھے)۔</string>
-    <string name="restore_needs_auth">کچھ وسائل نیٹ ورک یا کلاؤڈ اکاؤنٹس استعمال کرتے ہیں۔ آپ کو انہیں دوبارہ تصدیق کرنی ہوگی۔</string>
+    <string name="restore_needs_auth">کچھ بحال شدہ وسائل کلاؤڈ اکاؤنٹس (Google Drive، OneDrive، Dropbox) استعمال کرتے ہیں۔ ان میں دوبارہ سائن ان کریں۔</string>
     <string name="restore_no_backup">اس اکاؤنٹ کے لیے کوئی بیک اپ نہیں ملا۔</string>
     <string name="restore_failed">آپ کی ترتیبات اور وسائل بحال نہیں ہو سکے۔ دوبارہ کوشش کریں۔</string>
     <string name="backup_account">اکاؤنٹ: %s</string>

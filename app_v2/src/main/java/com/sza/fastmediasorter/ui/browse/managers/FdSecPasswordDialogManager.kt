@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.scopes.ActivityScoped
 import javax.inject.Inject
+import timber.log.Timber
 
 /**
  * S3382: the one credential prompt for the FileDO container, serving both directions.
@@ -35,6 +36,7 @@ class FdSecPasswordDialogManager @Inject constructor(
         val repeating = direction == Direction.ENCRYPT
         binding.tilFdSecPasswordRepeat.isVisible = repeating
         binding.cbFdSecRemember.isVisible = direction == Direction.OPEN
+        Timber.d("S3481: fdsec remember option with leak line visible=%s", direction == Direction.OPEN)
         val titleRes = if (repeating) {
             R.string.filedo_password_title_encrypt
         } else {

@@ -80,7 +80,9 @@ import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.Lazy
 import dagger.hilt.EntryPoints
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -640,6 +642,12 @@ class BrowseManagerInitializer(
         // the back stack (they re-collect and refresh on restart).
         activity.collectOnLifecycle(settingsRepository.getSettings()) { latestSettings = it }
         activity.collectOnLifecycle(getDestinationsUseCase()) { latestHasDestinations = it.isNotEmpty() }
+        activity.collectOnLifecycle(
+            viewModel.settings.map { it.enableCopying to it.enableMoving }.distinctUntilChanged()
+        ) { (copyEnabled, moveEnabled) ->
+            mediaFileAdapter.setTransferEnabled(copyEnabled, moveEnabled)
+            stateUiUpdater.refreshSelectionPanel(viewModel.state.value)
+        }
 
         buttonSetupHelper.updateToolbarButtonLabels(activity.resources.configuration)
 
@@ -961,6 +969,8 @@ class BrowseManagerInitializer(
     private fun showCopyDialog(overridePaths: Set<String>? = null) {
         val state = viewModel.state.value
         val resource = state.resource ?: return Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
+        // The single funnel for keyboard, row, binary-file and bar entries, so one check covers them all.
+        if (!viewModel.settings.value.enableCopying) return Timber.i("showCopyDialog: refused, copying is disabled")
         val selectedPaths = overridePaths ?: viewModel.currentSelectedPaths()
         lifecycleScope.launch {
             fileOperationsManager.showCopyDialog(selectedPaths.toList(), state.mediaFiles, resource, viewModel.getSettings())
@@ -975,10 +985,20 @@ class BrowseManagerInitializer(
     private fun showMoveDialog(overridePaths: Set<String>? = null) {
         val state = viewModel.state.value
         val resource = state.resource ?: return Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
-        if (resource.isReadOnly) return Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
-        val selectedPaths = overridePaths ?: viewModel.currentSelectedPaths()
-        lifecycleScope.launch {
-            fileOperationsManager.showMoveDialog(selectedPaths.toList(), state.mediaFiles, resource, viewModel.getSettings())
+        when {
+            resource.isReadOnly -> Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
+            !viewModel.settings.value.enableMoving -> Timber.i("showMoveDialog: refused, moving is disabled")
+            else -> {
+                val selectedPaths = overridePaths ?: viewModel.currentSelectedPaths()
+                lifecycleScope.launch {
+                    fileOperationsManager.showMoveDialog(
+                        selectedPaths.toList(),
+                        state.mediaFiles,
+                        resource,
+                        viewModel.getSettings(),
+                    )
+                }
+            }
         }
     }
 

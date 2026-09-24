@@ -1,0 +1,25 @@
+{
+  "_comment": "S1211 Localized Page Set - the documents every site language must carry. English source paths; a translation is <base>-<slug>.md beside it. Read by scripts/utils/new-localized-page.ps1 and scripts/quality/assert-localized-page-set.ps1.",
+  "landing": "index.html",
+  "documents": [
+    "docs/README.md",
+    "docs/QUICK_START.md",
+    "docs/HOW_TO.md",
+    "docs/TROUBLESHOOTING.md",
+    "docs/FAQ.md",
+    "docs/howto/index.md",
+    "docs/howto/scenario-camera-backup.md",
+    "docs/howto/scenario-car-music.md",
+    "docs/howto/scenario-companion-share.md",
+    "docs/howto/scenario-download-organizer.md",
+    "docs/howto/scenario-home-cinema.md",
+    "docs/howto/scenario-internet-radio.md",
+    "docs/howto/scenario-launcher-mode.md",
+    "docs/howto/scenario-photo-frame.md",
+    "docs/howto/scenario-smb-setup.md",
+    "docs/howto/scenario-watch-music.md",
+    "docs/howto/scenario-watch-network.md",
+    "docs/howto/scenario-watch-tv.md",
+    "docs/howto/wear-install.md"
+  ]
+}

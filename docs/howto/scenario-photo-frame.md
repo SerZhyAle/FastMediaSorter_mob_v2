@@ -103,11 +103,11 @@ That's it - the slideshow runs. Photos advance automatically at the interval you
 **This step is critical.** Android saves battery by turning the screen off after a few minutes - which would ruin the photo frame. You need to disable this.
 
 **Option A - In-app setting (recommended):**
-Go to **Settings → General → System section** → enable **"Prevent Sleep"**.
+Go to **Settings → Management → Prevent sleep** and turn it on.
 
 This tells Android to keep the screen on as long as the app is running in the foreground. The moment you switch apps or the slideshow stops, the normal screen timeout returns.
 
-![Settings General → System - Prevent Sleep toggle enabled](screenshots/screenshot-pf-step5.png)
+![Settings, Management tab - Prevent sleep toggle enabled](screenshots/screenshot-pf-step5.png)
 
 **Option B - Android system setting:**
 Android Settings → Display → Screen timeout → set to **"Never"** (or maximum).
@@ -143,7 +143,7 @@ This step is for convenience: want to launch the photo frame instantly when you 
 
 > **NAS photos not updating after you added new ones?** The app caches the file list for speed. To refresh: go back to the folder → tap the **Refresh <img src="../icons/doc/ic_refresh.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button in the toolbar. New photos appear immediately.
 
-> **Photos look zoomed in or cut off?** Open Settings → Media → Images → try toggling **"Crop images to fill screen"** - OFF keeps the full photo visible, ON fills the screen edge-to-edge (slight cropping around the sides).
+> **Photos look zoomed in or cut off?** Open Settings → Media → Images → **"Crop images to fill screen"** and try both positions: OFF keeps the full photo visible, ON fills the screen edge-to-edge (slight cropping around the sides).
 
 > **Vertical phone used as a frame?** Enable "Crop images to fill screen" to avoid black bars on landscape photos.
 
@@ -153,8 +153,8 @@ This step is for convenience: want to launch the photo frame instantly when you 
 
 | Problem | What to try |
 |---------|------------|
-| Screen goes dark after a few minutes | Enable "Prevent Sleep" in Settings → General (Step 5) **and** plug in USB charger |
-| Photos not showing | Check Settings → Media → ensure "Images" type is enabled for this resource |
+| Screen goes dark after a few minutes | Enable "Prevent sleep" in Settings → Management (Step 5) **and** plug in USB charger |
+| Photos not showing | Open the folder settings (Step 2) and make sure **Images** is ticked under **Supported Types** |
 | Music doesn't play | Verify the music folder contains at least one audio file; check that **Play music during slideshow** is on in Settings → Media → Images, GIFs and slideshow |
 | Slideshow pauses on video files | Expected - videos play, then slideshow resumes. Set "Supported Types → Images only" in folder settings (Step 2) to prevent this |
 | SMB photos load slowly | Edit folder → disable "Load thumbnails" to reduce network load. Or reduce slideshow interval to give more loading time |

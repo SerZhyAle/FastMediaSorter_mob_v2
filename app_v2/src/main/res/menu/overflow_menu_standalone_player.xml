@@ -98,8 +98,8 @@
     <!-- S0393 wave-C: Google Lens (image host only) -->
     <item
         android:id="@+id/menu_google_lens"
-        android:icon="@drawable/ic_google_lens"
-        android:title="@string/google_lens"
+        android:icon="@drawable/ic_search"
+        android:title="@string/search_google_lens"
         app:showAsAction="never" />
 
     <!-- S0393 wave-C: OCR extract text from image (image host only; ENABLE_TRANSLATION) -->
@@ -112,9 +112,10 @@
     <!-- S0393 wave-C: YouTube Music search (audio host only) -->
     <item
         android:id="@+id/menu_youtube_music"
-        android:icon="@drawable/ic_youtube_music"
+        android:icon="@drawable/ic_search"
         android:title="@string/search_in_youtube_music"
         app:showAsAction="never" />
+
 
     <!-- S0393 wave-C: image translate (image host; ENABLE_TRANSLATION) -->
     <item
@@ -177,6 +178,13 @@
         android:id="@+id/menu_stream_share"
         android:icon="@drawable/ic_share"
         android:title="@string/share"
+        app:showAsAction="never" />
+
+    <!-- S3506: visible help item opening documentation page for Player screen. -->
+    <item
+        android:id="@+id/menu_help"
+        android:icon="@drawable/ic_help_outline"
+        android:title="@string/help"
         app:showAsAction="never" />
 
 </menu>

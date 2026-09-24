@@ -34,6 +34,11 @@ foreach ($name in 'a', 'b', 'c', 'd') {
     Set-Content -LiteralPath (Join-Path $fixture "$name.kt") -Value "package x`n`nfun $name() = 1" -Encoding utf8
 }
 Set-Content -LiteralPath (Join-Path $fixture '.gitignore') -Value "ignored/`n" -Encoding utf8
+# S3515: one generated record, a glob, so both a modified and a brand-new generated file are covered.
+New-Item -ItemType Directory -Force -Path (Join-Path $fixture 'docs') | Out-Null
+Set-Content -LiteralPath (Join-Path $fixture 'docs/DOCUMENT_REGISTRY.jsonl') -Encoding utf8 `
+    -Value '{"id":"gen","paths":["docs/GEN*.md"],"generated":true}'
+Set-Content -LiteralPath (Join-Path $fixture 'docs/GEN.md') -Value '# generated' -Encoding utf8
 & git -C $fixture init -q *> $null
 # `git stash create` (S3182's baseline) writes a commit, so the fixture needs its own identity.
 & git -C $fixture config user.email suite@example.com *> $null
@@ -91,6 +96,11 @@ Add-Line 'a.kt' 'fun extra() = 2'
 New-Item -ItemType Directory -Force -Path (Join-Path $fixture 'PLAN') | Out-Null
 Set-Content -LiteralPath (Join-Path $fixture 'PLAN/S0001_x.md') -Value '# spec' -Encoding utf8
 Invoke-Case 'the spec under PLAN/ is not judged' 0 @('-RepoRoot', $fixture, '-Files', 'a.kt,PLAN/S0001_x.md') 'PASS'
+
+foreach ($name in 'a', 'b', 'c') { Add-Line "$name.kt" 'fun more() = 3' }
+Add-Line 'docs/GEN.md' 'regenerated'
+Set-Content -LiteralPath (Join-Path $fixture 'docs/GEN2.md') -Value '# new generated' -Encoding utf8
+Invoke-Case 'generated documents neither count nor read as new' 0 @('-RepoRoot', $fixture, '-Files', 'a.kt,b.kt,c.kt,docs/GEN.md,docs/GEN2.md') 'GEN2\.md is generated'
 
 Invoke-Case 'no -Files is a bad invocation' 2 @('-RepoRoot', $fixture) 'cannot judge'
 

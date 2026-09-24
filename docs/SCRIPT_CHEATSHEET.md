@@ -520,14 +520,14 @@ scripts/builders/build-and-push-all.ps1
 ```
 
 ### build-debug-clean.PS1
-Quick debug build script with auto-versioning and CLEAN BUILD
+Quick debug build script with CLEAN BUILD; -AutoVersion stamps the build time into the version.
 
 ```
 scripts/builders/build-debug-clean.PS1
-  Quick debug build script with auto-versioning and CLEAN BUILD
+  Quick debug build script with CLEAN BUILD; -AutoVersion stamps the build time into the version.
   Params:
     -SkipZip             [SwitchParameter]
-    -AutoVersion         [SwitchParameter] = $true
+    -AutoVersion         [SwitchParameter]
     -Abi                 [String] = ''
 ```
 
@@ -538,21 +538,21 @@ Build, install, and launch debug build on connected device
 scripts/builders/build-debug-device.ps1
   Build, install, and launch debug build on connected device
   Params:
-    -AutoVersion         [SwitchParameter] = $true
+    -AutoVersion         [SwitchParameter]
     -DeviceId            [String] = $env:ANDROID_SERIAL
   Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-debug.PS1
-Quick debug build script with auto-versioning
+Quick debug build script; -AutoVersion (a.ps1 dav) stamps the build time into the version.
 
 ```
 scripts/builders/build-debug.PS1
-  Quick debug build script with auto-versioning
+  Quick debug build script; -AutoVersion (a.ps1 dav) stamps the build time into the version.
   Params:
     -SkipZip             [SwitchParameter]
     -Task                [String] = ":app_v2:assembleStandardDebug"
-    -AutoVersion         [SwitchParameter] = $true
+    -AutoVersion         [SwitchParameter]
     -Chaquopy            [SwitchParameter]
     -Quiet               [SwitchParameter]
     -Abi                 [String] = ''
@@ -760,7 +760,7 @@ scripts/builders/build-sbom.ps1
 ```
 scripts/builders/build-standard-debug.ps1
   Params:
-    -AutoVersion         [SwitchParameter] = $true
+    -AutoVersion         [SwitchParameter]
     -Abi                 [String] = ''
 ```
 
@@ -771,8 +771,10 @@ Build Standard Debug APK and Install on Device
 scripts/builders/build-standard-device.ps1
   Build Standard Debug APK and Install on Device
   Params:
-    -DeviceId         [String] = $env:ANDROID_SERIAL
-  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.; 124 - the build passed its wall-clock ceiling and was stopped (S3290).
+    -DeviceId            [String] = $env:ANDROID_SERIAL
+    -Full                [SwitchParameter]
+    -AutoVersion         [SwitchParameter]
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.; 3 - the app crashed at launch with the stale-Hilt ClassCastException even after a full rebuild; 124 - the build passed its wall-clock ceiling and was stopped (S3290).
 ```
 
 ### build-standard-release.ps1
@@ -879,6 +881,7 @@ scripts/builders/check-standard-fast.ps1
     -ProjectProperty         [String[]]
     -DeviceId                [String] = $env:ANDROID_SERIAL
     -BlockThrough            [SwitchParameter]
+    -AlsoAssemble            [SwitchParameter]
     -Quiet                   [SwitchParameter]
   Exit: 120 s foreground timeout, which would have killed it with no verdict at all. The place
 ```
@@ -916,6 +919,15 @@ scripts/builders/compile-vp9-classes.ps1
     -CompileSdk            [String] = 'android-36'
     -Media3Version         [String] = '1.2.1'
   Exit: 0 classes.jar and AndroidManifest.xml were written to the staging directory.; 1 the JDK, the android.jar or a required media3 artifact could not be located.; 2 the media3 VP9 sources could not be copied out of the WSL checkout.; 3 javac failed.; 4 the jar could not be written, or the staging copy back into WSL failed.
+```
+
+### device-build-mode.ps1
+Decides whether the standard device build must rebuild from scratch, and recognises the launch crash that an incremental build can leave behind.
+
+```
+scripts/builders/device-build-mode.ps1
+  Decides whether the standard device build must rebuild from scratch, and recognises the launch crash that an incremental build can leave behind.
+  (no param block)
 ```
 
 ### filtered-test-report.ps1
@@ -1062,6 +1074,18 @@ Run-Tests.ps1 (S2612) - contract suite for scripts/builders/build-queue-refusal.
 ```
 scripts/builders/build-queue-refusal.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2612) - contract suite for scripts/builders/build-queue-refusal.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\builders\device-build-mode.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S3510) - regression suite for scripts/builders/device-build-mode.ps1.
+
+```
+scripts/builders/device-build-mode.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S3510) - regression suite for scripts/builders/device-build-mode.ps1.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -2089,10 +2113,13 @@ scripts/doc-drift.tests/GradleParser.Tests.ps1
 ```
 
 ### Run-Tests.ps1
+Runs every *.Tests.ps1 suite of the doc-drift parsers and prints one RESULT line.
 
 ```
 scripts/doc-drift.tests/Run-Tests.ps1
+  Runs every *.Tests.ps1 suite of the doc-drift parsers and prints one RESULT line.
   (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed; each failure is printed after the RESULT line.
 ```
 
 ### Test-Helpers.ps1
@@ -4228,8 +4255,9 @@ scripts/quality/assert-script-cheatsheet-sync.ps1
   Params:
     -Gate             [SwitchParameter]
     -Quiet            [SwitchParameter]
+    -Repair           [SwitchParameter]
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-  Exit: 0 in sync.; 1 stale - regenerate with `pwsh -NoProfile -File scripts/utils/help.ps1 -Generate`.; 2 the gate itself cannot run (scripts/utils/help.ps1 missing).
+  Exit: 0 in sync, or regenerated under -Repair.; 1 stale - regenerate with `pwsh -NoProfile -File scripts/utils/help.ps1 -Generate`.; 2 the gate itself cannot run (scripts/utils/help.ps1 missing).
 ```
 
 ### assert-script-described.ps1
@@ -5047,13 +5075,15 @@ S2122: the run site for the repository's regression suites - one implementation,
 scripts/quality/run-script-suites.ps1
   S2122: the run site for the repository's regression suites - one implementation, three callers.
   Params:
-    -ChangedFiles         [String[]]
-    -Gate                 [SwitchParameter]
-    -Quiet                [SwitchParameter]
-    -ListOnly             [SwitchParameter]
-    -Root                 [String]
-    -Json                 [String]
-    -Help                 [SwitchParameter]
+    -ChangedFiles               [String[]]
+    -Gate                       [SwitchParameter]
+    -Quiet                      [SwitchParameter]
+    -ListOnly                   [SwitchParameter]
+    -Root                       [String]
+    -Json                       [String]
+    -NoCache                    [SwitchParameter]
+    -CacheMaxAgeMinutes         [Int32] = 120
+    -Help                       [SwitchParameter]
   Exit: 0 every selected suite passed, or none was selected, or -ListOnly.; 1 at least one suite failed.; 2 no suite failed, but at least one could not verify and -Gate was passed.
 ```
 
@@ -6090,12 +6120,30 @@ scripts/quality/lib/post-change-docs-corpus-gates.ps1
   (no param block)
 ```
 
+### post-change-document-registry.ps1
+post-change.ps1 library: the document-registry step.
+
+```
+scripts/quality/lib/post-change-document-registry.ps1
+  post-change.ps1 library: the document-registry step.
+  (no param block)
+```
+
 ### post-change-gate-argvs.ps1
 Gate argument vectors of the doc/config/wear-wire family for post-change.ps1, extracted to hold the facade under the 2000-line ceiling of CLAUDE.md Rule 2 (S3254).
 
 ```
 scripts/quality/lib/post-change-gate-argvs.ps1
   Gate argument vectors of the doc/config/wear-wire family for post-change.ps1, extracted to hold the facade under the 2000-line ceiling of CLAUDE.md Rule 2 (S3254).
+  (no param block)
+```
+
+### post-change-register-new-files.ps1
+post-change.ps1 library: register the untracked files of the changed set with git before the gates.
+
+```
+scripts/quality/lib/post-change-register-new-files.ps1
+  post-change.ps1 library: register the untracked files of the changed set with git before the gates.
   (no param block)
 ```
 
@@ -6734,6 +6782,21 @@ scripts/release/watch-play-vitals.tests/Run-Tests.ps1
 ```
 
 ## scripts\site
+
+### generate-landing-pages.ps1
+Generates the landing page in every site language from index.html plus _data/landing/<slug>.json.
+
+```
+scripts/site/generate-landing-pages.ps1
+  Generates the landing page in every site language from index.html plus _data/landing/<slug>.json.
+  Params:
+    -Root            [String]
+    -Extract         [SwitchParameter]
+    -Check           [SwitchParameter]
+    -Quiet           [SwitchParameter]
+    -Help            [SwitchParameter]
+  Exit: 0 - pages written, or (-Check) every page current.; 1 - (-Check) a page is stale or a data file carries a stale key.; 2 - cannot run: the root, index.html, _data/languages.yml or a data file is missing or invalid.
+```
 
 ### ping-indexnow.ps1
 Notify IndexNow-participating search engines that the site changed.
@@ -8417,6 +8480,20 @@ scripts/utils/mono-mode.ps1
     -DryRun         [SwitchParameter]
     -Last           [Int32] = 20  {range 1..400}
   Exit: 0 started - leftovers dropped (or listed under -DryRun).; 2 a store could not be read or cleared - the forwarder named on the line before failed.
+```
+
+### new-localized-page.ps1
+Scaffolds every missing document of the S1211 Localized Page Set for one site language.
+
+```
+scripts/utils/new-localized-page.ps1
+  Scaffolds every missing document of the S1211 Localized Page Set for one site language.
+  Params:
+    -Language  (req)  [String]
+    -Root             [String]
+    -DryRun           [SwitchParameter]
+    -Help             [SwitchParameter]
+  Exit: 0 - every missing file created (or listed under -DryRun).; 1 - the language is not in _data/languages.yml, or is English.; 2 - a target file already exists; nothing was written.; 3 - cannot run: the page set, the language list or a source document is missing.
 ```
 
 ### normalize-all-features-areas.ps1

@@ -180,8 +180,9 @@ object ScreenshotGestureActionCatalog {
             GestureActionGroup.LAUNCH,
             R.string.screenshot_gesture_action_open_gemini,
             R.string.gesture_action_explain_open_gemini,
-            R.drawable.ic_gesture_action_gemini,
+            R.drawable.ic_gesture_action_assistant,
         )
+
         ScreenshotGestureAction.CREATE_KEEP_NOTE -> GestureActionMeta(
             GestureActionGroup.LAUNCH,
             R.string.screenshot_gesture_action_create_keep_note,

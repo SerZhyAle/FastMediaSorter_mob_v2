@@ -525,6 +525,11 @@ android {
         
         // Dropbox App Key - User must provide a valid key
         manifestPlaceholders["dropboxAppKey"] = "dpy64e70kqobr6x"
+        // S3519: MSAL BrowserTabActivity paths = the signature hashes this build type can carry
+        // (Play app-signing key, upload key). The debug build type overrides both, so no two
+        // installed packages ever answer the same msauth redirect URI.
+        manifestPlaceholders["msalSignaturePathPrimary"] = "/FYsxzaNPAAPFK3rigkV29z+r0es="
+        manifestPlaceholders["msalSignaturePathSecondary"] = "/rk9B49kRMWq5OZ+1ZF76MAavAIg="
 
         // === STARTUP DEBUG INFO ===
         // Owner trigger - read from local.properties (excluded from VCS)
@@ -565,7 +570,7 @@ android {
     // Store-published flavors (photos, legacy) keep their applicationIdSuffix because the
     // Store binds the listing identity to it. lite has no cloud surface and is unaffected.
     // Any new signing keystore additionally requires:
-    //   (a) a new <intent-filter> path in src/main/AndroidManifest.xml BrowserTabActivity, and
+    //   (a) its hash in the build type's msalSignaturePath* manifest placeholder (S3519), and
     //   (b) a matching redirect URI registered in Azure (OneDrive), Google Cloud (Drive) and
     //       Dropbox app consoles.
     flavorDimensions += listOf("version")
@@ -1483,6 +1488,9 @@ android {
             // Prevents the "Security alert" triggered when debug + release are both installed
             // and both register for the same db-<appKey>:// URI scheme.
             manifestPlaceholders["dropboxAppKey"] = "u43ocp6pqvwaiu1"
+            // S3519: custom debug keystore (debugCustom) and the default Android debug keystore.
+            manifestPlaceholders["msalSignaturePathPrimary"] = "/iRMe/7fhUe3Plj8y2z5NIOOXsZ8="
+            manifestPlaceholders["msalSignaturePathSecondary"] = "/WdRIvjP3wXJ5jte7TPUOqtT59es="
         }
         release {
             isMinifyEnabled = true

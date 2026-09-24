@@ -471,6 +471,68 @@ if ($scriptArgs -is [hashtable] -and $scriptArgs.ContainsKey('Instance') -and
     }
 }
 
+# S3514: an extra argument naming a parameter the preset already binds made PowerShell refuse the
+# call ("specified more than once") without saying which target was meant, so `fu -Mode Unit` spent
+# a run to learn nothing. A repeat of the preset value is dropped; a different value is refused here,
+# naming the targets that already preset it.
+function Resolve-PresetRepeats {
+    param([hashtable]$Preset, $Extra, [string]$TargetPath, [hashtable]$Catalog)
+
+    $kept = New-Object System.Collections.Generic.List[object]
+    $tokens = @($Extra)
+    for ($i = 0; $i -lt $tokens.Count; $i++) {
+        $token = $tokens[$i]
+        $key = $null
+        $inline = $null
+        if ($token -is [string] -and $token -match '^-([A-Za-z][A-Za-z0-9]*)(?::(.*))?$') {
+            $key = @($Preset.Keys | Where-Object { $_ -ieq $Matches[1] }) | Select-Object -First 1
+            if ($Matches.ContainsKey(2)) { $inline = $Matches[2] }
+        }
+        if (-not $key) {
+            $kept.Add($token)
+            continue
+        }
+        # PowerShell hands `-SkipZip:$false` over as two elements - '-SkipZip:' in-process, a bare
+        # '-SkipZip' through `pwsh -File` - followed by a [bool].
+        $boolFollows = (($i + 1) -lt $tokens.Count) -and ($tokens[$i + 1] -is [bool])
+        if (($inline -eq '' -or ($null -eq $inline -and $boolFollows)) -and ($i + 1) -lt $tokens.Count) {
+            $i++
+            $inline = $tokens[$i]
+        }
+        $presetValue = $Preset[$key]
+        if ($presetValue -is [bool]) {
+            $asked = if ($null -eq $inline) { $true } elseif ($inline -is [bool]) { $inline } else { "$inline" -in @('$true', 'true') }
+            $same = ($asked -eq $presetValue)
+        }
+        else {
+            if ($null -eq $inline -and ($i + 1) -lt $tokens.Count) {
+                $i++
+                $inline = $tokens[$i]
+            }
+            $asked = "$inline"
+            $same = ($asked -ieq "$presetValue")
+        }
+        if ($same) {
+            Write-Host "Note: -$key $asked is already this target's preset - dropped the repeat." -ForegroundColor DarkGray
+            continue
+        }
+        $matching = @($Catalog.GetEnumerator() | Where-Object {
+                $other = $_.Value.Args
+                # An absent switch is the same as the switch set to false.
+                $otherValue = if ($other -is [hashtable] -and $other.ContainsKey($key)) { $other[$key] } elseif ($asked -is [bool]) { $false } else { $null }
+                $_.Value.Path -eq $TargetPath -and $null -ne $otherValue -and "$otherValue" -ieq "$asked"
+            } | ForEach-Object { $_.Key } | Sort-Object)
+        $hint = if ($matching.Count -gt 0) { "use .\a.ps1 $($matching -join ' / ') instead" } else { "call $TargetPath directly with -$key $asked" }
+        Write-Host "a.ps1: '$Command' presets -$key $presetValue, and -$key $asked contradicts it - $hint." -ForegroundColor Red
+        exit 2
+    }
+    return , $kept.ToArray()
+}
+
+if ($scriptArgs -is [hashtable] -and $scriptArgs.Count -gt 0 -and @($Rest).Count -gt 0) {
+    $Rest = Resolve-PresetRepeats -Preset $scriptArgs -Extra $Rest -TargetPath $scriptEntry.Path -Catalog $scripts
+}
+
 # Verify script exists
 if (-not (Test-Path $scriptPath)) {
     Write-Host "❌ Script not found: $scriptPath" -ForegroundColor Red

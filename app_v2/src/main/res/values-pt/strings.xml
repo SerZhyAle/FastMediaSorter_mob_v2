@@ -202,13 +202,13 @@
     <string name="backup_to_google_drive">Fazer cópia de segurança das configurações no Google Drive</string>
     <string name="restore_from_google_drive">Restaurar configurações do Google Drive</string>
     <string name="tooltip_backup_info_title">Informação da cópia de segurança</string>
-    <string name="tooltip_backup_info_message">A cópia de segurança inclui todas as definições e a lista de recursos. As credenciais não são guardadas - terá de voltar a autenticar os recursos de rede/nuvem depois de restaurar.</string>
+    <string name="tooltip_backup_info_message">A cópia de segurança inclui todas as definições, a lista de recursos, as palavras-passe de rede e as sessões guardadas em sites - não partilhe o ficheiro da cópia. As sessões na nuvem (Google Drive, OneDrive, Dropbox) não são incluídas - poderá ter de voltar a iniciar sessão nelas depois de restaurar.</string>
     <string name="backup_success">Cópia de segurança de %1$d recursos, %2$d favoritos e todas as configurações feita em %3$s</string>
     <string name="backup_failed">Não foi possível fazer a cópia de segurança das suas configurações e recursos. Tente novamente.</string>
     <string name="restore_confirm_title">Restaurar a partir da cópia de segurança?</string>
     <string name="restore_confirm_message">Cópia de segurança de: %1$s\nDispositivo: %2$s\nRecursos: %3$d\nFavoritos: %4$d\n\n• As definições serão SUBSTITUÍDAS\n• Os recursos serão ADICIONADOS (duplicados ignorados)\n• Os favoritos serão ADICIONADOS (duplicados ignorados)</string>
     <string name="restore_success">Configurações restauradas. Adicionados %1$d recursos (%2$d já existiam). Adicionados %3$d favoritos (%4$d já existiam).</string>
-    <string name="restore_needs_auth">Alguns recursos usam contas de rede ou nuvem. Será necessário reautenticá-los.</string>
+    <string name="restore_needs_auth">Alguns recursos restaurados usam contas na nuvem (Google Drive, OneDrive, Dropbox). Inicie sessão nelas novamente.</string>
     <string name="restore_no_backup">Nenhuma cópia de segurança encontrada para esta conta.</string>
     <string name="restore_failed">Não foi possível restaurar as suas configurações e recursos. Tente novamente.</string>
     <string name="backup_account">Conta: %s</string>

@@ -2211,15 +2211,39 @@ script.
   `AGENTS.md` section 9.1 where non-Claude runtimes read it.
 
 
-## THE DEVICE BUILD IS A FULL REBUILD, AND ITS SILENCE IS NORMAL (S3290)
+## THE DEVICE BUILD REBUILDS FROM SCRATCH ONLY WHEN IT MUST (S3510), AND ITS SILENCE IS NORMAL (S3290)
 
-`scripts/builders/build-standard-device.ps1` always passes `--no-build-cache --rerun-tasks
--Pkotlin.incremental=false` (S3094), because the APK it produces is installed on a phone seconds
-later and must not carry a Hilt component from one build paired with consumers from another. The
-price is that nothing is ever up to date: the run measured 2026-09-18 reported `BUILD SUCCESSFUL in
-4m 51s`, **49 actionable tasks, 49 executed**.
+`scripts/builders/build-standard-device.ps1` produces an APK installed on a phone seconds later, and
+that APK must not carry a Hilt component from one build paired with consumers from another (S3094).
+The flags that prevent it - `--no-build-cache --rerun-tasks -Pkotlin.incremental=false` - leave
+nothing up to date: the full run measured 2026-09-18 reported `BUILD SUCCESSFUL in 4m 51s`, **49
+actionable tasks, 49 executed**. The mismatch needs a changed Hilt graph, so since S3510 the flags
+are passed only when the graph or the build can have changed:
 
-Most of that wall clock is silence, and the silence is not a symptom:
+- The builder keeps a snapshot of the tree it last built successfully,
+  `app_v2/build/fms-device-build-state.json`, written after the build passes. It lives under
+  `app_v2/build/` so that `clean`, which invalidates every reused output, removes it too.
+- **Full** when there is no snapshot, when any build file changed (`*.gradle.kts` in the root,
+  `app_v2/` and `gradle/`, `gradle.properties`, `gradle/libs.versions.toml`,
+  `gradle/wrapper/gradle-wrapper.properties`), when a source file's Hilt signature changed, or when
+  `-Full` is passed. **Incremental** otherwise. The mode and its reasons are printed before Gradle
+  starts.
+- A Hilt signature is the hash of a file's package line, its Hilt-marker lines (`@AndroidEntryPoint`,
+  `@HiltViewModel`, `@Module`, `@InstallIn`, `@Provides`, `@Binds`, `@EntryPoint`, `@Inject`,
+  `@AssistedInject`, `@AssistedFactory`, `@HiltAndroidApp`, `@HiltWorker`) and its class
+  declaration lines, and it is empty for a file with no marker. A body edit leaves it unchanged; a
+  new entry point, a new binding, a moved package, a renamed class or a removed Hilt file does not.
+  The `test*`, `androidTest` and `benchmark` source sets never reach the APK and are not read.
+- Only files whose size or write time moved are read, so the snapshot costs about 0.3 s on a warm
+  run and about 3.5 s the first time (3116 sources, measured 2026-09-24).
+- What a signature cannot see - a constructor parameter on a following line - is covered after
+  launch: the builder polls logcat for up to 10 seconds, and the S3094 `ClassCastException`
+  (`_HiltComponents_` / `_GeneratedInjector`) after an incremental build drops the snapshot and
+  triggers one full rebuild and reinstall. The same crash after a full rebuild exits **3**: reused
+  outputs are ruled out, so the Hilt graph in the source is inconsistent.
+- Contract suite: `scripts/builders/device-build-mode.tests/Run-Tests.ps1`.
+
+Most of a full run's wall clock is silence, and the silence is not a symptom:
 
 - Gradle's plain console prints `> Task :x` when a task **starts** and nothing more until it ends.
 - `mergeExtDexStandardDebug`, `kspStandardDebugKotlin`, `compileStandardDebugKotlin` (1m 22s) and
@@ -2278,11 +2302,20 @@ remembered to update - the actual minute.
    multi-module release keeps one timestamp across two gradle invocations seconds apart - the
    orchestrator resolves the stamp once and passes it to both.
 2. The in-build stamp in `gradle/build-version-stamp.gradle.kts`, applied when **this invocation
-   packages an artifact** and no property was passed. It covers the paths no wrapper script reaches:
-   a raw `gradlew`, a CI job, the IDE's Run button.
+   packages an artifact**, no property was passed and `-Pfms.stableVersion=true` was not passed. It
+   covers the paths no wrapper script reaches: a raw `gradlew`, a CI job, the IDE's Run button.
 3. The checked-in `defaultAppVersionCode` / `defaultAppVersionName`. Nothing writes these any more,
-   so they are a deliberately non-releasable **sentinel**: an artifact carrying one is an artifact
-   nobody stamped.
+   so they are a deliberately non-releasable **sentinel**: an artifact carrying one was either
+   stamped by nobody or built as a stable debug build (below).
+
+**Stable debug builds (S3513).** A debug build for device testing keeps the sentinel on purpose:
+`d`, `db`, `bd`, `dq`, `cd`, `cdb`, `dc`, `build-standard-device.ps1`, `build-debug-device.ps1` and
+`build-standard-debug.ps1` pass `-Pfms.stableVersion=true` unless given `-AutoVersion`, and so do
+`nd` and `wd` on `-AutoVersion:$false`. A per-minute stamp is a per-minute configuration-cache key
+and a moved `BuildConfig`, so every device build reconfigured and recompiled every version reader.
+Among the standard phone builders a unique number is carried only by `dav` and the release builders,
+and a stable build is never judged by `assert-artifact-version-fresh.ps1`. Every install path uses `adb install -r -d`, so the older-looking
+sentinel installs over a stamped build.
 
 **Which invocations get a stamp.** Source 2 fires when a requested task name contains `assemble`,
 `bundle`, `install`, `package`, `connected` or `baselineprofile`, and not `uninstall`. `connected`

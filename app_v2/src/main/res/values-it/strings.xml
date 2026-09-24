@@ -202,13 +202,13 @@
     <string name="backup_to_google_drive">Backup delle impostazioni su Google Drive</string>
     <string name="restore_from_google_drive">Ripristina le impostazioni da Google Drive</string>
     <string name="tooltip_backup_info_title">Informazioni sul backup</string>
-    <string name="tooltip_backup_info_message">Il backup include tutte le impostazioni e l\'elenco delle risorse. Le credenziali non vengono incluse nel backup - dopo il ripristino dovrai autenticarti di nuovo sulle risorse di rete e cloud.</string>
+    <string name="tooltip_backup_info_message">Il backup include tutte le impostazioni, l\'elenco delle risorse, le password di rete e gli accessi salvati ai siti - non condividere il file di backup. Gli accessi al cloud (Google Drive, OneDrive, Dropbox) non sono inclusi - dopo il ripristino potresti dover accedere di nuovo.</string>
     <string name="backup_success">Eseguito il backup di %1$d risorse, %2$d preferiti e tutte le impostazioni su %3$s</string>
     <string name="backup_failed">Impossibile eseguire il backup delle impostazioni e delle risorse. Riprova.</string>
     <string name="restore_confirm_title">Ripristinare dal backup?</string>
     <string name="restore_confirm_message">Backup da: %1$s\nDispositivo: %2$s\nRisorse: %3$d\nPreferiti: %4$d\n\n• Le impostazioni verranno SOSTITUITE\n• Le risorse verranno AGGIUNTE (i duplicati vengono saltati)\n• I preferiti verranno AGGIUNTI (i duplicati vengono saltati)</string>
     <string name="restore_success">Ripristinate tutte le impostazioni. Aggiunte %1$d risorse (%2$d già presenti). Aggiunti %3$d preferiti (%4$d già presenti).</string>
-    <string name="restore_needs_auth">Alcune risorse usano account di rete o cloud. Dovrai autenticarle di nuovo.</string>
+    <string name="restore_needs_auth">Alcune risorse ripristinate usano account cloud (Google Drive, OneDrive, Dropbox). Accedi di nuovo a questi account.</string>
     <string name="restore_no_backup">Nessun backup trovato per questo account.</string>
     <string name="restore_failed">Impossibile ripristinare le impostazioni e le risorse. Riprova.</string>
     <string name="backup_account">Account: %s</string>

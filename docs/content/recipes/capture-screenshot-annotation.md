@@ -22,15 +22,15 @@ steps:
     id: turn-on-and-assign
     title: Turn on the gesture and give it a job
     text: |
-      Open **Settings**, the **Operations** tab, and turn on **Gesture overlay** - "Show up to 4 thin gesture strips at the screen edges, over other apps." Tap **Configure gestures** to open the edge-gesture window, pick a band and a direction, and set its **Gesture action** to one of the [screenshot](term:screenshot) options below. The bands, the directions, and everything else you can assign to them are covered in full in [Screen-edge gestures and the quick-access panel](page:capture.edge-gestures-and-quick-access-panel).
+      Open **Settings**, the **Management** tab, and turn on **Gesture overlay** - "Show up to 4 thin gesture strips at the screen edges, over other apps." Tap **Configure gestures** to open the edge-gesture window, pick a band and a direction, and set its **Gesture action** to one of the [screenshot](term:screenshot) options below. The bands, the directions, and everything else you can assign to them are covered in full in [Screen-edge gestures and the quick-access panel](page:capture.edge-gestures-and-quick-access-panel).
     image_bookmark:
       shot_id: capture.settings-gesture-overlay-toggle
       device_profile: phone
       screen_state: settings-operations-gesture-overlay
-      alt: The Operations tab in Settings with the Gesture overlay switch turned on and the Configure gestures button below it
-      caption: "Gesture overlay in the Operations tab."
+      alt: The Management tab in Settings with the Gesture overlay switch turned on and the Configure gestures button below it
+      caption: "Gesture overlay in the Management tab."
       title: "Screenshot: Gesture overlay setting"
-      desc: Settings, Operations tab, Gesture overlay section expanded.
+      desc: Settings, Management tab, Gesture overlay section expanded.
   - number: 2
     id: swipe-to-capture
     title: Swipe to capture

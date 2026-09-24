@@ -6,8 +6,8 @@
 .DESCRIPTION
     A suite lives at `<subject>.tests/Run-Tests.ps1` and is discovered by being placed - there is no
     registry to update (S2122). That makes placement the whole registration on the machine that
-    placed it, and nothing at all anywhere else: closing a ticket stages nothing (neither
-    post-change.ps1 nor close-and-log.ps1 runs `git add`), and `/git` assembles a commit by naming
+    placed it, and nothing at all anywhere else: closing a ticket used to stage nothing, and `/git`
+    assembles a commit by naming
     files inside groups built from the changed set, where a new untracked directory shows as the one
     folded line `?? dir/` and is lost. Once missed it stays missed - `git commit -a` stages edits to
     TRACKED files only - so the omission is irreversible by construction and accumulates. Measured
@@ -20,7 +20,10 @@
     ASKS ABOUT THE INDEX, NOT ABOUT HEAD (strategic ADR-1). "Present in the last commit" is
     unsatisfiable at the moment this runs: the suite is written by the very ticket now closing, and
     the owner commits later. The index is the minimal irreversible step - after `git add` the next
-    commit carries the file on its own and it can no longer be lost.
+    commit carries the file on its own and it can no longer be lost. Since S3515 post-change.ps1
+    registers every untracked file of its NAMED set with `git add --intent-to-add` before this gate
+    runs, so a runner the closing ticket wrote and named passes on the first run; a runner outside
+    the named set is still refused here.
 
     TAKES THE LIST FROM THE RUNNER, DOES NOT WALK THE TREE (strategic ADR-3). Its own walk would
     judge a set different from the one that executes, which is the divergence S1621 forbids between

@@ -22,15 +22,15 @@ steps:
     id: turn-on-the-strip
     title: Turn on the gesture strip
     text: |
-      Open **Settings**, the **Operations** tab, and turn on **Gesture overlay** - "Show up to 4 thin gesture strips at the screen edges, over other apps." Tap **Configure gestures** below it to open the edge-gesture window.
+      Open **Settings**, the **Management** tab, and turn on **Gesture overlay** - "Show up to 4 thin gesture strips at the screen edges, over other apps." Tap **Configure gestures** below it to open the edge-gesture window.
     image_bookmark:
       shot_id: capture.settings-gesture-overlay-toggle
       device_profile: phone
       screen_state: settings-operations-gesture-overlay
-      alt: The Operations tab in Settings with the Gesture overlay switch turned on and the Configure gestures button below it
-      caption: "Gesture overlay in the Operations tab."
+      alt: The Management tab in Settings with the Gesture overlay switch turned on and the Configure gestures button below it
+      caption: "Gesture overlay in the Management tab."
       title: "Screenshot: Gesture overlay setting"
-      desc: Settings, Operations tab, Gesture overlay section expanded.
+      desc: Settings, Management tab, Gesture overlay section expanded.
   - number: 2
     id: four-bands-and-a-map
     title: Four bands, three directions each

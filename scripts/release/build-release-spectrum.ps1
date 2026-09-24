@@ -70,15 +70,17 @@ if (-not $Flavors -or $Flavors.Count -eq 0) {
     $selected = $allFlavors
 } else {
     $picked = @()
-    foreach ($f in $Flavors) {
-        $t = "$f".Trim()
-        if ($t -eq '') { continue }
-        if ($t -in @('all', 'full', 'spectrum')) { $picked = $allFlavors; break }
-        $canon = $allFlavors | Where-Object { $_ -ieq $t }
-        if (-not $canon) {
-            throw "Unknown flavor '$t'. Valid: $($allFlavors -join ', '), or 'all'."
+    foreach ($raw in $Flavors) {
+        foreach ($f in "$raw".Split(',')) {
+            $t = "$f".Trim()
+            if ($t -eq '') { continue }
+            if ($t -in @('all', 'full', 'spectrum')) { $picked = $allFlavors; break }
+            $canon = $allFlavors | Where-Object { $_ -ieq $t }
+            if (-not $canon) {
+                throw "Unknown flavor '$t'. Valid: $($allFlavors -join ', '), or 'all'."
+            }
+            $picked += $canon
         }
-        $picked += $canon
     }
     # De-dup while preserving canonical order.
     $selected = $allFlavors | Where-Object { $_ -in $picked }
@@ -262,7 +264,10 @@ foreach ($flavor in $apkRoots.Keys) {
 # exact. More than one means something this script does not model, and it refuses rather than picking
 # by write time - guessing when the choice is real is what S1972 removed from the builders.
 if ($buildWear) {
-    $bundleDir = Join-Path $projectRoot "wear\build\outputs\bundle\$WearFlavor\release"
+    $bundleDir = Join-Path $projectRoot "wear\build\outputs\bundle\${WearFlavor}Release"
+    if (-not (Test-Path $bundleDir)) {
+        $bundleDir = Join-Path $projectRoot "wear\build\outputs\bundle\$WearFlavor\release"
+    }
     $wearAabs  = @(Get-ChildItem -Path $bundleDir -Filter *.aab -File -ErrorAction SilentlyContinue)
     if ($wearAabs.Count -eq 1) {
         Write-Host "  wear (aab) : $($wearAabs[0].FullName)" -ForegroundColor Green

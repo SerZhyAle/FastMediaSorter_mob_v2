@@ -69,7 +69,7 @@ So the next episode starts automatically when one ends - no need to pick the nex
 3. Set **Sort mode** → **Name (A→Z)** - this ensures episodes play in order (Episode 1, 2, 3..)
 4. Tap **Save**
 
-Then in **Settings → Operations** → enable **"Go to next file after playback"**.
+Then start the slideshow in the player (the **Slideshow** command) and turn on **Settings → Player → Play video/audio in slideshow to end** - each episode then plays to its end before the next one starts.
 
 > **Why sort by name?** Episode files are usually named `S01E01`, `S01E02`, etc. Sorting by name puts them in the correct episode order automatically.
 
@@ -133,5 +133,5 @@ Once installed, the video player works exactly the same:
 | Video stutters or buffers | Run a **Speed Test**: long-press the resource → Edit → Speed Test. If speed is below 5 Mbps, try switching your phone to the **5 GHz Wi-Fi band** (faster, but shorter range) |
 | Video won't play (format error) | In the player, tap **Options <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → switch **Decoder** from Hardware to Software (slower but more compatible) |
 | Episodes play in wrong order | Make sure Sort mode is set to **Name (A→Z)** in folder Edit settings |
-| Auto-next doesn't start | Check Settings → Operations → confirm "Go to next file after playback" is enabled |
-| VR headset can't install the APK | Go to headset Settings → Developer → enable "Allow installs from unknown sources" |
+| Auto-next doesn't start | Make sure the slideshow is running and Settings → Player → Play video/audio in slideshow to end is on |
+| VR headset can't install the APK | Open the headset's Developer settings and enable "Allow installs from unknown sources" |

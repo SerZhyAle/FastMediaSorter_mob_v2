@@ -855,9 +855,9 @@
     "uk": "Вмикає швидкий доступ до калькулятора всередині застосунку."
   },
   "rowEnableCopying": {
-    "en": "Allows files to be copied to Quick Sort destinations.",
-    "ru": "Разрешает копировать файлы в назначения быстрой сортировки.",
-    "uk": "Дозволяє копіювати файли до призначень швидкого сортування."
+    "en": "Shows Copy everywhere it appears - the bottom bar after a selection, the buttons and three-dots menu of a file, swipe actions, keyboard shortcuts and the player's copy panel. Off hides Copy in all of them.",
+    "ru": "Показывает «Копировать» везде, где оно есть: нижняя панель после выбора, кнопки и меню «три точки» у файла, свайпы, горячие клавиши и панель копирования в плеере. Выключено - «Копировать» скрыто везде.",
+    "uk": "Показує «Копіювати» всюди, де воно є: нижня панель після вибору, кнопки й меню «три крапки» файлу, свайпи, гарячі клавіші та панель копіювання в плеєрі. Вимкнено - «Копіювати» приховано всюди."
   },
   "rowEnableFavorites": {
     "en": "Enables the Favorites feature so you can mark and quickly access starred files.",
@@ -870,9 +870,9 @@
     "uk": "Показує «Зашифрувати FileDO» та «Розшифрувати FileDO» у меню операцій кожного файлу. Відкриття файлу .fd-sec працює незалежно від цього перемикача."
   },
   "rowEnableMoving": {
-    "en": "Allows files to be moved to Quick Sort destinations.",
-    "ru": "Разрешает перемещать файлы в назначения быстрой сортировки.",
-    "uk": "Дозволяє переміщати файли до призначень швидкого сортування."
+    "en": "Shows Move everywhere it appears - the bottom bar after a selection, the buttons and three-dots menu of a file, swipe actions, keyboard shortcuts and the player's move panel. Off hides Move in all of them.",
+    "ru": "Показывает «Переместить» везде, где оно есть: нижняя панель после выбора, кнопки и меню «три точки» у файла, свайпы, горячие клавиши и панель перемещения в плеере. Выключено - «Переместить» скрыто везде.",
+    "uk": "Показує «Перемістити» всюди, де воно є: нижня панель після вибору, кнопки й меню «три крапки» файлу, свайпи, гарячі клавіші та панель переміщення в плеєрі. Вимкнено - «Перемістити» приховано всюди."
   },
   "rowEnableNetworkMonitor": {
     "en": "Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself.",

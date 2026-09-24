@@ -62,6 +62,8 @@ if ($AutoVersion) {
     )
 }
 else {
+    # S3513: without the flag the in-build stamp still moved the version every minute.
+    $gradleArgs += "-Pfms.stableVersion=true"
     Write-Host "Mode: frozen-version build (-AutoVersion:`$false, config-cache reuse)" -ForegroundColor Yellow
 }
 

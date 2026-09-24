@@ -201,13 +201,13 @@
     <string name="backup_to_google_drive">将设置备份到 Google 云端硬盘</string>
     <string name="restore_from_google_drive">从 Google 云端硬盘恢复设置</string>
     <string name="tooltip_backup_info_title">备份信息</string>
-    <string name="tooltip_backup_info_message">备份包含所有设置和资源列表。凭据不会被备份 - 恢复后你需要重新验证网络/云端资源。</string>
+    <string name="tooltip_backup_info_message">备份包含所有设置、资源列表、网络密码和已保存的网站登录信息 - 请妥善保管备份文件。云端登录（Google Drive、OneDrive、Dropbox）不包含在内 - 恢复后你可能需要重新登录。</string>
     <string name="backup_success">已将 %1$d 个资源、%2$d 个收藏和所有设置备份到 %3$s</string>
     <string name="backup_failed">无法备份你的设置和资源。请重试。</string>
     <string name="restore_confirm_title">从备份恢复？</string>
     <string name="restore_confirm_message">备份来自：%1$s\n设备：%2$s\n资源：%3$d\n收藏：%4$d\n\n• 设置将被替换\n• 资源将被追加（跳过重复项）\n• 收藏将被追加（跳过重复项）</string>
     <string name="restore_success">已恢复所有设置。新增 %1$d 个资源（%2$d 个已存在）。新增 %3$d 个收藏（%4$d 个已存在）。</string>
-    <string name="restore_needs_auth">部分资源使用网络或云端账户。你需要重新验证它们。</string>
+    <string name="restore_needs_auth">部分已恢复的资源使用云端账户（Google Drive、OneDrive、Dropbox）。请重新登录这些账户。</string>
     <string name="restore_no_backup">未找到此账户的备份。</string>
     <string name="restore_failed">无法恢复你的设置和资源。请重试。</string>
     <string name="backup_account">账户：%s</string>

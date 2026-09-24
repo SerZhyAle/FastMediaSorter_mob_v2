@@ -24,6 +24,8 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
+import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.DrawingTargetPolicy
@@ -192,6 +194,12 @@ class ResourceOpsMenuManager @Inject constructor(
                 // S0806: reach the main app settings window without going back to the home window.
                 R.id.action_open_app_settings -> {
                     context.startActivity(Intent(context, SettingsActivity::class.java))
+                    true
+                }
+                R.id.action_help -> {
+                    (context as? androidx.fragment.app.FragmentActivity)?.let { activity ->
+                        DocsPageOpenManager.open(activity, UiSurface.BROWSE)
+                    }
                     true
                 }
                 // S0374: overflowed top-bar commands route to the same actions as their buttons.

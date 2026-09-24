@@ -26,22 +26,6 @@
       }
     },
     {
-      "id": "music-player",
-      "captions": {
-        "en-US": "Audio with live\nvisualizers",
-        "ru-RU": "Аудио с живыми\nвизуализаторами",
-        "uk-UA": "Аудіо з живими\nвізуалізаторами"
-      }
-    },
-    {
-      "id": "reader",
-      "captions": {
-        "en-US": "Read PDF & EPUB\nright here",
-        "ru-RU": "PDF и EPUB -\nпрямо здесь",
-        "uk-UA": "PDF та EPUB -\nпросто тут"
-      }
-    },
-    {
       "id": "streams",
       "captions": {
         "en-US": "Live TV & radio\nchannels built in",
@@ -50,19 +34,35 @@
       }
     },
     {
+      "id": "apps",
+      "captions": {
+        "en-US": "Launch any app\nfrom one list",
+        "ru-RU": "Любое приложение -\nиз одного списка",
+        "uk-UA": "Будь-який застосунок -\nз одного списку"
+      }
+    },
+    {
+      "id": "stock-apps",
+      "captions": {
+        "en-US": "Calculator, stopwatch\nand more built in",
+        "ru-RU": "Калькулятор, секундомер\nи другое - внутри",
+        "uk-UA": "Калькулятор, секундомір\nта інше - всередині"
+      }
+    },
+    {
+      "id": "monitor",
+      "captions": {
+        "en-US": "Watch every network\nconnection live",
+        "ru-RU": "Все сетевые\nсоединения вживую",
+        "uk-UA": "Усі мережеві\nз'єднання наживо"
+      }
+    },
+    {
       "id": "browse",
       "captions": {
         "en-US": "A full file manager\nfor every file",
         "ru-RU": "Полный файловый\nменеджер",
         "uk-UA": "Повний файловий\nменеджер"
-      }
-    },
-    {
-      "id": "cloud-connect",
-      "captions": {
-        "en-US": "Your NAS and cloud,\nside by side",
-        "ru-RU": "NAS и облако -\nрядом друг с другом",
-        "uk-UA": "NAS і хмара -\nпоруч одне з одним"
       }
     }
   ]

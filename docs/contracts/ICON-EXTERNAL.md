@@ -24,6 +24,8 @@
 
 ## Where it lives here
 
+- Third-party brand assets and attributions (rule 1): `docs/legal/THIRD_PARTY_BRAND_ASSETS.md`.
 - Surface inventory for rule 4: `docs/icons/external-picture-surfaces.md`.
-- Other apps' icons (rule 2): `ShareTargetIconResolver` in `core/share/`.
+- Other apps' icons (rule 2): `ShareTargetIconResolver` in `core/share/`, launcher gadgets in `ui/launcher/gadget/`.
 - Stream favicons (rule 3): the favicon atlas of `STREAM-BANK`.
+

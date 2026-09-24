@@ -85,6 +85,10 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                 toggleCameraInternal()
                 return START_STICKY
             }
+            ACTION_SWITCH_MODE -> {
+                switchModeInternal(intent)
+                return START_STICKY
+            }
         }
 
         val modeName = intent?.getStringExtra(EXTRA_MODE)
@@ -399,7 +403,35 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         _state.value = liveState.copy(cameraEnabled = cameraOn)
     }
 
-    private fun stopBroadcast() {
+    /**
+     * Re-opens the session in the other video mode while the service stays foreground. The previous
+     * `Live` stays published until the new one replaces it, so the control screen never falls back to
+     * its idle layout and its pre-start preview never grabs the camera the session is re-opening.
+     * A null [cameraServer] means a session is still opening, and a second re-open would race it.
+     */
+    private fun switchModeInternal(intent: Intent) {
+        val mode = BroadcastMode.entries.firstOrNull { it.name == intent.getStringExtra(EXTRA_MODE) }
+        val switchable = mode != null && mode != BroadcastMode.AUDIO_ONLY && mode != currentMode &&
+            _state.value is BroadcastState.Live && cameraServer != null
+        if (!switchable) return
+        Timber.d("S3518: video service re-opens session in the other video mode")
+        releaseCamera()
+        _listenerCount.value = 0
+        currentMode = checkNotNull(mode)
+        pendingLensId = intent.getStringExtra(EXTRA_LENS_ID)
+        // The foreground types follow the mode: VIDEO_AUDIO needs the microphone type VIDEO_ONLY may lack.
+        if (!enterForeground()) {
+            _state.value = BroadcastState.Failed(
+                BroadcastFailure.MICROPHONE_PERMISSION,
+                "Microphone permission missing for the new broadcast mode"
+            )
+            leaveForegroundAndStop()
+            return
+        }
+        startBroadcast()
+    }
+
+    private fun releaseCamera() {
         isStreaming.set(false)
         previewProvider.detachCamera()
         val camera = cameraServer
@@ -413,6 +445,10 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         }
         cameraServer = null
         activePhysicalId = null
+    }
+
+    private fun stopBroadcast() {
+        releaseCamera()
         _state.value = BroadcastState.Idle
         _listenerCount.value = 0
     }
@@ -514,6 +550,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         const val ACTION_TOGGLE_MIC = "com.sza.fastmediasorter.broadcast.action.TOGGLE_MIC"
         const val ACTION_SELECT_LENS = "com.sza.fastmediasorter.broadcast.action.SELECT_LENS"
         const val ACTION_TOGGLE_CAMERA = "com.sza.fastmediasorter.broadcast.action.TOGGLE_CAMERA"
+        const val ACTION_SWITCH_MODE = "com.sza.fastmediasorter.broadcast.action.SWITCH_MODE"
 
         private const val EXTRA_MODE = "mode"
         private const val EXTRA_LENS_ID = "lens_id"
@@ -573,6 +610,16 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         fun selectLens(context: Context, lensId: String) {
             val intent = Intent(context, VideoBroadcastService::class.java).apply {
                 action = ACTION_SELECT_LENS
+                putExtra(EXTRA_LENS_ID, lensId)
+            }
+            context.startService(intent)
+        }
+
+        /** Only between the two video modes of a live session; the service ignores anything else. */
+        fun switchMode(context: Context, mode: BroadcastMode, lensId: String?) {
+            val intent = Intent(context, VideoBroadcastService::class.java).apply {
+                action = ACTION_SWITCH_MODE
+                putExtra(EXTRA_MODE, mode.name)
                 putExtra(EXTRA_LENS_ID, lensId)
             }
             context.startService(intent)

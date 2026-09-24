@@ -136,7 +136,7 @@ class ApplyBackupPayloadUseCase @Inject constructor(
                         } else {
                             resourceRepository.addResource(candidate)
                             resourcesAdded++
-                            if (candidate.type != ResourceType.LOCAL) resourcesNeedingAuth++
+                            if (candidate.type == ResourceType.CLOUD) resourcesNeedingAuth++
                         }
                     } catch (e: Exception) {
                         e.rethrowIfCancellation()

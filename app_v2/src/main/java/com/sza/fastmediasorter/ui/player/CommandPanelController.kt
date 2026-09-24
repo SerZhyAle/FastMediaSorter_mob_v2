@@ -6,25 +6,23 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
-import android.net.Uri
 import android.view.View
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
-import androidx.documentfile.provider.DocumentFile
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.cast.CastController
-import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
-import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.popupIconColor
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
 import com.sza.fastmediasorter.ui.player.helpers.LanguageBadgeDrawable
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBigButtonsModeManager
@@ -36,7 +34,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
 import kotlin.math.roundToInt
 
 // S0238: VR-entry button visibility - open for video and pixel-media (image, gif).
@@ -72,6 +69,7 @@ class CommandPanelController(
         fun onRenameClicked()
         fun onDeleteClicked()
         fun onSendToClicked() // S0459: unified «Send to..» menu - bar press / big-buttons overflow → bottom sheet
+
         /**
          * S0459 ADR-2: build the «Send to..» receivers as a native nested submenu in the overflow
          * PopupMenu, at [order] (the command's priority). No-op when there is no current file.
@@ -118,6 +116,7 @@ class CommandPanelController(
         fun onCompressCopyClicked()
         fun onDrawOverlayClicked()
         fun onRotationToggleClicked()
+
         // S0995: manual 90° visual frame rotation (image/video); distinct from the screen sensor toggle.
         fun onRotateContent90Clicked()
 
@@ -138,6 +137,7 @@ class CommandPanelController(
     private var latestOverflowCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
     private var latestBigButtonsBarCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
     private var lastKnownFavoriteVisible = true
+
     // S0028: cached from settings (separate-window allow flag)
     private var lastKnownAllowSeparateWindow: Boolean = false
 
@@ -277,7 +277,6 @@ class CommandPanelController(
         safeViews.btnRotationToggleCmd.setOnClickListener {
             callback.onRotationToggleClicked()
         }
-
     }
 
     /** S0293: re-run command availability after the host Activity entered or left a multi-window / desktop-mode container. The OR-composition inside [updateCommandAvailability] reads the runtime capability flag on every pass, so calling this from [Activity.onMultiWindowModeChanged] (and [Activity.onConfigurationChanged]) brings inline buttons into sync without a recreate. Safe before the first state arrives (`cachedState == null`): no-op. */
@@ -377,7 +376,6 @@ class CommandPanelController(
         val moveGlobalVisible = safeViews.moveToPanel.getGlobalVisibleRect(moveGlobalRect)
         val copyLocalVisible = safeViews.copyToPanel.getLocalVisibleRect(copyLocalRect)
         val moveLocalVisible = safeViews.moveToPanel.getLocalVisibleRect(moveLocalRect)
-
     }
 
     /** Update slideshow button visual state (color/alpha) based on active state */
@@ -410,7 +408,10 @@ class CommandPanelController(
             }
 
             if (baseline <= 0) {
-                Timber.w("CommandPanelController.applySmallControlsIfNeeded: Skipping button ${button.id} with baseline=$baseline")
+                Timber.w(
+                    "CommandPanelController.applySmallControlsIfNeeded: " +
+                        "Skipping button ${button.id} with baseline=$baseline"
+                )
                 return@forEach
             }
 
@@ -421,7 +422,12 @@ class CommandPanelController(
                 if (params is android.view.ViewGroup.MarginLayoutParams) {
                     originalMargins.putIfAbsent(
                         button.id,
-                        android.graphics.Rect(params.leftMargin, params.topMargin, params.rightMargin, params.bottomMargin)
+                        android.graphics.Rect(
+                            params.leftMargin,
+                            params.topMargin,
+                            params.rightMargin,
+                            params.bottomMargin
+                        )
                     )
 
                     params.setMargins(
@@ -460,7 +466,12 @@ class CommandPanelController(
         containers.forEach { container ->
             originalContainerPaddings.putIfAbsent(
                 container.id,
-                android.graphics.Rect(container.paddingLeft, container.paddingTop, container.paddingRight, container.paddingBottom)
+                android.graphics.Rect(
+                    container.paddingLeft,
+                    container.paddingTop,
+                    container.paddingRight,
+                    container.paddingBottom
+                )
             )
 
             container.setPadding(
@@ -679,7 +690,8 @@ class CommandPanelController(
             // S0995: a11y description distinct from the short title (states the direction/magnitude).
             if (cmd == CommandPanelLayoutPlanner.PlayerCommand.ROTATE_CONTENT) {
                 androidx.core.view.MenuItemCompat.setContentDescription(
-                    item, context.getString(R.string.rotate_content_90_desc)
+                    item,
+                    context.getString(R.string.rotate_content_90_desc)
                 )
             }
             if (cmd == CommandPanelLayoutPlanner.PlayerCommand.ROTATE_CONTENT_CCW) {
@@ -701,7 +713,12 @@ class CommandPanelController(
         // editing group built above - so the loop must keep handling any number, not just one.
         for (i in 0 until popup.menu.size()) {
             val mi = popup.menu.getItem(i)
-            if (mi.hasSubMenu()) mi.icon?.let { it.setTint(iconColor); mi.icon = it }
+            if (mi.hasSubMenu()) {
+                mi.icon?.let {
+                    it.setTint(iconColor)
+                    mi.icon = it
+                }
+            }
         }
 
         popup.setOnMenuItemClickListener { menuItem ->
@@ -781,6 +798,11 @@ class CommandPanelController(
             R.id.menu_rotation_toggle -> callback.onRotationToggleClicked()
             R.id.menu_rotate_content -> callback.onRotateContent90Clicked()
             R.id.menu_rotate_content_ccw -> callback.onRotateContentCounter90Clicked()
+            R.id.menu_help -> {
+                (binding.root.context as? androidx.fragment.app.FragmentActivity)?.let { activity ->
+                    DocsPageOpenManager.open(activity, UiSurface.PLAYER)
+                }
+            }
         }
     }
 
@@ -927,8 +949,11 @@ class CommandPanelController(
         safeViews.btnRotationToggleCmd.setImageResource(iconRes)
         safeViews.btnRotationToggleCmd.contentDescription =
             binding.root.context.getString(
-                if (sensorEnabled) R.string.rotation_toggle_sensor_on_desc
-                else R.string.rotation_toggle_sensor_off_desc
+                if (sensorEnabled) {
+                    R.string.rotation_toggle_sensor_on_desc
+                } else {
+                    R.string.rotation_toggle_sensor_off_desc
+                }
             )
     }
 
@@ -977,8 +1002,11 @@ class CommandPanelController(
 
         CommandPanelLayoutPlanner.PlayerCommand.entries.forEach { command ->
             barViewForCommand(command)?.contentDescription = context.getString(
-                if (command == CommandPanelLayoutPlanner.PlayerCommand.EDIT) editLabelRes
-                else command.titleResId
+                if (command == CommandPanelLayoutPlanner.PlayerCommand.EDIT) {
+                    editLabelRes
+                } else {
+                    command.titleResId
+                }
             )
         }
     }

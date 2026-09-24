@@ -175,12 +175,12 @@ class PlayerFileOperationQueue(
 
                 when (result) {
                     is FileOperationResult.Success -> {
-                        _events.emit(PlayerFileOperationEvent.Succeeded(op, result.processedCount))
+                        _events.emit(PlayerFileOperationEvent.Succeeded(op, result.processedCount, result.skippedCount))
                         return
                     }
 
                     is FileOperationResult.PartialSuccess -> {
-                        _events.emit(PlayerFileOperationEvent.Succeeded(op, result.processedCount))
+                        _events.emit(PlayerFileOperationEvent.Succeeded(op, result.processedCount, result.skippedCount))
                         return
                     }
 

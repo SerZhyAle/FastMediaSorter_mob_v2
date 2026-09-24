@@ -1,9 +1,8 @@
 param(
-    # A packaged debug APK is a distribution artifact - it is copied to DOWNLOADS and installed
-    # by hand - so it carries its own build timestamp by default (S1873). Frozen versions belong
-    # to the compile-only fast checks (fk/fc/fr/fw) that produce no APK. Pass -AutoVersion:$false
-    # to opt back in when configuration-cache reuse matters more than a truthful version.
-    [switch]$AutoVersion = $true,
+    # S3513: a debug build for device testing keeps the checked-in version, passed as
+    # -Pfms.stableVersion=true, so its configuration-cache entry and its BuildConfig survive the next
+    # run. Pass -AutoVersion for a build-time stamp; only `dav` and release carry one by default.
+    [switch]$AutoVersion,
 
     # S1972: which slice of the split debug build to report and copy. Empty means "ask the connected
     # device", which is the right answer whenever exactly one is attached; name it explicitly when
@@ -49,6 +48,9 @@ if ($AutoVersion) {
         "-Pfms.versionCode=$versionCodeInt",
         "-Pfms.versionName=$versionName"
     )
+}
+else {
+    $gradleArgs += "-Pfms.stableVersion=true"
 }
 & $gradlew @gradleArgs
 

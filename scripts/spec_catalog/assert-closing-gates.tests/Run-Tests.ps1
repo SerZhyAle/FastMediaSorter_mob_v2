@@ -179,6 +179,60 @@ if (-not $exitFixPresent) {
     Assert-That 'E3 an exit from another status runs nothing' ($outcomeE3 -eq 'silent') "outcome=$outcomeE3"
 }
 
+Write-Host "F: a closing transition relocates small temp/ evidence before the gate (S3515)" -ForegroundColor Yellow
+# Hermetic: a throwaway project root (SZA_PROJECT_ROOT) holding one catalog record and its spec, so
+# the repair that REWRITES a spec never touches a live one. The relocator and the gate run in a child
+# process each, exactly as Assert-ClosingGates runs them.
+# Beside the resolved _lib.ps1, not through Get-SzaHarnessScript: that throws on a missing script,
+# and a missing script is the undeployed state this case must SKIP on.
+$relocator = Join-Path (Split-Path -Parent $libPath) 'relocate-temp-evidence.ps1'
+$relocatorWired = (Select-String -LiteralPath $libPath -Pattern 'relocate-temp-evidence.ps1' -SimpleMatch -Quiet) -eq $true
+if (-not $relocator -or -not (Test-Path -LiteralPath $relocator) -or -not $relocatorWired) {
+    Skip-Case 'F1' 'relocate-temp-evidence.ps1 not in the resolved harness - the canon change is not deployed yet'
+    Skip-Case 'F2' 'relocate-temp-evidence.ps1 not in the resolved harness - the canon change is not deployed yet'
+    Skip-Case 'F3' 'relocate-temp-evidence.ps1 not in the resolved harness - the canon change is not deployed yet'
+} else {
+    $fx = Join-Path $repoRoot ('temp/scratch/closing-gates-relocate-' + [guid]::NewGuid().ToString('N'))
+    $gate = (Get-SzaHarnessScript 'spec_catalog/check-evidence-durable.ps1')
+    $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
+    $inheritedRoot = $env:SZA_PROJECT_ROOT
+    try {
+        New-Item -ItemType Directory -Force -Path (Join-Path $fx 'PLAN'), (Join-Path $fx 'temp/S9001') | Out-Null
+        Copy-Item -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Destination $fx
+        Set-Content -LiteralPath (Join-Path $fx 'PLAN/spec-catalog.jsonl') -Encoding utf8NoBOM `
+            -Value '{"id":"S9001","name":"fixture","file":"PLAN/S9001_fixture.md","status":"In Progress"}'
+        Set-Content -LiteralPath (Join-Path $fx 'temp/S9001/small.log') -Value 'verdict: PASS' -Encoding utf8NoBOM
+        Set-Content -LiteralPath (Join-Path $fx 'temp/S9001/big.log') -Value ('x' * 70000) -Encoding utf8NoBOM
+        $specFile = Join-Path $fx 'PLAN/S9001_fixture.md'
+        Set-Content -LiteralPath $specFile -Encoding utf8NoBOM -Value @(
+            '# S9001', '', '## 0. Captured', '', 'raw note temp/S9001/small.log', '',
+            '## Last Audit', '', '- PASS - log `temp/S9001/small.log`.', '- PASS - big `temp/S9001/big.log`.')
+        $env:SZA_PROJECT_ROOT = $fx
+        & $pwshExe -NoProfile -File $relocator -Id S9001 *> $null
+        $gateFirst = @(& $pwshExe -NoProfile -File $gate -Id S9001 2>&1 | ForEach-Object { [string]$_ })
+        $gateFirstExit = $LASTEXITCODE
+        $specText = Get-Content -LiteralPath $specFile -Raw
+        Assert-That 'F1 a small cited file is copied into attachments/ and the citation rewritten' `
+            ((Test-Path -LiteralPath (Join-Path $fx 'PLAN/S9001_fixture/attachments/small.log')) -and
+            $specText -match '`PLAN/S9001_fixture/attachments/small\.log`') "spec: $specText"
+        Assert-That 'F2 section 0 and an oversized file are left, and the gate still refuses the big one' `
+            ($specText -match 'raw note temp/S9001/small\.log' -and $gateFirstExit -eq 1 -and
+            ($gateFirst -join "`n") -match 'big\.log' -and ($gateFirst -join "`n") -notmatch 'small\.log') `
+            "gate exit $gateFirstExit; $($gateFirst -join ' | ')"
+        Set-Content -LiteralPath $specFile -Encoding utf8NoBOM -Value (($specText -split '\r?\n') |
+                Where-Object { $_ -notmatch 'big\.log' })
+        & $pwshExe -NoProfile -File $relocator -Id S9001 *> $null
+        & $pwshExe -NoProfile -File $gate -Id S9001 *> $null
+        $gateSecondExit = $LASTEXITCODE
+        Assert-That 'F3 a second run reuses the identical attachment and the gate passes' `
+            ($gateSecondExit -eq 0 -and @(Get-ChildItem -LiteralPath (Join-Path $fx 'PLAN/S9001_fixture/attachments')).Count -eq 1) `
+            "gate exit $gateSecondExit"
+    } finally {
+        $env:SZA_PROJECT_ROOT = $inheritedRoot
+        Remove-Item -LiteralPath $fx -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 Write-Host ""
 $summary = "assert-closing-gates tests: $script:pass passed, $script:skip skipped"
 if ($script:fail -eq 0) {

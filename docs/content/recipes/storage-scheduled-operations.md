@@ -100,7 +100,7 @@ steps:
 outcome: |
   Your photos land on the home computer every night without you lifting a finger, the downloads folder stays tidy, and the run history tells you in the morning what was done.
 tips:
-  - "**The main switch follows the list.** On the Operations settings screen, the switch for scheduled operations turns off by itself when the list is empty and on again as soon as the list has an operation."
+  - "**The main switch follows the list.** On the **Scheduled file operations** screen, the switch for scheduled operations turns off by itself when the list is empty and on again as soon as the list has an operation."
   - "**Start with Copy.** Try a new job as a copy for a day or two; switch it to Move once you trust it."
   - "**A network destination must be reachable** at the scheduled time - for a home computer, choose an hour when it is on."
   - "**Not sure it will work?** Tap **Run now** once and look at the Log."

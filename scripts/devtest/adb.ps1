@@ -57,7 +57,12 @@
                          bounds: -Label <substring> [-Exact] [-Index N]. Tapping a label instead of
                          a remembered coordinate is what survives a list that scrolled (S1847).
                          Right where there is no id to aim at - most of Compose on the watch
-    clip-check           report content that leaves the physical display shape. The shape is READ
+    set-text             replace the value of an input field: -ResourceId <short-or-full> -Text <s>
+                         [-Exact] [-Index N]. Taps the node, erases what it holds whatever the
+                         cursor position, types -Text, then re-reads the tree and compares the
+                         node's text with -Text (exit 14 on a mismatch). ASCII only - `input text`
+                         cannot type anything else, so a non-ASCII value is refused before the tap
+    clip-check          report content that leaves the physical display shape. The shape is READ
                          FROM THE DEVICE (mRoundedCorners), so a round watch and a rounded-corner
                          phone use one rule and neither is hardcoded. -Strict also fails on CLIPPED
     rotary               turn the watch bezel: -Axis <double> [-Repeat N]. The flow language has no
@@ -182,6 +187,9 @@
    13 - `state-check`: the device still differs from the journal - with -NoRestore because nothing
         was put back, without it because a restore ran and the value did not come back. The journal
         is kept either way, so the next state-begin tries again
+   14 - `set-text`: the value was typed but the field did not read it back - the node shows other
+        text, or it left the screen. Distinct from 8 because the keys WERE sent: the field may now
+        hold a partial or mangled value and must be re-checked before the next step relies on it
 
   Human output: one verdict line per verb (plus the data the verb produces).
   Machine output (with -Json): a single JSON object on stdout, all human noise suppressed.
@@ -258,6 +266,10 @@
   neighbour - the failure this verb exists to prevent.
 
 .EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 set-text -ResourceId etPath -Text "/storage/emulated/0/Movies"
+  Replace a prefilled path field and confirm the field now holds exactly that value.
+
+.EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 clip-check -OutDir temp/S1678
   Check the current screen against the display shape and keep the tree beside the ticket evidence.
 #>
@@ -302,13 +314,13 @@ param(
     # text-only search finds nothing on exactly the screens that need this verb most.
     [string]$Label,
     [switch]$Exact,
-    # tap-id: the resource-id to match. Accepts the short name a layout writes (`rowExport`) or the
+    # tap-id / set-text: the resource-id to match. Accepts the short name a layout writes (`rowExport`) or the
     # full package-qualified value; unlike a label it does not change with the app locale (S1879).
     [string]$ResourceId,
     # uidump: also list the nodes named ONLY by a resource-id. Off by default - a real screen carries
     # dozens of them, and burying the labels is how this verb stops being readable.
     [switch]$Ids,
-    # tap-label / tap-id: which match to take when the target is not unique (1-based, document order).
+    # tap-label / tap-id / set-text: which match to take when the target is not unique (1-based, document order).
     [int]$Index = 1,
     # Destination directory for the file-producing verbs (shot, uidump, clip-check, prefs, pull).
     # Default stays temp/scratch/; point it at temp/Sxxxx/ to file the artifact with its ticket.
@@ -506,6 +518,32 @@ function Invoke-Adb {
         Fail 7 "adb $($AdbArgs -join ' ') failed (exit $LASTEXITCODE): $($out -join ' ')"
     }
     return $out
+}
+
+# A device can list as `device` while its adbd never answers (measured 2026-09-24 on an emulator:
+# every `adb -s <id> shell` call hung), and a plain `& $adb` then blocks the caller forever. This
+# form runs adb as a child process, waits at most $TimeoutMs, kills it on expiry and returns $null
+# so the caller can report the device instead of hanging on it. Stdout is read asynchronously: a
+# synchronous read after WaitForExit deadlocks once the output fills the pipe buffer.
+function Invoke-AdbBounded {
+    param([string]$Id, [string[]]$AdbArgs, [int]$TimeoutMs)
+    $psi = [System.Diagnostics.ProcessStartInfo]::new($adb)
+    foreach ($a in @('-s', $Id) + $AdbArgs) { $psi.ArgumentList.Add($a) }
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $proc = [System.Diagnostics.Process]::Start($psi)
+    $stdout = $proc.StandardOutput.ReadToEndAsync()
+    $null = $proc.StandardError.ReadToEndAsync()
+    if (-not $proc.WaitForExit($TimeoutMs)) {
+        try { $proc.Kill($true) } catch [System.InvalidOperationException] { <# exited between the timeout and the kill #> }
+        return $null
+    }
+    # An adb server auto-started by this call inherits the pipe and keeps it open (S1633), so the
+    # read is bounded too; the client has already exited, and what it printed is in the buffer.
+    if (-not $stdout.Wait(2000)) { return '' }
+    return $stdout.Result
 }
 
 # S1506: a capture taken from a FLAG_SECURE window comes back black (or zero-byte) by design.
@@ -915,7 +953,7 @@ function Get-DisplayShape {
 switch ($Verb.ToLowerInvariant()) {
 
     'help' {
-        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,uidump,clip-check,log,tap,tap-id,tap-label,swipe,text,key,prefs,pull,push,shell,font-scale,state-begin,state-check' } }
+        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,uidump,clip-check,log,tap,tap-id,tap-label,set-text,swipe,text,key,prefs,pull,push,shell,font-scale,state-begin,state-check' } }
         Write-Host "adb.ps1 - ad-hoc device swiss-army" -ForegroundColor Cyan
         Write-Host "Usage: pwsh -NoProfile -File scripts/devtest/adb.ps1 <verb> [options]" -ForegroundColor Gray
         Write-Host ""
@@ -933,6 +971,7 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  uidump     dump the UI node tree: labels, ids, bounds, tap points (-Grep regex, -Ids)" -ForegroundColor White
         Write-Host "  tap-id     tap a node by its resource-id: -ResourceId <s> [-Exact] [-Index N] - preferred" -ForegroundColor White
         Write-Host "  tap-label  tap a node by its text/content-desc: -Label <s> [-Exact] [-Index N]" -ForegroundColor White
+        Write-Host "  set-text   replace a field's value by resource-id and read it back: -ResourceId <s> -Text <s>" -ForegroundColor White
         Write-Host "  clip-check report content leaving the display shape (read from the device); -Strict fails on CLIPPED" -ForegroundColor White
         Write-Host "  font-scale read the system font scale, or set it with -Scale <n> (1.0 = default)" -ForegroundColor White
         Write-Host "  state-begin  open a device run: restore leftovers, snapshot device + app DataStore state" -ForegroundColor White
@@ -954,17 +993,31 @@ switch ($Verb.ToLowerInvariant()) {
         $devs = @(Get-OnlineDevices)
         if ($devs.Count -eq 0) { Fail 2 "no online device" }
         $rows = foreach ($id in $devs) {
+            # One shell round-trip per device, bounded: an unresponsive device is listed as such
+            # and the verb still reports the others (S3486).
+            $probe = Invoke-AdbBounded -Id $id -TimeoutMs 10000 -AdbArgs @('shell',
+                'getprop ro.product.model; getprop ro.build.version.release; getprop ro.build.version.sdk')
+            if ($null -eq $probe) {
+                [pscustomobject]@{ id = $id; state = 'unresponsive'; model = ''; android = ''; sdk = '' }
+                continue
+            }
             # NB: avoid a local named $release - it case-collides with the [switch]$Release param.
-            $model   = (& $adb -s $id shell getprop ro.product.model 2>$null | Out-String).Trim()
-            $rel     = (& $adb -s $id shell getprop ro.build.version.release 2>$null | Out-String).Trim()
-            $sdk     = (& $adb -s $id shell getprop ro.build.version.sdk 2>$null | Out-String).Trim()
-            [pscustomobject]@{ id = $id; model = $model; android = $rel; sdk = $sdk }
+            $props = @($probe -split "`r?`n") + @('', '', '')
+            [pscustomobject]@{
+                id = $id; state = 'ok'; model = $props[0].Trim(); android = $props[1].Trim(); sdk = $props[2].Trim()
+            }
         }
         if ($Json) { Emit-Ok @($rows) }
         foreach ($r in $rows) {
+            if ($r.state -eq 'unresponsive') {
+                Write-Output ("  {0,-20} UNRESPONSIVE - listed as 'device' but adb shell did not answer in 10 s" -f $r.id)
+                continue
+            }
             Write-Output ("  {0,-20} {1}  Android {2} (SDK {3})" -f $r.id, $r.model, $r.android, $r.sdk)
         }
-        Write-Host "OK $($rows.Count) device(s) online" -ForegroundColor Cyan
+        $stuck = @($rows | Where-Object { $_.state -eq 'unresponsive' }).Count
+        $suffix = if ($stuck -gt 0) { ", $stuck unresponsive" } else { '' }
+        Write-Host "OK $($rows.Count) device(s) online$suffix" -ForegroundColor Cyan
         exit 0
     }
 
@@ -1408,6 +1461,57 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host ("TAP-LABEL '{0}' ({1}) at {2},{3} on {4}" -f $hit.label.Replace("`n", ' '), $hit.source, $hit.tapX, $hit.tapY, $id) -ForegroundColor Green
         if ($hits.Count -gt 1) {
             Write-Host ("     {0} nodes carry this label; tapped #{1}. Pass -Index to choose another, or -Exact to narrow." -f $hits.Count, $Index) -ForegroundColor Yellow
+        }
+        exit 0
+    }
+
+    'set-text' {
+        if (-not $ResourceId) { Fail 1 "set-text needs -ResourceId <name-or-full-id> and -Text <value>" }
+        if (-not $Text) { Fail 1 "set-text needs -Text <value>" }
+        # `input text` injects key events from the ASCII key map and silently drops anything else, so
+        # a Cyrillic value would type as nothing and surface only as a readback mismatch.
+        if ($Text -match '[^\x20-\x7E]') {
+            Fail 1 "set-text types printable ASCII only - 'input text' cannot inject '$Text'. Nothing was tapped"
+        }
+        $id = Select-Device
+        $script:result.device = $id
+        $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
+        $hits  = @(Select-UiNodesById @(Get-UiNodes (Get-UiTree $id $file -Stable)) $ResourceId -Exact:$Exact)
+        if ($hits.Count -eq 0) {
+            Fail 8 "no visible node carries the resource-id '$ResourceId' - nothing was typed. The tree is at $file; run 'uidump -Ids' and match an id from ITS output"
+        }
+        if ($Index -lt 1 -or $Index -gt $hits.Count) {
+            Fail 1 "-Index $Index is out of range: '$ResourceId' matches $($hits.Count) node(s)"
+        }
+        $hit = $hits[$Index - 1]
+        Invoke-Adb $id @('shell', 'input', 'tap', "$($hit.tapX)", "$($hit.tapY)") | Out-Null
+        Start-Sleep -Milliseconds 300
+        # The tap puts the cursor wherever it landed, so erase in BOTH directions: DEL clears what is
+        # before the cursor, FORWARD_DEL what is after it. One `input keyevent` call carries them all.
+        $eraseCount = $hit.text.Length + 1
+        $eraseArgs = @('shell', 'input', 'keyevent') + @(1..$eraseCount | ForEach-Object { '67' }) +
+            @(1..$eraseCount | ForEach-Object { '112' })
+        Invoke-Adb $id $eraseArgs | Out-Null
+        # adb joins its arguments into one device-shell command line, so the value is single-quoted for
+        # that shell; `input text` itself reads %s as a space.
+        $quoted = "'" + (($Text -replace ' ', '%s') -replace "'", "'\''") + "'"
+        Invoke-Adb $id @('shell', 'input', 'text', $quoted) | Out-Null
+        Start-Sleep -Milliseconds 300
+        $readFile = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp)_readback.xml")
+        $after = @(Select-UiNodesById @(Get-UiNodes (Get-UiTree $id $readFile -Stable)) $ResourceId -Exact:$Exact)
+        if ($after.Count -lt $Index) {
+            Fail 14 "typed '$Text' into '$($hit.resId)', but the node is gone from the re-read tree at $readFile - the field may have closed its screen or scrolled away. Re-check it before relying on the value"
+        }
+        $readBack = $after[$Index - 1].text
+        if ($readBack -cne $Text) {
+            Fail 14 ("typed '$Text' into '$($hit.resId)', but it reads back '$readBack' (tree at $readFile). Commonest " +
+                "causes: the id names a container (a TextInputLayout) rather than the EditText inside it - aim at the " +
+                "inner id from 'uidump -Ids'; a password field reads back masked; the field reformats its input")
+        }
+        if ($Json) { Emit-Ok @{ id = $id; resourceId = $hit.resId; text = $Text; readBack = $readBack; erased = $hit.text.Length; x = $hit.tapX; y = $hit.tapY; matches = $hits.Count; file = $readFile } }
+        Write-Host ("SET-TEXT '{0}' = '{1}' (read back; erased {2} char(s)) on {3}" -f $hit.resId, $readBack, $hit.text.Length, $id) -ForegroundColor Green
+        if ($hits.Count -gt 1) {
+            Write-Host ("     {0} nodes match this id; used #{1}. Pass -Index to choose another, or -Exact to narrow." -f $hits.Count, $Index) -ForegroundColor Yellow
         }
         exit 0
     }

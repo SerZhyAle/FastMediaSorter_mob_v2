@@ -17,6 +17,7 @@
 #   FMS_STUB_RADIUS    rounded-corner radius reported by dumpsys (default 0 = no rounded-corner data)
 #   FMS_STUB_SECURE    1 = the focused window carries FLAG_SECURE
 #   FMS_STUB_WATCH     1 = ro.build.characteristics reports a watch
+#   FMS_STUB_HANG      comma-separated device ids whose `devices` probe never answers (S3486)
 #
 # Exit codes:
 #   0  - the call matched the table
@@ -31,6 +32,7 @@ $home_ = $env:FMS_STUB_HOME
 if (-not $home_) { Write-Error 'adb-stub: FMS_STUB_HOME is not set'; exit 99 }
 
 $call = @($args)
+$target = if ($call.Count -ge 2 -and $call[0] -eq '-s') { $call[1] } else { '' }
 # adb's own device selector is uniform across every call adb.ps1 makes; drop it so the table
 # below matches on what the call actually asks for.
 if ($call.Count -ge 2 -and $call[0] -eq '-s') { $call = $call[2..($call.Count - 1)] }
@@ -58,6 +60,11 @@ switch -Regex ($sig) {
     }
 
     # ---- getprop ----
+    # S3486: the `devices` verb asks for all three in one bounded shell call.
+    '^shell getprop ro\.product\.model; getprop ro\.build\.version\.release; getprop ro\.build\.version\.sdk$' {
+        if (@("$env:FMS_STUB_HANG" -split ',') -contains $target) { Start-Sleep -Seconds 60 }
+        Write-Output 'Pixel 7'; Write-Output '14'; Write-Output '34'; exit 0
+    }
     '^shell getprop ro\.product\.model$'          { Write-Output 'Pixel 7'; exit 0 }
     '^shell getprop ro\.serialno$'                { Write-Output 'EMULATOR35X1'; exit 0 }
     '^shell getprop ro\.build\.version\.release$' { Write-Output '14'; exit 0 }

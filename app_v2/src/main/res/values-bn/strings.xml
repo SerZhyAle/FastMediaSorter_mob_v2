@@ -201,13 +201,13 @@
     <string name="backup_to_google_drive">Google Drive-এ সেটিংস ব্যাকআপ করুন</string>
     <string name="restore_from_google_drive">Google Drive থেকে সেটিংস পুনরুদ্ধার করুন</string>
     <string name="tooltip_backup_info_title">ব্যাকআপের তথ্য</string>
-    <string name="tooltip_backup_info_message">ব্যাকআপে সমস্ত সেটিংস ও রিসোর্সের তালিকা থাকে। শংসাপত্র ব্যাকআপ করা হয় না - পুনরুদ্ধারের পরে নেটওয়ার্ক/ক্লাউড রিসোর্সে আপনাকে আবার সাইন ইন করতে হবে।</string>
+    <string name="tooltip_backup_info_message">ব্যাকআপে সমস্ত সেটিংস, রিসোর্সের তালিকা, নেটওয়ার্ক পাসওয়ার্ড এবং ওয়েবসাইটের সংরক্ষিত লগইন থাকে - ব্যাকআপ ফাইলটি কারও সঙ্গে শেয়ার করবেন না। ক্লাউড লগইন (Google Drive, OneDrive, Dropbox) এতে থাকে না - পুনরুদ্ধারের পরে সেগুলিতে আবার সাইন ইন করতে হতে পারে।</string>
     <string name="backup_success">%3$s-এ %1$d টি রিসোর্স, %2$d টি প্রিয় এবং সমস্ত সেটিংস ব্যাকআপ করা হয়েছে</string>
     <string name="backup_failed">আপনার সেটিংস এবং রিসোর্স ব্যাকআপ করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="restore_confirm_title">ব্যাকআপ থেকে পুনরুদ্ধার করবেন?</string>
     <string name="restore_confirm_message">ব্যাকআপ থেকে: %1$s\nডিভাইস: %2$s\nরিসোর্স: %3$d\nফেভারিট: %4$d\n\n• সেটিংস প্রতিস্থাপন করা হবে\n• রিসোর্স যুক্ত করা হবে (ডুপ্লিকেট বাদ দেওয়া হবে)\n• ফেভারিট যুক্ত করা হবে (ডুপ্লিকেট বাদ দেওয়া হবে)</string>
     <string name="restore_success">সমস্ত সেটিংস পুনরুদ্ধার করা হয়েছে। %1$d টি রিসোর্স যোগ করা হয়েছে (%2$d টি আগে থেকেই ছিল)। %3$d টি প্রিয় যোগ করা হয়েছে (%4$d টি আগে থেকেই ছিল)।</string>
-    <string name="restore_needs_auth">কিছু রিসোর্স নেটওয়ার্ক বা ক্লাউড অ্যাকাউন্ট ব্যবহার করে। আপনাকে সেগুলি পুনরায় প্রমাণীকরণ করতে হবে।</string>
+    <string name="restore_needs_auth">কিছু পুনরুদ্ধার করা রিসোর্স ক্লাউড অ্যাকাউন্ট (Google Drive, OneDrive, Dropbox) ব্যবহার করে। সেগুলোতে আবার সাইন ইন করুন।</string>
     <string name="restore_no_backup">এই অ্যাকাউন্টের জন্য কোনো ব্যাকআপ পাওয়া যায়নি।</string>
     <string name="restore_failed">আপনার সেটিংস এবং রিসোর্স পুনরুদ্ধার করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="backup_account">অ্যাকাউন্ট: %s</string>

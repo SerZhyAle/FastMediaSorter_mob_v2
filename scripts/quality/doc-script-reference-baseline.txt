@@ -57,5 +57,4 @@ docs/AGENT_HOOKS.md :: warn-context-size.ps1
 docs/BUILD_TEST_FAST_PATH.md :: guard-fire-and-forget.ps1
 docs/BUILD_TEST_FAST_PATH.md :: smoke-hooks.ps1
 docs/DEV_OPS.md :: other.ps1
-docs/README.md :: install.ps1
 README.md :: install.ps1

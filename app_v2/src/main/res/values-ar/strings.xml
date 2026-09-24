@@ -205,13 +205,13 @@
     <string name="backup_to_google_drive">نسخ الإعدادات احتياطيًا إلى Google Drive</string>
     <string name="restore_from_google_drive">استعادة الإعدادات من Google Drive</string>
     <string name="tooltip_backup_info_title">معلومات النسخة الاحتياطية</string>
-    <string name="tooltip_backup_info_message">تتضمن النسخة الاحتياطية جميع الإعدادات وقائمة الموارد. لا يتم نسخ بيانات الاعتماد - ستحتاج إلى إعادة المصادقة على موارد الشبكة والسحابة بعد الاستعادة.</string>
+    <string name="tooltip_backup_info_message">تتضمن النسخة الاحتياطية جميع الإعدادات وقائمة الموارد وكلمات مرور الشبكة وتسجيلات الدخول المحفوظة إلى المواقع - احتفظ بملف النسخة الاحتياطية لنفسك. تسجيلات الدخول السحابية (Google Drive وOneDrive وDropbox) غير مضمّنة - قد تحتاج إلى تسجيل الدخول إليها مجددًا بعد الاستعادة.</string>
     <string name="backup_success">تم نسخ %1$d موردًا و%2$d عنصرًا من المفضلة وجميع الإعدادات احتياطيًا إلى %3$s</string>
     <string name="backup_failed">تعذّر نسخ إعداداتك ومواردك احتياطيًا. حاول مرة أخرى.</string>
     <string name="restore_confirm_title">الاستعادة من نسخة احتياطية؟</string>
     <string name="restore_confirm_message">النسخ الاحتياطي من: %1$s\nالجهاز: %2$s\nالموارد: %3$d\nالمفضلة: %4$d\n\n• سيتم استبدال الإعدادات\n• سيتم إلحاق الموارد (يتم تخطي التكرارات)\n• سيتم إلحاق المفضلة (يتم تخطي التكرارات)</string>
     <string name="restore_success">تمت استعادة جميع الإعدادات. أُضيف %1$d موردًا (%2$d موجود مسبقًا). أُضيف %3$d عنصرًا من المفضلة (%4$d موجود مسبقًا).</string>
-    <string name="restore_needs_auth">تستخدم بعض الموارد حسابات شبكة أو سحابة. ستحتاج إلى إعادة مصادقتها.</string>
+    <string name="restore_needs_auth">تستخدم بعض الموارد المستعادة حسابات سحابية (Google Drive وOneDrive وDropbox). سجّل الدخول إليها مجددًا.</string>
     <string name="restore_no_backup">لم يتم العثور على نسخة احتياطية لهذا الحساب.</string>
     <string name="restore_failed">تعذّرت استعادة إعداداتك ومواردك. حاول مرة أخرى.</string>
     <string name="backup_account">الحساب: %s</string>

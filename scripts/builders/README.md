@@ -120,11 +120,18 @@ Every one of them takes `-DeviceId <serial>`, defaulting to `ANDROID_SERIAL`:
 .\scripts\builders\build-standard-device.ps1 -DeviceId RFCR110NBQJ
 ```
 
-- `build-standard-device.ps1` rebuilds everything from scratch (S3094 reuse-disabling flags), so it
-  measured `BUILD SUCCESSFUL in 4m 51s` on 2026-09-18 with 49 of 49 tasks executed. Minutes of
-  silence under a named task - `mergeExtDex`, `ksp`, `compileKotlin`, `dexBuilder` - is the normal
-  shape of that run, not a stall. A heartbeat names the running task every 60 silent seconds, and a
-  run past the 45-minute ceiling is stopped with exit 124 (S3290, `docs/DEV_OPS.md`).
+- `build-standard-device.ps1` rebuilds from scratch (S3094 reuse-disabling flags) only when it has
+  to, and builds incrementally otherwise (S3510). It compares the tree against the snapshot of the
+  last successful device build, `app_v2/build/fms-device-build-state.json`, and takes the full
+  rebuild when a build file changed, when a source file's Hilt declarations changed, when there is
+  no snapshot, or when `-Full` is passed. The mode and its reasons are printed before the build.
+- After launch it reads logcat for up to 10 seconds. The stale-Hilt `ClassCastException` after an
+  incremental build triggers one full rebuild and reinstall; the same crash after a full rebuild
+  ends the script with exit 3, because reused outputs are then ruled out.
+- A full rebuild measured `BUILD SUCCESSFUL in 4m 51s` on 2026-09-18 with 49 of 49 tasks executed.
+  Minutes of silence under a named task - `mergeExtDex`, `ksp`, `compileKotlin`, `dexBuilder` - is
+  the normal shape of that run, not a stall. A heartbeat names the running task every 60 silent
+  seconds, and a run past the 45-minute ceiling is stopped with exit 124 (S3290, `docs/DEV_OPS.md`).
 - With several devices online and no serial given, a watch is ignored and the single remaining
   phone-class device is used; anything less clear-cut refuses and names every online id.
 - A failed install or launch ends the script with that `adb` call's exit code. Before S3169 the

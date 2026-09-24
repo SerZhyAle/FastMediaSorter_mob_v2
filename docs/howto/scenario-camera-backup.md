@@ -61,18 +61,19 @@ Now tell FastMediaSorter where to send the photos.
 ## Step 3 - Open Scheduled Operations Settings
 
 1. Tap **Settings** (the gear icon <img src="../icons/doc/ic_settings.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> in the toolbar)
-2. Go to the **Operations** tab
-3. Tap **"Schedule"** to expand the scheduled operations section
+2. Go to the **Management** tab
+3. Scroll to **"Scheduled operations by schedule"** and tap **"Scheduled file operations"** - the scheduled operations screen opens
+4. Turn on **"Use scheduled operations"** at the top of that screen
 
-![Settings → Operations - Scheduled section with ADD button](screenshots/screenshot-cb-step3.png)
+![Settings → Management - Scheduled section with ADD button](screenshots/screenshot-cb-step3.png)
 
 ---
 
 ## Step 4 - Create a New Schedule
 
-Tap **"Add scheduled operation"** (or the **+** button in the Schedule section).
+Tap the **+** button (**"Add"**) on the scheduled operations screen.
 
-A new schedule configuration screen opens.
+A new schedule dialog opens.
 
 ![Add Schedule dialog - Conditions section: interval and overwrite options](screenshots/screenshot-cb-step4.png)
 
@@ -115,7 +116,7 @@ The schedule appears in the list - it is now active.
 
 Don't wait until 2 AM - test the backup immediately to make sure everything works:
 
-1. Go to **Settings → Operations → Schedule**
+1. Go to **Settings → Management → Scheduled file operations**
 2. Find your schedule → tap **"Run now"**
 3. A notification appears at the top of your screen showing transfer progress
 4. When it finishes: tap on the SMB resource (`PhoneBackup`) → your camera photos should be visible there

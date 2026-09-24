@@ -7,11 +7,10 @@
 #   other - the exit code of the failing gradle, adb install or adb launch call.
 
 param(
-    # A packaged debug APK is a distribution artifact - it is copied to DOWNLOADS and installed
-    # by hand - so it carries its own build timestamp by default (S1873). Frozen versions belong
-    # to the compile-only fast checks (fk/fc/fr/fw) that produce no APK. Pass -AutoVersion:$false
-    # to opt back in when configuration-cache reuse matters more than a truthful version.
-    [switch]$AutoVersion = $true,
+    # S3513: a debug build for device testing keeps the checked-in version, passed as
+    # -Pfms.stableVersion=true, so its configuration-cache entry and its BuildConfig survive the next
+    # run. Pass -AutoVersion for a build-time stamp; only `dav` and release carry one by default.
+    [switch]$AutoVersion,
 
     # S3169: with a watch also paired the unqualified adb call resolves nothing and this script
     # used to report success anyway. ANDROID_SERIAL is the default so an exported serial works
@@ -59,6 +58,9 @@ if ($AutoVersion) {
         "-Pfms.versionCode=$versionCodeInt",
         "-Pfms.versionName=$versionName"
     )
+}
+else {
+    $gradleArgs += "-Pfms.stableVersion=true"
 }
 & $gradlew @gradleArgs
 

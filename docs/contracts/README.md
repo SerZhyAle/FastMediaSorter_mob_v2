@@ -39,6 +39,11 @@ catalog registry to one set of ids and versions.
 | [`PAGE-CONTENT.md`](PAGE-CONTENT.md) | `PAGE-CONTENT` | consumer - the product site |
 | [`PAGE-STYLE.md`](PAGE-STYLE.md) | `PAGE-STYLE` | consumer - the product site |
 | [`SITE-FAMILY-MAP.md`](SITE-FAMILY-MAP.md) | `SITE-FAMILY-MAP` | consumer - the product site's footer |
+| [`MEDIA-CLASSIFICATION.md`](MEDIA-CLASSIFICATION.md) | `MEDIA-CLASSIFICATION` | owner; producer and consumer (file and stream media category classifier) |
+| [`LAN-DISCOVERY.md`](LAN-DISCOVERY.md) | `LAN-DISCOVERY` | consumer (companion SFTP mDNS/DNS-SD discovery) |
+| [`UPDATE-MANIFEST.md`](UPDATE-MANIFEST.md) | `UPDATE-MANIFEST` | consumer (update check endpoint and release metadata discovery) |
+| [`DIAGNOSTIC-REPORT.md`](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | producer and consumer (sanitized diagnostic logs and export bundle) |
+| [`USER-PLAYLIST.md`](USER-PLAYLIST.md) | `USER-PLAYLIST` | consumer (stream playlist import and parsing) |
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `REPO-STAMP` | adopter - `.sza-canon.json` |
 | [`HARNESS-PROFILE.md`](HARNESS-PROFILE.md) | `HARNESS-PROFILE` | adopter - `.sza-profile.json` |
 | [`REPO-LAYOUT.md`](REPO-LAYOUT.md) | `REPO-LAYOUT` | adopter - the names tools address by |

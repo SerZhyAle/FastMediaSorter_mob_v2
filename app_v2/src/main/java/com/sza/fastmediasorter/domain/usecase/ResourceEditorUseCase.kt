@@ -47,6 +47,10 @@ data class ResourceEditorSaveResult(
     val verificationStatus: ResourceVerificationStatus
 )
 
+// Same range the global slideshow interval enforces in Settings > Player.
+private const val MIN_SLIDESHOW_INTERVAL_SEC = 1
+private const val MAX_SLIDESHOW_INTERVAL_SEC = 3600
+
 class ResourceEditorUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val settingsRepository: SettingsRepository,
@@ -177,7 +181,8 @@ class ResourceEditorUseCase @Inject constructor(
             supportedMediaTypes = normalized.supportedMediaTypes,
             sortMode = normalized.sortMode,
             displayMode = normalized.displayMode,
-            slideshowInterval = normalized.slideshowInterval,
+            slideshowInterval = normalized.slideshowInterval
+                .coerceIn(MIN_SLIDESHOW_INTERVAL_SEC, MAX_SLIDESHOW_INTERVAL_SEC),
             isDestination = normalized.isDestination,
             destinationOrder = normalized.destinationOrder,
             destinationColor = normalized.destinationColor,

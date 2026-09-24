@@ -130,7 +130,7 @@ If your head unit has an active mobile data or Wi-Fi connection, you can add int
 4. Tap a station row to start inline audio playback - the station name and current track appear in the bottom mini-control
 5. The list stays visible so you can switch stations without leaving the screen
 
-> **Background audio:** to keep radio playing when you switch apps, go to **Settings → Media → Player → Background audio playback** and enable it.
+> **Background audio:** to keep radio playing when you switch apps, go to **Settings → Player → Background audio playback** and enable it.
 
 Note: Streams requires a network connection, and the Streams screen is absent in the Lite and Photos flavors.
 
@@ -157,4 +157,4 @@ While music is playing, the screen is your control panel:
 | No album art shown | Enable **"Fetch audio covers online"** in Settings → Media → Audio (requires Wi-Fi). For offline art, the app reads embedded cover art from the MP3/FLAC file automatically |
 | Can't find music on SD card | Some Android versions restrict SD card access. Try adding the SD card path by using the **"Browse.."** button in the folder picker, which uses the Android system file picker with full SD card access |
 | Audio stutters or skips | Close other apps running in the background. For FLAC files, make sure the head unit has enough processing power |
-| Internet radio stops when I switch apps | Go to Settings → Media → Player → Background audio playback and make sure it is enabled |
+| Internet radio stops when I switch apps | Go to Settings → Player → Background audio playback and make sure it is enabled |

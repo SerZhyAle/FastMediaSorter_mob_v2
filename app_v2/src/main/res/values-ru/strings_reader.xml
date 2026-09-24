@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="pdf_color_mode">Цветовой режим: %s</string>
     <string name="pdf_creation_date_label">Создан: %1$s</string>
     <string name="pdf_creator_label">Создатель: %1$s</string>
     <string name="pdf_display_error">Не получилось показать этот PDF. Попробуйте ещё раз.</string>
@@ -18,7 +17,6 @@
     <string name="pdf_night_mode">Ночной режим</string>
     <string name="pdf_p">PDF (P)</string>
     <string name="pdf_page">Страница PDF</string>
-    <string name="pdf_page_mode">Постраничный режим</string>
     <string name="pdf_page_render_failed">Не получилось отрисовать эту страницу. Попробуйте ещё раз.</string>
     <string name="pdf_producer_label">Производитель: %1$s</string>
     <string name="pdf_read_failed">Не получилось прочитать этот PDF. Файл может быть повреждён или не поддерживаться.</string>

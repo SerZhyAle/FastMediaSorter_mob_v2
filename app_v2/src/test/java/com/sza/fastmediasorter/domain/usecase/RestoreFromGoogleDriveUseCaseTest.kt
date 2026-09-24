@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -212,7 +211,7 @@ class RestoreFromGoogleDriveUseCaseTest {
     }
 
     @Test
-    fun `network resource counts toward needsAuth`() = runTest {
+    fun `network resource does not count toward needsAuth because its credentials are restored`() = runTest {
         coEvery { driveClient.isAuthenticated() } returns true
         coEvery { resourceRepository.getAllResourcesSync() } returns emptyList()
         stubBackupDownload(backupJson(resources = listOf(resourceMap("SMB", "smb://host/share"))))
@@ -220,7 +219,18 @@ class RestoreFromGoogleDriveUseCaseTest {
         val result = useCase().getOrThrow()
 
         assertEquals(1, result.resourcesAdded)
+        assertEquals(0, result.resourcesNeedingAuth)
+    }
+
+    @Test
+    fun `cloud resource counts toward needsAuth`() = runTest {
+        coEvery { driveClient.isAuthenticated() } returns true
+        coEvery { resourceRepository.getAllResourcesSync() } returns emptyList()
+        stubBackupDownload(backupJson(resources = listOf(resourceMap("CLOUD", "cloud://gdrive/folder"))))
+
+        val result = useCase().getOrThrow()
+
+        assertEquals(1, result.resourcesAdded)
         assertEquals(1, result.resourcesNeedingAuth)
-        assertFalse(result.resourcesNeedingAuth == 0)
     }
 }

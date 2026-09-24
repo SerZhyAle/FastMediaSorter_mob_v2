@@ -58,6 +58,16 @@ private class YouTubeMusicGadgetView(context: Context) : LauncherGadgetView(cont
 
     init {
         contentDescription = context.getString(R.string.launcher_gadget_youtube_music)
+        val installedIcon = try {
+            context.packageManager.getApplicationIcon("com.google.android.apps.youtube.music")
+        } catch (_: Exception) {
+            null
+        }
+        if (installedIcon != null) {
+            binding.gadgetYouTubeMusicIcon.setImageDrawable(installedIcon)
+        } else {
+            binding.gadgetYouTubeMusicIcon.setImageResource(R.drawable.ic_youtube_music)
+        }
         setupWebView()
         binding.gadgetYouTubeMusicRefresh.setOnClickListener {
             binding.gadgetYouTubeMusicProgress.isVisible = true
@@ -67,6 +77,7 @@ private class YouTubeMusicGadgetView(context: Context) : LauncherGadgetView(cont
             openExternal(context, binding.gadgetYouTubeMusicWebView.url ?: TARGET_URL)
         }
     }
+
 
     private fun setupWebView() {
         val webView = binding.gadgetYouTubeMusicWebView

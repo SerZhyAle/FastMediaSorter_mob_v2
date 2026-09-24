@@ -69,6 +69,7 @@ class TextViewerManager(
         // Swipe threshold as percentage of screen dimension
         private const val SWIPE_THRESHOLD_PERCENT = 0.05f // 5% of screen width/height
         private const val SWIPE_VELOCITY_THRESHOLD = 100
+        private const val SYSTEM_READER_THEME = "SYSTEM"
     }
 
     interface TextViewerCallback {
@@ -96,8 +97,11 @@ class TextViewerManager(
     private var markdownRendered = true
     private var syntaxHighlightingEnabled = true
 
+    // SYSTEM resolves to a concrete scheme, so only this flag tells the picker the preference is SYSTEM.
+    private var followsSystemTheme = true
+
     // Reader theme - defaults to DARK on night-mode devices, LIGHT otherwise
-    private var currentReaderTheme: TextReaderTheme = resolveTheme("SYSTEM")
+    private var currentReaderTheme: TextReaderTheme = resolveTheme(SYSTEM_READER_THEME)
 
     // TTS
     private var ttsManager: TtsReadAloudManager? = null
@@ -537,7 +541,7 @@ class TextViewerManager(
             setCurrentReaderTheme = { currentReaderTheme = it },
             setCurrentCharset = { currentCharset = it },
             setTextFilePager = { textFilePager = it },
-            resolveTheme = ::resolveTheme,
+            resolveTheme = ::resolveStoredTheme,
             renderPageContent = ::renderPageContent,
             updatePageIndicator = ::updatePageIndicator,
             isAutoOpenEditMode = { autoOpenEditMode },
@@ -741,20 +745,40 @@ class TextViewerManager(
 
     /** Apply reader theme (background & text color) to the text viewer. Saves preference to settings. */
     fun applyReaderTheme(theme: TextReaderTheme) {
+        followsSystemTheme = false
         currentReaderTheme = theme
+        persistReaderTheme(theme.name)
+        applyThemeToViews()
+    }
+
+    /** Return to following the app dark-mode setting and save SYSTEM as the preference. */
+    fun applySystemReaderTheme() {
+        followsSystemTheme = true
+        currentReaderTheme = resolveTheme(SYSTEM_READER_THEME)
+        persistReaderTheme(SYSTEM_READER_THEME)
+        applyThemeToViews()
+    }
+
+    private fun persistReaderTheme(name: String) {
         coroutineScope.launch(Dispatchers.IO) {
             val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(textReaderTheme = theme.name))
+            settingsRepository.updateSettings(current.copy(textReaderTheme = name))
         }
-        applyThemeToViews()
     }
 
     /** Get current reader theme. */
     fun getCurrentTheme(): TextReaderTheme = currentReaderTheme
 
+    fun isFollowingSystemTheme(): Boolean = followsSystemTheme
+
+    private fun resolveStoredTheme(name: String): TextReaderTheme {
+        followsSystemTheme = TextReaderTheme.entries.none { it.name.equals(name, ignoreCase = true) }
+        return resolveTheme(name)
+    }
+
     /** Resolve reader theme by name. "SYSTEM" picks DARK or LIGHT based on the device dark-mode setting; any unrecognized name also falls back to the system default. */
     private fun resolveTheme(name: String): TextReaderTheme {
-        if (name.equals("SYSTEM", ignoreCase = true)) {
+        if (name.equals(SYSTEM_READER_THEME, ignoreCase = true)) {
             val isNight = (
                 context.resources.configuration.uiMode
                     and Configuration.UI_MODE_NIGHT_MASK
@@ -762,7 +786,7 @@ class TextViewerManager(
             return if (isNight) TextReaderTheme.DARK else TextReaderTheme.LIGHT
         }
         return TextReaderTheme.entries.find { it.name.equals(name, ignoreCase = true) }
-            ?: resolveTheme("SYSTEM")
+            ?: resolveTheme(SYSTEM_READER_THEME)
     }
 
     /** Toggle TTS read-aloud for current page text. */

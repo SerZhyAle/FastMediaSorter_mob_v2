@@ -21,6 +21,15 @@ if (-not (Test-Path $contentRoot)) {
 
 $recipeFiles = Get-ChildItem -Path $contentRoot -Filter *.md | Sort-Object Name
 
+# A double-quoted YAML scalar escapes its inner quote and backslash; stripping the outer quotes
+# alone left a literal \" in the published HTML (S3503). Plain and single-quoted values pass through.
+function ConvertFrom-YamlQuotedScalar([string]$value) {
+    if ($value.Length -ge 2 -and $value.StartsWith('"') -and $value.EndsWith('"')) {
+        return [regex]::Replace($value.Substring(1, $value.Length - 2), '\\(["\\])', '$1')
+    }
+    return $value
+}
+
 function Parse-Frontmatter([string]$rawText) {
     if ($rawText -notmatch '^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$') {
         throw "Missing or malformed frontmatter delimiters (---)"
@@ -75,31 +84,19 @@ function Parse-Frontmatter([string]$rawText) {
                 }
                 $meta[$key] = $multiTop.ToString().Trim()
             } else {
-                # Clean quotes
-                if ($val.StartsWith('"') -and $val.EndsWith('"') -and $val.Length -ge 2) {
-                    $val = $val.Substring(1, $val.Length - 2)
-                }
-                $meta[$key] = $val
+                $meta[$key] = ConvertFrom-YamlQuotedScalar $val
             }
             continue
         }
 
         # List item under ingredients
         if ($inIngredients -and $line -match '^\s*-\s+(.*)$') {
-            $item = $Matches[1].Trim()
-            if ($item.StartsWith('"') -and $item.EndsWith('"') -and $item.Length -ge 2) {
-                $item = $item.Substring(1, $item.Length - 2)
-            }
-            $meta['ingredients'].Add($item)
+            $meta['ingredients'].Add((ConvertFrom-YamlQuotedScalar $Matches[1].Trim()))
             continue
         }
 
         if ($inTips -and $line -match '^\s*-\s+(.*)$') {
-            $tip = $Matches[1].Trim()
-            if ($tip.StartsWith('"') -and $tip.EndsWith('"') -and $tip.Length -ge 2) {
-                $tip = $tip.Substring(1, $tip.Length - 2)
-            }
-            $meta['tips'].Add($tip)
+            $meta['tips'].Add((ConvertFrom-YamlQuotedScalar $Matches[1].Trim()))
             continue
         }
 
@@ -128,17 +125,10 @@ function Parse-Frontmatter([string]$rawText) {
                         while ($i + 1 -lt $lines.Length -and $lines[$i + 1] -match '^\s{6,8}([a-z0-9_]+):\s*(.*)$') {
                             $i++
                             $subK = $Matches[1]
-                            $subV = $Matches[2].Trim()
-                            if ($subV.StartsWith('"') -and $subV.EndsWith('"') -and $subV.Length -ge 2) {
-                                $subV = $subV.Substring(1, $subV.Length - 2)
-                            }
-                            $subObj[$subK] = $subV
+                            $subObj[$subK] = ConvertFrom-YamlQuotedScalar $Matches[2].Trim()
                         }
                     } else {
-                        if ($sval.StartsWith('"') -and $sval.EndsWith('"') -and $sval.Length -ge 2) {
-                            $sval = $sval.Substring(1, $sval.Length - 2)
-                        }
-                        $currentStep[$skey] = $sval
+                        $currentStep[$skey] = ConvertFrom-YamlQuotedScalar $sval
                     }
                 }
             }

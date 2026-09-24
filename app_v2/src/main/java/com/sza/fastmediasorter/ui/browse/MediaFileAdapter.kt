@@ -88,6 +88,8 @@ class MediaFileAdapter(
     private var credentialsId: String? = null // Credentials ID for network files
     private var hasDestinations: Boolean = false
     private var isWritable: Boolean = false
+    private var copyEnabled: Boolean = true
+    private var moveEnabled: Boolean = true
     private var refreshVersion: Int = 0
     private var skipInitialThumbnailLoad = false // Control initial thumbnail loading
     private var showFavoriteButton: Boolean = true // Show/hide favorite button based on settings
@@ -255,6 +257,15 @@ class MediaFileAdapter(
     }
 
     val isInGridMode: Boolean get() = isGridMode
+
+    /** Mirrors the "Allow copying" / "Allow moving" switches onto the row buttons. */
+    fun setTransferEnabled(copyEnabled: Boolean, moveEnabled: Boolean) {
+        if (this.copyEnabled != copyEnabled || this.moveEnabled != moveEnabled) {
+            this.copyEnabled = copyEnabled
+            this.moveEnabled = moveEnabled
+            notifyDataSetChanged()
+        }
+    }
 
     fun setResourcePermissions(hasDestinations: Boolean, isWritable: Boolean) {
         if (this.hasDestinations != hasDestinations || this.isWritable != isWritable) {
@@ -820,8 +831,8 @@ class MediaFileAdapter(
                 // Overflow button
                 binding.btnOverflowMenu.isVisible = useOverflow
                 // Direct op buttons - hide when overflow mode OR standard shouldHideActions rule applies
-                btnCopyItem.isVisible = !shouldHideActions && !useOverflow
-                btnMoveItem.isVisible = isWritable && !shouldHideActions && !useOverflow
+                btnCopyItem.isVisible = copyEnabled && !shouldHideActions && !useOverflow
+                btnMoveItem.isVisible = moveEnabled && isWritable && !shouldHideActions && !useOverflow
                 btnRenameItem.isVisible = isWritable && !shouldHideActions && !useOverflow
                 btnDeleteItem.isVisible = isWritable && !shouldHideActions && !useOverflow
 
@@ -1075,8 +1086,8 @@ class MediaFileAdapter(
                     val shouldShowAnyOperation = true // Copy is always available (select folder option)
                     if (shouldShowAnyOperation) ensureOperationsInflated()
                     operationsContainer?.isVisible = shouldShowAnyOperation && !hideGridActionButtons
-                    btnCopyItem?.isVisible = !hideGridActionButtons
-                    btnMoveItem?.isVisible = isWritable && !hideGridActionButtons
+                    btnCopyItem?.isVisible = copyEnabled && !hideGridActionButtons
+                    btnMoveItem?.isVisible = moveEnabled && isWritable && !hideGridActionButtons
                     btnRenameItem?.isVisible = isWritable && !hideGridActionButtons
                     btnDeleteItem?.isVisible = isWritable && !hideGridActionButtons
                 } else {
@@ -1307,8 +1318,8 @@ class MediaFileAdapter(
                 if (!useOverflow) {
                     ensureOperationsInflated()
                     operationsContainer?.isVisible = !hideGridActionButtons
-                    btnCopyItem?.isVisible = !hideGridActionButtons
-                    btnMoveItem?.isVisible = isWritable && !hideGridActionButtons
+                    btnCopyItem?.isVisible = copyEnabled && !hideGridActionButtons
+                    btnMoveItem?.isVisible = moveEnabled && isWritable && !hideGridActionButtons
                     btnRenameItem?.isVisible = isWritable && !hideGridActionButtons
                     btnDeleteItem?.isVisible = isWritable && !hideGridActionButtons
                 } else {

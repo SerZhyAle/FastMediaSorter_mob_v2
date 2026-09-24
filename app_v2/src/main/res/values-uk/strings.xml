@@ -279,7 +279,7 @@
         <item>Світло-червона</item>
     </string-array>
     <string name="tooltip_backup_info_title">Інформація про резервну копію</string>
-    <string name="tooltip_backup_info_message">Резервна копія містить усі налаштування та список ресурсів. Облікові дані не копіюються - після відновлення вам потрібно буде повторно аутентифікуватися для мережевих та хмарних ресурсів.</string>
+    <string name="tooltip_backup_info_message">Резервна копія містить усі налаштування, список ресурсів, паролі мережевих ресурсів і збережені авторизації на сайтах - не передавайте файл копії стороннім. Авторизація в хмарних сховищах (Google Drive, OneDrive, Dropbox) до копії не потрапляє - після відновлення може знадобитися увійти в них знову.</string>
     <string name="restart_required_title">Потрібен перезапуск</string>
     <string name="restart_required_message">Налаштування імпортовано. Перезапустіть додаток для застосування змін.</string>
     <string name="restart_now">Перезапустити</string>
@@ -703,7 +703,7 @@
     <string name="searching_lyrics">Пошук тексту пісні..</string>
     <string name="lyrics_not_found">Лірика не знайдена</string>
     <string name="error_timeout_lyrics">Час очікування вичерпано. Будь ласка, перевірте підключення до Інтернету та спробуйте ще раз.</string>
-    <string name="search_in_youtube_music">У YouTube Music</string>
+    <string name="search_in_youtube_music">Пошук у YouTube Music</string>
     <string name="search_in_youtube_music_no_app">Програму YouTube Music не знайдено</string>
 
     <!-- Add Resource -->
@@ -1418,7 +1418,7 @@
     <string name="restore_confirm_title">Відновити з резервної копії?</string>
     <string name="restore_confirm_message">Копія від: %1$s\nПристрій: %2$s\nРесурси: %3$d\nОбране: %4$d\n\n• Налаштування будуть ЗАМІНЕНІ\n• Ресурси будуть ДОДАНІ (дублікати пропущені)\n• Обране буде ДОДАНО (дублікати пропущені)</string>
     <string name="restore_success">Усі налаштування відновлено. Додано %1$d ресурсів (%2$d вже існували). Додано %3$d обраних (%4$d вже існували).</string>
-    <string name="restore_needs_auth">Деякі ресурси використовують мережеві або хмарні акаунти. Потрібна повторна авторизація.</string>
+    <string name="restore_needs_auth">Деякі відновлені ресурси використовують хмарні акаунти (Google Drive, OneDrive, Dropbox). Увійдіть у них знову.</string>
     <string name="restore_no_backup">Резервна копія для цього акаунту не знайдена.</string>
     <string name="restore_failed">Не вдалося відновити налаштування й ресурси. Спробуйте ще раз.</string>
     <string name="backup_account">Акаунт: %s</string>
@@ -4175,4 +4175,10 @@
     <string name="cd_choose_from_list">Вибрати зі списку</string>
     <string name="cd_more_actions_section">Ще: дії із секцією</string>
     <string name="cd_toggle_grid_list_view">Сітка / список</string>
+    <string name="search_google_lens">Пошук у Google Lens</string>
+    <string name="font_family_sans_serif">Без засічок</string>
+    <string name="theme_oled">OLED</string>
+    <string name="reader_theme_system">Системна</string>
+    <string name="broadcast_control_mode_switching">Режим трансляції змінюється. Глядачам потрібно знову відкрити трансляцію за оновленим посиланням або QR-кодом.</string>
+    <string name="broadcast_share_qr_fullscreen_cd">QR-код трансляції на весь екран. Натисніть, щоб повернутися.</string>
 </resources>

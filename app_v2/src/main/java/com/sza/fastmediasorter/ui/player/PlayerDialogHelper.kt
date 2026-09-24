@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
-import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
@@ -29,10 +28,8 @@ import com.sza.fastmediasorter.domain.usecase.SaveGifFirstFrameUseCase
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
 import dagger.Lazy
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import kotlin.LazyThreadSafetyMode
@@ -488,30 +485,6 @@ class PlayerDialogHelper(
         safeShow(builder.create())
     }
 
-    /**
-     * Show PDF editing dialog with available export actions.
-     */
-    fun showPdfEditDialog(currentFile: MediaFile) {
-        if (currentFile.type != MediaType.PDF) {
-            Toast.makeText(activity, activity.getString(R.string.msg_no_file_to_edit), Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val options = arrayOf(activity.getString(R.string.pdf_export_to_jpg))
-
-        safeShow(
-            com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
-                .setTitle(R.string.pdf_edit_title)
-                .setItems(options) { _, which ->
-                    when (which) {
-                        0 -> exportPdfToJpg(currentFile)
-                    }
-                }
-                .setNegativeButton(R.string.cancel, null)
-                .create()
-        )
-    }
-
     fun showEncodingDialog() {
         val manager = textViewerManagerProvider?.invoke() ?: return
         val charsets = manager.getSupportedCharsets()
@@ -533,17 +506,27 @@ class PlayerDialogHelper(
     fun showReaderSettingsDialog() {
         val manager = textViewerManagerProvider?.invoke() ?: return
         val themes = com.sza.fastmediasorter.ui.player.helpers.TextReaderTheme.entries
+        // Index 0 is SYSTEM; every later index maps to themes[index - 1].
         val themeLabels = arrayOf(
+            activity.getString(R.string.reader_theme_system),
             activity.getString(R.string.reader_theme_light),
             activity.getString(R.string.reader_theme_dark),
             activity.getString(R.string.reader_theme_sepia)
         )
-        val currentIndex = themes.indexOf(manager.getCurrentTheme()).coerceAtLeast(0)
+        val currentIndex = if (manager.isFollowingSystemTheme()) {
+            0
+        } else {
+            themes.indexOf(manager.getCurrentTheme()) + 1
+        }
         safeShow(
             com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.reader_settings)
                 .setSingleChoiceItems(themeLabels, currentIndex) { dialog, which ->
-                    manager.applyReaderTheme(themes[which])
+                    if (which == 0) {
+                        manager.applySystemReaderTheme()
+                    } else {
+                        manager.applyReaderTheme(themes[which - 1])
+                    }
                     dialog.dismiss()
                 }
                 .setNegativeButton(R.string.cancel, null)
@@ -639,53 +622,5 @@ class PlayerDialogHelper(
                 .setNegativeButton(R.string.cancel, null)
                 .create()
         )
-    }
-
-    private fun exportPdfToJpg(currentFile: MediaFile) {
-        activity.lifecycleScope.launch {
-            Toast.makeText(activity, R.string.pdf_exporting_started, Toast.LENGTH_SHORT).show()
-
-            try {
-                if (currentFile.path.contains("://")) {
-                    Toast.makeText(activity, R.string.unsupported_format_network_hint, Toast.LENGTH_LONG).show()
-                    return@launch
-                }
-
-                val result = withContext(Dispatchers.IO) {
-                    com.sza.fastmediasorter.utils.PdfExportHelper.exportPdfPagesToJpg(
-                        activity,
-                        File(currentFile.path)
-                    )
-                }
-
-                result.onSuccess { count ->
-                    Toast.makeText(
-                        activity,
-                        activity.getString(R.string.pdf_export_success, count),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }.onFailure { e ->
-                    Timber.e(e, "PDF export failed")
-                    Toast.makeText(
-                        activity,
-                        activity.getString(
-                            R.string.pdf_export_failed,
-                            activity.getString(R.string.friendly_copy_error_generic)
-                        ),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            } catch (e: Exception) {
-                e.errorUnlessCancellation("PDF export failed")
-                Toast.makeText(
-                    activity,
-                    activity.getString(
-                        R.string.pdf_export_failed,
-                        activity.getString(R.string.friendly_copy_error_generic)
-                    ),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
     }
 }

@@ -345,6 +345,39 @@ class BrowseFileTransferModelsSerializationTest {
     }
 
     @Test
+    fun `skipped files survive the payload round trip`() {
+        val gson = Gson()
+        val event = BrowseFileTransferTerminalEvent.PartialSuccess(
+            workId = "w-1",
+            operationType = FileOperationType.COPY,
+            processedCount = 2,
+            failedCount = 1,
+            details = "x.jpg: denied",
+            undoOperation = null,
+            skippedCount = 2,
+            skippedNames = listOf("a.jpg", "b.jpg"),
+        )
+
+        val decoded = gson.fromJson(gson.toJson(event.toPayload()), BrowseFileTransferTerminalPayload::class.java)
+
+        assertEquals(event, decoded.toEvent())
+    }
+
+    @Test
+    fun `terminal payload written before the skip keys reads as nothing skipped`() {
+        val onDisk = """
+            {"kind":"success","workId":"w-1","operationType":"COPY","processedCount":3,"failedCount":0,
+             "undoSourceFiles":[],"undoCopiedFiles":[]}
+        """.trimIndent()
+
+        val event = Gson().fromJson(onDisk, BrowseFileTransferTerminalPayload::class.java).toEvent()
+
+        event as BrowseFileTransferTerminalEvent.Success
+        assertEquals(0, event.skippedCount)
+        assertEquals(emptyList<String>(), event.skippedNames)
+    }
+
+    @Test
     fun `terminal payload naming no known operation is rejected at the read boundary`() {
         // Every other persisted key is present, so the intactness verdict can only come from the operation.
         // Gson leaves an unmatched enum null instead of throwing, which is what moves the failure off the

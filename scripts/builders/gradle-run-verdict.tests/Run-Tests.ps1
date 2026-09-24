@@ -255,10 +255,12 @@ Assert-That 'fresh artifact args leave configuration cache to the caller' `
 $deviceBuilder = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/builders/build-standard-device.ps1') -Raw
 # S3290 moved the invocation from a bare `& $gradlew .. @freshArtifactArgs` splat into the progress
 # watcher, which takes its argument vector as an array - so the assertion follows the args into that
-# array instead of demanding the splat token. The claim is unchanged: the flags reach Gradle.
-Assert-That 'device builder passes the fresh artifact args to Gradle' `
-($deviceBuilder -match 'Get-FreshGeneratedArtifactBuildArgs' -and $deviceBuilder -match '\$gradleArgs\s*=[\s\S]*\$freshArtifactArgs') `
-'build-standard-device.ps1 does not use the fresh artifact args'
+# array instead of demanding the splat token. S3510 made the flags conditional on a full rebuild, so
+# the assertion follows them into that branch: a full rebuild still hands them to Gradle.
+Assert-That 'device builder passes the fresh artifact args to Gradle on a full rebuild' `
+($deviceBuilder -match 'Get-FreshGeneratedArtifactBuildArgs' -and
+    $deviceBuilder -match 'if \(\$fullRebuild\) \{\s*\$gradleArgs\s*=\s*\$baseGradleArgs \+ \$freshArtifactArgs') `
+'build-standard-device.ps1 does not use the fresh artifact args on a full rebuild'
 
 # --- JUnit report outcome (S1464) --------------------------------------------------------------
 # Existence is not execution. Each fixture below is a report a gate might be handed; only one of them
@@ -296,6 +298,35 @@ try {
   <testcase name="committed manifest is fresh"/>
 </testsuite>
 '@
+
+    # S3487: shape of the attached report - every test red on a native-library exception, no assertion reached.
+    $infraReport = New-Report 'infra.xml' @'
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="SettingsManifestExportTest" tests="2" skipped="0" failures="2" errors="0">
+  <testcase name="a"><failure message="x" type="java.lang.UnsatisfiedLinkError">nativeOpen</failure></testcase>
+  <testcase name="b"><failure message="x" type="java.lang.UnsatisfiedLinkError">nativeOpen</failure></testcase>
+</testsuite>
+'@
+    $assertReport = New-Report 'assert.xml' @'
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="SettingsManifestExportTest" tests="2" skipped="0" failures="2" errors="0">
+  <testcase name="a"><failure message="x" type="java.lang.AssertionError">differs</failure></testcase>
+  <testcase name="b"><failure message="x" type="java.lang.UnsatisfiedLinkError">nativeOpen</failure></testcase>
+</testsuite>
+'@
+
+    $o = Get-JUnitSuiteOutcome -ReportPath $infraReport
+    Assert-That 'environment-only failures carry zero assertion failures' `
+    ($o.Failed -and $o.AssertionFailures -eq 0 -and ($o.FailureTypes -join ',') -eq 'java.lang.UnsatisfiedLinkError') `
+        "failed=$($o.Failed) assertions=$($o.AssertionFailures) types=$($o.FailureTypes -join ',')"
+
+    $o = Get-JUnitSuiteOutcome -ReportPath $assertReport
+    Assert-That 'a typed assertion failure still counts as an assertion' `
+    ($o.Failed -and $o.AssertionFailures -eq 1) "failed=$($o.Failed) assertions=$($o.AssertionFailures)"
+
+    $o = Get-JUnitSuiteOutcome -ReportPath $failedReport
+    Assert-That 'a typeless failure counts as an assertion' `
+    ($o.AssertionFailures -eq 1) "assertions=$($o.AssertionFailures)"
 
     $o = Get-JUnitSuiteOutcome -ReportPath $skippedReport
     Assert-That 'skipped report does not count as executed' `

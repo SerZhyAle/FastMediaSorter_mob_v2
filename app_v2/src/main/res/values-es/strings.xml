@@ -202,13 +202,13 @@
     <string name="backup_to_google_drive">Hacer copia de seguridad de los ajustes en Google Drive</string>
     <string name="restore_from_google_drive">Restaurar ajustes desde Google Drive</string>
     <string name="tooltip_backup_info_title">Información de la copia de seguridad</string>
-    <string name="tooltip_backup_info_message">La copia de seguridad incluye todos los ajustes y la lista de recursos. Las credenciales no se guardan - tendrás que volver a autenticar los recursos de red y de la nube después de restaurarla.</string>
+    <string name="tooltip_backup_info_message">La copia de seguridad incluye todos los ajustes, la lista de recursos, las contraseñas de red y los inicios de sesión guardados en sitios web - no compartas el archivo de la copia. Los inicios de sesión en la nube (Google Drive, OneDrive, Dropbox) no se incluyen - puede que tengas que volver a iniciar sesión en ellos después de restaurarla.</string>
     <string name="backup_success">Se hizo copia de seguridad de %1$d recursos, %2$d favoritos y todos los ajustes en %3$s</string>
     <string name="backup_failed">No se pudo hacer copia de seguridad de tus ajustes y recursos. Inténtalo de nuevo.</string>
     <string name="restore_confirm_title">¿Restaurar desde la copia de seguridad?</string>
     <string name="restore_confirm_message">Copia de seguridad de: %1$s\nDispositivo: %2$s\nRecursos: %3$d\nFavoritos: %4$d\n\n• Los ajustes se REEMPLAZARÁN\n• Los recursos se AÑADIRÁN (se omiten los duplicados)\n• Los favoritos se AÑADIRÁN (se omiten los duplicados)</string>
     <string name="restore_success">Se restauraron todos los ajustes. Se añadieron %1$d recursos (%2$d ya existían). Se añadieron %3$d favoritos (%4$d ya existían).</string>
-    <string name="restore_needs_auth">Algunos recursos usan cuentas de red o de la nube. Tendrás que volver a autenticarlos.</string>
+    <string name="restore_needs_auth">Algunos recursos restaurados usan cuentas en la nube (Google Drive, OneDrive, Dropbox). Vuelve a iniciar sesión en ellas.</string>
     <string name="restore_no_backup">No se encontró ninguna copia de seguridad para esta cuenta.</string>
     <string name="restore_failed">No se pudieron restaurar tus ajustes y recursos. Inténtalo de nuevo.</string>
     <string name="backup_account">Cuenta: %s</string>

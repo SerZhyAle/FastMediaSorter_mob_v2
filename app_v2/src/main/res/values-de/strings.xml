@@ -201,13 +201,13 @@
     <string name="backup_to_google_drive">Einstellungen in Google Drive sichern</string>
     <string name="restore_from_google_drive">Einstellungen aus Google Drive wiederherstellen</string>
     <string name="tooltip_backup_info_title">Backup-Informationen</string>
-    <string name="tooltip_backup_info_message">Das Backup enthält alle Einstellungen und die Ressourcenliste. Zugangsdaten werden nicht gesichert - nach der Wiederherstellung musst du dich bei Netzwerk- und Cloud-Ressourcen erneut anmelden.</string>
+    <string name="tooltip_backup_info_message">Das Backup enthält alle Einstellungen, die Ressourcenliste, Netzwerkpasswörter und gespeicherte Website-Anmeldungen - gib die Backup-Datei nicht weiter. Cloud-Anmeldungen (Google Drive, OneDrive, Dropbox) sind nicht enthalten - nach der Wiederherstellung musst du dich dort eventuell erneut anmelden.</string>
     <string name="backup_success">%1$d Ressourcen, %2$d Favoriten und alle Einstellungen wurden in %3$s gesichert</string>
     <string name="backup_failed">Einstellungen und Ressourcen konnten nicht gesichert werden. Bitte erneut versuchen.</string>
     <string name="restore_confirm_title">Aus Backup wiederherstellen?</string>
     <string name="restore_confirm_message">Sicherung von: %1$s\nGerät: %2$s\nRessourcen: %3$d\nFavoriten: %4$d\n\n• Einstellungen werden ERSETZT\n• Ressourcen werden HINZUGEFÜGT (Duplikate übersprungen)\n• Favoriten werden HINZUGEFÜGT (Duplikate übersprungen)</string>
     <string name="restore_success">Alle Einstellungen wiederhergestellt. %1$d Ressourcen hinzugefügt (%2$d bereits vorhanden). %3$d Favoriten hinzugefügt (%4$d bereits vorhanden).</string>
-    <string name="restore_needs_auth">Einige Ressourcen nutzen Netzwerk- oder Cloud-Konten. Du musst dich dort erneut anmelden.</string>
+    <string name="restore_needs_auth">Einige wiederhergestellte Ressourcen nutzen Cloud-Konten (Google Drive, OneDrive, Dropbox). Melde dich dort erneut an.</string>
     <string name="restore_no_backup">Kein Backup für dieses Konto gefunden.</string>
     <string name="restore_failed">Einstellungen und Ressourcen konnten nicht wiederhergestellt werden. Bitte erneut versuchen.</string>
     <string name="backup_account">Konto: %s</string>

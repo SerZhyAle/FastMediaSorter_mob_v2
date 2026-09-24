@@ -37,7 +37,7 @@ Every skill's own `description` is injected fresh each turn (see the "Available 
 - Before creating: dedup-check by symptom (`scripts/spec_catalog/search.ps1`); if an open ticket already covers it, reference that id instead of drafting a duplicate.
 - Batch discovery: a general log analysis / audit / review surfacing several qualifying problems → one `/spec-draft` per distinct problem (after dedup).
 - Non-disruptive: park it, report `parked: Sxxxx <slug>` in chat, then resume the original task. Never switch the active ticket because of a parked finding.
-- Do NOT park: in-scope work, trivial fixes (do them inline), cosmetic nitpicks not worth a ticket, or already-ticketed issues.
+- Do NOT park: in-scope work, trivial fixes (do them inline - a change confined to one script or one rule line whose fix is known counts as trivial), cosmetic nitpicks not worth a ticket, or already-ticketed issues. A ticket the owner asks for is still written.
 - Read-only contexts (e.g. `android-solution-researcher`) cannot mutate the catalog: instead list the qualifying findings as `/spec-draft` candidates in the report for the caller to capture.
 
 ## 4. Spec Catalog (Sxxxx tickets)

@@ -202,13 +202,13 @@
     <string name="backup_to_google_drive">Sauvegarder les paramètres sur Google Drive</string>
     <string name="restore_from_google_drive">Restaurer les paramètres depuis Google Drive</string>
     <string name="tooltip_backup_info_title">Informations de sauvegarde</string>
-    <string name="tooltip_backup_info_message">La sauvegarde inclut tous les paramètres et la liste des ressources. Les identifiants ne sont pas sauvegardés - vous devrez vous authentifier à nouveau auprès des ressources réseau/cloud après la restauration.</string>
+    <string name="tooltip_backup_info_message">La sauvegarde inclut tous les paramètres, la liste des ressources, les mots de passe réseau et les connexions enregistrées aux sites - gardez le fichier de sauvegarde privé. Les connexions aux services cloud (Google Drive, OneDrive, Dropbox) ne sont pas incluses - vous devrez peut-être vous y reconnecter après la restauration.</string>
     <string name="backup_success">%1$d ressources, %2$d favoris et tous les paramètres ont été sauvegardés sur %3$s</string>
     <string name="backup_failed">Impossible de sauvegarder vos paramètres et ressources. Réessayez.</string>
     <string name="restore_confirm_title">Restaurer depuis la sauvegarde ?</string>
     <string name="restore_confirm_message">Sauvegarde du : %1$s\nAppareil : %2$s\nRessources : %3$d\nFavoris : %4$d\n\n• Les paramètres seront REMPLACÉS\n• Les ressources seront AJOUTÉES (doublons ignorés)\n• Les favoris seront AJOUTÉS (doublons ignorés)</string>
     <string name="restore_success">Tous les paramètres ont été restaurés. %1$d ressources ajoutées (%2$d existaient déjà). %3$d favoris ajoutés (%4$d existaient déjà).</string>
-    <string name="restore_needs_auth">Certaines ressources utilisent des comptes réseau ou cloud. Vous devrez les authentifier à nouveau.</string>
+    <string name="restore_needs_auth">Certaines ressources restaurées utilisent des comptes cloud (Google Drive, OneDrive, Dropbox). Reconnectez-vous à ces comptes.</string>
     <string name="restore_no_backup">Aucune sauvegarde trouvée pour ce compte.</string>
     <string name="restore_failed">Impossible de restaurer vos paramètres et ressources. Réessayez.</string>
     <string name="backup_account">Compte : %s</string>

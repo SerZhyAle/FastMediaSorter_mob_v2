@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="pdf_color_mode">Кольоровий режим: %s</string>
     <string name="pdf_creation_date_label">Створено: %1$s</string>
     <string name="pdf_creator_label">Створювач: %1$s</string>
     <string name="pdf_display_error">Не вдалося показати цей PDF. Спробуйте ще раз.</string>
@@ -18,7 +17,6 @@
     <string name="pdf_night_mode">Нічний режим</string>
     <string name="pdf_p">PDF (P)</string>
     <string name="pdf_page">Сторінка PDF</string>
-    <string name="pdf_page_mode">Посторінковий режим</string>
     <string name="pdf_page_render_failed">Не вдалося відмалювати цю сторінку. Спробуйте ще раз.</string>
     <string name="pdf_producer_label">Виробник: %1$s</string>
     <string name="pdf_read_failed">Не вдалося прочитати цей PDF. Файл може бути пошкоджений або не підтримуватися.</string>

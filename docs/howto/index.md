@@ -64,7 +64,7 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 ## Not sure where to start?
 
 - **Just installed the app?** → Begin with [Quick Start](../QUICK_START.md) - 5 minutes to your first result
-- <img src="../icons/doc/ic_info.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> **First-run tip:** on the welcome screen you can pick a **Device Profile** that pre-tunes the app for scenarios like Photo Frame, In-Car Music, or Home Cinema - and you can change it anytime in Settings → Interface. See [First Launch: Choose Your Device Profile](../QUICK_START.md#first-launch-choose-your-device-profile-30-seconds-).
+- <img src="../icons/doc/ic_info.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> **First-run tip:** on the welcome screen you can pick a **Device Profile** that pre-tunes the app for scenarios like Photo Frame, In-Car Music, or Home Cinema - and you can change it anytime in **Settings → General → Device profile**. See [First Launch: Choose Your Device Profile](../QUICK_START.md#first-launch-choose-your-device-profile-30-seconds-).
 - **Something not working?** → See [Troubleshooting](../TROUBLESHOOTING.md)
 - **Technical question?** → See [FAQ](../FAQ.md)
 - **Want to connect to a NAS first?** → The [SMB Guide](scenario-smb-setup.md) is the foundation for Camera Backup, Home Cinema, and Photo Frame

@@ -7,6 +7,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.os.Build
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.launcher.InstalledAppIconStore
 import com.sza.fastmediasorter.data.repository.INSTALLED_APP_CACHE_FORMAT_VERSION
 import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
@@ -34,6 +35,11 @@ class RefreshInstalledAppsUseCase @Inject constructor(
     private val iconStore: InstalledAppIconStore
 ) {
 
+    private fun getPackageManager(): PackageManager {
+        val localizedContext = LocaleHelper.localizedContext(context, LocaleHelper.getLanguage(context))
+        return localizedContext.packageManager
+    }
+
     /**
      * Fills the cache when it is empty or was written by an older build, and does nothing otherwise.
      * This is the startup entry point: the screen must open without a wait on the first entry after a
@@ -47,6 +53,7 @@ class RefreshInstalledAppsUseCase @Inject constructor(
         val fresh = current == INSTALLED_APP_CACHE_FORMAT_VERSION && repository.cachedCount() > 0
         if (fresh) {
             reconcile()
+            refreshLabelsOnly()
         } else {
             refreshAll()
         }
@@ -62,7 +69,7 @@ class RefreshInstalledAppsUseCase @Inject constructor(
      * files. A missing icon counts as a difference, since nothing else would ever write it again.
      */
     suspend fun reconcile() = withContext(Dispatchers.IO) {
-        val packageManager = context.packageManager
+        val packageManager = getPackageManager()
         val resolved = launchableActivities(packageManager)
             .mapNotNull { info -> info.activityInfo?.packageName?.let { it to info } }
             .toMap()
@@ -93,7 +100,7 @@ class RefreshInstalledAppsUseCase @Inject constructor(
 
     /** Rebuilds the whole cache and drops the icon files of apps that are no longer installed. */
     suspend fun refreshAll() = withContext(Dispatchers.IO) {
-        val packageManager = context.packageManager
+        val packageManager = getPackageManager()
         val apps = launchableActivities(packageManager).mapNotNull { resolveInfo ->
             toInstalledApp(packageManager, resolveInfo)
         }
@@ -113,7 +120,7 @@ class RefreshInstalledAppsUseCase @Inject constructor(
      * or hidden by its own update - loses its row and its icon together.
      */
     suspend fun refreshPackage(packageName: String) = withContext(Dispatchers.IO) {
-        val packageManager = context.packageManager
+        val packageManager = getPackageManager()
         val resolveInfo = launchableActivities(packageManager)
             .firstOrNull { it.activityInfo?.packageName == packageName }
         if (resolveInfo == null) {
@@ -129,7 +136,8 @@ class RefreshInstalledAppsUseCase @Inject constructor(
      * language change would be pure cost.
      */
     suspend fun refreshLabelsOnly() = withContext(Dispatchers.IO) {
-        val packageManager = context.packageManager
+        Timber.d("S3522: refreshLabelsOnly start")
+        val packageManager = getPackageManager()
         val resolved = launchableActivities(packageManager)
             .mapNotNull { info -> info.activityInfo?.packageName?.let { it to info } }
             .toMap()

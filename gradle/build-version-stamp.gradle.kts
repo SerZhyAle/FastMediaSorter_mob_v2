@@ -108,7 +108,16 @@ if ((fmsPassedVersionName == null) != (fmsPassedVersionCode == null)) {
 // `gradlew :app_v2:assembleStandardRelease :wear:assembleStandardRelease`, which is what CI does
 // with no property at all - would straddle a minute boundary sooner or later and ship a phone and
 // a watch whose versionName differs. Strategic goal 4 requires those to be byte-identical.
-if (fmsPackagingRequested) {
+//
+// S3513: -Pfms.stableVersion=true opts a packaging invocation out of the stamp, so it ships the
+// checked-in constants. The debug device builders pass it: a per-minute stamp is a per-minute
+// configuration-cache key and a moved BuildConfig version, so every device build reconfigured and
+// recompiled every reader. Only `dav` and the release paths keep a unique number, and they pass
+// -Pfms.version* explicitly, which wins over this flag in the module build files anyway.
+val fmsStableVersionRequested: Boolean =
+    providers.gradleProperty("fms.stableVersion").orNull.equals("true", ignoreCase = true)
+
+if (fmsPackagingRequested && !fmsStableVersionRequested) {
     val raw = if (rootProject.extra.has("fmsRawBuildStamp")) {
         rootProject.extra["fmsRawBuildStamp"] as String
     } else {

@@ -45,15 +45,15 @@ steps:
     id: big-buttons-compact
     title: Bigger buttons for a car dashboard, smaller elements for a busy screen
     text: |
-      **Big Buttons Mode**, in **Playback**, enlarges the player's control buttons and stretches them to the full width, with the toolbar showing five to nine buttons depending on how much room there is - built for a [car head unit](term:car-head-unit) or anywhere you need larger targets. **Compact elements**, in **General**, goes the other way: it shrinks list rows and player controls to fit more on screen at once, and needs a restart to take effect.
+      **Big Buttons Mode**, in **Player**, enlarges the player's control buttons and stretches them to the full width, with the toolbar showing five to nine buttons depending on how much room there is - built for a [car head unit](term:car-head-unit) or anywhere you need larger targets. **Compact elements**, in **General**, goes the other way: it shrinks list rows and player controls to fit more on screen at once, and needs a restart to take effect.
     image_bookmark:
       shot_id: settings.appearance-big-buttons-and-compact
       device_profile: phone
       screen_state: settings-playback-big-buttons-toggle
-      alt: The Big Buttons Mode toggle in Playback settings and the Compact elements toggle in General settings
+      alt: The Big Buttons Mode toggle in Player settings and the Compact elements toggle in General settings
       caption: "Big Buttons Mode and Compact elements, opposite ends of the same idea."
       title: "Screenshot: Big Buttons and Compact elements"
-      desc: Settings, Playback group, Big Buttons Mode row, with the General group's Compact elements row shown alongside.
+      desc: Settings, Player group, Big Buttons Mode row, with the General group's Compact elements row shown alongside.
   - number: 4
     id: animations
     title: Turn off the decorative motion, keep the motion that means something

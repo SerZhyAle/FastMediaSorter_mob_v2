@@ -147,7 +147,7 @@ Full-size images:
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
 - 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "All Files mode".
-- ⌨️ **Keyboard, Mouse & Gamepad:** Full keyboard, mouse, and gamepad input across all screens - Browse, Player, Settings, dialogs. Fully remappable via Settings → Operations → Controls & Keybindings; press F1 on any screen for a per-surface help overlay. D-pad list navigation; right-click context menu and hover effects for mouse.
+- ⌨️ **Keyboard, Mouse & Gamepad:** Full keyboard, mouse, and gamepad input across all screens - Browse, Player, Settings, dialogs. Fully remappable via Settings → Management → Controls & Keybindings; press F1 on any screen for a per-surface help overlay. D-pad list navigation; right-click context menu and hover effects for mouse.
 - 🔍 **Sorting and Filtering:** Order files by name, date, size, and duration. Apply filters for quick search. Support for hidden files (starting with `.`) with dedicated toggle.
 - ↩️ **Undo & Trash:** Ability to undo the last action (copy, move, delete) with soft-delete to `.trash/` folder. Includes "Empty Trash" functionality for resources.
 - 🎨 **Modern Interface:** Support for light and dark themes, intuitive controls, Material Design 3.
@@ -370,10 +370,10 @@ brew install maestro
 # Or Linux/macOS (curl)
 curl -Ls "https://get.maestro.mobile.dev" | bash
 
-# Windows (PowerShell as Administrator)
+# Windows (PowerShell as Administrator) - External: install.ps1 is the Maestro installer
 Invoke-WebRequest -Uri "https://get.maestro.mobile.dev/install.ps1" -OutFile install.ps1
-.\install.ps1
-Remove-Item install.ps1
+.\install.ps1  # External: Maestro installer
+Remove-Item install.ps1  # External: Maestro installer
 
 # Run smoke tests (2-3 minutes)
 ./maestro/run-tests.sh smoke    # Linux/macOS

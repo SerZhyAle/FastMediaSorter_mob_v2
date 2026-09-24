@@ -6,6 +6,9 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.fragment.app.FragmentActivity
+import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.ui.common.input.InputHelpLinkResolver
+import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.support.DocsHelpFallbackDialogFragment.Reason
 import com.sza.fastmediasorter.util.resolveActivityCompat
 import timber.log.Timber
@@ -18,6 +21,14 @@ import timber.log.Timber
  * from another device, instead of a silent no-op or an [ActivityNotFoundException] crash.
  */
 object DocsPageOpenManager {
+
+    /** Opens the documentation page for [surface] in the device language (English fallback). */
+    fun open(activity: FragmentActivity, surface: UiSurface) {
+        Timber.d("S3506: docs page open surface=$surface")
+        val lang = LocaleHelper.getLanguage(activity)
+        val url = InputHelpLinkResolver.urlFor(surface, lang)
+        open(activity, url)
+    }
 
     fun open(activity: FragmentActivity, url: String) {
         val intent = SupportIntentFactory.openUrl(url)

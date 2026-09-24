@@ -245,7 +245,8 @@ class DropboxClientImpl @Inject constructor(
                 val credential = Auth.getDbxCredential()
                 if (credential != null) {
                     val grantedScopes = Auth.getScope()
-                    if (!hasRequiredMetadataScope(grantedScopes)) {
+                    Timber.i("Dropbox PKCE finished, granted scopes: %s", grantedScopes ?: "<not reported>")
+                    if (!hasRequiredMetadataScope(grantedScopes) && !canListFiles(credential)) {
                         return@withContext AuthResult.Error(
                             "Dropbox sign-in did not grant files.metadata.read. Sign in again after enabling Dropbox app permissions."
                         )
@@ -293,6 +294,18 @@ class DropboxClientImpl @Inject constructor(
         return scopeGrant
             .split(' ', ',')
             .any { it.equals(REQUIRED_METADATA_SCOPE, ignoreCase = true) }
+    }
+
+    // S3520: the scope string is the token response's optional `scope` field, so its absence
+    // proves nothing - ask Dropbox whether the token can list files before rejecting a sign-in.
+    private suspend fun canListFiles(credential: DbxCredential): Boolean = withContext(Dispatchers.IO) {
+        try {
+            DbxClientV2(dbxRequestConfig, credential).files().listFolderBuilder("").withLimit(1L).start()
+            true
+        } catch (e: DbxException) {
+            Timber.w(e, "Dropbox token cannot list files; %s is missing", REQUIRED_METADATA_SCOPE)
+            false
+        }
     }
 
     private suspend fun initializeWithCredential(credential: DbxCredential): Boolean {

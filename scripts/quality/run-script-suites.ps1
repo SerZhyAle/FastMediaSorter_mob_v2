@@ -42,10 +42,30 @@
     tool must still be able to close a ticket) and fatal before a release (where the environment must
     be complete). Both readings come from this one classifier; only the caller's -Gate switch differs.
 
+    A PASS IS REMEMBERED IN THE PER-TICKET MODE ONLY (S3515). The closure of one adb.ps1 change took
+    146 s, 134.5 s of it the three adb suites the agent had run by hand a minute earlier against the
+    same files. With -ChangedFiles, a passing suite is recorded under a fingerprint - SHA-256 over the
+    path and content hash of every file in the suite's directory, of every resolved subject, and of
+    every existing .ps1 those files name in a string literal (one level: the dot-sourced libraries) -
+    and the next run with an identical fingerprint within -CacheMaxAgeMinutes reports a cached PASS
+    without executing. A failure, a could-not-verify and a skip are never recorded. The age bound is
+    there because a suite may still read a file the fingerprint does not cover (a path built from
+    several Join-Path segments, a library's own library, the canon harness behind a forwarder); the
+    release-scope sweep, which passes no changed set, neither reads nor writes the cache, so every
+    release still executes every suite. Run a suite through this runner rather than by its own path
+    and the closure reuses the result.
+
 .PARAMETER ChangedFiles
     Changed-file set. Only the suites whose subject is in the set run. Accepts a comma-separated
     string, because `pwsh -File` binds `-ChangedFiles a.ps1,b.ps1` as ONE array element. Absent means
     every discovered suite runs.
+
+.PARAMETER NoCache
+    Execute every selected suite even when a matching PASS is recorded. The result is still recorded.
+
+.PARAMETER CacheMaxAgeMinutes
+    Oldest recorded PASS that may stand in for a run (default 120). The store is
+    temp/metrics/script-suite-pass-cache.json, or the path in FMS_SCRIPT_SUITE_CACHE.
 
 .PARAMETER Gate
     Fail-closed on an incomplete environment: exit 2 when a suite could not verify. Without it the
@@ -92,6 +112,8 @@ param(
     [switch]$ListOnly,
     [string]$Root,
     [string]$Json,
+    [switch]$NoCache,
+    [int]$CacheMaxAgeMinutes = 120,
     [switch]$Help
 )
 
@@ -268,8 +290,82 @@ if ($selected.Count -eq 0) {
 
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
 
+$useCache = $normalizedChanged.Count -gt 0
+$cachePath = if ($env:FMS_SCRIPT_SUITE_CACHE) { $env:FMS_SCRIPT_SUITE_CACHE } else { Join-Path $repoRoot 'temp/metrics/script-suite-pass-cache.json' }
+
+$scriptLiteral = [regex]::new('[''"]([^''"\r\n$]+?\.ps1)[''"]')
+
+function Get-ReferencedScript([System.IO.FileInfo]$File) {
+    # A subject that dot-sources a library is re-selected by a change to the subject only, so a
+    # fingerprint over the subject alone let a library edit replay the old PASS: post-change.ps1
+    # moved its document-registry step into lib/ in the same ticket that added this cache.
+    if ($File.Extension -ne '.ps1') { return }
+    $text = [System.IO.File]::ReadAllText($File.FullName)
+    foreach ($match in $scriptLiteral.Matches($text)) {
+        $literal = $match.Groups[1].Value -replace '\\', '/'
+        foreach ($base in @($repoRoot, $File.DirectoryName)) {
+            $candidate = Join-Path $base $literal
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) { Get-Item -LiteralPath $candidate; break }
+        }
+    }
+}
+
+function Get-SuiteFingerprint([object]$Descriptor) {
+    $roots = @((Split-Path -Parent $Descriptor.Path)) + @($Descriptor.Subjects | ForEach-Object { Join-Path $repoRoot $_ })
+    $direct = @($roots | ForEach-Object {
+            if (Test-Path -LiteralPath $_ -PathType Leaf) { Get-Item -LiteralPath $_ }
+            elseif (Test-Path -LiteralPath $_ -PathType Container) { Get-ChildItem -LiteralPath $_ -Recurse -File }
+        })
+    $files = @(@($direct) + @($direct | ForEach-Object { Get-ReferencedScript $_ }) | Sort-Object FullName -Unique)
+    $lines = @($files | ForEach-Object {
+            '{0}|{1}' -f (ConvertTo-RelPath $_.FullName), (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
+        })
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($lines -join "`n")
+    return [System.Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($bytes))
+}
+
+function Read-PassCache {
+    if (-not (Test-Path -LiteralPath $cachePath)) { return @{} }
+    # An unreadable store is treated as empty: the cost is one re-run, never a wrong PASS.
+    try { return (Get-Content -LiteralPath $cachePath -Raw | ConvertFrom-Json -AsHashtable) ?? @{} }
+    catch { return @{} }
+}
+
+function Save-PassCache([hashtable]$Cache) {
+    $dir = Split-Path -Parent $cachePath
+    if ($dir -and -not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    $tmp = "$cachePath.$PID.tmp"
+    Set-Content -LiteralPath $tmp -Value ($Cache | ConvertTo-Json -Depth 4) -Encoding utf8NoBOM
+    Move-Item -LiteralPath $tmp -Destination $cachePath -Force
+}
+
+$passCache = if ($useCache) { Read-PassCache } else { @{} }
+$cacheDirty = $false
+
 $results = [System.Collections.Generic.List[object]]::new()
 foreach ($descriptor in $selected) {
+    $fingerprint = $null
+    if ($useCache) {
+        $fingerprint = Get-SuiteFingerprint $descriptor
+        $entry = $passCache[$descriptor.Rel]
+        if (-not $NoCache -and $entry -and $entry.fingerprint -eq $fingerprint) {
+            # ConvertFrom-Json turns an ISO timestamp into a [datetime] by itself; parse only a string.
+            $recordedAt = if ($entry.at -is [datetime]) { $entry.at } else {
+                [datetime]::Parse([string]$entry.at, [cultureinfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::RoundtripKind)
+            }
+            if (((Get-Date).ToUniversalTime() - $recordedAt.ToUniversalTime()).TotalMinutes -le $CacheMaxAgeMinutes) {
+                $results.Add([pscustomobject]@{
+                        Suite    = $descriptor.Rel
+                        Verdict  = 'PASS'
+                        ExitCode = 0
+                        Seconds  = 0
+                        LastLine = "cached PASS from $($recordedAt.ToLocalTime().ToString('HH:mm:ss')) - suite and subjects unchanged (-NoCache to re-run)"
+                        Output   = @()
+                    })
+                continue
+            }
+        }
+    }
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     $env:FMS_SCRIPT_SUITE_RUNNER = '1'
     try {
@@ -302,6 +398,20 @@ foreach ($descriptor in $selected) {
             LastLine = $lastLine
             Output   = $output
         })
+
+    if ($useCache) {
+        if ($verdict -eq 'PASS') {
+            $passCache[$descriptor.Rel] = @{ fingerprint = $fingerprint; at = (Get-Date).ToUniversalTime().ToString('o') }
+        }
+        else { $passCache.Remove($descriptor.Rel) }
+        $cacheDirty = $true
+    }
+}
+
+if ($cacheDirty) {
+    # A store that cannot be written costs the next closure one re-run; it never changes this verdict.
+    try { Save-PassCache $passCache }
+    catch { Write-Host "run-script-suites: pass cache not written - $($_.Exception.Message)" -ForegroundColor DarkGray }
 }
 
 $failed = @($results | Where-Object { $_.Verdict -eq 'FAIL' })

@@ -845,12 +845,19 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             // no orphaned item renders as a dead tap. (Full host removal tracked under S0393.)
             for (i in 0 until popup.menu.size()) {
                 val mi = popup.menu.getItem(i)
-                mi.isVisible = mi.itemId == R.id.menu_open_in_fms
+                mi.isVisible = mi.itemId == R.id.menu_open_in_fms || mi.itemId == R.id.menu_help
             }
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.menu_open_in_fms -> {
                         openInFms()
+                        true
+                    }
+                    R.id.menu_help -> {
+                        com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager.open(
+                            this,
+                            com.sza.fastmediasorter.ui.common.input.UiSurface.PLAYER
+                        )
                         true
                     }
                     else -> false

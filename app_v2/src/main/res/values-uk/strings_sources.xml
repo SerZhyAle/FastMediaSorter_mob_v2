@@ -71,11 +71,6 @@
     <string name="cloud_upload_failed">Не вдалося завантажити файл у хмару. Спробуйте ще раз.</string>
     <string name="dropbox">Dropbox</string>
     <string name="dropbox_authentication_failed">Помилка входу в Dropbox</string>
-    <string name="dropbox_beta_email_body">Доброго дня,\n\nБудь ласка, додайте мій акаунт Dropbox до списку бета-тестерів FastMediaSorter.\n\nМій email Dropbox: </string>
-    <string name="dropbox_beta_email_subject">FastMediaSorter - Запит доступу до Dropbox бета</string>
-    <string name="dropbox_beta_message">Інтеграція з Dropbox наразі доступна в обмеженому бета-режимі.\n\n⚠️ Навіщо писати вам?\nDropbox вимагає від розробників вручну реєструвати тестерів на період перевірки. Це разова технічна формальність з боку Dropbox \u2014 ваш email потрібен лише для додавання вашого акаунту до дозволеного списку.\n\n🔒 Ваша приватність повністю захищена:\n\u2022 Ми НЕ збираємо, не зберігаємо і не передаємо ваш email\n\u2022 Ми НЕ отримуємо доступ до ваших файлів\n\u2022 Email використовується виключно для надання доступу до Dropbox у цьому додатку\n\nДля отримання доступу напишіть нам:\nsza@ukr.net</string>
-    <string name="dropbox_beta_send_email">Написати листа</string>
-    <string name="dropbox_beta_title">Dropbox: Бета-доступ</string>
     <string name="dropbox_connection_test_failed">Помилка підключення: %1$s</string>
     <string name="dropbox_connection_test_success">Успішно підключено!</string>
     <string name="dropbox_select_folder">Вибрати папку</string>

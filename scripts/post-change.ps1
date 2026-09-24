@@ -421,8 +421,10 @@ $runsWearWireNullabilityGate = Test-AnyChangedFile '(WearSyncPayload|WearSources
 # (README/QUICK_START/FAQ/TROUBLESHOOTING, all locales) is edited - validates the
 # embedded "Settings -> .." recipes against the manifest. Standalone (pure text, no
 # gradle) so a doc edit stays fast; also runs as stage 5 of the settings-doc
-# composite so a manifest/vocab change re-checks every guide.
-$runsHowToPathGate = Test-AnyChangedFile 'docs/(HOW_TO|README|QUICK_START|FAQ|TROUBLESHOOTING)[A-Z_]*\.md$'
+# composite so a manifest/vocab change re-checks every guide. S3517: the suffix class admits
+# the hyphen, without which no -ru/-uk guide ever fired it, and the docs/howto guides and the
+# gate script itself joined the trigger.
+$runsHowToPathGate = Test-AnyChangedFile 'docs/(HOW_TO|README|QUICK_START|FAQ|TROUBLESHOOTING)[A-Za-z_-]*\.md$|^docs/howto/[^/]+\.md$|^scripts/quality/assert-howto-settings-paths\.ps1$'
 # S1548 rule-digest gate. Fires when a file holding one of the mirroring roles is in the changed
 # set: the authority (CLAUDE.md), a full digest (AGENTS.md, .github/copilot-instructions.md), the
 # pointer (GEMINI.md), or - since S2583 - the authority's path-scoped detail file, whose
@@ -717,6 +719,8 @@ $argvBaselineSplitSync = @('-NoProfile', '-File', (Join-Path $root "scripts/qual
 # ceiling (S3386); the measurement that put the release at this line is in the library's header.
 . (Join-Path $root 'scripts/quality/lib/post-change-code-lock-release.ps1')
 Exit-AcquiredCodeDomains
+. (Join-Path $root 'scripts/quality/lib/post-change-register-new-files.ps1')
+Register-UntrackedChangedFiles
 
 if ($runsStringsAudit) { Start-PooledGate @argvStringsAudit }
 if ($runsStringFormatGate) { Start-PooledGate @argvNewLexemes; Start-PooledGate @argvStringFormat }
@@ -1363,7 +1367,7 @@ if ($runsHowToPathGate) {
     Invoke-Gate "howto-settings-paths-gate" { Invoke-GateChild @argvHowToPaths }
 }
 else {
-    Skip-Step "howto-settings-paths-gate" "not applicable - no changed file is a HOW_TO or narrative settings-path guide"
+    Skip-Step "howto-settings-paths-gate" "not applicable - no changed file is a HOW_TO, narrative or docs/howto settings-path guide"
 }
 
 if ($runsWearWireVocabularyParityGate) {
@@ -1402,9 +1406,10 @@ else {
 # 896 and 237 closures, 85 and 7 actual executions, zero findings between them.
 
 if ($runsScriptCheatsheetGate) {
-    # Advisory under -ScopeToFile: the check regenerates from every script, so
-    # unrelated script-param WIP on a dirty tree could read as cheatsheet drift
-    # not attributable to this change. Strict on a full run.
+    # The argv carries -Repair, so a stale cheatsheet is regenerated here and only a
+    # generator refusal (Code.Scripts busy, exit 4) still fails. The render reads every
+    # script, so a sibling's param WIP lands in it too - harmless, its closure re-renders.
+    # Advisory under -ScopeToFile for that same reason; strict on a full run.
     & $ratchetRunner "script-cheatsheet-sync-gate" { Invoke-GateChild @argvScriptCheatsheet }
 }
 else {
@@ -1469,90 +1474,8 @@ else {
     Skip-Step "rule-digest-sync-gate" "not applicable - no changed file is the rule authority, a full digest or the pointer"
 }
 
-# S1338 phase 05: the document-registry trigger. Reads docs/DOCUMENT_REGISTRY.jsonl and reports
-# every record whose `paths` cover a file in this change - a registered document moved, so its
-# siblings (other locales, the site export, the mirrored page) may now disagree with it. Fires on
-# registered paths only, never on every closure, so it stays real where it fires.
-$registryPath = Join-Path $root 'docs/DOCUMENT_REGISTRY.jsonl'
-if (Test-Path -LiteralPath $registryPath) {
-    # `-replace '^\./'`, never `TrimStart('./')`: TrimStart takes a CHAR SET, so it ate the
-    # leading dot of `.claude/commands/*.md` and every command-file edit missed its record.
-    $normalizedChanged = @($changedFiles | ForEach-Object { ($_ -replace '\\', '/') -replace '^\./', '' })
-    $matchedRecords = @()
-    foreach ($line in (Get-Content -LiteralPath $registryPath -Encoding UTF8)) {
-        $trimmed = "$line".Trim()
-        if (-not $trimmed) { continue }
-        try { $record = $trimmed | ConvertFrom-Json } catch { continue }
-        if (-not ($record.PSObject.Properties.Name -contains 'paths')) { continue }
-        # A generated document is owned by its generator and its own sync gate; asking the
-        # operator to acknowledge it teaches nothing. Skipping it is why the cheatsheet does
-        # not raise an advisory on every closure that changes a param block.
-        if (($record.PSObject.Properties.Name -contains 'generated') -and $record.generated) { continue }
-        $hitPaths = @()
-        $hitPatterns = @()
-        foreach ($registered in @($record.paths)) {
-            $reg = ($registered -replace '\\', '/')
-            foreach ($changed in $normalizedChanged) {
-                if ($changed -ieq $reg -or $changed -ilike "$reg/*" -or $changed -ilike $reg) { $hitPatterns += $reg }
-                # Exact path, a directory prefix, or a glob - `repository-rules` registers
-                # `.claude/commands/*.md`, and a literal-only match silently missed every
-                # command-file edit, which is the largest registered surface in the repo.
-                if ($changed -ieq $reg -or $changed -ilike "$reg/*" -or $changed -ilike $reg) { $hitPaths += $changed }
-            }
-        }
-        if ($hitPaths.Count -gt 0) {
-            $matchedRecords += [pscustomobject]@{
-                Id     = [string]$record.id
-                Title  = [string]$record.title
-                Files  = @($hitPaths | Select-Object -Unique)
-                # Siblings are the registered entries this change did NOT touch - listing the
-                # pattern that just matched as something to go and update is noise.
-                Others = @(@($record.paths) | Where-Object { ($_ -replace '\\', '/') -notin $hitPatterns })
-            }
-        }
-    }
-
-    if ($matchedRecords.Count -eq 0) {
-        Skip-Step "document-registry" "not applicable - no changed file is a registered document"
-    }
-    else {
-        # S1340: pwsh -File does not re-split a quoted CSV into array elements (feedback_string_array_param_csv_via_file.md) -
-        # split each bound element on comma too, so `-RegistryAck "a,b"` and `-RegistryAck a,b` both work from the Bash tool.
-        $ackSet = @($RegistryAck | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-        $ackAll = ($ackSet -contains 'all')
-        $unacked = @($matchedRecords | Where-Object { -not $ackAll -and $_.Id -notin $ackSet })
-        foreach ($rec in $matchedRecords) {
-            $recordLines = @(("  registry: {0} ({1}) <- {2}" -f $rec.Id, $rec.Title, ($rec.Files -join ', ')))
-            if ($rec.Others.Count -gt 0) {
-                $recordLines += ("    siblings that may need the same edit: {0}" -f ($rec.Others -join ', '))
-            }
-            # S3151: an acknowledged record is a decision the caller already made, so on a clean run its
-            # sibling list goes to the protocol only; an unacknowledged one still reaches the console.
-            $acknowledged = $ackAll -or $rec.Id -in $ackSet
-            foreach ($recordLine in $recordLines) {
-                if ($acknowledged -and -not $script:ConsolePasses) { Write-ProtocolLine $recordLine }
-                else { Write-Host $recordLine }
-            }
-        }
-        if ($unacked.Count -eq 0) {
-            Invoke-Gate "document-registry" {
-                Write-Host ("  acknowledged: {0}" -f (($matchedRecords | ForEach-Object { $_.Id }) -join ', '))
-                $global:LASTEXITCODE = 0
-            }
-        }
-        else {
-            Invoke-AdvisoryStep "document-registry" {
-                $global:LASTEXITCODE = 1
-            } -AdvisoryDetails ("registered document(s) changed and not acknowledged: " +
-                (($unacked | ForEach-Object { $_.Id }) -join ', ') +
-                ". Read them, update the siblings listed above, then re-run with -RegistryAck '" +
-                (($unacked | ForEach-Object { $_.Id }) -join ',') + "'.")
-        }
-    }
-}
-else {
-    Skip-Step "document-registry" "cannot verify - docs/DOCUMENT_REGISTRY.jsonl not found"
-}
+# S1338 phase 05 / S3515: the document-registry step - body and rationale in the library.
+. (Join-Path $root 'scripts/quality/lib/post-change-document-registry.ps1')
 
 # S3141: always advisory (Invoke-AdvisoryStep directly, not through $ratchetRunner), never fatal
 # even on a full non-ScopeToFile run - this is the gate's first landing, and research/05 records

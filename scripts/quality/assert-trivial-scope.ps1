@@ -25,6 +25,12 @@
     Limitation: `git stash create` does not record untracked files, so a sibling's brand-new file
     still reads as new to this ticket.
 
+    S3515: a path the document registry (docs/DOCUMENT_REGISTRY.jsonl under -RepoRoot) marks
+    `generated` is not judged at all - neither counted toward maxFiles nor tested as new. A
+    generated document is rewritten by its generator, not chosen by the ticket: on S3514 the
+    closure regenerated docs/SCRIPT_CHEATSHEET.md, it became the fourth file, and a three-file
+    change left the Trivial path for the Simple one with nothing about the change being larger.
+
     S3166: a path git IGNORES is exempt from forbidNewFiles. A whole tree can be untracked by
     design - `.claude/` is here - and no commit ever holds it, so "absent from the base" cannot
     tell an edit from a creation there. The rule exists to catch new types, layouts and navigation
@@ -138,8 +144,34 @@ if ($Id) {
 }
 Write-Host "trivial-scope: ${label}baseline: $baseSource"
 
-$judgedChanged = @($changed | Where-Object { $_ -notmatch '^(PLAN|temp)/' })
-$judgedRemoved = @($removed | Where-Object { $_ -notmatch '^(PLAN|temp)/' })
+$generatedPatterns = [System.Collections.Generic.List[string]]::new()
+$registryPath = Join-Path $RepoRoot 'docs/DOCUMENT_REGISTRY.jsonl'
+if (Test-Path -LiteralPath $registryPath) {
+    foreach ($line in (Get-Content -LiteralPath $registryPath -Encoding UTF8)) {
+        if (-not "$line".Trim()) { continue }
+        # A malformed line is the registry validator's finding, not this gate's: skip it.
+        $record = $null
+        try { $record = "$line" | ConvertFrom-Json } catch { continue }
+        if (-not ($record.PSObject.Properties.Name -contains 'generated') -or -not $record.generated) { continue }
+        foreach ($p in @($record.paths)) { $generatedPatterns.Add(([string]$p -replace '\\', '/')) }
+    }
+}
+function Test-GeneratedPath([string]$Path) {
+    foreach ($pattern in $generatedPatterns) {
+        if ($Path -ieq $pattern -or $Path -ilike $pattern -or $Path -ilike "$pattern/*") { return $true }
+    }
+    return $false
+}
+
+$judgedChanged = [System.Collections.Generic.List[string]]::new()
+foreach ($path in @($changed | Where-Object { $_ -notmatch '^(PLAN|temp)/' })) {
+    if (Test-GeneratedPath $path) {
+        Write-Host "trivial-scope: ${label}$path is generated (document registry) - not counted."
+        continue
+    }
+    $judgedChanged.Add($path)
+}
+$judgedRemoved = @($removed | Where-Object { $_ -notmatch '^(PLAN|temp)/' -and -not (Test-GeneratedPath $_) })
 $total = $judgedChanged.Count + $judgedRemoved.Count
 if ($total -gt [int]$trivial.maxFiles) {
     Stop-Escalate "$total files changed, the Trivial limit is $($trivial.maxFiles)"

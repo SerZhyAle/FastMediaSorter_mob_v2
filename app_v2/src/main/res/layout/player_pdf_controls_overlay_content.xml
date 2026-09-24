@@ -124,14 +124,15 @@
         android:id="@+id/btnGoogleLensPdf"
         android:layout_width="@dimen/player_pdf_button_size"
         android:layout_height="@dimen/player_pdf_button_size"
-        android:src="@drawable/ic_google_lens"
+        android:src="@drawable/ic_search"
         android:background="@drawable/bg_circle_dark"
         app:tint="@color/selector_player_button_tint"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_button_margin_small"
         android:visibility="gone"
-        android:contentDescription="@string/google_lens" />
+        android:contentDescription="@string/search_google_lens" />
+
 
     <TextView
         android:id="@+id/btnSelectTextPdf"

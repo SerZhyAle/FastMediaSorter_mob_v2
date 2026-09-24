@@ -356,6 +356,7 @@ dependencies {
     implementation(libs.google.gms.play.services.wearable)
     implementation(libs.androidx.wear.wear)
     implementation(libs.androidx.wear.input)
+    implementation(libs.androidx.wear.ongoing)
 
     // S2496: RemoteActivityHelper - hands an ACTION_VIEW to the Wear OS companion so a link opens on
     // the paired phone. It ships in this artifact alone; androidx.wear:wear above does not carry it.

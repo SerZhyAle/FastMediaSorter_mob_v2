@@ -23,6 +23,8 @@ surface opened - is the remaining evidence.
 - **Home-panel stream chip** - `ui/main/helpers/StreamPanelChannelAdapter.kt`. No tile: the channel's own name, a picture made from the item's own data. Holds.
 - **Launcher contact shortcut** - `domain/usecase/launcher/ResolveLauncherCommandLabelUseCase.kt`. Stands for `content.person`. No photo: the initials monogram. Holds.
 - **Send-to app rows** - `core/share/ShareTargetIconResolver.kt`. Another app's system icon; unreadable: the row's own glyph, `content.apps` for a package receiver (S3430). Holds.
+- **Launcher YouTube gadgets** - `ui/launcher/gadget/YouTubeGadget.kt`, `YouTubeMusicGadget.kt`. The installed app's launcher icon; unreadable/absent: the official bundled brand vector mark (`ic_youtube` / `ic_youtube_music`, S3477). Holds.
+
 
 ## Home widgets
 

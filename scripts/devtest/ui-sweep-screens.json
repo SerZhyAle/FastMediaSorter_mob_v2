@@ -179,7 +179,7 @@
       "resourceId": "rvResources",
       "from": "main",
       "action": "tap-first-item",
-      "expect": "Resource Operations Menu",
+      "expect": "More actions: resource",
       "expectRes": "cd_resource_ops_menu",
       "backAfter": 0,
       "note": "Needs setup-add-local-resource. The marker is the ops button's content description; Main's own cards carry no such node."

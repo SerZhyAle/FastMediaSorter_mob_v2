@@ -22,15 +22,15 @@ steps:
     id: turn-on
     title: Turn on screen video recording
     text: |
-      Open **Settings**, the **Operations** tab, and turn on **Screen video recording** - "Record the whole screen to a video file with microphone audio. A stop control and a timer appear while recording." This adds **Screen video recording** to the main window's Programs menu, alongside your other [programs](term:program).
+      Open **Settings**, the **Management** tab, and turn on **Screen video recording** - "Record the whole screen to a video file with microphone audio. A stop control and a timer appear while recording." This adds **Screen video recording** to the main window's Programs menu, alongside your other [programs](term:program).
     image_bookmark:
       shot_id: capture.settings-screen-recording-toggle
       device_profile: phone
       screen_state: settings-operations-screen-recording-toggle
-      alt: The Operations tab in Settings with the Screen video recording switch turned on
-      caption: "Screen video recording in the Operations tab."
+      alt: The Management tab in Settings with the Screen video recording switch turned on
+      caption: "Screen video recording in the Management tab."
       title: "Screenshot: Screen video recording setting"
-      desc: Settings, Operations tab, Screen recording group expanded.
+      desc: Settings, Management tab, Screen recording group expanded.
   - number: 2
     id: start-recording
     title: Start recording from the Programs menu

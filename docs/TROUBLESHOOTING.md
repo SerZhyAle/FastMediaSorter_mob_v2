@@ -191,17 +191,17 @@ This uses the *Secondary Player* feature to hand off unsupported codecs to other
 ### ❌ "Touch Zones not working"
 
 **Check if enabled:**
-Settings → Playback → **"Show touch zones hint on first run"** = ON
+Settings → Player → **"Show touch zones hint on first run"** = ON
 
 **Make visible:**
-Settings → Playback → **"Always show touch zones overlay"** = ON
+Settings → Player → **"Always show touch zones overlay"** = ON
 
 ---
 
 ### ❌ "Command panel buttons too small"
 
 **Solution:**
-Settings → Playback → **"Compact player buttons"** = OFF
+Settings → Player → **"Compact player buttons"** = OFF
 
 This doubles the size of all buttons and spacing.
 
@@ -233,7 +233,7 @@ Favorites are stored **locally**:
 Deleted files go to `.trash/` folder and stay there until manually emptied.
 
 **Solution:**
-1. Settings → Operations → **File deletion and trash**
+1. Settings → Management → **File deletion and trash**
 2. Or manually delete `.trash/` folders
 
 ---
@@ -241,7 +241,7 @@ Deleted files go to `.trash/` folder and stay there until manually emptied.
 ## Still Having Issues?
 
 ### Check Logs
-1. Settings → Operations → **"Show detailed errors"** = ON
+1. Settings → Management → **"Show detailed errors"** = ON
 2. Reproduce the issue
 3. Check logcat output
 

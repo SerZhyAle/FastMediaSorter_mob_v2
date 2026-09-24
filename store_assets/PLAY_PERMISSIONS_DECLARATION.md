@@ -140,11 +140,11 @@ its own to lose the review.
 
 ## App category
 
-The live category is `Photography`, which disagrees with a declaration whose core functionality is
-file organizing. The category is not itself a rejection reason, and changing it is the owner's call -
-see `PLAY_CONSOLE_CHECKLIST.md` section D.
+The category is `Tools` (owner decision 2026-09-24, replacing `Photography`). It matches a
+declaration whose core functionality is file organizing and a listing that presents the app as a
+device shell built around the file-sorting core. Console step: `PLAY_CONSOLE_CHECKLIST.md` section D.
 
-Still open after the S2271 repositioning: the listing now presents the app as a device shell built around the file-sorting core, and the category decision stays with the owner. The core-function claim above and the opening block of `play/listing/en-US/full_description.txt` must keep saying the same thing.
+The core-function claim above and the opening block of `play/listing/en-US/full_description.txt` must keep saying the same thing.
 
 ---
 

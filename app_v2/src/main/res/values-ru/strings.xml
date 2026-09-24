@@ -281,7 +281,7 @@
         <item>Светло-красная</item>
     </string-array>
     <string name="tooltip_backup_info_title">Информация о резервной копии</string>
-    <string name="tooltip_backup_info_message">Резервная копия содержит все настройки и список ресурсов. Учетные данные не резервируются - после восстановления вам потребуется повторно аутентифицировать сетевые и облачные ресурсы.</string>
+    <string name="tooltip_backup_info_message">Резервная копия содержит все настройки, список ресурсов, пароли сетевых ресурсов и сохранённые авторизации на сайтах - не передавайте файл копии посторонним. Авторизация в облачных хранилищах (Google Drive, OneDrive, Dropbox) в копию не попадает - после восстановления может понадобиться войти в них заново.</string>
     <string name="restart_required_title">Требуется перезапуск</string>
     <string name="restart_required_message">Настройки импортированы. Перезапустите приложение для применения изменений.</string>
     <string name="restart_now">Перезапустить</string>
@@ -708,7 +708,7 @@
     <string name="searching_lyrics">Поиск текста песни..</string>
     <string name="lyrics_not_found">Лирика не найдена</string>
     <string name="error_timeout_lyrics">Время ожидания истекло. Пожалуйста, проверьте подключение к Интернету и попробуйте снова.</string>
-    <string name="search_in_youtube_music">В YouTube Music</string>
+    <string name="search_in_youtube_music">Поиск в YouTube Music</string>
     <string name="search_in_youtube_music_no_app">Приложение YouTube Music не найдено</string>
 
     <!-- Add Resource -->
@@ -1414,7 +1414,7 @@
     <string name="restore_confirm_title">Восстановить из резервной копии?</string>
     <string name="restore_confirm_message">Копия от: %1$s\nУстройство: %2$s\nРесурсы: %3$d\nИзбранное: %4$d\n\n• Настройки будут ЗАМЕНЕНЫ\n• Ресурсы будут ДОБАВЛЕНЫ (дубликаты пропущены)\n• Избранное будет ДОБАВЛЕНО (дубликаты пропущены)</string>
     <string name="restore_success">Все настройки восстановлены. Добавлено %1$d ресурсов (%2$d уже существовали). Добавлено %3$d избранных (%4$d уже существовали).</string>
-    <string name="restore_needs_auth">Некоторые ресурсы используют сетевые или облачные аккаунты. Потребуется повторная авторизация.</string>
+    <string name="restore_needs_auth">Некоторые восстановленные ресурсы используют облачные аккаунты (Google Drive, OneDrive, Dropbox). Войдите в них заново.</string>
     <string name="restore_no_backup">Резервная копия для этого аккаунта не найдена.</string>
     <string name="restore_failed">Не получилось восстановить настройки и ресурсы. Попробуйте ещё раз.</string>
     <string name="backup_account">Аккаунт: %s</string>
@@ -4190,4 +4190,10 @@
     <string name="cd_choose_from_list">Выбрать из списка</string>
     <string name="cd_more_actions_section">Ещё: действия с секцией</string>
     <string name="cd_toggle_grid_list_view">Сетка / список</string>
+    <string name="search_google_lens">Поиск в Google Lens</string>
+    <string name="font_family_sans_serif">Без засечек</string>
+    <string name="theme_oled">OLED</string>
+    <string name="reader_theme_system">Системная</string>
+    <string name="broadcast_control_mode_switching">Режим трансляции меняется. Зрителям нужно заново открыть трансляцию по обновлённой ссылке или QR-коду.</string>
+    <string name="broadcast_share_qr_fullscreen_cd">QR-код трансляции во весь экран. Нажмите, чтобы вернуться.</string>
 </resources>

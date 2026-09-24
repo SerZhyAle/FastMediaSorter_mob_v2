@@ -29,8 +29,9 @@
     <meta property="og:description"
         content="Домашний экран, медиаплеер, трансляции, запуск программ, спутник на часах, мониторинг устройства и полный файловый менеджер - в одном Android-приложении.">
     <meta property="og:image"
-        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
+        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/assets/og/landing-preview.png">
     <meta property="og:image:width" content="1080">
+    <meta property="og:image:height" content="2400">
     <meta property="og:image:alt" content="Fast Media Sorter &amp; Organizer - оболочка Android-устройства">
     <meta property="og:locale" content="ru_RU">
     <meta property="og:locale:alternate" content="en_US">
@@ -43,14 +44,16 @@
     <meta name="twitter:description"
         content="Домашний экран, медиаплеер, трансляции, запуск программ, спутник на часах, мониторинг устройства и полный файловый менеджер - в одном Android-приложении.">
     <meta name="twitter:image"
-        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
+        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/assets/og/landing-preview.png">
 
     <!-- SEO: Canonical & hreflang -->
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html">
+    <!-- lang-alternates:begin - rendered by scripts/site/generate-landing-pages.ps1 from _data/languages.yml -->
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
     <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html">
     <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
+    <!-- lang-alternates:end -->
 
     <!-- SZA Web Kit: pre-paint theme resolver (before CSS to avoid flash) -->
     <script>
@@ -66,7 +69,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3615067087450824"
         crossorigin="anonymous"></script>
 
@@ -86,7 +88,7 @@
             "https://play.google.com/store/apps/details?id=com.sza.fastmediasorter",
             "https://github.com/SerZhyAle/FastMediaSorter_mob_v2"
         ],
-        "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png",
+        "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/assets/og/landing-preview.png",
         "description": "Полноценная оболочка Android-устройства: лаунчер домашнего экрана, медиаплеер, интернет-радио и ТВ, запуск программ, замена штатных программ, спутник Wear OS, мониторинг устройства и полный файловый менеджер для локального хранилища, SMB/NAS, SFTP/FTP и облака. Бесплатно, со слайд-шоу, читалкой EPUB и OCR-переводом.",
         "author": { "@type": "Person", "name": "SerZhyAle" },
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
@@ -543,7 +545,7 @@
                         <li>Совпадения можно просмотреть перед удалением или обработать в авто-режиме.</li>
                         <li>Особенно полезно после импортов, бэкапов и ручного объединения папок.</li>
                     </ul>
-                    <a href="docs/FEATURES_RU.html#3-файловые-операции" class="card-footer" target="_blank">Открыть
+                    <a href="docs/FEATURES_RU.html#8-полный-файловый-менеджер" class="card-footer" target="_blank">Открыть
                         описание функции</a>
                 </details>
             </article>
@@ -564,7 +566,7 @@
                         <li>Локальные медиа и поддерживаемые аудио/фото-сессии можно стримить напрямую.</li>
                         <li>VR отдельно: Cast зависит от Google Play Services на конкретном устройстве.</li>
                     </ul>
-                    <a href="docs/FEATURES_RU.html#9-аудиоплеер" class="card-footer" target="_blank">Открыть описание
+                    <a href="docs/FEATURES_RU.html#2-медиаплеер" class="card-footer" target="_blank">Открыть описание
                         функции</a>
                 </details>
             </article>
@@ -1139,6 +1141,13 @@
                 <a href="https://sza.od.ua"><b>SZA</b><span>Портфолио</span></a>
                 <!-- family-footer:end -->
             </div>
+            <!-- lang-list:begin - rendered by scripts/site/generate-landing-pages.ps1 from _data/languages.yml -->
+            <nav class="lang-list" aria-label="Языки">
+                <a href="index.html" hreflang="en" lang="en" dir="ltr">English</a>
+                <span lang="ru" dir="ltr" aria-current="page">Русский</span>
+                <a href="index-uk.html" hreflang="uk" lang="uk" dir="ltr">Українська</a>
+            </nav>
+            <!-- lang-list:end -->
             <div class="footer-bottom">
                 <span>&copy; 2024-2026 Сергей Жигуненко · Fast Media Sorter</span>
                 <span>
@@ -1161,66 +1170,61 @@
             var activeFilter = 'all'; // 'all', 'standard', 'vr'
             var searchQuery = '';
             var activeVariant = 'v1'; // 'v1', 'v2', 'v3', 'v4'
-            var activeCategoryV1 = 'network';
+            var activeCategoryV1 = null;
             var activeToggleV3 = 'key'; // 'key', 'all'
             var activeScenarioV4 = 'all';
+            var featuresPage = 'docs/FEATURES_RU.html';
 
             // FEATURES-ru.md is curated to one entry per capability; no noise rows to suppress.
             var hiddenFeatureTitles = [];
 
-            var keyFeatures = [
-                'Выбор профиля устройства при первом запуске',
-                'Поддержка различных типов ресурсов',
-                'Кросс-протокольные передачи',
-                'Поиск дубликатов',
-                'Захват с камеры и микрофона',
-                'Сохранение и восстановление сеанса',
-                'Выделенная сборка и движок OpenXR',
-                'Фоновое воспроизведение и трансляция',
-                'Слайд-шоу с фоновой музыкой',
-                'Удобное форматирование электронных книг',
-                'Локальный OCR и офлайн-перевод',
-                'Встроенный калькулятор из текста',
-                'Иконочные виджеты экрана',
-                'Поиск по настройкам и темы'
-            ];
+            // FEATURES opens every pillar with its standout capabilities, so position marks a key feature
+            // and no title list can go stale when a bullet is renamed.
+            var KEY_FEATURES_PER_PILLAR = 2;
 
-            var categoryMapping = {
-                "0. Настройка и Конфигурация": "setup",
-                "1. Источники и Хранилища": "network",
-                "2. Браузер Медиафайлов": "filemanager",
-                "3. Файловые Операции": "filemanager",
-                "4. Управление Назначениями": "filemanager",
-                "5. Просмотр Изображений и GIF": "players",
-                "6. Редактор Рисунков и Аннотаций": "notes",
-                "7. Видеоплеер": "players",
-                "8. VR-Редакция и OpenXR": "vr",
-                "9. Аудиоплеер": "players",
-                "10. Режим Слайд-шоу": "players",
-                "11. Просмотр PDF и EPUB": "notes",
-                "12. Текстовый Редактор": "notes",
-                "13. Перевод и OCR (Офлайн)": "notes",
-                "14. Сетевые Технологии и Облако": "network",
-                "15. Умные Виджеты и Интеграция": "widgets",
-                "16. Настройки и Навигация": "setup"
-            };
-
-            var majorCategories = [
-                { id: 'network', label: 'Сетевые технологии и Облако' },
-                { id: 'players', label: 'Плееры и Слайд-шоу' },
-                { id: 'filemanager', label: 'Файловый менеджер' },
-                { id: 'notes', label: 'Заметки, Редакторы и OCR' },
-                { id: 'widgets', label: 'Виджеты и Интеграция' },
-                { id: 'setup', label: 'Настройка и Навигация' },
-                { id: 'vr', label: 'VR-режим' }
-            ];
-
+            // Columns name FEATURES pillars by number, which every locale shares.
             var dashboardColumns = [
-                { id: 'sources', label: 'Источники', categories: [1, 14] },
-                { id: 'processing', label: 'Обработка', categories: [2, 3, 4, 6] },
-                { id: 'viewers', label: 'Просмотр', categories: [5, 7, 9, 10, 11, 12, 13] },
-                { id: 'platforms', label: 'Среды', categories: [0, 8, 15, 16] }
+                { id: 'shell', label: 'Оболочка и запуск', categories: [1, 4] },
+                { id: 'media', label: 'Медиа и трансляции', categories: [2, 3] },
+                { id: 'tools', label: 'Инструменты и мониторинг', categories: [5, 7] },
+                { id: 'files', label: 'Файлы и часы', categories: [6, 8] }
             ];
+
+            function pillarNumber(f) {
+                var numMatch = f.category.match(/^(\d+)/);
+                return numMatch ? parseInt(numMatch[1], 10) : -1;
+            }
+
+            function pillarLabel(category) {
+                return category.replace(/^\d+\.\s*/, '');
+            }
+
+            // A pillar added to FEATURES later gets a column of its own instead of vanishing from the map.
+            function columnsForPillars(features) {
+                var columns = dashboardColumns.slice();
+                features.forEach(function (f) {
+                    var num = pillarNumber(f);
+                    var covered = columns.some(function (c) { return c.categories.indexOf(num) !== -1; });
+                    if (!covered) {
+                        columns.push({ id: 'pillar-' + num, label: pillarLabel(f.category), categories: [num] });
+                    }
+                });
+                return columns;
+            }
+
+            // A FEATURES tag lists every flavor that ships the capability ("Standard / Lite / VR / noLegal");
+            // the older "VR Only" form still reads as the single flavor it names.
+            function hasFlavor(f, flavor) {
+                return f.tag.split('/').some(function (t) { return t.trim().replace(/ Only$/, '') === flavor; });
+            }
+
+            function flavorKind(f) {
+                var standard = hasFlavor(f, 'Standard');
+                var vr = hasFlavor(f, 'VR');
+                if (vr && !standard) return 'vr';
+                if (standard && !vr) return 'standard';
+                return 'common';
+            }
 
             var scenariosList = [
                 { id: 'all', label: 'Все сценарии' },
@@ -1242,27 +1246,50 @@
                 { id: 'cloudnotes', label: 'Облачные заметки' }
             ];
 
-            // Селекторы сценариев
-            // Explicit scenario -> feature-title map drives Variant 4 filtering.
-            // Each scenario lists 3-4 concrete capabilities so no scenario renders empty.
-            var scenarioFeatureMap = {
-                photo: ['Слайд-шоу с фоновой музыкой', 'Редактирование изображений и фильтры', 'Контроль GIF-анимаций', 'Панель мгновенной сортировки'],
-                music: ['Фоновое воспроизведение и трансляция', 'Тексты песен и MIDI-интеграция', 'Слайд-шоу с фоновой музыкой'],
-                video: ['Сохранение и восстановление сеанса', 'Картинка-в-картинке и D-pad', 'Скриншоты видео', 'Выделенная сборка и движок OpenXR'],
-                smb: ['Поддержка различных типов ресурсов', 'Автообнаружение NAS и тест скорости', 'Кросс-протокольные передачи', 'Интеллектуальное кэширование и синхронизация'],
-                backup: ['Захват с камеры и микрофона', 'Кросс-протокольные передачи', 'Google Drive, Dropbox, OneDrive', 'Поиск дубликатов'],
-                download: ['Поиск дубликатов', 'Режим файлового менеджера', 'Панель мгновенной сортировки', 'Кросс-протокольные передачи'],
-                offline: ['Интеллектуальное кэширование и синхронизация', 'Поддержка различных типов ресурсов', 'Google Drive, Dropbox, OneDrive', 'Удобное форматирование электронных книг'],
-                docs: ['Передача Office-документов и PDF', 'Удобное форматирование электронных книг', 'Чтение вслух (TTS) и копирование текста', 'Google Drive, Dropbox, OneDrive'],
-                ocr: ['Локальный OCR и офлайн-перевод', 'Фото-OCR-перевод', 'Чтение вслух (TTS) и копирование текста', 'Встроенный калькулятор из текста'],
-                tv: ['Автообнаружение NAS и тест скорости', 'ТВ-навигация и Remap кнопок', 'Картинка-в-картинке и D-pad', 'Фоновое воспроизведение и трансляция'],
-                duplicates: ['Поиск дубликатов', 'Режим файлового менеджера', 'Кросс-протокольные передачи', 'Панель мгновенной сортировки'],
-                chromecast: ['Фоновое воспроизведение и трансляция', 'Тексты песен и MIDI-интеграция', 'Картинка-в-картинке и D-pad', 'Скриншоты видео'],
-                widgets: ['Иконочные виджеты экрана', 'Поиск по настройкам и темы', 'Выбор профиля устройства при первом запуске', 'Сохранение и восстановление сеанса'],
-                vrcinema: ['Выделенная сборка и движок OpenXR', 'Картинка-в-картинке и D-pad', 'Сохранение и восстановление сеанса', 'Фоновое воспроизведение и трансляция'],
-                calculator: ['Встроенный калькулятор из текста', 'Редактирование на лету и Markdown', 'Локальный OCR и офлайн-перевод', 'Чтение вслух (TTS) и копирование текста'],
-                cloudnotes: ['Редактирование на лету и Markdown', 'Редактор рисунков и аннотаций', 'Google Drive, Dropbox, OneDrive', 'Встроенный калькулятор из текста']
+            // A scenario matches words inside each FEATURES bullet, so a renamed bullet stays in its scenario;
+            // the earlier list of exact bullet titles went stale and left every scenario pill empty.
+            var scenarioKeywords = {
+                photo: ['слайд-шоу', 'изображени', 'gif', 'webp', 'картинк'],
+                music: ['музык', 'аудио', 'радио', 'звук', 'стерео', 'текст песн'],
+                video: ['видео', 'субтитр', 'фильм', 'кино', 'телевизор'],
+                smb: ['smb', 'nas', 'sftp', 'ftp', 'папки пк'],
+                backup: ['резервн', 'восстановлени', 'съёмка сразу', 'виджет камеры'],
+                download: ['загрузк', 'сортировк', 'файлового менеджера', 'корзин', 'папки целиком'],
+                offline: ['офлайн', 'локально', 'без обязательной отправки', 'карты памяти', 'съёмные'],
+                docs: ['pdf', 'epub', 'документ', 'markdown', '.txt'],
+                ocr: ['ocr', 'перевод', 'распозна'],
+                tv: ['телевизор', 'd-pad', 'nas'],
+                duplicates: ['дубликат', 'одинаковые', 'корзин', 'отмен', 'очистк'],
+                chromecast: ['транслируйте', 'телевизор', 'вещани'],
+                widgets: ['виджет'],
+                vrcinema: ['шлем', 'openxr', 'vr180', '360', 'виртуальном экране', 'sbs'],
+                calculator: ['калькулятор', 'вычислен', 'секундомер', 'мини-программ'],
+                cloudnotes: ['markdown', 'заметк', '.txt', 'google drive']
             };
+
+            function featureMentions(f, keyword) {
+                return (f.title + ' ' + f.text).toLowerCase().indexOf(keyword) !== -1;
+            }
+
+            function matchesScenario(f, scenarioId) {
+                return (scenarioKeywords[scenarioId] || []).some(function (k) { return featureMentions(f, k); });
+            }
+
+            // FEATURES pillars get renumbered and renamed between releases, so a scenario links to the pillar
+            // holding its primary capability today instead of to a remembered anchor.
+            function scenarioPillarUrl(scenarioId) {
+                var keywords = scenarioKeywords[scenarioId] || [];
+                for (var i = 0; i < keywords.length; i++) {
+                    var hit = allFeatures.find(function (f) { return featureMentions(f, keywords[i]); });
+                    if (hit) return featuresPage + '#' + hit.anchor;
+                }
+                return null;
+            }
+
+            // Mirrors Jekyll's GFM heading ids for a page rendered without them.
+            function headingAnchor(node) {
+                return node.id || node.textContent.trim().toLowerCase().replace(/[^\p{L}\p{N}_\s-]/gu, '').replace(/[ \t]/g, '-');
+            }
 
             function getScenarioLinks(title, desc) {
                 var text = (title + ' ' + desc).toLowerCase();
@@ -1303,10 +1330,12 @@
                     links.push({ url: 'docs/howto/scenario-watch-network-ru.html', label: 'Сценарий: Сеть на часах' });
                 }
                 if (text.indexOf('дублик') !== -1 || text.indexOf('sha-256') !== -1) {
-                    links.push({ url: 'docs/FEATURES_RU.html#3-файловые-операции', label: 'Очистка дубликатов' });
+                    var duplicatesUrl = scenarioPillarUrl('duplicates');
+                    if (duplicatesUrl) links.push({ url: duplicatesUrl, label: 'Очистка дубликатов' });
                 }
                 if (text.indexOf('chromecast') !== -1 || text.indexOf('cast') !== -1) {
-                    links.push({ url: 'docs/FEATURES_RU.html#9-аудиоплеер', label: 'Chromecast' });
+                    var chromecastUrl = scenarioPillarUrl('chromecast');
+                    if (chromecastUrl) links.push({ url: chromecastUrl, label: 'Chromecast' });
                 }
                 if (text.indexOf('виджет') !== -1 || text.indexOf('widget') !== -1) {
                     links.push({ url: 'docs/HOW_TO_RU.html#умные-виджеты-домашнего-экрана', label: 'Умные виджеты' });
@@ -1356,16 +1385,16 @@
                 var filtered = allFeatures.filter(function (f) {
                     // Фильтр по платформе
                     if (activeFilter === 'standard') {
-                        if (f.tag !== 'Standard' && f.tag !== 'Standard / VR' && f.tag !== 'Standard Only') return false;
+                        if (!hasFlavor(f, 'Standard')) return false;
                     } else if (activeFilter === 'vr') {
-                        if (f.tag !== 'VR Only' && f.tag !== 'Standard / VR') return false;
+                        if (!hasFlavor(f, 'VR')) return false;
                     }
 
                     // Фильтр по поиску
                     if (searchQuery) {
                         var q = searchQuery.toLowerCase();
                         return f.title.toLowerCase().indexOf(q) !== -1 ||
-                            f.desc.toLowerCase().indexOf(q) !== -1 ||
+                            f.text.toLowerCase().indexOf(q) !== -1 ||
                             f.category.toLowerCase().indexOf(q) !== -1;
                     }
 
@@ -1378,19 +1407,10 @@
                 }
 
                 function getFeatureCardHtml(f, forceOpen) {
-                    var tagClass = 'tag-common';
-                    var badgeClass = 'badge-common';
-                    var badgeLabel = 'Standard / VR';
-
-                    if (f.tag === 'Standard Only' || f.tag === 'Standard') {
-                        tagClass = 'tag-standard';
-                        badgeClass = 'badge-standard';
-                        badgeLabel = 'Standard';
-                    } else if (f.tag === 'VR Only') {
-                        tagClass = 'tag-vr';
-                        badgeClass = 'badge-vr';
-                        badgeLabel = 'VR Only';
-                    }
+                    var kind = flavorKind(f);
+                    var tagClass = 'tag-' + kind;
+                    var badgeClass = 'badge-' + kind;
+                    var badgeLabel = f.tag;
 
                     var headerHtml = '<span class="feature-header">' +
                         '<span class="feature-title">' + f.title + '</span>' +
@@ -1403,7 +1423,7 @@
                     var descHtml = '<div class="feature-desc">' + f.desc + '</div>';
 
                     var linksHtml = '';
-                    var scLinks = getScenarioLinks(f.title, f.desc);
+                    var scLinks = getScenarioLinks(f.title, f.text);
                     if (scLinks.length > 0) {
                         linksHtml = '<div class="feature-links">';
                         scLinks.forEach(function (l) {
@@ -1429,23 +1449,15 @@
                 if (activeVariant === 'v1') {
                     // --- Вариант 1: Category Explorer ---
                     var grouped = {};
-                    majorCategories.forEach(function (c) { grouped[c.id] = []; });
-
+                    var availableCats = [];
                     filtered.forEach(function (f) {
-                        var catName = f.category;
-                        var matchedGroup = 'setup';
-                        for (var key in categoryMapping) {
-                            if (catName.indexOf(key) !== -1) {
-                                matchedGroup = categoryMapping[key];
-                                break;
-                            }
+                        if (!grouped[f.category]) {
+                            grouped[f.category] = [];
+                            availableCats.push({ id: f.category, label: pillarLabel(f.category) });
                         }
-                        if (grouped[matchedGroup]) {
-                            grouped[matchedGroup].push(f);
-                        }
+                        grouped[f.category].push(f);
                     });
 
-                    var availableCats = majorCategories.filter(function (c) { return grouped[c.id].length > 0; });
                     if (availableCats.length === 0) {
                         grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">Нет доступных категорий для текущих фильтров.</div>';
                         return;
@@ -1477,7 +1489,7 @@
                     var majorList = [];
                     var minorList = [];
                     catFeatures.forEach(function (f) {
-                        if (keyFeatures.indexOf(f.title) !== -1) {
+                        if (f.isKey) {
                             majorList.push(f);
                         } else {
                             minorList.push(f);
@@ -1516,11 +1528,9 @@
                     var container = document.createElement('div');
                     container.className = 'dashboard-v2-grid';
 
-                    dashboardColumns.forEach(function (col) {
+                    columnsForPillars(filtered).forEach(function (col) {
                         var colFeatures = filtered.filter(function (f) {
-                            var numMatch = f.category.match(/^(\d+)/);
-                            var num = numMatch ? parseInt(numMatch[1], 10) : -1;
-                            return col.categories.indexOf(num) !== -1;
+                            return col.categories.indexOf(pillarNumber(f)) !== -1;
                         });
 
                         if (colFeatures.length === 0) return;
@@ -1540,7 +1550,7 @@
                             item.className = 'dashboard-v2-item';
                             
                             var tagBadge = '';
-                            if (f.tag === 'VR Only') tagBadge = ' <span style="font-size:0.65rem; color:#22d3ee; border:1px solid rgba(0,229,255,0.3); padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.5rem; text-transform:uppercase;">VR</span>';
+                            if (flavorKind(f) === 'vr') tagBadge = ' <span style="font-size:0.65rem; color:#22d3ee; border:1px solid rgba(0,229,255,0.3); padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.5rem; text-transform:uppercase;">VR</span>';
                             
                             item.innerHTML = '<span>' + f.title + tagBadge + '</span><span class="dashboard-v2-item-arrow">→</span>';
                             item.addEventListener('click', function () {
@@ -1561,7 +1571,7 @@
                         majorGrid.className = 'major-grid-v3';
 
                         var keyList = filtered.filter(function (f) {
-                            return keyFeatures.indexOf(f.title) !== -1;
+                            return f.isKey;
                         });
 
                         if (keyList.length === 0) {
@@ -1570,11 +1580,9 @@
                         }
 
                         keyList.forEach(function (f) {
-                            var tagClass = 'tag-common';
-                            if (f.tag === 'Standard Only' || f.tag === 'Standard') tagClass = 'tag-standard';
-                            else if (f.tag === 'VR Only') tagClass = 'tag-vr';
+                            var tagClass = 'tag-' + flavorKind(f);
 
-                            var scLinks = getScenarioLinks(f.title, f.desc);
+                            var scLinks = getScenarioLinks(f.title, f.text);
                             var linksHtml = '';
                             if (scLinks.length > 0) {
                                 linksHtml = '<div class="feature-links">';
@@ -1589,7 +1597,7 @@
                             card.innerHTML = '<div>' +
                                 '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">' +
                                 '<span class="feature-title">' + f.title + '</span>' +
-                                '<span class="feature-badge ' + (f.tag === 'VR Only' ? 'badge-vr' : (f.tag === 'Standard' || f.tag === 'Standard Only' ? 'badge-standard' : 'badge-common')) + '">' + (f.tag === 'VR Only' ? 'VR Only' : (f.tag === 'Standard' || f.tag === 'Standard Only' ? 'Standard' : 'Standard / VR')) + '</span>' +
+                                '<span class="feature-badge badge-' + flavorKind(f) + '">' + f.tag + '</span>' +
                                 '</div>' +
                                 '<div class="feature-desc">' + f.desc + '</div>' +
                                 '</div>' + linksHtml;
@@ -1637,9 +1645,8 @@
                     // --- Вариант 4: Scenario Filter ---
                     var scenarioFeatures = filtered;
                     if (activeScenarioV4 !== 'all') {
-                        var scTitles = scenarioFeatureMap[activeScenarioV4] || [];
                         scenarioFeatures = filtered.filter(function (f) {
-                            return scTitles.indexOf(f.title) !== -1;
+                            return matchesScenario(f, activeScenarioV4);
                         });
                     }
 
@@ -1691,10 +1698,10 @@
             function openDrawer(feature) {
                 document.getElementById('drawerTitle').innerText = feature.title;
                 document.getElementById('drawerCat').innerText = feature.category;
-                document.getElementById('drawerDesc').innerText = feature.desc;
+                document.getElementById('drawerDesc').innerHTML = feature.desc;
 
                 var linksHtml = '';
-                var scLinks = getScenarioLinks(feature.title, feature.desc);
+                var scLinks = getScenarioLinks(feature.title, feature.text);
                 if (scLinks.length > 0) {
                     linksHtml = '<div style="margin-top: 1rem; border-top: 1px solid var(--border-glass); padding-top: 1rem;"><div class="detail-drawer-cat" style="margin-bottom: 0.5rem;">Связанные сценарии:</div>';
                     scLinks.forEach(function (l) {
@@ -1816,66 +1823,52 @@
             }
 
             // Загрузка канонического FEATURES-ru.md
-            fetch('docs/FEATURES_RU.html')
+            fetch(featuresPage)
                 .then(function (r) { return r.text(); })
                 .then(function (text) {
-                    // Наполнение канонического блока (SEO / детали)
-                    document.getElementById('full-features-content').innerHTML = marked.parse(text);
+                    // GitHub Pages serves FEATURES only as Jekyll's rendered page, never as markdown source,
+                    // so the explorer reads the rendered headings and list items.
+                    var page = new DOMParser().parseFromString(text, 'text/html');
+                    var main = page.querySelector('.main-content') || page.body;
+                    document.getElementById('full-features-content').innerHTML = main.innerHTML;
 
-                    // Парсинг Markdown для динамического Explorer
-                    var lines = text.split('\n');
-                    var currentCategory = 'Общее';
-
-                    for (var i = 0; i < lines.length; i++) {
-                        var line = lines[i].trim();
-                        if (line.indexOf('## ') === 0) {
-                            var catName = line.substring(3).trim();
-                            // Исключаем содержание и футеры
-                            if (catName.toLowerCase().indexOf('оглавление') === -1) {
-                                currentCategory = catName;
-                            }
-                        } else if (line.indexOf('- **') === 0) {
-                            // Формат: - **Title** `[Tag]`: Description
-                            var titleMatch = line.match(/\*\*(.*?)\*\*/);
-                            var tagMatch = line.match(/`\[(.*?)\]`/);
-
-                            if (titleMatch) {
-                                var title = titleMatch[1];
-                                if (hiddenFeatureTitles.indexOf(title) !== -1) {
-                                    continue;
-                                }
-                                var tag = tagMatch ? tagMatch[1] : 'Standard / VR';
-
-                                var descIndex = line.indexOf('`:');
-                                var desc = '';
-                                if (descIndex !== -1) {
-                                    desc = line.substring(descIndex + 2).trim();
-                                } else {
-                                    var normalColonIndex = line.indexOf('** :');
-                                    if (normalColonIndex !== -1) {
-                                        desc = line.substring(normalColonIndex + 4).trim();
-                                    } else {
-                                        var plainColonIndex = line.indexOf(':');
-                                        if (plainColonIndex !== -1) {
-                                            desc = line.substring(plainColonIndex + 1).trim();
-                                        } else {
-                                            desc = line.replace(/-\s*\*\*.*?\*\*\s*(`\[.*?\]`)?/, '').trim();
-                                        }
-                                    }
-                                }
-
-                                // Дополнительная очистка от Markdown форматирования
-                                desc = desc.replace(/`\[.*?\]`\s*/g, '').trim();
-
-                                allFeatures.push({
-                                    category: currentCategory,
-                                    title: title,
-                                    tag: tag,
-                                    desc: desc
-                                });
-                            }
+                    var currentCategory = null;
+                    var currentAnchor = null;
+                    var rank = 0;
+                    main.querySelectorAll('h2, li').forEach(function (node) {
+                        if (node.tagName === 'H2') {
+                            var heading = node.textContent.trim();
+                            currentCategory = /^\d+\./.test(heading) ? heading : null;
+                            currentAnchor = headingAnchor(node);
+                            rank = 0;
+                            return;
                         }
-                    }
+                        if (!currentCategory) return;
+                        var body = node.cloneNode(true);
+                        var strong = body.querySelector(':scope > strong');
+                        if (!strong) return;
+                        var title = strong.textContent.trim();
+                        if (hiddenFeatureTitles.indexOf(title) !== -1) return;
+                        body.removeChild(strong);
+
+                        var tag = 'Standard / VR';
+                        var code = body.querySelector(':scope > code');
+                        if (code && /^\[.*\]$/.test(code.textContent.trim())) {
+                            tag = code.textContent.trim().slice(1, -1);
+                            body.removeChild(code);
+                        }
+
+                        allFeatures.push({
+                            category: currentCategory,
+                            anchor: currentAnchor,
+                            title: title,
+                            tag: tag,
+                            desc: body.innerHTML.trim().replace(/^:\s*/, ''),
+                            text: body.textContent.trim().replace(/^:\s*/, ''),
+                            isKey: rank < KEY_FEATURES_PER_PILLAR
+                        });
+                        rank++;
+                    });
 
                     // Инициализация
                     setupSwitcher();

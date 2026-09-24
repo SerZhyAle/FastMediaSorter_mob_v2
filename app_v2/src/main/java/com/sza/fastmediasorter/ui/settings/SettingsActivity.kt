@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
@@ -542,6 +543,10 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private fun setupGlobalSearch() {
         binding.searchResultsRecycler.layoutManager = LinearLayoutManager(this)
         binding.searchResultsRecycler.adapter = searchAdapter
+
+        binding.btnSettingsHelp.setOnClickListener {
+            DocsPageOpenManager.open(this, UiSurface.SETTINGS)
+        }
 
         binding.searchButton.setOnClickListener {
             openSearchOverlay()

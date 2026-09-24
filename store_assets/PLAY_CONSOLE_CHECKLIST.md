@@ -143,13 +143,10 @@ shared anywhere.** Every row below is unchecked, and the file above holds the ev
 
 ## D. App Category
 
-- [ ] Category reviewed - current: Photography. Decision: _____________
-  - Suggested: switch to **Productivity** (broader "file organizer" query coverage, lower competition)
-  - `Photography` disagrees with the All files access declaration, whose core functionality is file
-    organizing. Not a rejection reason on its own, but it argues against the declaration a reviewer
-    reads beside it (S1989)
-  - Research: check competitor categories for Slidebox, Photo Cleaner, Magic Cleaner before deciding
-  - Record final decision in strategic spec §6.2
+- [x] Category reviewed - decision: **Tools** (owner, 2026-09-24), replacing `Photography`
+  - Why: matches the All files access declaration, whose core functionality is file organizing, and
+    the device-shell positioning of the listing; `Photography` argued against that declaration (S1989)
+- [ ] Category set to **Tools** in `Grow users -> Store presence -> Store settings -> App category`
 
 ## E. Developer Account (optional)
 

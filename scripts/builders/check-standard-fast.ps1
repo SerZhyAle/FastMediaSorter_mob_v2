@@ -12,7 +12,8 @@
              -Module named a project the registry does not know; -Flavor named one the module does
              not declare, or was passed to a module that declares none; -BuildType named a build type
              the module does not declare, or the module declares none at all (S2123 - lint-rules has
-             no Android plugin); -BuildType Release was combined with -Mode Assemble, which is
+             no Android plugin); -AlsoAssemble was passed without -Mode Unit or with -BuildType
+             Release (S3514); -BuildType Release was combined with -Mode Assemble, which is
              refused - see below; or (S2363) the connected-test target could not be resolved to
              exactly one device - no adb, no device online, several online with no -DeviceId, or
              -DeviceId passed to a mode that touches no device at all); or (S2584) this module's
@@ -88,6 +89,9 @@ param(
     # inherited by child processes. The unattended queue runner is NOT such a caller: it launches
     # `claude -p`, whose agent runs its checks through the same tool with the same timeout.
     [switch]$BlockThrough,
+    # S3514: package the debug APK in the SAME gradle invocation as a -Mode Unit run, so a
+    # test-then-install loop pays for configuration and daemon warm-up once instead of twice.
+    [switch]$AlsoAssemble,
     [switch]$Quiet
 )
 
@@ -167,6 +171,10 @@ else {
 # packaging belongs to the release worktree; this script only ever compiles a release variant.
 if ($BuildType -eq 'Release' -and $Mode -eq 'Assemble') {
     Write-Error "check-standard-fast: -BuildType Release is refused with -Mode Assemble - use the release worktree (.\a.ps1 r / nl / vr) to package." -ErrorAction Continue
+    exit 2
+}
+if ($AlsoAssemble -and ($Mode -ne 'Unit' -or $BuildType -eq 'Release')) {
+    Write-Error "check-standard-fast: -AlsoAssemble packages a debug APK beside a unit run, so it needs -Mode Unit and a debug build type - got -Mode $Mode -BuildType $BuildType. Use -Mode Assemble for the APK alone." -ErrorAction Continue
     exit 2
 }
 
@@ -482,6 +490,15 @@ elseif ($Tests) {
     }
 }
 
+if ($AlsoAssemble) {
+    # Appended AFTER the --tests pairs: gradle binds a task option to the task named just before it,
+    # so an assemble task placed earlier would receive --tests and fail as an unknown option.
+    # fms.stableVersion keeps the checked-in version (S3513), because the in-build stamp would
+    # otherwise move BuildConfig for this invocation and recompile the very test classpath it shares.
+    $null = $gradleArgs.Add(":${Module}:assemble${variant}Debug")
+    $null = $gradleArgs.Add("-Pfms.stableVersion=true")
+}
+
 # S1807: the label names the module, not only the flavor. This banner is what gets pasted into a
 # step log as proof, and with two active modules a phone verdict quoted under a wear ticket has to
 # read as foreign rather than as confirmation.
@@ -503,6 +520,9 @@ if ($targetDevice) {
 }
 if ($Tests) {
     Write-Host "Tests filter: $Tests" -ForegroundColor Yellow
+}
+if ($AlsoAssemble) {
+    Write-Host "Also assembles: ${Module}/build/outputs/apk (debug, same invocation)" -ForegroundColor Yellow
 }
 Write-Host "Command: .\\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor DarkGray
 

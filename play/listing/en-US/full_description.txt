@@ -25,7 +25,7 @@ What the rest of the shell does:
 • Live streams - thousands of internet TV and radio channels with search, topic filters and now-playing information.
 • App launching - every installed app on one screen, app shortcuts and a quick-launch panel.
 • A replacement for stock apps - a camera that shoots straight into your folder, offline OCR and translation, text editor, calculator, stopwatch.
-• A companion on the watch - browse and play the phone's media on Wear OS, plus Calculator, Stopwatch and Mini-game.
+• A companion on the watch - includes a Wear OS Tile for quick access to watch programs (Calculator, Stopwatch, Mini-game), plus media browsing on the phone.
 • Device monitoring - the app's network connections, system information and automatic power saving.
 • A full file manager - the sorting core above, across the phone, SD cards, USB drives, network shares and the cloud.
 

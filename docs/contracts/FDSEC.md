@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `FDSEC-FORMAT`, `FDSEC-BEHAVIOUR` |
-| **Version** | 1.0 and 1.0, active; wire carrier: format version byte at head offset 16 (value 1), suite 1. Owner: FileDO |
+| **Version** | 1.1 and 1.1, active; wire carrier: format version byte at head offset 16 (value 1), suite 1. Owner: FileDO |
 | **Home** | `secure-container/README.md` in the shared contracts catalog |
 | **Role here** | a port - writes and reads `.fd-sec` containers on the phone and the watch |
 

@@ -209,6 +209,15 @@ class BrowseStateUiUpdater(
         else -> null
     }
 
+    /**
+     * Re-applies the bottom operations bar alone. The Copy/Move switches live in settings, not in
+     * [BrowseState], so flipping one emits no state and would otherwise wait for the next selection.
+     */
+    fun refreshSelectionPanel(state: BrowseState) {
+        updateSelectionPanel(state)
+        onRecomputeOverflow()
+    }
+
     private fun updateSelectionPanel(state: BrowseState) {
         val hasSelection = state.selectedFiles.isNotEmpty()
         val resource = state.resource
@@ -223,8 +232,9 @@ class BrowseStateUiUpdater(
 
         // S3249: the operations bar is an ActionBarView, so a control is addressed by its action id.
         val operations = binding.layoutOperations
-        operations.setActionVisible(R.id.actionBrowseCopy, hasSelection)
-        operations.setActionVisible(R.id.actionBrowseMove, hasSelection && canWrite)
+        val settings = viewModel.settings.value
+        operations.setActionVisible(R.id.actionBrowseCopy, isCopyActionVisible(hasSelection, settings))
+        operations.setActionVisible(R.id.actionBrowseMove, isMoveActionVisible(hasSelection, canWrite, settings))
         operations.setActionVisible(R.id.actionBrowseRename, hasSelection && canWrite)
         operations.setActionVisible(R.id.actionBrowseDelete, hasSelection && canWrite)
         operations.setActionVisible(R.id.actionBrowseUndo, state.lastOperation != null)
@@ -331,6 +341,14 @@ class BrowseStateUiUpdater(
 
     companion object {
         private const val PREF_REACH_NOTICE_SHOWN = "reach_limited_notice_shown"
+
+        // The two switches are screen-wide: the player panel, the per-file menu and the swipes
+        // already obey them, so the bar must too or a disabled operation stays one tap away.
+        internal fun isCopyActionVisible(hasSelection: Boolean, settings: AppSettings): Boolean =
+            hasSelection && settings.enableCopying
+
+        internal fun isMoveActionVisible(hasSelection: Boolean, canWrite: Boolean, settings: AppSettings): Boolean =
+            hasSelection && canWrite && settings.enableMoving
 
         internal fun isCameraCaptureVisible(state: BrowseState, settings: AppSettings): Boolean {
             if (settings.disableCameraCapture) return false

@@ -113,7 +113,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_search_youtube_music,
             true,
             R.string.search_in_youtube_music,
-            R.drawable.ic_youtube_music
+            R.drawable.ic_search
         ),
         // S0162: Rotation toggle - low-priority, shows on bar only when space permits
         ROTATION_TOGGLE(
@@ -144,7 +144,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         TRANSLATE_PDF(270, R.id.menu_translate, true, R.string.translate, R.drawable.ic_translate),
         PDF_TEXT_SETTINGS(280, R.id.menu_text_settings, true, R.string.translation_settings, R.drawable.ic_book),
         OCR_PDF(290, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr),
-        GOOGLE_LENS_PDF(300, R.id.menu_google_lens, true, R.string.google_lens, R.drawable.ic_google_lens),
+        GOOGLE_LENS_PDF(300, R.id.menu_google_lens, true, R.string.search_google_lens, R.drawable.ic_search),
 
         // TEXT
         SEARCH_TEXT(310, R.id.menu_search, true, R.string.search, R.drawable.ic_search),
@@ -201,7 +201,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         TRANSLATE_IMAGE(400, R.id.menu_translate, true, R.string.translate, R.drawable.ic_translate),
         IMAGE_TEXT_SETTINGS(410, R.id.menu_text_settings, true, R.string.translation_settings, R.drawable.ic_book),
         OCR_IMAGE(420, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr),
-        GOOGLE_LENS_IMAGE(430, R.id.menu_google_lens, true, R.string.google_lens, R.drawable.ic_google_lens),
+        GOOGLE_LENS_IMAGE(430, R.id.menu_google_lens, true, R.string.search_google_lens, R.drawable.ic_search),
 
         // ── Group 3 : overflow-only commands (priorities 500-699) ───────────────────
 

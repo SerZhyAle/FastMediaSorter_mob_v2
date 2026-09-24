@@ -656,9 +656,6 @@ class PdfViewerManager(
         }
     }
 
-    /** Get current color mode name for UI display. */
-    fun getCurrentColorModeName(): String = currentColorMode.name
-
     /** Show thumbnail navigation BottomSheet. Displays a grid of low-res page thumbnails for quick page jumping. */
     fun showThumbnailNavigation() = PdfThumbnailSheet.show(
         root = root,

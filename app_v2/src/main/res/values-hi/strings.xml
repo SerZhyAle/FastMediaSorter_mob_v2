@@ -201,13 +201,13 @@
     <string name="backup_to_google_drive">सेटिंग्स को Google Drive पर बैकअप करें</string>
     <string name="restore_from_google_drive">Google Drive से सेटिंग्स पुनर्स्थापित करें</string>
     <string name="tooltip_backup_info_title">बैकअप जानकारी</string>
-    <string name="tooltip_backup_info_message">बैकअप में सभी सेटिंग और संसाधन सूची शामिल होती है। क्रेडेंशियल का बैकअप नहीं लिया जाता - पुनर्स्थापना के बाद आपको नेटवर्क/क्लाउड संसाधनों को फिर से प्रमाणित करना होगा।</string>
+    <string name="tooltip_backup_info_message">बैकअप में सभी सेटिंग, संसाधन सूची, नेटवर्क पासवर्ड और वेबसाइटों के सहेजे गए लॉगिन शामिल होते हैं - बैकअप फ़ाइल किसी के साथ साझा न करें। क्लाउड लॉगिन (Google Drive, OneDrive, Dropbox) शामिल नहीं होते - पुनर्स्थापना के बाद आपको उनमें फिर से साइन इन करना पड़ सकता है।</string>
     <string name="backup_success">%1$d संसाधन, %2$d पसंदीदा और सभी सेटिंग %3$s पर बैकअप की गईं</string>
     <string name="backup_failed">आपकी सेटिंग और संसाधनों का बैकअप नहीं लिया जा सका. फिर कोशिश करें.</string>
     <string name="restore_confirm_title">बैकअप से पुनर्स्थापित करें?</string>
     <string name="restore_confirm_message">बैकअप स्रोत: %1$s\nडिवाइस: %2$s\nसंसाधन: %3$d\nपसंदीदा: %4$d\n\n• सेटिंग्स बदल दी जाएंगी\n• संसाधन जोड़े जाएंगे (डुप्लिकेट छोड़े जाएंगे)\n• पसंदीदा जोड़े जाएंगे (डुप्लिकेट छोड़े जाएंगे)</string>
     <string name="restore_success">सभी सेटिंग पुनर्स्थापित की गईं। %1$d संसाधन जोड़े गए (%2$d पहले से मौजूद थे)। %3$d पसंदीदा जोड़े गए (%4$d पहले से मौजूद थे)।</string>
-    <string name="restore_needs_auth">कुछ संसाधन नेटवर्क या क्लाउड खातों का उपयोग करते हैं। आपको उन्हें फिर से प्रमाणित करना होगा।</string>
+    <string name="restore_needs_auth">कुछ पुनर्स्थापित संसाधन क्लाउड खातों (Google Drive, OneDrive, Dropbox) का उपयोग करते हैं। उनमें फिर से साइन इन करें।</string>
     <string name="restore_no_backup">इस खाते के लिए कोई बैकअप नहीं मिला।</string>
     <string name="restore_failed">आपकी सेटिंग और संसाधन पुनर्स्थापित नहीं किए जा सके. फिर कोशिश करें.</string>
     <string name="backup_account">खाता: %s</string>

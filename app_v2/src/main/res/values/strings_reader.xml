@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="pdf_color_mode">Color Mode: %s</string>
     <string name="pdf_creation_date_label">Created: %1$s</string>
     <string name="pdf_creator_label">Creator: %1$s</string>
     <string name="pdf_display_error">Couldn\'t display this PDF. Try again.</string>
@@ -18,7 +17,6 @@
     <string name="pdf_night_mode">Night Mode</string>
     <string name="pdf_p">PDF (P)</string>
     <string name="pdf_page">PDF page</string>
-    <string name="pdf_page_mode">Page Mode</string>
     <string name="pdf_page_render_failed">Couldn\'t render this page. Try again.</string>
     <string name="pdf_producer_label">Producer: %1$s</string>
     <string name="pdf_read_failed">This PDF couldn\'t be read. The file may be damaged or unsupported.</string>

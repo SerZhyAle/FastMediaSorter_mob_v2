@@ -39,7 +39,7 @@
 
                 <TextView android:id="@+id/btnOcrPdfCmd" android:layout_width="wrap_content" android:layout_height="@dimen/player_cmd_button_size" android:text="@string/activity_player_unified_btnOcrPdfCmd_text" android:textColor="@color/white" android:textSize="@dimen/text_size_small" android:textStyle="bold" android:gravity="center" android:visibility="gone" android:background="?attr/selectableItemBackgroundBorderless" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnGoogleLensPdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_google_lens" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnGoogleLensPdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@null" />
 
                 <!-- Keep parity with portrait command panel: this id is required by PlayerBindingSafeViews. -->
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPdfThumbnailsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/pdf_thumbnails" android:src="@drawable/ic_view_list" android:visibility="gone" />
@@ -60,7 +60,7 @@
 
                 <TextView android:id="@+id/btnOcrImageCmd" android:layout_width="wrap_content" android:layout_height="@dimen/player_cmd_button_size" android:text="@string/activity_player_unified_btnOcrImageCmd_text" android:textColor="@color/selector_player_button_tint" android:textSize="@dimen/text_size_small" android:textStyle="bold" android:gravity="center" android:visibility="gone" android:background="?attr/selectableItemBackgroundBorderless" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnGoogleLensImageCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_google_lens" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnGoogleLensImageCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@null" />
 
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnLyricsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_book" android:visibility="gone" android:contentDescription="@null" />
 
@@ -71,7 +71,8 @@
                     android:src="@drawable/ic_sleep_timer"
                     android:visibility="gone" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchYoutubeMusicCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@null" android:src="@drawable/ic_youtube_music" android:visibility="gone" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchYoutubeMusicCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@null" android:src="@drawable/ic_search" android:visibility="gone" />
+
 
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnCastCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@null" android:src="@drawable/ic_cast" android:visibility="gone" />
 

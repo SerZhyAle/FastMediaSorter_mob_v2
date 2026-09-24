@@ -178,14 +178,16 @@ abstract class ShareTargetModule {
         fun lensTarget(): ShareTarget = ShareTarget(
             id = "lens",
             titleRes = R.string.google_lens,
-            iconRes = R.drawable.ic_google_lens,
-            wearIconName = "ImageSearch",
+            iconRes = R.drawable.ic_apps,
+            wearIconName = "Apps",
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.REQUIRES_GOOGLE,
+            packages = listOf("com.google.ar.lens", "com.google.android.googlequicksearchbox"),
             applicableTypes = setOf(MediaType.IMAGE, MediaType.GIF),
             subtitleRes = R.string.share_target_desc_lens,
             helpMessageRes = R.string.share_target_help_lens,
         )
+
 
         @Provides
         @IntoSet

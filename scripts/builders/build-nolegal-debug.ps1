@@ -76,6 +76,10 @@ if ($AutoVersion) {
         "-Pfms.versionName=$versionName"
     )
 }
+else {
+    # S3513: without the flag the in-build stamp still moved the version every minute.
+    $gradleArgs += "-Pfms.stableVersion=true"
+}
 & $gradlew @gradleArgs
 
 if ($LASTEXITCODE -ne 0) {

@@ -176,6 +176,11 @@ if (-not $SkipManifestTest -and $manifestAffected) {
         if (-not $outcome.Failed) {
             CannotVerify 'manifest-fresh' "the SettingsManifestExportTest ran and recorded no failure, yet the task went red - the failure is elsewhere in the run, not in the manifest."
         }
+        # S3487: every failure was an exception before any assertion (UnsatisfiedLinkError from the
+        # Hilt graph's database open), so no manifest comparison ran.
+        if ($outcome.AssertionFailures -eq 0) {
+            CannotVerify 'manifest-fresh' "the SettingsManifestExportTest failed on $($outcome.FailureTypes -join ', ') before any assertion ran - an environment failure, not manifest drift. No claim is made about settings-manifest.json freshness."
+        }
         Fail 'manifest-fresh' 'committed settings-manifest.json differs from the live scan - regenerate with -Dsettings.manifest.generate=true'
     }
 } elseif ($SkipManifestTest) {

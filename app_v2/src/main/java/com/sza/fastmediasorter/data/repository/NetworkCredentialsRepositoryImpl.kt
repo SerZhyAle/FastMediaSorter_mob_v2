@@ -70,7 +70,13 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
                     
                     for (cred in config.credentials) {
                         Timber.d("TEST_CREDS: Processing credential type=${cred.type} server=${cred.server}")
-                        
+                        // S3528: a cloud account needs interactive sign-in, so a file row cannot create it;
+                        // letting it through fell into the SMB branch and made smb://<provider>/ resources.
+                        if (cred.type.equals("CLOUD", ignoreCase = true)) {
+                            Timber.d("TEST_CREDS: Skipping CLOUD entry ${cred.server}, sign in from the app")
+                            continue
+                        }
+
                         // 1. Handle Credential
                         // Encrypt password
                         val encryptedPass = CryptoHelper.encrypt(cred.password) ?: ""
@@ -108,10 +114,12 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
                             else -> ResourceType.SMB
                         }
                         
-                        val resourcePath = if (resourceType == ResourceType.SMB) {
-                            "smb://${cred.server}/${cred.shareName ?: ""}"
-                        } else {
-                            cred.folder ?: "/"
+                        // S3528: SftpPathUtils / FtpPathUtils only parse scheme://host:port/path.
+                        val folder = "/" + (cred.folder ?: "").trimStart('/')
+                        val resourcePath = when (resourceType) {
+                            ResourceType.SFTP -> "sftp://${cred.server}:${cred.port ?: DEFAULT_SFTP_PORT}$folder"
+                            ResourceType.FTP -> "ftp://${cred.server}:${cred.port ?: DEFAULT_FTP_PORT}$folder"
+                            else -> "smb://${cred.server}/${cred.shareName ?: ""}"
                         }
                         
                         val resourceName = if (resourceType == ResourceType.SMB) {
@@ -323,5 +331,10 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
             username = newUsername,
             encryptedPassword = newEncryptedPassword
         )
+    }
+
+    private companion object {
+        const val DEFAULT_SFTP_PORT = 22
+        const val DEFAULT_FTP_PORT = 21
     }
 }
