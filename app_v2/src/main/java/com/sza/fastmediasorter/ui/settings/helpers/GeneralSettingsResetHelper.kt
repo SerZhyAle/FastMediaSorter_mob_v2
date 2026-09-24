@@ -37,7 +37,6 @@ class GeneralSettingsResetHelper(
     }
 
     fun showResetSettingsConfirmation() {
-        Timber.d("S3243: reset settings confirmation shown")
         AppDialog.destructive(
             owner = fragment,
             context = fragment.requireContext(),

@@ -96,7 +96,6 @@ class LauncherStartMenuFragment : BaseAppBottomSheet() {
      * allows.
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        Timber.d("S3244: start menu dialog open, taskbarAtTop=%b", viewModel.taskbarAtTop.value)
         if (!viewModel.taskbarAtTop.value) {
             return super.onCreateDialog(savedInstanceState)
         }

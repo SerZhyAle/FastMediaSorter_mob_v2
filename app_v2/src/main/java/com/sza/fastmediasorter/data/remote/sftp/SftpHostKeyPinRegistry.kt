@@ -63,7 +63,6 @@ class SftpHostKeyPinRegistry @Inject constructor(
         snapshot: Map<String, String>,
     ): SftpClient.SftpConnectionInfo {
         val pin = snapshot[key(info.host, info.port)] ?: discoveredPin(info.host, info.port, snapshot)
-        Timber.d("S3415: host-key pin for ${info.host}:${info.port} -> ${pin ?: "none (permissive)"}")
         return if (pin == null) info else info.copy(expectedFingerprint = pin)
     }
 

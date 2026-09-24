@@ -102,7 +102,6 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
      * screen, so the choice gets its own prompt where both consequences fit as full sentences.
      */
     private fun askReceiveOption(manifest: CrossDevicePacketManifest) {
-        Timber.d("S3243: cross-device receive option asked for ${manifest.senderDeviceName}")
         val options = arrayOf(
             getString(R.string.cross_device_transfer_receive_and_keep),
             getString(R.string.cross_device_transfer_receive_and_delete)

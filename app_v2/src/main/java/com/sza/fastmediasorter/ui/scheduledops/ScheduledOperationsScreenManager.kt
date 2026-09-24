@@ -80,7 +80,6 @@ class ScheduledOperationsScreenManager(
     }
 
     fun observeData() {
-        Timber.d("S3365: ScheduledOperationsScreenManager observing data")
         activity.collectOnLifecycle(scheduledViewModel.operations) { ops ->
             scheduledAdapter.submitList(ops)
             binding.tvNoScheduledOps.isVisible = ops.isEmpty() && scheduledViewModel.isEnabled.value

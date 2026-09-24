@@ -59,7 +59,6 @@ class LauncherDimStatusContentProvider @Inject constructor(
         val transport = getNetworkStatusUseCase.read().transport
         val chips = mapSignalsToChips(signals, notifCounts) +
             connectivitySource.chips(bluetoothOn, hotspotState == HotspotState.ENABLED, transport)
-        Timber.d("S3366: dim status snapshot chips=" + chips.size)
         DimStatusSnapshot(
             batteryPercent = percent,
             isCharging = isCharging,

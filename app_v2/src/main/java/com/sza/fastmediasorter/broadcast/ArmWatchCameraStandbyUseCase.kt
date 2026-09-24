@@ -56,7 +56,6 @@ class ArmWatchCameraStandbyUseCase @Inject constructor(
             is WatchCameraBroadcast.Refused -> WatchCameraStandby.Refused(outcome.refusal)
         }
     }.also {
-        Timber.d("S2551: standby arming ended as %s", it)
     }
 
     /**

@@ -184,7 +184,6 @@ class PrefetchOverlayView @JvmOverloads constructor(
             keyCode == KeyEvent.KEYCODE_BACK ||
             keyCode == KeyEvent.KEYCODE_ENTER ||
             keyCode == KeyEvent.KEYCODE_DPAD_CENTER
-        Timber.d("S3252: PrefetchOverlayView key $keyCode dismisses=$dismisses")
         if (!dismisses) return super.onKeyDown(keyCode, event)
         performClick()
         return true

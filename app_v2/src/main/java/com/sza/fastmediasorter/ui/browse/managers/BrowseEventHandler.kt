@@ -216,7 +216,6 @@ class BrowseEventHandler(
      * undo coroutine - confirm, cancel and dismiss alike - because an unanswered prompt parks it.
      */
     private fun showUndoFolderCopyConfirm() {
-        Timber.d("S3254: undo folder-copy dialog opened for the rotation and D-pad pass")
         val content = DialogUndoFolderCopyBinding.inflate(activity.layoutInflater)
         var decided = false
         val dialog = MaterialAlertDialogBuilder(activity)

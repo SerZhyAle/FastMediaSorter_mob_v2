@@ -57,7 +57,6 @@ class MediaItemThumbnailBinder {
      * ImageView's own scale type (S3246).
      */
     fun bindIcon(view: ImageView, iconFile: File?, versionKey: Long, @DrawableRes placeholder: Int) {
-        Timber.d("S3246: bindIcon version=$versionKey file=${iconFile?.name}")
         Glide.with(view)
             .load(iconFile)
             .signature(ObjectKey(versionKey))
@@ -67,7 +66,6 @@ class MediaItemThumbnailBinder {
 
     /** Cancels any in-flight request targeting [view] and frees its Glide target. */
     fun clear(view: ImageView) {
-        Timber.d("S3246: clear thumbnail target")
         Glide.with(view).clear(view)
     }
 

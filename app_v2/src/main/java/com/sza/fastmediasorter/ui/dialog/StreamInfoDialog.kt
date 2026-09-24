@@ -78,7 +78,6 @@ class StreamInfoDialog(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Timber.d("S3254: stream-info dialog opened for the rotation and D-pad pass")
         binding = DialogStreamInfoBinding.inflate(layoutInflater)
         setContentView(binding.root)
         renderStoredGroups()

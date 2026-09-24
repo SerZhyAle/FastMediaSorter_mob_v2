@@ -223,7 +223,6 @@ class BrowseButtonSetupHelper(
      * target, the ripple and the disabled tint, so only the callback mapping lives here.
      */
     private fun setupOperationActions(callbacks: ButtonCallbacks) {
-        Timber.d("S3249: operations bar built from ${OPERATION_ACTIONS.size} Action records")
         binding.layoutOperations.setActions(OPERATION_ACTIONS) { id ->
             when (id) {
                 R.id.actionBrowseCopy -> dispatchOperation("Copy", callbacks::onCopyClicked)
@@ -244,7 +243,6 @@ class BrowseButtonSetupHelper(
     }
 
     private fun setupScrollButtons() {
-        Timber.d("S3249: scroll strips built as two floating ActionBarView containers")
         binding.barScrollTop.setActions(SCROLL_TOP_ACTIONS, ::onScrollAction)
         binding.barScrollBottom.setActions(SCROLL_BOTTOM_ACTIONS, ::onScrollAction)
     }

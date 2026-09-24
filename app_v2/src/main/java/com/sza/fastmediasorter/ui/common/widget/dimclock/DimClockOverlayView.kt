@@ -97,7 +97,6 @@ class DimClockOverlayView @JvmOverloads constructor(
             minimumShift = resources.getDimensionPixelSize(R.dimen.dim_clock_edge_offset),
             isRtl = layoutDirection == LAYOUT_DIRECTION_RTL,
         )
-        Timber.d("S3369: dim clock padding start=${padding.left} top=${padding.top}")
         binding.dimClockContentBlock.setPaddingRelative(padding.left, padding.top, padding.right, padding.bottom)
     }
 
@@ -268,7 +267,6 @@ class DimClockOverlayView @JvmOverloads constructor(
                 chipView.isFocusable = true
                 chipView.setOnClickListener {
                     onDimExitRequested?.invoke()
-                    Timber.d("S3366: notification chip tapped id=" + chip.id)
                     router.openChip(chip)
                 }
             }
@@ -287,7 +285,6 @@ class DimClockOverlayView @JvmOverloads constructor(
         val loader = iconLoader ?: return
         findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
             val drawable = loader.load(packageName) ?: return@launch
-            Timber.d("S3366: real icon applied for " + packageName)
             iconView.setImageDrawable(drawable)
             iconView.imageTintList = null
             iconView.setPadding(0, 0, 0, 0)
@@ -362,7 +359,6 @@ class DimClockOverlayView @JvmOverloads constructor(
             context.getString(R.string.app_launch_panel_os_battery)
         binding.dimBatteryBox.setOnClickListener {
             onDimExitRequested?.invoke()
-            Timber.d("S3366: battery box tapped")
             router.openBatteryUsage()
         }
     }

@@ -188,7 +188,6 @@ class MediaItemView @JvmOverloads constructor(
     private fun applyOrientation(orientation: Int) {
         constraintOrientation = orientation
         val qualified = contextConfig(orientation)
-        Timber.d("S3343: orientation=$orientation gridThumb=${dimen(qualified, R.dimen.item_grid_thumbnail_size)}px")
         applyRowPadding(qualified)
         rebuildGridConstraints(qualified)
         setLayoutMode(layoutMode)

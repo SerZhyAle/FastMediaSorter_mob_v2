@@ -268,7 +268,6 @@ class GameBoardView @JvmOverloads constructor(
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         val direction = directionFromKeyCode(keyCode)
-        Timber.d("S3252: GameBoardView key $keyCode -> $direction")
         if (direction != null) {
             onSwipeDirection?.invoke(direction)
             return true

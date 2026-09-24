@@ -248,7 +248,6 @@ class BroadcastCaptureService : Service() {
                 if (read > 0) {
                     val suppressed = guard.process(buffer, read)
                     if (suppressed != _feedbackSuppressed.value) {
-                        Timber.d("S3349: feedback guard suppression -> %b", suppressed)
                     }
                     _feedbackSuppressed.value = suppressed
                     encoder.encode(buffer, read)

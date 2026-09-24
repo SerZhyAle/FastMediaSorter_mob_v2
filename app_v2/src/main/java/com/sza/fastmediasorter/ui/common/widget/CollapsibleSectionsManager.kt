@@ -56,7 +56,6 @@ class CollapsibleSectionsManager(
             headersByContainerId[container.id] = header
         }
         if (!persistState) {
-            Timber.d("S3355: section $key opens at defaultExpanded=$defaultExpanded, store bypassed")
         }
         val expanded = if (persistState) store.isExpanded(key, defaultExpanded) else defaultExpanded
         onExpandedChanged?.invoke(expanded)

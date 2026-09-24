@@ -313,7 +313,6 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        Timber.d("S3252: EdgeGestureSchemaView key $keyCode zone=$cursorZoneIndex cell=$cursorDirectionIndex")
         val handled = when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> moveZoneCursor(-1)
             KeyEvent.KEYCODE_DPAD_RIGHT -> moveZoneCursor(1)

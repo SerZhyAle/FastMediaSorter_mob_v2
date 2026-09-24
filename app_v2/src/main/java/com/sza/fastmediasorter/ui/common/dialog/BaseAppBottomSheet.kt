@@ -49,7 +49,6 @@ abstract class BaseAppBottomSheet : BottomSheetDialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        Timber.d("S3244: base sheet onCreateView, usesShell=%b", usesShell)
         if (!usesShell) {
             return inflater.inflate(contentLayout, container, false)
         }

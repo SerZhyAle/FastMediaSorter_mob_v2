@@ -550,7 +550,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     internal fun setCredentialBranch(showsCredentials: Boolean) {
         if (showsCredentialBranch == showsCredentials) return
         showsCredentialBranch = showsCredentials
-        Timber.d("S3356: add-resource credential branch set to $showsCredentials")
         refreshSecureFlag()
     }
 

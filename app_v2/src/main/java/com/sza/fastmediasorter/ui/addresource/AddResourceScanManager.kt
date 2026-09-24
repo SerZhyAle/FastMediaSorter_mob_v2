@@ -165,7 +165,6 @@ internal class AddResourceScanManager(
                     // then returns the user here instead of to the wizard, and the folder that was
                     // accepted behind the dialog reads as a silent failure.
                     useSafOnly -> {
-                        Timber.d("S3354: quick folder falls back to the system picker, closing the dialog first")
                         dialog.dismiss()
                         folderPickerLauncher.launch(null)
                     }
@@ -276,7 +275,6 @@ internal class AddResourceScanManager(
             Triple(R.id.headerManualPath, R.id.containerManualPath, "folder_selection__manual"),
             Triple(R.id.headerSystemPicker, R.id.containerSystemPicker, "folder_selection__picker"),
         )
-        Timber.d("S3355: folder dialog registers 5 collapsible sections, all expanded, none persisted")
         sections.forEach { (headerId, containerId, key) ->
             val header = dialogView.findViewById<CollapsibleSectionHeader>(headerId) ?: return@forEach
             val container = dialogView.findViewById<android.view.View>(containerId) ?: return@forEach
@@ -302,7 +300,6 @@ internal class AddResourceScanManager(
         if (ChromeOsCompat.needsSafFolderPicker(activity)) {
             Timber.d("AddResourceScanManager: redirecting to SAF picker on Chrome OS")
             // S3354: same reason as the quick-folder branch - the picker owns the screen alone.
-            Timber.d("S3354: manual path falls back to the system picker, closing the dialog first")
             dialog.dismiss()
             folderPickerLauncher.launch(null)
             return

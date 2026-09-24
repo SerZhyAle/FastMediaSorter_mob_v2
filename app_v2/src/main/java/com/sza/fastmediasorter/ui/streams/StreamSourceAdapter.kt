@@ -340,7 +340,6 @@ class StreamSourceAdapter(
                 view.visibility = View.GONE
                 return
             }
-            Timber.d("S3435: binding stream access badge access=%s", trimmed)
             val context = view.context
             if (trimmed.equals(ACCESS_GEO, ignoreCase = true)) {
                 view.text = context.getString(R.string.stream_access_geo)

@@ -90,7 +90,6 @@ class PlayerSettingsManager(
      * Displays speed options from 0.25x to 2.0x.
      */
     fun showPlaybackSpeedDialog() {
-        Timber.d("S3243: playback speed dialog shown")
         val speeds = arrayOf("0.25x", "0.5x", "0.75x", "1.0x", "1.25x", "1.5x", "1.75x", "2.0x")
         val currentSpeed = videoPlayerManagerProvider().getPlayer()?.playbackParameters?.speed ?: 1.0f
         val currentIndex = speeds.indexOfFirst { 

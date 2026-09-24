@@ -482,7 +482,6 @@ class TranslationOverlayView @JvmOverloads constructor(
     override fun performClick(): Boolean = super.performClick()
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        Timber.d("S3252: TranslationOverlayView key $keyCode blocks=${translatedBlocks.size}")
         val handled = when (keyCode) {
             KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK -> hideAndClear()
             KeyEvent.KEYCODE_DPAD_LEFT -> {
@@ -644,7 +643,6 @@ class TranslationOverlayView @JvmOverloads constructor(
             // The plate may have been lifted above the source top (rule 9 overflow), so the text is
             // centred in the plate itself; a layout taller than a full-view plate starts at its top.
             val textStartY = plate.top + ((finalBoxHeight - staticLayout.height) / 2).coerceAtLeast(0f)
-            Timber.d("S3419: plate source top=$scaledTop plate=${plate.top}..${plate.bottom} view=$height text=$textSize")
             canvas.translate(scaledLeft + padding, textStartY)
             staticLayout.draw(canvas)
             canvas.restore()

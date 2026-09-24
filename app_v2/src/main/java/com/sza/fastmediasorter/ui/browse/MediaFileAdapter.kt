@@ -1355,7 +1355,6 @@ class MediaFileAdapter(
  * selected row (`docs/ui/PHONE_UI_COMPONENT_PATTERNS.md` section 2.2).
  */
 private fun applyRowSelectionState(root: View, selected: Boolean) {
-    Timber.d("S3247: browse row selection state selected=$selected")
     root.isSelected = selected
     root.isActivated = selected
 }

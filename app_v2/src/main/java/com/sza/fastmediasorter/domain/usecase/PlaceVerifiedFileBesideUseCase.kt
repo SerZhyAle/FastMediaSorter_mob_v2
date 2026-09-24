@@ -46,7 +46,6 @@ class PlaceVerifiedFileBesideUseCase @Inject constructor() {
                 val finalName = freeName(folder, desiredName)
                 folder.rename(written, finalName)
                 landed = true
-                Timber.d("S3408: read back identical, renamed into place")
                 FdSecResult.Placed(finalName)
             } else {
                 FdSecResult.Failed("the written copy did not read back identical")

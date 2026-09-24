@@ -137,7 +137,6 @@ class BlackScreenOverlayManager(
         )
         if (orientationBeforeDim == null) orientationBeforeDim = activity.requestedOrientation
         activity.requestedOrientation = orientation
-        Timber.d("S3369: dim screen took the player rotation policy orientation=$orientation")
     }
 
     private fun restoreHostOrientation(activity: Activity) {
@@ -184,14 +183,12 @@ class BlackScreenOverlayManager(
         // gesture takes, before the router starts the intent.
         clockView.onDimExitRequested = { hide() }
         clockView.onUnhandledMotionEvent = { event ->
-            Timber.d("S3369: dim clock free-area motion forwarded to dim surface")
             (overlayView as? DimOverlayView)?.dispatchTouchEvent(event)
         }
         dimClockView = clockView
     }
 
     fun onHostConfigurationChanged() {
-        Timber.d("S3369: dim overlay host configuration changed, visible=$isVisible")
         if (!isVisible) return
         activityRef.get()?.let { activity ->
             (activity.window.decorView as? ViewGroup)?.let { decorView ->
@@ -212,7 +209,6 @@ class BlackScreenOverlayManager(
     fun onTouchEvent(event: MotionEvent): Boolean {
         val target: View? = if (isVisible) dimClockView ?: overlayView else null
         if (target != null && event.actionMasked == MotionEvent.ACTION_DOWN) {
-            Timber.d("S3366: dim touch routed, clock panel first=" + (dimClockView != null))
         }
         target?.dispatchTouchEvent(event)
         return target != null

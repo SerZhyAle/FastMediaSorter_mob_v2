@@ -133,7 +133,6 @@ class LauncherScrollThumbView @JvmOverloads constructor(
             KeyEvent.KEYCODE_PAGE_DOWN -> viewportHeight
             else -> 0
         }
-        Timber.d("S3252: LauncherScrollThumbView key $keyCode delta=$delta scrollable=${isScrollable()}")
         if (delta == 0 || !isScrollable()) {
             return super.onKeyDown(keyCode, event)
         }

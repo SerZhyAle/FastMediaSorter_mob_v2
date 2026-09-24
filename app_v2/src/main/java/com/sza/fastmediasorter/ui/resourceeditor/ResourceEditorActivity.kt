@@ -29,7 +29,6 @@ class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
     internal fun onEditorCredentialFieldVisibility(showsCredentialField: Boolean) {
         if (editorShowsCredentialField == showsCredentialField) return
         editorShowsCredentialField = showsCredentialField
-        Timber.d("S3356: editor credential field visible=$showsCredentialField")
         refreshSecureFlag()
     }
 

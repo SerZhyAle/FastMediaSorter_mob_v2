@@ -233,7 +233,6 @@ object LauncherGridGeometry {
             columns = columns,
             renderRowOf = drawnRowOf,
         )
-        Timber.d("S3411: renderPlan packed ${packed.size} headers across ${sections.size} sections")
         return cells.mapNotNull { item ->
             val drawnRow = drawnRowOf(item.cell) ?: return@mapNotNull null
             val packedPosition = packed[item.cell.target]

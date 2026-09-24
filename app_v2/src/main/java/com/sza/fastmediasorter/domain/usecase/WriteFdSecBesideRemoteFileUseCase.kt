@@ -33,7 +33,6 @@ class WriteFdSecBesideRemoteFileUseCase @Inject constructor(
     /** Packs [file] into a container beside it. [currentFolder] is the folder the list is showing. */
     suspend fun encrypt(file: MediaFile, currentFolder: String?, credential: CharArray): FdSecResult =
         withStaging(file, currentFolder) { folder, staging ->
-            Timber.d("S3408: encrypt beside a remote file entered")
             val original = localize.copyOf(file.path, File(staging, SOURCE_DIRECTORY), file.name)
             if (original == null) {
                 FdSecResult.Failed("the file could not be read where it is")
@@ -53,7 +52,6 @@ class WriteFdSecBesideRemoteFileUseCase @Inject constructor(
     /** Restores the original under its sealed name beside the container [file]. */
     suspend fun decrypt(file: MediaFile, currentFolder: String?, credential: CharArray): FdSecResult =
         withStaging(file, currentFolder) { folder, staging ->
-            Timber.d("S3408: decrypt beside a remote file entered")
             val container = localize(file.path, File(staging, SOURCE_DIRECTORY))
             val restored = container?.let {
                 unsecureFile.materialize(it, File(staging, RESTORED_DIRECTORY), credential)

@@ -39,7 +39,6 @@ class XrEntryGatewayImpl @Inject constructor(
 ) : XrEntryGateway {
 
     override fun createImmersiveIntent(input: VrLaunchInput): Intent? {
-        Timber.d("S3334: createImmersiveIntent resolving lazy DiagnosticXrRuntime")
         if (!runtimeProvider.get().isNativeAvailable) {
             Timber.i("XrEntryGatewayImpl: createImmersiveIntent -> native runtime unavailable")
             return null

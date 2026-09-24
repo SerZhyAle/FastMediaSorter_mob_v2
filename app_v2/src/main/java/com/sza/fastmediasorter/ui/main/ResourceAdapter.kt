@@ -957,7 +957,6 @@ class ResourceAdapter(
  * (`docs/ui/PHONE_UI_COMPONENT_PATTERNS.md` section 2.2).
  */
 private fun applyRowSelectionState(root: android.view.View, selected: Boolean) {
-    Timber.d("S3247: resource row selection state selected=$selected")
     root.isSelected = selected
     root.isActivated = selected
 }
@@ -968,7 +967,6 @@ private fun applyRowSelectionState(root: android.view.View, selected: Boolean) {
  * signal; this is only its colour half.
  */
 private fun applyUnavailableSurface(surface: android.view.View, isAvailable: Boolean) {
-    Timber.d("S3247: resource tile surface available=$isAvailable")
     if (isAvailable) {
         surface.setBackgroundColor(android.graphics.Color.TRANSPARENT)
     } else {

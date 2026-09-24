@@ -149,7 +149,6 @@ class LauncherWallpaperManager(
      * the surface the user is actually on.
      */
     fun onResume() {
-        Timber.d("S3335: wallpaper resume edge, frozen=$cameraFrozen, mode=${current::class.simpleName}")
         cameraFrozen = false
         val wallpaper = current
         if (wallpaper is LauncherWallpaper.LiveCamera) startCameraIfPolicyAllows(wallpaper.cameraId)
@@ -162,7 +161,6 @@ class LauncherWallpaperManager(
      * then is still bound while the capture screen, the mirror or the torch asks for it.
      */
     fun onPause() {
-        Timber.d("S3335: wallpaper pause edge, mode=${current::class.simpleName}, frozen=$cameraFrozen")
         if (current !is LauncherWallpaper.LiveCamera || cameraFrozen) return
         cameraFrozen = true
         // A null bitmap means no frame ever reached the preview; there is nothing to freeze, and the

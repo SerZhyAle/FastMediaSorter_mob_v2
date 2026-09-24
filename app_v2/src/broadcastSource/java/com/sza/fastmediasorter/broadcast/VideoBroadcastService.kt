@@ -495,7 +495,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                 }
             })
         }
-        Timber.d("S3351: video broadcast audio custom effect attached (gain: %d%%)", config.micGainPercent)
     }
 
     private fun applyPcmGain(buffer: ByteArray, length: Int, gainMultiplier: Float) {

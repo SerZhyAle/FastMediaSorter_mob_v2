@@ -97,7 +97,6 @@ class OperationsWatchCameraStandbyManager(
     }
 
     private fun onToggled(enabled: Boolean) {
-        Timber.d("S2551: standby row toggled to %s", enabled)
         persist(enabled)
         when {
             !enabled -> armWatchCameraStandby.disarm()

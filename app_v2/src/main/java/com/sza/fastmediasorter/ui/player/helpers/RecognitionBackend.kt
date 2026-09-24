@@ -234,7 +234,6 @@ class RecognitionBackend(
             discardRecorder.record(block, verdict)
             if (verdict == OcrBlockFilter.Verdict.ACCEPTED) kept.add(block) else refusedTexts.add(block.text)
         }
-        Timber.d("S3418: language guard assumed=$languageAssumed kept=${kept.size} refused=${refusedTexts.size}")
         if (!OcrLanguageGuard.shouldRefuse(languageAssumed, kept.map { it.text }, refusedTexts)) {
             return kept
         }

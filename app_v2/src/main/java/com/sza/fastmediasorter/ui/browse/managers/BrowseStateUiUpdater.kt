@@ -166,7 +166,6 @@ class BrowseStateUiUpdater(
             firstTime
         }
         reachNoticeOnThisScreen = show
-        Timber.d("S3393: reach notice claimed show=$show")
         return show
     }
 
@@ -225,7 +224,6 @@ class BrowseStateUiUpdater(
 
         // S3249: the operations bar is an ActionBarView, so a control is addressed by its action id.
         val operations = binding.layoutOperations
-        Timber.d("S3249: operations visibility hasSelection=$hasSelection canWrite=$canWrite")
         operations.setActionVisible(R.id.actionBrowseCopy, hasSelection)
         operations.setActionVisible(R.id.actionBrowseMove, hasSelection && canWrite)
         operations.setActionVisible(R.id.actionBrowseRename, hasSelection && canWrite)
