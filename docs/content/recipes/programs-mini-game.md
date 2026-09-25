@@ -87,7 +87,7 @@ steps:
     id: watch
     title: Play on the watch
     text: |
-      FastMedia Wear on a paired [watch](term:watch) has the same game. The usual back arrow sits at the left middle of the round screen and a small **Skip turn** button at the right middle, so you can leave the game or spend a turn without moving without opening a menu. The score, the level and the turn count run along the bottom edge. More about the programs of the watch: [Wrist mini-apps, timers and tools](page:wear.wrist-mini-apps-and-tools).
+      FastMedia Wear on a paired [watch](term:watch) has the same game. The usual back arrow sits at the left middle of the round screen and a small **Skip turn** button at the right middle, so you can leave the game or spend a turn without moving without opening a menu. The score, the level and the turn count run along the bottom edge. More about the programs of the watch: [Wrist programs, timers and tools](page:wear.wrist-mini-apps-and-tools).
 outcome: |
   A quiet puzzle is always in your pocket: open it from the menu or the home screen, play with a finger, a keyboard, a remote or on the watch, and pick the look that is easiest for your eyes.
 tips:

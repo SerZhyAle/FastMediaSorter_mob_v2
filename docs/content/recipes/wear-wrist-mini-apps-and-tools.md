@@ -22,22 +22,22 @@ steps:
     id: programs-row
     title: Open Programs
     text: |
-      On the watch, swipe to **Programs** to see every built-in tool as a grid of icons - **Calculator**, **Network Monitor**, **Mini-game**, **Stopwatch**, **Water flashlight**, **Voice recorder**, **Clipboard**, **System information**, **Tourist** and **Phone camera** among them, some only where this build offers them. You can also reach the whole grid from the **Programs** tile - see [tiles and complications](page:wear.tiles-and-complications). Each icon is drawn in the same accent colour that program carries on the phone, so you recognise the same program at a glance on both devices; the shortcut tiles for programs and sections use that colour too, as a filled circle behind the glyph, with the glyph tinted light or dark for contrast against it.
+      On the watch, swipe to **Programs** to see every built-in tool as a grid of icons - **Calculator**, **Network Monitor**, **Mini-game**, **Stopwatch**, **Water flashlight**, **Voice recorder**, **Clipboard**, **System information**, **Tourist** and **Phone camera** among them, some only where this build offers them. You can also reach the whole grid from the **Programs** tile - see [tiles and complications](page:wear.tiles-and-complications). Each icon is drawn in the same accent color that program carries on the phone, so you recognize the same program at a glance on both devices; the shortcut tiles for programs and sections use that color too, as a filled circle behind the glyph, with the glyph tinted light or dark for contrast against it.
 
       The row on the watch home screen that always used to open the live broadcast now opens whichever program you opened most recently instead - the game, the water flashlight, the stopwatch, whatever it was - under that program's own name and icon. Nothing opened yet, or the broadcast itself was the last thing you opened? The row stays the broadcast shortcut it always was. A program this build does not offer never appears there, and the Programs tile itself is unchanged.
     image_bookmark:
       shot_id: wear.programs-grid-home-row
       device_profile: watch
       screen_state: wear-programs-grid-and-home-row
-      alt: The watch Programs grid showing Calculator, Network Monitor, Mini-game and other program icons, each in its own accent colour, above a home screen row that opens the last program used
+      alt: The watch Programs grid showing Calculator, Network Monitor, Mini-game and other program icons, each in its own accent color, above a home screen row that opens the last program used
       caption: "The Programs grid and the last-used shortcut on the home row."
       title: "Screenshot: Programs grid"
-      desc: Round watch, Programs grid open, icons in matching accent colours, home row beneath showing the most recently opened program.
+      desc: Round watch, Programs grid open, icons in matching accent colors, home row beneath showing the most recently opened program.
   - number: 2
     id: calculator
     title: Do the math - Calculator
     text: |
-      Open **Calculator** for everyday sums without waking the phone. The keypad opens on its first row with every key at a full touch-sized target, the minus sign is drawn full-width so it is never mistaken for a hyphen, and clear and backspace sit on a red plate so neither is pressed by accident. The running value is right-aligned in its own colour, like a calculator's own display register, and the operation you picked stays shown beside it - tap it again to repeat that operation on the next number. Its function menu lays its extra operations out in columns instead of one long list.
+      Open **Calculator** for everyday sums without waking the phone. The keypad opens on its first row with every key at a full touch-sized target, the minus sign is drawn full-width so it is never mistaken for a hyphen, and clear and backspace sit on a red plate so neither is pressed by accident. The running value is right-aligned in its own color, like a calculator's own display register, and the operation you picked stays shown beside it - tap it again to repeat that operation on the next number. Its function menu lays its extra operations out in columns instead of one long list.
 
       A tap on the result copies it to the watch clipboard - handy for pasting into a chat or a note on the wrist without going through the phone. Watches older than Android 13 show their own short confirmation; where the system already shows one, the watch does not repeat it. Tapping the display does nothing while it is showing an error.
 
@@ -99,7 +99,7 @@ steps:
     id: voice-recorder
     title: Record a voice note
     text: |
-      **Voice recorder** lets you record, play back and send a note without the phone in hand. Recording keeps running even if the screen goes dark or the watch slips off your wrist, because it runs as a background recording; while it runs, the status dot and the elapsed time carry their own colour so you can tell at a glance that it is live. Play a finished note straight from the recorder screen or from any row in **My notes**, in the watch's own player.
+      **Voice recorder** lets you record, play back and send a note without the phone in hand. Recording keeps running even if the screen goes dark or the watch slips off your wrist, because it runs as a background recording; while it runs, the status dot and the elapsed time carry their own color so you can tell at a glance that it is live. Play a finished note straight from the recorder screen or from any row in **My notes**, in the watch's own player.
 
       Every note gets a readable title built from when it was recorded, and it appears alongside your other audio. Press and hold a note for the same file menu an ordinary file gets, including rename - which is what tells apart two notes taken a second apart - as well as send and delete. A setting chooses whether a finished note is sent to the phone automatically or held until you send it yourself; a note recorded out of the phone's reach is marked as waiting and leaves on its own once the link is back.
 

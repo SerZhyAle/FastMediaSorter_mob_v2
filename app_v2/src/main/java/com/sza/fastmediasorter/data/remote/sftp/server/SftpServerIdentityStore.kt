@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.apache.sshd.common.config.keys.KeyUtils
+import org.apache.sshd.common.util.security.SecurityUtils
 import timber.log.Timber
 import java.security.GeneralSecurityException
 import java.security.KeyFactory
@@ -129,6 +130,15 @@ class SftpServerIdentityStore @Inject constructor(
     }
 
     private companion object {
+        init {
+            // The APK bundles bcprov, so MINA's BC registrar looks supported and then asks for algorithms by the
+            // name "BC" - which on Android resolves to the stripped platform provider that lost SHA-256 and
+            // SHA256withECDSA in Android 9. Disabling the registrar sends MINA to the unnamed platform providers.
+            // It must run before MINA's first security call: this class is initialised before the controller
+            // touches MINA, because the controller receives it through its constructor.
+            SecurityUtils.setAPrioriDisabledProvider(SecurityUtils.BOUNCY_CASTLE, true)
+        }
+
         const val KEY_ALGORITHM = "EC"
         const val CURVE_NAME = "secp256r1"
         const val GENERATED_PASSWORD_LENGTH = 16

@@ -79,8 +79,10 @@ if (Test-Path $docRoot) {
         $category = if ($matchedManifest) { $matchedManifest.category } else { "documentation" }
         $ticket = if ($matchedManifest) { $matchedManifest.ticket } else { "S2970" }
 
+        $pageLang = if ($relPath -match '-ru\.html$') { "ru" } else { "en" }
         $pageRecord = [ordered]@{
             page_id = $pageId
+            lang = $pageLang
             title = $cleanTitle
             url = $relPath
             category = $category

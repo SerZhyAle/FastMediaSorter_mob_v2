@@ -23,7 +23,7 @@ steps:
     text: |
       Open the launcher settings and, in the **Taskbar** group, set **Taskbar rows**. A taller Start panel shows proportionally more recent apps, keeps the pinned icons in their own corner block, and stacks the tray indicators one above another instead of running them off the edge; the **Start** and **All apps** buttons themselves always stay one row tall, on the bottom row.
 
-      When the taskbar sits at the bottom, the Start panel opens as a sheet with a drag handle that respects the navigation bar and moves out of the way of the keyboard; with the taskbar at the top it opens as before. Its **Start** button and every row on it also keep enough contrast against the background to stay readable in both the light and the dark theme, under any colour theme you pick.
+      When the taskbar sits at the bottom, the Start panel opens as a sheet with a drag handle that respects the navigation bar and moves out of the way of the keyboard; with the taskbar at the top it opens as before. Its **Start** button and every row on it also keep enough contrast against the background to stay readable in both the light and the dark theme, under any color theme you pick.
     image_bookmark:
       shot_id: launcher.start-panel-rows-setting
       device_profile: phone

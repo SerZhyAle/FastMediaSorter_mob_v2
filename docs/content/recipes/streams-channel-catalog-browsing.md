@@ -12,7 +12,7 @@ canonical_url: documentation/streams/channel-catalog-browsing.html
 why: |
   A hand-typed list of radio stations is fine when you have three of them. FastMediaSorter's built-in [catalog](term:catalog) can hand you thousands of [channels](term:channel) at once - curated stations, community radio, public webcams - and a list that size is only useful if you can bring in what you want, tell it apart from what you do not, and find your way back to the same view every time you open [Streams](term:streams-screen).
 
-  This page covers the catalog end to end: getting it onto the device, keeping it fresh, and browsing what is in it with filters, collections and sorting. It stops short of what each channel actually looks like on screen and how you pin your favourites - those are their own pages, linked below.
+  This page covers the catalog end to end: getting it onto the device, keeping it fresh, and browsing what is in it with filters, collections and sorting. It stops short of what each channel actually looks like on screen and how you pin your favorites - those are their own pages, linked below.
 ingredients:
   - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition), with [Streams](term:streams-screen) turned on. Streams and its catalog do not exist in the Lite, Photos or FOSS editions."
   - "An internet connection to bring the catalog in the first place. Once channels are on the device, browsing, filtering and sorting all work from what is already there."
@@ -199,7 +199,7 @@ next_recipes:
     url: page:streams.favorites-and-epg
     badge: Streams
     badge_type: docs
-    description: Keep your favourite channels at the top, independent of any filter or sort.
+    description: Keep your favorite channels at the top, independent of any filter or sort.
   - title: Playing live streams and radio
     url: page:streams.live-stream-playback
     badge: Streams

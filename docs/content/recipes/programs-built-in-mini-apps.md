@@ -148,7 +148,7 @@ steps:
 
       While it runs, a notification says **Signal active** with the mode. Tap **Stop signal** to end it. After 30 minutes it stops by itself, so the battery and the flash last.
 
-      **With a paired watch** (Standard and noLegal editions), starting the signal on the phone starts it on the watch in the same mode, and stopping either one stops both. If the watch is out of range, each device still signals on its own. On the watch the screen is locked against touch while it signals, and only a hardware button ends it - see [Wrist mini-apps, timers and tools](page:wear.wrist-mini-apps-and-tools).
+      **With a paired watch** (Standard and noLegal editions), starting the signal on the phone starts it on the watch in the same mode, and stopping either one stops both. If the watch is out of range, each device still signals on its own. On the watch the screen is locked against touch while it signals, and only a hardware button ends it - see [Wrist programs, timers and tools](page:wear.wrist-mini-apps-and-tools).
     image_bookmark:
       shot_id: programs.sos
       device_profile: phone

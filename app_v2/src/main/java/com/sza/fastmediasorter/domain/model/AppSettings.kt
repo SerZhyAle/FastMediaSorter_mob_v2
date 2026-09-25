@@ -686,10 +686,21 @@ data class AppSettings(
         /** S1643: taskbar anchored to the top screen edge, below the launcher's own status strip. */
         const val LAUNCHER_TASKBAR_PLACEMENT_TOP = "TOP"
 
-        /** S1643: placement tokens in the order the settings row offers them. */
+        /** S3523: taskbar drawn as a column along the left screen edge, below the launcher's status strip. */
+        const val LAUNCHER_TASKBAR_PLACEMENT_LEFT = "LEFT"
+
+        /** S3523: taskbar drawn as a column along the right screen edge, below the launcher's status strip. */
+        const val LAUNCHER_TASKBAR_PLACEMENT_RIGHT = "RIGHT"
+
+        /**
+         * S1643: placement tokens in the order the settings row offers them. S3523 appended the two side
+         * edges, so the index of every earlier token is unchanged.
+         */
         val LAUNCHER_TASKBAR_PLACEMENT_OPTIONS = listOf(
             LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
             LAUNCHER_TASKBAR_PLACEMENT_TOP,
+            LAUNCHER_TASKBAR_PLACEMENT_LEFT,
+            LAUNCHER_TASKBAR_PLACEMENT_RIGHT,
         )
 
         /**

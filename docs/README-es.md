@@ -400,7 +400,7 @@ Remove-Item install.ps1  # External: Maestro installer
 
 ### Documentación
 
-- 📚 [Guía de inicio rápido](../maestro/QUICK_START.md)
+- 📚 [Guía de inicio rápido](../maestro/INDEX.md)
 - 📝 [Escribir pruebas](../maestro/WRITING_TESTS.md)
 - 🔍 [Ejemplos de pruebas](../maestro/EXAMPLES.md)
 - 🔧 [Solución de problemas](../maestro/TROUBLESHOOTING.md)

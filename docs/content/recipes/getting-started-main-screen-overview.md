@@ -58,7 +58,7 @@ steps:
     id: panels
     title: The programs and streams panels
     text: |
-      Two optional bars can sit above the resource list: the [programs panel](term:programs-panel) for one-tap access to the app's built-in mini-apps (see [Built-in utilities and mini-apps](page:programs.built-in-mini-apps)), and, on editions that ship streams, the [streams panel](term:streams-panel) for your pinned channels (see [Browsing internet stream channels](page:streams.channel-catalog-browsing)). Turn either on or off in Settings.
+      Two optional bars can sit above the resource list: the [programs panel](term:programs-panel) for one-tap access to the app's built-in programs (see [Built-in programs](page:programs.built-in-mini-apps)), and, on editions that ship streams, the [streams panel](term:streams-panel) for your pinned channels (see [Browsing internet stream channels](page:streams.channel-catalog-browsing)). Turn either on or off in Settings.
 
       On a wide layout the two panels and the tab strip line up on one shared grid, using the programs panel's own button width as the common measure. If the screen is too narrow for a panel to show in full, its icon collapses into a small chip that moves into the free space at the end of the command bar row instead of taking a row of its own - unless the command bar is already full, in which case the chip keeps its own row.
     image_bookmark:

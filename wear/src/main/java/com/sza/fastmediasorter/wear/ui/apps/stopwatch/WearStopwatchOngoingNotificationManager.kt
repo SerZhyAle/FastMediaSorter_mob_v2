@@ -98,16 +98,22 @@ class WearStopwatchOngoingNotificationManager @Inject constructor(
                 WearNotificationIds.STOPWATCH_ONGOING,
                 builder.build()
             )
-        } catch (e: Exception) {
-            Timber.w(e, "WearStopwatchOngoingNotificationManager: failed to post ongoing notification")
+        } catch (e: SecurityException) {
+            Timber.w(e, "WearStopwatchOngoingNotificationManager: security exception posting ongoing notification")
+        } catch (e: IllegalStateException) {
+            Timber.w(e, "WearStopwatchOngoingNotificationManager: illegal state posting ongoing notification")
+        } catch (e: IllegalArgumentException) {
+            Timber.w(e, "WearStopwatchOngoingNotificationManager: invalid argument posting ongoing notification")
         }
     }
 
     fun hideOngoing() {
         try {
             NotificationManagerCompat.from(context).cancel(WearNotificationIds.STOPWATCH_ONGOING)
-        } catch (e: Exception) {
-            Timber.w(e, "WearStopwatchOngoingNotificationManager: failed to cancel ongoing notification")
+        } catch (e: SecurityException) {
+            Timber.w(e, "WearStopwatchOngoingNotificationManager: security exception cancelling ongoing notification")
+        } catch (e: IllegalStateException) {
+            Timber.w(e, "WearStopwatchOngoingNotificationManager: illegal state cancelling ongoing notification")
         }
     }
 }

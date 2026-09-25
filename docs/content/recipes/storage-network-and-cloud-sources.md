@@ -51,7 +51,7 @@ steps:
     text: |
       Tap **Add**, then **Cloud Storage** - "Tap on a provider to authenticate and select folders". Tap **Google Drive**, **Dropbox** or **OneDrive**, sign in with your account in the window that opens, then pick the cloud folder you want to see in the app.
 
-      Each chosen folder becomes a resource of its own. The details for each provider are in [Google Drive integration](page:network.cloud-google-drive) and [Dropbox, OneDrive and WebDAV](page:network.cloud-dropbox-onedrive).
+      Each chosen folder becomes a resource of its own. The details for each provider are in [Google Drive integration](page:network.cloud-google-drive) and [Dropbox and OneDrive](page:network.cloud-dropbox-onedrive).
     image_bookmark:
       shot_id: storage.add-cloud-providers
       device_profile: phone
@@ -92,7 +92,7 @@ steps:
     id: streaming-cache
     title: Decide how long the streaming cache is kept
     text: |
-      Open **Settings** and find **Network & Cache**:
+      Open **Settings**, the **General** tab, and find **Background sync, network and cache**:
 
       - **Streaming cache TTL** - how long a cached file is kept after you last played it: **Off**, **1 day**, **3 days**, **7 days** or **30 days**. Older copies are removed by themselves.
       - **Streaming cache cleanup** - what happens when you leave the player: **Ask each time**, **Auto-delete** or **Auto-keep**.

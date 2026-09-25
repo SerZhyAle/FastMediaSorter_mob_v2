@@ -77,7 +77,7 @@ steps:
     id: watch-calculator
     title: The calculator on your watch
     text: |
-      FastMedia Wear on a paired [watch](term:watch) has its own calculator. The **C** key sits in its own row below the keypad, with a gap above it, so you do not clear a sum by accident, and the result field is wide. Holding **0** types three zeros, holding the menu key leaves the calculator, and turning the crown on the history page makes the history text bigger or smaller. More about the programs of the watch: [Wrist mini-apps, timers and tools](page:wear.wrist-mini-apps-and-tools).
+      FastMedia Wear on a paired [watch](term:watch) has its own calculator. The **C** key sits in its own row below the keypad, with a gap above it, so you do not clear a sum by accident, and the result field is wide. Holding **0** types three zeros, holding the menu key leaves the calculator, and turning the crown on the history page makes the history text bigger or smaller. More about the programs of the watch: [Wrist programs, timers and tools](page:wear.wrist-mini-apps-and-tools).
   - number: 6
     id: stopwatch-open
     title: Open the stopwatch and choose the participants

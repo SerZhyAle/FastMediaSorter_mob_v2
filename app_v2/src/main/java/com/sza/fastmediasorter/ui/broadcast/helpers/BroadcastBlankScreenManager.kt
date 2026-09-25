@@ -60,6 +60,9 @@ class BroadcastBlankScreenManager @Inject constructor(
     private var dimClockView: WeakReference<DimClockOverlayView>? = null
     private var backCallback: WeakReference<OnBackPressedCallback>? = null
 
+    // S3526: belongs to one activity window, so detach() drops it and a recreated window captures its own.
+    private var brightnessBeforeDim: Float? = null
+
     /** True while the current session must blank rather than sleep, which is also what labels the button. */
     fun blanksInsteadOfSleeping(): Boolean {
         val live = controller.state.value as? BroadcastState.Live ?: return false
@@ -95,6 +98,7 @@ class BroadcastBlankScreenManager @Inject constructor(
         overlay = null
         dimClockView = null
         backCallback = null
+        brightnessBeforeDim = null
     }
 
     private fun show(activity: AppCompatActivity) {
@@ -149,6 +153,7 @@ class BroadcastBlankScreenManager @Inject constructor(
         if (clockEnabled) {
             addClockView(activity)
         } else {
+            if (brightnessBeforeDim == null) brightnessBeforeDim = activity.window.attributes.screenBrightness
             setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
         }
     }
@@ -197,7 +202,8 @@ class BroadcastBlankScreenManager @Inject constructor(
         }
         overlay = null
 
-        setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
+        brightnessBeforeDim?.let { setScreenBrightness(activity, it) }
+        brightnessBeforeDim = null
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
 
         // S3157: built here rather than kept in a field, which would be an Activity held for the process
@@ -207,8 +213,9 @@ class BroadcastBlankScreenManager @Inject constructor(
     }
 
     /**
-     * S3256: overrides window screenBrightness to zero when dimmed screen clock is disabled,
-     * and restores to default on un-dim. Never touches Settings.System (S1796 ADR-2).
+     * S3256: overrides window screenBrightness to zero when dimmed screen clock is disabled.
+     * S3526: un-dim puts back the window's own value from before the dim, not the platform default.
+     * Never touches Settings.System (S1796 ADR-2).
      */
     private fun setScreenBrightness(activity: AppCompatActivity, value: Float) {
         activity.window.attributes = activity.window.attributes.apply { screenBrightness = value }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S3523: the side-edge twin of launcher_taskbar_divider. A column bar lays its blocks out vertically, and
+     a LinearLayout sizes a divider along its own axis from the drawable's intrinsic size, so the vertical
+     rule (width only) would measure as a negative-height gap there. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="10dp"
+    android:insetRight="10dp">
+    <shape android:shape="rectangle">
+        <size android:height="1dp" />
+        <solid android:color="?attr/colorOutlineVariant" />
+    </shape>
+</inset>

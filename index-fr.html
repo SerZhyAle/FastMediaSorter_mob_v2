@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="qwkzLSJrJ7adxFYz-95YY-Uhs0yX6QakWxZWFWtN-ks" />
+    <!-- Search-engine ownership. Bing and Yandex codes go here once the properties are created;
+         see docs/SEARCH_ENGINE_REGISTRATION.md. Keep all three landing pages identical.
+         <meta name="msvalidate.01" content="..." />
+         <meta name="yandex-verification" content="..." /> -->
+    <meta name="description"
+        content="Fast Media Sorter est un shell complet pour votre appareil Android : écran d’accueil, lecteur multimédia, flux en direct, lancement d’applications, compagnon pour montre connectée, surveillance de l’appareil et un gestionnaire de fichiers complet pour le stockage local, réseau et cloud.">
+    <meta name="keywords"
+        content="lanceur Android, remplacement d’écran d’accueil Android, lecteur multimédia Android, lecteur IPTV Android, compagnon Wear OS, gestionnaire de fichiers Android, trieur de médias Android, application de tri de photos, trieur de vidéos Android, client SMB Android, navigateur NAS Android, client SFTP Android, client FTP Android, gestionnaire de fichiers cloud Android, gestionnaire Google Drive Android, Dropbox Android, application de diaporama photo, cadre photo numérique tablette, lecteur audio Android, lecteur EPUB Android, traduction OCR Android, lecteur multimédia autoradio Android, application autoradio Android, organisateur de fichiers Android, opérations de fichiers par lots Android, lecteur multimédia boîtier Android TV, lecteur boîtier décodeur Android, application multimédia smart TV, alternative à Kodi Android">
+    <meta name="author" content="SerZhyAle">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#0a0f0a">
+    <title>Fast Media Sorter - un shell complet pour votre appareil Android</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+    <!-- SEO: Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html">
+    <meta property="og:title" content="Fast Media Sorter - un shell complet pour votre appareil Android">
+    <meta property="og:description"
+        content="Écran d’accueil, lecteur multimédia, flux en direct, lancement d’applications, compagnon pour montre connectée, surveillance de l’appareil et un gestionnaire de fichiers complet - dans une seule application Android.">
+    <meta property="og:image"
+        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/assets/og/landing-preview.png">
+    <meta property="og:image:width" content="1080">
+    <meta property="og:image:height" content="2400">
+    <meta property="og:image:alt" content="Fast Media Sorter &amp; Organizer - capture d’écran du shell pour appareil Android">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+
+    <!-- SEO: Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Fast Media Sorter - un shell complet pour votre appareil Android">
+    <meta name="twitter:description"
+        content="Écran d’accueil, lecteur multimédia, flux en direct, lancement d’applications, compagnon pour montre connectée, surveillance de l’appareil et un gestionnaire de fichiers complet - dans une seule application Android.">
+    <meta name="twitter:image"
+        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/assets/og/landing-preview.png">
+
+    <!-- SEO: Canonical & hreflang -->
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html">
+    <!-- lang-alternates:begin - rendered by scripts/site/generate-landing-pages.ps1 from _data/languages.yml -->
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
+    <link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html">
+    <link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html">
+    <link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html">
+    <link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html">
+    <link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html">
+    <link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html">
+    <link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html">
+    <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html">
+    <link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html">
+    <link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
+    <!-- lang-alternates:end -->
+
+    <!-- SZA Web Kit: pre-paint theme resolver (before CSS to avoid flash) -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="styles.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3615067087450824"
+        crossorigin="anonymous"></script>
+
+    <!-- SEO: structured data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Fast Media Sorter & Organizer",
+        "operatingSystem": "Android 8.0+",
+        "applicationCategory": "MultimediaApplication",
+        "inLanguage": "fr",
+        "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html",
+        "downloadUrl": "https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest",
+        "installUrl": "https://play.google.com/store/apps/details?id=com.sza.fastmediasorter",
+        "sameAs": [
+            "https://play.google.com/store/apps/details?id=com.sza.fastmediasorter",
+            "https://github.com/SerZhyAle/FastMediaSorter_mob_v2"
+        ],
+        "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/assets/og/landing-preview.png",
+        "description": "Un shell complet pour un appareil Android : lanceur d’écran d’accueil, lecteur multimédia, radio internet et flux TV, lancement d’applications, un remplacement pour les applications d’origine, un compagnon Wear OS, surveillance de l’appareil et un gestionnaire de fichiers complet pour le stockage local, SMB/NAS, SFTP/FTP et le cloud. Gratuit, avec diaporama, lecteur EPUB et traduction OCR.",
+        "author": { "@type": "Person", "name": "SerZhyAle" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+    </script>
+</head>
+
+<body>
+
+    <!-- SZA Web Kit sticky header -->
+    <header class="site-header">
+        <a class="brand" href="index-fr.html">Fast Media Sorter<span class="dot">.</span></a>
+        <div class="seg" role="group" aria-label="Langue">
+            <a href="index-ru.html" data-lang="ru">RU</a>
+            <a href="index.html" data-lang="en">EN</a>
+            <a href="index-uk.html" data-lang="ua">UA</a>
+        </div>
+        <button class="theme-btn" id="themeBtn" aria-label="Passer au thème clair" title="Basculer le thème">◐</button>
+        <a class="btn btn-primary btn-sm" href="#get">Installer</a>
+    </header>
+
+    <!-- GitHub Corner -->
+    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
+        aria-label="Voir le code source sur GitHub">
+        <svg width="80" height="80" viewBox="0 0 250 250"
+            style="fill:var(--color-standard); color:var(--acc-ink); position: absolute; top: 0; border: 0; right: 0;"
+            aria-hidden="true">
+            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+            <path
+                d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+                fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+            <path
+                d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+                fill="currentColor" class="octo-body"></path>
+        </svg>
+    </a>
+
+    <header class="hero" id="top">
+        <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
+        <div class="hero-inner">
+            <p class="kicker">Android - shell pour appareil</p>
+            <h1>Un shell complet pour votre appareil Android.</h1>
+            <p class="subtitle">Écran d’accueil, médias, flux, applications, montre et fichiers - tout au même endroit.</p>
+            <p class="whatfor">Fast Media Sorter &amp; Organizer prend le contrôle de l’écran d’accueil et devient l’endroit d’où tout part : shell d’appareil, lecteur multimédia, flux en direct, lancement d’applications, un remplacement pour les applications d’origine, un compagnon sur la montre, surveillance de l’appareil et un gestionnaire de fichiers complet pour le stockage local, SMB/NAS, SFTP/FTP et les lecteurs cloud.</p>
+        </div>
+    </header>
+
+    <section class="container first-route" aria-label="Commencer">
+        <section class="get-panel" id="get">
+            <h2>Ouvrez votre premier dossier</h2>
+            <p class="whatfor">Le premier résultat sûr consiste simplement à afficher un dossier local. Les fichiers ne changent pas tant que vous ne choisissez pas Copier ou Déplacer.</p>
+            <div class="channels">
+                <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter"
+                    target="_blank" rel="noopener">Google Play</a>
+                <a class="btn btn-ghost" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest"
+                    target="_blank" rel="noopener">GitHub Releases</a>
+                <a class="btn btn-ghost" href="https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter"
+                    target="_blank" rel="noopener">IzzyOnDroid</a>
+            </div>
+            <ol class="quickstart">
+                <li>Installez une édition adaptée et ouvrez l’application.</li>
+                <li>Autorisez l’accès aux fichiers si Android le demande.</li>
+                <li>Appuyez sur Ajouter une ressource, choisissez un dossier local, et vérifiez son contenu avant de trier.</li>
+            </ol>
+            <aside class="note"><span class="tag">Important</span><p>L’accès aux fichiers est nécessaire pour le tri. Vérifiez votre sélection avant de déplacer ; utilisez d’abord Copier lorsque la réversibilité est importante.</p></aside>
+        </section>
+    </section>
+
+    <div class="container">
+
+
+        <details class="content-details" id="all-features">
+            <summary>Catalogue complet des fonctionnalités</summary>
+        <!-- What it Replaces -->
+        <h2 class="section-title" id="replaces">Remplace plus d’une douzaine d’applications</h2>
+        <p class="section-lead">Fast Media Sorter combine un navigateur multimédia, une visionneuse, un lecteur, un gestionnaire de fichiers et un organisateur. Au lieu d’applications séparées pour la vidéo, la musique, les galeries, la lecture, les dossiers réseau, le stockage cloud et le travail quotidien sur les fichiers, vous utilisez une seule collection avec un ensemble d’actions familier. Les applications ci-dessous ne sont que des repères reconnaissables pour les fonctionnalités, pas un classement comparatif.</p>
+        <div class="cards-grid replaces-grid">
+            <article class="card">
+                <div class="card-title-row">
+                    <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24.0 24.0"><path d="M8,5v14l11,-7z" fill="currentColor"/></svg></span>
+                    <h3>Visionnage et lecture</h3>
+                </div>
+                <ul class="detail-list repl-list">
+                    <li><strong>Lecteur vidéo</strong> <span class="repl-ref">(MX Player, VLC)</span> - vidéo, Blu-ray TS/.m2ts, image dans l’image, captures d’écran d’images, diffusion Chromecast.</li>
+                    <li><strong>Lecteur audio</strong> <span class="repl-ref">(Poweramp, AIMP)</span> - lecture en arrière-plan, paroles, MIDI, minuterie de veille, visualisations, contrôles depuis la notification.</li>
+                    <li><strong>Galerie / visionneuse d’images</strong> <span class="repl-ref">(QuickPic, Google Photos)</span> - images et GIF, recadrage, filtres, rotation.</li>
+                    <li><strong>Lecteur PDF / EPUB</strong> <span class="repl-ref">(Adobe Reader, Moon+ Reader)</span> - livres, plans de chapitres, thèmes, lecture à voix haute (TTS).</li>
+                    <li><strong>Diaporama / cadre photo</strong> - photos défilantes avec musique de fond, plus un widget cadre photo.</li>
+                    <li><strong>Centre multimédia TV</strong> <span class="repl-ref">(Kodi, Nova Video Player)</span> - navigation et lecture adaptées à la croix directionnelle, au clavier, à la souris, à la manette et à la télécommande TV.</li>
+                    <li><strong>Lecteur multimédia VR</strong> <span class="repl-ref">(Pigasus, Skybox VR)</span> - stéréo SBS/OU, VR180, 360°, écran de cinéma virtuel. <span class="repl-note">Édition VR</span></li>
+                    <li><strong>Radio internet / lecteur IPTV</strong> <span class="repl-ref">(TuneIn, Online Radio, RadioDroid, VLC network)</span> - l’écran Flux lit les sources radio http/https, HLS/DASH et RTSP ; mini-lecteur intégré avec titre en cours ICY ; catalogue de stations sélectionnées.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <div class="card-title-row">
+                    <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 44 44"><path d="M22,22m-18,0a18,18 0 1,0 36,0a18,18 0 1,0 -36,0" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M22,22m-9,0a9,9 0 1,0 18,0a9,9 0 1,0 -18,0" fill="currentColor"/></svg></span>
+                    <h3>Capture et création</h3>
+                </div>
+                <ul class="detail-list repl-list">
+                    <li><strong>Appareil photo</strong> <span class="repl-ref">(appareil photo natif)</span> - photo et vidéo directement vers un dossier local, réseau ou cloud choisi.</li>
+                    <li><strong>Enregistreur vocal</strong> - notes vocales plus un widget d’enregistrement rapide.</li>
+                    <li><strong>Éditeur de dessin</strong> - toile, pinceaux, formes, texte, couleur et taille de pinceau personnalisables.
+                    </li>
+                    <li><strong>Scanner de documents / texte</strong> <span class="repl-ref">(Google Lens, CamScanner)</span> - OCR sur l’appareil depuis la caméra avec recadrage de zone.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <div class="card-title-row">
+                    <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4c-1.1,0 -1.99,0.9 -1.99,2L2,18c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8l-2,-2z" fill="currentColor"/></svg></span>
+                    <h3>Gestion des fichiers</h3>
+                </div>
+                <ul class="detail-list repl-list">
+                    <li><strong>Gestionnaire de fichiers</strong> <span class="repl-ref">(Total Commander, ES File Explorer, Files by Google)</span> - fichiers locaux, réseau et cloud au même endroit.</li>
+                    <li><strong>Client FTP/SFTP/SMB</strong> <span class="repl-ref">(AndFTP, Solid Explorer)</span> - sources réseau avec clés SSH et épinglage de clé d’hôte.</li>
+                    <li><strong>Clients cloud</strong> <span class="repl-ref">(Google Drive, Dropbox, OneDrive)</span> - lecteurs cloud comme sources multimédias.</li>
+                    <li><strong>Détecteur de doublons</strong> <span class="repl-ref">(Duplicate Files Fixer)</span> - moteur en 3 phases Taille -&gt; Hachage -&gt; SHA-256.</li>
+                    <li><strong>Corbeille</strong> <span class="repl-ref">(Dumpster)</span> - suppression réversible avec restauration en un geste.</li>
+                    <li><strong>Extracteur d’archives</strong> <span class="repl-ref">(ZArchiver)</span> - extraction ZIP, y compris protégée par mot de passe. <span class="repl-note">basique</span></li>
+                    <li><strong>Gestionnaire de téléchargements</strong> <span class="repl-ref">(1DM, ADM)</span> - collez un lien et enregistrez directement dans un dossier choisi.</li>
+                    <li><strong>Planificateur de tâches</strong> - opérations de fichiers programmées.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <div class="card-title-row">
+                    <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM7,7h10v3H7V7zM8,13h2v2H8v-2zM8,16h2v2H8v-2zM11,13h2v2h-2v-2zM11,16h2v2h-2v-2zM14,13h2v5h-2v-5z" fill="currentColor"/></svg></span>
+                    <h3>Texte et utilitaires</h3>
+                </div>
+                <ul class="detail-list repl-list">
+                    <li><strong>Éditeur texte / Markdown</strong> - modifiez les fichiers .txt/.md avec coloration syntaxique et enregistrement automatique.
+                    </li>
+                    <li><strong>Traducteur</strong> <span class="repl-ref">(Google Translate hors ligne)</span> - traduction entièrement hors ligne.</li>
+                    <li><strong>Calculatrice</strong> - évaluation intégrée d’expressions à partir du texte sélectionné. <span class="repl-note">basique</span></li>
+                    <li><strong>Diffusion vers la TV</strong> <span class="repl-ref">(Google Home)</span> - Chromecast pour la vidéo et l’audio.</li>
+                    <li><strong>Pack de widgets d’écran d’accueil</strong> - widgets de lancement rapide et d’état pour l’enregistreur, l’OCR caméra, les tâches programmées, la lecture en cours et le cadre photo.</li>
+                    <li><strong>Outil de sauvegarde des paramètres</strong> - exportez et restaurez la configuration de l’application, les sources, les favoris, les plannings, les mots de passe et les connexions. <span class="repl-note">configuration de l’application uniquement</span></li>
+                </ul>
+            </article>
+        </div>
+        <p class="replaces-note">Notes de transparence : la calculatrice et l’archiveur sont basiques (évaluation à partir du texte / extraction ZIP), ce ne sont pas des remplacements complets. La sauvegarde des paramètres couvre la configuration propre de l’application, pas une sauvegarde complète de l’appareil. Le lecteur VR est réservé à l’édition VR.</p>
+
+        </details>
+
+        <!-- Usage Scenarios -->
+        <h2 class="section-title">Scénarios d’utilisation</h2>
+        <p class="section-lead">Chaque bloc commence par une réponse rapide et s’ouvre sur des détails pratiques lorsque vous avez besoin du chemin de configuration.</p>
+        <div class="cards-grid">
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,19V5c0,-1.1 -0.9,-2 -2,-2H5c-1.1,0 -2,0.9 -2,2v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2zM8.5,13.5l2.5,3.01L14.5,12l4.5,6H5l3.5,-4.5z" fill="currentColor"/></svg></span>
+                        <h3>Cadre photo numérique</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Transformez une tablette Android en cadre toujours actif qui diffuse des photos depuis SMB/NAS ou le cloud sans remplir le stockage local.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Ajoutez une source de photos depuis SMB/NAS, le stockage local ou le cloud.</li>
+                        <li>Activez les intervalles de diaporama et une musique de fond optionnelle.</li>
+                        <li>Utilisez une ancienne tablette, un boîtier TV ou un appareil de bureau comme écran.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-photo-frame-fr.html" class="card-footer" target="_blank">Ouvrir le guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(12 12) translate(-12 -13)"><path d="M18.92,6.01C18.72,5.42 18.16,5 17.5,5h-11c-0.66,0 -1.21,0.42 -1.42,1.01L3,12v8c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-1h12v1c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-8l-2.08,-5.99zM6.5,16c-0.83,0 -1.5,-0.67 -1.5,-1.5S5.67,13 6.5,13s1.5,0.67 1.5,1.5S7.33,16 6.5,16zM17.5,16c-0.83,0 -1.5,-0.67 -1.5,-1.5s0.67,-1.5 1.5,-1.5 1.5,0.67 1.5,1.5 -0.67,1.5 -1.5,1.5zM5,11l1.5,-4.5h11L19,11L5,11z" fill="currentColor"/></g></svg></span>
+                        <h3>Musique en voiture</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard uniquement</span><span class="scenario-badge">Legacy</span></div>
+                    <p class="card-summary">Utilisez un autoradio Android comme lecteur de musique dédié pour vos bibliothèques locales, USB ou réseau.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Créez ou ouvrez une ressource audio pour l’ensemble de la collection.</li>
+                        <li>Maintenez la lecture active grâce au service audio en arrière-plan.</li>
+                        <li>Utilisez de grands contrôles, les boutons du volant et les contrôles de lecture depuis la notification lorsqu’ils sont pris en charge.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-car-music-fr.html" class="card-footer" target="_blank">Ouvrir le guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,6h-7.59l3.29,-3.29L16,2l-4,4 -4,-4 -0.71,0.71L10.59,6H3c-1.1,0 -2,0.89 -2,2v12c0,1.1 0.9,2 2,2h18c1.1,0 2,-0.9 2,-2V8c0,-1.11 -0.9,-2 -2,-2zM21,20H3V8h18v12zM9,10v8l7,-4z" fill="currentColor"/></svg></span>
+                        <h3>Radio internet et flux</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard / Legacy</span></div>
+                    <p class="card-summary">Utilisez Fast Media Sorter comme lecteur de radio internet et IPTV - ajoutez des URL de stations, importez des playlists .m3u, ou téléchargez le catalogue sélectionné et écoutez en conduisant.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Activez Flux dans Paramètres &gt; Médias &gt; Flux ou depuis le menu principal.</li>
+                        <li>Ajoutez une URL de station manuellement ou importez une playlist .m3u depuis une URL.</li>
+                        <li>Téléchargez le catalogue Fast Media Sorter sélectionné pour des stations prêtes à l’emploi avec des tags de sujet et de langue.</li>
+                        <li>La radio se lit en ligne avec une barre de lecture en cours persistante ; la vidéo/RTSP s’ouvre en plein écran.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-internet-radio-fr.html" class="card-footer" target="_blank">Ouvrir les détails de la fonctionnalité</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM10,16.5v-9l6,4.5 -6,4.5z" fill="currentColor"/></svg></span>
+                        <h3>Cinéma maison et VR</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Regardez des films et des séries depuis un PC, un NAS ou le cloud sur un téléphone, un boîtier TV ou un casque VR sans copier les fichiers au préalable.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Connectez la bibliothèque vidéo via SMB, SFTP, FTP, le stockage local ou le cloud.</li>
+                        <li>Utilisez la reprise de session et la lecture automatique de l’épisode suivant pour une lecture en série.</li>
+                        <li>Ouvrez les médias 3D et 360° pris en charge en mode plat ou dans l’édition VR.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-home-cinema-fr.html" class="card-footer" target="_blank">Ouvrir le guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M3,18h6v-2H3v2zM3,6v2h18V6H3zM3,13h12v-2H3v2z" fill="currentColor"/></svg></span>
+                        <h3>Organisateur de téléchargements</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Toutes les éditions</span></div>
+                    <p class="card-summary">Videz un dossier Téléchargements désordonné en envoyant les fichiers vers des destinations préparées en un geste.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Créez des boutons de destination pour le travail, les photos, les archives, la musique et les fichiers temporaires.</li>
+                        <li>Utilisez Copier ou Déplacer selon le niveau de risque souhaité.</li>
+                        <li>Annuler protège la dernière opération lorsqu’un fichier atterrit au mauvais endroit.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-download-organizer-fr.html" class="card-footer" target="_blank">Ouvrir le guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M9,2L7.17,4H4C2.9,4 2,4.9 2,6v12c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V6c0,-1.1 -0.9,-2 -2,-2h-3.17L15,2H9zm3,15c-2.76,0 -5,-2.24 -5,-5s2.24,-5 5,-5 5,2.24 5,5 -2.24,5 -5,5z" fill="currentColor"/><path d="M12,12m-3.2,0a3.2,3.2 0,1 1,6.4 0a3.2,3.2 0,1 1,-6.4 0" fill="currentColor"/></svg></span>
+                        <h3>Sauvegarde programmée de l’appareil photo</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard</span></div>
+                    <p class="card-summary">Copiez les nouvelles photos et vidéos de l’appareil photo vers un PC ou un NAS via Wi-Fi pendant la charge nocturne.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Utilisez SMB comme destination et choisissez le dossier de l’appareil photo comme source.</li>
+                        <li>Activez le mode de copie qui ignore les fichiers existants pour éviter les envois en double.</li>
+                        <li>Exécutez-la selon une planification adaptée à la disponibilité du Wi-Fi et de la charge.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-camera-backup-fr.html" class="card-footer" target="_blank">Ouvrir le guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6L2,18C2,19.1 2.9,20 4,20H20C21.1,20 22,19.1 22,18V8C22,6.9 21.1,6 20,6H12L10,4ZM7,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM11.5,12a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM16,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM10.993,15.232L12.503,13.889L11.507,12.768L9.997,14.111ZM14.497,13.889L16.007,15.232L17.003,14.111L15.493,12.768Z" fill="currentColor" fill-rule="evenodd"/></svg></span>
+                        <h3>Configuration réseau SMB</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Toutes les éditions</span></div>
+                    <p class="card-summary">Connectez des appareils Android à un dossier partagé Windows, macOS, Linux ou NAS via le réseau local.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Partagez le dossier sur l’ordinateur ou le NAS et gardez les deux appareils sur le même réseau Wi-Fi.</li>
+                        <li>Utilisez l’analyse réseau lorsque c’est possible, ou saisissez l’adresse IP manuellement.</li>
+                        <li>Exécutez Tester la connexion avant d’utiliser la ressource dans vos usages quotidiens.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-smb-setup-fr.html" class="card-footer" target="_blank">Ouvrir le guide</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2zm2 5c1.1 0 2 .9 2 2v1h1v4h-6v-4h1v-1c0-1.1.9-2 2-2zm-1 3v-1c0-.55.45-1 1-1s1 .45 1 1v1h-2z" fill="currentColor"/></svg></span>
+                        <h3>Partage de dossier Windows (compagnon PC)</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard / Photos / Legacy</span></div>
+                    <p class="card-summary">Partagez un dossier depuis un PC Windows directement vers l’application : le logiciel gratuit <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" target="_blank">Fast Media Sorter for Windows</a> exécute pour cela un serveur SFTP sécurisé - le jumelage se fait via un seul fichier de configuration importé, sans saisie manuelle d’hôte/port/clé.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Installez Fast Media Sorter for Windows sur le PC : <a href="https://github.com/SerZhyAle/FastMediaSorter_Lite/releases/latest" target="_blank">version GitHub</a>, <code>winget install SerZhyAle.FastMediaSorter</code>, ou "FastMediaSorter LITE" dans le Microsoft Store (publié sous son ancien nom).</li>
+                        <li>Choisissez les dossiers à partager sur le PC - le serveur, les clés et le démarrage automatique sont configurés automatiquement.</li>
+                        <li>Sur le téléphone : Ajouter une ressource &gt; SFTP/FTP &gt; Importer depuis le compagnon, puis ouvrez le fichier .fmscfg exporté.</li>
+                        <li>Guide PC pas à pas : <a href="https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html" target="_blank">Comment publier des dossiers pour Android</a>.</li>
+                    </ul>
+                    <a href="https://serzhyale.github.io/FastMediaSorter_Lite/" class="card-footer" target="_blank">Obtenir Fast Media Sorter for Windows</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z" fill="currentColor"/></svg></span>
+                        <h3>Dossier de voyage hors ligne</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Toutes les éditions</span></div>
+                    <p class="card-summary">Préparez un dossier local avec des médias, PDF, EPUB, captures d’écran et notes avant que la connexion internet ne devienne incertaine.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Copiez l’ensemble de voyage pendant que le Wi-Fi est stable.</li>
+                        <li>Ouvrez le dossier une fois pour préchauffer les vignettes et les positions mémorisées.</li>
+                        <li>Utilisez les filtres pour naviguer entre documents, images, audio et vidéo hors ligne.</li>
+                    </ul>
+                    <a href="docs/HOW_TO-fr.html#prepare-a-folder-for-travel-without-stable-internet" class="card-footer" target="_blank">Ouvrir le guide associé</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M18,2H6C4.9,2 4,2.9 4,4v16c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2V4C20,2.9 19.1,2 18,2zM18,20H6V4h2v8l2.5,-1.5L13,12V4h5V20z" fill="currentColor"/></svg></span>
+                        <h3>Documents cloud et EPUB</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard pour le cloud</span><span class="scenario-badge common">Toutes les éditions en local</span></div>
+                    <p class="card-summary">Lisez des PDF et des EPUB depuis le stockage cloud ou des dossiers locaux avec des contrôles adaptés à la lecture.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Ouvrez Google Drive, Dropbox, OneDrive, ou un dossier de documents local.</li>
+                        <li>Utilisez les thèmes PDF, la mise en forme EPUB et la restauration de la position de lecture.</li>
+                        <li>Envoyez les formats de niche vers des applications spécialisées lorsqu’Android dispose d’une meilleure visionneuse.</li>
+                    </ul>
+                    <a href="docs/HOW_TO-fr.html#read-cloud-documents-and-epubs-on-the-go" class="card-footer" target="_blank">Ouvrir le guide associé</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(11 11.5) translate(-12 -12)"><path d="M3,9 C3,7.9 3.9,7 5,7 L18,7 C19.1,7 20,7.9 20,9 V19 C20,20.1 19.1,21 18,21 L5,21 C3.9,21 3,20.1 3,19 Z M8.5,14 m-4,0 a4,4 0,1,0 8,0 a4,4 0,1,0 -8,0 M8.5,14 m-2,0 a2,2 0,1,0 4,0 a2,2 0,1,0 -4,0" fill="currentColor" fill-rule="evenodd"/><path d="M20,11 H23 V17 H20 Z" fill="currentColor"/><path d="M7,4 H17 V7 H7 Z" fill="currentColor"/></g></svg></span>
+                        <h3>Traduction OCR</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Extrayez et traduisez du texte à partir d’images, de scans, de captures d’écran et de PDF sans quitter la visionneuse.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Ouvrez une image, un PDF ou un fichier texte et lancez Traduire/OCR.</li>
+                        <li>Utilisez ML Kit pour une reconnaissance rapide et les modèles Tesseract lorsque la qualité compte.</li>
+                        <li>Vérifiez la superposition traduite directement sur le contenu original.</li>
+                    </ul>
+                    <a href="docs/HOW_TO-fr.html#translate-signs-scans-and-screenshots-with-ocr" class="card-footer" target="_blank">Ouvrir le guide associé</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,3L3,3c-1.1,0 -2,0.9 -2,2v12c0,1.1 0.9,2 2,2h5v2h8v-2h5c1.1,0 2,-0.9 2,-2L23,5c0,-1.1 -0.9,-2 -2,-2zM21,17L3,17L3,5h18v12z" fill="currentColor"/></svg></span>
+                        <h3>Étagère média NAS pour la TV</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard</span><span class="scenario-badge">Lite / Photos</span></div>
+                    <p class="card-summary">Utilisez un NAS comme étagère média partagée pour un boîtier Android TV, une tablette ou un téléphone du salon.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Créez une seule ressource SMB pour les médias familiaux et divisez-la en sous-dossiers clairs.</li>
+                        <li>Utilisez les tests de vitesse réseau lorsque la diffusion semble lente.</li>
+                        <li>Associez une télécommande, un clavier ou une manette pour naviguer depuis le canapé.</li>
+                    </ul>
+                    <a href="docs/HOW_TO-fr.html#turn-a-nas-into-a-living-room-media-shelf" class="card-footer" target="_blank">Ouvrir le guide associé</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/></svg></span>
+                        <h3>Nettoyage des doublons</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Trouvez les fichiers identiques dans le stockage avant qu’une archive photo ou un dossier de téléchargements ne devienne incontrôlable.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Analysez par taille, hachage partiel et SHA-256 complet pour éviter une correspondance risquée basée uniquement sur le nom.</li>
+                        <li>Vérifiez les correspondances avant la suppression, ou utilisez la suppression automatique pour les ensembles de confiance.</li>
+                        <li>Utilisez-le après des imports, des sauvegardes et des fusions manuelles de dossiers.</li>
+                    </ul>
+                    <a href="docs/FEATURES.html#8-a-full-file-manager" class="card-footer" target="_blank">Ouvrir les détails de la fonctionnalité</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,3H3C1.9,3 1,3.9 1,5v3h2V5h18v14h-7v2h7c1.1,0 2,-0.9 2,-2V5C23,3.9 22.1,3 21,3zM1,18v3h3c0,-1.66 -1.34,-3 -3,-3zM1,14v2c2.76,0 5,2.24 5,5h2C8,17.13 4.87,14 1,14zM1,10v2c4.97,0 9,4.03 9,9h2C12,15.07 6.93,10 1,10z" fill="currentColor"/></svg></span>
+                        <h3>Lecture Chromecast</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard / Lite / Legacy</span></div>
+                    <p class="card-summary">Envoyez de l’audio, des images et de la vidéo locale depuis le téléphone vers un récepteur Cast dans la pièce.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Utilisez un récepteur compatible Cast sur le même réseau.</li>
+                        <li>Diffusez directement les médias locaux et les sessions audio/image prises en charge.</li>
+                        <li>Gardez la VR à part : la prise en charge Cast dépend des Google Play Services sur l’appareil.</li>
+                    </ul>
+                    <a href="docs/FEATURES.html#2-media-player" class="card-footer" target="_blank">Ouvrir les détails de la fonctionnalité</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6v12c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8L10,4zM14,17v-3H9v-2h5V9l4,4 -4,4z" fill="currentColor"/></svg></span>
+                        <h3>Widgets intelligents pour l’écran d’accueil</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
+                    <p class="card-summary">Ajoutez des raccourcis en un geste à votre écran d’accueil pour enregistrer des notes vocales, scanner des documents ou lancer des tâches de synchronisation en arrière-plan.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Placez un widget d’enregistreur vocal pour enregistrer des notes audio directement sur un NAS.</li>
+                        <li>Configurez un widget photo aléatoire pour un diaporama sur l’écran d’accueil.</li>
+                        <li>Surveillez les files de copie ou de synchronisation en arrière-plan avec des widgets actifs.</li>
+                    </ul>
+                    <a href="docs/HOW_TO-fr.html#home-screen-smart-widgets" class="card-footer" target="_blank">Ouvrir le guide associé</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20,3H4c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h6v2H8v2h8v-2h-2v-2h6c1.1,0 2,-0.9 2,-2V5C22,3.9 21.1,3 20,3zM20,15H4V5h16V15z" fill="currentColor"/><path d="M6,6.8h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,6.8H18v2.6h-4.4z" fill="currentColor"/><path d="M6,10.6h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,10.6H18v2.6h-4.4z" fill="currentColor"/></svg></span>
+                        <h3>Remplacement de l’écran d’accueil (lanceur)</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard uniquement</span></div>
+                    <p class="card-summary">Remplacez l’écran d’accueil de votre appareil par le bureau propre de l’application - vos dossiers, une horloge, la météo, vos applications et une barre des tâches, organisés comme vous le souhaitez.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Transformez une ancienne tablette en panneau mural affichant l’horloge, la météo et votre dossier photo NAS.</li>
+                        <li>Placez des dossiers, des gadgets, des contacts et des raccourcis d’applications sur un bureau qui distingue portrait et paysage.</li>
+                        <li>Utilisez le menu Démarrer et la barre des tâches pour les applications récentes et épinglées, et quittez le mode lanceur quand vous le souhaitez.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-launcher-mode-fr.html" class="card-footer" target="_blank">Ouvrir le guide associé</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20.74,6H3.26C2.57,6 2,6.57 2,7.26v9.49C2,17.43 2.57,18 3.26,18h4.85c0.45,0 0.86,-0.26 1.06,-0.67l0.99,-1.99c0.33,-0.67 1.01,-1.09 1.75,-1.09h0.18c0.74,0 1.42,0.42 1.75,1.09l0.99,1.99c0.2,0.41 0.61,0.67 1.06,0.67h4.85c0.69,0 1.26,-0.57 1.26,-1.26V7.26C22,6.57 21.43,6 20.74,6zM7.5,14C5.57,14 4,12.43 4,10.5S5.57,7 7.5,7S11,8.57 11,10.5S9.43,14 7.5,14zM16.5,14c-1.93,0 -3.5,-1.57 -3.5,-3.5S14.57,7 16.5,7S20,8.57 20,10.5S18.43,14 16.5,14z" fill="currentColor"/><path d="M7.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z" fill="currentColor"/><path d="M16.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z" fill="currentColor"/></svg></span>
+                        <h3>Cinéma immersif VR OpenXR</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">VR uniquement</span></div>
+                    <p class="card-summary">Regardez des films 3D SBS, des vidéos 360°/180° ou des fichiers plats sur un immense écran virtuel en réalité virtuelle.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Passez au rendu immersif 3D/360° par œil avec le badge VR.</li>
+                        <li>Contrôlez les menus avec les gestes de suivi des mains Quest ou les rayons de visée.</li>
+                        <li>Capturez des instantanés stéréoscopiques et des captures d’écran en réalité mixte.</li>
+                    </ul>
+                    <a href="docs/HOW_TO-fr.html#openxr-vr-immersive-cinema" class="card-footer" target="_blank">Ouvrir le guide associé</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM7,7h10v3H7V7zM8,13h2v2H8v-2zM8,16h2v2H8v-2zM11,13h2v2h-2v-2zM11,16h2v2h-2v-2zM14,13h2v5h-2v-5z" fill="currentColor"/></svg></span>
+                        <h3>Calculs rapides</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
+                    <p class="card-summary">Sélectionnez des équations mathématiques ou des nombres dans des PDF, des livres ou des superpositions OCR pour les évaluer instantanément.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Surlignez une formule comme (45 + 12) * 3 dans n’importe quelle visionneuse.</li>
+                        <li>Ouvrez la calculatrice scientifique directement depuis le menu de sélection.</li>
+                        <li>Enregistrez l’historique et les emplacements mémoire (M+/M-) entre les sessions.</li>
+                    </ul>
+                    <a href="docs/HOW_TO-fr.html#quick-math--text-calculations" class="card-footer" target="_blank">Ouvrir le guide associé</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75L3,17.25zM20.71,7.04c0.39,-0.39 0.39,-1.02 0,-1.41l-2.34,-2.34c-0.39,-0.39 -1.02,-0.39 -1.41,0l-1.83,1.83 3.75,3.75 1.83,-1.83z" fill="currentColor"/></svg></span>
+                        <h3>Notes Markdown et code dans le cloud</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard pour le cloud</span><span class="scenario-badge common">Toutes les éditions en local</span></div>
+                    <p class="card-summary">Créez et modifiez des fichiers Markdown ou des extraits de code directement sur des dossiers cloud, le stockage local ou des partages réseau.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Utilisez l’éditeur Markdown intégré avec coloration syntaxique.</li>
+                        <li>Créez de nouvelles notes directement sur un NAS (SMB) ou Google Drive.</li>
+                        <li>Affichez le Markdown, résolvez les conflits de nommage et exportez les fichiers.</li>
+                    </ul>
+                    <a href="docs/HOW_TO-fr.html#cloud-markdown--code-notes" class="card-footer" target="_blank">Ouvrir le guide associé</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,3v9.28c-0.47,-0.17 -0.97,-0.28 -1.5,-0.28C8.01,12 6,14.01 6,16.5S8.01,21 10.5,21c2.31,0 4.2,-1.75 4.45,-4H15V6h4V3h-7z" fill="currentColor"/></svg></span>
+                        <h3>Musique sur montre connectée</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge wear">Wear OS (FastMedia Wear)</span></div>
+                    <p class="card-summary">Parcourez et écoutez de la musique directement sur votre montre Wear OS avec pochettes d’album, lecture aléatoire, volume par la lunette et mode écran éteint économe en batterie.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Diffusez des pistes audio depuis votre téléphone Android jumelé ou lisez le stockage local de la montre.</li>
+                        <li>Contrôlez la lecture avec la couronne rotative/le volume par la lunette et une barre de progression tactile.</li>
+                        <li>Le mode écran éteint OLED désactive les pixels de l’affichage pendant que la lecture continue.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-watch-music-fr.html" class="card-footer" target="_blank">Ouvrir le guide</a> <a href="docs/wear/" class="card-footer" target="_blank">Portail web Wear OS</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6L2,18C2,19.1 2.9,20 4,20H20C21.1,20 22,19.1 22,18V8C22,6.9 21.1,6 20,6H12L10,4ZM7,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM11.5,12a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM16,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM10.993,15.232L12.503,13.889L11.507,12.768L9.997,14.111ZM14.497,13.889L16.007,15.232L17.003,14.111L15.493,12.768Z" fill="currentColor" fill-rule="evenodd"/></svg></span>
+                        <h3>Connecter la montre aux partages réseau</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge wear">Wear OS (FastMedia Wear)</span></div>
+                    <p class="card-summary">Connectez votre montre connectée directement à un NAS, des partages Windows, ou des serveurs FTP ou SFTP via Wi-Fi pour parcourir et lire de façon autonome.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Connexion Wi-Fi directe à SMB, FTP et SFTP (mot de passe ou clé privée SSH).</li>
+                        <li>Testez l’état de la connexion directement sur votre poignet avant d’enregistrer.</li>
+                        <li>Synchronisation en un geste depuis le compagnon téléphone pour importer tous les partages existants.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-watch-network-fr.html" class="card-footer" target="_blank">Ouvrir le guide</a>
+                </details>
+            </article>
+        </div>
+
+        <!-- User Guides -->
+        <h2 class="section-title">Guides utilisateur</h2>
+        <div class="cards-grid">
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Nouveautés de la v2.x</h3>
+                    </div>
+                    <p class="card-summary">Un aperçu compact des dernières modifications visibles pour l’utilisateur.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Suit les fonctionnalités récentes, les corrections et les changements de comportement.</li>
+                        <li>Utile avant une mise à jour, un test, ou pour vérifier ce qui a changé depuis la dernière version.</li>
+                    </ul>
+                    <a href="docs/WHATS_NEW.html" class="card-footer" target="_blank">Voir l’historique des modifications</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Guide de démarrage rapide</h3>
+                    </div>
+                    <p class="card-summary">Première configuration réussie en environ cinq minutes.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Couvre la première configuration de ressource, l’ouverture de fichiers et les contrôles de base du lecteur.</li>
+                        <li>Meilleur point de départ pour les nouveaux utilisateurs avant de lire le manuel complet.</li>
+                    </ul>
+                    <a href="docs/QUICK_START-fr.html" class="card-footer" target="_blank">Ouvrir le guide</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>FAQ</h3>
+                    </div>
+                    <p class="card-summary">Réponses directes aux questions courantes de configuration et d’utilisation.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Explique le tri, les ressources réseau, les raccourcis clavier, les codes PIN et les gestes.</li>
+                        <li>Utilisez-la lorsque vous savez ce que vous voulez mais avez besoin de clarifier le comportement exact.</li>
+                    </ul>
+                    <a href="docs/FAQ-fr.html" class="card-footer" target="_blank">Lire la FAQ</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Dépannage</h3>
+                    </div>
+                    <p class="card-summary">Solutions connues pour les problèmes de réseau, d’authentification, de décodage et de lecture.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Cible les échecs que les utilisateurs peuvent généralement diagnostiquer sans journaux.</li>
+                        <li>Utilisez-le avant de signaler un problème ou de réinitialiser une ressource.</li>
+                    </ul>
+                    <a href="docs/TROUBLESHOOTING-fr.html" class="card-footer" target="_blank">Résoudre le problème</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Guides pratiques et scénarios</h3>
+                    </div>
+                    <p class="card-summary">Un index pratique de flux de travail, pas seulement des descriptions de fonctionnalités.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Comprend des guides de scénarios pour SMB, les sauvegardes, le cinéma, le cadre photo, la musique en voiture et le tri.</li>
+                        <li>S’associe naturellement aux cartes de scénarios en haut de cette page.</li>
+                    </ul>
+                    <a href="docs/howto/index-fr.html" class="card-footer" target="_blank">Voir la carte des guides</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Éditions APK et miroirs</h3>
+                    </div>
+                    <p class="card-summary">Notes d’édition ainsi que des miroirs ZIP Google Drive pour les versions compilées.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Explique les différences entre les éditions et le miroir Google Drive alternatif.</li>
+                        <li>Les téléchargements en un geste se trouvent dans la section Télécharger les APK ci-dessous.</li>
+                    </ul>
+                    <a href="docs/DOWNLOADS_EN.html" class="card-footer" target="_blank">Ouvrir les détails</a>
+                </details>
+            </article>
+        </div>
+
+        <!-- Download APK Builds - live buttons from the latest GitHub Release (S0394) -->
+        <h2 class="section-title" id="download">Télécharger les versions APK</h2>
+        <p class="section-lead">Téléchargements directs depuis la dernière version GitHub. Choisissez l’édition adaptée à votre appareil - la version se met à jour automatiquement.</p>
+        <p class="section-lead">Android avertit à propos d’un APK qu’il n’a encore jamais vu. <a href="docs/INSTALL_TRUST_EN.html" target="_blank" rel="noopener">Pourquoi cet avertissement apparaît - et sur quoi appuyer</a>.</p>
+        <div id="apkDownloads" class="apk-downloads" data-flavors="standard,vr,lite,photos,legacy,wear">
+            <a class="apk-fallback" href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest" target="_blank" rel="noopener">Ouvrir la dernière version sur GitHub →</a>
+        </div>
+        <script>
+            (function () {
+                var box = document.getElementById('apkDownloads');
+                if (!box) return;
+                var REPO = 'SerZhyAle/FastMediaSorter_mob_v2';
+                var wanted = (box.getAttribute('data-flavors') || '').split(',')
+                    .map(function (s) { return s.trim(); }).filter(Boolean);
+                // Build identifiers are kept in English across locales (brand-ish flavor names).
+                var labels = {
+                    standard: 'Standard', vr: 'VR', lite: 'Lite', photos: 'Photos',
+                    legacy: 'Legacy', wear: 'Wear OS'
+                };
+                fetch('https://api.github.com/repos/' + REPO + '/releases/latest',
+                    { headers: { 'Accept': 'application/vnd.github+json' } })
+                    .then(function (r) { if (!r.ok) throw new Error('release ' + r.status); return r.json(); })
+                    .then(function (rel) {
+                        var ver = rel.tag_name || '';
+                        var assets = rel.assets || [];
+                        var made = [];
+                        wanted.forEach(function (flavor) {
+                            var prefix = 'FastMediaSorter-' + flavor + '-';
+                            var a = assets.find(function (x) {
+                                return x.name && x.name.indexOf(prefix) === 0 && x.name.slice(-4) === '.apk';
+                            });
+                            if (a) made.push({ flavor: flavor, url: a.browser_download_url });
+                        });
+                        if (!made.length) return; // keep the static fallback link
+                        box.innerHTML = '';
+                        made.forEach(function (m) {
+                            var link = document.createElement('a');
+                            link.className = 'apk-btn';
+                            link.href = m.url;
+                            link.setAttribute('rel', 'noopener');
+                            link.innerHTML = '<span class="apk-flavor">' + (labels[m.flavor] || m.flavor) +
+                                '</span> <span class="apk-ver">' + ver + '</span>';
+                            box.appendChild(link);
+                        });
+                    })
+                    .catch(function () { /* leave the static fallback link in place */ });
+            }());
+        </script>
+
+        <!-- Interactive Feature Explorer Dashboard -->
+        <h2 class="section-title">Fonctionnalités de l’application</h2>
+        <div class="explorer-panel">
+            <!-- Dashboard Variant Switcher (S0387) -->
+            <div class="variant-switcher">
+                <span class="variant-title">Tableau de bord :</span>
+                <button class="variant-btn active" id="var-btn-v1">Catégories</button>
+                <button class="variant-btn" id="var-btn-v2">Carte des médias</button>
+                <button class="variant-btn" id="var-btn-v3">Points forts / Tout</button>
+                <button class="variant-btn" id="var-btn-v4">Scénarios</button>
+            </div>
+
+            <div class="explorer-controls">
+                <div class="explorer-tabs">
+                    <button class="tab-btn active" id="tab-all">Points forts</button>
+                    <button class="tab-btn" id="tab-standard">Standard (Mobile / TV / Voiture)</button>
+                    <button class="tab-btn vr-tab" id="tab-vr">Édition VR (Meta Quest / XR)</button>
+                </div>
+                <div class="search-wrapper">
+                    <span class="search-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg></span>
+                    <input type="text" id="featureSearch" class="search-input" placeholder="Rechercher des fonctionnalités..">
+                </div>
+            </div>
+
+            <!-- Additional controls for Variant 3 (Highlights / All toggle) -->
+            <div class="toggle-v3-controls" id="toggleV3Controls" style="display: none;">
+                <div class="toggle-v3-group">
+                    <button class="toggle-v3-btn active" id="toggle-v3-key">Points forts</button>
+                    <button class="toggle-v3-btn" id="toggle-v3-all">Toutes les fonctionnalités</button>
+                </div>
+            </div>
+
+            <!-- Additional controls for Variant 4 (Scenario Filter) -->
+            <div class="scenarios-pills-container" id="scenariosPillsContainer" style="display: none;">
+                <div class="scenarios-pills-label">Sélectionnez un scénario pour filtrer :</div>
+                <div class="scenarios-pills" id="scenariosPills">
+                    <!-- Generated dynamically via JS -->
+                </div>
+            </div>
+
+            <div class="feature-grid" id="featureExplorerGrid">
+                <!-- Grid items generated dynamically from FEATURES.md -->
+                <noscript>
+                    <ul class="detail-list">
+                        <li>Les profils d’appareil au premier lancement ajustent le comportement par défaut de l’application.</li>
+                    </ul>
+                </noscript>
+            </div>
+        </div>
+
+        <!-- Full Feature List (SEO fallback details panel) -->
+        <details class="full-features-panel">
+            <summary>Inventaire canonique des fonctionnalités (Jekyll Markdown)</summary>
+            <div id="full-features-content" class="full-features-content">
+                <em>Chargement de la liste canonique des fonctionnalités..</em>
+            </div>
+            <a class="full-features-link" href="docs/FEATURES.html" target="_blank">Ouvrir la page complète dans un nouvel onglet →</a>
+        </details>
+
+        <h2 class="section-title">Documentation technique</h2>
+        <div class="cards-grid">
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Documentation utilisateur</h3>
+                    </div>
+                    <p class="card-summary">Guides pas à pas pour chaque fonctionnalité, avec recherche et captures d’écran.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Organisée selon ce que vous voulez faire : configurer, parcourir, lire, trier, diffuser, lancer et la montre.</li>
+                        <li>La recherche en texte intégral fonctionne directement dans le navigateur.</li>
+                    </ul>
+                    <a href="documentation/" class="card-footer" target="_blank">Ouvrir la documentation</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Carte de la documentation</h3>
+                    </div>
+                    <p class="card-summary">Un index unique pour l’aide, les tutoriels, les notes techniques et la documentation développeur.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Utilisez-la lorsque vous avez besoin du bon document mais ne connaissez pas son nom de fichier.</li>
+                        <li>Regroupe l’aide utilisateur, la documentation du projet, les pages d’état et les références techniques.</li>
+                    </ul>
+                    <a href="docs/DOCS_MAP.html" class="card-footer" target="_blank">Voir la carte de la documentation</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Référence des paramètres</h3>
+                    </div>
+                    <p class="card-summary">Chaque paramètre expliqué - ce que fait chaque option, par section.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Trouvez n’importe quelle option par son nom et voyez exactement ce qu’elle modifie.</li>
+                        <li>Indique quelles variantes de build incluent chaque section média.</li>
+                    </ul>
+                    <a href="docs/SETTINGS_REFERENCE.html" class="card-footer" target="_blank">Ouvrir la référence des paramètres</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Manuel utilisateur</h3>
+                    </div>
+                    <p class="card-summary">La référence complète destinée à l’utilisateur pour la configuration et l’utilisation quotidienne.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Couvre les prérequis, l’installation, les protocoles réseau, les ressources cloud et les lecteurs.</li>
+                        <li>Idéal pour une lecture complète après le démarrage rapide.</li>
+                    </ul>
+                    <a href="docs/README-fr.html" class="card-footer" target="_blank">Lire le manuel</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Historique du produit</h3>
+                    </div>
+                    <p class="card-summary">Chronologie de la lignée Windows, des générations Android et des jalons actuels de la v2.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Combine les preuves du dépôt avec le contexte historique fourni par l’auteur.</li>
+                        <li>Utile lorsque vous avez besoin d’une vue d’ensemble de l’évolution du produit.</li>
+                    </ul>
+                    <a href="docs/PRODUCT_HISTORY.html" class="card-footer" target="_blank">Lire l’historique</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Spécification technique</h3>
+                    </div>
+                    <p class="card-summary">Référence produit et architecture au niveau de l’implémentation.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Explique les composants, la persistance, la mise en cache et le traitement en arrière-plan.</li>
+                        <li>Utile pour les mainteneurs et les contributeurs avancés.</li>
+                    </ul>
+                    <a href="docs/V2_Specification.html" class="card-footer" target="_blank">Ouvrir les spécifications</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Vue d’ensemble de l’architecture</h3>
+                    </div>
+                    <p class="card-summary">Une carte de plus haut niveau de la structure de l’application.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Résume les responsabilités de Clean Architecture, MVVM, Hilt et Room.</li>
+                        <li>Bonne première lecture avant de toucher au code d’implémentation.</li>
+                    </ul>
+                    <a href="docs/V2_architecture_overview.html" class="card-footer" target="_blank">En savoir plus</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Référence terminologique</h3>
+                    </div>
+                    <p class="card-summary">Définitions du vocabulaire du projet.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Clarifie des concepts tels que les ressources, les destinations et les dossiers d’action.</li>
+                        <li>Utile lors de la lecture des spécifications, des paramètres ou des guides de flux de travail.</li>
+                    </ul>
+                    <a href="docs/V2_TERMS.html" class="card-footer" target="_blank">Ouvrir le glossaire</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Feuille de route de développement</h3>
+                    </div>
+                    <p class="card-summary">Travaux en cours, fonctionnalités prévues et état des problèmes connus.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Suit les tâches actives et les axes futurs plutôt que les instructions utilisateur.</li>
+                        <li>Utile pour vérifier si un comportement est prévu ou encore en cours.</li>
+                    </ul>
+                    <a href="docs/TODO_V2.html" class="card-footer" target="_blank">Ouvrir la feuille de route</a>
+                </details>
+            </article>
+        </div>
+
+        <h2 class="section-title">Ressources et mentions légales</h2>
+        <div class="cards-grid">
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Dépôt GitHub</h3>
+                    </div>
+                    <p class="card-summary">Code source, tickets et historique des contributions.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Utilisez-le pour examiner le code source, signaler des bugs ou suivre l’activité du projet.</li>
+                        <li>Les pages publiques ne décrivent que les surfaces publiques Standard et VR.</li>
+                    </ul>
+                    <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="card-footer" target="_blank">Code sur GitHub</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Politique de confidentialité</h3>
+                    </div>
+                    <p class="card-summary">Comment les autorisations, les fichiers locaux et les données sensibles sont traités.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Explique les attentes en matière d’autorisations liées au stockage, au réseau et au cloud.</li>
+                        <li>Lisez-la avant de distribuer l’application dans des environnements gérés.</li>
+                    </ul>
+                    <a href="docs/PRIVACY_POLICY.html" class="card-footer" target="_blank">Lire la politique</a>
+                </details>
+            </article>
+            <article class="card">
+                <div>
+                    <div class="card-title-row">
+                        <h3>Conditions d’utilisation</h3>
+                    </div>
+                    <p class="card-summary">Conditions d’utilisation, notes de licence, limitations et avertissements.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Détails</summary>
+                    <ul class="detail-list">
+                        <li>Définit les responsabilités de l’utilisateur et les limites de responsabilité du projet.</li>
+                        <li>Utile pour la redistribution, la publication et les vérifications de conformité.</li>
+                    </ul>
+                    <a href="docs/TERMS_OF_SERVICE.html" class="card-footer" target="_blank">Lire les conditions</a>
+                </details>
+            </article>
+        </div>
+
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="section-title">Plus d’outils par SZA</h2>
+            <div class="tools-grid">
+                <!-- family-footer:begin - rendered from scripts/site/family-footer.json by scripts/site/render-family-footer.ps1; edit the source, not this block -->
+                <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>Trieur de médias PC et partage de dossiers vers Android</span></a> <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Convertisseur d’ebooks Windows</span></a> <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Correcteur de disposition clavier Windows</span></a> <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>CLI de stockage Windows</span></a> <a href="https://serzhyale.github.io/StreamsPlayer/"><b>StreamsPlayer</b><span>Lecteur de flux Windows</span></a> <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>Lanceur de zone de notification Windows</span></a> <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>Méthodologie de développement IA</span></a> <a href="https://sza.od.ua"><b>SZA</b><span>Portail du portfolio</span></a>
+                <!-- family-footer:end -->
+            </div>
+            <!-- lang-list:begin - rendered by scripts/site/generate-landing-pages.ps1 from _data/languages.yml -->
+            <nav class="lang-list" aria-label="Langues">
+                <a href="index.html" hreflang="en" lang="en" dir="ltr">English</a>
+                <a href="index-zh-hans.html" hreflang="zh-Hans" lang="zh-Hans" dir="ltr">中文</a>
+                <a href="index-hi.html" hreflang="hi" lang="hi" dir="ltr">हिन्दी</a>
+                <a href="index-es.html" hreflang="es" lang="es" dir="ltr">Español</a>
+                <span lang="fr" dir="ltr" aria-current="page">Français</span>
+                <a href="index-ar.html" hreflang="ar" lang="ar" dir="rtl">العربية</a>
+                <a href="index-bn.html" hreflang="bn" lang="bn" dir="ltr">বাংলা</a>
+                <a href="index-pt.html" hreflang="pt" lang="pt" dir="ltr">Português</a>
+                <a href="index-ru.html" hreflang="ru" lang="ru" dir="ltr">Русский</a>
+                <a href="index-ur.html" hreflang="ur" lang="ur" dir="rtl">اردو</a>
+                <a href="index-uk.html" hreflang="uk" lang="uk" dir="ltr">Українська</a>
+                <a href="index-de.html" hreflang="de" lang="de" dir="ltr">Deutsch</a>
+                <a href="index-it.html" hreflang="it" lang="it" dir="ltr">Italiano</a>
+            </nav>
+            <!-- lang-list:end -->
+            <div class="footer-bottom">
+                <span>&copy; 2024-2026 Serhii Zhyhunenko · Fast Media Sorter</span> <span> <a href="docs/PRIVACY_POLICY.html">Confidentialité</a> · <a href="docs/TERMS_OF_SERVICE.html">Conditions</a> · <a href="https://github.com/SerZhyAle">GitHub</a> · <a href="mailto:sza@ukr.net">sza@ukr.net</a> </span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <script src="documentation/assets/wave-particles.js"></script>
+
+    <!-- Interactive Feature Explorer JS -->
+    <script>
+        (function () {
+            var allFeatures = [];
+            var activeFilter = 'all'; // 'all', 'standard', 'vr'
+            var searchQuery = '';
+            var activeVariant = 'v1'; // 'v1', 'v2', 'v3', 'v4'
+            var activeCategoryV1 = null;
+            var activeToggleV3 = 'key'; // 'key', 'all'
+            var activeScenarioV4 = 'all';
+            var featuresPage = 'docs/FEATURES.html';
+
+            // FEATURES.md is curated to one entry per capability; no noise rows to suppress.
+            var hiddenFeatureTitles = [];
+
+            // FEATURES opens every pillar with its standout capabilities, so position marks a key feature
+            // and no title list can go stale when a bullet is renamed.
+            var KEY_FEATURES_PER_PILLAR = 2;
+
+            // Columns name FEATURES pillars by number, which every locale shares.
+            var dashboardColumns = [
+                { id: 'shell', label: 'Shell et lancement', categories: [1, 4] },
+                { id: 'media', label: 'Médias et flux', categories: [2, 3] },
+                { id: 'tools', label: 'Outils et surveillance', categories: [5, 7] },
+                { id: 'files', label: 'Fichiers et montre', categories: [6, 8] }
+            ];
+
+            function pillarNumber(f) {
+                var numMatch = f.category.match(/^(\d+)/);
+                return numMatch ? parseInt(numMatch[1], 10) : -1;
+            }
+
+            function pillarLabel(category) {
+                return category.replace(/^\d+\.\s*/, '');
+            }
+
+            // A pillar added to FEATURES later gets a column of its own instead of vanishing from the map.
+            function columnsForPillars(features) {
+                var columns = dashboardColumns.slice();
+                features.forEach(function (f) {
+                    var num = pillarNumber(f);
+                    var covered = columns.some(function (c) { return c.categories.indexOf(num) !== -1; });
+                    if (!covered) {
+                        columns.push({ id: 'pillar-' + num, label: pillarLabel(f.category), categories: [num] });
+                    }
+                });
+                return columns;
+            }
+
+            // A FEATURES tag lists every flavor that ships the capability ("Standard / Lite / VR / noLegal");
+            // the older "VR Only" form still reads as the single flavor it names.
+            function hasFlavor(f, flavor) {
+                return f.tag.split('/').some(function (t) { return t.trim().replace(/ Only$/, '') === flavor; });
+            }
+
+            function flavorKind(f) {
+                var standard = hasFlavor(f, 'Standard');
+                var vr = hasFlavor(f, 'VR');
+                if (vr && !standard) return 'vr';
+                if (standard && !vr) return 'standard';
+                return 'common';
+            }
+
+            var scenariosList = [
+                { id: 'all', label: 'Tous les scénarios' },
+                { id: 'photo', label: 'Cadre photo' },
+                { id: 'music', label: 'Musique en voiture' },
+                { id: 'video', label: 'Cinéma maison' },
+                { id: 'smb', label: 'Configuration SMB' },
+                { id: 'backup', label: 'Sauvegarde de l’appareil photo' },
+                { id: 'download', label: 'Organisateur de téléchargements' },
+                { id: 'offline', label: 'Voyage hors ligne' },
+                { id: 'docs', label: 'Documents cloud' },
+                { id: 'ocr', label: 'Traduction OCR' },
+                { id: 'tv', label: 'Étagère média NAS' },
+                { id: 'duplicates', label: 'Nettoyage des doublons' },
+                { id: 'chromecast', label: 'Chromecast' },
+                { id: 'widgets', label: 'Widgets intelligents' },
+                { id: 'vrcinema', label: 'Cinéma immersif' },
+                { id: 'calculator', label: 'Calculs rapides' },
+                { id: 'cloudnotes', label: 'Notes cloud et Markdown' }
+            ];
+
+            // A scenario matches words inside each FEATURES bullet, so a renamed bullet stays in its scenario;
+            // the earlier list of exact bullet titles went stale and left every scenario pill empty.
+            var scenarioKeywords = {
+                photo: ['slideshow', 'image viewer', 'gif', 'webp', 'picture', 'photo frame'],
+                music: ['music', 'audio', 'radio', 'mono ', 'stereo balance', 'lyrics'],
+                video: ['video', 'subtitle', 'movie', 'cinema', 'television'],
+                smb: ['smb', 'nas', 'sftp', 'ftp', 'your pc'],
+                backup: ['backup', 'restore', 'capture into', 'camera widget'],
+                download: ['download', 'sorting', 'file manager', 'trash', 'move whole folders'],
+                offline: ['offline', 'locally', 'without sending', 'memory card', 'removable'],
+                docs: ['pdf', 'epub', 'document', 'markdown', '.txt'],
+                ocr: ['ocr', 'translat', 'recogni'],
+                tv: ['television', 'd-pad', 'nas'],
+                duplicates: ['duplicate', 'identical', 'trash', 'undo', 'cleanup'],
+                chromecast: ['cast ', 'television'],
+                widgets: ['widget'],
+                vrcinema: ['headset', 'openxr', 'vr180', '360', 'virtual screen', 'sbs'],
+                calculator: ['calculat', 'math', 'stopwatch', 'mini-program'],
+                cloudnotes: ['markdown', 'note', '.txt', 'google drive']
+            };
+
+            function featureMentions(f, keyword) {
+                return (f.title + ' ' + f.text).toLowerCase().indexOf(keyword) !== -1;
+            }
+
+            function matchesScenario(f, scenarioId) {
+                return (scenarioKeywords[scenarioId] || []).some(function (k) { return featureMentions(f, k); });
+            }
+
+            // FEATURES pillars get renumbered and renamed between releases, so a scenario links to the pillar
+            // holding its primary capability today instead of to a remembered anchor.
+            function scenarioPillarUrl(scenarioId) {
+                var keywords = scenarioKeywords[scenarioId] || [];
+                for (var i = 0; i < keywords.length; i++) {
+                    var hit = allFeatures.find(function (f) { return featureMentions(f, keywords[i]); });
+                    if (hit) return featuresPage + '#' + hit.anchor;
+                }
+                return null;
+            }
+
+            // Mirrors Jekyll's GFM heading ids for a page rendered without them.
+            function headingAnchor(node) {
+                return node.id || node.textContent.trim().toLowerCase().replace(/[^\p{L}\p{N}_\s-]/gu, '').replace(/[ \t]/g, '-');
+            }
+
+            function getScenarioLinks(title, desc) {
+                var text = (title + ' ' + desc).toLowerCase();
+                var links = [];
+
+                if (text.indexOf('slideshow') !== -1 || text.indexOf('photo') !== -1 || text.indexOf('frame') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-photo-frame.html', label: 'Scénario : Cadre photo' });
+                }
+                if (text.indexOf('music') !== -1 || text.indexOf('audio') !== -1 || text.indexOf('midi') !== -1 || text.indexOf('wheel') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-car-music.html', label: 'Scénario : Musique en voiture' });
+                }
+                if (text.indexOf('video') !== -1 || text.indexOf('movie') !== -1 || text.indexOf('exoplayer') !== -1 || text.indexOf('3d') !== -1 || text.indexOf('cinema') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-home-cinema.html', label: 'Scénario : Cinéma maison' });
+                }
+                if (text.indexOf('smb') !== -1 || text.indexOf('network') !== -1 || text.indexOf('nas') !== -1 || text.indexOf('host') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-smb-setup.html', label: 'Guide de configuration SMB' });
+                }
+                if (text.indexOf('backup') !== -1 || text.indexOf('copy') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-camera-backup.html', label: 'Sauvegarde de l’appareil photo' });
+                }
+                if (text.indexOf('download') !== -1 || text.indexOf('organizer') !== -1 || text.indexOf('delete') !== -1 || text.indexOf('move') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-download-organizer.html', label: 'Organisateur de téléchargements' });
+                }
+                if (text.indexOf('offline') !== -1 || text.indexOf('travel') !== -1 || text.indexOf('local folder') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#prepare-a-folder-for-travel-without-stable-internet', label: 'Dossier de voyage hors ligne' });
+                }
+                if (text.indexOf('document') !== -1 || text.indexOf('pdf') !== -1 || text.indexOf('epub') !== -1 || text.indexOf('reading') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#read-cloud-documents-and-epubs-on-the-go', label: 'Documents cloud' });
+                }
+                if (text.indexOf('ocr') !== -1 || text.indexOf('translation') !== -1 || text.indexOf('translate') !== -1 || text.indexOf('tesseract') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#translate-signs-scans-and-screenshots-with-ocr', label: 'Traduction OCR' });
+                }
+                if (text.indexOf('tv') !== -1 || text.indexOf('living-room') !== -1 || text.indexOf('living room') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#turn-a-nas-into-a-living-room-media-shelf', label: 'Étagère média NAS' });
+                }
+                if (text.indexOf('watch') !== -1 || text.indexOf('wear') !== -1 || text.indexOf('smartwatch') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-watch-music.html', label: 'Scénario : Musique sur la montre' });
+                    links.push({ url: 'docs/howto/scenario-watch-network.html', label: 'Scénario : Réseau de la montre' });
+                }
+                if (text.indexOf('duplicate') !== -1 || text.indexOf('sha-256') !== -1) {
+                    var duplicatesUrl = scenarioPillarUrl('duplicates');
+                    if (duplicatesUrl) links.push({ url: duplicatesUrl, label: 'Nettoyage des doublons' });
+                }
+                if (text.indexOf('chromecast') !== -1 || text.indexOf('cast ') !== -1 || text.indexOf('cast-compatible') !== -1) {
+                    var chromecastUrl = scenarioPillarUrl('chromecast');
+                    if (chromecastUrl) links.push({ url: chromecastUrl, label: 'Lecture Chromecast' });
+                }
+                if (text.indexOf('widgets') !== -1 || text.indexOf('widget') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#home-screen-smart-widgets', label: 'Widgets intelligents' });
+                }
+                if (text.indexOf('vrcinema') !== -1 || text.indexOf('immersive cinema') !== -1 || text.indexOf('openxr') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#openxr-vr-immersive-cinema', label: 'Cinéma immersif' });
+                }
+                if (text.indexOf('calculator') !== -1 || text.indexOf('math') !== -1 || text.indexOf('calculation') !== -1 || text.indexOf('scientific') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#quick-math--text-calculations', label: 'Calculs rapides' });
+                }
+                if (text.indexOf('cloudnotes') !== -1 || text.indexOf('note') !== -1 || text.indexOf('markdown') !== -1) {
+                    links.push({ url: 'docs/HOW_TO.html#cloud-markdown--code-notes', label: 'Notes cloud et Markdown' });
+                }
+
+                return links;
+            }
+
+            function mapTitleToScenario(title) {
+                var t = title.toLowerCase();
+                if (t.indexOf('frame') !== -1 || t.indexOf('photo') !== -1) return 'photo';
+                if (t.indexOf('car') !== -1 || t.indexOf('music') !== -1) return 'music';
+                if (t.indexOf('cinema') !== -1 || t.indexOf('movie') !== -1 || t.indexOf('video') !== -1) return 'video';
+                if (t.indexOf('organizer') !== -1 || t.indexOf('download') !== -1) return 'download';
+                if (t.indexOf('backup') !== -1) return 'backup';
+                if (t.indexOf('smb') !== -1 || t.indexOf('network') !== -1) return 'smb';
+                if (t.indexOf('travel') !== -1 || t.indexOf('offline') !== -1) return 'offline';
+                if (t.indexOf('docs') !== -1 || t.indexOf('cloud') !== -1 || t.indexOf('document') !== -1 || t.indexOf('epub') !== -1) return 'docs';
+                if (t.indexOf('ocr') !== -1 || t.indexOf('translation') !== -1) return 'ocr';
+                if (t.indexOf('tv') !== -1 || t.indexOf('nas') !== -1) return 'tv';
+                if (t.indexOf('duplicate') !== -1 || t.indexOf('cleanup') !== -1) return 'duplicates';
+                if (t.indexOf('chromecast') !== -1 || t.indexOf('cast') !== -1) return 'chromecast';
+                if (t.indexOf('widget') !== -1) return 'widgets';
+                if (t.indexOf('openxr') !== -1 || t.indexOf('immersive cinema') !== -1) return 'vrcinema';
+                if (t.indexOf('calculation') !== -1 || t.indexOf('math') !== -1) return 'calculator';
+                if (t.indexOf('note') !== -1 || t.indexOf('markdown') !== -1) return 'cloudnotes';
+                return null;
+            }
+
+            function renderExplorer() {
+                var grid = document.getElementById('featureExplorerGrid');
+                grid.innerHTML = '';
+
+                // Show/hide variant specific controls
+                document.getElementById('toggleV3Controls').style.display = (activeVariant === 'v3') ? 'flex' : 'none';
+                document.getElementById('scenariosPillsContainer').style.display = (activeVariant === 'v4') ? 'flex' : 'none';
+
+                var filtered = allFeatures.filter(function (f) {
+                    // Platform Filter
+                    if (activeFilter === 'standard') {
+                        if (!hasFlavor(f, 'Standard')) return false;
+                    } else if (activeFilter === 'vr') {
+                        if (!hasFlavor(f, 'VR')) return false;
+                    }
+
+                    // Text Search Filter
+                    if (searchQuery) {
+                        var q = searchQuery.toLowerCase();
+                        return f.title.toLowerCase().indexOf(q) !== -1 ||
+                            f.text.toLowerCase().indexOf(q) !== -1 ||
+                            f.category.toLowerCase().indexOf(q) !== -1;
+                    }
+
+                    return true;
+                });
+
+                if (filtered.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">Aucune fonctionnalité trouvée correspondant à vos critères.</div>';
+                    return;
+                }
+
+                function getFeatureCardHtml(f, forceOpen) {
+                    var kind = flavorKind(f);
+                    var tagClass = 'tag-' + kind;
+                    var badgeClass = 'badge-' + kind;
+                    var badgeLabel = f.tag;
+
+                    var headerHtml = '<span class="feature-header">' +
+                        '<span class="feature-title">' + f.title + '</span>' +
+                        '<span style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">' +
+                        '<span class="feature-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
+                        (forceOpen ? '' : '<span class="toggle-icon">▼</span>') +
+                        '</span>' +
+                        '</span>';
+
+                    var descHtml = '<div class="feature-desc">' + f.desc + '</div>';
+
+                    var linksHtml = '';
+                    var scLinks = getScenarioLinks(f.title, f.text);
+                    if (scLinks.length > 0) {
+                        linksHtml = '<div class="feature-links">';
+                        scLinks.forEach(function (l) {
+                            linksHtml += '<a href="' + l.url + '" class="feature-link" target="_blank">' + l.label + '</a>';
+                        });
+                        linksHtml += '</div>';
+                    }
+
+                    if (forceOpen) {
+                        return '<div class="feature-card ' + tagClass + '">' +
+                            headerHtml + descHtml + linksHtml +
+                            '</div>';
+                    } else {
+                        return '<div class="feature-card ' + tagClass + '">' +
+                            '<details class="feature-details">' +
+                            '<summary>' + headerHtml + '</summary>' +
+                            descHtml + linksHtml +
+                            '</details>' +
+                            '</div>';
+                    }
+                }
+
+                if (activeVariant === 'v1') {
+                    // --- Variant 1: Category Explorer ---
+                    var grouped = {};
+                    var availableCats = [];
+                    filtered.forEach(function (f) {
+                        if (!grouped[f.category]) {
+                            grouped[f.category] = [];
+                            availableCats.push({ id: f.category, label: pillarLabel(f.category) });
+                        }
+                        grouped[f.category].push(f);
+                    });
+
+                    if (availableCats.length === 0) {
+                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">Aucune catégorie disponible pour les filtres actuels.</div>';
+                        return;
+                    }
+                    if (!activeCategoryV1 || !grouped[activeCategoryV1] || grouped[activeCategoryV1].length === 0) {
+                        activeCategoryV1 = availableCats[0].id;
+                    }
+
+                    var container = document.createElement('div');
+                    container.className = 'explorer-v1-container';
+
+                    var sidebar = document.createElement('div');
+                    sidebar.className = 'explorer-v1-sidebar';
+                    availableCats.forEach(function (cat) {
+                        var btn = document.createElement('button');
+                        btn.className = 'v1-cat-btn' + (cat.id === activeCategoryV1 ? ' active' : '');
+                        btn.innerText = cat.label;
+                        btn.addEventListener('click', function () {
+                            activeCategoryV1 = cat.id;
+                            renderExplorer();
+                        });
+                        sidebar.appendChild(btn);
+                    });
+
+                    var content = document.createElement('div');
+                    content.className = 'explorer-v1-content';
+
+                    var catFeatures = grouped[activeCategoryV1];
+                    var majorList = [];
+                    var minorList = [];
+                    catFeatures.forEach(function (f) {
+                        if (f.isKey) {
+                            majorList.push(f);
+                        } else {
+                            minorList.push(f);
+                        }
+                    });
+
+                    if (majorList.length > 0) {
+                        var majorGrid = document.createElement('div');
+                        majorGrid.className = 'feature-grid';
+                        majorList.forEach(function (f) {
+                            majorGrid.innerHTML += getFeatureCardHtml(f, true);
+                        });
+                        content.appendChild(majorGrid);
+                    }
+
+                    if (minorList.length > 0) {
+                        var minorTitle = document.createElement('h3');
+                        minorTitle.className = 'v1-accordion-title';
+                        minorTitle.innerText = 'Autres fonctionnalités';
+                        content.appendChild(minorTitle);
+
+                        var minorGrid = document.createElement('div');
+                        minorGrid.className = 'feature-grid';
+                        minorList.forEach(function (f) {
+                            minorGrid.innerHTML += getFeatureCardHtml(f, false);
+                        });
+                        content.appendChild(minorGrid);
+                    }
+
+                    container.appendChild(sidebar);
+                    container.appendChild(content);
+                    grid.appendChild(container);
+
+                } else if (activeVariant === 'v2') {
+                    // --- Variant 2: Media Dashboard ---
+                    var container = document.createElement('div');
+                    container.className = 'dashboard-v2-grid';
+
+                    columnsForPillars(filtered).forEach(function (col) {
+                        var colFeatures = filtered.filter(function (f) {
+                            return col.categories.indexOf(pillarNumber(f)) !== -1;
+                        });
+
+                        if (colFeatures.length === 0) return;
+
+                        var colDiv = document.createElement('div');
+                        colDiv.className = 'dashboard-v2-col';
+
+                        var header = document.createElement('div');
+                        header.className = 'dashboard-v2-header';
+                        header.innerText = col.label;
+                        colDiv.appendChild(header);
+
+                        var list = document.createElement('div');
+                        list.className = 'dashboard-v2-list';
+                        colFeatures.forEach(function (f) {
+                            var item = document.createElement('div');
+                            item.className = 'dashboard-v2-item';
+                            
+                            var tagBadge = '';
+                            if (flavorKind(f) === 'vr') tagBadge = ' <span style="font-size:0.65rem; color:#22d3ee; border:1px solid rgba(0,229,255,0.3); padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.5rem; text-transform:uppercase;">VR</span>';
+                            
+                            item.innerHTML = '<span>' + f.title + tagBadge + '</span><span class="dashboard-v2-item-arrow">→</span>';
+                            item.addEventListener('click', function () {
+                                openDrawer(f);
+                            });
+                            list.appendChild(item);
+                        });
+                        colDiv.appendChild(list);
+                        container.appendChild(colDiv);
+                    });
+
+                    grid.appendChild(container);
+
+                } else if (activeVariant === 'v3') {
+                    // --- Variant 3: Highlights / All ---
+                    if (activeToggleV3 === 'key') {
+                        var majorGrid = document.createElement('div');
+                        majorGrid.className = 'major-grid-v3';
+
+                        var keyList = filtered.filter(function (f) {
+                            return f.isKey;
+                        });
+
+                        if (keyList.length === 0) {
+                            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">Aucune fonctionnalité clé trouvée pour les filtres actuels.</div>';
+                            return;
+                        }
+
+                        keyList.forEach(function (f) {
+                            var tagClass = 'tag-' + flavorKind(f);
+
+                            var scLinks = getScenarioLinks(f.title, f.text);
+                            var linksHtml = '';
+                            if (scLinks.length > 0) {
+                                linksHtml = '<div class="feature-links">';
+                                scLinks.forEach(function (l) {
+                                    linksHtml += '<a href="' + l.url + '" class="feature-link" target="_blank">' + l.label + '</a>';
+                                });
+                                linksHtml += '</div>';
+                            }
+
+                            var card = document.createElement('div');
+                            card.className = 'feature-card-major ' + tagClass;
+                            card.innerHTML = '<div>' +
+                                '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">' +
+                                '<span class="feature-title">' + f.title + '</span>' +
+                                '<span class="feature-badge badge-' + flavorKind(f) + '">' + f.tag + '</span>' +
+                                '</div>' +
+                                '<div class="feature-desc">' + f.desc + '</div>' +
+                                '</div>' + linksHtml;
+                            majorGrid.appendChild(card);
+                        });
+                        grid.appendChild(majorGrid);
+                    } else {
+                        var treeContainer = document.createElement('div');
+                        treeContainer.className = 'compact-tree-container';
+
+                        var categories = [];
+                        filtered.forEach(function (f) {
+                            if (categories.indexOf(f.category) === -1) {
+                                categories.push(f.category);
+                            }
+                        });
+
+                        categories.forEach(function (cat) {
+                            var catFeatures = filtered.filter(function (f) { return f.category === cat; });
+                            var catDiv = document.createElement('div');
+                            catDiv.className = 'compact-tree-cat';
+
+                            var title = document.createElement('div');
+                            title.className = 'compact-tree-cat-title';
+                            title.innerText = cat;
+                            catDiv.appendChild(title);
+
+                            var list = document.createElement('div');
+                            list.className = 'compact-tree-list';
+                            catFeatures.forEach(function (f) {
+                                var item = document.createElement('div');
+                                item.className = 'compact-tree-item';
+                                var tagBadge = ' <span style="font-size:0.65rem; opacity:0.7;">[' + f.tag + ']</span>';
+                                item.innerHTML = '<span class="compact-tree-item-text"><strong class="compact-tree-item-title">' + f.title + '</strong>' + tagBadge + ': ' + f.desc + '</span>';
+                                list.appendChild(item);
+                            });
+                            catDiv.appendChild(list);
+                            treeContainer.appendChild(catDiv);
+                        });
+
+                        grid.appendChild(treeContainer);
+                    }
+
+                } else if (activeVariant === 'v4') {
+                    // --- Variant 4: Scenario Filter ---
+                    var scenarioFeatures = filtered;
+                    if (activeScenarioV4 !== 'all') {
+                        scenarioFeatures = filtered.filter(function (f) {
+                            return matchesScenario(f, activeScenarioV4);
+                        });
+                    }
+
+                    if (activeScenarioV4 !== 'all') {
+                        var scenarioObj = scenariosList.find(function (s) { return s.id === activeScenarioV4; });
+                        var labelText = scenarioObj ? scenarioObj.label : activeScenarioV4;
+
+                        var badge = document.createElement('div');
+                        badge.style.gridColumn = '1/-1';
+                        badge.innerHTML = '<div class="filter-pill-active">' +
+                            '<span>Showing features for: <strong>' + labelText + '</strong></span>' +
+                            '<button class="clear-filter-btn" id="clearScenarioFilter" aria-label="Clear filter" title="Clear filter"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>' +
+                            '</div>';
+                        grid.appendChild(badge);
+                    }
+
+                    if (scenarioFeatures.length === 0) {
+                        var noData = document.createElement('div');
+                        noData.style.gridColumn = '1/-1';
+                        noData.style.textAlign = 'center';
+                        noData.style.color = 'var(--text-muted)';
+                        noData.style.padding = '3rem 0';
+                        noData.innerText = 'Aucune fonctionnalité trouvée pour ce scénario correspondant aux filtres actuels.';
+                        grid.appendChild(noData);
+                    } else {
+                        var scenarioGrid = document.createElement('div');
+                        scenarioGrid.style.gridColumn = '1/-1';
+                        scenarioGrid.className = 'feature-grid';
+                        scenarioFeatures.forEach(function (f) {
+                            scenarioGrid.innerHTML += getFeatureCardHtml(f, true);
+                        });
+                        grid.appendChild(scenarioGrid);
+                    }
+
+                    var clearBtn = document.getElementById('clearScenarioFilter');
+                    if (clearBtn) {
+                        clearBtn.addEventListener('click', function () {
+                            activeScenarioV4 = 'all';
+                            document.querySelectorAll('.scenario-pill-btn').forEach(function (b) {
+                                if (b.getAttribute('data-id') === 'all') b.classList.add('active');
+                                else b.classList.remove('active');
+                            });
+                            renderExplorer();
+                        });
+                    }
+                }
+            }
+
+            function openDrawer(feature) {
+                document.getElementById('drawerTitle').innerText = feature.title;
+                document.getElementById('drawerCat').innerText = feature.category;
+                document.getElementById('drawerDesc').innerHTML = feature.desc;
+
+                var linksHtml = '';
+                var scLinks = getScenarioLinks(feature.title, feature.text);
+                if (scLinks.length > 0) {
+                    linksHtml = '<div style="margin-top: 1rem; border-top: 1px solid var(--border-glass); padding-top: 1rem;"><div class="detail-drawer-cat" style="margin-bottom: 0.5rem;">Related Scenarios:</div>';
+                    scLinks.forEach(function (l) {
+                        linksHtml += '<a href="' + l.url + '" class="feature-link" target="_blank" style="margin-right: 0.8rem; display: inline-block;">' + l.label + '</a>';
+                    });
+                    linksHtml += '</div>';
+                }
+                document.getElementById('drawerLinks').innerHTML = linksHtml;
+
+                document.getElementById('detailDrawer').classList.add('open');
+                document.getElementById('detailDrawerOverlay').classList.add('open');
+            }
+
+            function closeDrawer() {
+                document.getElementById('detailDrawer').classList.remove('open');
+                document.getElementById('detailDrawerOverlay').classList.remove('open');
+            }
+
+            function buildScenarioPills() {
+                var container = document.getElementById('scenariosPills');
+                if (!container) return;
+                container.innerHTML = '';
+                scenariosList.forEach(function (sc) {
+                    var btn = document.createElement('button');
+                    btn.className = 'scenario-pill-btn' + (sc.id === activeScenarioV4 ? ' active' : '');
+                    btn.setAttribute('data-id', sc.id);
+                    btn.innerText = sc.label;
+                    btn.addEventListener('click', function () {
+                        document.querySelectorAll('.scenario-pill-btn').forEach(function (b) { b.classList.remove('active'); });
+                        btn.classList.add('active');
+                        activeScenarioV4 = sc.id;
+                        renderExplorer();
+                    });
+                    container.appendChild(btn);
+                });
+            }
+
+            function setupSwitcher() {
+                var btns = {
+                    'v1': document.getElementById('var-btn-v1'),
+                    'v2': document.getElementById('var-btn-v2'),
+                    'v3': document.getElementById('var-btn-v3'),
+                    'v4': document.getElementById('var-btn-v4')
+                };
+
+                function setVariant(v) {
+                    activeVariant = v;
+                    for (var key in btns) {
+                        if (btns[key]) {
+                            if (key === v) btns[key].classList.add('active');
+                            else btns[key].classList.remove('active');
+                        }
+                    }
+                    renderExplorer();
+                }
+
+                if (btns.v1) btns.v1.addEventListener('click', function () { setVariant('v1'); });
+                if (btns.v2) btns.v2.addEventListener('click', function () { setVariant('v2'); });
+                if (btns.v3) btns.v3.addEventListener('click', function () { setVariant('v3'); });
+                if (btns.v4) btns.v4.addEventListener('click', function () { setVariant('v4'); });
+
+                var keyBtn = document.getElementById('toggle-v3-key');
+                var allBtn = document.getElementById('toggle-v3-all');
+                if (keyBtn && allBtn) {
+                    keyBtn.addEventListener('click', function () {
+                        keyBtn.classList.add('active');
+                        allBtn.classList.remove('active');
+                        activeToggleV3 = 'key';
+                        renderExplorer();
+                    });
+                    allBtn.addEventListener('click', function () {
+                        allBtn.classList.add('active');
+                        keyBtn.classList.remove('active');
+                        activeToggleV3 = 'all';
+                        renderExplorer();
+                    });
+                }
+            }
+
+            function setupDrawer() {
+                var closeBtn = document.getElementById('detailDrawerClose');
+                var overlay = document.getElementById('detailDrawerOverlay');
+                if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+                if (overlay) overlay.addEventListener('click', closeDrawer);
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') closeDrawer();
+                });
+            }
+
+            function setupScenarioCards() {
+                document.querySelectorAll('.scenario-card').forEach(function (card) {
+                    card.addEventListener('click', function (e) {
+                        if (e.target.tagName === 'A' || e.target.closest('a') || e.target.tagName === 'SUMMARY' || e.target.closest('summary')) return;
+                        var h3 = card.querySelector('h3');
+                        if (!h3) return;
+
+                        var text = h3.innerText.trim();
+                        var scId = mapTitleToScenario(text);
+                        if (scId) {
+                            e.preventDefault();
+                            activeVariant = 'v4';
+                            activeScenarioV4 = scId;
+
+                            document.querySelectorAll('.variant-btn').forEach(function (b) {
+                                if (b.id === 'var-btn-v4') b.classList.add('active');
+                                else b.classList.remove('active');
+                            });
+
+                            document.querySelectorAll('.scenario-pill-btn').forEach(function (b) {
+                                if (b.getAttribute('data-id') === scId) b.classList.add('active');
+                                else b.classList.remove('active');
+                            });
+
+                            renderExplorer();
+                            document.querySelector('.explorer-panel').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    });
+                });
+            }
+
+            // Fetch and parse canonical FEATURES.md
+            fetch(featuresPage)
+                .then(function (r) { return r.text(); })
+                .then(function (text) {
+                    // GitHub Pages serves FEATURES only as Jekyll's rendered page, never as markdown source,
+                    // so the explorer reads the rendered headings and list items.
+                    var page = new DOMParser().parseFromString(text, 'text/html');
+                    var main = page.querySelector('.main-content') || page.body;
+                    document.getElementById('full-features-content').innerHTML = main.innerHTML;
+
+                    var currentCategory = null;
+                    var currentAnchor = null;
+                    var rank = 0;
+                    main.querySelectorAll('h2, li').forEach(function (node) {
+                        if (node.tagName === 'H2') {
+                            var heading = node.textContent.trim();
+                            currentCategory = /^\d+\./.test(heading) ? heading : null;
+                            currentAnchor = headingAnchor(node);
+                            rank = 0;
+                            return;
+                        }
+                        if (!currentCategory) return;
+                        var body = node.cloneNode(true);
+                        var strong = body.querySelector(':scope > strong');
+                        if (!strong) return;
+                        var title = strong.textContent.trim();
+                        if (hiddenFeatureTitles.indexOf(title) !== -1) return;
+                        body.removeChild(strong);
+
+                        var tag = 'Standard / VR';
+                        var code = body.querySelector(':scope > code');
+                        if (code && /^\[.*\]$/.test(code.textContent.trim())) {
+                            tag = code.textContent.trim().slice(1, -1);
+                            body.removeChild(code);
+                        }
+
+                        allFeatures.push({
+                            category: currentCategory,
+                            anchor: currentAnchor,
+                            title: title,
+                            tag: tag,
+                            desc: body.innerHTML.trim().replace(/^:\s*/, ''),
+                            text: body.textContent.trim().replace(/^:\s*/, ''),
+                            isKey: rank < KEY_FEATURES_PER_PILLAR
+                        });
+                        rank++;
+                    });
+
+                    // Initialize
+                    setupSwitcher();
+                    buildScenarioPills();
+                    setupDrawer();
+                    setupScenarioCards();
+                    renderExplorer();
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    document.getElementById('featureExplorerGrid').innerHTML =
+                        '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">Échec du chargement de l’inventaire des fonctionnalités. Veuillez actualiser la page.</div>';
+                });
+
+            // Tabs events wiring
+            document.getElementById('tab-all').addEventListener('click', function (e) {
+                document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+                e.target.classList.add('active');
+                activeFilter = 'all';
+                renderExplorer();
+            });
+
+            document.getElementById('tab-standard').addEventListener('click', function (e) {
+                document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+                e.target.classList.add('active');
+                activeFilter = 'standard';
+                renderExplorer();
+            });
+
+            document.getElementById('tab-vr').addEventListener('click', function (e) {
+                document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+                e.target.classList.add('active');
+                activeFilter = 'vr';
+                renderExplorer();
+            });
+
+            // Search input wiring
+            document.getElementById('featureSearch').addEventListener('input', function (e) {
+                searchQuery = e.target.value;
+                renderExplorer();
+            });
+        }());
+    </script>
+
+    <!-- Detail Drawer Overlay and Container for Variant 2 (S0387) -->
+    <div class="detail-drawer-overlay" id="detailDrawerOverlay"></div>
+    <div class="detail-drawer" id="detailDrawer">
+        <div class="detail-drawer-header">
+            <h3 id="drawerTitle">Détails de la fonctionnalité</h3>
+            <button class="detail-drawer-close" id="detailDrawerClose">&times;</button>
+        </div>
+        <div class="detail-drawer-body">
+            <div class="detail-drawer-cat" id="drawerCat">Catégorie</div>
+            <div class="detail-drawer-desc" id="drawerDesc">Description..</div>
+            <div id="drawerLinks"></div>
+        </div>
+    </div>
+
+    <!-- SZA Web Kit: theme toggle -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (!btn) return;
+            var meta = document.querySelector('meta[name="theme-color"]');
+            function apply(t) {
+                document.documentElement.setAttribute('data-theme', t);
+                try { localStorage.setItem('sza-theme', t); } catch (e) { }
+                var dark = t === 'dark';
+                if (meta) meta.setAttribute('content', dark ? '#0a0f0a' : '#eef3ea');
+                btn.setAttribute('aria-label', dark ? 'Passer au thème clair' : 'Passer au thème sombre');
+            }
+            btn.addEventListener('click', function () {
+                var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+                apply(cur === 'light' ? 'dark' : 'light');
+            });
+        }());
+    </script>
+</body>
+
+</html>

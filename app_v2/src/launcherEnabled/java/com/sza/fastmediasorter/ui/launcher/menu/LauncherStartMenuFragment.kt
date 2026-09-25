@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.ui.common.dialog.BaseAppBottomSheet
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherModalSurfaceManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarEdge
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -78,7 +79,7 @@ class LauncherStartMenuFragment : BaseAppBottomSheet() {
      * keyboard contract.
      */
     override val usesShell: Boolean
-        get() = !viewModel.taskbarAtTop.value
+        get() = viewModel.taskbarEdge.value == LauncherTaskbarEdge.BOTTOM
 
     override fun bindContent(content: View) {
         _binding = FragmentLauncherStartMenuBinding.bind(content)
@@ -93,20 +94,37 @@ class LauncherStartMenuFragment : BaseAppBottomSheet() {
      * The bottom placement keeps the Material bottom sheet untouched, so that branch delegates upward
      * unchanged. The top placement gets a floating window pinned under the Start button instead: a sheet
      * anchored to the opposite screen edge would leave the menu as far from its own button as the layout
-     * allows.
+     * allows. S3523: a side placement reuses that window, pinned beside the button on the desktop side and
+     * top-aligned with it.
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        if (!viewModel.taskbarAtTop.value) {
+        val edge = viewModel.taskbarEdge.value
+        Timber.d("S3523: start menu opened for taskbar edge=$edge")
+        if (edge == LauncherTaskbarEdge.BOTTOM) {
             return super.onCreateDialog(savedInstanceState)
         }
         return Dialog(requireContext(), R.style.Theme_FastMediaSorter_Launcher_TopPanel).apply {
             window?.let { panel ->
-                panel.setGravity(Gravity.TOP or Gravity.START)
+                panel.setGravity(Gravity.TOP or if (edge == LauncherTaskbarEdge.RIGHT) Gravity.END else Gravity.START)
                 panel.setLayout(
                     WindowManager.LayoutParams.WRAP_CONTENT,
                     WindowManager.LayoutParams.WRAP_CONTENT,
                 )
-                panel.attributes = panel.attributes.apply { y = startButtonBottom() }
+                val anchor = startButtonBounds()
+                panel.attributes = panel.attributes.apply {
+                    when (edge) {
+                        LauncherTaskbarEdge.LEFT -> {
+                            x = anchor.right
+                            y = anchor.top
+                        }
+                        // With END gravity the window's x offset counts from the right screen edge.
+                        LauncherTaskbarEdge.RIGHT -> {
+                            x = anchor.fromRight
+                            y = anchor.top
+                        }
+                        else -> y = anchor.bottom
+                    }
+                }
             }
         }
     }
@@ -117,12 +135,26 @@ class LauncherStartMenuFragment : BaseAppBottomSheet() {
      * neither is knowable from resources alone. A missing anchor yields the top edge, which is where the
      * panel would sit anyway before the bar has been laid out.
      */
-    private fun startButtonBottom(): Int {
-        val anchor = activity?.findViewById<View>(R.id.btnStart) ?: return 0
+    private fun startButtonBounds(): StartButtonBounds {
+        val anchor = activity?.findViewById<View>(R.id.btnStart) ?: return StartButtonBounds()
         val location = IntArray(2)
         anchor.getLocationInWindow(location)
-        return location[1] + anchor.height
+        val windowWidth = anchor.rootView.width
+        return StartButtonBounds(
+            top = location[1],
+            bottom = location[1] + anchor.height,
+            right = location[0] + anchor.width,
+            fromRight = (windowWidth - location[0]).coerceAtLeast(0),
+        )
     }
+
+    /** S3523: the Start button's edges in window coordinates; [fromRight] is its left edge measured from the right. */
+    private data class StartButtonBounds(
+        val top: Int = 0,
+        val bottom: Int = 0,
+        val right: Int = 0,
+        val fromRight: Int = 0,
+    )
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

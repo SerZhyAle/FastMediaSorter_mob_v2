@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
+import android.content.res.AssetManager
 import com.sza.fastmediasorter.core.xr.VrProfileSettingsSync
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.data.preset.DeviceProfilePresetApplier
@@ -22,6 +23,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 
 class ApplyProfilePresetUseCaseTest {
 
@@ -320,5 +322,31 @@ class ApplyProfilePresetUseCaseTest {
         val result = applier.applyOverride(current, "screenshotGesturePayloadLeftTopDown", "com.example/Activity")
 
         assertEquals("kept", result.screenshotGesture.payloadLeftTopDown)
+    }
+
+    // S3524: pins the shipped car column itself, not a mocked slice - an edit to the asset that moves
+    // the taskbar down or re-enables the blackout on a head unit fails here.
+    @Test
+    fun `car head unit preset opens the launcher with a top taskbar, no battery and no blackout`() {
+        val assetManager = mockk<AssetManager> {
+            every { open(any<String>()) } answers { File(PRESET_ASSET).inputStream() }
+        }
+        val context = mockk<Context> { every { assets } returns assetManager }
+        val carOverrides = DeviceProfilePresetCsvDataSource(context).load()
+            .getValue(DeviceProfileType.CAR_HEAD_UNIT)
+
+        val saved = carOverrides.entries.fold(AppSettings()) { acc, (field, raw) ->
+            applier.applyOverride(acc, field, raw)
+        }
+
+        assertEquals(AppSettings.LAUNCHER_TASKBAR_PLACEMENT_TOP, saved.launcherTaskbarPlacement)
+        assertEquals(false, saved.launcherTrayShowBattery)
+        assertEquals(0, saved.launcherScreenBlackoutTimeoutSeconds)
+        assertEquals(0, saved.launcherScreenBlackoutTimeoutOnChargeSeconds)
+    }
+
+    private companion object {
+        // Gradle runs unit tests from the module directory.
+        const val PRESET_ASSET = "src/main/assets/device_profile_presets.csv"
     }
 }

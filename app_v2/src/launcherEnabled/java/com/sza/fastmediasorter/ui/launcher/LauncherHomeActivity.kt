@@ -504,6 +504,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         placementManager = LauncherTaskbarPlacementManager(
             lifecycleOwner = this,
             root = binding.launcherRoot,
+            onEdge = taskbarManager::setEdge,
         )
         attachScrollThumb()
         attachEditMode()
@@ -575,6 +576,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             onOpenAllApps = modalSurfaces::showAllApps,
             onNextScreen = { pagingManager.next() },
             onPreviousScreen = { pagingManager.previous() },
+            onBlackScreen = ::showBlackScreen,
         )
         desktopGestureManager = LauncherAllAppsGestureManager(
             container = binding.launcherDesktop,
@@ -713,7 +715,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             pinned = viewModel.pinnedIcons,
             composition = viewModel.taskbarComposition,
         )
-        placementManager.bind(viewModel.taskbarAtTop)
+        placementManager.bind(viewModel.taskbarEdge)
         collectOnLifecycle(viewModel.launcherDesktopSettings) {
             pagingManager.refresh()
             geometryManager.renderDesktop(pagingManager.activeScreenIndex)

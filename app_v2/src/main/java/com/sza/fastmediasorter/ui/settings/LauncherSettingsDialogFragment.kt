@@ -292,6 +292,8 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             listOf(
                 getText(R.string.launcher_settings_taskbar_placement_bottom),
                 getText(R.string.launcher_settings_taskbar_placement_top),
+                getText(R.string.launcher_settings_taskbar_placement_left),
+                getText(R.string.launcher_settings_taskbar_placement_right),
             )
         )
         binding.rowLauncherTaskbarPlacement.setOnItemSelectedListener { index ->

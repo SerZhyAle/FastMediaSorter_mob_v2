@@ -10,7 +10,7 @@ flavor: Standard and noLegal
 recipe_number: "07"
 canonical_url: documentation/launcher/desktop-gestures-and-shortcuts.html
 why: |
-  A swipe from the edge of the screen can take a screenshot, open the camera or launch your favourite app - from inside any app, not only from the desktop. Add the desktop's own swipes and taps on top of that, and most things you reach for often are one gesture away, with nothing extra to unlock or tap through first.
+  A swipe from the edge of the screen can take a screenshot, open the camera or launch your favorite app - from inside any app, not only from the desktop. Add the desktop's own swipes and taps on top of that, and most things you reach for often are one gesture away, with nothing extra to unlock or tap through first.
 ingredients:
   - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with **Gesture overlay** turned on in **Settings**, the **Destinations** tab. Turning it on asks for the **Display over other apps** permission, since [edge gestures](term:edge-gesture) work over any app."
   - "The [launcher](term:launcher) [desktop](term:desktop) open for its own swipes and taps - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
@@ -19,13 +19,13 @@ steps:
     id: configure-gestures
     title: Open the gesture map
     text: |
-      Go to **Settings**, the **Destinations** tab, and tap **Configure gestures**. A full-screen map shows the four gesture zones - grey where a zone is free, red where it already carries an action - and tapping a zone opens it straight away. Four tabs - **Left top**, **Left bottom**, **Right top** and **Right bottom** - each hold an **Up gesture action**, a **Down gesture action** and a **Right gesture action**, with the target row underneath. A fifth area, **General gesture settings**, holds what every zone shares - where screenshots are saved, whether they also copy to the clipboard, and the quick-access panel editor. Turn the device sideways and the map switches to two columns so both edges stay in view.
+      Go to **Settings**, the **Destinations** tab, and tap **Configure gestures**. A full-screen map shows the four gesture zones - gray where a zone is free, red where it already carries an action - and tapping a zone opens it straight away. Four tabs - **Left top**, **Left bottom**, **Right top** and **Right bottom** - each hold an **Up gesture action**, a **Down gesture action** and a **Right gesture action**, with the target row underneath. A fifth area, **General gesture settings**, holds what every zone shares - where screenshots are saved, whether they also copy to the clipboard, and the quick-access panel editor. Turn the device sideways and the map switches to two columns so both edges stay in view.
     image_bookmark:
       shot_id: gestures.edge-gesture-zone-map
       device_profile: phone
       screen_state: settings-edge-gesture-zone-map
-      alt: The Edge gestures full-screen map with four zone tabs, grey and red zone indicators, and the General gesture settings group
-      caption: "The edge-gesture map: grey is free, red is already assigned."
+      alt: The Edge gestures full-screen map with four zone tabs, gray and red zone indicators, and the General gesture settings group
+      caption: "The edge-gesture map: gray is free, red is already assigned."
       title: "Screenshot: Edge gesture map"
       desc: Configure gestures dialog, zone map with tabs for the four edge bands, portrait.
   - number: 2
@@ -73,7 +73,7 @@ steps:
     id: clock-gestures
     title: Swipe the clock to change how it looks
     text: |
-      The **Clock** [gadget](term:gadget) answers its own swipes: hide or bring back the seconds, or swipe for a random dial colour and time typeface, or swipe back to the theme colour. The date keeps its own typeface while sharing whichever dial colour you land on, and the choice survives a launcher restart.
+      The **Clock** [gadget](term:gadget) answers its own swipes: hide or bring back the seconds, or swipe for a random dial color and time typeface, or swipe back to the theme color. The date keeps its own typeface while sharing whichever dial color you land on, and the choice survives a launcher restart.
   - number: 8
     id: double-tap-lock
     title: Double-tap to lock the screen

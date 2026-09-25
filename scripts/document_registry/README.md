@@ -76,10 +76,22 @@ stay untouched.
 3. Run `pwsh -NoProfile -File scripts/docs/generate-site-languages.ps1`, which rewrites
    `_data/languages.yml`. `scripts/quality/assert-site-languages-current.ps1` refuses a stale copy at
    release scope.
-4. Create one localized file per page of the localized page set, named `<page>-<slug>.md` (the slug is
-   the tag lowercased: `zh-hans`), each with its own `permalink:` and the same
-   `{% include lang-switcher.html .. %}` line as its English sibling, `current=` set to the new tag. The
-   switcher lists a language only once its file exists, so a partly translated set still publishes.
-5. Add the tag to the `languages` field of each affected record in `docs/DOCUMENT_REGISTRY.jsonl`, then
+4. Run `pwsh -NoProfile -File scripts/utils/new-localized-page.ps1 -Language <tag>`. It scaffolds
+   `<page>-<slug>.md` beside every English document of the set in `scripts/docs/localized-page-set.json`
+   (the slug is the tag lowercased: `zh-hans`), each with its own `permalink:`, the switcher include and
+   a `lang`/`dir` container, and the body `TODO(S1211-translate)`. Replace every body with the
+   translation. The switcher lists a language only once its file exists.
+5. Translate the landing page into `_data/landing/<slug>.json` - the keys are the English segments of
+   `_data/landing/en.json` (`generate-landing-pages.ps1 -Extract` refreshes it), copied exactly. A
+   segment left out renders in English, so a partial translation still publishes. Then run
+   `pwsh -NoProfile -File scripts/site/generate-landing-pages.ps1`, which writes `index-<slug>.html`
+   as finished HTML, so the PAGE-STYLE / PAGE-CONTENT / SITE-FAMILY-MAP gates keep reading real pages.
+6. Add the tag to the `languages` field (and `localized_urls`) of the `site-landing` and `user-guides`
+   records in `docs/DOCUMENT_REGISTRY.jsonl`, add `index-<slug>.html` to `site-landing`'s paths, then
    run `pwsh -NoProfile -File scripts/document_registry/generate.ps1` so `docs/DOCS_MAP.md` and
    `sitemap.xml` list the new pages, and `validate.ps1` to confirm.
+
+Two release-scope gates judge the result: `scripts/quality/assert-site-languages-current.ps1` (the
+language list against the app) and `scripts/quality/assert-localized-page-set.ps1` (every language
+carries every page, none left as a scaffold). Right-to-left is a property of the language entry
+(`dir: rtl`): a direction fix belongs in `styles.css` under `[dir="rtl"]`, never in a page.

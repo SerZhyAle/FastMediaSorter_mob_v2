@@ -96,7 +96,7 @@ steps:
     text: |
       FastMedia Wear has its own **System information** screen in the list of watch programs, next to About. It shows the watch model, the Wear OS version, the app version, free memory and storage, and whether a phone is connected.
 
-      From that screen you can send the report to the phone. The phone then shows a notification, **Watch report received** - **Tap to open or send the report** - and keeps the report next to its own logs, so you can send both together. More about the watch programs: [Wrist mini-apps, timers and tools](page:wear.wrist-mini-apps-and-tools).
+      From that screen you can send the report to the phone. The phone then shows a notification, **Watch report received** - **Tap to open or send the report** - and keeps the report next to its own logs, so you can send both together. More about the watch programs: [Wrist programs, timers and tools](page:wear.wrist-mini-apps-and-tools).
 outcome: |
   You can tell the author in one message what phone you have, which build you run and what the app was doing when it went wrong - without giving away a single password.
 tips:

@@ -20,15 +20,15 @@ steps:
     id: pin-a-channel
     title: Pin a channel to the top of your list
     text: |
-      Long-press a channel's row or tile, or tap the small pin icon on a list row, and the channel jumps to a **Pinned** section at the top of Streams. The pin icon fills in and changes colour once a channel is pinned, so you can tell pinned channels apart from the rest at a glance. Long-press again, or tap the same pin icon, to unpin it.
+      Long-press a channel's row or tile, or tap the small pin icon on a list row, and the channel jumps to a **Pinned** section at the top of Streams. The pin icon fills in and changes color once a channel is pinned, so you can tell pinned channels apart from the rest at a glance. Long-press again, or tap the same pin icon, to unpin it.
     image_bookmark:
       shot_id: streams.pin-channel-long-press
       device_profile: phone
       screen_state: streams-list-pin-toggle
-      alt: A Streams list row with its pin icon filled in and coloured to show the channel is pinned
+      alt: A Streams list row with its pin icon filled in and colored to show the channel is pinned
       caption: "Long-press a channel, or tap its pin icon, to pin or unpin it."
       title: "Screenshot: Pinning a channel"
-      desc: Streams list view, one row's pin icon filled and coloured to indicate a pinned channel.
+      desc: Streams list view, one row's pin icon filled and colored to indicate a pinned channel.
   - number: 2
     id: pinned-badge-grid
     title: Spot a pinned channel in grid view
@@ -59,7 +59,7 @@ steps:
     id: reorder-pinned
     title: Put your pinned channels in the order you want
     text: |
-      With two or more channels pinned, each one's ⋮ menu gains three extra rows: **Move up**, **Move down** and **Move to top**. They move a channel only within the pinned block, and grey out at the ends - Move up and Move to top on the first pinned channel, Move down on the last - so there is never a row to tap that would not do anything. The order you set here is the same order the [streams panel](term:streams-panel) on the [main screen](page:getting-started.main-screen-overview) plays your pinned channels in.
+      With two or more channels pinned, each one's ⋮ menu gains three extra rows: **Move up**, **Move down** and **Move to top**. They move a channel only within the pinned block, and gray out at the ends - Move up and Move to top on the first pinned channel, Move down on the last - so there is never a row to tap that would not do anything. The order you set here is the same order the [streams panel](term:streams-panel) on the [main screen](page:getting-started.main-screen-overview) plays your pinned channels in.
     image_bookmark:
       shot_id: streams.reorder-pinned-menu
       device_profile: phone
@@ -95,10 +95,10 @@ steps:
       title: "Screenshot: Add channel to favorites"
       desc: Streams screen, a channel's overflow menu open with the Add to favorites row visible.
 outcome: |
-  You can pin the channels you check every day to the top of Streams in the order you want, tell a pinned channel apart at a glance in either view, narrow the list down to pinned-only, and keep a separate, shared shortlist of favourite channels alongside your favourite files.
+  You can pin the channels you check every day to the top of Streams in the order you want, tell a pinned channel apart at a glance in either view, narrow the list down to pinned-only, and keep a separate, shared shortlist of favorite channels alongside your favorite files.
 tips:
-  - "**A channel's pin, its place in the pinned order, its favourite star and its play history all survive small address changes.** When the catalog republishes a channel under a cosmetically different address - https instead of http, a trailing slash added, the port spelled out - FastMediaSorter still recognises it as the same channel, so none of that resets."
-  - "**Tapping the favourite star again never creates a second entry.** It always toggles the one Favorites entry you already have for that channel, even after an address like the above changes underneath it."
+  - "**A channel's pin, its place in the pinned order, its favorite star and its play history all survive small address changes.** When the catalog republishes a channel under a cosmetically different address - https instead of http, a trailing slash added, the port spelled out - FastMediaSorter still recognizes it as the same channel, so none of that resets."
+  - "**Tapping the favorite star again never creates a second entry.** It always toggles the one Favorites entry you already have for that channel, even after an address like the above changes underneath it."
   - "**Favorites row missing from a channel's menu?** Turn on **Enable Favorites** in Settings first - the row only appears once Favorites itself is on."
   - "**Want to know why a tile looks the way it does?** Pinning and favouriting never touch a channel's picture - see [Channel Pictures, Logos and Badges](page:streams.channel-pictures-and-badges)."
 next_recipes:

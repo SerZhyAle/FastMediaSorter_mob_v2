@@ -55,6 +55,7 @@
       - assert-page-content            (S3452 no emoji in markup or scripts, header link to #get, above-the-fold order)
       - assert-site-family-map         (S3454 footer grid vs its one source vs the catalog map, one contact)
       - assert-site-languages-current  (S1211 _data/languages.yml vs a fresh render of locales_config.xml)
+      - assert-localized-page-set      (S1211 every site language carries every page of the Localized Page Set)
       - assert-positioning-consistency (S2271 site, READMEs, showcase, replaces and listings name the eight pillars in order)
 
     Where every gate belongs, and who decided it: scripts/quality/gate-placement.jsonl (S2870).
@@ -374,6 +375,10 @@ $gates = [ordered]@{
     # subject is the site's whole language composition, and a stale list reaches a reader only when
     # the site is published.
     'assert-site-languages-current.ps1' = @('-Quiet')
+    # S1211. Every non-English site language carries the landing page and every document of the
+    # Localized Page Set, none left as a scaffold. Release scope for the same reason as its
+    # neighbour: a ticket adding an app locale changes the site composition without naming a page.
+    'assert-localized-page-set.ps1'    = @('-Quiet')
     # S2271. Every positioning surface names the eight pillars of docs/POSITIONING*.md in canonical
     # order. Release scope: its subject is the agreement between surfaces owned by different tickets,
     # and a drifted surface reaches a reader only when the site or a listing is published. Left out of

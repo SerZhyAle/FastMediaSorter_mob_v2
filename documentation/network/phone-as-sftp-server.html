@@ -1,0 +1,662 @@
+---
+permalink: /documentation/network/phone-as-sftp-server.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turning the Phone into an SFTP Server - Fast Media Sorter</title>
+    <meta name="description" content="How to share folders from this phone itself, so another device on the network can browse, download, upload, rename and delete inside them over SFTP - picking folders with the system folder picker, signing in with a password or an SSH key, and pairing another FastMediaSorter with a QR code.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html">
+    <meta property="og:title" content="Turning the Phone into an SFTP Server - Fast Media Sorter">
+    <meta property="og:description" content="How to share folders from this phone itself, so another device on the network can browse, download, upload, rename and delete inside them over SFTP - picking folders with the system folder picker, signing in with a password or an SSH key, and pairing another FastMediaSorter with a QR code.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/assets/images/network/phone-as-sftp-server-shared-folders.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Turning the Phone into an SFTP Server - Fast Media Sorter">
+    <meta name="twitter:description" content="How to share folders from this phone itself, so another device on the network can browse, download, upload, rename and delete inside them over SFTP - picking folders with the system folder picker, signing in with a password or an SSH key, and pairing another FastMediaSorter with a QR code.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/assets/images/network/phone-as-sftp-server-shared-folders.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Documentation",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Turning the Phone into an SFTP Server",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html"
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "name": "Turning the Phone into an SFTP Server",
+      "description": "How to share folders from this phone itself, so another device on the network can browse, download, upload, rename and delete inside them over SFTP - picking folders with the system folder picker, signing in with a password or an SSH key, and pairing another FastMediaSorter with a QR code.",
+      "inLanguage": "en",
+      "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/assets/images/network/phone-as-sftp-server-shared-folders.png",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Turn the server on",
+          "text": "Open Settings, the General tab, and find the Share over SFTP card. Switch on SFTP server - \u0022Other devices on your network can open the folders you pick\u0022 - and the status line below moves from Off to Starting.. and then to Running at 192.168.1.42:2222, its address and port. Turning it on with nothing shared yet, or with no way to sign in configured, is caught before it starts: \u0022Add at least one folder to share, then turn the server on\u0022 or \u0022Add a public key or switch to password login, then turn the server on.\u0022 A phone with no Wi-Fi connection can still switch the server on, but it says so plainly: \u0022Running, but the phone is not on Wi-Fi - other devices cannot reach it yet.\u0022 A foreground notification, \u0022SFTP server is on\u0022, stays up the whole time with the address to connect to and a one-tap Stop button.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html#turn-on"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Choose which folders to share",
+          "text": "Under Shared folders, tap Add folder to open the system\u0027s own folder picker and choose a folder on the phone or its memory card. Until you add one, the section simply reads \u0022No folders yet - add one to share it.\u0022 Each folder you add gets its own row with a remove button next to it, and the grant survives a restart, so the same folders are still shared after the phone reboots. A folder you add while the server is already running joins it immediately - no need to turn the server off and on again for a new folder.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html#pick-folders"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Decide how people sign in",
+          "text": "Right below the folder list, choose Password or SSH key. With Password, the app already generated one; tap New password any time to replace it. With SSH key, paste the public keys of whoever should connect into Public keys, one per line - the phone never needs their private key, only what proves it. While the server is running, the current sign-in details are shown right there: \u0022Login: fms, password: 7f3kQ2mN\u0022 or \u0022Login: fms, sign in with your SSH key\u0022 - so you can read them off to whoever is connecting without hunting for them elsewhere. The login name itself is fixed; only the password or the accepted keys change.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html#choose-login"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Change a setting without losing the connection",
+          "text": "The Port field defaults to a free one and can be changed - a port already used by another app is refused, for example \u0022Port 2222 is taken by another app - choose another port\u0022, and a value outside the allowed range with \u0022Use a port from 1024 to 65535.\u0022 Changing the port, the sign-in mode or the keys while the server is already running does not restart it on its own: \u0022Turn the server off and on again to apply the change\u0022 - so a client already connected is not dropped by a setting you are still adjusting.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html#change-while-running"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "Pair another FastMediaSorter with a scan",
+          "text": "While the server is running, tap Show pairing code to reveal a QR code - \u0022Pairing code: scan it in FastMediaSorter on another device\u0022 - and Hide pairing code to put it away again. The code is rebuilt fresh every time you show it, so it always carries the server\u0027s current address and password. On the other device, open Add Resource, the SFTP / FTP card, and tap Import by barcode - the same scanner that reads a Windows companion code also recognizes this one. A message confirms the form was filled in: \u0022Connection details filled in from the pairing code - check them and save,\u0022 with the host, port, username, password or key and the server\u0027s host key already in place, suggested as \u0022Device server 192.168.1.42.\u0022 Review it and save - the host key is pinned from that first scan, so a later attempt from a different machine using the same address is refused rather than silently accepted. A damaged or incomplete code is called out too: \u0022This code is not a complete FastMediaSorter pairing code - show it again on the server phone and rescan.\u0022",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html#pair-by-qr"
+        }
+      ]
+    }
+  ]
+}
+    </script>
+
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            </div>
+
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Search...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
+                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
+                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../../index.html">Home</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="../index.html">Documentation</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span>Network & Cloud</span>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Turning the Phone into an SFTP Server</span>
+        </nav>
+
+        <div class="doc-grid">
+
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../index.html" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="../sample-recipe.html" class="doc-sidebar-link ">Audio Recipe</a></li>
+                        <li><a href="../sample-settings-recipe.html" class="doc-sidebar-link ">Settings Recipe</a></li>
+                        <li><a href="../sample-program-recipe.html" class="doc-sidebar-link ">Programs Recipe</a></li>
+                        <li><a href="../design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Media Categories</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="../index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="../index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Browsing & Sorting</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../browsing/grid-and-list-views.html" class="doc-sidebar-link">Grid and list views</a></li>
+                        <li><a href="../browsing/sorting-and-filtering.html" class="doc-sidebar-link">Sort, filter and search</a></li>
+                        <li><a href="../browsing/batch-selection.html" class="doc-sidebar-link">Select and batch actions</a></li>
+                        <li><a href="../browsing/media-indexing-and-caching.html" class="doc-sidebar-link">Thumbnail caching</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Camera & Screen Capture</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../capture/quick-photo-capture.html" class="doc-sidebar-link">Quick photos and video snaps</a></li>
+                        <li><a href="../capture/camera-lenses-zoom-and-profiles.html" class="doc-sidebar-link">Lenses, zoom and shooting profiles</a></li>
+                        <li><a href="../capture/screenshot-annotation.html" class="doc-sidebar-link">Taking screenshots</a></li>
+                        <li><a href="../capture/screen-recording-and-audio.html" class="doc-sidebar-link">Screen and voice recording</a></li>
+                        <li><a href="../capture/edge-gestures-and-quick-access-panel.html" class="doc-sidebar-link">Edge gestures & quick-access panel</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Documents & Text Editor</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../documents/pdf-epub-viewing.html" class="doc-sidebar-link">Reading PDF documents</a></li>
+                        <li><a href="../documents/office-docs-support.html" class="doc-sidebar-link">EPUB books and Office documents</a></li>
+                        <li><a href="../documents/text-code-editor.html" class="doc-sidebar-link">Text and Markdown editor</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Editions, Extensions & Languages</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../flavors/overview-and-comparison.html" class="doc-sidebar-link">The seven editions</a></li>
+                        <li><a href="../flavors/extensions-and-plugins.html" class="doc-sidebar-link">Downloadable extensions</a></li>
+                        <li><a href="../flavors/multilingual-support.html" class="doc-sidebar-link">Language and units</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">General, Keyboard & TV</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/backup-and-restore.html" class="doc-sidebar-link">Backing up and restoring settings</a></li>
+                        <li><a href="../general/keyboard-dpad-tv-navigation.html" class="doc-sidebar-link">Keyboard, D-pad and TV control</a></li>
+                        <li><a href="../general/multi-window-and-foldables.html" class="doc-sidebar-link">Split-screen and foldables</a></li>
+                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and assistant actions</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../getting-started/welcome-and-setup.html" class="doc-sidebar-link">First launch and setup</a></li>
+                        <li><a href="../getting-started/permissions-guide.html" class="doc-sidebar-link">App permissions explained</a></li>
+                        <li><a href="../getting-started/main-screen-overview.html" class="doc-sidebar-link">The main screen at a glance</a></li>
+                        <li><a href="../getting-started/quick-tour.html" class="doc-sidebar-link">Quick product tour</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Images, Audio & Slideshow</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../images/viewer-and-gestures.html" class="doc-sidebar-link">Viewing photos and GIFs</a></li>
+                        <li><a href="../images/editing-photos.html" class="doc-sidebar-link">Editing photos and GIFs</a></li>
+                        <li><a href="../images/slideshow-and-transitions.html" class="doc-sidebar-link">Photo slideshows</a></li>
+                        <li><a href="../audio/playing-and-organizing-music.html" class="doc-sidebar-link">Playing music</a></li>
+                        <li><a href="../audio/playlists-and-audio-queues.html" class="doc-sidebar-link">Order, sleep timer, background</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Internet Streams</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../streams/channel-catalog-browsing.html" class="doc-sidebar-link">Browse the channel catalog</a></li>
+                        <li><a href="../streams/channel-pictures-and-badges.html" class="doc-sidebar-link">Channel pictures and badges</a></li>
+                        <li><a href="../streams/custom-m3u-playlists.html" class="doc-sidebar-link">Add your own streams</a></li>
+                        <li><a href="../streams/favorites-and-epg.html" class="doc-sidebar-link">Pin and favorite channels</a></li>
+                        <li><a href="../streams/live-stream-playback.html" class="doc-sidebar-link">Play live streams and radio</a></li>
+                        <li><a href="../streams/hls-dash-buffering.html" class="doc-sidebar-link">When the connection is weak</a></li>
+                        <li><a href="../streams/shortcuts-widget-and-panel.html" class="doc-sidebar-link">Shortcuts, widget and streams panel</a></li>
+                        <li><a href="../streams/tv-watch-vr-and-broadcast.html" class="doc-sidebar-link">TV, watch, VR and live broadcasts</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Desktop</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/desktop-grid-and-icons.html" class="doc-sidebar-link">Your launcher desktop</a></li>
+                        <li><a href="../launcher/wallpapers-and-live-backgrounds.html" class="doc-sidebar-link">Desktop wallpaper</a></li>
+                        <li><a href="../launcher/desktop-folders-and-pages.html" class="doc-sidebar-link">Arranging the desktop</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Gadgets and Widgets</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/built-in-gadgets.html" class="doc-sidebar-link">Desktop gadgets</a></li>
+                        <li><a href="../launcher/android-widgets-placement.html" class="doc-sidebar-link">Placing gadgets and widgets</a></li>
+                        <li><a href="../launcher/home-screen-widgets.html" class="doc-sidebar-link">Home screen widgets</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Launcher: Taskbar, Menus and Gestures</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/taskbar-and-dock.html" class="doc-sidebar-link">Taskbar and dock</a></li>
+                        <li><a href="../launcher/start-menu-and-all-apps.html" class="doc-sidebar-link">Start menu and All apps</a></li>
+                        <li><a href="../launcher/status-area-and-notifications.html" class="doc-sidebar-link">Status area and notifications</a></li>
+                        <li><a href="../launcher/desktop-gestures-and-shortcuts.html" class="doc-sidebar-link">Navigation gestures and shortcuts</a></li>
+                        <li><a href="../launcher/context-menus-and-actions.html" class="doc-sidebar-link">Context menus and fast actions</a></li>
+                        <li><a href="../launcher/screen-dimming-and-timeout.html" class="doc-sidebar-link">Screen dimming and timeout</a></li>
+                        <li><a href="../launcher/launcher-settings-and-reset.html" class="doc-sidebar-link">Launcher settings and reset</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Network & Cloud</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../network/smb-samba-shares.html" class="doc-sidebar-link">Connecting SMB shares</a></li>
+                        <li><a href="../network/sftp-ftp-servers.html" class="doc-sidebar-link">Connecting SFTP and FTP</a></li>
+                        <li><a href="../network/windows-companion.html" class="doc-sidebar-link">Fast Media Sorter for Windows</a></li>
+                        <li><a href="../network/phone-as-sftp-server.html" class="doc-sidebar-link active">Sharing folders from this phone</a></li>
+                        <li><a href="../network/cloud-google-drive.html" class="doc-sidebar-link">Google Drive integration</a></li>
+                        <li><a href="../network/cloud-dropbox-onedrive.html" class="doc-sidebar-link">Dropbox and OneDrive</a></li>
+                        <li><a href="../network/network-sync-and-cache.html" class="doc-sidebar-link">Keeping network folders up to date</a></li>
+                        <li><a href="../network/network-monitor.html" class="doc-sidebar-link">Checking your connection</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">OCR, Drawing & Sharing</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../tools/ocr-text-recognition.html" class="doc-sidebar-link">Text recognition (OCR)</a></li>
+                        <li><a href="../tools/inline-translation.html" class="doc-sidebar-link">Translating text on screen</a></li>
+                        <li><a href="../tools/drawing-and-image-markup.html" class="doc-sidebar-link">Drawing and image markup</a></li>
+                        <li><a href="../tools/fast-sharing-and-export.html" class="doc-sidebar-link">Sending files with Send to..</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Programs, Statistics and Diagnostics</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../programs/built-in-mini-apps.html" class="doc-sidebar-link">Built-in programs, lights, mirror and SOS</a></li>
+                        <li><a href="../programs/calculator-and-stopwatch.html" class="doc-sidebar-link">Calculator and stopwatch</a></li>
+                        <li><a href="../programs/mini-game.html" class="doc-sidebar-link">Mini-game</a></li>
+                        <li><a href="../programs/usage-statistics.html" class="doc-sidebar-link">Usage statistics</a></li>
+                        <li><a href="../programs/device-diagnostics-and-logs.html" class="doc-sidebar-link">System information and the debug log</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Settings & Navigation</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/settings-overview-and-search.html" class="doc-sidebar-link">Settings overview and search</a></li>
+                        <li><a href="../settings/display-and-appearance.html" class="doc-sidebar-link">Themes, colors, language and units</a></li>
+                        <li><a href="../settings/playback-and-sorting-preferences.html" class="doc-sidebar-link">Playback, power and everyday behavior</a></li>
+                        <li><a href="../settings/privacy-and-network-security.html" class="doc-sidebar-link">Privacy and error reports</a></li>
+                        <li><a href="../settings/backup-and-device-sync.html" class="doc-sidebar-link">Backing up and syncing your device</a></li>
+                        <li><a href="../settings/controls-and-key-remapping.html" class="doc-sidebar-link">Controls and key remapping</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Sources, Destinations & File Operations</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../storage/storage-sources-setup.html" class="doc-sidebar-link">Adding folders from this device</a></li>
+                        <li><a href="../storage/network-and-cloud-sources.html" class="doc-sidebar-link">Adding network folders and clouds</a></li>
+                        <li><a href="../storage/sharing-and-backing-up-resources.html" class="doc-sidebar-link">Sharing and backing up resources</a></li>
+                        <li><a href="../storage/destination-targets-setup.html" class="doc-sidebar-link">Quick Sort destinations</a></li>
+                        <li><a href="../storage/file-copy-move-delete.html" class="doc-sidebar-link">Copy, move and delete</a></li>
+                        <li><a href="../storage/background-transfers.html" class="doc-sidebar-link">Background transfers</a></li>
+                        <li><a href="../storage/batch-renaming.html" class="doc-sidebar-link">Renaming files and folders</a></li>
+                        <li><a href="../storage/cleaning-up-space.html" class="doc-sidebar-link">Duplicates, big files and ZIP archives</a></li>
+                        <li><a href="../storage/scheduled-operations.html" class="doc-sidebar-link">Scheduled file operations</a></li>
+                        <li><a href="../storage/capture-to-destination.html" class="doc-sidebar-link">Photos, videos and voice notes into a folder</a></li>
+                        <li><a href="../storage/file-encryption-and-security.html" class="doc-sidebar-link">PIN and encrypted containers</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Video & Media Player</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../player/video-playback-controls.html" class="doc-sidebar-link">Watching videos</a></li>
+                        <li><a href="../player/subtitles-and-audio-tracks.html" class="doc-sidebar-link">Subtitles, audio tracks and 3D</a></li>
+                        <li><a href="../player/pip-and-background-play.html" class="doc-sidebar-link">Picture-in-picture and background</a></li>
+                        <li><a href="../player/casting-and-broadcast.html" class="doc-sidebar-link">Chromecast and live broadcast</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">VR and OpenXR</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../vr/headset-setup-and-openxr.html" class="doc-sidebar-link">Headset setup and OpenXR</a></li>
+                        <li><a href="../vr/spatial-cinema-playback.html" class="doc-sidebar-link">Spatial cinema playback</a></li>
+                        <li><a href="../vr/passthrough-and-controllers.html" class="doc-sidebar-link">Headset controls</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Wear OS Watch</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../wear/installation-and-pairing.html" class="doc-sidebar-link">Installing and pairing the watch</a></li>
+                        <li><a href="../wear/companion-data-sync.html" class="doc-sidebar-link">Syncing the phone and the watch</a></li>
+                        <li><a href="../wear/tiles-and-complications.html" class="doc-sidebar-link">Tiles and complications</a></li>
+                        <li><a href="../wear/wrist-mini-apps-and-tools.html" class="doc-sidebar-link">Wrist programs and tools</a></li>
+                        <li><a href="../wear/health-and-activity-metrics.html" class="doc-sidebar-link">Health and sensor info</a></li>
+                        <li><a href="../wear/watch-home-and-appearance.html" class="doc-sidebar-link">Home screen and appearance</a></li>
+                        <li><a href="../wear/watch-players-and-viewers.html" class="doc-sidebar-link">Players and viewers</a></li>
+                        <li><a href="../wear/phone-and-network-folders-on-watch.html" class="doc-sidebar-link">Phone and network folders on the watch</a></li>
+                        <li><a href="../wear/watch-listening-and-broadcast.html" class="doc-sidebar-link">Listening and broadcasting</a></li>
+                        <li><a href="../wear/watch-file-manager.html" class="doc-sidebar-link">Browsing files on the watch</a></li>
+                        <li><a href="../wear/standalone-music-playback.html" class="doc-sidebar-link">Playing music on the watch</a></li>
+                        <li><a href="../wear/wrist-stream-player.html" class="doc-sidebar-link">Streaming radio on your wrist</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Recipe Content -->
+            <main class="doc-content" id="main-content">
+
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="doc-badge doc-badge-standard">Network & Cloud</span>
+                    <span class="doc-badge doc-badge-standard">All editions except Lite; needs Android 8.0 or newer.</span>
+                    <span class="doc-badge doc-badge-sm">Recipe #04</span>
+                </div>
+
+                <h1>Turning the Phone into an SFTP Server</h1>
+
+                <p class="doc-lead">
+                    Share folders straight from this phone over SFTP - pick them with the folder picker, sign in with a password or an SSH key, and pair another FastMediaSorter in one scan instead of typing an address.
+                </p>
+
+                <h2 id="why">Why You'll Love This</h2>
+                        <p>Usually this app reaches out to a folder somewhere else - a PC, a NAS, a cloud account. Sometimes it is the other way around: the photos worth sharing are on the phone, and it is another device that should reach in and get them. Turn on the phone's own <span class="doc-link-term" data-term="sftp">SFTP</span> server, pick the folders to share, and any device that speaks SFTP - including another phone running this app - can open them.</p>
+
+                <!-- Prerequisite Card -->
+                <div class="doc-card-prereq">
+                    <div class="doc-card-prereq-title">
+                        <span class="doc-card-prereq-icon">✓</span>
+                        <span>Before You Begin: Ingredients &amp; Prerequisites</span>
+                    </div>
+                    <ul class="doc-prereq-list">
+                        <li><span class="doc-prereq-bullet">✓</span> This app in any <span class="doc-link-term" data-term="edition">edition</span> except Lite, on Android 8.0 (Oreo) or newer.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> The folders you want to share, picked through the system's own folder picker.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Either a password (the app can generate one) or the public half of an SSH key from whoever will connect.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> For pairing another FastMediaSorter with a scan: a camera on the connecting device.</li>
+                    </ul>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="doc-step" id="turn-on">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">1</span>
+                        <h2 class="doc-step-title">Turn the server on</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Open <strong>Settings</strong>, the <strong>General</strong> tab, and find the <strong>Share over SFTP</strong> card. Switch on <strong>SFTP server</strong> - "Other devices on your network can open the folders you pick" - and the status line below moves from <strong>Off</strong> to <strong>Starting..</strong> and then to <strong>Running at 192.168.1.42:2222</strong>, its address and port. Turning it on with nothing shared yet, or with no way to sign in configured, is caught before it starts: "Add at least one folder to share, then turn the server on" or "Add a public key or switch to password login, then turn the server on."</p>
+                        <p>A phone with no Wi-Fi connection can still switch the server on, but it says so plainly: "Running, but the phone is not on Wi-Fi - other devices cannot reach it yet." A foreground notification, "SFTP server is on", stays up the whole time with the address to connect to and a one-tap <strong>Stop</strong> button.</p>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="doc-step" id="pick-folders">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">2</span>
+                        <h2 class="doc-step-title">Choose which folders to share</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Under <strong>Shared folders</strong>, tap <strong>Add folder</strong> to open the system's own folder picker and choose a folder on the phone or its memory card. Until you add one, the section simply reads "No folders yet - add one to share it." Each folder you add gets its own row with a remove button next to it, and the grant survives a restart, so the same folders are still shared after the phone reboots.</p>
+                        <p>A folder you add while the server is already running joins it immediately - no need to turn the server off and on again for a new folder.</p>
+                        <figure class="doc-figure">
+                            <img src="../assets/images/network/phone-as-sftp-server-shared-folders.png" alt="The Share over SFTP card's Shared folders section with two folders added and their remove buttons, and the Add folder button" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Picking which folders the server shares.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="doc-step" id="choose-login">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">3</span>
+                        <h2 class="doc-step-title">Decide how people sign in</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Right below the folder list, choose <strong>Password</strong> or <strong>SSH key</strong>. With <strong>Password</strong>, the app already generated one; tap <strong>New password</strong> any time to replace it. With <strong>SSH key</strong>, paste the public keys of whoever should connect into <strong>Public keys, one per line</strong> - the phone never needs their private key, only what proves it.</p>
+                        <p>While the server is running, the current sign-in details are shown right there: "Login: fms, password: 7f3kQ2mN" or "Login: fms, sign in with your SSH key" - so you can read them off to whoever is connecting without hunting for them elsewhere. The login name itself is fixed; only the password or the accepted keys change.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="network.phone-as-sftp-server-auth-mode"
+                             data-device-profile="phone"
+                             data-screen-state="settings-sftp-server-auth-password-mode"
+                             data-alt="The Share over SFTP card's authentication section with Password selected, the New password button, and the running credentials line showing the login and password"
+                             data-caption="Password sign-in, with the current password shown while the server runs.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: SFTP server sign-in mode</strong>
+                                <p class="doc-img-bookmark-desc">Settings, General tab, Share over SFTP card, Password mode selected, server running, credentials line visible.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>network.phone-as-sftp-server-auth-mode</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="doc-step" id="change-while-running">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">4</span>
+                        <h2 class="doc-step-title">Change a setting without losing the connection</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>The <strong>Port</strong> field defaults to a free one and can be changed - a port already used by another app is refused, for example "Port 2222 is taken by another app - choose another port", and a value outside the allowed range with "Use a port from 1024 to 65535." Changing the port, the sign-in mode or the keys while the server is already running does not restart it on its own: "Turn the server off and on again to apply the change" - so a client already connected is not dropped by a setting you are still adjusting.</p>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="doc-step" id="pair-by-qr">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">5</span>
+                        <h2 class="doc-step-title">Pair another FastMediaSorter with a scan</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>While the server is running, tap <strong>Show pairing code</strong> to reveal a QR code - "Pairing code: scan it in FastMediaSorter on another device" - and <strong>Hide pairing code</strong> to put it away again. The code is rebuilt fresh every time you show it, so it always carries the server's current address and password.</p>
+                        <p>On the other device, open <strong>Add Resource</strong>, the <strong>SFTP / FTP</strong> card, and tap <strong>Import by barcode</strong> - the same scanner that reads a <span class="doc-link-term" data-term="windows-companion">Windows companion</span> code also recognizes this one. A message confirms the form was filled in: "Connection details filled in from the pairing code - check them and save," with the host, port, username, password or key and the server's host key already in place, suggested as "Device server 192.168.1.42." Review it and save - the host key is pinned from that first scan, so a later attempt from a different machine using the same address is refused rather than silently accepted. A damaged or incomplete code is called out too: "This code is not a complete FastMediaSorter pairing code - show it again on the server phone and rescan."</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="network.phone-as-sftp-server-pairing-qr"
+                             data-device-profile="phone"
+                             data-screen-state="settings-sftp-server-pairing-qr-visible"
+                             data-alt="The Share over SFTP card with the pairing QR code shown and the Hide pairing code button"
+                             data-caption="The pairing code, ready to scan from another device.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Screenshot: SFTP server pairing QR</strong>
+                                <p class="doc-img-bookmark-desc">Settings, General tab, Share over SFTP card, server running, pairing QR code revealed below the Hide pairing code button.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>network.phone-as-sftp-server-pairing-qr</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 id="outcome">What You Get</h2>
+                <div class="doc-callout doc-callout-note">
+                        <p>The phone shares exactly the folders you picked, with everyone else needing either a password or an accepted SSH key to get in, and pairing another FastMediaSorter takes one scan instead of typing an address by hand. A tap on Stop, in the app or the notification, ends it.</p>
+                </div>
+
+                <h2 id="tips">Tips and Troubleshooting</h2>
+                <div class="doc-callout doc-callout-tip">
+                    <ul>
+                        <li><strong>Bringing in a PC's folders instead?</strong> <a href="windows-companion.html" class="doc-link">Sharing PC folders with Fast Media Sorter for Windows</a> covers the same pairing idea from the other side.</li>
+                        <li><strong>Setting up a server by typing its address yourself?</strong> <a href="sftp-ftp-servers.html" class="doc-link">Connecting SFTP and FTP servers</a> covers that manual route, on either end of the connection.</li>
+                        <li><strong>New to SSH keys?</strong> The <a href="https://www.openssh.com/" target="_blank" rel="noopener" class="doc-link-external">OpenSSH</a> project's own documentation explains how a key pair works if the wording here is unfamiliar.</li>
+                    </ul>
+                </div>
+
+                <!-- What to Try Next Section -->
+                <div class="doc-next-section">
+                    <div class="doc-next-title">What to Try Next: Related Recipes</div>
+                    <div class="doc-next-grid">
+                        <a href="windows-companion.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
+                            <h4>Sharing PC Folders with Fast Media Sorter for Windows</h4>
+                            <p>The same idea in reverse - a Windows PC sharing folders to this phone.</p>
+                        </a>
+                        <a href="sftp-ftp-servers.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
+                            <h4>Connecting SFTP and FTP Servers</h4>
+                            <p>Add an SFTP or FTP server folder by hand, with a password or an SSH key.</p>
+                        </a>
+                        <a href="../storage/network-and-cloud-sources.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-other">Storage</span>
+                            <h4>Adding Network Folders and Cloud Storage as Sources</h4>
+                            <p>The overview of every kind of network and cloud place this app can open.</p>
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">On this page</div>
+                    <ul class="doc-toc-list">
+                        <li><a href="#why" class="doc-toc-link">Why You'll Love This</a></li>
+                        <li><a href="#turn-on" class="doc-toc-link">1. Turn the server on</a></li>
+                        <li><a href="#pick-folders" class="doc-toc-link">2. Choose which folders to share</a></li>
+                        <li><a href="#choose-login" class="doc-toc-link">3. Decide how people sign in</a></li>
+                        <li><a href="#change-while-running" class="doc-toc-link">4. Change a setting without losing the connection</a></li>
+                        <li><a href="#pair-by-qr" class="doc-toc-link">5. Pair another FastMediaSorter with a scan</a></li>
+                        <li><a href="#outcome" class="doc-toc-link">What You Get</a></li>
+                        <li><a href="#tips" class="doc-toc-link">Tips and Troubleshooting</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
+            <div class="doc-footer-links">
+                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../design-system/index.html">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive scripts: Theme switcher & 13-Language selector -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+        }());
+    </script>
+
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
+    <script src="../assets/wave-particles.js"></script>
+
+    <!-- In-browser Search Modal Engine -->
+    <script src="../assets/search.js"></script>
+</body>
+</html>

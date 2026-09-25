@@ -60,7 +60,7 @@ steps:
     id: battery-and-taps
     title: Read the battery, and tap an icon for its settings
     text: |
-      The battery number carries a lightning mark while charging, and its colour says how: green from the mains, blue over USB, purple on a wireless pad - the low-battery warning colour still wins below 15 percent. Tapping any status icon opens the matching Android settings screen directly: the battery icon opens battery settings, the network icon opens network settings, and so on for the rest of the row.
+      The battery number carries a lightning mark while charging, and its color says how: green from the mains, blue over USB, purple on a wireless pad - the low-battery warning color still wins below 15 percent. Tapping any status icon opens the matching Android settings screen directly: the battery icon opens battery settings, the network icon opens network settings, and so on for the rest of the row.
   - number: 5
     id: other-apps-notifications
     title: See other apps' notifications, without reading them

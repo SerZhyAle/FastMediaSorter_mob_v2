@@ -110,7 +110,7 @@ next_recipes:
     description: A full tour of the main screen you land on after setup.
   - title: Seven editions compared
     url: page:flavors.overview-and-comparison
-    badge: Flavors
+    badge: Editions
     badge_type: docs
     description: Which edition carries which capability, and how to tell them apart.
 ---

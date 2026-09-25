@@ -64,7 +64,7 @@ steps:
     text: |
       Share a contact with the launcher and it becomes a square that keeps working for that person, without asking for your address book up front.
 
-      Pin a contact from the add-item picker and choose what the square does: open their **Contact card**, **Call** them, **Send SMS**, or open **Message in an app** to jump straight into a messenger conversation. Call and SMS are hidden on a device with no telephony. The app reads the contact once, from the entry you pick in the system contact picker, and keeps a snapshot on the square - no contacts permission is needed just to pin one, and calling always goes through the number you actually chose. Until a photo is on file, or if you never grant the permission below, the square shows the person's initials over a colour that stays theirs.
+      Pin a contact from the add-item picker and choose what the square does: open their **Contact card**, **Call** them, **Send SMS**, or open **Message in an app** to jump straight into a messenger conversation. Call and SMS are hidden on a device with no telephony. The app reads the contact once, from the entry you pick in the system contact picker, and keeps a snapshot on the square - no contacts permission is needed just to pin one, and calling always goes through the number you actually chose. Until a photo is on file, or if you never grant the permission below, the square shows the person's initials over a color that stays theirs.
 
       Pinning a messenger square first asks **Which app should open the chat?** so you pick the app before the person; an **Any app** row keeps the older order of person-then-app, and the question is skipped when only one messenger is installed. If the person turns out to have no chat in the app you picked, the square's error message says which app that was.
 
@@ -73,10 +73,10 @@ steps:
       shot_id: launcher.contact-cell-live-photo
       device_profile: phone
       screen_state: launcher-contact-cell-pinned
-      alt: A pinned contact square on the launcher desktop showing the person's current photo and name, next to another showing coloured initials as a fallback
+      alt: A pinned contact square on the launcher desktop showing the person's current photo and name, next to another showing colored initials as a fallback
       caption: "A pinned contact square, kept current from the address book."
       title: "Screenshot: Contact square"
-      desc: Launcher desktop, a pinned contact square with a live photo next to one showing initials on a colour block, portrait.
+      desc: Launcher desktop, a pinned contact square with a live photo next to one showing initials on a color block, portrait.
   - number: 4
     id: places
     title: A place from the map

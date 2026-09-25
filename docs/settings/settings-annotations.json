@@ -1300,9 +1300,9 @@
     "uk": "Загальний вимикач блока трея лаунчера; перемикачі нижче вирішують, які індикатори до нього входять."
   },
   "rowLauncherTaskbarPlacement": {
-    "en": "Puts the taskbar with the Start button along the bottom or the top edge of the desktop.",
-    "ru": "Размещает панель задач с кнопкой «Пуск» у нижнего или у верхнего края рабочего стола.",
-    "uk": "Розміщує панель задач із кнопкою «Пуск» біля нижнього або верхнього краю робочого стола."
+    "en": "Puts the taskbar with the Start button along the bottom, top, left or right edge of the desktop; on the left or right it becomes a column.",
+    "ru": "Размещает панель задач с кнопкой «Пуск» у нижнего, верхнего, левого или правого края рабочего стола; слева и справа она становится колонкой.",
+    "uk": "Розміщує панель задач із кнопкою «Пуск» біля нижнього, верхнього, лівого або правого краю робочого стола; ліворуч і праворуч вона стає колонкою."
   },
   "rowLauncherTaskbarRows": {
     "en": "Sets how many rows tall the Start panel is drawn: a taller panel holds more recent apps and stacks the tray indicators one above another.",

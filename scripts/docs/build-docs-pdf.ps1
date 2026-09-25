@@ -48,11 +48,20 @@
 
 [CmdletBinding()]
 param(
-    [string]$OutputPath = 'documentation/assets/FastMediaSorter-Documentation.pdf',
+    [string]$Lang = 'en',
+    [string]$OutputPath,
     [string]$BrowserPath,
     [string]$WorkDir = 'temp/docs-pdf',
     [int]$TimeoutSeconds = 300
 )
+
+if (-not $OutputPath) {
+    if ($Lang -eq 'ru') {
+        $OutputPath = 'documentation/assets/FastMediaSorter-Documentation-ru.pdf'
+    } else {
+        $OutputPath = 'documentation/assets/FastMediaSorter-Documentation.pdf'
+    }
+}
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -140,7 +149,11 @@ foreach ($line in Get-Content -LiteralPath $manifestPath -Encoding utf8) {
     if ([string]::IsNullOrWhiteSpace($line)) { continue }
     $record = $line | ConvertFrom-Json
     if (-not $record.is_published) { continue }
-    $fullPath = Resolve-RepoPath $record.canonical_path
+    $canon = $record.canonical_path
+    if ($Lang -eq 'ru') {
+        $canon = $canon -replace '\.html$', '-ru.html'
+    }
+    $fullPath = Resolve-RepoPath $canon
     if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
         Write-Host "build-docs-pdf: skipped $($record.page_id) - $($record.canonical_path) does not exist" -ForegroundColor Yellow
         continue

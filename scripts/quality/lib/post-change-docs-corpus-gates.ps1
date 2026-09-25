@@ -28,7 +28,7 @@
     Sourced, never executed directly, so it declares no exit codes of its own.
 #>
 
-$runsDocsTermbase = Test-AnyChangedFile '^(docs/termbase\.jsonl|documentation/.*\.md)$'
+$runsDocsTermbase = Test-AnyChangedFile '^(docs/termbase\.jsonl|docs/content/recipes/.*\.md|documentation/.*\.md)$'
 $runsDocsCorpus = Test-AnyChangedFile '^(documentation/|docs/content/|docs/docs-pages-manifest\.jsonl$)'
 
 $argvDocsTermbase = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-docs-termbase.ps1"))
@@ -53,7 +53,7 @@ if ($runsDocsTermbase) {
     Invoke-Gate "docs-termbase" { Invoke-GateChild @argvDocsTermbase }
 }
 else {
-    Skip-Step "docs-termbase" "not applicable - no changed termbase or documentation/*.md page"
+    Skip-Step "docs-termbase" "not applicable - no changed termbase, recipe or documentation/*.md page"
 }
 
 # Each label is written out, never looped over: assert-gate-hints-sync.ps1 pairs a hint with a

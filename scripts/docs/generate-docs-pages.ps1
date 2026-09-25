@@ -5,9 +5,18 @@
 [CmdletBinding()]
 param (
     [switch]$Check,
-    [string]$ContentDir = "docs/content/recipes",
+    [string]$Lang = "en",
+    [string]$ContentDir,
     [string]$OutputDir = "documentation"
 )
+
+if (-not $ContentDir) {
+    if ($Lang -eq 'ru') {
+        $ContentDir = "docs/content/recipes-ru"
+    } else {
+        $ContentDir = "docs/content/recipes"
+    }
+}
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Resolve-Path "$PSScriptRoot/../.."
@@ -375,7 +384,7 @@ function Render-RecipeHtml([hashtable]$doc, [string]$outRel) {
     # Pre-HTML Chrome
     $sb.AppendLine(@"
 $frontMatter<!DOCTYPE html>
-<html lang="en">
+<html lang="$(if ($Lang -eq "ru") { "ru" } else { "en" })">
 
 <head>
     <meta charset="UTF-8">
@@ -463,9 +472,9 @@ $seoHead
 
         <!-- Breadcrumbs -->
         <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
-            <a href="${p}../index.html">Home</a>
+            <a href="${p}../$(if ($Lang -eq "ru") { "index-ru.html" } else { "index.html" })">$(if ($Lang -eq "ru") { "Главная" } else { "Home" })</a>
             <span class="doc-breadcrumb-separator">/</span>
-            <a href="${p}index.html">Documentation</a>
+            <a href="${p}$(if ($Lang -eq "ru") { "index-ru.html" } else { "index.html" })">$(if ($Lang -eq "ru") { "Документация" } else { "Documentation" })</a>
             <span class="doc-breadcrumb-separator">/</span>
             <span>$category</span>
             <span class="doc-breadcrumb-separator">/</span>
@@ -847,7 +856,7 @@ foreach ($rf in $recipeFiles) {
     $raw = Get-Content $rf.FullName -Raw -Encoding utf8
     $parsed = Parse-Frontmatter $raw
     $canonical = [string]$parsed.Meta['canonical_url']
-    $outRel = if ($canonical -match '^documentation/(.+/.+\.html)$') {
+    $outRel = if ($canonical -match '^documentation/(.+\.html)$') {
         $Matches[1]
     } else {
         [System.IO.Path]::ChangeExtension($rf.Name, '.html')

@@ -63,8 +63,11 @@ function New-BaseRecords {
 }
 
 $cleanPage = "# Sorting`n`nOpen the file browser and mark a favorite.`n"
+# A recipe keeps its prose in YAML: a key, a machine-key value and a page:/term: target are not prose.
+$recipeClean = "---`npage_id: settings.colour-theme`ncolour: blue`nshot_id: settings.favourite-grid`nnext_recipes:`n  - url: page:settings.colour-theme`ntext: |`n  Pick a [color](term:colour) here.`n---`n`nBody.`n"
 
 # Each case: Mutate edits the records (optional), Pages maps documentation-relative names to text,
+# Recipes maps docs/content/recipes-relative names to text,
 # Raw replaces the whole termbase text, NoTermbase/NoCorpus remove a part of the tree, Changed is
 # the -ChangedFiles value, Exit is the code the gate must return.
 $cases = @(
@@ -112,6 +115,14 @@ $cases = @(
         Changed = 'documentation/a.md,documentation/b.md'; Exit = 1 }
     @{ Name = 'changed termbase re-judges the whole corpus'; Pages = @{ 'a.md' = $cleanPage; 'sub/b.md' = "Open the explorer.`n" }
         Changed = 'docs/termbase.jsonl'; Exit = 1 }
+    @{ Name = 'recipe front-matter key, machine values and page: targets pass'; Recipes = @{ 'r.md' = $recipeClean }; Exit = 0 }
+    @{ Name = 'recipe prose value in the front matter fails'
+        Recipes = @{ 'r.md' = "---`npage_id: settings.x`nalt: A colour grid`n---`n`nBody.`n" }; Exit = 1; Expect = 'r.md:3:' }
+    @{ Name = 'recipe body after the front matter is judged'
+        Recipes = @{ 'r.md' = "---`ntitle: Colors`n---`n`nOpen the explorer.`n" }; Exit = 1; Expect = 'r.md:5:' }
+    @{ Name = 'changed recipe page is judged'; Recipes = @{ 'r.md' = "---`ntitle: A favourite`n---`n" }; Pages = @{ 'a.md' = $cleanPage }
+        Changed = 'docs/content/recipes/r.md'; Exit = 1 }
+    @{ Name = 'page: target outside the front matter passes'; Pages = @{ 'a.md' = "Read page:settings.colour-theme first.`n" }; Exit = 0 }
     @{ Name = 'missing corpus root passes with zero pages'; NoCorpus = $true; Exit = 0 }
 )
 
@@ -148,6 +159,14 @@ foreach ($case in $cases) {
                     New-Item -ItemType Directory -Path (Split-Path $pagePath -Parent) -Force | Out-Null
                     [IO.File]::WriteAllText($pagePath, $case.Pages[$name], $utf8)
                 }
+            }
+        }
+
+        if ($case.ContainsKey('Recipes')) {
+            foreach ($name in $case.Recipes.Keys) {
+                $recipePath = Join-Path $tree "docs/content/recipes/$name"
+                New-Item -ItemType Directory -Path (Split-Path $recipePath -Parent) -Force | Out-Null
+                [IO.File]::WriteAllText($recipePath, $case.Recipes[$name], $utf8)
             }
         }
 

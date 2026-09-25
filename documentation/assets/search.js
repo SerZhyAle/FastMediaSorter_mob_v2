@@ -120,6 +120,9 @@
         var terms = q.split(/\s+/).filter(function (t) { return t.length > 0; });
         var matches = [];
 
+        var currentPath = window.location.pathname;
+        var activeLang = (currentPath.indexOf('-ru.html') !== -1 || localStorage.getItem('sza-docs-lang') === 'ru') ? 'ru' : 'en';
+
         for (var i = 0; i < searchIndex.length; i++) {
             var item = searchIndex[i];
             var score = 0;
@@ -127,6 +130,11 @@
             var descLower = (item.description || '').toLowerCase();
             var keywordsLower = (item.keywords || '').toLowerCase();
             var categoryLower = (item.category || '').toLowerCase();
+
+            // Language match weighting
+            if (item.lang === activeLang || (!item.lang && activeLang === 'en')) {
+                score += 15;
+            }
 
             // Score evaluation
             if (titleLower === q) score += 100;

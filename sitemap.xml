@@ -3,22 +3,222 @@
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
     <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
     <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
     <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-it.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"/>
   </url>
   <url>
@@ -108,22 +308,222 @@
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
     <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
     <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
     <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_RU.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README_UK.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README.html"/>
   </url>
   <url>
@@ -871,36 +1271,6 @@
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/QUICK_START.html</loc>
   </url>
   <url>
-    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ar.html</loc>
-  </url>
-  <url>
-    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-bn.html</loc>
-  </url>
-  <url>
-    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-de.html</loc>
-  </url>
-  <url>
-    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-es.html</loc>
-  </url>
-  <url>
-    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-fr.html</loc>
-  </url>
-  <url>
-    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-hi.html</loc>
-  </url>
-  <url>
-    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-it.html</loc>
-  </url>
-  <url>
-    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-pt.html</loc>
-  </url>
-  <url>
-    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-ur.html</loc>
-  </url>
-  <url>
-    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/README-zh-hans.html</loc>
-  </url>
-  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/SMB_SETUP_GUIDE.html</loc>
   </url>
   <url>
@@ -976,283 +1346,619 @@
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/WHATS_NEW.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/audio/playing-and-organizing-music-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/audio/playing-and-organizing-music.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/audio/playlists-and-audio-queues-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/audio/playlists-and-audio-queues.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/batch-selection-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/batch-selection.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/grid-and-list-views-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/grid-and-list-views.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/sorting-and-filtering-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/sorting-and-filtering.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/camera-lenses-zoom-and-profiles-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/camera-lenses-zoom-and-profiles.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/edge-gestures-and-quick-access-panel-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/edge-gestures-and-quick-access-panel.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/quick-photo-capture-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/quick-photo-capture.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/screen-recording-and-audio-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/screen-recording-and-audio.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/screenshot-annotation-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/screenshot-annotation.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/documents/office-docs-support-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/documents/office-docs-support.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/documents/pdf-epub-viewing-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/documents/pdf-epub-viewing.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/documents/text-code-editor-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/documents/text-code-editor.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/flavors/extensions-and-plugins-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/flavors/extensions-and-plugins.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/flavors/multilingual-support-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/flavors/multilingual-support.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/flavors/overview-and-comparison-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/flavors/overview-and-comparison.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/backup-and-restore-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/backup-and-restore.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/glossary-ru.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/glossary.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/keyboard-dpad-tv-navigation-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/keyboard-dpad-tv-navigation.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/multi-window-and-foldables-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/multi-window-and-foldables.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/notifications-and-assistant-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/general/notifications-and-assistant.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/quick-tour-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/quick-tour.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/welcome-and-setup-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/welcome-and-setup.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/editing-photos-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/editing-photos.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/viewer-and-gestures-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/viewer-and-gestures.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/android-widgets-placement-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/android-widgets-placement.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/built-in-gadgets-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/built-in-gadgets.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/context-menus-and-actions-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/context-menus-and-actions.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/desktop-folders-and-pages-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/desktop-folders-and-pages.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/desktop-gestures-and-shortcuts-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/desktop-gestures-and-shortcuts.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/desktop-grid-and-icons-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/desktop-grid-and-icons.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/home-screen-widgets-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/home-screen-widgets.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/launcher-settings-and-reset-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/launcher-settings-and-reset.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/screen-dimming-and-timeout-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/screen-dimming-and-timeout.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/start-menu-and-all-apps-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/start-menu-and-all-apps.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/status-area-and-notifications-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/status-area-and-notifications.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/taskbar-and-dock-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/taskbar-and-dock.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/wallpapers-and-live-backgrounds-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/launcher/wallpapers-and-live-backgrounds.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/cloud-dropbox-onedrive-ru.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/cloud-dropbox-onedrive.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/cloud-google-drive-ru.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/cloud-google-drive.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/network-monitor-ru.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/network-monitor.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/network-sync-and-cache-ru.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/network-sync-and-cache.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server-ru.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/sftp-ftp-servers-ru.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/sftp-ftp-servers.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/smb-samba-shares-ru.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/smb-samba-shares.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/windows-companion-ru.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/windows-companion.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/casting-and-broadcast-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/casting-and-broadcast.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/pip-and-background-play-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/pip-and-background-play.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/subtitles-and-audio-tracks-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/subtitles-and-audio-tracks.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/video-playback-controls-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/video-playback-controls.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/built-in-mini-apps.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/calculator-and-stopwatch-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/calculator-and-stopwatch.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/device-diagnostics-and-logs-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/device-diagnostics-and-logs.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/mini-game-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/mini-game.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/usage-statistics-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/usage-statistics.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/backup-and-device-sync-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/backup-and-device-sync.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/controls-and-key-remapping-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/controls-and-key-remapping.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/display-and-appearance-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/display-and-appearance.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/playback-and-sorting-preferences-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/playback-and-sorting-preferences.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/privacy-and-network-security-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/privacy-and-network-security.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/settings-overview-and-search-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/settings-overview-and-search.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/background-transfers-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/background-transfers.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/batch-renaming-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/batch-renaming.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/capture-to-destination-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/capture-to-destination.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/cleaning-up-space-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/cleaning-up-space.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/destination-targets-setup-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/destination-targets-setup.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-copy-move-delete-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-copy-move-delete.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/network-and-cloud-sources-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/network-and-cloud-sources.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/scheduled-operations-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/scheduled-operations.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/sharing-and-backing-up-resources-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/sharing-and-backing-up-resources.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/storage-sources-setup-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/storage-sources-setup.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-pictures-and-badges-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-pictures-and-badges.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/custom-m3u-playlists-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/custom-m3u-playlists.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/favorites-and-epg-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/favorites-and-epg.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/live-stream-playback-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/live-stream-playback.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/shortcuts-widget-and-panel-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/shortcuts-widget-and-panel.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/tv-watch-vr-and-broadcast-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/tv-watch-vr-and-broadcast.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/drawing-and-image-markup-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/drawing-and-image-markup.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/inline-translation-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/inline-translation.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/ocr-text-recognition-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/ocr-text-recognition.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/passthrough-and-controllers.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/spatial-cinema-playback.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/health-and-activity-metrics-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/health-and-activity-metrics.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/installation-and-pairing-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/installation-and-pairing.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/phone-and-network-folders-on-watch-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/phone-and-network-folders-on-watch.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/standalone-music-playback-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/standalone-music-playback.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/tiles-and-complications-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/tiles-and-complications.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/watch-file-manager-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/watch-file-manager.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/watch-home-and-appearance-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/watch-home-and-appearance.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/watch-listening-and-broadcast-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/watch-listening-and-broadcast.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/watch-players-and-viewers-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/watch-players-and-viewers.html</loc>
   </url>
   <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/wrist-mini-apps-and-tools-ru.html</loc>
+  </url>
+  <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/wrist-mini-apps-and-tools.html</loc>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/wrist-stream-player-ru.html</loc>
   </url>
   <url>
     <loc>https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/wrist-stream-player.html</loc>

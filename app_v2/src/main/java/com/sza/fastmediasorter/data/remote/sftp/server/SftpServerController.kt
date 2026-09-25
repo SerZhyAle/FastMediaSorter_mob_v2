@@ -32,6 +32,7 @@ import org.apache.sshd.common.config.keys.AuthorizedKeyEntry
 import org.apache.sshd.common.config.keys.PublicKeyEntryResolver
 import org.apache.sshd.common.keyprovider.KeyPairProvider
 import org.apache.sshd.common.util.OsUtils
+import org.apache.sshd.common.util.io.PathUtils
 import org.apache.sshd.server.SshServer
 import org.apache.sshd.server.auth.password.PasswordAuthenticator
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator
@@ -142,6 +143,9 @@ class SftpServerController @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     private fun buildServer(config: SftpServerConfig, hostKey: KeyPair): SshServer {
         OsUtils.setAndroid(true)
+        // Android has no "user.home": without a resolver ServerBuilder's static init throws while locating the
+        // default authorized_keys file, and the class stays unusable for the rest of the process.
+        PathUtils.setUserHomeFolderResolver { context.filesDir.toPath() }
         return SshServer.setUpDefaultServer().apply {
             host = BIND_ALL_INTERFACES
             port = config.port

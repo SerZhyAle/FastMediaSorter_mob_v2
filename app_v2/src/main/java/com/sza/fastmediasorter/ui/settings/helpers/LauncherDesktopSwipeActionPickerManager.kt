@@ -51,9 +51,9 @@ class LauncherDesktopSwipeActionPickerManager(
         }
 
     /**
-     * S2301: the two paging routes carry their metadata here rather than in the shared catalog, because
-     * that catalog is keyed by [ScreenshotGestureAction] and neither route has - or should have - an
-     * enum constant of its own.
+     * S2301: the paging and black-screen routes carry their metadata here rather than in the shared
+     * catalog, because that catalog is keyed by [ScreenshotGestureAction] and none of them has - or
+     * should have - an enum constant of its own.
      */
     private fun metaFor(action: LauncherDesktopSwipeAction): GestureActionMeta = when (action) {
         LauncherDesktopSwipeAction.OpenAllApps ->
@@ -70,6 +70,12 @@ class LauncherDesktopSwipeActionPickerManager(
             R.string.launcher_desktop_swipe_explain_previous_screen,
             R.drawable.ic_arrow_back,
         )
+        LauncherDesktopSwipeAction.BlackScreen -> GestureActionMeta(
+            GestureActionGroup.LAUNCH,
+            R.string.launcher_action_black_screen,
+            R.string.launcher_desktop_swipe_explain_black_screen,
+            R.drawable.ic_black_screen,
+        )
         is LauncherDesktopSwipeAction.EdgeGestureAction ->
             ScreenshotGestureActionCatalog.metaFor(action.action)
     }
@@ -80,6 +86,7 @@ class LauncherDesktopSwipeActionPickerManager(
             LauncherDesktopSwipeAction.OpenAllApps,
             LauncherDesktopSwipeAction.NextScreen,
             LauncherDesktopSwipeAction.PreviousScreen,
+            LauncherDesktopSwipeAction.BlackScreen,
         )
     }
 }

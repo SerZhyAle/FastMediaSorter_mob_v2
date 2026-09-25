@@ -2160,7 +2160,8 @@ Builds the downloadable documentation PDF from the published documentation corpu
 scripts/docs/build-docs-pdf.ps1
   Builds the downloadable documentation PDF from the published documentation corpus (S2971).
   Params:
-    -OutputPath             [String] = 'documentation/assets/FastMediaSorter-Documentation.pdf'
+    -Lang                   [String] = 'en'
+    -OutputPath             [String]
     -BrowserPath            [String]
     -WorkDir                [String] = 'temp/docs-pdf'
     -TimeoutSeconds         [Int32] = 300
@@ -2241,7 +2242,8 @@ scripts/docs/generate-docs-pages.ps1
   Generator: Documentation HTML Pages Compiler
   Params:
     -Check              [SwitchParameter]
-    -ContentDir         [String] = "docs/content/recipes"
+    -Lang               [String] = "en"
+    -ContentDir         [String]
     -OutputDir          [String] = "documentation"
 ```
 
@@ -2272,6 +2274,19 @@ scripts/docs/generate-flavor-matrix.ps1
   Exit: 0 artifacts written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 could not verify: build file missing, productFlavors block not found,
 ```
 
+### generate-glossary.ps1
+Generator: Documentation Glossary Page Compiler
+
+```
+scripts/docs/generate-glossary.ps1
+  Generator: Documentation Glossary Page Compiler
+  Params:
+    -Check                [SwitchParameter]
+    -Lang                 [String] = "en"
+    -TermbasePath         [String] = "docs/termbase.jsonl"
+    -OutputPath           [String]
+```
+
 ### generate-oss-notices.ps1
 S1495 - OSS notice generator (single source of truth renderer).
 
@@ -2297,6 +2312,22 @@ scripts/docs/generate-site-languages.ps1
     -LocalesConfig         [String]
     -OutFile               [String]
   Exit: 0 written; 1 a declared locale has no endonym entry in the table; 2 the XML is missing or unparseable, or declares no locale
+```
+
+### generate-subject-index.ps1
+Generator for the documentation A-Z subject index (S2969).
+
+```
+scripts/docs/generate-subject-index.ps1
+  Generator for the documentation A-Z subject index (S2969).
+  Params:
+    -Check                [SwitchParameter]
+    -Lang                 [String] = "en"
+    -TermbasePath         [String] = "docs/termbase.jsonl"
+    -ManifestPath         [String] = "docs/docs-pages-manifest.jsonl"
+    -RecipesDir           [String] = "docs/content/recipes"
+    -OutputPath           [String]
+  Exit: 0 - subject index generated successfully or -Check verified; 1 - input file missing, output outdated on -Check, or Liquid template error
 ```
 
 ### OssDependencyParser.ps1
@@ -3187,11 +3218,23 @@ scripts/quality/assert-docs-termbase.ps1
   Gate: the documentation termbase is well-formed and no corpus page uses a forbidden synonym (S2974).
   Params:
     -Termbase             [String] = 'docs/termbase.jsonl'
-    -CorpusRoot           [String] = 'documentation'
+    -CorpusRoot           [String[]] = @('docs/content/recipes', 'documentation')
     -ChangedFiles         [String[]] = @()
     -Quiet                [SwitchParameter]
     -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
   Exit: 0 - the termbase is valid and no judged page uses a forbidden synonym; 1 - at least one schema finding or forbidden synonym, each printed as FAIL <path>:<line>: ..; 2 - cannot verify: the termbase or docs/flavors/flavor-matrix.json is missing or unreadable,
+```
+
+### assert-docs-translation-freshness.ps1
+Quality Gate: Documentation Translation Freshness & 1:1 Parity
+
+```
+scripts/quality/assert-docs-translation-freshness.ps1
+  Quality Gate: Documentation Translation Freshness & 1:1 Parity
+  Params:
+    -EnDir          [String] = "docs/content/recipes"
+    -RuDir          [String] = "docs/content/recipes-ru"
+    -DocDir         [String] = "documentation"
 ```
 
 ### assert-document-registry-coverage.ps1
@@ -3692,6 +3735,19 @@ scripts/quality/assert-listener-symmetry.ps1
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
   Exit: 0 - pass: at or below baseline, a report/list run, or a completed baseline write.; 1 - fail: the count rose above the baseline, or -UpdateBaseline was asked to RAISE it.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+```
+
+### assert-localized-page-set.ps1
+S1211 completeness gate: every site language carries every page of the Localized Page Set.
+
+```
+scripts/quality/assert-localized-page-set.ps1
+  S1211 completeness gate: every site language carries every page of the Localized Page Set.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
+  Exit: 0 every language carries every page, none left as a scaffold; 1 a localized page is missing or still carries the scaffold marker (each one is named); 2 cannot verify: the page set, the language list or an English source is missing
 ```
 
 ### assert-lock-path-coverage.ps1

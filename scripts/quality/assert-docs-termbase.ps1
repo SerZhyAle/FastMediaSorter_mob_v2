@@ -20,7 +20,10 @@
     canonical name or definition may contain a forbidden synonym.
 
     SCAN HALF. Every corpus page is judged for forbidden synonyms in prose only: fenced blocks,
-    backtick spans, link and image targets, bare URLs, HTML comments and HTML tags are skipped. A
+    backtick spans, link and image targets, page:/term: targets, bare URLs, HTML comments and HTML
+    tags are skipped. A recipe keeps its prose inside a YAML front matter, so there the snake_case
+    keys and every whole line of a machine key (page_id, shot_id, url and the like) are skipped too:
+    the key 'flavor:' opens every recipe and an id such as 'built-in-mini-apps' is not prose. A
     literal synonym matches case-insensitively on letter boundaries with an optional plural s/es;
     an entry prefixed 're:' is a .NET regex. An entry of the form 'word => replacement' names the
     word to suggest instead of the record's canonical name - a British spelling such as
@@ -39,12 +42,14 @@
     Termbase path, relative to -RepoRoot unless rooted. Default docs/termbase.jsonl.
 
 .PARAMETER CorpusRoot
-    Directory holding the corpus pages (*.md, recursive), relative to -RepoRoot unless rooted.
-    Default documentation.
+    Directories holding the corpus pages (*.md, recursive), relative to -RepoRoot unless rooted;
+    an array or a comma-joined string. Default docs/content/recipes and documentation: the recipes
+    are the sources, and documentation/ is scanned for any hand-written page beside the generated
+    HTML. With documentation/ alone the gate judged zero pages and passed every closure (S3530).
 
 .PARAMETER ChangedFiles
     The closure's changed set. Accepts an array or post-change.ps1's comma-joined single string.
-    Only .md members under -CorpusRoot are scanned, unless the set carries the termbase itself.
+    Only .md members under a -CorpusRoot are scanned, unless the set carries the termbase itself.
     Omit to scan the whole corpus.
 
 .PARAMETER Quiet
@@ -67,7 +72,7 @@
 [CmdletBinding()]
 param(
     [string] $Termbase = 'docs/termbase.jsonl',
-    [string] $CorpusRoot = 'documentation',
+    [string[]] $CorpusRoot = @('docs/content/recipes', 'documentation'),
     [string[]] $ChangedFiles = @(),
     [switch] $Quiet,
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
@@ -392,8 +397,15 @@ if ($needsStrings) {
 
 # ---------------------------------------------------------------- corpus pages
 
-$corpusFull = Resolve-RepoPath $CorpusRoot
-$corpusRel = (Get-Relative $corpusFull).TrimEnd('/')
+$corpusRoots = @($CorpusRoot |
+        Where-Object { $_ } |
+        ForEach-Object { $_ -split ',' } |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_ } |
+        ForEach-Object {
+            $full = Resolve-RepoPath $_
+            [pscustomobject]@{ Name = $_; Full = $full; Rel = (Get-Relative $full).TrimEnd('/') }
+        })
 $normChanged = @($ChangedFiles |
         Where-Object { $_ } |
         ForEach-Object { $_ -split ',' } |
@@ -407,7 +419,9 @@ if ($normChanged.Count -gt 0 -and -not $termbaseChanged) {
     foreach ($rel in $normChanged) {
         if ($rel -notmatch '(?i)\.md$') { continue }
         $full = Resolve-RepoPath $rel
-        if (-not (Get-Relative $full).StartsWith("$corpusRel/", [StringComparison]::OrdinalIgnoreCase)) { continue }
+        $fullRel = Get-Relative $full
+        $inCorpus = @($corpusRoots | Where-Object { $fullRel.StartsWith("$($_.Rel)/", [StringComparison]::OrdinalIgnoreCase) }).Count -gt 0
+        if (-not $inCorpus) { continue }
         if (-not (Test-Path -LiteralPath $full -PathType Leaf)) {
             if (-not $Quiet) { Write-Host "  skipped (not found): $rel" -ForegroundColor DarkGray }
             continue
@@ -417,11 +431,15 @@ if ($normChanged.Count -gt 0 -and -not $termbaseChanged) {
 }
 else {
     $scope = if ($termbaseChanged) { 'whole corpus - termbase changed' } else { 'whole corpus' }
-    if (Test-Path -LiteralPath $corpusFull -PathType Container) {
-        foreach ($f in (Get-ChildItem -LiteralPath $corpusFull -Recurse -File -Filter '*.md')) { $pages.Add($f.FullName) }
-    }
-    elseif (-not $Quiet) {
-        Write-Host "  corpus root absent, no page judged: $CorpusRoot" -ForegroundColor DarkGray
+    foreach ($root in $corpusRoots) {
+        if (Test-Path -LiteralPath $root.Full -PathType Container) {
+            foreach ($f in (Get-ChildItem -LiteralPath $root.Full -Recurse -File -Filter '*.md')) {
+                if (-not $pages.Contains($f.FullName)) { $pages.Add($f.FullName) }
+            }
+        }
+        elseif (-not $Quiet) {
+            Write-Host "  corpus root absent, no page judged there: $($root.Name)" -ForegroundColor DarkGray
+        }
     }
 }
 
@@ -441,9 +459,22 @@ $refDefinitionPattern = [regex]::new('(?m)^[ \t]*\[[^\]\n]+\]:[ \t]*\S+[^\n]*$')
 $urlPattern = [regex]::new('(?i)\b(?:https?|ftp)://\S+|\bwww\.\S+')
 $tagPattern = [regex]::new('<[^>\n]+>')
 $keepNewlines = [Text.RegularExpressions.MatchEvaluator] { param($m) $m.Value -replace '[^\n]', '' }
+# A recipe page is a YAML front matter whose values are the prose. Keys are lowercase snake_case,
+# so a capitalised "Note:" opening a prose line inside a block scalar survives.
+$frontMatterPattern = [regex]::new('(?s)\A---[ \t]*\r?\n.*?\n---[ \t]*(?=\r?\n|\z)')
+$machineKeyLinePattern = [regex]::new('(?m)^[ \t]*(?:-[ \t]+)?(?:page_id|category_slug|canonical_url|shot_id|screen_state|device_profile|url|badge_type|ticket|recipe_number|id|number)[ \t]*:[^\r\n]*')
+$yamlKeyPattern = [regex]::new('(?m)^([ \t]*(?:-[ \t]+)?)[a-z_][a-z0-9_]*[ \t]*:(?=\s|\z)')
+$pageTargetPattern = [regex]::new('(?<![\p{L}\p{N}_])(?:page|term):[\w.-]+')
+$frontMatterEvaluator = [Text.RegularExpressions.MatchEvaluator] {
+    param($m)
+    $fm = $machineKeyLinePattern.Replace($m.Value, ' ')
+    return $yamlKeyPattern.Replace($fm, '$1 ')
+}
 
 function Get-ProsePage([string] $Content) {
-    $t = $fenceBlockPattern.Replace($Content, $keepNewlines)
+    $t = $frontMatterPattern.Replace($Content, $frontMatterEvaluator, 1)
+    $t = $pageTargetPattern.Replace($t, ' ')
+    $t = $fenceBlockPattern.Replace($t, $keepNewlines)
     $t = $commentPattern.Replace($t, $keepNewlines)
     $t = $codeSpanPattern.Replace($t, ' ')
     $t = $linkTargetPattern.Replace($t, '] ')

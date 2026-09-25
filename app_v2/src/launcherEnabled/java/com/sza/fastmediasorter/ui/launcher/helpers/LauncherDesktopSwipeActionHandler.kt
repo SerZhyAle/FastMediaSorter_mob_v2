@@ -4,11 +4,12 @@ import android.app.Activity
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
+import timber.log.Timber
 
 /**
  * Routes actions configured for directional swipes on the launcher desktop.
  *
- * S2301: the three launcher-local routes arrive as callbacks rather than as work done here - each acts
+ * S2301: the launcher-local routes arrive as callbacks rather than as work done here - each acts
  * on the desktop that is already on screen, which this handler does not own.
  */
 class LauncherDesktopSwipeActionHandler(
@@ -18,6 +19,7 @@ class LauncherDesktopSwipeActionHandler(
     private val onOpenAllApps: () -> Unit,
     private val onNextScreen: () -> Unit,
     private val onPreviousScreen: () -> Unit,
+    private val onBlackScreen: () -> Unit,
 ) {
 
     suspend fun handle(action: LauncherDesktopSwipeAction, payload: String) {
@@ -25,6 +27,10 @@ class LauncherDesktopSwipeActionHandler(
             LauncherDesktopSwipeAction.OpenAllApps -> onOpenAllApps()
             LauncherDesktopSwipeAction.NextScreen -> onNextScreen()
             LauncherDesktopSwipeAction.PreviousScreen -> onPreviousScreen()
+            LauncherDesktopSwipeAction.BlackScreen -> {
+                Timber.d("S3525: desktop swipe raises the black screen")
+                onBlackScreen()
+            }
             is LauncherDesktopSwipeAction.EdgeGestureAction -> {
                 val handled = actionDispatcher.handlePreCaptureAction(activity, action.action, payload)
                 if (!handled) screenshotLaunchers.firstOrNull()?.launch(activity, action.action)

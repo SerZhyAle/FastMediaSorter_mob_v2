@@ -97,7 +97,7 @@ steps:
       desc: Settings, General group, Icon size for grid and Sync interval rows with the keyboard open over one of them.
   - number: 7
     id: housekeeping
-    title: Licences, scheduled jobs and destination folders find their place
+    title: Licenses, scheduled jobs and destination folders find their place
     text: |
       **Open Source Licenses** opens without a stutter, and an entry with nothing to say never shows a stray blank line. **Scheduled file operations**, in **Destinations**, is a single link row that opens the standalone [scheduled operations](term:scheduled-operation) screen instead of embedding the whole card in Settings; an old widget shortcut to the embedded card is redirected there automatically. The destination pickers for downloaded files and for screenshots use the same label-plus-value-plus-**Select** button pattern as the camera and video folder pickers, and any of them can point at a plain [local folder](term:local-folder) picked straight from the system folder browser - kept out of your general [resource](term:resource) list, used only as a write target for capture, screenshots, snapshots and auto-downloads.
     image_bookmark:
@@ -122,7 +122,7 @@ steps:
       title: "Screenshot: Copy confirmation"
       desc: A Settings dialog with named confirm/cancel buttons and the unified copy-confirmation message shown after a copy action.
 outcome: |
-  Settings stays a screen you can scan and search instead of one you scroll through blind: collapsible groups with icons and summaries, a keyword search that jumps straight to a row, one consistent row pattern everywhere, and device-profile, licence, scheduled-job and destination handling that all say clearly what they are doing.
+  Settings stays a screen you can scan and search instead of one you scroll through blind: collapsible groups with icons and summaries, a keyword search that jumps straight to a row, one consistent row pattern everywhere, and device-profile, license, scheduled-job and destination handling that all say clearly what they are doing.
 tips:
   - "**Looking for a setting hosted in a dialog, not a row?** The [settings reference](../../docs/SETTINGS_REFERENCE.html) covers dialog-hosted settings too, not only the rows in this list."
   - "**Changing themes, language or units next?** See [Themes, colors, language and units](page:settings.display-and-appearance)."

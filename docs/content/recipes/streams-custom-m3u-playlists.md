@@ -10,7 +10,7 @@ flavor: Standard, noLegal, Legacy and VR
 recipe_number: "03"
 canonical_url: documentation/streams/custom-m3u-playlists.html
 why: |
-  The built-in channel catalog covers a lot of ground, but it will never have everything - your favourite small radio station, a work IPTV feed, or a camera link someone sent you. FastMediaSorter lets you add any of these yourself: one channel at a time by its web address, or a whole station list at once by importing a playlist.
+  The built-in channel catalog covers a lot of ground, but it will never have everything - your favorite small radio station, a work IPTV feed, or a camera link someone sent you. FastMediaSorter lets you add any of these yourself: one channel at a time by its web address, or a whole station list at once by importing a playlist.
 
   An M3U playlist is a plain text file that lists stream web addresses one after another, usually with a name next to each one - it is one of the oldest and most common ways radio and IPTV providers publish their channel lists. See [M3U on Wikipedia](https://en.wikipedia.org/wiki/M3U) for the full format. FastMediaSorter downloads and reads the file for you; you never need to open or edit it yourself.
 ingredients:

@@ -55,6 +55,7 @@ class BlackScreenOverlayManager(
     private var dimClockView: DimClockOverlayView? = null
     private var wasFullscreenBeforeOverlay = false
     private var orientationBeforeDim: Int? = null
+    private var brightnessBeforeDim: Float? = null
 
     private fun resolveEntryPoint(context: Context): DimClockEntryPoint =
         EntryPoints.get(context.applicationContext, DimClockEntryPoint::class.java)
@@ -148,6 +149,7 @@ class BlackScreenOverlayManager(
         if (clockEnabled) {
             addClockView(activity)
         } else {
+            if (brightnessBeforeDim == null) brightnessBeforeDim = activity.window.attributes.screenBrightness
             setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
         }
     }
@@ -225,7 +227,8 @@ class BlackScreenOverlayManager(
         isVisible = false
         headingProviderLazy?.get()?.setActive(false)
 
-        setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
+        brightnessBeforeDim?.let { setScreenBrightness(activity, it) }
+        brightnessBeforeDim = null
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
         restoreHostOrientation(activity)
 
@@ -242,8 +245,10 @@ class BlackScreenOverlayManager(
     }
 
     /**
-     * S3256: overrides window screenBrightness to zero when dimmed screen clock is disabled,
-     * and restores to default on un-dim. Never touches Settings.System (S1796 ADR-2).
+     * S3256: overrides window screenBrightness to zero when dimmed screen clock is disabled.
+     * S3526: un-dim puts back the window's own value from before the dim, not the platform default, so a
+     * host that sets its own brightness keeps it; the clock mode never overrides, so it restores nothing.
+     * Never touches Settings.System (S1796 ADR-2).
      */
     private fun setScreenBrightness(activity: Activity, value: Float) {
         activity.window.attributes = activity.window.attributes.apply { screenBrightness = value }

@@ -2,7 +2,7 @@
 page_id: settings.display-and-appearance
 title: Themes, Colors, Language and Units - Making the App Look and Read Like Yours
 nav_title: Themes, colors, language and units
-description: Choosing a color theme or a custom accent, reading the app in your own language, switching to Big Buttons or Compact mode, turning decorative motion off, themed icons, the app-wide unit system, colour-coded panels and how the watch keeps the same look on a round screen.
+description: Choosing a color theme or a custom accent, reading the app in your own language, switching to Big Buttons or Compact mode, turning decorative motion off, themed icons, the app-wide unit system, color-coded panels and how the watch keeps the same look on a round screen.
 category: "Settings & Navigation"
 category_slug: settings
 ticket: S2962
@@ -32,7 +32,7 @@ steps:
     id: language
     title: Read the app in your own language
     text: |
-      **Language/Язык/Мова**, in **General**, opens a searchable list of every interface language. The app reads in thirteen of them: English, Russian and Ukrainian are complete, and Arabic, Bengali, Chinese (Simplified), French, German, Hindi, Italian, Portuguese, Spanish and Urdu carry roughly 98 percent of the text, flavor-specific screens included. A caption with no translation yet falls back to English instead of showing blank, so no screen is ever half-empty, and the system's own per-app language picker offers the same thirteen. On a device set to a language that writes its own digits - Arabic, Bengali or Urdu - creating a resource works normally, and the icon picker grid fills in as expected.
+      **Language/Язык/Мова**, in **General**, opens a searchable list of every interface language. The app reads in thirteen of them: English, Russian and Ukrainian are complete, and Arabic, Bengali, Chinese (Simplified), French, German, Hindi, Italian, Portuguese, Spanish and Urdu carry roughly 98 percent of the text, edition-specific screens included. A caption with no translation yet falls back to English instead of showing blank, so no screen is ever half-empty, and the system's own per-app language picker offers the same thirteen. On a device set to a language that writes its own digits - Arabic, Bengali or Urdu - creating a resource works normally, and the icon picker grid fills in as expected.
     image_bookmark:
       shot_id: settings.appearance-language-picker
       device_profile: phone
@@ -84,7 +84,7 @@ steps:
     id: units
     title: One unit system for the whole app, phone and watch
     text: |
-      **Unit system**, in **General**, lives in the main app settings and applies everywhere, on every flavor, and syncs to a paired watch. It decides more than temperature: the metric system gives a 24-hour clock, year-month-day dates, kilometres per hour, metres and kilometres, while the US system gives a 12-hour clock with AM/PM, month-day-year dates, miles per hour, feet and miles - on every surface of the phone and the watch, desktop gadgets and home-screen widgets included, overriding the device's own clock-format switch.
+      **Unit system**, in **General**, lives in the main app settings and applies everywhere, in every edition, and syncs to a paired watch. It decides more than temperature: the metric system gives a 24-hour clock, year-month-day dates, kilometres per hour, metres and kilometres, while the US system gives a 12-hour clock with AM/PM, month-day-year dates, miles per hour, feet and miles - on every surface of the phone and the watch, desktop gadgets and home-screen widgets included, overriding the device's own clock-format switch.
     image_bookmark:
       shot_id: settings.appearance-unit-system
       device_profile: phone
@@ -103,7 +103,7 @@ steps:
       device_profile: phone
       screen_state: main-window-panel-accent-colors
       alt: The main window with the programs panel and streams panel each shown in their own accent color, expanded and collapsed
-      caption: "Colour-coded panels on the main window."
+      caption: "Color-coded panels on the main window."
       title: "Screenshot: Panel accent colors"
       desc: Main window with the programs and streams panels visible, one expanded and one collapsed, both in their accent colors.
   - number: 8
@@ -143,4 +143,4 @@ next_recipes:
     description: Keyboard, D-pad and remote-control navigation across the app.
 ---
 
-A theme, a language and a size that fit you make every other screen easier to use, and FastMediaSorter keeps all three in [Settings](term:settings), **General**, together with the icon and unit choices that follow from them. This page covers picking a [color theme](term:color-theme) or an accent, reading the app in your own language, switching button size, turning decorative motion off, themed icons, the app-wide unit system, colour-coded panels and how the same look carries over to the [watch](term:watch).
+A theme, a language and a size that fit you make every other screen easier to use, and FastMediaSorter keeps all three in [Settings](term:settings), **General**, together with the icon and unit choices that follow from them. This page covers picking a [color theme](term:color-theme) or an accent, reading the app in your own language, switching button size, turning decorative motion off, themed icons, the app-wide unit system, color-coded panels and how the same look carries over to the [watch](term:watch).

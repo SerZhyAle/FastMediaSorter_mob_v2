@@ -62,7 +62,7 @@ steps:
     text: |
       Wherever a gesture or a button opens the [quick-access panel](term:quick-access-panel), it appears as the **Quick launch** dialog: a grid of your chosen apps and shortcuts, with an explicit close button (an X) beside the title, so a tap closes it as easily as Back or tapping outside.
 
-      Each built-in [program](term:program) on the grid - Calculator, Streams, Favorites and the rest - keeps its own accent colour on its icon in the grid, in its edit picker and in the programs menu, so you can spot the one you want by colour as well as by shape, in either theme. Monochrome icons such as Calculator or Settings stay legible on the light theme too, tinted to read against a bright background, while coloured app icons keep their own colours.
+      Each built-in [program](term:program) on the grid - Calculator, Streams, Favorites and the rest - keeps its own accent color on its icon in the grid, in its edit picker and in the programs menu, so you can spot the one you want by color as well as by shape, in either theme. Monochrome icons such as Calculator or Settings stay legible on the light theme too, tinted to read against a bright background, while colored app icons keep their own colors.
 
       The function picker for **Edit panel** also offers the same camera and video actions as the screen-edge gestures: **Take a photo and send to..**, **Take a photo and edit**, **Take a photo and OCR-translate**, and **Start video recording** - see [Customizing navigation gestures and shortcuts](page:launcher.desktop-gestures-and-shortcuts) for the gestures themselves.
 
@@ -71,10 +71,10 @@ steps:
       shot_id: launcher.quick-launch-dock-open
       device_profile: phone
       screen_state: launcher-quick-launch-panel-open
-      alt: The Quick launch dialog open over the desktop, showing a close button beside the title and a grid of coloured program icons
+      alt: The Quick launch dialog open over the desktop, showing a close button beside the title and a grid of colored program icons
       caption: "The Quick launch dock, with its own close button."
       title: "Screenshot: Quick launch dock"
-      desc: Quick launch dialog open, close X visible before the title, grid of app and program tiles with accent-coloured icons.
+      desc: Quick launch dialog open, close X visible before the title, grid of app and program tiles with accent-colored icons.
   - number: 5
     id: one-tap-switches
     title: Flip a switch without opening a screen
@@ -94,7 +94,7 @@ outcome: |
   The taskbar sits on the edge you picked, with the apps you use most pinned to it and your recent ones a long press away. The Start button, the app icon and Back all take you exactly where you expect, the quick-launch dock opens with one tap and closes with another, and a couple of switches never need their own screen.
 tips:
   - "**Can't find Unpin?** It only shows on an icon that is already pinned - a recent app's menu offers Pin to taskbar instead."
-  - "**Program colours look the same in both themes?** They are deliberately different per theme so they stay readable - only the neutral placeholders and third-party app icons stay plain."
+  - "**Program colors look the same in both themes?** They are deliberately different per theme so they stay readable - only the neutral placeholders and third-party app icons stay plain."
   - "**Looking for the long-press menu on a desktop shortcut instead of the taskbar?** That is covered in [Desktop context menus and fast actions](page:launcher.context-menus-and-actions)."
 next_recipes:
   - title: The Start menu and the full app list

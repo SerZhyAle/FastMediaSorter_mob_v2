@@ -76,7 +76,7 @@ layout: null
           "@type": "HowToStep",
           "position": 3,
           "name": "Add a Google Drive, Dropbox or OneDrive folder",
-          "text": "Tap Add, then Cloud Storage - \u0022Tap on a provider to authenticate and select folders\u0022. Tap Google Drive, Dropbox or OneDrive, sign in with your account in the window that opens, then pick the cloud folder you want to see in the app. Each chosen folder becomes a resource of its own. The details for each provider are in Google Drive integration and Dropbox, OneDrive and WebDAV.",
+          "text": "Tap Add, then Cloud Storage - \u0022Tap on a provider to authenticate and select folders\u0022. Tap Google Drive, Dropbox or OneDrive, sign in with your account in the window that opens, then pick the cloud folder you want to see in the app. Each chosen folder becomes a resource of its own. The details for each provider are in Google Drive integration and Dropbox and OneDrive.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/network-and-cloud-sources.html#cloud"
         },
         {
@@ -97,7 +97,7 @@ layout: null
           "@type": "HowToStep",
           "position": 6,
           "name": "Decide how long the streaming cache is kept",
-          "text": "Open Settings and find Network \u0026 Cache: - Streaming cache TTL - how long a cached file is kept after you last played it: Off, 1 day, 3 days, 7 days or 30 days. Older copies are removed by themselves. - Streaming cache cleanup - what happens when you leave the player: Ask each time, Auto-delete or Auto-keep. - Clear streaming cache - removes all cached copies now. The confirmation shows how much space you get back. When there is nothing to clear, the app says \u0022Streaming cache is empty. Nothing cached, nothing wasted.\u0022",
+          "text": "Open Settings, the General tab, and find Background sync, network and cache: - Streaming cache TTL - how long a cached file is kept after you last played it: Off, 1 day, 3 days, 7 days or 30 days. Older copies are removed by themselves. - Streaming cache cleanup - what happens when you leave the player: Ask each time, Auto-delete or Auto-keep. - Clear streaming cache - removes all cached copies now. The confirmation shows how much space you get back. When there is nothing to clear, the app says \u0022Streaming cache is empty. Nothing cached, nothing wasted.\u0022",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/network-and-cloud-sources.html#streaming-cache"
         },
         {
@@ -328,6 +328,19 @@ layout: null
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Network & Cloud</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../network/smb-samba-shares.html" class="doc-sidebar-link">Connecting SMB shares</a></li>
+                        <li><a href="../network/sftp-ftp-servers.html" class="doc-sidebar-link">Connecting SFTP and FTP</a></li>
+                        <li><a href="../network/windows-companion.html" class="doc-sidebar-link">Fast Media Sorter for Windows</a></li>
+                        <li><a href="../network/phone-as-sftp-server.html" class="doc-sidebar-link">Sharing folders from this phone</a></li>
+                        <li><a href="../network/cloud-google-drive.html" class="doc-sidebar-link">Google Drive integration</a></li>
+                        <li><a href="../network/cloud-dropbox-onedrive.html" class="doc-sidebar-link">Dropbox and OneDrive</a></li>
+                        <li><a href="../network/network-sync-and-cache.html" class="doc-sidebar-link">Keeping network folders up to date</a></li>
+                        <li><a href="../network/network-monitor.html" class="doc-sidebar-link">Checking your connection</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">OCR, Drawing & Sharing</div>
                     <ul class="doc-sidebar-list">
                         <li><a href="../tools/ocr-text-recognition.html" class="doc-sidebar-link">Text recognition (OCR)</a></li>
@@ -451,7 +464,7 @@ layout: null
                     <div class="doc-step-body">
                         <p>On the main screen tap <strong>Add</strong>, then <strong>Network Folder</strong> - "Add SMB network shares". The <strong>Create Network Resource (SMB)</strong> screen asks for:</p>
                         <ul><li><strong>Server IP</strong>, for example <code>192.168.1.100</code>. Not sure? Tap the network scan button and pick your computer or NAS from the list of devices the app finds.</li><li><strong>Username</strong> and <strong>Password</strong> of the shared folder, and a <strong>Domain</strong> only if your network uses one ("Leave empty if not needed").</li><li><strong>Port</strong> - leave <code>445</code> unless your administrator told you otherwise.</li></ul>
-                        <p>Tap <strong>Scan host</strong> to list the shared folders on that computer, tick the ones you want and add them. <strong>Test connection</strong> checks the name and password without adding anything. The full walk-through, including how to share a folder on Windows, is in <span class="doc-bookmark" data-page-id="network.smb-samba-shares" title="Covered in S2950">Connecting SMB/Windows shares</span>.</p>
+                        <p>Tap <strong>Scan host</strong> to list the shared folders on that computer, tick the ones you want and add them. <strong>Test connection</strong> checks the name and password without adding anything. The full walk-through, including how to share a folder on Windows, is in <a href="../network/smb-samba-shares.html" class="doc-link">Connecting SMB/Windows shares</a>.</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="storage.add-smb-form"
                              data-device-profile="phone"
@@ -479,7 +492,7 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Tap <strong>Add</strong>, then <strong>SFTP / FTP</strong>. On the <strong>Add S/FTP Resource</strong> screen choose <strong>SFTP</strong> or <strong>FTP</strong> at the top; the port fills in by itself (22 for SFTP, 21 for FTP). Enter the <strong>Host</strong>, the <strong>Username</strong> and the folder path, for example <code>/home/user/media</code> or just <code>/</code>.</p>
-                        <p>For SFTP you can sign in with a <strong>Password</strong> or with an <strong>SSH Key</strong>: paste the key or tap <strong>Load File</strong>, and add the key's passphrase if it has one. Tap <strong>Test Connection</strong>, then <strong>Add Resource</strong>. More in <span class="doc-bookmark" data-page-id="network.sftp-ftp-servers" title="Covered in S2950">Connecting SFTP and FTP servers</span>.</p>
+                        <p>For SFTP you can sign in with a <strong>Password</strong> or with an <strong>SSH Key</strong>: paste the key or tap <strong>Load File</strong>, and add the key's passphrase if it has one. Tap <strong>Test Connection</strong>, then <strong>Add Resource</strong>. More in <a href="../network/sftp-ftp-servers.html" class="doc-link">Connecting SFTP and FTP servers</a>.</p>
                     </div>
                 </div>
 
@@ -491,7 +504,7 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Tap <strong>Add</strong>, then <strong>Cloud Storage</strong> - "Tap on a provider to authenticate and select folders". Tap <strong>Google Drive</strong>, <strong>Dropbox</strong> or <strong>OneDrive</strong>, sign in with your account in the window that opens, then pick the cloud folder you want to see in the app.</p>
-                        <p>Each chosen folder becomes a resource of its own. The details for each provider are in <span class="doc-bookmark" data-page-id="network.cloud-google-drive" title="Covered in S2950">Google Drive integration</span> and <span class="doc-bookmark" data-page-id="network.cloud-dropbox-onedrive" title="Covered in S2950">Dropbox, OneDrive and WebDAV</span>.</p>
+                        <p>Each chosen folder becomes a resource of its own. The details for each provider are in <a href="../network/cloud-google-drive.html" class="doc-link">Google Drive integration</a> and <a href="../network/cloud-dropbox-onedrive.html" class="doc-link">Dropbox and OneDrive</a>.</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="storage.add-cloud-providers"
                              data-device-profile="phone"
@@ -559,7 +572,7 @@ layout: null
                         <h2 class="doc-step-title">Decide how long the streaming cache is kept</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Open <strong>Settings</strong> and find <strong>Network & Cache</strong>:</p>
+                        <p>Open <strong>Settings</strong>, the <strong>General</strong> tab, and find <strong>Background sync, network and cache</strong>:</p>
                         <ul><li><strong>Streaming cache TTL</strong> - how long a cached file is kept after you last played it: <strong>Off</strong>, <strong>1 day</strong>, <strong>3 days</strong>, <strong>7 days</strong> or <strong>30 days</strong>. Older copies are removed by themselves.</li><li><strong>Streaming cache cleanup</strong> - what happens when you leave the player: <strong>Ask each time</strong>, <strong>Auto-delete</strong> or <strong>Auto-keep</strong>.</li><li><strong>Clear streaming cache</strong> - removes all cached copies now. The confirmation shows how much space you get back. When there is nothing to clear, the app says "Streaming cache is empty. Nothing cached, nothing wasted."</li></ul>
                     </div>
                 </div>
@@ -596,11 +609,11 @@ layout: null
                 <div class="doc-next-section">
                     <div class="doc-next-title">What to Try Next: Related Recipes</div>
                     <div class="doc-next-grid">
-                        <div class="doc-next-card">
+                        <a href="../network/smb-samba-shares.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
-                            <h4><span class="doc-bookmark" data-page-id="network.smb-samba-shares">Connecting SMB/Windows shares [Planned]</span></h4>
+                            <h4>Connecting SMB/Windows shares</h4>
                             <p>The full walk-through for shared folders on Windows and NAS.</p>
-                        </div>
+                        </a>
                         <a href="sharing-and-backing-up-resources.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-other">Storage</span>
                             <h4>Sharing and backing up your resources</h4>

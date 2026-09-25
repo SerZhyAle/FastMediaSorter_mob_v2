@@ -73,7 +73,7 @@ steps:
     id: status-dot-and-menu
     title: Read the grid tile's status dot and open its menu
     text: |
-      Every grid tile carries a small dot in the bottom-left corner: a hollow ring means the channel has not been played yet, a check mark means it played back fine last time, and an exclamation mark means the last attempt failed. Shape and colour both change, so the meaning still comes through in black and white.
+      Every grid tile carries a small dot in the bottom-left corner: a hollow ring means the channel has not been played yet, a check mark means it played back fine last time, and an exclamation mark means the last attempt failed. Shape and color both change, so the meaning still comes through in black and white.
 
       Tap the three-dot button in the top-right corner of a tile to open its menu - the same commands as the list row's overflow menu, including editing, sharing the link and removing the channel.
     image_bookmark:
@@ -138,7 +138,7 @@ outcome: |
 tips:
   - "**A tile still shows a flag or a plain icon after a while?** That channel is not in the current picture pack yet, or you have not downloaded the pack - see step 6 above."
   - "**Want to know exactly why a channel is badged?** Open its **About this channel** window from the tile or row menu for the full explanation."
-  - "**Only care about the channels you already trust?** Pinning keeps your favourites at the top regardless of pictures or badges - see [Pinned and favorite channels](page:streams.favorites-and-epg)."
+  - "**Only care about the channels you already trust?** Pinning keeps your favorites at the top regardless of pictures or badges - see [Pinned and favorite channels](page:streams.favorites-and-epg)."
 next_recipes:
   - title: Browsing internet stream channels
     url: page:streams.channel-catalog-browsing

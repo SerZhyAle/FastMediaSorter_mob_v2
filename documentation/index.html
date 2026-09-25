@@ -112,9 +112,10 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="sample-recipe.html" class="doc-header-link">Audio Recipe</a>
-                <a href="sample-settings-recipe.html" class="doc-header-link">Settings Recipe</a>
-                <a href="sample-program-recipe.html" class="doc-header-link">Programs Recipe</a>
+                <a href="index.html" class="doc-header-link active">Docs Home</a>
+                <a href="overview.html" class="doc-header-link">Overview</a>
+                <a href="subject-index.html" class="doc-header-link">Subject Index</a>
+                <a href="general/glossary.html" class="doc-header-link">Glossary</a>
                 <a href="design-system/index.html" class="doc-header-link">Design System</a>
                 
                 <!-- 13-Language Selector -->
@@ -155,22 +156,32 @@ layout: null
             <!-- Sidebar -->
             <aside class="doc-sidebar" aria-label="Documentation Navigation">
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Getting Started</div>
+                    <div class="doc-sidebar-title">Discovery &amp; Orientation</div>
                     <ul class="doc-sidebar-list">
                         <li><a href="index.html" class="doc-sidebar-link active">Documentation Home</a></li>
+                        <li><a href="overview.html" class="doc-sidebar-link">Product Overview</a></li>
+                        <li><a href="subject-index.html" class="doc-sidebar-link">A-Z Subject Index</a></li>
+                        <li><a href="general/glossary.html" class="doc-sidebar-link">Glossary of Terms</a></li>
+                        <li><a href="design-system/index.html" class="doc-sidebar-link">Design System</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Featured Recipes</div>
+                    <ul class="doc-sidebar-list">
                         <li><a href="sample-recipe.html" class="doc-sidebar-link">Audio Player Recipe</a></li>
                         <li><a href="sample-settings-recipe.html" class="doc-sidebar-link">Settings Recipe</a></li>
                         <li><a href="sample-program-recipe.html" class="doc-sidebar-link">Programs Recipe</a></li>
-                        <li><a href="design-system/index.html" class="doc-sidebar-link">Design System</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Core Topics</div>
                     <ul class="doc-sidebar-list">
+                        <li><a href="#getting-started" class="doc-sidebar-link">Getting Started</a></li>
                         <li><a href="#storage" class="doc-sidebar-link">Storage &amp; Operations</a></li>
                         <li><a href="#network" class="doc-sidebar-link">Network &amp; Cloud</a></li>
                         <li><a href="#media" class="doc-sidebar-link">Audio, Video &amp; Photos</a></li>
                         <li><a href="#launcher" class="doc-sidebar-link">Launcher &amp; Desktop</a></li>
+                        <li><a href="#settings" class="doc-sidebar-link">Settings &amp; Navigation</a></li>
                         <li><a href="#wear" class="doc-sidebar-link">Wear OS Smartwatch</a></li>
                         <li><a href="#vr" class="doc-sidebar-link">VR &amp; Spatial Cinema</a></li>
                     </ul>
@@ -180,15 +191,36 @@ layout: null
             <!-- Main Portal Content -->
             <main class="doc-content" id="main-content">
                 <header class="doc-page-header" style="margin-bottom: 2.5rem;">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                        <span class="doc-badge doc-badge-standard">Documentation Portal</span>
+                        <span class="doc-badge doc-badge-music">22 Categories</span>
+                        <span class="doc-badge doc-badge-docs">105 Recipes</span>
+                    </div>
                     <h1 style="font-size: 2.5rem; margin-bottom: 0.75rem;">Fast Media Sorter Documentation</h1>
                     <p class="doc-lead" style="font-size: 1.2rem; max-width: 780px;">
-                        Welcome to the official cookbook for Fast Media Sorter. Practical step-by-step guides, tips, and recipes to organize, stream, and play your media collections across Android phones, tablets, TVs, smartwatches, and VR.
+                        Welcome to the official documentation hub for Fast Media Sorter. Practical step-by-step guides, cookbook recipes, and architecture reference to organize, stream, and play media across Android phones, tablets, TVs, smartwatches, and VR.
                     </p>
+
+                    <!-- Navigation Action Buttons -->
+                    <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <a href="overview.html" class="doc-btn doc-btn-primary" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                            <span>🌟</span> Product Overview
+                        </a>
+                        <a href="#categories" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
+                            <span>📑</span> Table of Contents
+                        </a>
+                        <a href="subject-index.html" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
+                            <span>🔤</span> A-Z Subject Index
+                        </a>
+                        <a href="general/glossary.html" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
+                            <span>📚</span> Glossary
+                        </a>
+                    </div>
 
                     <div style="margin-top: 1.5rem;">
                         <button class="doc-search-trigger" data-search-trigger style="padding: 10px 20px; font-size: 1rem;">
                             <span>🔍</span>
-                            <span>Search all 75 recipes and features...</span>
+                            <span>Search all 105 recipes, topics and features...</span>
                             <kbd style="margin-left: 8px;">Ctrl + K</kbd>
                         </button>
                     </div>
@@ -282,9 +314,18 @@ layout: null
 
                         <!-- S2950 -->
                         <div class="doc-next-card" id="network">
-                            <span class="doc-badge doc-badge-docs doc-badge-sm">S2950</span>
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Network &amp; Cloud</span>
                             <h4>Network Folders &amp; Clouds</h4>
-                            <p>Connecting SMB Windows shares, SFTP/FTP servers, Google Drive, and Dropbox.</p>
+                            <ul>
+                                <li><a href="network/smb-samba-shares.html" class="doc-link">Connecting SMB shares</a></li>
+                                <li><a href="network/sftp-ftp-servers.html" class="doc-link">Connecting SFTP and FTP</a></li>
+                                <li><a href="network/windows-companion.html" class="doc-link">Fast Media Sorter for Windows</a></li>
+                                <li><a href="network/phone-as-sftp-server.html" class="doc-link">Sharing folders from this phone</a></li>
+                                <li><a href="network/cloud-google-drive.html" class="doc-link">Google Drive integration</a></li>
+                                <li><a href="network/cloud-dropbox-onedrive.html" class="doc-link">Dropbox and OneDrive</a></li>
+                                <li><a href="network/network-sync-and-cache.html" class="doc-link">Keeping network folders up to date</a></li>
+                                <li><a href="network/network-monitor.html" class="doc-link">Checking your connection</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2951 -->
@@ -445,6 +486,7 @@ layout: null
                                 <li><a href="general/keyboard-dpad-tv-navigation.html" class="doc-link">Keyboard, D-pad and TV control</a></li>
                                 <li><a href="general/multi-window-and-foldables.html" class="doc-link">Split-screen, freeform windows and foldables</a></li>
                                 <li><a href="general/notifications-and-assistant.html" class="doc-link">Notifications, the startup splash and assistant actions</a></li>
+                                <li><a href="general/glossary.html" class="doc-link">Glossary of terms and concepts</a></li>
                             </ul>
                         </div>
 
@@ -505,6 +547,9 @@ layout: null
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
                 <a href="../privacy.html">Privacy Policy</a>
+                <a href="overview.html">Overview</a>
+                <a href="subject-index.html">Subject Index</a>
+                <a href="general/glossary.html">Glossary</a>
                 <a href="design-system/index.html">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

@@ -106,3 +106,4 @@ S2963  Documentation pages and corpus manifests only (docs/content, documentatio
 S2965  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of the three watch media pages on a phone and a watch emulator is the evidence.
 S2966  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of the six watch everyday-use pages on a phone and a watch emulator is the evidence.
 S3480  Backup rules XML, manifest attributes and a gate script only; no .kt touched - bmgr backup/restore on the watch showing the two encrypted prefs files are left out is the evidence.
+S2950  Documentation pages and corpus manifests only (docs/content, documentation/, docs/*.jsonl); no .kt touched - a plain-reader walk of the eight network and cloud pages on an emulator and the S2978 screenshots on the owner's phone are the evidence.

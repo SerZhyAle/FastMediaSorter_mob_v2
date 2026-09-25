@@ -4181,4 +4181,7 @@
     <string name="reader_theme_system">Системна</string>
     <string name="broadcast_control_mode_switching">Режим трансляції змінюється. Глядачам потрібно знову відкрити трансляцію за оновленим посиланням або QR-кодом.</string>
     <string name="broadcast_share_qr_fullscreen_cd">QR-код трансляції на весь екран. Натисніть, щоб повернутися.</string>
+    <string name="launcher_settings_taskbar_placement_left">Ліворуч</string>
+    <string name="launcher_settings_taskbar_placement_right">Праворуч</string>
+    <string name="launcher_desktop_swipe_explain_black_screen">Закриває екран чорним екраном із годинником; дотик повертає робочий стіл.</string>
 </resources>

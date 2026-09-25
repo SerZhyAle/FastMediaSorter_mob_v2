@@ -4259,4 +4259,7 @@
     <string name="reader_theme_system">System</string>
     <string name="broadcast_control_mode_switching">Switching the broadcast mode. Viewers reopen the stream by the updated link or QR code.</string>
     <string name="broadcast_share_qr_fullscreen_cd">Broadcast QR code, full screen. Tap to return.</string>
+    <string name="launcher_settings_taskbar_placement_left">Left</string>
+    <string name="launcher_settings_taskbar_placement_right">Right</string>
+    <string name="launcher_desktop_swipe_explain_black_screen">Covers the screen with the black screen and its clock; a touch brings the desktop back.</string>
 </resources>

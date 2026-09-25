@@ -37,6 +37,7 @@ import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherCellMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSectionCollapseManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarComposition
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarEdge
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarIcon
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperTuning
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
@@ -319,18 +320,19 @@ class LauncherHomeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherReplaceSystemStatusArea)
 
     /**
-     * S1643: whether the taskbar composition is anchored to the top screen edge instead of the bottom one.
+     * S1643: the screen edge the taskbar composition is anchored to; S3523 widened it from top-or-bottom to
+     * all four edges.
      *
      * A [StateFlow] rather than a plain flow because the Start menu reads the current value synchronously
      * while it builds its dialog, before any collector could have delivered a first value.
      */
-    val taskbarAtTop: StateFlow<Boolean> = settingsRepository.getSettings()
-        .map { it.launcherTaskbarPlacement == AppSettings.LAUNCHER_TASKBAR_PLACEMENT_TOP }
+    val taskbarEdge: StateFlow<LauncherTaskbarEdge> = settingsRepository.getSettings()
+        .map { LauncherTaskbarEdge.fromToken(it.launcherTaskbarPlacement) }
         .distinctUntilChanged()
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
-            settingsDefaults.launcherTaskbarPlacement == AppSettings.LAUNCHER_TASKBAR_PLACEMENT_TOP,
+            LauncherTaskbarEdge.fromToken(settingsDefaults.launcherTaskbarPlacement),
         )
 
     /**

@@ -137,7 +137,7 @@ next_recipes:
     badge: Documents
     badge_type: docs
     description: Read books in your favorite font and colors, and open Office files.
-  - title: Built-in mini-apps
+  - title: Built-in programs
     url: page:programs.built-in-mini-apps
     badge: Programs
     badge_type: docs

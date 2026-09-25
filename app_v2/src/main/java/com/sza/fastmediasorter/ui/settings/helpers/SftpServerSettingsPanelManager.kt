@@ -118,16 +118,29 @@ class SftpServerSettingsPanelManager(
         }
     }
 
+    /**
+     * A tap flips what the card shows, so the command comes from the server's state, not from the
+     * switch's own checked value: a switch drawn off while internally checked turned every tap on an
+     * "Off" card into a stop (S3532).
+     */
     private fun onToggle(checked: Boolean) {
         Timber.d("S3041: server toggle %s", checked)
-        launchInView { manageSftpServer.setEnabled(checked) }
-        if (checked) SftpServerService.start(context) else SftpServerService.stop(context)
+        val state = manageSftpServer.state.value
+        val start = !state.isActive()
+        if (checked != start) {
+            Timber.w("SftpServerSettingsPanelManager: switch read %s against %s; following the server", checked, state)
+            binding.rowSftpServerEnabled.setCheckedSilently(start)
+        }
+        launchInView { manageSftpServer.setEnabled(start) }
+        if (start) SftpServerService.start(context) else SftpServerService.stop(context)
     }
+
+    private fun SftpServerState.isActive(): Boolean =
+        this is SftpServerState.Running || this is SftpServerState.Starting
 
     private fun render(config: SftpServerConfig, state: SftpServerState) {
         lastConfig = config
-        val active = state is SftpServerState.Running || state is SftpServerState.Starting
-        binding.rowSftpServerEnabled.setCheckedSilently(active)
+        binding.rowSftpServerEnabled.setCheckedSilently(state.isActive())
         binding.textSftpServerStatus.text = statusText(config, state)
         renderCredentials(state)
         renderQrAvailability(state)
